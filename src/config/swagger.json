@@ -1,0 +1,501 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "EvacConnect API Documentation",
+    "version": "1.0.0",
+    "title": "EvacConnect API",
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "users"
+    },
+    {
+      "name": "locations"
+    },
+    {
+      "name": "accounts"
+    }
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get users and search using full name",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "fullname",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order_by",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "archived",
+            "in": "query",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/user/{user_id}": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get user by id",
+        "description": "",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "type": "number",
+            "required": true,
+            "description": "ID of the user to get."
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/user/authenticate": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Authenticate username/email and password",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "username_email": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/users/create": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "To create multiple users or single user then returns users data",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "users_data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateUserStructure"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/users/invite": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "To invite a user and sends a code",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "user_data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "user_id": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/locations/get": {
+      "post": {
+        "tags": [
+          "locations"
+        ],
+        "summary": "Get locations and search using name",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "order_by": {
+                  "type": "string"
+                },
+                "order": {
+                  "type": "string"
+                },
+                "archived": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/locations/get/{location_id}": {
+      "get": {
+        "tags": [
+          "locations"
+        ],
+        "summary": "Get location",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "location_id",
+            "in": "path",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/accounts/get": {
+      "post": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Get accounts and search using account name",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "properties": {
+                "account_name": {
+                  "type": "string"
+                },
+                "address": {
+                  "type": "string"
+                },
+                "order_by": {
+                  "type": "string"
+                },
+                "order": {
+                  "type": "string"
+                },
+                "archived": {
+                  "type": "number"
+                },
+                "limit": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/accounts/get/{account_id}": {
+      "get": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Get account",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/accounts/members/{account_id}": {
+      "get": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Get account",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/accounts/generate_code/{length}/{many}": {
+      "get": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Get unique generated code",
+        "description": "",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "length",
+            "type": "number",
+            "required": true,
+            "description": "length of code."
+          },
+          {
+            "in": "path",
+            "name": "many",
+            "type": "number",
+            "required": true,
+            "description": "how many codes will be generated"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "CreateUserStructure": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "object",
+          "description": "should be in numeric index",
+          "properties": {
+            "0": {
+              "type": "object",
+              "properties": {
+                "account_id": {
+                  "type": "integer"
+                },
+                "first_name": {
+                  "type": "string"
+                },
+                "last_name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "area_code": {
+                  "type": "string"
+                },
+                "mobile_number": {
+                  "type": "number"
+                },
+                "role_id": {
+                  "type": "integer"
+                },
+                "mobility_impaired": {
+                  "type": "boolean"
+                },
+                "mobility_details": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "uptop_date": {
+                      "type": "string"
+                    },
+                    "assistant_type": {
+                      "type": "string"
+                    },
+                    "evacuation_equipment_type": {
+                      "type": "string"
+                    },
+                    "evacuation_egress_procedure": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ApiResponseStructure": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

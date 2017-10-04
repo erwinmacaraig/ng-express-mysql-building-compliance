@@ -6,6 +6,9 @@ import * as path from 'path';
 
 import { IndexRoute } from './routes/index';
 
+import * as swaggerUi from 'swagger-ui-express';
+const swaggerDocument = require('./config/swagger.json');
+
 /**
  * The server.
  *
@@ -69,6 +72,8 @@ export class Server {
         extended: true
       }));
 
+    this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
       // catch 404 and forward to error handler
       this.app.use(function(err: any, req: express.Request, res: express.Response, next: express.NextFunction) {
           err.status = 404;
@@ -89,6 +94,8 @@ export class Server {
 
       // IndexRoute
       IndexRoute.create(router);
+
+      this.app.use('/api/v1', router);
 
       // use router middleware
       this.app.use(router);
