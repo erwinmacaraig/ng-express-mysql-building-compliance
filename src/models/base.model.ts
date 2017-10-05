@@ -11,9 +11,16 @@ export abstract class BaseClass {
         }
     }
 
-    protected abstract load();
 
-    public setID(id: number) {
+    protected abstract load(): void;
+
+    protected abstract dbUpdate(): void;
+
+    protected abstract dbInsert(): void;
+
+    protected abstract create(createData: {}): void;
+
+    public setID(id: number): void {
         this.id = id;
     }
 
@@ -25,20 +32,23 @@ export abstract class BaseClass {
         return this.dbData;
     }
 
-    public get(fieldname: string) {
-        if(fieldname in this.dbData) {
-            return this.dbData[fieldname];
+    public get(fieldName: string): number|string {
+        if(fieldName in this.dbData) {
+            return this.dbData[fieldName];
         }
     }
 
-    
+    public set(fieldName: string, fieldValue: number|string): void {
+        this.dbData[fieldName] = fieldValue;
+    }
 
-
-
-
-
-
-
-
+    public write() {
+        if(this.ID()) {
+            this.dbUpdate();
+        }
+        else {
+            this.dbInsert();
+        }
+    }
 
 }

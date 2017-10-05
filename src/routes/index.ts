@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
+import { Sample } from '../models/sample';
+
 
 
 /**
@@ -43,6 +45,13 @@ export class IndexRoute extends BaseRoute {
    * @next {NextFunction} Execute the next method.
    */
   public index(req: Request, res: Response, next: NextFunction) {
+
+    const sample = new Sample();
+    sample.set('field_one', 'this is field one');
+    sample.set('field_num', 10);
+
+    console.log(sample.getDBData());
+
     // set options
     const options: Object = {
       'title': 'Evac Connect Platform',
