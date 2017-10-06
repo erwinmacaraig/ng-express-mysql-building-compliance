@@ -2,7 +2,7 @@
 export abstract class BaseClass {
 
     protected id: number = 0;
-    protected dbData: {}; 
+    protected dbData = {};
     protected fields: Array<string> = [];
 
     constructor(id?: number) {
@@ -12,7 +12,8 @@ export abstract class BaseClass {
     }
 
 
-    protected abstract load(): void;
+    //protected abstract load(callback:()=>any): void;
+    //protected abstract load(): void;
 
     protected abstract dbUpdate(): void;
 
