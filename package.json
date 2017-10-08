@@ -23,6 +23,7 @@
     "@angular/platform-browser-dynamic": "^4.2.4",
     "@angular/router": "^4.2.4",
     "body-parser": "^1.18.2",
+    "bootstrap": "^3.3.7",
     "cookie-parser": "^1.4.3",
     "core-js": "^2.4.1",
     "debug": "^3.1.0",
@@ -32,6 +33,7 @@
     "morgan": "^1.9.0",
     "mysql2": "^1.4.2",
     "rxjs": "^5.4.2",
+    "swagger-ui-express": "^2.0.8",
     "zone.js": "^0.8.14"
   },
   "devDependencies": {
