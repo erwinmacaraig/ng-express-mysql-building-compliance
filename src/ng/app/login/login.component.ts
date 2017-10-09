@@ -19,4 +19,8 @@ export class LoginComponent implements OnInit {
   	console.log(f);
   }
 
+  invitationCodeForm(f: NgForm){
+    console.log(f);
+  }
+
 }
