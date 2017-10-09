@@ -6,7 +6,7 @@ const dbconfig = require('../config/db');
 import * as Promise from 'promise';
 
 export class User extends BaseClass {
-    
+
     constructor(id?: number) {
         super();
         if (id) {
@@ -15,16 +15,15 @@ export class User extends BaseClass {
     }
     /*
      load = new Promise((resolve, reject) => {
-        const sql_load = 'SELECT * FROM users WHERE user_id = ?'; 
+        const sql_load = 'SELECT * FROM users WHERE user_id = ?';
         const uid = [this.id];
         const connection = db.createConnection(dbconfig);
         connection.query(sql_load, uid, (error, results, fields) => {
              if (error) {
                return console.log(error);
              }
-             this.dbData = results[0]; 
-             resolve(this.dbData);            
-        });
+             this.dbData = results[0];
+             resolve(this.dbData);
     });
     */
     /*
@@ -36,12 +35,12 @@ export class User extends BaseClass {
              if (error) {
                return console.log(error);
              }
-             this.dbData = results[0];   
-             callback();          
+             this.dbData = results[0];
+             callback();
         });
     }
     */
-    
+
     public load() {
          return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM users WHERE user_id = ?';
@@ -51,40 +50,38 @@ export class User extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              this.dbData = results[0];                           
+              this.dbData = results[0];
               resolve(this.dbData);
             });
          });
-
-
-        
     }
-    
+
     public dbInsert() {
-        const sql_insert = `INSERT INTO users (
-                                first_name,
-                                last_name,
-                                email,
-                                phone_number,
-                                mobile_number,
-                                mobility_impaired,
-                                time_zone,
-                                can_login,
-                                password,
-                                account_id,
-                                last_login,
-                                evac_role,
-                                invitation_date,
-                                add_to_location,
-                                token,
-                                approved_license_agreement,
-                                logged_in,
-                                archived,
-                                must_change_password,
-                                user_name
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-        const user = [
+        return new Promise((resolve, reject) => {
+          const sql_insert = `INSERT INTO users (
+            first_name,
+            last_name,
+            email,
+            phone_number,
+            mobile_number,
+            mobility_impaired,
+            time_zone,
+            can_login,
+            password,
+            account_id,
+            last_login,
+            evac_role,
+            invitation_date,
+            add_to_location,
+            token,
+            approved_license_agreement,
+            logged_in,
+            archived,
+            must_change_password,
+            user_name
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+          const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
             ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
             ('email' in this.dbData) ? this.dbData['email'] : null,
@@ -105,8 +102,12 @@ export class User extends BaseClass {
             ('archived' in this.dbData) ? this.dbData['archived'] : null,
             ('must_change_password' in this.dbData) ? this.dbData['must_change_password'] : null,
             ('user_name' in this.dbData) ? this.dbData['user_name'] : null
-        ];
-        console.log(user);
+          ];
+          const connection = db.createConnection(dbconfig);
+
+
+        });
+
     }
 
      public dbUpdate(): void {

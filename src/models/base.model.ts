@@ -1,19 +1,16 @@
-
 export abstract class BaseClass {
 
-    protected id: number = 0;
+    protected id: number;
     protected dbData = {};
     protected fields: Array<string> = [];
 
     constructor(id?: number) {
-        if(id) {
+        if (id) {
             this.id = id;
         }
     }
 
-
-    //protected abstract load(callback:()=>any): void;
-    //protected abstract load(): void;
+    protected abstract load();
 
     protected abstract dbUpdate(): void;
 
@@ -34,7 +31,7 @@ export abstract class BaseClass {
     }
 
     public get(fieldName: string): number|string {
-        if(fieldName in this.dbData) {
+        if (fieldName in this.dbData) {
             return this.dbData[fieldName];
         }
     }
@@ -44,10 +41,9 @@ export abstract class BaseClass {
     }
 
     public write() {
-        if(this.ID()) {
+        if (this.ID()) {
             this.dbUpdate();
-        }
-        else {
+        } else {
             this.dbInsert();
         }
     }
