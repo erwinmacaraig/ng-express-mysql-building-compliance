@@ -8,12 +8,12 @@
 		<div class="col-md-6 col-sm-12 left-column">
 			<form  novalidate (ngSubmit)="signInFormSubmit(form)" #form="ngForm"  >
 			
-				<input type="text" name="username" value="" placeholder="Username or Email" id="username" /><br>
-				<input type="password" name="password" value="" placeholder="Password" id="password" /><br>
+				<input type="text" name="username" value="" placeholder="Username or Email" id="username" ngModel /><br>
+				<input type="password" name="password" value="" placeholder="Password" id="password" ngModel /><br>
 				
 				<div class="row">
 					<div class="col-md-1 col-xs-1 checkbox-container">
-						<input type="checkbox" name="remember" value="none" id="remember" name="check" checked />
+						<input type="checkbox" name="remember" value="none" id="remember" name="check" checked ngModel />
 					</div>
 					<div class="col-md-10 col-xs-10">
 						<p class="keep-signed-in">Keep me signed in.</p><br>
