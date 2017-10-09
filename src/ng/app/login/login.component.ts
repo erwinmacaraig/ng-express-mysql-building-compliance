@@ -16,11 +16,11 @@ export class LoginComponent implements OnInit {
   }
 
   signInFormSubmit(f: NgForm){
-  	console.log(f);
+  	
   }
 
   invitationCodeForm(f: NgForm){
-    console.log(f);
+    
   }
 
 }
