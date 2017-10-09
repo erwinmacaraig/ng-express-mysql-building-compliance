@@ -5,21 +5,17 @@
 <div class="login-block container">
 	
 	<div class="row">
-		<div class="col-md-6 col-sm-12 left-column">
-			<form  novalidate (ngSubmit)="signInFormSubmit(form)" #form="ngForm"  >
+		<div class="col-md-5 col-sm-12 left-column">
+			<form  novalidate (ngSubmit)="signInFormSubmit(formSignIn)" #formSignIn="ngForm"  >
 			
-				<input type="text" name="username" value="" placeholder="Username or Email" id="username" ngModel /><br>
-				<input type="password" name="password" value="" placeholder="Password" id="password" ngModel /><br>
+				<input type="text" name="username" placeholder="Username or Email" id="username" ngModel /><br>
+				<input type="password" name="password" placeholder="Password" id="password" ngModel /><br>
 				
-				<div class="row">
-					<div class="col-md-1 col-xs-1 checkbox-container">
-						<input type="checkbox" name="remember" value="none" id="remember" name="check" checked ngModel />
-					</div>
-					<div class="col-md-10 col-xs-10">
-						<p class="keep-signed-in">Keep me signed in.</p><br>
-					</div>
-				</div>
-				<button type="submit" class="btn btn-primary btn-block" >Sign In</button><br>
+				<p>
+					<input type="checkbox" name="remember" class="filled-in blue" value="none" id="remember" name="check" checked ngModel />
+					<label for="remember" class="keep-signed-in">Keep me signed in.</label>
+				</p>
+				<button type="submit" class="btn blue btn-block waves-effect waves-light" >Sign In</button><br>
 				<p>
 					<a href="#" class="forgot-password"> Forgot password? </a>
 				</p>
@@ -29,12 +25,12 @@
 		<div class="col-md-1 middle-line hidden-sm hidden-xs">
 			
 		</div>
-		<div class="col-md-5 col-sm-12 right-column">
+		<div class="col-md-6 col-sm-12 right-column">
 			<div class="column">
-				<h1>Don't have an account yet?</h1>
-				<h2>
-					<a href="#" class="try-free">Try it for free</a>
-				</h2>
+				<h1>
+					<p>Don't have an account yet?</p>
+					<a href="#" class="try-free">Try EvacConnect for free</a>
+				</h1>
 			</div>
 		</div>
 	</div>
@@ -42,6 +38,18 @@
 
 <div class="invitation_code">
 	<h1>Got an invitation code?</h1>
-	<input type="text" value="" placeholder="Enter code here" id="username" />
-	<button>Submit</button>
+	<div class="row">
+		<form novalidate (ngSubmit)="invitationCodeForm(formCode)" #formCode="ngForm" >
+			
+			<div class="col-md-6 col">
+				<input type="text" name="code" ngModel placeholder="Enter code here" id="usercode" />
+			</div>
+			<div class="col-md-6 col">
+				<button type="submit" class="waves-effect waves-light">Submit</button>
+			</div>
+
+		</form>
+	</div>
+	
+	
 </div>

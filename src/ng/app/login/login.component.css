@@ -5,9 +5,8 @@ body {
   font-family: 'Open Sans';
 }
 
-
 h1 {
-  font-size: 18px;
+  font-size: 16px;
   color: #FFFFFF;
   font-weight: 500;
 }
@@ -16,28 +15,35 @@ h1,h2{
   margin:0px;
 }
 
-.try-free{
-  font-size: 24px;
-  color: #f7941d;
-  font-weight: 700;
-  line-height: 0px;
+[type="checkbox"].filled-in:not(:checked)+label:after{
+  border-color: #fff;
 }
 
-.try-free:hover{
+.try-free{
+  font-size: 22px;
+  color: #f7941d;
+  font-weight: normal;
+  line-height: 30px;
+}
+
+.try-free:hover,
+.try-free:focus{
   color: #ffac49;
   text-decoration: none;
 }
 
 .forgot-password{
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
   color: #FFFFFF;
   line-height: 0px;
   display: inline-block;
   vertical-align: middle;
+  margin-top: 15px;
 }
 
-.forgot-password:hover{
+.forgot-password:hover,
+.forgot-password:focus{
   color: #FFFFFF;
 }
 
@@ -46,9 +52,10 @@ h1,h2{
 }
 
 .keep-signed-in{
-  padding-top: 16px;
-  margin: 0px;
+  font-size: 14px !important;
   color: #FFFFFF;
+  line-height: 15px !important;
+  font-weight: normal;
 }
 
 .logo {
@@ -60,7 +67,7 @@ h1,h2{
 
 .login-block {
   position: relative;
-  width: 750px;
+  width: 670px;
   padding: 20px;
   background: rgba(0,0,0,0.8);
   border-radius: 10px;
@@ -78,28 +85,34 @@ h1,h2{
 
 
 .left-column {
+  width: 49%;
   /* flex-grow: 1;
-  padding: 20px; */
+   padding: 20px;
   /*border-right: 1px solid #fff;*/
+}
+
+.right-column{
+  width: 48%;
 }
 
 .middle-line{
   border-right: 1px solid #fff;
   height: 264px;
   margin-top: 5px;
-  width: 10px;
+  width: 5px;
   padding: 0px;
   margin-right: 10px;
 }
 
 .right-column .column{
-  height: 240px;
+  height: 265px;
   vertical-align: middle;
   display: table-cell;
 }
 
 
-.login-block input {
+.login-block input[type="text"],
+.login-block input[type="password"] {
   width: 45%;
   height: 50px;
   box-sizing: border-box;
@@ -107,41 +120,46 @@ h1,h2{
   border: 1px solid #ccc;
   font-size: 14px;
   font-family: Open Sans;
-  padding: 0 20px 0 50px;
+  padding: 0 5px 0 30px;
   outline: none;
 }
 
 .login-block input#username {
-  background: #fff url('/assets/images/login/user_login.png') 20px center no-repeat;
+  background: #fff url('/assets/images/login/user_login.png') 8px center no-repeat;
   background-size: 15px 16px;
   width: 100%;
   margin-bottom: 20px;
   margin-top: 10px;
+  border-radius: 5px;
+  border-bottom: none;
 }
 
 .login-block input#username:focus {
-  background: #fff url('/assets/images/login/user_login_hover.png') 20px center no-repeat;
+  background: #fff url('/assets/images/login/user_login_hover.png') 8px center no-repeat;
   background-size: 15px 16px;
   width: 100%;
-  margin-bottom: 20px;
-  margin-top: 10px;
+    box-shadow: none;
+}
+
+.login-block input#username:focus,
+.login-block input#password:focus {
+  border-bottom: none;
 }
 
 .login-block input#password {
-  background: #fff url('/assets/images/login/password_icon.png') 20px center no-repeat;
+  background: #fff url('/assets/images/login/password_icon.png') 8px center no-repeat;
   background-size: 15px 19px;
   width: 100%;
+  box-shadow: none;
+  border-radius: 5px;
+  border-bottom: none;
 }
 
 .login-block input#password:focus {
-  background: #fff url('/assets/images/login/password_icon_hover.png') 20px center no-repeat;
+  background: #fff url('/assets/images/login/password_icon_hover.png') 8px center no-repeat;
   background-size: 15px 19px;
   width: 100%;
-}
-
-.login-block input:active,
-.login-block input:focus {
-  border: 1px solid #f7941d;
+  box-shadow: none;
 }
 
 .login-block input#checkbox {
@@ -158,16 +176,23 @@ h1,h2{
 }
 
 .login-block button {
-  padding: 10px;
-  background: #39a1ff;
   box-sizing: border-box;
   color: #fff;
   font-weight: normal;
-  font-size: 18px;
+  font-size: 16px;
+  height: 50px;
+  text-transform: none;
+  border-radius: 5px;
 }
 
 .login-block button:hover {
   background: #248ff1;
+  color: #fff;
+}
+
+.login-block button:visited,
+.login-block button:focus{
+  color: #fff;
 }
 
 
@@ -181,7 +206,6 @@ h1,h2{
 .invitation_code {
   text-align: center;
   width: 390px;
-  height: 65px;
   margin: 90px auto;
 }
 
@@ -191,21 +215,8 @@ h1,h2{
   margin-bottom: 10px;
 }
 
-.invitation_code input {
-  width: 45%;
-  height: 50px;
-  box-sizing: border-box;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  font-family: Open Sans;
-  margin-right: 10px;
-  margin-top: 10px;
-  text-align: center;
-}
-
 .invitation_code button {
-  width: 45%;
+  width: 160px;
   height: 50px;
   background: #f7941d;
   box-sizing: border-box;
@@ -215,14 +226,58 @@ h1,h2{
   font-weight: normal;
   font-size: 18px;
   font-family: Open Sans;
-  margin-top: 10px;
-  margin-left: 10px;
   cursor: pointer;
+}
+
+#usercode{
+  background-color: #fff;
+  box-shadow:none;
+  border:none;
+  text-align: center;
+  font-family: Open Sans;
+  border-radius: 5px;
+  height: 50px;
+  margin: 0px;
+  width: 160px;
+}
+
+#usercode:focus,
+#usercode:active{
+  border-bottom: none;
 }
 
 .invitation_code button:hover {
   background: #e88005;
 }
+
+[type="checkbox"]+label{
+  padding-left: 30px;
+}
+
+[type="checkbox"].filled-in:checked+label:before{
+  border-right: 2px solid #111;
+  border-bottom: 2px solid #111;
+}
+
+[type="checkbox"].filled-in:checked+label:after{
+  border: 2px solid #fff;
+  background-color: #fff;
+}
+
+.invitation_code .col{
+  padding: 0px;
+}
+
+.invitation_code .row .col:nth-child(1){
+  text-align: right;
+  padding-right: 5px;
+}
+
+.invitation_code .row .col:nth-child(2){
+  text-align: left;
+  padding-left: 5px;
+}
+
 
 /* Phones */
 @media only screen 
@@ -238,11 +293,18 @@ h1,h2{
   }
 
   .right-column .column{
-     height: 100px;
+    height: 100px;
   }
 
   .invitation_code {
-    margin: 35px auto;
+    margin: 60px auto;
+  }
+
+  .left-column {
+    width: 100%;
+  }
+
+  .right-column{
     width: 100%;
   }
 
