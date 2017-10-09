@@ -1,0 +1,47 @@
+<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans">
+
+<div class="logo"></div>
+
+<div class="login-block container">
+	
+	<div class="row">
+		<div class="col-md-6 col-sm-12 left-column">
+			<form  novalidate (ngSubmit)="signInFormSubmit(form)" #form="ngForm"  >
+			
+				<input type="text" name="username" value="" placeholder="Username or Email" id="username" ngModel /><br>
+				<input type="password" name="password" value="" placeholder="Password" id="password" ngModel /><br>
+				
+				<div class="row">
+					<div class="col-md-1 col-xs-1 checkbox-container">
+						<input type="checkbox" name="remember" value="none" id="remember" name="check" checked ngModel />
+					</div>
+					<div class="col-md-10 col-xs-10">
+						<p class="keep-signed-in">Keep me signed in.</p><br>
+					</div>
+				</div>
+				<button type="submit" class="btn btn-primary btn-block" >Sign In</button><br>
+				<p>
+					<a href="#" class="forgot-password"> Forgot password? </a>
+				</p>
+
+			</form>
+		</div>
+		<div class="col-md-1 middle-line hidden-sm hidden-xs">
+			
+		</div>
+		<div class="col-md-5 col-sm-12 right-column">
+			<div class="column">
+				<h1>Don't have an account yet?</h1>
+				<h2>
+					<a href="#" class="try-free">Try it for free</a>
+				</h2>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="invitation_code">
+	<h1>Got an invitation code?</h1>
+	<input type="text" value="" placeholder="Enter code here" id="username" />
+	<button>Submit</button>
+</div>
