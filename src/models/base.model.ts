@@ -1,3 +1,4 @@
+import * as Promise from 'promise';
 export abstract class BaseClass {
 
     protected id: number;
@@ -12,9 +13,9 @@ export abstract class BaseClass {
 
     protected abstract load();
 
-    protected abstract dbUpdate(): void;
+    protected abstract dbUpdate();
 
-    protected abstract dbInsert(): void;
+    protected abstract dbInsert();
 
     protected abstract create(createData: {}): void;
 
@@ -41,11 +42,14 @@ export abstract class BaseClass {
     }
 
     public write() {
+      return new Promise((resolve, reject) => {
         if (this.ID()) {
-            this.dbUpdate();
+          resolve(this.dbUpdate());
         } else {
-            this.dbInsert();
+          resolve(this.dbInsert());
         }
+      });
+
     }
 
 }
