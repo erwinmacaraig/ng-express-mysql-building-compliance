@@ -1,0 +1,249 @@
+
+body {
+  background: url('/assets/images/login/login_banner.jpg') no-repeat fixed center center !important;
+  background-size: cover;
+  font-family: 'Open Sans';
+}
+
+
+h1 {
+  font-size: 18px;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+h1,h2{
+  margin:0px;
+}
+
+.try-free{
+  font-size: 24px;
+  color: #f7941d;
+  font-weight: 700;
+  line-height: 0px;
+}
+
+.try-free:hover{
+  color: #ffac49;
+  text-decoration: none;
+}
+
+.forgot-password{
+  font-size: 12px;
+  font-weight: 400;
+  color: #FFFFFF;
+  line-height: 0px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.forgot-password:hover{
+  color: #FFFFFF;
+}
+
+.checkbox-container{
+  padding: 0px;
+}
+
+.keep-signed-in{
+  padding-top: 16px;
+  margin: 0px;
+  color: #FFFFFF;
+}
+
+.logo {
+  width: 233px;
+  height: 65px;
+  background: url('/assets/images/login/ec_logo.png') no-repeat;
+  margin: 75px auto;
+}
+
+.login-block {
+  position: relative;
+  width: 750px;
+  padding: 20px;
+  background: rgba(0,0,0,0.8);
+  border-radius: 10px;
+  /* 
+  margin: 0 auto;
+  display: flex;
+  align-content: stretch;
+  vertical-align: middle; */
+}
+
+.login-block .row{
+  width: 100%;
+  margin-left: 0px;
+}
+
+
+.left-column {
+  /* flex-grow: 1;
+  padding: 20px; */
+  /*border-right: 1px solid #fff;*/
+}
+
+.middle-line{
+  border-right: 1px solid #fff;
+  height: 264px;
+  margin-top: 5px;
+  width: 10px;
+  padding: 0px;
+  margin-right: 10px;
+}
+
+.right-column .column{
+  height: 240px;
+  vertical-align: middle;
+  display: table-cell;
+}
+
+
+.login-block input {
+  width: 45%;
+  height: 50px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  font-family: Open Sans;
+  padding: 0 20px 0 50px;
+  outline: none;
+}
+
+.login-block input#username {
+  background: #fff url('/assets/images/login/user_login.png') 20px center no-repeat;
+  background-size: 15px 16px;
+  width: 100%;
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+
+.login-block input#username:focus {
+  background: #fff url('/assets/images/login/user_login_hover.png') 20px center no-repeat;
+  background-size: 15px 16px;
+  width: 100%;
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+
+.login-block input#password {
+  background: #fff url('/assets/images/login/password_icon.png') 20px center no-repeat;
+  background-size: 15px 19px;
+  width: 100%;
+}
+
+.login-block input#password:focus {
+  background: #fff url('/assets/images/login/password_icon_hover.png') 20px center no-repeat;
+  background-size: 15px 19px;
+  width: 100%;
+}
+
+.login-block input:active,
+.login-block input:focus {
+  border: 1px solid #f7941d;
+}
+
+.login-block input#checkbox {
+  width: 45%;
+  height: 50px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-family: Open Sans;
+  padding: 0 20px 0 50px;
+  outline: none;
+}
+
+.login-block button {
+  padding: 10px;
+  background: #39a1ff;
+  box-sizing: border-box;
+  color: #fff;
+  font-weight: normal;
+  font-size: 18px;
+}
+
+.login-block button:hover {
+  background: #248ff1;
+}
+
+
+.login-block input#remember {
+  width: 20px;
+  margin: 2px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.invitation_code {
+  text-align: center;
+  width: 390px;
+  height: 65px;
+  margin: 90px auto;
+}
+
+.invitation_code h1{
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.invitation_code input {
+  width: 45%;
+  height: 50px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  font-family: Open Sans;
+  margin-right: 10px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.invitation_code button {
+  width: 45%;
+  height: 50px;
+  background: #f7941d;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border: 1px solid #f7941d;
+  color: #fff;
+  font-weight: normal;
+  font-size: 18px;
+  font-family: Open Sans;
+  margin-top: 10px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.invitation_code button:hover {
+  background: #e88005;
+}
+
+/* Phones */
+@media only screen 
+  and (max-width: 1024px) {
+    
+  .login-block {
+    width: 96%;
+    padding: 10px;
+  }
+  
+  .logo{
+    margin: 20px auto;
+  }
+
+  .right-column .column{
+     height: 100px;
+  }
+
+  .invitation_code {
+    margin: 35px auto;
+    width: 100%;
+  }
+
+}
