@@ -3,15 +3,15 @@
 
 <div id="modalSignup" class="modal">
 	<div class="modal-content">
-		
+
 		<form  novalidate (ngSubmit)="signUpFormSubmit(formSignIn)" #formSignIn="ngForm"  >
-			
+
 			<div class="container">
 				<div class="row">
-					
+
 					<div class="col m12 center-align">
 						<h4 class="title">
-							Welcome to EvacConnect Safety 
+							Welcome to EvacConnect Safety
 							<br>
 							Management Tools
 						</h4>
@@ -65,7 +65,7 @@
 								<button type="submit" class="btn block waves-effect waves-light btn-submit">Submit</button>
 							</div>
 							<div class="input-field col m6">
-								<button class="btn block waves-effect waves-light btn-close">Close</button>
+								<button class="btn block waves-effect waves-light btn-close" (click)="onCloseSelfSignUp()">Close</button>
 							</div>
 						</div>
 					</div>

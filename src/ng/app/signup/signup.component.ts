@@ -1,5 +1,6 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import { Router } from '@angular/router';
 declare var jQuery: any;
 declare var $: any;
 
@@ -11,8 +12,7 @@ declare var $: any;
 })
 export class SignupComponent implements OnInit {
 
-  constructor() { }
-
+  constructor(private router: Router) { }
   ngOnInit() {
   	$(document).ready(function(){
   		var modalSignup = $('#modalSignup');
@@ -31,6 +31,15 @@ export class SignupComponent implements OnInit {
   }
 
   signUpFormSubmit(f: NgForm){
+
+  }
+
+  onCloseSelfSignUp() {
+    $('#modalSignup').modal('close');
+    this.router.navigate(['/login']);
+  }
+
+  ngOnDestroy () {
 
   }
 
