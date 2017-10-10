@@ -3,33 +3,33 @@
 <div class="logo"></div>
 
 <div class="login-block container">
-	
+
 	<div class="row">
 		<div class="col-md-5 col-sm-12 left-column">
 			<form  novalidate (ngSubmit)="signInFormSubmit(formSignIn)" #formSignIn="ngForm"  >
-			
+
 				<input type="text" name="username" placeholder="Username or Email" id="username" ngModel /><br>
 				<input type="password" name="password" placeholder="Password" id="password" ngModel /><br>
-				
+
 				<p>
 					<input type="checkbox" name="remember" class="filled-in blue" value="none" id="remember" name="check" checked ngModel />
 					<label for="remember" class="keep-signed-in">Keep me signed in.</label>
 				</p>
 				<button type="submit" class="btn blue btn-block waves-effect waves-light" >Sign In</button><br>
 				<p>
-					<a href="#" class="forgot-password"> Forgot password? </a>
+					<a [routerLink]="['/forgot-passwd']" class="forgot-password"> Forgot password? </a>
 				</p>
 
 			</form>
 		</div>
 		<div class="col-md-1 middle-line hidden-sm hidden-xs">
-			
+
 		</div>
 		<div class="col-md-6 col-sm-12 right-column">
 			<div class="column">
 				<h1>
 					<p>Don't have an account yet?</p>
-					<a href="#" class="try-free">Try EvacConnect for free</a>
+					<a [routerLink]="['/signup']" class="try-free">Try EvacConnect for free</a>
 				</h1>
 			</div>
 		</div>
@@ -40,7 +40,7 @@
 	<h1>Got an invitation code?</h1>
 	<div class="row">
 		<form novalidate (ngSubmit)="invitationCodeForm(formCode)" #formCode="ngForm" >
-			
+
 			<div class="col-md-6 col">
 				<input type="text" name="code" ngModel placeholder="Enter code here" id="usercode" />
 			</div>
@@ -50,6 +50,6 @@
 
 		</form>
 	</div>
-	
-	
+
+
 </div>
