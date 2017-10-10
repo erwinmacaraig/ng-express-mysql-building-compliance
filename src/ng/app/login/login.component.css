@@ -71,7 +71,7 @@ h1,h2{
   padding: 20px;
   background: rgba(0,0,0,0.8);
   border-radius: 10px;
-  /* 
+  /*
   margin: 0 auto;
   display: flex;
   align-content: stretch;
@@ -279,15 +279,15 @@ h1,h2{
 
 
 /* Phones */
-@media only screen 
+@media only screen
   and (max-width: 1024px) {
-    
+
   .login-block,
   .invitation_code {
     width: 90%;
     padding: 10px;
   }
-  
+
   .logo{
     margin: 20px auto;
   }
@@ -310,9 +310,9 @@ h1,h2{
 
 }
 
-@media only screen 
+@media only screen
   and (max-width: 768px){
-  
+
   .invitation_code {
     width: 300px;
     padding: 0px;
@@ -322,6 +322,6 @@ h1,h2{
   #usercode{
     width: 145px;
   }
-  
+
 
 }
