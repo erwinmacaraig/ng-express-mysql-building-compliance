@@ -1,14 +1,12 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
-declare var jQuery: any;
 declare var $: any;
 
 @Component({
   selector: 'app-signup',
   templateUrl: './signup.component.html',
-  styleUrls: ['./signup.component.css'],
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./signup.component.css']
 })
 export class SignupComponent implements OnInit {
 

@@ -1,12 +1,21 @@
-body {
+.signup-main-container{
+	font-family: 'Open Sans';
+	font-size: 12px;
+}
+
+.background {
   background: url('/assets/images/login/login_banner.jpg') no-repeat fixed center center !important;
   background-size: cover;
-  font-family: 'Open Sans';
-  font-size: 12px;
+  width: 100%;
+  z-index: -1;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  left: 0px;
 }
 
 #modalSignup{
-	width: 30%;
+	width: 23%;
 }
 
 .modal{
@@ -14,7 +23,7 @@ body {
 }
 
 .modal .modal-content {
-    padding: 30px 0px;
+    padding: 30px 0px 10px 0px;
 }
 
 .modal .modal-content .container{
@@ -37,6 +46,10 @@ body {
 	margin: 25px 0px 15px 0px !important;
 }
 
+.input-field{
+	margin-top: 0px;
+}
+
 .input-field label{
 	font-size: 14px;
 }
@@ -46,8 +59,12 @@ body {
 	box-shadow: none !important;
 }
 
-.input-field label.active{
+.input-field label:not(.label-icon).active{
 	color: #39a1ff !important;
+	-webkit-transform: translateY(-4px) scale(0.8);
+    transform: translateY(-4px) scale(0.8);
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
 }
 
 .input-field input:focus{
@@ -73,6 +90,7 @@ body {
 	height: 45px;
 	font-size: 16px;
 	border-radius: 5px;
+	margin-top: 10px;
 }
 
 .btn-submit,
@@ -93,10 +111,11 @@ body {
 }
 
 @media only screen 
-  and (max-width: 1024px){
+  and (min-width: 1024px)
+  and (max-width: 1440px){
 
 	#modalSignup {
-	    width: 95%;
+	    width: 35%;
 	}
 
 	.modal .modal-content {
@@ -109,17 +128,45 @@ body {
 }
 
 @media only screen 
+  and (max-width: 1024px){
+
+	#modalSignup {
+	    width: 50%;
+	}
+
+	.modal .modal-content {
+	    padding: 20px 0px;
+	}
+
+	.input-field{
+		width: 100%;
+	}
+}
+
+@media only screen 
+  and (min-width: 480px)
   and (max-width: 768px){
 	
 	.modal{
-		max-height: 100% !important;
+		max-height: 70% !important;
 		overflow-y: none;
 	}
 
+	.col{
+		padding: 0px;
+	}
 
+	#modalSignup {
+	    width: 60%;
+	    margin-bottom: 100px;
+	}
+
+}
+
+@media only screen 
+  and (max-width: 480px){
 	#modalSignup {
 	    width: 95%;
 	    margin-bottom: 100px;
 	}
-
 }
