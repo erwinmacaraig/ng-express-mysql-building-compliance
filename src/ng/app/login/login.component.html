@@ -5,7 +5,7 @@
 <div class="login-block container">
 	
 	<div class="row">
-		<div class="col-md-5 col-sm-12 left-column">
+		<div class="col m5 s12 left-column">
 			<form  novalidate (ngSubmit)="signInFormSubmit(formSignIn)" #formSignIn="ngForm"  >
 			
 				<input type="text" name="username" placeholder="Username or Email" id="username" ngModel /><br>
@@ -22,10 +22,10 @@
 
 			</form>
 		</div>
-		<div class="col-md-1 middle-line hidden-sm hidden-xs">
+		<div class="col m1  middle-line hide-on-small-only">
 			
 		</div>
-		<div class="col-md-6 col-sm-12 right-column">
+		<div class="col m6 s12 right-column">
 			<div class="column">
 				<h1>
 					<p>Don't have an account yet?</p>
@@ -41,10 +41,10 @@
 	<div class="row">
 		<form novalidate (ngSubmit)="invitationCodeForm(formCode)" #formCode="ngForm" >
 			
-			<div class="col-md-6 col">
+			<div class="col m6">
 				<input type="text" name="code" ngModel placeholder="Enter code here" id="usercode" />
 			</div>
-			<div class="col-md-6 col">
+			<div class="col m6">
 				<button type="submit" class="waves-effect waves-light">Submit</button>
 			</div>
 
