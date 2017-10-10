@@ -5,8 +5,7 @@ declare var $: any;
 @Component({
 	selector: 'app-forgotpassword',
 	templateUrl: './forgotpassword.component.html',
-	styleUrls: ['./forgotpassword.component.css'],
-	encapsulation: ViewEncapsulation.None
+	styleUrls: ['./forgotpassword.component.css']
 })
 export class ForgotpasswordComponent implements OnInit {
 

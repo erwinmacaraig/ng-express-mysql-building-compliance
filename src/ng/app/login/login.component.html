@@ -1,55 +1,64 @@
 <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans">
 
-<div class="logo"></div>
+<div class="login-main-container ">
+	<div class="background"></div>
 
-<div class="login-block container">
-	
-	<div class="row">
-		<div class="col m5 s12 left-column">
-			<form  novalidate (ngSubmit)="signInFormSubmit(formSignIn)" #formSignIn="ngForm"  >
-			
-				<input type="text" name="username" placeholder="Username or Email" id="username" ngModel /><br>
-				<input type="password" name="password" placeholder="Password" id="password" ngModel /><br>
-				
-				<p>
-					<input type="checkbox" name="remember" class="filled-in blue" value="none" id="remember" name="check" checked ngModel />
-					<label for="remember" class="keep-signed-in">Keep me signed in.</label>
-				</p>
-				<button type="submit" class="btn blue btn-block waves-effect waves-light" >Sign In</button><br>
-				<p>
-					<a href="#" class="forgot-password"> Forgot password? </a>
-				</p>
+	<div class="fadeIn  animated" style="opacity:0;">
+		<div class="logo"></div>
 
-			</form>
+		<div class="login-block container " >
+
+			<div class="row">
+				<div class="col m5 s12 left-column ">
+					<form  novalidate (ngSubmit)="signInFormSubmit(formSignIn)" #formSignIn="ngForm"  >
+
+						<input type="text" name="username" placeholder="Username or Email" id="username" ngModel /><br>
+						<input type="password" name="password" placeholder="Password" id="password" ngModel /><br>
+
+						<p class="keep-signed-in-container">
+							<input type="checkbox" name="remember" class="filled-in blue" value="none" id="remember" name="check" checked ngModel />
+							<label for="remember" class="keep-signed-in">Keep me signed in.</label>
+						</p>
+						<button type="submit" class="btn blue btn-block waves-effect waves-light" >Sign In</button><br>
+					</form>
+
+					<p class="forgot-password-container">
+						<a [routerLink]="['/forgot-password']" class="forgot-password"> Forgot password? </a>
+					</p>
+				</div>
+				<div class="col m1  middle-line hide-on-small-only">
+				</div>
+				<div class="col m6 s12 right-column">
+					<div class="column">
+						<h1>
+							<p>Don't have an account yet?</p>
+							<p>
+								<a [routerLink]="['/signup']" class="try-free">Try EvacConnect for free</a>
+							</p>
+						</h1>
+					</div>
+				</div>
+			</div>
 		</div>
-		<div class="col m1  middle-line hide-on-small-only">
-			
-		</div>
-		<div class="col m6 s12 right-column">
-			<div class="column">
-				<h1>
-					<p>Don't have an account yet?</p>
-					<a href="#" class="try-free">Try EvacConnect for free</a>
-				</h1>
+
+		<div class="invitation_code">
+
+			<h1>Got an invitation code?</h1>
+			<div class="row">
+				<form novalidate (ngSubmit)="invitationCodeForm(formCode)" #formCode="ngForm" >
+
+					<div class="col m6">
+						<input type="text" name="code" ngModel placeholder="Enter code here" id="usercode">
+					</div>
+					<div class="col m6">
+						<button type="submit" class="waves-effect waves-light"> Submit </button>
+		      </div>
+
+				</form>
 			</div>
 		</div>
 	</div>
+
+
 </div>
 
-<div class="invitation_code">
-	<h1>Got an invitation code?</h1>
-	<div class="row">
-		<form novalidate (ngSubmit)="invitationCodeForm(formCode)" #formCode="ngForm" >
-			
-			<div class="col m6">
-				<input type="text" name="code" ngModel placeholder="Enter code here" id="usercode" />
-			</div>
-			<div class="col m6">
-				<button type="submit" class="waves-effect waves-light">Submit</button>
-			</div>
-
-		</form>
-	</div>
-	
-	
-</div>

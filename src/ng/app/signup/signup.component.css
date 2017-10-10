@@ -1,8 +1,17 @@
-body {
+.signup-main-container{
+	font-family: 'Open Sans';
+	font-size: 12px;
+}
+
+.background {
   background: url('/assets/images/login/login_banner.jpg') no-repeat fixed center center !important;
   background-size: cover;
-  font-family: 'Open Sans';
-  font-size: 12px;
+  width: 100%;
+  z-index: -1;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  left: 0px;
 }
 
 #modalSignup{
