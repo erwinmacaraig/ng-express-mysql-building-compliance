@@ -19,6 +19,11 @@ h1,h2{
   border-color: #fff;
 }
 
+.modal-overlay{
+  z-index: 0px;
+  display: none;
+}
+
 .try-free{
   font-size: 22px;
   color: #f7941d;
@@ -182,6 +187,7 @@ h1,h2{
   height: 50px;
   text-transform: none;
   border-radius: 5px;
+  width: 100%;
 }
 
 .login-block button:hover {
