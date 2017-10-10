@@ -98,10 +98,9 @@ h1,h2{
 .middle-line{
   border-right: 1px solid #fff;
   height: 264px;
-  margin-top: 5px;
-  width: 5px;
+  margin: 0px;
+  width: 1px !important;
   padding: 0px;
-  margin-right: 10px;
 }
 
 .right-column .column{
@@ -283,8 +282,9 @@ h1,h2{
 @media only screen 
   and (max-width: 1024px) {
     
-  .login-block {
-    width: 96%;
+  .login-block,
+  .invitation_code {
+    width: 90%;
     padding: 10px;
   }
   
@@ -297,7 +297,7 @@ h1,h2{
   }
 
   .invitation_code {
-    margin: 60px auto;
+    margin: 40px auto;
   }
 
   .left-column {
@@ -307,5 +307,21 @@ h1,h2{
   .right-column{
     width: 100%;
   }
+
+}
+
+@media only screen 
+  and (max-width: 768px){
+  
+  .invitation_code {
+    width: 300px;
+    padding: 0px;
+  }
+
+  .invitation_code button,
+  #usercode{
+    width: 145px;
+  }
+  
 
 }
