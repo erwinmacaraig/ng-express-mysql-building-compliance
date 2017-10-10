@@ -5,7 +5,7 @@
   },
   "apps": [
     {
-      "root": "src/ng",
+      "root": "src\\ng",
       "outDir": "public",
       "assets": [
         "assets",
@@ -20,9 +20,13 @@
       "prefix": "app",
       "styles": [
         "styles.css",
-        "./node_modules/bootstrap/dist/css/bootstrap.min.css"
+        "../../node_modules/materialize-css/dist/css/materialize.min.css",
+        "../../node_modules/animate.css/animate.min.css"
       ],
-      "scripts": [],
+      "scripts": [
+        "../../node_modules/jquery/dist/jquery.min.js",
+        "../../node_modules/materialize-css/dist/js/materialize.min.js"
+      ],
       "environmentSource": "environments/environment.ts",
       "environments": {
         "dev": "environments/environment.ts",

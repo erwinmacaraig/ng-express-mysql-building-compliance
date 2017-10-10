@@ -1,0 +1,366 @@
+
+.background {
+  background: url('/assets/images/login/login_banner.jpg') no-repeat fixed center center !important;
+  background-size: cover;
+  width: 100%;
+  z-index: -1;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+}
+
+.login-main-container{
+  font-family: 'Open Sans';
+}
+
+h1 {
+  font-size: 16px;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+h1,h2{
+  margin:0px;
+}
+
+[type="checkbox"].filled-in:not(:checked)+label:after{
+  border-color: #fff;
+}
+
+.modal-overlay{
+  z-index: 0px;
+  display: none;
+}
+
+.try-free{
+  font-size: 22px;
+  color: #f7941d;
+  font-weight: normal;
+  line-height: 30px;
+}
+
+.try-free:hover,
+.try-free:focus{
+  color: #ffac49;
+  text-decoration: underline;
+}
+
+.forgot-password-container{
+  margin: 5px 0px;
+}
+
+.forgot-password{
+  font-size: 13px;
+  font-weight: 400;
+  color: #FFFFFF;
+  line-height: 0px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: 15px;
+}
+
+.forgot-password:hover,
+.forgot-password:focus{
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
+.checkbox-container{
+  padding: 0px;
+}
+
+.keep-signed-in-container{
+  margin:0px 0px 10px 0px;
+}
+
+.keep-signed-in{
+  font-size: 14px !important;
+  color: #FFFFFF;
+  line-height: 15px !important;
+  font-weight: normal;
+}
+
+.logo {
+  width: 233px;
+  height: 65px;
+  background: url('/assets/images/login/ec_logo.png') no-repeat;
+  margin: 75px auto;
+}
+
+.login-block {
+  position: relative;
+  width: 670px;
+  padding: 20px;
+  background: rgba(0,0,0,0.8);
+  border-radius: 10px;
+  /*
+  margin: 0 auto;
+  display: flex;
+  align-content: stretch;
+  vertical-align: middle; */
+}
+
+.login-block .row{
+  width: 100%;
+  margin-left: 0px;
+  margin-top: 20px;
+}
+
+
+.left-column {
+  width: 49%;
+  /* flex-grow: 1;
+   padding: 20px;
+  /*border-right: 1px solid #fff;*/
+}
+
+.right-column{
+  width: 48%;
+}
+
+.middle-line{
+  border-right: 1px solid #fff;
+  height: 264px;
+  margin: 0px 20px 0px 0px;
+  width: 20px !important;
+  padding: 0px;
+}
+
+.right-column .column{
+  height: 265px;
+  vertical-align: middle;
+  display: table-cell;
+  margin-top: 20px;
+}
+
+.right-column .column *{
+  margin:0px;
+}
+
+.login-block input[type="text"],
+.login-block input[type="password"] {
+  width: 45%;
+  height: 50px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  font-family: Open Sans;
+  padding: 0 5px 0 30px;
+  outline: none;
+}
+
+.login-block input#username {
+  background: #fff url('/assets/images/login/user_login.png') 8px center no-repeat;
+  background-size: 15px 16px;
+  width: 100%;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  border-bottom: none;
+}
+
+.login-block input#username:focus {
+  background: #fff url('/assets/images/login/user_login_hover.png') 8px center no-repeat;
+  background-size: 15px 16px;
+  width: 100%;
+    box-shadow: none;
+}
+
+.login-block input#username:focus,
+.login-block input#password:focus {
+  border-bottom: none;
+}
+
+.login-block input#password {
+  background: #fff url('/assets/images/login/password_icon.png') 8px center no-repeat;
+  background-size: 15px 19px;
+  width: 100%;
+  box-shadow: none;
+  border-radius: 5px;
+  border-bottom: none;
+}
+
+.login-block input#password:focus {
+  background: #fff url('/assets/images/login/password_icon_hover.png') 8px center no-repeat;
+  background-size: 15px 19px;
+  width: 100%;
+  box-shadow: none;
+}
+
+.login-block input#checkbox {
+  width: 45%;
+  height: 50px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-family: Open Sans;
+  padding: 0 20px 0 50px;
+  outline: none;
+}
+
+.login-block button {
+  box-sizing: border-box;
+  color: #fff;
+  font-weight: normal;
+  font-size: 16px;
+  height: 50px;
+  text-transform: none;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.login-block button:hover {
+  background: #248ff1;
+  color: #fff;
+}
+
+.login-block button:visited,
+.login-block button:focus{
+  color: #fff;
+}
+
+
+.login-block input#remember {
+  width: 20px;
+  margin: 2px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.invitation_code {
+  text-align: center;
+  width: 390px;
+  margin: 90px auto;
+}
+
+.invitation_code h1{
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.invitation_code button {
+  width: 160px;
+  height: 50px;
+  background: #f7941d;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border: 1px solid #f7941d;
+  color: #fff;
+  font-weight: normal;
+  font-size: 18px;
+  font-family: Open Sans;
+  cursor: pointer;
+}
+
+#usercode{
+  background-color: #fff;
+  box-shadow:none;
+  border:none;
+  text-align: center;
+  font-family: Open Sans;
+  border-radius: 5px;
+  height: 50px;
+  margin: 0px;
+  width: 160px;
+}
+
+#usercode:focus,
+#usercode:active{
+  border-bottom: none;
+}
+
+.invitation_code button:hover {
+  background: #e88005;
+}
+
+[type="checkbox"]+label{
+  padding-left: 30px;
+}
+
+[type="checkbox"].filled-in:checked+label:before{
+  border-right: 2px solid #111;
+  border-bottom: 2px solid #111;
+}
+
+[type="checkbox"].filled-in:checked+label:after{
+  border: 2px solid #fff;
+  background-color: #fff;
+}
+
+.invitation_code .col{
+  padding: 0px;
+}
+
+.invitation_code .row .col:nth-child(1){
+  text-align: right;
+  padding-right: 5px;
+}
+
+.invitation_code .row .col:nth-child(2){
+  text-align: left;
+  padding-left: 5px;
+}
+
+
+/* Phones */
+@media only screen
+  and (max-width: 1024px) {
+
+  .login-block,
+  .invitation_code {
+    width: 90%;
+    padding: 10px;
+  }
+
+  .logo{
+    margin: 20px auto;
+  }
+
+  .invitation_code {
+    margin: 40px auto;
+  }
+
+  .left-column {
+    width: 100%;
+  }
+
+  .right-column{
+    width: 100%;
+  }
+
+}
+
+@media only screen
+  and (max-width: 768px){
+
+  .invitation_code {
+    width: 300px;
+    padding: 0px;
+  }
+
+  .invitation_code button,
+  #usercode{
+    width: 145px;
+  }
+
+  .right-column .column p{
+    font-size: 14px;
+  }
+
+  .try-free{
+    font-size: 18px;
+  }
+
+
+}
+
+
+@media only screen
+  and (max-width: 500px){
+    .right-column .column{
+      height: 85px;
+    }
+  }
