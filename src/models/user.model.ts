@@ -3,6 +3,8 @@ import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
+import * as validator from 'validator';
+import * as md5 from 'md5';
 
 export class User extends BaseClass {
 
@@ -20,13 +22,47 @@ export class User extends BaseClass {
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, uid, (error, results, fields) => {
               if (error) {
-                return console.log(error);
+                throw error;
               }
-              this.dbData = results[0];
-              resolve(this.dbData);
+              if (!results.length) {
+                reject('Invalid user');
+              } else {
+                this.dbData = results[0];
+                this.setID(results[0].user_id);
+                resolve(this.dbData);
+              }
             });
             connection.end();
          });
+    }
+
+    loadByCredentials(username: string, passwd: string) {
+      return new Promise((resolve, reject) => {
+        let whereClause = '';
+        if (validator.isEmail(username)) {
+          whereClause = 'WHERE email = ?';
+        } else {
+          whereClause = 'WHERE user_name = ?';
+        }
+        const sql_user = 'SELECT * FROM users ' + whereClause + ' AND password = ?';
+        const newPasswd = md5('Ideation' + passwd + 'Max');
+        const credential = [username, newPasswd];
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_user, credential, (error, results, fields) => {
+          if (error) {
+            throw error;
+          }
+          if (!results.length) {
+            reject('Invalid user');
+          } else {
+            this.dbData = results[0];
+            this.setID(results[0].user_id);
+            resolve(this.dbData);
+          }
+        });
+        connection.end();
+
+      });
     }
 
     public dbInsert() {
