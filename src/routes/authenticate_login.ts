@@ -5,8 +5,9 @@ import { User } from '../models/user.model';
 import Validator from 'better-validator';
 import * as md5 from 'md5';
 
-export class AuthenticateLoginRoute extends BaseRoute {
+import * as jwt from 'jsonwebtoken';
 
+export class AuthenticateLoginRoute extends BaseRoute {
 
   /**
    * Authenticate User upon Log in
@@ -35,10 +36,24 @@ export class AuthenticateLoginRoute extends BaseRoute {
     // console.log(req.body);
     const user = new User();
     user.loadByCredentials(req.body.username, req.body.password).then(() => {
-      return res.send(user.getDBData());
+      console.log(res);
+      const token = jwt.sign({
+        currentUser: {
+          user_db_token: user.get('token'),
+          evac_role: user.get('evac_role')
+        }}, 'secretKey', { expiresIn: 7200 });
+      // return res.status(200).send(user.getDBData());
+      return res.status(200).send({
+        status: 'Authentication Success',
+        message: 'Successfully logged in',
+        token: token,
+        data: {
+          userId: user.get('user_id')
+        }
+      });
     }, (e) => {
       res.status(401).send({
-      status: 'Failed Authentication',
+      status: 'Authentication Failed',
       message: e,
       data: ['username', 'password']
       });

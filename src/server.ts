@@ -3,6 +3,7 @@ import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
 import * as logger from 'morgan';
 import * as path from 'path';
+import * as cors from 'cors';
 
 import { IndexRoute } from './routes/index';
 import { AuthenticateLoginRoute } from './routes/authenticate_login';
@@ -72,6 +73,9 @@ export class Server {
       this.app.use(bodyParser.urlencoded({
         extended: true
       }));
+
+      // cors
+      this.app.use(cors());
 
     this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
