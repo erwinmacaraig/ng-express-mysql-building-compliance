@@ -5,10 +5,11 @@ import * as logger from 'morgan';
 import * as path from 'path';
 
 import { IndexRoute } from './routes/index';
+import { RegisterRoute } from './routes/register';
 
 import * as swaggerUi from 'swagger-ui-express';
 const swaggerDocument = require('./config/swagger.json');
-
+const staticData = require('./config/static-data.json');
 /**
  * The server.
  *
@@ -72,8 +73,13 @@ export class Server {
         extended: true
       }));
 
-    this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+      this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+      // Static data which are not included in database
+      this.app.use(express.Router().get('/static-data', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        res.send( staticData );
+      }));
+      
       // catch 404 and forward to error handler
       this.app.use(function(err: any, req: express.Request, res: express.Response, next: express.NextFunction) {
           err.status = 404;
@@ -94,6 +100,8 @@ export class Server {
 
       // IndexRoute
       IndexRoute.create(router);
+
+      RegisterRoute.create(router);
 
       this.app.use('/api/v1', router);
 

@@ -38,6 +38,7 @@
     "promise": "^8.0.1",
     "rxjs": "^5.4.3",
     "swagger-ui-express": "^2.0.8",
+    "validator": "^9.0.0",
     "zone.js": "^0.8.18"
   },
   "devDependencies": {
