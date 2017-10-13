@@ -16,7 +16,7 @@ export class User extends BaseClass {
     }
 
     public load() {
-         return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM users WHERE user_id = ?';
             const uid = [this.id];
             const connection = db.createConnection(dbconfig);
@@ -24,16 +24,38 @@ export class User extends BaseClass {
               if (error) {
                 throw error;
               }
-              if (!results.length) {
-                reject('Invalid user');
-              } else {
+              if(!results.length){
+                reject('No user found');
+              }else{
                 this.dbData = results[0];
-                this.setID(results[0].user_id);
+                this.setID(results[0]['user_id']);
                 resolve(this.dbData);
               }
             });
             connection.end();
-         });
+        });
+    }
+
+    public getByEmail(email: String){
+      return new Promise((resolve, reject) => {
+          const sql_load = 'SELECT * FROM users WHERE email = ?';
+          const param = [email];
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql_load, param, (error, results, fields) => {
+            if (error) {
+              return console.log(error);
+            }
+
+            if(!results.length){
+              reject('No user found');
+            }else{
+              this.dbData = results[0];
+              this.setID(results[0]['user_id']);
+              resolve(this.dbData);
+            }
+          });
+          connection.end();
+      });
     }
 
     loadByCredentials(username: string, passwd: string) {
@@ -91,22 +113,22 @@ export class User extends BaseClass {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
           const user = [
-            ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
-            ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
-            ('email' in this.dbData) ? this.dbData['email'] : null,
-            ('phone_number' in this.dbData) ? this.dbData['phone_number'] : null,
-            ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : null,
+            ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
+            ('last_name' in this.dbData) ? this.dbData['last_name'] : '',
+            ('email' in this.dbData) ? this.dbData['email'] : '',
+            ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
+            ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : '',
             ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : '0',
             ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
             ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
-            ('password' in this.dbData) ? this.dbData['password'] : null,
-            ('account_id' in this.dbData) ? this.dbData['account_id'] : null,
+            ('password' in this.dbData) ? this.dbData['password'] : '',
+            ('account_id' in this.dbData) ? this.dbData['account_id'] : '0',
             ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
-            ('evac_role' in this.dbData) ? this.dbData['evac_role'] : null,
+            ('evac_role' in this.dbData) ? this.dbData['evac_role'] : '',
             ('invitation_date' in this.dbData) ? this.dbData['invitation_date'] : null,
-            ('add_to_location' in this.dbData) ? this.dbData['add_to_location'] : null,
+            ('add_to_location' in this.dbData) ? this.dbData['add_to_location'] : '0',
             ('token' in this.dbData) ? this.dbData['token'] : null,
-            ('approved_license_agreement' in this.dbData) ? this.dbData['approved_license_agreement'] : null,
+            ('approved_license_agreement' in this.dbData) ? this.dbData['approved_license_agreement'] : '0',
             ('logged_in' in this.dbData) ? this.dbData['logged_in'] : '0',
             ('archived' in this.dbData) ? this.dbData['archived'] : '0',
             ('must_change_password' in this.dbData) ? this.dbData['must_change_password'] : '0',
@@ -124,10 +146,9 @@ export class User extends BaseClass {
           connection.end();
 
         });
-
     }
 
-     public dbUpdate() {
+    public dbUpdate() {
         return new Promise((resolve, reject) => {
           const sql_update = `UPDATE users SET
                 first_name = ?,

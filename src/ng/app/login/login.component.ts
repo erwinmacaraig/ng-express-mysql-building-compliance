@@ -13,6 +13,10 @@ declare var $: any;
 })
 export class LoginComponent implements OnInit {
   loginMessageStatus: string;
+  showInvalid = false;
+  showErrorOccured = false;
+  showSuccess = false;
+  errorOccuredMessage = '';
   constructor(public http: HttpClient, private auth: AuthService) { }
 
   ngOnInit() {
@@ -20,6 +24,10 @@ export class LoginComponent implements OnInit {
   }
 
   signInFormSubmit(f: NgForm) {
+    this.showInvalid = false;
+    this.showErrorOccured = false;
+    this.showSuccess = false;
+    this.errorOccuredMessage = '';
     interface UserLoginResponse {
       status: string;
       message: string;
@@ -36,6 +44,7 @@ export class LoginComponent implements OnInit {
     }, {
       headers: header
     }).subscribe(data => {
+      this.showSuccess = true;
       this.auth.setToken(data.token);
     },
     (err: HttpErrorResponse) => {
@@ -43,10 +52,16 @@ export class LoginComponent implements OnInit {
         // todo error message for IO error
         this.loginMessageStatus = `An error occurred: ${err.error.message}`;
         console.log('An error occurred:', err.error.message);
+        this.showInvalid = false;
+        this.showErrorOccured = true;
+        this.errorOccuredMessage = this.loginMessageStatus;
       } else {
+        this.showInvalid = true;
         // todo error message for invalid user
         this.loginMessageStatus = `${err.error.message}`;
         console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
+        this.showInvalid = true;
+        this.showErrorOccured = false;
       }
     });
 

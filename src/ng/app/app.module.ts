@@ -11,6 +11,7 @@ import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
 import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.component';
+import { ChangepasswordComponent } from './changepassword/changepassword.component';
 
 // services section
 import { AuthService } from './services/auth.service';
@@ -20,12 +21,13 @@ import { AuthService } from './services/auth.service';
     AppComponent,
     LoginComponent,
     SignupComponent,
-    ForgotpasswordComponent
+    ForgotpasswordComponent,
+    ChangepasswordComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
-     HttpClientModule,
+    HttpClientModule,
     AppRoutingModule
   ],
   providers: [

@@ -2,7 +2,8 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { Sample } from '../models/sample';
 import { User } from '../models/user.model';
-
+import  * as fs  from 'fs';
+import * as path from 'path';
 
 /**
  * / route
@@ -23,6 +24,20 @@ export class IndexRoute extends BaseRoute {
     router.get('/test', (req: Request, res: Response, next: NextFunction) => {
       new IndexRoute().index(req, res, next);
     });
+
+    /*router.get('/static-data', (req: Request, res: Response, next: NextFunction) => {
+
+      console.log(__dirname);
+      console.log(path.join(__dirname, 'config/static-data.json'));
+
+      fs.readFile(path.join(__dirname, 'config/static-data.json'), (err, data) => {
+        console.log(err);
+        console.log(data);
+        res.send(data);
+      });
+      
+    });*/
+
   }
 
   /**
