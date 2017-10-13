@@ -1,6 +1,6 @@
 {
     "host": "localhost",
     "user": "root",
-    "password": "sysadmin",
+    "password": "",
     "database": "evacos"
 }
