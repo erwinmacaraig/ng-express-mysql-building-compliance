@@ -34,14 +34,18 @@ export class AuthenticateLoginRoute extends BaseRoute {
 
   public validate(req: Request, res: Response, next: NextFunction) {
     // console.log(req.body);
+    // set to 2 hours
+    let signedInExpiry = 7200;
+    if (req.body.keepSignedin) {
+      signedInExpiry = signedInExpiry * 12;
+    }
     const user = new User();
     user.loadByCredentials(req.body.username, req.body.password).then(() => {
-      console.log(res);
       const token = jwt.sign({
-        currentUser: {
-          user_db_token: user.get('token'),
-          evac_role: user.get('evac_role')
-        }}, 'secretKey', { expiresIn: 7200 });
+        user_db_token: user.get('token'),
+        evac_role: user.get('evac_role'),
+        user: user.get('user_id')
+        }, 'secretKey', { expiresIn: signedInExpiry });
       // return res.status(200).send(user.getDBData());
       return res.status(200).send({
         status: 'Authentication Success',
