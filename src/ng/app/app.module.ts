@@ -3,11 +3,17 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { TokenInterceptor } from './auth/token.interceptor';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
 import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.component';
+
+// services section
+import { AuthService } from './services/auth.service';
 
 @NgModule({
   declarations: [
@@ -19,10 +25,16 @@ import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.compone
   imports: [
     BrowserModule,
     FormsModule,
-    HttpModule,
+     HttpClientModule,
     AppRoutingModule
   ],
-  providers: [],
+  providers: [
+    AuthService,
+    {
+    provide: HTTP_INTERCEPTORS,
+    useClass: TokenInterceptor,
+    multi: true
+  }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

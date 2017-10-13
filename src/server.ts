@@ -3,8 +3,10 @@ import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
 import * as logger from 'morgan';
 import * as path from 'path';
+import * as cors from 'cors';
 
 import { IndexRoute } from './routes/index';
+import { AuthenticateLoginRoute } from './routes/authenticate_login';
 
 import * as swaggerUi from 'swagger-ui-express';
 const swaggerDocument = require('./config/swagger.json');
@@ -72,13 +74,11 @@ export class Server {
         extended: true
       }));
 
+      // cors
+      this.app.use(cors());
+
     this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-      // catch 404 and forward to error handler
-      this.app.use(function(err: any, req: express.Request, res: express.Response, next: express.NextFunction) {
-          err.status = 404;
-          next(err);
-      });
   }
 
   /**
@@ -95,9 +95,17 @@ export class Server {
       // IndexRoute
       IndexRoute.create(router);
 
+      // Authenticate Login
+      AuthenticateLoginRoute.create(router);
+
       this.app.use('/api/v1', router);
 
       // use router middleware
       this.app.use(router);
+
+       // catch 404 and forward to error handler
+       this.app.use(function(req: express.Request, res: express.Response, next: express.NextFunction) {
+        return res.sendFile(path.join(__dirname, 'public/index.html'));
+    });
   }
 }
