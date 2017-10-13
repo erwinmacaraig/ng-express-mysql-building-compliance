@@ -12,6 +12,9 @@
 
 						<input type="text" name="username" placeholder="Username or Email" id="username" ngModel /><br>
 						<input type="password" name="password" placeholder="Password" id="password" ngModel /><br>
+						<p *ngIf="showInvalid" class="error-message">Invalid username/email or password</p>
+						<p *ngIf="showErrorOccured" class="error-message">{{errorOccuredMessage}}</p>
+						<p *ngIf="showSuccess" class="success-message"> Success! </p>
 
 						<p class="keep-signed-in-container">
 							<input type="checkbox" class="filled-in blue" value="none" id="remember" name="keepSignedin" checked ngModel />
