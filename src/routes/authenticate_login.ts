@@ -33,7 +33,6 @@ export class AuthenticateLoginRoute extends BaseRoute {
   }
 
   public validate(req: Request, res: Response, next: NextFunction) {
-    // console.log(req.body);
     // set to 2 hours
     let signedInExpiry = 7200;
     if (req.body.keepSignedin) {
@@ -46,7 +45,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
         evac_role: user.get('evac_role'),
         user: user.get('user_id')
         }, 'secretKey', { expiresIn: signedInExpiry });
-      // return res.status(200).send(user.getDBData());
+
       return res.status(200).send({
         status: 'Authentication Success',
         message: 'Successfully logged in',
