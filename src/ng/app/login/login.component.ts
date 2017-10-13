@@ -1,6 +1,7 @@
 
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
+import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 
@@ -17,7 +18,10 @@ export class LoginComponent implements OnInit {
   showErrorOccured = false;
   showSuccess = false;
   errorOccuredMessage = '';
-  constructor(public http: HttpClient, private auth: AuthService) { }
+  private baseUrl: String;
+  constructor(public http: HttpClient, private auth: AuthService, private platformLocation: PlatformLocation) {
+    this.baseUrl = (platformLocation as any).location.origin;
+   }
 
   ngOnInit() {
 
@@ -37,7 +41,7 @@ export class LoginComponent implements OnInit {
     const header = new HttpHeaders({
       'Content-Type': 'application/json'
     });
-    this.http.post<UserLoginResponse>('http://localhost/authenticate', {
+    this.http.post<UserLoginResponse>(this.baseUrl + '/authenticate', {
       'username': f.value.username,
       'password': f.value.password,
       'keepSignedin': f.value.keepSignedin
