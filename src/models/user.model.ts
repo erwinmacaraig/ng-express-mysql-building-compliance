@@ -219,6 +219,25 @@ export class User extends BaseClass {
       });
     }
 
+    public getAll(limit:number, orderBy:String, order:String){
+      return new Promise((resolve, reject) => {
+          limit = (limit) ? limit : 25;
+          orderBy = (orderBy) ? orderBy : 'user_id';
+          order = (order) ? order : 'DESC';
+          const sql_load = "SELECT * FROM users ORDER BY "+orderBy+" "+order+" LIMIT "+limit+"";
+          const param = [ ];
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql_load, param, (error, results, fields) => {
+            if (error) {
+              return console.log(error);
+            }
+            this.dbData = results;
+            resolve(this.dbData);
+          });
+          connection.end();
+      });
+    }
+
 }
 
 

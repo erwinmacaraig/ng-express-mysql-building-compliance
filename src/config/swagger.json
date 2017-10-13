@@ -119,6 +119,45 @@
           }
         }
       }
+    },
+    "/users":{
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Fetch latest users",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in" : "query",
+            "name" : "start",
+            "type" : "number",
+            "value" : 0
+          },
+          {
+            "in" : "query",
+            "name" : "end",
+            "type" : "number",
+            "value" : 25
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request, there's an invalid field or email existance",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
