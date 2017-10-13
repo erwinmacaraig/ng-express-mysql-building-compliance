@@ -25,6 +25,10 @@ const md5 = require('md5');
 	   	router.post('/register', (req: Request, res: Response, next: NextFunction) => {
 	   		new RegisterRoute().index(req, res, next);
 	   	});
+
+	   	router.get('/users', (req: Request, res: Response, next: NextFunction) => {
+	   		new RegisterRoute().getUsers(req, res, next);
+	   	});
    	}
 
 	/**
@@ -216,6 +220,31 @@ const md5 = require('md5');
 			() => {
 				res.statusCode = 500;
 				res.send('Unable to save');
+			}
+		);
+	}
+
+	public getUsers(req: Request, res: Response, next: NextFunction){
+		let userModel = new User(),
+			response = {
+				status : false,
+				data: {},
+				message : ""
+			},
+			limit:any = 25;
+
+		if('start' in req.query && 'end' in req.query){
+			limit = req.query.start+','+req.query.end;
+		}
+
+		userModel.getAll(limit, 'user_id', 'DESC').then(
+			(users) => {
+				response.status = true;
+				response.data = users;
+				res.send(response);
+			},
+			(e) => {
+				res.send(response);
 			}
 		);
 	}
