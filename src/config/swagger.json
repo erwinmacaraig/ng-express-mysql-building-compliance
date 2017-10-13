@@ -9,7 +9,7 @@
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
-  "host": "localhost",
+  "host": "ec2-52-64-253-171.ap-southeast-2.compute.amazonaws.com",
   "basePath": "/",
   "tags": [
     {
@@ -44,17 +44,17 @@
             "required" : true,
             "schema" : {
               "properties" : {
-                "first_name" : 
+                "first_name" :
                   { "type" : "string" },
-                "last_name" : 
+                "last_name" :
                   { "type" : "string" },
-                "email" : 
+                "email" :
                   { "type" : "string" },
-                "password" : 
+                "password" :
                   { "type" : "string" },
-                "confirm_password" : 
+                "confirm_password" :
                   { "type" : "string" },
-                "role_id" : 
+                "role_id" :
                   { "type" : "number", "value" : 0 }
               }
             }
