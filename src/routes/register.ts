@@ -160,15 +160,16 @@ const md5 = require('md5');
 			let validatorResponse:any = this.validateData(reqBody);
 			if(validatorResponse.status){
 				const userEmailCheck = new User();
-				userEmailCheck.getByEmail(reqBody.email).then((userdata) => {
-					if( Object.keys( userdata ).length > 0 ){
+				userEmailCheck.getByEmail(reqBody.email).then(
+					(userdata) => {
 						response.message = 'Email already taken';
 						response.data['email_taken'] = 'Email already taken';
 						res.send(response);
-					}else{
+					},
+					(e) => {
 						this.saveUser(reqBody, res, next, response);
 					}
-				});
+				);
 			}else{
 				res.send(validatorResponse);
 			}
@@ -184,28 +185,39 @@ const md5 = require('md5');
 		const userRole = new UserRoleRelation();
 		reqBody.password = md5('Ideation'+reqBody.password+'Max');
 		reqBody.evac_role = 'Client';
-		user.create(reqBody).then(() => {
-
-			/* CURRENT AVAILABLE TO INSERT TRP AND FRP */
-			if(reqBody.role_id == 2 || reqBody.role_id == 1){
-				userRole.create({
-					'user_id' : user.ID(),
-					'role_id' : reqBody.role_id
-				}).then(() => {
+		user.create(reqBody).then(
+			() => {
+				/* CURRENT AVAILABLE TO INSERT TRP AND FRP */
+				if(reqBody.role_id == 2 || reqBody.role_id == 1){
+					userRole.create({
+						'user_id' : user.ID(),
+						'role_id' : reqBody.role_id
+					}).then(
+						() => {
+							res.statusCode = 200;
+							response.status = true;
+							response.data = reqBody;
+							response.data['user_id'] = user.ID();
+							res.send(response);
+						},
+						() => {
+							res.statusCode = 500;
+							res.send('Unable to save user role');
+						}
+					);
+				}else{
 					res.statusCode = 200;
 					response.status = true;
 					response.data = reqBody;
 					response.data['user_id'] = user.ID();
 					res.send(response);
-				});
-			}else{
-				res.statusCode = 200;
-				response.status = true;
-				response.data = reqBody;
-				response.data['user_id'] = user.ID();
-				res.send(response);
+				}
+			},
+			() => {
+				res.statusCode = 500;
+				res.send('Unable to save');
 			}
-		});
+		);
 	}
 
 }

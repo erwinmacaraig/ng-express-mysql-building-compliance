@@ -9,7 +9,7 @@
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
-  "host": "localhost:8080",
+  "host": "localhost",
   "basePath": "/",
   "tags": [
     {
@@ -75,6 +75,50 @@
           }
         }
       }
+    },
+    "/authenticate": {
+      "post":{
+        "summary": "Authenticate user by username/email and password credentials",
+        "tags": [
+          "users"
+        ],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "description": "Authentication needs username/email and password",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string",
+                "description": "Enter username/email of user"
+              },
+              "password": {
+                "type": "string",
+                "description": "User password"
+              },
+              "keepSignedIn": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "username",
+              "password"
+            ]
+          }
+        }
+        ],
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "User Authenticated",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -82,16 +126,16 @@
       "type": "object",
       "properties": {
         "status": {
-          "type": "boolean"
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         },
         "data": {
           "type": "array",
           "items": {
             "type": "object"
           }
-        },
-        "message": {
-          "type": "string"
         }
       }
     }

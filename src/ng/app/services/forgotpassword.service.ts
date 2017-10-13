@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Http, Response, Headers, RequestOptions } from '@angular/http';
+import { HttpClient } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -12,7 +12,7 @@ export class ForgotPasswordService {
 	private options: Object;
 	private baseUrl: String;
 
-	constructor(private http: Http, platformLocation: PlatformLocation) {
+	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
 		this.headers = new Headers({ 'Content-type' : 'application/json' });
 		this.options = { headers : this.headers };
 		this.baseUrl = (platformLocation as any).location.origin;
@@ -20,12 +20,11 @@ export class ForgotPasswordService {
 
   	public sendData(data, callBack){
 		this.http.post(this.baseUrl+"/forgot/password/request", data, this.options)
-	      .map((res) => res.json())
-	      .catch((err:any) =>  Observable.throw( err ) )
-	      .subscribe((res) => {
+	      .subscribe(res => {
+	      	console.log('subs');
 	        callBack(res);
-	      }, (err) => {
-	        callBack( JSON.parse(err._body) );
+	      }, err => {
+	        callBack( JSON.parse(err.error) );
 	      });
 	}
 

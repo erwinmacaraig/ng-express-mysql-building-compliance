@@ -61,38 +61,43 @@ const md5 = require('md5');
 
 		// Default status code
 		res.statusCode = 400;
+
 		if(!validator.isEmail(reqBody.email)){
 			response.message = 'Invalid email';
 			res.send(response);
 		}else{
 			const userEmailCheck = new User();
-			userEmailCheck.getByEmail(reqBody.email).then((userdata) => {
-				if( Object.keys( userdata ).length > 0 ){
-					let user = userdata[0],
-						now = new Date(),
-						dateTimeRequest = now.toJSON(),
-						saveData = {
-							user_id : user.user_id,
+			userEmailCheck.getByEmail(reqBody.email).then(
+				userdata => {
+					let saveData = {
+							user_id : userdata['user_id'],
 							token : this.generateRandomChars(25)+'-'+this.generateRandomChars(25),
 							action : 'forgot-password' 
 						},
 						tokenModel = new Token();
 
-					tokenModel.create(saveData).then(() => {
-						const emailLink = 'http://'+req.headers.host + '/forgot/password/validation/'+saveData.user_id+'/'+saveData.token+'/'+saveData.action;
-						saveData['emailLink'] = emailLink;
+					tokenModel.create(saveData).then(
+						() => {
+							const emailLink = 'http://'+req.headers.host + '/forgot/password/validation/'+saveData.user_id+'/'+saveData.token+'/'+saveData.action;
+							saveData['emailLink'] = emailLink;
 
-						response.data = saveData;
-						response.message = 'Email was sent to you, please open the email and click the link to confirm reset password request. Thank you!';
-						response.status = true;
-						res.statusCode = 200;
-						res.send(response);
-					});
-				}else{
+							response.data = saveData;
+							response.message = 'Email was sent to you, please open the email and click the link to confirm reset password request. Thank you!';
+							response.status = true;
+							res.statusCode = 200;
+							res.send(response);
+						},
+						() => {
+							response.message = "Unsuccessful token saving";
+							res.send(response);
+						}
+					);
+				},
+				e => {
 					response.message = 'Email does not exist';
 					res.send(response);
 				}
-			});
+			);
 		}
 	}
 
@@ -134,33 +139,44 @@ const md5 = require('md5');
 		// Default bad request
 		res.statusCode = 400;
 
-		tokenModel.getByToken(token).then((tokenData) => {
-			if(Object.keys(tokenData).length > 0){
-				user.load().then((userData) => {
-					let userValid = false;
-					if(Object.keys(userData).length > 0){
-						if(userData[0]['user_id'] == userId){
-							userValid = true;
+		tokenModel.getByToken(token).then(
+			(tokenData) => {
+				user.load().then(
+					userData => {
+						let userValid = false;
+						if(Object.keys(userData).length > 0){
+							if(userData['user_id'] == userId){
+								userValid = true;
+							}
 						}
-					}
+						
+						if(userValid){
+							if(tokenData['action'] == 'forgot-password'){
+								let paramData = {
+									user_id : new Buffer( userData['user_id'].toString() ).toString('base64'),
+									full_name : new Buffer(userData['first_name']+' '+userData['last_name']).toString('base64'),
+									token : token
+								};
 
-					if(userValid){
-						if(tokenData[0]['action'] == 'forgot-password'){
-							let paramData = {
-								user_id : new Buffer(userData[0]['user_id']).toString('base64'),
-								full_name : new Buffer(userData[0]['first_name']+' '+userData[0]['last_name']).toString('base64'),
-								token : token
-							};
-							res.redirect('http://'+req.headers.host+'/change-password/'+paramData.user_id+'/'+paramData.full_name+'/'+paramData.token);
+								const url = 'http://'+req.headers.host+'/change-password/'+paramData.user_id+'/'+paramData.full_name+'/'+paramData.token;
+
+								res.send('<a href="'+url+'">'+url+'</a>');
+								// res.redirect('http://'+req.headers.host+'/change-password/'+paramData.user_id+'/'+paramData.full_name+'/'+paramData.token);
+							}
+						}else{
+							res.send('User is invalid');
 						}
-					}else{
+					},
+					e => {
+						console.log('ss');
 						res.send('User is invalid');
 					}
-				});
-			}else{
+				);
+			},
+			(e) => {
 				res.send('Token is invalid');
 			}
-		});
+		);
 	}
 
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
-import { Http, Response, Headers, RequestOptions } from '@angular/http';
+import { HttpClient } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PlatformLocation } from '@angular/common';
@@ -24,7 +24,7 @@ export class SignupComponent implements OnInit {
   private baseUrl: String;
   emailTaken = false;
 
-  constructor(private router: Router, private http: Http, platformLocation: PlatformLocation, private signupService:SignupService) {
+  constructor(private router: Router, private http: HttpClient, platformLocation: PlatformLocation, private signupService:SignupService) {
     this.headers = new Headers({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers };
     this.baseUrl = (platformLocation as any).location.origin;
@@ -53,15 +53,12 @@ export class SignupComponent implements OnInit {
   }
 
   ngOnInit() {
-
     if(this.UserType === undefined){
       this.http.get(this.baseUrl+"/static-data", this.options)
-      .map((res) => res.json())
-      .catch((error:any)=> Observable.throw(error.json() || 'Server error') )
-      .subscribe((res) => {
-        this.UserType = res.account_type;
-        this.documentReady();
-      });
+        .subscribe(data => {
+          this.UserType = data['account_type'];
+          this.documentReady();
+        });
     }else{
       this.documentReady();
     }
