@@ -304,6 +304,18 @@ h1,h2{
   padding-left: 5px;
 }
 
+.error-message,
+.success-message{
+  margin-top: 0px;
+  color: #f44336;
+  font-size: 14px;
+  text-align: center;
+}
+
+.success-message{
+  color: #4caf50;
+}
+
 
 /* Phones */
 @media only screen
