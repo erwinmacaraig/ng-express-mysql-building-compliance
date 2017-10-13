@@ -4,5 +4,6 @@
 		"1" : { "role_id" : 2, "value" : "TRP", "description" : "Tenancy Responsible Person" },
 		"2" : { "role_id" : 3, "value" : "PM", "description" : "Portfolio Manager" },
 		"3" : { "role_id" : 4, "value" : "USERS", "description" : "Users" }
-	}
+	},
+	"forgot-password-request" : {}
 }

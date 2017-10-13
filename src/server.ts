@@ -3,9 +3,12 @@ import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
 import * as logger from 'morgan';
 import * as path from 'path';
+import * as http from 'http';
+import * as url from 'url';
 
 import { IndexRoute } from './routes/index';
 import { RegisterRoute } from './routes/register';
+import { ForgotPasswordRequestRoute } from './routes/forgot.password';
 
 import * as swaggerUi from 'swagger-ui-express';
 const swaggerDocument = require('./config/swagger.json');
@@ -101,7 +104,9 @@ export class Server {
       // IndexRoute
       IndexRoute.create(router);
 
-      RegisterRoute.create(router);
+      RegisterRoute.create(router)
+
+      ForgotPasswordRequestRoute.create(router);
 
       this.app.use('/api/v1', router);
 

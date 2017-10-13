@@ -22,8 +22,13 @@ export class User extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              this.dbData = results[0];
-              resolve(this.dbData);
+              if(!results.length){
+                reject('No user found');
+              }else{
+                this.dbData = results[0];
+                this.setID(results[0]['user_id']);
+                resolve(this.dbData);
+              }
             });
             connection.end();
         });
@@ -38,8 +43,14 @@ export class User extends BaseClass {
             if (error) {
               return console.log(error);
             }
-            this.dbData = results;
-            resolve(this.dbData);
+
+            if(!results.length){
+              reject('No user found');
+            }else{
+              this.dbData = results[0];
+              this.setID(results[0]['user_id']);
+              resolve(this.dbData);
+            }
           });
           connection.end();
       });
