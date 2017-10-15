@@ -15,6 +15,7 @@ import { ChangepasswordComponent } from './changepassword/changepassword.compone
 
 // services section
 import { AuthService } from './services/auth.service';
+import { AuthGuard } from './services/auth-guard.service';
 
 @NgModule({
   declarations: [
@@ -32,6 +33,7 @@ import { AuthService } from './services/auth.service';
   ],
   providers: [
     AuthService,
+    AuthGuard,
     {
     provide: HTTP_INTERCEPTORS,
     useClass: TokenInterceptor,
