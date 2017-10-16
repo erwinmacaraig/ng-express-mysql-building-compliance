@@ -58,7 +58,7 @@ export class User extends BaseClass {
       });
     }
 
-    loadByCredentials(username: string, passwd: string) {
+    public loadByCredentials(username: string, passwd: string) {
       return new Promise((resolve, reject) => {
         let whereClause = '';
         if (validator.isEmail(username)) {

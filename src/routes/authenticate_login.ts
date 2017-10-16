@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
+import { UserRoleRelation } from '../models/user.role.relation.model';
 
 import Validator from 'better-validator';
 import * as md5 from 'md5';
@@ -46,14 +47,36 @@ export class AuthenticateLoginRoute extends BaseRoute {
         user: user.get('user_id')
         }, 'secretKey', { expiresIn: signedInExpiry });
 
-      return res.status(200).send({
-        status: 'Authentication Success',
-        message: 'Successfully logged in',
-        token: token,
-        data: {
-          userId: user.get('user_id')
+      new UserRoleRelation().getByUserId(user.get('user_id')).then(
+        (userRole) => {
+          return res.status(200).send({
+            status: 'Authentication Success',
+            message: 'Successfully logged in',
+            token: token,
+            data: {
+              userId: user.get('user_id'),
+              name: user.get('first_name')+' '+user.get('last_name'),
+              email: user.get('email'),
+              roleId : userRole['role_id'],
+              mix : false
+            }
+          });
+        },
+        (m) => {
+          return res.status(200).send({
+            status: 'Authentication Success',
+            message: 'Successfully logged in',
+            token: token,
+            data: {
+              userId: user.get('user_id'),
+              name: user.get('first_name')+' '+user.get('last_name'),
+              email: user.get('email'),
+              roleId : 0
+            }
+          });
         }
-      });
+      );
+      
     }, (e) => {
       res.status(401).send({
       status: 'Authentication Failed',

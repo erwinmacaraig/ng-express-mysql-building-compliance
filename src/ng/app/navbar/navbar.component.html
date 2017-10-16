@@ -1,0 +1,83 @@
+<div class="navbar-fixed">
+	<nav>
+		<div class="left navbrand" >
+			<a href=""><img alt="EvacConnect" src="assets/images/ec_logo_nav.png" ></a>
+			<ul class="right navbar">
+				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
+					<a href=""><img alt="Location" src="assets/images/location.png" >Location</a>
+				</li>
+				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
+					<a href=""><img alt="Training" src="assets/images/training.png" >Training</a>
+				</li >
+				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
+					<a href=""> <img alt="Team" src="assets/images/team.png" >Team </a>
+				</li>
+				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
+					<a href=""><img alt="Report" src="assets/images/report.png" >Report</a>
+				</li>
+			</ul>
+		</div>
+
+		<div class="right">
+			<ul class="navbar">
+
+				<li>
+					<a href="javascript:void(0)" *ngIf="showUpgradePremium"><img alt="Location" src="assets/images/premium_bttn.png" ></a>
+				</li>
+				<li>
+					<a href="javascript:void(0)"><img alt="Training" src="assets/images/search.png" ></a>
+				</li>
+				<li>
+					<a href="javascript:void(0)"><img alt="Team" src="assets/images/mail.png" ></a>
+				</li>
+				<li>
+					<a href="javascript:void(0)" id="usersRightNavLink"> 
+						<div class="users-name">{{ userData.name }}</div>
+						<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
+						<img alt="Report" src=" {{ usersImageURL }} " *ngIf=" hasUserImage " > 
+					</a>
+				</li>
+
+			</ul>
+		</div>
+	</nav>
+</div>
+
+<div class="vertical-m">
+	
+	<div class="container container-myaccounts vertical-nav">
+		<div class="col sm12">
+			<div>
+				<div class="vertical-nav-title">
+					<div style="float:left;"><h5 myaccount>My Accounts</h5></div>
+					<div style="float:right; padding-right:1rem; padding-top:1rem; ">
+						<a href="javascript:void(0)" id="closeRightNav">
+							<img alt="" src="assets/images/close.png">
+						</a>
+					</div>
+					<div style="clear:both"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col sm12">
+			<div class="wrapper upload-photo">
+				<a href="javascript:void(0)">
+					<div ><img alt="EvacConnect" src="assets/images/camera_upload_hover.png"> </div>
+					<div><h6>Upload Photo</h6></div>
+				</a>
+			</div>
+		</div>
+
+		<div class="col sm12">
+			<ul class="links">
+				<li><a href="/">Company Information</a></li>
+				<li><a href="/">Personal Information</a></li>
+				<li><a href="/">Subscription</a></li>
+				<li><a href="/">Security & Privacy</a></li>
+				<li><a href="/signout">Sign Out</a></li>
+			</ul>
+		</div>
+	</div>
+	
+</div>

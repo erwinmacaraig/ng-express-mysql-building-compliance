@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -14,7 +14,7 @@ export class SignupService {
 	private baseUrl: String;
 
 	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
-		this.headers = new Headers({ 'Content-type' : 'application/json' });
+		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
     	this.options = { headers : this.headers };
 		this.baseUrl = (platformLocation as any).location.origin;
 	}
