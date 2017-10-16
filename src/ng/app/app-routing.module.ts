@@ -17,7 +17,6 @@ const appRoutes: Routes = [
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-password/:user_id/:fullname/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
-  { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent },
   { path: 'signout', component: SignoutComponent },
   { path: '**', redirectTo: '/'},
 ];
