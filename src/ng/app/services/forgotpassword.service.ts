@@ -8,7 +8,7 @@ import 'rxjs/add/operator/catch';
 @Injectable()
 export class ForgotPasswordService {
 
-  	private headers: Object;
+  	private headers: any;
 	private options: Object;
 	private baseUrl: String;
 
@@ -19,8 +19,10 @@ export class ForgotPasswordService {
 	}
 
   	public sendData(data, callBack){
-		this.http.post(this.baseUrl+"/forgot/password/request", data, this.options)
-	      .subscribe(res => {
+		this.http.post(this.baseUrl+"/forgot/password/request", data, {
+      headers: this.headers
+    })
+      .subscribe(res => {
 	      	console.log('subs');
 	        callBack(res);
 	      }, err => {

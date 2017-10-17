@@ -84,6 +84,7 @@ export class User extends BaseClass {
         }
       });
       connection.end();
+ 
     });
   }
 
@@ -112,7 +113,6 @@ export class User extends BaseClass {
         }
       });
       connection.end();
-
     });
   }
 
@@ -248,6 +248,7 @@ export class User extends BaseClass {
     });
   }
 
+
   public getAll(limit:number, orderBy:String, order:String){
     return new Promise((resolve, reject) => {
       limit = (limit) ? limit : 25;
@@ -266,6 +267,5 @@ export class User extends BaseClass {
       connection.end();
     });
   }
-
 
 }
