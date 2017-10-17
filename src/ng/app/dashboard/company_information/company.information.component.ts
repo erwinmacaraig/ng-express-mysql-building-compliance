@@ -123,6 +123,8 @@ export class CompanyInformationComponent implements OnInit {
 					$( 'input[name="'+response.data[i]['role']+'"]' ).val(response.data[i]['code']).trigger('change');
 				}
 
+				console.log('what');
+
 				setTimeout(function(){ 
 					btnObjOpt.hide();
 				}, 500);
