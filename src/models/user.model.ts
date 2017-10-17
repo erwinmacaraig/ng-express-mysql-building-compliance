@@ -84,7 +84,6 @@ export class User extends BaseClass {
         }
       });
       connection.end();
- 
     });
   }
 
@@ -235,7 +234,7 @@ export class User extends BaseClass {
       connection.end();
     }); // end Promise
   }
-
+  
   public create(createData) {
     return new Promise((resolve, reject) => {
       for (let key in createData ) {
@@ -247,7 +246,6 @@ export class User extends BaseClass {
       resolve(this.write());
     });
   }
-
 
   public getAll(limit:number, orderBy:String, order:String){
     return new Promise((resolve, reject) => {

@@ -1,7 +1,7 @@
 <div class="navbar-fixed">
 	<nav>
 		<div class="left navbrand" >
-			<a href=""><img alt="EvacConnect" src="assets/images/ec_logo_nav.png" ></a>
+			<a [routerLink]="['/dashboard']"><img alt="EvacConnect" src="assets/images/ec_logo_nav.png" ></a>
 			<ul class="right navbar">
 				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
 					<a href=""><img alt="Location" src="assets/images/location.png" >Location</a>
@@ -71,7 +71,7 @@
 
 		<div class="col sm12">
 			<ul class="links">
-				<li><a href="/">Company Information</a></li>
+				<li><a [routerLink]="['/dashboard/company-information']">Company Information</a></li>
 				<li><a href="/">Personal Information</a></li>
 				<li><a href="/">Subscription</a></li>
 				<li><a href="/">Security & Privacy</a></li>

@@ -11,6 +11,8 @@ import { IndexRoute } from './routes/index';
 import { RegisterRoute } from './routes/register';
 import { ForgotPasswordRequestRoute } from './routes/forgot.password';
 import { AuthenticateLoginRoute } from './routes/authenticate_login';
+import { AccountRoute } from './routes/account';
+import { LocationRoute } from './routes/location';
 import * as cors from 'cors';
 
 import * as swaggerUi from 'swagger-ui-express';
@@ -112,6 +114,13 @@ export class Server {
 
       // Authenticate Login
       AuthenticateLoginRoute.create(router);
+
+      // Account
+      AccountRoute.create(router);
+
+      // Locations
+      LocationRoute.create(router);
+
 
       this.app.use('/api/v1', router);
 
