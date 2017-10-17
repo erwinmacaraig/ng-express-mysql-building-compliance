@@ -22,7 +22,6 @@
     "@angular/platform-browser": "^4.4.4",
     "@angular/platform-browser-dynamic": "^4.4.4",
     "@angular/router": "^4.4.4",
-    "@types/request": "^2.0.5",
     "animate": "^1.0.0",
     "animate.css": "^3.5.2",
     "better-validator": "^2.1.3",
