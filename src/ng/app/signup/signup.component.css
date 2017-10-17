@@ -20,7 +20,7 @@
 
 .modal{
 	max-height: 90% !important;
-	overflow: visible;
+	overflow: overlay;
 }
 
 .modal .modal-content {
