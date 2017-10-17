@@ -8,7 +8,7 @@ import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.compone
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { SignoutComponent } from './signout/signout.component';
-import { CompanyInformationComponent } from './company_information/company.information.component';
+import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
 
 import { AuthGuard } from './services/auth-guard.service';
 
@@ -17,11 +17,13 @@ const appRoutes: Routes = [
   { path: 'signup', component: SignupComponent},
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-password/:user_id/:fullname/:token', component: ChangepasswordComponent},
-  { path: 'company-information', component: CompanyInformationComponent },
-
-  { path: '', canActivate: [AuthGuard], component: DashboardComponent },
+  { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent,
+    children: [
+      { path:'company-information', component: CompanyInformationComponent }
+    ]
+  },
   { path: 'signout', component: SignoutComponent },
-  { path: '**', redirectTo: '/'},
+  { path: '**', redirectTo: '/dashboard'},
 ];
 
 @NgModule({

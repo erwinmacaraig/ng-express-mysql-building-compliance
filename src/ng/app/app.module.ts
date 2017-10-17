@@ -19,7 +19,7 @@ import { ChangepasswordComponent } from './changepassword/changepassword.compone
 import { NavbarComponent } from './navbar/navbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { SignoutComponent } from './signout/signout.component';
-import { CompanyInformationComponent } from './company_information/company.information.component';
+import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
 
 
 @NgModule({

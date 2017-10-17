@@ -2,9 +2,9 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { AuthService } from '../services/auth.service';
-import { AccountsService } from '../services/accounts';
-import { LocationsService } from '../services/locations';
+import { AuthService } from '../../services/auth.service';
+import { AccountsService } from '../../services/accounts';
+import { LocationsService } from '../../services/locations';
 
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -13,7 +13,7 @@ import 'rxjs/add/operator/catch';
 declare var $: any;
 
 @Component({
-	selector: 'app-company.information',
+	selector: 'app-company-information',
 	templateUrl: './company.information.component.html',
 	styleUrls: ['./company.information.component.css'],
 	providers: [AccountsService, AuthService, LocationsService]
@@ -46,7 +46,9 @@ export class CompanyInformationComponent implements OnInit {
 	ngOnInit() {
 		this.userRoleID = this.userData['roleId'];
 		$('select').material_select();
-		$('.vertical-m').addClass('fadeInRight animated');
+		if(!$('.vertical-m').hasClass('fadeInRight')){
+			$('.vertical-m').addClass('fadeInRight animated');
+		}
 
 		this.getAccountInfoAndDisplay();
 	}
@@ -60,7 +62,7 @@ export class CompanyInformationComponent implements OnInit {
 			if(Object.keys(resAccount.data).length > 0){
 				this.companyName = resAccount.data['account_name'];
 				this.locationsService.getByAccountId(resAccount.data['account_id'], (resLocation) => {
-					
+
 				});
 			}else{
 				this.displayNoAccount();

@@ -1,0 +1,33 @@
+<div class="form">	
+	<div class="row">
+		<div class="col s3">
+			<h5>Company Information</h5>
+			<br>
+			<h6>Company name</h6>
+			<h5> {{ companyName }} </h5>
+			<br>
+			<h3>Account Invitation Code Generator</h3>
+			<br>
+			<div class="input-field">
+				<select>
+					<option value="-1" disabled selected>Select location</option>
+					<option   >{{ name }}</option>
+				</select>
+				<label>Location</label>
+			</div>
+
+			<div class="input-field">
+				<input id="input_text" disabled type="text" >
+				<label for="input_text">TRP Invitation Code (Admin)</label>
+			</div>
+
+			<div class="input-field">
+				<input id="input_text" disabled type="text" >
+				<label for="input_text">Warden Invitation Code (User)</label>
+			</div>
+
+			<button class="btn btn-block orange btn-large btn-generate waves-effect waves-light">Generate Code</button>
+			
+		</div>
+	</div>	
+</div>
