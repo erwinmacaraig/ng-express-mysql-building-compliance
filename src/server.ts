@@ -85,12 +85,6 @@ export class Server {
       this.app.use(express.Router().get('/static-data', (req: express.Request, res: express.Response, next: express.NextFunction) => {
         res.send( staticData );
       }));
-      
-      // catch 404 and forward to error handler
-      this.app.use(function(err: any, req: express.Request, res: express.Response, next: express.NextFunction) {
-          err.status = 404;
-          next(err);
-      });
 
       // cors
       this.app.use(cors());
@@ -111,7 +105,7 @@ export class Server {
       IndexRoute.create(router);
 
       // Sign up or User registration route
-      RegisterRoute.create(router)
+      RegisterRoute.create(router);
 
       // Forgot password route
       ForgotPasswordRequestRoute.create(router);

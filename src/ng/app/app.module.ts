@@ -7,14 +7,19 @@ import { HttpClientModule } from '@angular/common/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './auth/token.interceptor';
 
+// services section
+import { AuthService } from './services/auth.service';
+import { AuthGuard } from './services/auth-guard.service';
+
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
 import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
+import { NavbarComponent } from './navbar/navbar.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
+import { SignoutComponent } from './signout/signout.component';
 
-// services section
-import { AuthService } from './services/auth.service';
 
 @NgModule({
   declarations: [
@@ -22,7 +27,10 @@ import { AuthService } from './services/auth.service';
     LoginComponent,
     SignupComponent,
     ForgotpasswordComponent,
-    ChangepasswordComponent
+    ChangepasswordComponent,
+    NavbarComponent,
+    DashboardComponent,
+    SignoutComponent
   ],
   imports: [
     BrowserModule,
@@ -32,11 +40,13 @@ import { AuthService } from './services/auth.service';
   ],
   providers: [
     AuthService,
+    AuthGuard,
     {
-    provide: HTTP_INTERCEPTORS,
-    useClass: TokenInterceptor,
-    multi: true
-  }],
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

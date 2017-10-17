@@ -8,3 +8,6 @@ CREATE TABLE `token` (
   `user_id` int(11) NOT NULL,
   `action` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+ALTER TABLE `token`
+  ADD PRIMARY KEY (`token_id`);
