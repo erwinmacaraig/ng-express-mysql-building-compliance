@@ -27,4 +27,13 @@ export class AccountsService {
 	      });
 	}
 
+	generateInvitationCode(opt, callBack){
+		this.http.post(this.baseUrl+"/accounts/generate-invitation-code/", opt, this.options)
+	      .subscribe(res => {
+	        callBack(res);
+	      }, err => {
+	        callBack( JSON.parse(err.error) );
+	      });
+	}
+
 }

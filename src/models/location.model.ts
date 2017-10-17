@@ -43,7 +43,7 @@ export class Location extends BaseClass {
                 FROM locations l
                 LEFT JOIN location_account_relation lar
                 ON l.location_id = lar.location_id
-                WHERE lar.account_id = ? AND l.archived = 0
+                WHERE lar.account_id = ? AND l.archived = 0 AND l.parent_id = -1
                 ORDER BY l.location_id ASC
             `;
             const param = [accountId];
@@ -65,9 +65,26 @@ export class Location extends BaseClass {
 
     public dbUpdate() {
         return new Promise((resolve, reject) => {
-          const sql_update = ` `;
+          const sql_update = `UPDATE locations SET
+            parent_id = ?, name = ?, unit = ?, street = ?, city = ?, state = ?,
+            postal_code = ?, country = ?, time_zone = ?, order = ?,
+            is_building = ?, location_directory_name = ?, archived = ?  
+            WHERE location_id = ?`;
           const param = [
-            ('lead' in this.dbData) ? this.dbData['lead'] : 0,
+            ('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
+            ('name' in this.dbData) ? this.dbData['name'] : '',
+            ('unit' in this.dbData) ? this.dbData['unit'] : '',
+            ('street' in this.dbData) ? this.dbData['street'] : '',
+            ('city' in this.dbData) ? this.dbData['city'] : '',
+            ('state' in this.dbData) ? this.dbData['state'] : '',
+            ('postal_code' in this.dbData) ? this.dbData['postal_code'] : '',
+            ('country' in this.dbData) ? this.dbData['country'] : '',
+            ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
+            ('order' in this.dbData) ? this.dbData['order'] : null,
+            ('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
+            ('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : null,
+            ('archived' in this.dbData) ? this.dbData['archived'] : 0,
+            this.ID() ? this.ID() : 0
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_update, param, (err, results, fields) => {
@@ -85,12 +102,26 @@ export class Location extends BaseClass {
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
-          const sql_insert = `INSERT INTO accounts (
-            
-          ) VALUES ()
+          const sql_insert = `INSERT INTO locations (
+            parent_id, name, unit, street, city, state,
+            postal_code, country, time_zone, order,
+            is_building, location_directory_name, archived
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
           const param = [
-            
+            ('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
+            ('name' in this.dbData) ? this.dbData['name'] : '',
+            ('unit' in this.dbData) ? this.dbData['unit'] : '',
+            ('street' in this.dbData) ? this.dbData['street'] : '',
+            ('city' in this.dbData) ? this.dbData['city'] : '',
+            ('state' in this.dbData) ? this.dbData['state'] : '',
+            ('postal_code' in this.dbData) ? this.dbData['postal_code'] : '',
+            ('country' in this.dbData) ? this.dbData['country'] : '',
+            ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
+            ('order' in this.dbData) ? this.dbData['order'] : null,
+            ('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
+            ('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : null,
+            ('archived' in this.dbData) ? this.dbData['archived'] : 0
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_insert, param, (err, results, fields) => {

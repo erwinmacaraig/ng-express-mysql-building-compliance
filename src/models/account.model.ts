@@ -82,7 +82,8 @@ export class Account extends BaseClass {
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
             ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "",
             ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
-            ('account_id' in this.dbData) ? this.dbData['account_id'] : 0
+            ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
+            this.ID() ? this.ID() : 0
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_update, param, (err, results, fields) => {

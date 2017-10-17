@@ -8,25 +8,37 @@
 			<br>
 			<h3>Account Invitation Code Generator</h3>
 			<br>
-			<div class="input-field">
-				<select>
-					<option value="-1" disabled selected>Select location</option>
-					<option   >{{ name }}</option>
-				</select>
-				<label>Location</label>
-			</div>
+			
+			<form #formGen="ngForm" (ngSubmit)="submitFormEvent(formGen, $event)" >
+				<div class="input-field">
+					<select id="selectLocation" *ngIf="userRoleID === 1 || userRoleID === 2" required>
+						<option *ngFor="let location of locations" value="{{location.location_id}}" >{{ location.name }}</option>
+					</select>
+					<label>Location</label>
+				</div>
 
-			<div class="input-field">
-				<input id="input_text" disabled type="text" >
-				<label for="input_text">TRP Invitation Code (Admin)</label>
-			</div>
+				<div class="input-field" *ngIf="userRoleID === 1">
+					<input name="frp" ngModel disabled type="text" required>
+					<label for="input_text">FRP Invitation Code </label>
+				</div>
 
-			<div class="input-field">
-				<input id="input_text" disabled type="text" >
-				<label for="input_text">Warden Invitation Code (User)</label>
-			</div>
+				<div class="input-field" *ngIf="userRoleID === 1 || userRoleID === 2">
+					<input name="trp" ngModel disabled type="text" required>
+					<label for="input_text">TRP Invitation Code </label>
+				</div>
 
-			<button class="btn btn-block orange btn-large btn-generate waves-effect waves-light">Generate Code</button>
+				<div class="input-field" *ngIf="userRoleID === 1 || userRoleID === 2">
+					<input name="warden" ngModel disabled type="text" required>
+					<label for="input_text">Warden Invitation Code </label>
+				</div>
+
+				<button  class="btn btn-block orange btn-large btn-generate waves-effect waves-light" 
+					*ngIf="userRoleID === 1 || userRoleID === 2">
+					Generate Code
+				</button>
+			</form>
+			
+
 			
 		</div>
 	</div>	
