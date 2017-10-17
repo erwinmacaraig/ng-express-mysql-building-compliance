@@ -42,7 +42,6 @@ export class AuthenticateLoginRoute extends BaseRoute {
     const user = new User();
     user.loadByCredentials(req.body.username, req.body.password).then(
       () => {
-        console.log(process.env.KEY);
         const token = jwt.sign(
           {
             user_db_token: user.get('token'),

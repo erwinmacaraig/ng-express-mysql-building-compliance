@@ -48,7 +48,7 @@ export class SignupComponent implements OnInit {
 
       // Init select field
       $('select').material_select();
-      $(".dropdown-content li:not(.disabled) span").attr('style', 'color: #39a1ff !important;');
+      // $(".dropdown-content li:not(.disabled) span").attr('style', 'color: #39a1ff !important;');
     });
   }
 
