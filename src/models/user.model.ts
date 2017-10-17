@@ -5,87 +5,115 @@ const dbconfig = require('../config/db');
 import * as Promise from 'promise';
 import * as validator from 'validator';
 import * as md5 from 'md5';
+import * as jwt from 'jsonwebtoken';
 
 export class User extends BaseClass {
 
-    constructor(id?: number) {
-        super();
-        if (id) {
-            this.id = id;
-        }
-    }
-
-    public load() {
-        return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM users WHERE user_id = ?';
-            const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-              if (error) {
-                throw error;
-              }
-              if(!results.length){
-                reject('No user found');
-              }else{
-                this.dbData = results[0];
-                this.setID(results[0]['user_id']);
-                resolve(this.dbData);
-              }
-            });
-            connection.end();
-        });
-    }
-
-    public getByEmail(email: String){
-      return new Promise((resolve, reject) => {
-          const sql_load = 'SELECT * FROM users WHERE email = ?';
-          const param = [email];
+  public static getByToken(token: string) {
+    return new Promise((resolve, reject) => {
+      const parts = token.split(' ');
+      if (parts.length === 2 && parts[0] === 'Bearer') {
+        try {
+          const decoded = jwt.verify(parts[1], process.env.KEY || 'secretKey');
+          console.log(decoded);
+          const sql_load = 'SELECT * FROM users WHERE user_id = ? AND token = ?';
+          const val = [decoded.user, decoded.user_db_token];
           const connection = db.createConnection(dbconfig);
-          connection.query(sql_load, param, (error, results, fields) => {
+          connection.query(sql_load, val, (error, results, fields) => {
             if (error) {
-              return console.log(error);
+              throw error;
             }
-
-            if(!results.length){
+            if (!results.length) {
               reject('No user found');
-            }else{
-              this.dbData = results[0];
-              this.setID(results[0]['user_id']);
-              resolve(this.dbData);
+            } else {
+              resolve(results[0]);
             }
           });
           connection.end();
-      });
-    }
-
-    loadByCredentials(username: string, passwd: string) {
-      return new Promise((resolve, reject) => {
-        let whereClause = '';
-        if (validator.isEmail(username)) {
-          whereClause = 'WHERE email = ?';
-        } else {
-          whereClause = 'WHERE user_name = ?';
+        } catch (e) {
+          return reject('Not Authenticated');
         }
-        const sql_user = 'SELECT * FROM users ' + whereClause + ' AND password = ?';
-        const newPasswd = md5('Ideation' + passwd + 'Max');
-        const credential = [username, newPasswd];
+      }
+    });
+  }
+
+  constructor(id?: number) {
+    super();
+    if (id) {
+        this.id = id;
+    }
+  }
+  public load() {
+    return new Promise((resolve, reject) => {
+        const sql_load = 'SELECT * FROM users WHERE user_id = ?';
+        const uid = [this.id];
         const connection = db.createConnection(dbconfig);
-        connection.query(sql_user, credential, (error, results, fields) => {
+        connection.query(sql_load, uid, (error, results, fields) => {
           if (error) {
             throw error;
           }
           if (!results.length) {
-            reject('Invalid user');
+            reject('No user found');
           } else {
             this.dbData = results[0];
-            this.setID(results[0].user_id);
+            this.setID(results[0]['user_id']);
             resolve(this.dbData);
           }
         });
         connection.end();
+    });
+  }
 
+  public getByEmail(email: String) {
+    return new Promise((resolve, reject) => {
+        const sql_load = 'SELECT * FROM users WHERE email = ?';
+        const param = [email];
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_load, param, (error, results, fields) => {
+          if (error) {
+            return console.log(error);
+          }
+
+          if (!results.length) {
+            reject('No user found');
+          } else {
+            this.dbData = results[0];
+            this.setID(results[0]['user_id']);
+            resolve(this.dbData);
+          }
+        });
+        connection.end();
+    });
+  }
+
+  loadByCredentials(username: string, passwd: string) {
+    return new Promise((resolve, reject) => {
+      let whereClause = '';
+      if (validator.isEmail(username)) {
+        whereClause = 'WHERE email = ?';
+      } else {
+        whereClause = 'WHERE user_name = ?';
+      }
+      const sql_user = 'SELECT * FROM users ' + whereClause + ' AND password = ?';
+      const newPasswd = md5('Ideation' + passwd + 'Max');
+      const credential = [username, newPasswd];
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_user, credential, (error, results, fields) => {
+        if (error) {
+          throw error;
+        }
+        if (!results.length) {
+          reject('Invalid user');
+        } else {
+          this.dbData = results[0];
+          this.setID(results[0].user_id);
+          resolve(this.dbData);
+        }
       });
-    }
+      connection.end();
+
+    });
+  }
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
@@ -238,6 +266,5 @@ export class User extends BaseClass {
       });
     }
 
+
 }
-
-

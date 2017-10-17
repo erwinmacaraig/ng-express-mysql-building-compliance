@@ -2,8 +2,10 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { Sample } from '../models/sample';
 import { User } from '../models/user.model';
-import  * as fs  from 'fs';
+import { AuthRequest } from '../interfaces/auth.interface';
+import * as fs from 'fs';
 import * as path from 'path';
+import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 
 /**
  * / route
@@ -21,23 +23,9 @@ export class IndexRoute extends BaseRoute {
    */
   public static create(router: Router) {
     // add home page route
-    router.get('/test', (req: Request, res: Response, next: NextFunction) => {
-      new IndexRoute().index(req, res, next);
+    router.get('/test', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new IndexRoute().index(req, res);
     });
-
-    /*router.get('/static-data', (req: Request, res: Response, next: NextFunction) => {
-
-      console.log(__dirname);
-      console.log(path.join(__dirname, 'config/static-data.json'));
-
-      fs.readFile(path.join(__dirname, 'config/static-data.json'), (err, data) => {
-        console.log(err);
-        console.log(data);
-        res.send(data);
-      });
-      
-    });*/
-
   }
 
   /**
@@ -59,8 +47,25 @@ export class IndexRoute extends BaseRoute {
    * @param res {Response} The express Response object.
    * @next {NextFunction} Execute the next method.
    */
-  public index(req: Request, res: Response, next: NextFunction) {
+  public index(req: AuthRequest, res: Response) {
+     console.log(req.token);
+     console.log(req.user);
+    // console.log(req.get('user'));
+      // set options
+    const options: Object = {
+      'title': 'Evac Connect Platform',
+      'message': 'Welcome To EvacConnect'
+    };
 
+    // render template
+    this.render(req, res, 'index.hbs', options);
+
+     /*
+    interface AuthRequest extends Request {
+      'user': any;
+      'token': string;
+    }
+    */
     /*
     const user = new User(27);
     user.set('field_one', 'this is field one');
@@ -125,6 +130,7 @@ user.set();
 
 */
 
+/*
 const u = new User();
 u.create({
   'field_one': 'this is field one',
@@ -141,6 +147,7 @@ u.create({
 }).then(() => {
   console.log(u.ID());
 });
+*/
 
     /*
  () => {
@@ -151,24 +158,31 @@ u.create({
       }
     */
 
-    //user.load.then(
+    // user.load.then(
     //    console.log(user.get('email'));
-    //);
-    //console.log(user.getDBData());
-    //console.log(user.get('email'));
+    // );
+    // console.log(user.getDBData());
+    // console.log(user.get('email'));
     /*
     setTimeout(() => {
       console.log(user.getDBData());
       console.log(user.get('email'));
     },3000);
     */
-      // set options
-    const options: Object = {
-      'title': 'Evac Connect Platform',
-      'message': 'Welcome To EvacConnect'
-    };
 
-    // render template
-    this.render(req, res, 'index.hbs', options);
+    /*router.get('/static-data', (req: Request, res: Response, next: NextFunction) => {
+
+      console.log(__dirname);
+      console.log(path.join(__dirname, 'config/static-data.json'));
+
+      fs.readFile(path.join(__dirname, 'config/static-data.json'), (err, data) => {
+        console.log(err);
+        console.log(data);
+        res.send(data);
+      });
+
+    });*/
+
+
   }
 }

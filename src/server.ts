@@ -84,7 +84,7 @@ export class Server {
       // Static data which are not included in database
       this.app.use(express.Router().get('/static-data', (req: express.Request, res: express.Response, next: express.NextFunction) => {
         res.send( staticData );
-      }));    
+      }));
 
       // cors
       this.app.use(cors());
@@ -105,7 +105,7 @@ export class Server {
       IndexRoute.create(router);
 
       // Sign up or User registration route
-      RegisterRoute.create(router)
+      RegisterRoute.create(router);
 
       // Forgot password route
       ForgotPasswordRequestRoute.create(router);

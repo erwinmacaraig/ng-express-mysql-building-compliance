@@ -42,10 +42,8 @@ export class AuthenticateLoginRoute extends BaseRoute {
     user.loadByCredentials(req.body.username, req.body.password).then(() => {
       const token = jwt.sign({
         user_db_token: user.get('token'),
-        evac_role: user.get('evac_role'),
         user: user.get('user_id')
-        }, 'secretKey', { expiresIn: signedInExpiry });
-
+        }, process.env.KEY, { expiresIn: signedInExpiry }).toString();
       return res.status(200).send({
         status: 'Authentication Success',
         message: 'Successfully logged in',
