@@ -14,7 +14,7 @@ export class User extends BaseClass {
       const parts = token.split(' ');
       if (parts.length === 2 && parts[0] === 'Bearer') {
         try {
-          const decoded = jwt.verify(parts[1], process.env.KEY || 'secretKey');
+          const decoded = jwt.verify(parts[1], process.env.KEY);
           console.log(decoded);
           const sql_load = 'SELECT * FROM users WHERE user_id = ? AND token = ?';
           const val = [decoded.user, decoded.user_db_token];
