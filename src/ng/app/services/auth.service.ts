@@ -12,7 +12,7 @@ export class AuthService {
   }
 
   public removeToken() {
-    return localStorage.removeItem('currentUser');
+    return localStorage.clear();
   }
 
   public setUserData(data){
