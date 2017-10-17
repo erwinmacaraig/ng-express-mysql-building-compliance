@@ -69,6 +69,7 @@ export class SignupComponent implements OnInit {
     this.enableElem();
     $('.invalid').removeClass('invalid');
     $('label.active').removeClass('active');
+    $('#accountType').val("-1").material_select();
   }
 
   enableElem(){

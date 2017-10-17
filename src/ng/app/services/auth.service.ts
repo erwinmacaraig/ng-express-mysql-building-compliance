@@ -10,4 +10,21 @@ export class AuthService {
   public setToken(theToken) {
     return localStorage.setItem('currentUser', JSON.stringify(theToken));
   }
+
+  public removeToken() {
+    return localStorage.removeItem('currentUser');
+  }
+
+  public setUserData(data){
+  	localStorage.setItem('userData', JSON.stringify(data));
+  }
+
+  public getUserData(){
+  	return (localStorage.getItem('userData') !== null) ? JSON.parse(localStorage.getItem('userData')) : {};
+  }
+
+  public removeUserData() {
+    return localStorage.removeItem('userData');
+  }
+
 }
