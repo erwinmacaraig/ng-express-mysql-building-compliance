@@ -6,7 +6,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
 @Injectable()
-export class AccountsService {
+export class LocationsService {
 
 	private headers: Object;
   	private options: Object;
@@ -18,8 +18,8 @@ export class AccountsService {
 		this.baseUrl = (platformLocation as any).location.origin;
 	}
 
-	getByUserId(user_id, callBack){
-		this.http.get(this.baseUrl+"/accounts/get-by-user/"+user_id, this.options)
+	getByAccountId(accountid, callBack){
+		this.http.get(this.baseUrl+"/location/get-by-account/"+accountid, this.options)
 	      .subscribe(res => {
 	        callBack(res);
 	      }, err => {

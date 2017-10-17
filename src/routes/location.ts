@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
-import { Account } from '../models/account.model';
+import { Location } from '../models/location.model';
 import  * as fs  from 'fs';
 import * as path from 'path';
 const validator = require('validator');
@@ -10,9 +10,9 @@ const md5 = require('md5');
 /**
  * / route
  *
- * @class AccountRoute
+ * @class LocationRoute
  */
- export class AccountRoute extends BaseRoute {
+ export class LocationRoute extends BaseRoute {
 	/**
    	* Create the routes.
    	*
@@ -23,9 +23,8 @@ const md5 = require('md5');
 	public static create(router: Router) {
 	   	// add route
 	   	
-	   	router.get('/accounts/get-by-user/:user_id', (req: Request, res: Response, next: NextFunction) => {
-	   		console.log(req.params['user_id']);
-	   		new AccountRoute().getByUserId(req, res, next);
+	   	router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
+	   		new LocationRoute().getByAccountId(req, res, next);
 	   	});
 
    	}
@@ -40,29 +39,25 @@ const md5 = require('md5');
 		super();
 	}
 
-	public getByUserId(req: Request, res: Response, next: NextFunction){
+	public getByAccountId(req: Request, res: Response, next: NextFunction){
 		let  response = {
 				status : false,
 				message : '',
 				data : {}
 			},
-			account = new Account();
+			location = new Location();
 
 		// Default status code
 		res.statusCode = 400;
 
-		console.log(req.params['user_id']);
-
-		account.getByUserId(req.params['user_id']).then(
+		location.getByAccountId(req.params['account_id']).then(
 			(accountData) => {
-				console.log(accountData, response);
 				response.status = true;
 				res.statusCode = 200;
 				response.data = accountData;
 				res.send(response);
 			},
 			(e) => {
-				console.log(e, response);
 				response.status = true;
 				res.statusCode = 200;
 				response.message = 'no accounts found';
