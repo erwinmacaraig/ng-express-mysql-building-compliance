@@ -19,8 +19,8 @@
 }
 
 .modal{
-	max-height: 90% !important;
-	overflow: overlay;
+	max-height: 100% !important;
+	overflow: visible;
 }
 
 .modal .modal-content {
@@ -113,7 +113,6 @@
   and (max-width: 768px){
 	
 	.modal{
-		max-height: 70% !important;
 		overflow-y: none;
 	}
 
@@ -133,5 +132,9 @@
 	#modalSignup {
 	    width: 95%;
 	    margin-bottom: 100px;
+	}
+
+	.modal{
+		overflow: overlay;
 	}
 }
