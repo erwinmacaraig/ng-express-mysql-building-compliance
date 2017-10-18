@@ -31,10 +31,10 @@
 					<a href="javascript:void(0)"><img alt="Team" src="assets/images/mail.png" ></a>
 				</li>
 				<li>
-					<a href="javascript:void(0)" id="usersRightNavLink"> 
+					<a href="javascript:void(0)" id="usersRightNavLink">
 						<div class="users-name">{{ userData.name }}</div>
 						<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
-						<img alt="Report" src=" {{ usersImageURL }} " *ngIf=" hasUserImage " > 
+						<img alt="Report" src=" {{ usersImageURL }} " *ngIf=" hasUserImage " >
 					</a>
 				</li>
 
@@ -44,7 +44,7 @@
 </div>
 
 <div class="vertical-m">
-	
+
 	<div class="container container-myaccounts vertical-nav">
 		<div class="col sm12">
 			<div>
@@ -71,13 +71,13 @@
 
 		<div class="col sm12">
 			<ul class="links">
-				<li><a href="/">Company Information</a></li>
-				<li><a href="/">Personal Information</a></li>
+        <li><a [routerLink]="['/dashboard/company-information']">Company Information</a></li>
+        <li><a [routerLink]="['/dashboard/person-info']">Personal Information</a></li>
 				<li><a href="/">Subscription</a></li>
 				<li><a href="/">Security & Privacy</a></li>
 				<li><a href="/signout">Sign Out</a></li>
 			</ul>
 		</div>
 	</div>
-	
+
 </div>

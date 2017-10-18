@@ -7,11 +7,15 @@ import * as path from 'path';
 import * as http from 'http';
 import * as url from 'url';
 
+// All Routes here
 import { IndexRoute } from './routes/index';
 import { RegisterRoute } from './routes/register';
 import { ForgotPasswordRequestRoute } from './routes/forgot.password';
 import { AuthenticateLoginRoute } from './routes/authenticate_login';
+import {  UserRelatedRoute } from './routes/user-related';
+
 import * as cors from 'cors';
+
 
 import * as swaggerUi from 'swagger-ui-express';
 const swaggerDocument = require('./config/swagger.json');
@@ -112,6 +116,9 @@ export class Server {
 
       // Authenticate Login
       AuthenticateLoginRoute.create(router);
+
+      // User Related Route
+      UserRelatedRoute.create(router);
 
       this.app.use('/api/v1', router);
 

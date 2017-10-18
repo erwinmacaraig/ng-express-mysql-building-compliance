@@ -1,0 +1,30 @@
+.two-button {
+  display: inline-block;
+  border-radius: .65rem;
+  background-color: #f7941d;
+  border: none;
+  color: #FFFFFF;
+  vertical-align: center;
+  text-align: center;
+  font-size: 1.15rem;
+  width: 200px;
+  height: 3.75rem;
+  transition: all 0.5s;
+  cursor: pointer;
+  margin-left: 1rem;
+}
+.two-button-gray {
+  display: inline-block;
+  border-radius: .65rem;
+  background-color: #dddddd;
+  border: none;
+  color: #5c5c5c;
+  vertical-align: center;
+  text-align: center;
+  font-size: 1.15rem;
+  width: 200px;
+  height: 3.75rem;
+  transition: all 0.5s;
+  cursor: pointer;
+  margin-left: 1rem;
+}
