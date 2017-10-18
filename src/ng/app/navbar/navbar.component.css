@@ -186,5 +186,11 @@ h5[myaccount]{
 
 }
 
+.modal-confirm-action{
+  color: #fff;
+  width: 345px;
+  background-color: rgba(0,0,0,0);
+  box-shadow: none;
+}
 
 

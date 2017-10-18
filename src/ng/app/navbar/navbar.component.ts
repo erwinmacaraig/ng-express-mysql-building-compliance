@@ -34,6 +34,7 @@ export class NavbarComponent implements OnInit {
 		this.userRoleID = this.userData['roleId'];
 		this.showEvent();
 		this.closeEvent();
+		this.changePhotoEvent();
 	}
 
 	showEvent(){
@@ -42,6 +43,47 @@ export class NavbarComponent implements OnInit {
 
 	closeEvent(){
 		$('#closeRightNav').click(function(){ $('.vertical-m').removeClass('fadeInRight animated').addClass('fadeOutRightBig animated'); });
+	}
+
+	changePhotoEvent(){
+		let changePhotoLink = $('#changePhotoLink'),
+			modalSelectChangePhotoAction = $('#modalSelectChangePhotoAction'),
+			btnSelectFile = $('#btnSelectFile'),
+			btnTakePhoto = $('#btnTakePhoto'),
+			actionContainer = modalSelectChangePhotoAction.find('.action-content'),
+			divWebcam = modalSelectChangePhotoAction.find('div[webcam]'),
+			webcamContainer = modalSelectChangePhotoAction.find('.webcam-content'),
+			btnUserPhoto = webcamContainer.find('.btn-use-photo'),
+			btnRetake = webcamContainer.find('.btn-retake'),
+			btnCancel = webcamContainer.find('.btn-cancel'),
+			img = changePhotoLink.find('img'),
+			inputFile = actionContainer.find('input[type="file"]');
+
+		modalSelectChangePhotoAction.modal({
+			startingTop: '0%',
+        	endingTop: '5%',
+        	complete: function() {
+        		
+        	}
+		});
+
+		inputFile.on('change', function(){
+			let file = inputFile[0].files[0];
+			btnSelectFile.html(file.name);
+		});
+
+		btnSelectFile.click(function() {
+			inputFile.click();
+		});
+
+		changePhotoLink.click(function(){
+			modalSelectChangePhotoAction.modal('open');
+		});
+
+		btnTakePhoto.click(function(){
+			actionContainer.hide();
+			webcamContainer.show();
+		});
 	}
 
 

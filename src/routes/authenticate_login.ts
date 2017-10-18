@@ -48,7 +48,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
             user: user.get('user_id')
           }, 
           process.env.KEY, { expiresIn: signedInExpiry }
-        ).toString();
+        );
 
         new UserRoleRelation().getByUserId(user.get('user_id')).then(
             (userRole) => {

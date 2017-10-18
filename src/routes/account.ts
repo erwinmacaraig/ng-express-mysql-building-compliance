@@ -2,6 +2,8 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Account } from '../models/account.model';
+import { AuthRequest } from '../interfaces/auth.interface';
+import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import  * as fs  from 'fs';
 import * as path from 'path';
 const validator = require('validator');
@@ -23,12 +25,12 @@ const md5 = require('md5');
 	public static create(router: Router) {
 	   	// add route
 	   	
-	   	router.get('/accounts/get-by-user/:user_id', (req: Request, res: Response, next: NextFunction) => {
-	   		new AccountRoute().getByUserId(req, res, next);
+	   	router.get('/accounts/get-by-user/:user_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().getAccountByUserId(req, res);
 	   	});
 
-	   	router.post('/accounts/generate-invitation-code', (req: Request, res: Response, next: NextFunction) => {
-	   		new AccountRoute().generateInvitationCode(req, res, next);
+	   	router.post('/accounts/generate-invitation-code', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().generateInvitationCode(req, res);
 	   	});
 
    	}
@@ -43,7 +45,7 @@ const md5 = require('md5');
 		super();
 	}
 
-	public getByUserId(req: Request, res: Response, next: NextFunction){
+	public getAccountByUserId(req: AuthRequest, res: Response){
 		let  response = {
 				status : false,
 				message : '',
@@ -87,7 +89,7 @@ const md5 = require('md5');
 	}
 
 
-	public generateInvitationCode(req: Request, res: Response, next: NextFunction){
+	public generateInvitationCode(req: AuthRequest, res: Response){
 		let reqBody = req.body,
 			response = {
 				status : false,

@@ -12,6 +12,9 @@ export class User extends BaseClass {
   public static getByToken(token: string) {
     return new Promise((resolve, reject) => {
       const parts = token.split(' ');
+
+      console.log(parts);
+
       if (parts.length === 2 && parts[0] === 'Bearer') {
         try {
           const decoded = jwt.verify(parts[1], process.env.KEY);

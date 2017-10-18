@@ -6,7 +6,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
 @Injectable()
-export class AccountsService {
+export class AccountsDataProviderService {
 
 	private headers: Object;
   	private options: Object;

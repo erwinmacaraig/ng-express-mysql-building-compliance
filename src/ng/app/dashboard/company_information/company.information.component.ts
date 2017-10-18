@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
-import { AccountsService } from '../../services/accounts';
+import { AccountsDataProviderService } from '../../services/accounts';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
@@ -17,7 +17,7 @@ declare var $: any;
 	selector: 'app-company-information',
 	templateUrl: './company.information.component.html',
 	styleUrls: ['./company.information.component.css'],
-	providers: [AccountsService, AuthService, LocationsService, DashboardPreloaderService]
+	providers: [AccountsDataProviderService, AuthService, LocationsService, DashboardPreloaderService]
 })
 export class CompanyInformationComponent implements OnInit {
 
@@ -38,7 +38,7 @@ export class CompanyInformationComponent implements OnInit {
 		private platformLocation: PlatformLocation, 
 		private http: HttpClient, 
 		private auth: AuthService,
-		private accountService: AccountsService,
+		private accountDataProviderService: AccountsDataProviderService,
 		private locationsService: LocationsService,
 		private preloaderService : DashboardPreloaderService
 	) {
@@ -64,7 +64,7 @@ export class CompanyInformationComponent implements OnInit {
 	}
 
 	getAccountInfoAndDisplay(){
-		this.accountService.getByUserId(this.userData['userId'], (resAccount) => {
+		this.accountDataProviderService.getByUserId(this.userData['userId'], (resAccount) => {
 			if(Object.keys(resAccount.data).length > 0){
 				this.companyName = resAccount.data['account_name'];
 				this.accountData = resAccount.data;
@@ -116,14 +116,12 @@ export class CompanyInformationComponent implements OnInit {
 			param.roles.push(i);
 		}
 
-		this.accountService.generateInvitationCode(param, 
+		this.accountDataProviderService.generateInvitationCode(param, 
 			(response) => {
 
 				for(let i in response.data){
 					$( 'input[name="'+response.data[i]['role']+'"]' ).val(response.data[i]['code']).trigger('change');
 				}
-
-				console.log('what');
 
 				setTimeout(function(){ 
 					btnObjOpt.hide();

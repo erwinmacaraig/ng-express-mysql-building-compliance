@@ -62,7 +62,7 @@
 
 		<div class="col sm12">
 			<div class="wrapper upload-photo">
-				<a href="javascript:void(0)">
+				<a href="javascript:void(0)" id="changePhotoLink">
 					<div ><img alt="EvacConnect" src="assets/images/camera_upload_hover.png"> </div>
 					<div><h6>Upload Photo</h6></div>
 				</a>
@@ -80,4 +80,49 @@
 		</div>
 	</div>
 	
+</div>
+
+<div id="modalSelectChangePhotoAction" class="modal modal-confirm-action">
+	<div class="modal-content center-align">
+		<div class="action-content">
+			<div class="row">
+				<div class="m12 s12">
+					<h5>Please confirm action</h5>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col m12 s12">
+					<button style="width: 100%;" class="btn btn-large orange waves-effect waves-light" id="btnSelectFile"> Select File </button>
+					<input type="file" style="opacity: 0;">
+				</div>
+			</div>
+			<div class="row">
+				<div class="col m12 s12">
+					<button style="width: 100%;" class="btn btn-large blue waves-effect waves-light" id="btnTakePhoto"> Take a photo </button>
+				</div>
+			</div>
+		</div>
+		<div class="webcam-content" style="display: none;">
+			<div class="row">
+				<div class="m12 12">
+					<div webcam></div>
+				</div>
+				<div class="m12">
+					<button style="width: 100%;" class="btn btn-large green waves-effect waves-light btn-use-photo" > 
+						User this
+					</button>
+				</div>
+				<div class="m12">
+					<button style="width: 100%;" class="btn btn-large red waves-effect waves-light btn-retake" > 
+						Retake
+					</button>
+				</div>
+				<div class="m12">
+					<button style="width: 100%;" class="btn btn-large grey waves-effect waves-light btn-cancel" > 
+						Cancel
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
