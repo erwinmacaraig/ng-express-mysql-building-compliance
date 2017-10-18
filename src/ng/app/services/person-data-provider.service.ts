@@ -20,15 +20,8 @@ export class PersonDataProviderService {
   }
 
   public getPersonInfo(): Observable<Person> {
-    // const httpParams = new HttpParams();
     const userData = this.auth.getUserData();
     const userId = this.auth.userDataItem('userId');
-    // console.log('userId', userId);
-
-    // httpParams.set('userId', userId); console.log(httpParams.toString());
-    // let person;
-    // httpParams.append('userId', userId);
-     // console.log(httpParams);
     return this.http.get<Person>(
       this.baseUrl + '/person-info', { params: new HttpParams().set('userId', userId) });
 
