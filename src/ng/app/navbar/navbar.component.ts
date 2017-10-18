@@ -3,6 +3,7 @@ import { AuthService } from '../services/auth.service';
 
 declare var $: any;
 declare var Webcam: any;
+declare var navigator: any;
 
 @Component({
   selector: 'app-navbar',
@@ -46,40 +47,13 @@ export class NavbarComponent implements OnInit {
 		$('#closeRightNav').click(function(){ $('.vertical-m').removeClass('fadeInRight animated').addClass('fadeOutRightBig animated'); });
 	}
 
-	changePhotoEvent(){
-		let changePhotoLink = $('#changePhotoLink'),
-			modalSelectChangePhotoAction = $('#modalSelectChangePhotoAction'),
+	changePhotoSelectFileEvent(){
+		let modalSelectChangePhotoAction = $('#modalSelectChangePhotoAction'),
 			btnSelectFile = $('#btnSelectFile'),
-			btnTakePhoto = $('#btnTakePhoto'),
 			actionContainer = modalSelectChangePhotoAction.find('.action-content'),
-			divWebcam = modalSelectChangePhotoAction.find('div[webcam]'),
-			webcamContainer = modalSelectChangePhotoAction.find('.webcam-content'),
-			btnCapture = webcamContainer.find('.btn-capture'),
-			btnRetake = webcamContainer.find('.btn-retake'),
-			btnCancel = webcamContainer.find('.btn-cancel'),
-			btnChoose = webcamContainer.find('.btn-choose'),
-			btnChooseFile = modalSelectChangePhotoAction.find('.btn-choose-file-select'),
-			webcamDiv = webcamContainer.find('div[webcam]'),
-			imgHolder = webcamContainer.find('img[holder]'),
-			imgSelectedFile = modalSelectChangePhotoAction.find('.image-select-file'),
-			img = changePhotoLink.find('img'),
 			inputFile = actionContainer.find('input[type="file"]'),
-			myAccountPhoto = $('#myAccountPhoto'),
-			myAccountPhotoSRC = myAccountPhoto.attr('src'),
+			imgSelectedFile = modalSelectChangePhotoAction.find('.image-select-file'),
 			chooseBtnFile = modalSelectChangePhotoAction.find('.btn-choose-file-select');
-
-		modalSelectChangePhotoAction.modal({
-			startingTop: '0%',
-        	endingTop: '5%',
-        	complete: function() {
-        		btnSelectFile.html('SELECT FILE');
-        		imgSelectedFile.hide();
-        		chooseBtnFile.hide();
-        		btnCancel.click();
-        		inputFile[0].files = null;
-        		Webcam.reset();
-        	}
-		});
 
 		inputFile.on('change', function(){
 			let file = inputFile[0].files[0],
@@ -95,10 +69,18 @@ export class NavbarComponent implements OnInit {
 		btnSelectFile.click(function() {
 			inputFile.click();
 		});
+	}
 
-		changePhotoLink.click(function(){
-			modalSelectChangePhotoAction.modal('open');
-		});
+	changePhotoWebCamEvent(){
+		let btnTakePhoto = $('#btnTakePhoto'),
+			modalSelectChangePhotoAction = $('#modalSelectChangePhotoAction'),
+			webcamContainer = modalSelectChangePhotoAction.find('.webcam-content'),
+			actionContainer = modalSelectChangePhotoAction.find('.action-content'),
+			imgHolder = webcamContainer.find('img[holder]'),
+			btnRetake = webcamContainer.find('.btn-retake'),
+			btnCancel = webcamContainer.find('.btn-cancel'),
+			btnChoose = webcamContainer.find('.btn-choose'),
+			btnCapture = webcamContainer.find('.btn-capture');
 
 		btnTakePhoto.click(function(){
 			Webcam.reset();
@@ -107,6 +89,10 @@ export class NavbarComponent implements OnInit {
 				height: 225,
 				image_format: 'jpeg',
 				jpeg_quality: 90
+			});
+
+			Webcam.on('error', function(){
+				alert();
 			});
 
 			Webcam.attach( 'div[webcam]' );
@@ -136,6 +122,53 @@ export class NavbarComponent implements OnInit {
 			actionContainer.show();
 			webcamContainer.hide();
 		});
+	}
+
+	changePhotoEvent(){
+		let changePhotoLink = $('#changePhotoLink'),
+			modalSelectChangePhotoAction = $('#modalSelectChangePhotoAction'),
+			btnSelectFile = $('#btnSelectFile'),
+			btnTakePhoto = $('#btnTakePhoto'),
+			actionContainer = modalSelectChangePhotoAction.find('.action-content'),
+			webcamContainer = modalSelectChangePhotoAction.find('.webcam-content'),
+			btnCancel = webcamContainer.find('.btn-cancel'),
+			btnChooseFile = modalSelectChangePhotoAction.find('.btn-choose-file-select'),
+			imgSelectedFile = modalSelectChangePhotoAction.find('.image-select-file'),
+			inputFile = actionContainer.find('input[type="file"]'),
+			myAccountPhotoSRC = $('#myAccountPhoto').attr('src'),
+			chooseBtnFile = modalSelectChangePhotoAction.find('.btn-choose-file-select');
+
+		modalSelectChangePhotoAction.modal({
+			startingTop: '0%',
+        	endingTop: '5%',
+        	ready: function(){
+        		navigator.getMedia = ( navigator.getUserMedia ||
+		               navigator.webkitGetUserMedia ||
+		               navigator.mozGetUserMedia ||
+		               navigator.msGetUserMedia);
+
+				navigator.getMedia({video: true}, function() {
+					btnTakePhoto.prop('disabled', false).html('TAKE A PHOTO');
+				}, function() {
+					btnTakePhoto.prop('disabled', true).html('NO CAMERA FOUND');
+				});
+        	},
+        	complete: function() {
+        		btnSelectFile.html('SELECT FILE');
+        		imgSelectedFile.hide();
+        		chooseBtnFile.hide();
+        		btnCancel.click();
+        		inputFile[0].files = null;
+        		Webcam.reset();
+        	}
+		});
+
+		changePhotoLink.click(function(){
+			modalSelectChangePhotoAction.modal('open');
+		});
+
+		this.changePhotoSelectFileEvent();
+		this.changePhotoWebCamEvent();
 	}
 
 
