@@ -63,7 +63,7 @@
 		<div class="col sm12">
 			<div class="wrapper upload-photo">
 				<a href="javascript:void(0)" id="changePhotoLink">
-					<div ><img alt="EvacConnect" src="assets/images/camera_upload_hover.png"> </div>
+					<div ><img id="myAccountPhoto" alt="EvacConnect" src="assets/images/camera_upload_hover.png"> </div>
 					<div><h6>Upload Photo</h6></div>
 				</a>
 			</div>
@@ -84,39 +84,61 @@
 
 <div id="modalSelectChangePhotoAction" class="modal modal-confirm-action">
 	<div class="modal-content center-align">
+		<div class="modal-close">X</div>
+
 		<div class="action-content">
 			<div class="row">
 				<div class="m12 s12">
 					<h5>Please confirm action</h5>
 				</div>
 			</div>
+
 			<div class="row">
 				<div class="col m12 s12">
-					<button style="width: 100%;" class="btn btn-large orange waves-effect waves-light" id="btnSelectFile"> Select File </button>
-					<input type="file" style="opacity: 0;">
+					<img src="" class="image-select-file" style="display: none;">
+					<button style="width: 100%;" class="btn btn-large orange waves-effect waves-light" id="btnSelectFile"> 
+						Select File 
+					</button>
+					<button class="btn btn-large green waves-effect waves-light btn-choose-file-select" style="width: 100%; display: none;"> 
+						Set as photo
+					</button>
+					<input type="file" accept="image/*" style="display: none;">
 				</div>
 			</div>
+			
 			<div class="row">
 				<div class="col m12 s12">
-					<button style="width: 100%;" class="btn btn-large blue waves-effect waves-light" id="btnTakePhoto"> Take a photo </button>
+					<button style="width: 100%;" class="btn btn-large blue waves-effect waves-light" id="btnTakePhoto"> 
+						Take a photo 
+					</button>
 				</div>
 			</div>
 		</div>
 		<div class="webcam-content" style="display: none;">
 			<div class="row">
 				<div class="m12 12">
+					<img holder src="" style="display: none;">
 					<div webcam></div>
 				</div>
+			</div>
+			<div class="row">
 				<div class="m12">
-					<button style="width: 100%;" class="btn btn-large green waves-effect waves-light btn-use-photo" > 
-						User this
+					<button style="width: 100%;" class="btn btn-large green waves-effect waves-light btn-capture" > 
+						Capture
+					</button>
+					<button style="width: 100%; display: none;" class="btn btn-large green waves-effect waves-light btn-choose" > 
+						Set as photo
 					</button>
 				</div>
+			</div>
+			<div class="row">
 				<div class="m12">
-					<button style="width: 100%;" class="btn btn-large red waves-effect waves-light btn-retake" > 
+					<button style="width: 100%;" class="btn btn-large red red lighten-1 waves-effect waves-light btn-retake" > 
 						Retake
 					</button>
 				</div>
+			</div>
+			<div class="row">
 				<div class="m12">
 					<button style="width: 100%;" class="btn btn-large grey waves-effect waves-light btn-cancel" > 
 						Cancel
