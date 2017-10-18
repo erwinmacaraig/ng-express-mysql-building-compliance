@@ -25,20 +25,11 @@ nav ul a {
   font-size: 1rem;
   color: #fff;
   display: block;
-  padding: 0 15px;
+  padding: 0 12px;
   cursor: pointer;
   height: 62px;
 }
-nav li a:hover {
-  -webkit-transition: background-color .3s;
-  transition: background-color .3s;
-  font-size: 1rem;
-  color: #fff;
-  display: block;
-  cursor: pointer;
-  line-height: 56px; 
-  height: 62px;
-}
+
 nav ul  {
   -webkit-transition: background-color .3s;
   transition: background-color .3s;
@@ -57,14 +48,14 @@ nav ul  {
   cursor: pointer;
   line-height: 56px;
 }
+
+.left.navbrand ul a{
+  text-align: center;
+}
+
 .navbrand ul a:hover {
   -webkit-transition: background-color .3s;
   transition: background-color .3s;
-  font-size: 1rem;
-  color: #fff;
-  display: block;
-  cursor: pointer;
-  line-height: 56px;      
 }
 .navbrand img{
 	-webkit-transition: background-color .3s;
@@ -73,8 +64,7 @@ nav ul  {
   color: #fff;
   cursor: pointer;
   line-height: 56px;
-  margin-left: 1rem;
-  margin-right: 1rem;
+  padding: 0px 10px;
 }
 .navbar {
 	-webkit-transition: background-color .3s;
@@ -84,17 +74,8 @@ nav ul  {
   cursor: pointer;
   line-height: 56px; 
 }
-.navbar img{
-	-webkit-transition: background-color .3s;
-  transition: background-color .3s;
-  font-size: 1rem;
-  color: #fff;
-  cursor: pointer;
-  line-height: 56px;  
-  margin-left: 0;
-}
 
-.users-name{
+.right .navbar .users-name{
   margin: 0px 15px 0px 0px;
   display: inline-block;
   vertical-align: middle;
@@ -213,3 +194,159 @@ h5[myaccount]{
   height: 22px;
   text-align: center;
 }
+
+.responsive-logo{
+  display: none;
+}
+
+.burger{
+  display: none;
+  height: 100%;
+}
+
+.burger:hover{
+  background-color: rgba(0,0,0,0.1);
+  -webkit-transition: background-color .3s;
+  transition: background-color .3s;
+}
+
+.burger .material-icons{
+  padding: 2px 15px;
+}
+
+.burger-content{
+  min-height: 5px;
+  background-color: #424242;
+  position: absolute;
+  width: 100%;
+  margin-top: -2px;
+  margin-left: 0px;
+}
+
+.burger-content.inactive{
+  opacity: 0;
+}
+
+.burger-content ul{
+  box-shadow: 0px 2px 5px #aaa;
+}
+
+.burger-content ul li{
+  padding: 0px 20px;
+}
+
+.burger-content ul li a{
+  color: #fff;
+}
+
+.burger-content .navbar{
+  margin: 0px;
+}
+
+
+.burger-content .users-name,
+.burger-content .users-intials,
+.burger-content img{
+  display: inline-block !important;
+  margin-right: 10px;
+}
+
+@media only screen 
+  and (min-width: 768px){
+  .burger-content{
+    display: none;
+  }
+}
+
+
+@media only screen 
+  and (max-width: 1220px){
+  .main-logo{
+    display: none;
+  }
+
+  .responsive-logo{
+    display: inline-block;
+  }
+}
+
+@media only screen 
+  and (max-width: 1024px){
+  
+  .navbar .users-name{
+    display: none;
+  }
+
+}
+
+@media only screen 
+  and (min-width: 425px)
+  and (max-width: 1024px){
+
+  .nav-list li span{
+    display: block;
+    line-height: 0px;
+  }
+
+  .nav-list li a{
+    line-height: 45px;
+  }
+
+}
+
+@media only screen 
+  and (min-width: 425px)
+  and (max-width: 768px){
+  .burger{
+    display: block;
+  }
+  
+  .right .navbar{
+    display: none;
+  }
+  
+  .burger-content.active{
+    opacity: 1;
+  }
+
+  .burger-content .users-name{
+    display: block;
+  }
+
+}
+
+@media only screen 
+  and (max-width: 425px){
+  
+  .nav-list li span{
+    display: none;
+  }
+
+  .nav-list li a{
+    line-height: 60px;
+  }
+
+  .burger{
+    display: block;
+  }
+  
+  .right .navbar{
+    display: none;
+  }
+
+  .burger-content.active{
+    opacity: 1;
+  }
+
+  .burger-content .users-name{
+    display: block;
+  }
+}
+
+@media only screen 
+  and (max-width: 375px){
+  nav ul a {
+    padding: 0 5px;
+  }
+}
+

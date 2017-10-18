@@ -37,10 +37,26 @@ export class NavbarComponent implements OnInit {
 		this.showEvent();
 		this.closeEvent();
 		this.changePhotoEvent();
+
+		// Burger click event
+		$('.burger-link').click(function(){
+			let $burgerContainer = $('.burger-content');
+			if($burgerContainer.hasClass('active')){
+				$burgerContainer.removeClass('animated slideInDown').addClass('inactive animated slideOutUp');
+				setTimeout(function(){
+					$burgerContainer.removeClass('active');
+				}, 1000);
+			}else{
+				$burgerContainer.removeClass('inactive animated slideOutUp').addClass('active animated slideInDown');
+				setTimeout(function(){
+					$burgerContainer.removeClass('animated slideInDown');
+				}, 1000);
+			}
+		});
 	}
 
 	showEvent(){
-		$('#usersRightNavLink').click(function(){ $('.vertical-m').removeClass('fadeOutRightBig animated').addClass('fadeInRight animated'); });
+		$('.user-right-click-nav').click(function(){ $('.vertical-m').removeClass('fadeOutRightBig animated').addClass('fadeInRight animated'); });
 	}
 
 	closeEvent(){
