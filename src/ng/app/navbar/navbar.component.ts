@@ -45,7 +45,7 @@ export class NavbarComponent implements OnInit {
 				$burgerContainer.removeClass('animated slideInDown').addClass('animated slideOutUp');
 				setTimeout(function(){
 					$burgerContainer.removeClass('active').addClass('inactive');
-				}, 500);
+				}, 1000);
 			}else{
 				$burgerContainer.removeClass('inactive animated slideOutUp').addClass('active animated slideInDown');
 				setTimeout(function(){
