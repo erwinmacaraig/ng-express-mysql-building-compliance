@@ -19,25 +19,26 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
   @ViewChild('f') personInfoForm: NgForm;
   public person;
   public accountTypes;
+  editCtrl = false;
   constructor(private route: ActivatedRoute) {}
 
   ngOnInit() {
       this.accountTypes = new AccountTypes().getTypesInArray();
       this.route.data.subscribe(data => {
          this.person = new Person(data.personInfo.first_name, data.personInfo.last_name, data.personInfo.email,
-          data.personInfo.phone_number, data.personInfo.user_name);
+          data.personInfo.phone_number, data.personInfo.account_name, data.personInfo.user_name);
       });
       console.log(this.person);
 
   }
-  onSumbitModifyPersonInfo() {
+  onSumbitModifyPersonInfo(f: NgForm) {
+    console.log(f);
 
   }
 
   onResetForm() {
-    console.log('I was called3.');
     console.log(this.personInfoForm);
-
+    this.editCtrl = false;
     this.personInfoForm.resetForm(this.person);
 
   }
@@ -47,7 +48,10 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
     if (!$('.vertical-m').hasClass('fadeInRight')) {
       $('.vertical-m').addClass('fadeInRight animated');
     }
+    $('input[type="text"]').trigger('change');
   }
+
+
 
 
 

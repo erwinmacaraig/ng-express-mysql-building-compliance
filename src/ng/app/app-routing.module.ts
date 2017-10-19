@@ -9,6 +9,7 @@ import { ChangepasswordComponent } from './changepassword/changepassword.compone
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
+import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
 
 import { AuthGuard } from './services/auth-guard.service';
 import { PersonInfoResolver } from './services/person-info.resolver';
@@ -21,11 +22,12 @@ const appRoutes: Routes = [
   { path: 'change-password/:user_id/:fullname/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
   { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent, children: [
-    { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } }
+      { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
+      { path: 'company-information', component: CompanyInformationComponent }
     ]
   },
   { path: 'signout', component: SignoutComponent },
-  { path: '**', redirectTo: '/'},
+  { path: '**', redirectTo: '/dashboard'},
 ];
 
 @NgModule({

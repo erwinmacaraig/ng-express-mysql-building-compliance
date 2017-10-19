@@ -1,26 +1,28 @@
 <div class="navbar-fixed">
 	<nav>
 		<div class="left navbrand" >
-			<a href=""><img alt="EvacConnect" src="assets/images/ec_logo_nav.png" ></a>
-			<ul class="right navbar">
+			<a [routerLink]="['/dashboard']">
+				<img alt="EvacConnect" class="main-logo" src="assets/images/ec_logo_nav.png" >
+				<img class="responsive-logo" src="assets/images/responsive-logo.png">
+			</a>
+			<ul class="right navbar nav-list">
 				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
-					<a href=""><img alt="Location" src="assets/images/location.png" >Location</a>
+					<a href=""><img alt="Location" src="assets/images/location.png" ><span>Location</span></a>
 				</li>
 				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
-					<a href=""><img alt="Training" src="assets/images/training.png" >Training</a>
+					<a href=""><img alt="Training" src="assets/images/training.png" ><span>Training</span></a>
 				</li >
 				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
-					<a href=""> <img alt="Team" src="assets/images/team.png" >Team </a>
+					<a href=""> <img alt="Team" src="assets/images/team.png" ><span>Team</span> </a>
 				</li>
 				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
-					<a href=""><img alt="Report" src="assets/images/report.png" >Report</a>
+					<a href=""><img alt="Report" src="assets/images/report.png" ><span>Report</span></a>
 				</li>
 			</ul>
 		</div>
 
 		<div class="right">
 			<ul class="navbar">
-
 				<li>
 					<a href="javascript:void(0)" *ngIf="showUpgradePremium"><img alt="Location" src="assets/images/premium_bttn.png" ></a>
 				</li>
@@ -31,7 +33,7 @@
 					<a href="javascript:void(0)"><img alt="Team" src="assets/images/mail.png" ></a>
 				</li>
 				<li>
-					<a href="javascript:void(0)" id="usersRightNavLink">
+					<a href="javascript:void(0)" class="user-right-click-nav">
 						<div class="users-name">{{ userData.name }}</div>
 						<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
 						<img alt="Report" src=" {{ usersImageURL }} " *ngIf=" hasUserImage " >
@@ -40,7 +42,46 @@
 
 			</ul>
 		</div>
+
+		<div class="burger right">
+			<a href="javascript:void(0)" class="burger-link"><i class="material-icons small"> <span>dehaze</span> </i></a>
+		</div>
 	</nav>
+</div>
+<div class="burger-content inactive">
+
+	<ul class="navbar">
+		<li>
+			<a href="javascript:void(0)">
+				<img alt="Training" src="assets/images/search.png" >
+				<span>Search</span>
+			</a>
+		</li>
+
+		<li>
+			<a href="javascript:void(0)">
+				<img alt="Team" src="assets/images/mail.png" >
+				<span> Email </span>
+			</a>
+		</li>
+
+		<li>
+			<a href="javascript:void(0)" class="user-right-click-nav">
+				<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
+				<img alt="Report" src=" {{ usersImageURL }} " *ngIf=" hasUserImage " >
+				<div class="users-name">{{ userData.name }}</div>
+			</a>
+		</li>
+
+		<li>
+			<a href="javascript:void(0)" *ngIf="showUpgradePremium">
+				<img alt="Location" src="assets/images/premium_bttn.png" >
+			</a>
+		</li>
+
+
+
+	</ul>
 </div>
 
 <div class="vertical-m">
@@ -62,8 +103,8 @@
 
 		<div class="col sm12">
 			<div class="wrapper upload-photo">
-				<a href="javascript:void(0)">
-					<div ><img alt="EvacConnect" src="assets/images/camera_upload_hover.png"> </div>
+				<a href="javascript:void(0)" id="changePhotoLink">
+					<div ><img id="myAccountPhoto" alt="EvacConnect" src="assets/images/camera_upload_hover.png"> </div>
 					<div><h6>Upload Photo</h6></div>
 				</a>
 			</div>

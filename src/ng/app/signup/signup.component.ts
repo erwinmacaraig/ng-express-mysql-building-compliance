@@ -8,7 +8,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 declare var $: any;
 import { SignupService } from '../services/signup.service';
-
+import { AccountTypes } from '../models/account.types';
 
 @Component({
   selector: 'app-signup',
@@ -24,6 +24,17 @@ export class SignupComponent implements OnInit {
   private baseUrl: String;
   emailTaken = false;
 
+  modalLoader = {
+    showLoader : true,
+    loadingMessage : "Signing up...",
+    showMessage : false,
+    iconColor: 'green',
+    icon: 'check',
+    message: 'Sign up successful! Please open your email and click the verification link.'
+  };
+
+  elems = {};
+
   constructor(private router: Router, private http: HttpClient, platformLocation: PlatformLocation, private signupService:SignupService) {
     this.headers = new Headers({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers };
@@ -32,15 +43,20 @@ export class SignupComponent implements OnInit {
 
   documentReady(){
     $(document).ready(() => {
-      var modalSignup = $('#modalSignup');
-
-      // init modal
-      modalSignup.modal({
+      this.elems['modalSignup'] = $('#modalSignup');
+      this.elems['modalLoader'] = $('#modalLoader');
+      let  modalOpts = {
         dismissible: false,
         startingTop: '0%', // Starting top style attribute
-        endingTop: '5%',
-      });
-      modalSignup.modal('open');
+        endingTop: '5%'
+      };
+
+      // init modal
+      this.elems['modalSignup'].modal(modalOpts);
+      modalOpts.endingTop = '25%';
+      this.elems['modalLoader'].modal(modalOpts);
+
+      this.elems['modalSignup'].modal('open');
 
       for(let i in this.UserType){
         $('#accountType').append('<option value="'+this.UserType[i]['role_id']+'"> '+this.UserType[i]['description']+' </option>');
@@ -48,17 +64,14 @@ export class SignupComponent implements OnInit {
 
       // Init select field
       $('select').material_select();
-      $(".dropdown-content li:not(.disabled) span").attr('style', 'color: #39a1ff !important;');
+      // $(".dropdown-content li:not(.disabled) span").attr('style', 'color: #39a1ff !important;');
     });
   }
 
   ngOnInit() {
     if(this.UserType === undefined){
-      this.http.get(this.baseUrl+"/static-data", this.options)
-        .subscribe(data => {
-          this.UserType = data['account_type'];
-          this.documentReady();
-        });
+      this.UserType = new AccountTypes().getTypes();
+      this.documentReady();
     }else{
       this.documentReady();
     }
@@ -66,54 +79,38 @@ export class SignupComponent implements OnInit {
 
   resetFormElement(form){
     form.reset();
-    this.enableElem();
     $('.invalid').removeClass('invalid');
     $('label.active').removeClass('active');
     $('#accountType').val("-1").material_select();
   }
 
-  enableElem(){
-    $('.btn-submit').html('Submit');
-    $('input').each(function(){ $(this).prop('disabled', false); });
-    $('.btn').each(function(){ $(this).removeClass('disabled'); });
-    $('#accountType').siblings('input.select-dropdown').prop('disabled', false);
-  }
-
-  disableFormElement(controls){
-    let templateLoader = `<div class="preloader-wrapper small active" style="width: 24px; height: 24px; margin-top:10px;">
-        <div class="spinner-layer spinner-blue--only">
-          <div class="circle-clipper left">
-            <div class="circle" ></div>
-          </div><div class="gap-patch">
-            <div class="circle"></div>
-          </div><div class="circle-clipper right">
-            <div class="circle"></div>
-          </div>
-        </div>
-      </div>`;
-      $('.btn-submit').html(templateLoader);
-
-      $('input').each(function(){ $(this).prop('disabled', true); });
-      $('.btn').each(function(){ $(this).addClass('disabled'); });
-      $('#accountType').siblings('input.select-dropdown').prop('disabled', true);
-  }
-
   signupResponse(res, f){
+    this.modalLoader.showLoader = false;
+    this.modalLoader.showMessage = true;
     if(res.status){
-      $('.btn-submit').html('<i class="material-icons small icon-demo green-text text-darken-2">check</i>');
-      setTimeout(() => {
-        this.resetFormElement(f);
-      },1000);
+      this.modalLoader.message = 'Sign up successful! Please open your email and click the verification link.';
+      this.modalLoader.iconColor = 'green';
+      this.modalLoader.icon = 'check';
+      this.resetFormElement(f);
     }else{
+      this.modalLoader.iconColor = 'red';
+      this.modalLoader.icon = 'clear';
       for(let i in res.data){
         if(i == 'email_taken'){
           this.emailTaken = true;
+          this.modalLoader.message = 'The email that you used is already taken.';
         }else{
           f.controls[i].markAsDirty();
+          this.modalLoader.message = 'There\'s an invalid field, please review tour form again.';
         }
       }
-      this.enableElem();
     }
+
+    setTimeout(() => {
+      this.elems['modalLoader'].modal('close');
+      this.elems['modalSignup'].modal('open');
+    },2000);
+
   }
 
   signUpFormSubmit(f: NgForm, event){
@@ -141,8 +138,13 @@ export class SignupComponent implements OnInit {
     }else{
       accountType.siblings('input.select-dropdown').css('border-bottom', '1px solid #9e9e9e');
       if(f.valid){
+        this.modalLoader.showLoader = true;
+        this.modalLoader.showMessage = false;
+
+        this.elems['modalSignup'].modal('close');
+        this.elems['modalLoader'].modal('open');
+
         this.emailTaken = false;
-        this.disableFormElement(controls);
         this.signupService.sendUserData(userData, (res) => {
           this.signupResponse(res, f);
         });
@@ -155,7 +157,7 @@ export class SignupComponent implements OnInit {
   }
 
   onCloseSelfSignUp() {
-    $('#modalSignup').modal('close');
+    this.elems['modalSignup'].modal('close');
     this.router.navigate(['/login']);
   }
 

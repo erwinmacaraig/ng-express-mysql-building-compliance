@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
+import { Account } from '../models/account.model';
 
 export class UserRelatedRoute extends BaseRoute {
   public static create(router: Router) {
@@ -14,13 +15,23 @@ export class UserRelatedRoute extends BaseRoute {
 
     const queryParamUser = req.query.userId;
     const user = new User(queryParamUser);
+    const account = new Account();
+
     user.load().then(() => {
-      return res.status(200).send({
-        first_name: user.get('first_name'),
-        last_name: user.get('last_name'),
-        email:  user.get('email'),
-        phone_number: user.get('phone_number'),
-        user_name: user.get('user_name')
+      account.getByUserId(queryParamUser).then(() => {
+        return res.status(200).send({
+          first_name: user.get('first_name'),
+          last_name: user.get('last_name'),
+          email:  user.get('email'),
+          phone_number: user.get('phone_number'),
+          user_name: user.get('user_name'),
+          account_name: account.get('account_name')
+        });
+      }).catch((e) => {
+        return res.status(500).send({
+          status: 'Bad Request',
+          message: e
+          });
       });
     }).catch((e) => {
       return res.status(400).send({
