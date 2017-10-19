@@ -1,8 +1,0 @@
-{
-	"account_type" : {
-		"0" : { "role_id" : 1, "value" : "FRP", "description" : "Facility Responsible Person" },
-		"1" : { "role_id" : 2, "value" : "TRP", "description" : "Tenancy Responsible Person" },
-		"2" : { "role_id" : 3, "value" : "PM", "description" : "Portfolio Manager" },
-		"3" : { "role_id" : 4, "value" : "WARDEN", "description" : "Warden" }
-	}
-}

@@ -12,6 +12,9 @@ export class User extends BaseClass {
   public static getByToken(token: string) {
     return new Promise((resolve, reject) => {
       const parts = token.split(' ');
+
+      console.log(parts);
+
       if (parts.length === 2 && parts[0] === 'Bearer') {
         try {
           const decoded = jwt.verify(parts[1], process.env.KEY);
@@ -84,7 +87,6 @@ export class User extends BaseClass {
         }
       });
       connection.end();
- 
     });
   }
 
@@ -235,7 +237,7 @@ export class User extends BaseClass {
       connection.end();
     }); // end Promise
   }
-
+  
   public create(createData) {
     return new Promise((resolve, reject) => {
       for (let key in createData ) {
@@ -247,7 +249,6 @@ export class User extends BaseClass {
       resolve(this.write());
     });
   }
-
 
   public getAll(limit:number, orderBy:String, order:String){
     return new Promise((resolve, reject) => {

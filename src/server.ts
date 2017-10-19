@@ -11,12 +11,16 @@ import { IndexRoute } from './routes/index';
 import { RegisterRoute } from './routes/register';
 import { ForgotPasswordRequestRoute } from './routes/forgot.password';
 import { AuthenticateLoginRoute } from './routes/authenticate_login';
+
 import { AwsRoute } from './routes/aws-ses';
+import { AccountRoute } from './routes/account';
+import { LocationRoute } from './routes/location';
+
 import * as cors from 'cors';
 
 import * as swaggerUi from 'swagger-ui-express';
 const swaggerDocument = require('./config/swagger.json');
-const staticData = require('./config/static-data.json');
+
 /**
  * The server.
  *
@@ -82,11 +86,6 @@ export class Server {
 
       this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-      // Static data which are not included in database
-      this.app.use(express.Router().get('/static-data', (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        res.send( staticData );
-      }));
-
       // cors
       this.app.use(cors());
   }
@@ -116,6 +115,12 @@ export class Server {
 
       // AWS Sample Route
       AwsRoute.create(router);
+
+      // Account
+      AccountRoute.create(router);
+
+      // Locations
+      LocationRoute.create(router);
 
       this.app.use('/api/v1', router);
 

@@ -60,7 +60,8 @@ export class Token extends BaseClass {
           const token = [
             ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
             ('token' in this.dbData) ? this.dbData['token'] : 0,
-            ('action' in this.dbData) ? this.dbData['action'] : ""
+            ('action' in this.dbData) ? this.dbData['action'] : "",
+            this.ID() ? this.ID() : 0
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_update, token, (err, results, fields) => {

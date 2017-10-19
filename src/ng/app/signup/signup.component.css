@@ -21,7 +21,7 @@
 }
 
 .modal{
-	max-height: 90% !important;
+	max-height: 100% !important;
 	overflow: visible;
 }
 
@@ -47,54 +47,6 @@
 .please-fill-up{
 	font-size: 16px;
 	margin: 25px 0px 15px 0px !important;
-}
-
-.input-field{
-	margin-top: 0px;
-}
-
-.input-field label{
-	font-size: 14px;
-}
-
-.input-field input{
-	margin: 0 0 10px 0 !important;
-	box-shadow: none !important;
-}
-
-.input-field label:not(.label-icon).active{
-	-webkit-transform: translateY(-4px) scale(0.8);
-    transform: translateY(-4px) scale(0.8);
-    -webkit-transform-origin: 0 0;
-    transform-origin: 0 0;
-}
-
-.input-field input:focus{
-	border-bottom: 1px solid #39a1ff !important;
-    box-shadow: none !important;
-}
-
-.input-field input:focus + label{
-	color: #39a1ff !important;
-}
-
-.select-field{
-	position: relative;
-}
-
-.select-field label{
-	position: absolute;
-    top: -3px;
-    left: 11px;
-    font-size: .7rem;
-}
-
-.select-wrapper li{
-	color: #9e9e9e !important;
-}
-
-.invalid+label{
-	color: #F44336 !important;
 }
 
 .modal .modal-content .input-container .btn{
@@ -165,7 +117,6 @@
   and (max-width: 768px){
 	
 	.modal{
-		max-height: 70% !important;
 		overflow-y: none;
 	}
 
@@ -187,5 +138,9 @@
 	#modalLoader {
 	    width: 95%;
 	    margin-bottom: 100px;
+	}
+
+	.modal{
+		overflow: overlay;
 	}
 }
