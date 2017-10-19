@@ -1,26 +1,28 @@
 <div class="navbar-fixed">
 	<nav>
 		<div class="left navbrand" >
-			<a href=""><img alt="EvacConnect" src="assets/images/ec_logo_nav.png" ></a>
-			<ul class="right navbar">
+			<a [routerLink]="['/dashboard']">
+				<img alt="EvacConnect" class="main-logo" src="assets/images/ec_logo_nav.png" >
+				<img class="responsive-logo" src="assets/images/responsive-logo.png">
+			</a>
+			<ul class="right navbar nav-list">
 				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
-					<a href=""><img alt="Location" src="assets/images/location.png" >Location</a>
+					<a href=""><img alt="Location" src="assets/images/location.png" ><span>Location</span></a>
 				</li>
 				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
-					<a href=""><img alt="Training" src="assets/images/training.png" >Training</a>
+					<a href=""><img alt="Training" src="assets/images/training.png" ><span>Training</span></a>
 				</li >
 				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
-					<a href=""> <img alt="Team" src="assets/images/team.png" >Team </a>
+					<a href=""> <img alt="Team" src="assets/images/team.png" ><span>Team</span> </a>
 				</li>
 				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
-					<a href=""><img alt="Report" src="assets/images/report.png" >Report</a>
+					<a href=""><img alt="Report" src="assets/images/report.png" ><span>Report</span></a>
 				</li>
 			</ul>
 		</div>
 
 		<div class="right">
 			<ul class="navbar">
-
 				<li>
 					<a href="javascript:void(0)" *ngIf="showUpgradePremium"><img alt="Location" src="assets/images/premium_bttn.png" ></a>
 				</li>
@@ -31,7 +33,7 @@
 					<a href="javascript:void(0)"><img alt="Team" src="assets/images/mail.png" ></a>
 				</li>
 				<li>
-					<a href="javascript:void(0)" id="usersRightNavLink"> 
+					<a href="javascript:void(0)" class="user-right-click-nav"> 
 						<div class="users-name">{{ userData.name }}</div>
 						<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
 						<img alt="Report" src=" {{ usersImageURL }} " *ngIf=" hasUserImage " > 
@@ -40,7 +42,46 @@
 
 			</ul>
 		</div>
+
+		<div class="burger right">
+			<a href="javascript:void(0)" class="burger-link"><i class="material-icons small"> <span>dehaze</span> </i></a>
+		</div>
 	</nav>
+</div>
+<div class="burger-content inactive">
+
+	<ul class="navbar">
+		<li>
+			<a href="javascript:void(0)">
+				<img alt="Training" src="assets/images/search.png" >
+				<span>Search</span>
+			</a>
+		</li>
+		
+		<li>
+			<a href="javascript:void(0)">
+				<img alt="Team" src="assets/images/mail.png" >
+				<span> Email </span>
+			</a>
+		</li>
+
+		<li>
+			<a href="javascript:void(0)" class="user-right-click-nav"> 
+				<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
+				<img alt="Report" src=" {{ usersImageURL }} " *ngIf=" hasUserImage " > 
+				<div class="users-name">{{ userData.name }}</div>
+			</a>
+		</li>
+
+		<li>
+			<a href="javascript:void(0)" *ngIf="showUpgradePremium">
+				<img alt="Location" src="assets/images/premium_bttn.png" >
+			</a>
+		</li>
+		
+		
+
+	</ul>
 </div>
 
 <div class="vertical-m">
@@ -62,8 +103,8 @@
 
 		<div class="col sm12">
 			<div class="wrapper upload-photo">
-				<a href="javascript:void(0)">
-					<div ><img alt="EvacConnect" src="assets/images/camera_upload_hover.png"> </div>
+				<a href="javascript:void(0)" id="changePhotoLink">
+					<div ><img id="myAccountPhoto" alt="EvacConnect" src="assets/images/camera_upload_hover.png"> </div>
 					<div><h6>Upload Photo</h6></div>
 				</a>
 			</div>
@@ -71,7 +112,7 @@
 
 		<div class="col sm12">
 			<ul class="links">
-				<li><a href="/">Company Information</a></li>
+				<li><a [routerLink]="['/dashboard/company-information']">Company Information</a></li>
 				<li><a href="/">Personal Information</a></li>
 				<li><a href="/">Subscription</a></li>
 				<li><a href="/">Security & Privacy</a></li>
@@ -80,4 +121,71 @@
 		</div>
 	</div>
 	
+</div>
+
+<div id="modalSelectChangePhotoAction" class="modal modal-confirm-action">
+	<div class="modal-content center-align">
+		<div class="modal-close">X</div>
+
+		<div class="action-content">
+			<div class="row">
+				<div class="m12 s12">
+					<h5>Please confirm action</h5>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col m12 s12">
+					<img src="" class="image-select-file" style="display: none;">
+					<button style="width: 100%;" class="btn btn-large orange waves-effect waves-light" id="btnSelectFile"> 
+						Select File 
+					</button>
+					<button class="btn btn-large green waves-effect waves-light btn-choose-file-select" style="width: 100%; display: none;"> 
+						Set as photo
+					</button>
+					<input type="file" accept="image/*" style="display: none;">
+				</div>
+			</div>
+			
+			<div class="row">
+				<div class="col m12 s12">
+					<button style="width: 100%;" class="btn btn-large blue waves-effect waves-light" id="btnTakePhoto"> 
+						Take a photo 
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="webcam-content" style="display: none;">
+			<div class="row">
+				<div class="m12 12">
+					<img holder src="" style="display: none;">
+					<div webcam></div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="m12">
+					<button style="width: 100%;" class="btn btn-large green waves-effect waves-light btn-capture" > 
+						Capture
+					</button>
+					<button style="width: 100%; display: none;" class="btn btn-large green waves-effect waves-light btn-choose" > 
+						Set as photo
+					</button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="m12">
+					<button style="width: 100%;" class="btn btn-large red red lighten-1 waves-effect waves-light btn-retake" > 
+						Retake
+					</button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="m12">
+					<button style="width: 100%;" class="btn btn-large grey waves-effect waves-light btn-cancel" > 
+						Cancel
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

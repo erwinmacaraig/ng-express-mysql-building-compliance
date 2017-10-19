@@ -8,7 +8,7 @@ export class AuthService {
   }
 
   public setToken(theToken) {
-    return localStorage.setItem('currentUser', JSON.stringify(theToken));
+    return localStorage.setItem('currentUser', theToken);
   }
 
   public removeToken() {

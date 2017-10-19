@@ -8,7 +8,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 declare var $: any;
 import { SignupService } from '../services/signup.service';
-
+import { AccountTypes } from '../models/account.types';
 
 @Component({
   selector: 'app-signup',
@@ -48,17 +48,14 @@ export class SignupComponent implements OnInit {
 
       // Init select field
       $('select').material_select();
-      $(".dropdown-content li:not(.disabled) span").attr('style', 'color: #39a1ff !important;');
+      // $(".dropdown-content li:not(.disabled) span").attr('style', 'color: #39a1ff !important;');
     });
   }
 
   ngOnInit() {
     if(this.UserType === undefined){
-      this.http.get(this.baseUrl+"/static-data", this.options)
-        .subscribe(data => {
-          this.UserType = data['account_type'];
-          this.documentReady();
-        });
+      this.UserType = new AccountTypes().getTypes();
+      this.documentReady();
     }else{
       this.documentReady();
     }
