@@ -11,8 +11,11 @@ import { IndexRoute } from './routes/index';
 import { RegisterRoute } from './routes/register';
 import { ForgotPasswordRequestRoute } from './routes/forgot.password';
 import { AuthenticateLoginRoute } from './routes/authenticate_login';
+
+import { AwsRoute } from './routes/aws-ses';
 import { AccountRoute } from './routes/account';
 import { LocationRoute } from './routes/location';
+
 import * as cors from 'cors';
 
 import * as swaggerUi from 'swagger-ui-express';
@@ -109,6 +112,9 @@ export class Server {
 
       // Authenticate Login
       AuthenticateLoginRoute.create(router);
+
+      // AWS Sample Route
+      AwsRoute.create(router);
 
       // Account
       AccountRoute.create(router);

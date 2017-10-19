@@ -1,4 +1,5 @@
-.signup-main-container{
+.signup-main-container,
+.modal{
 	font-family: 'Open Sans';
 	font-size: 12px;
 }
@@ -14,7 +15,8 @@
   left: 0px;
 }
 
-#modalSignup{
+#modalSignup,
+#modalLoader{
 	width: 23%;
 }
 
@@ -79,7 +81,8 @@
   and (min-width: 1024px)
   and (max-width: 1440px){
 
-	#modalSignup {
+	#modalSignup,
+	#modalLoader {
 	    width: 35%;
 	}
 
@@ -95,7 +98,8 @@
 @media only screen 
   and (max-width: 1024px){
 
-	#modalSignup {
+	#modalSignup,
+	#modalLoader {
 	    width: 50%;
 	}
 
@@ -120,7 +124,8 @@
 		padding: 0px;
 	}
 
-	#modalSignup {
+	#modalSignup,
+	#modalLoader {
 	    width: 60%;
 	    margin-bottom: 100px;
 	}
@@ -129,7 +134,8 @@
 
 @media only screen 
   and (max-width: 480px){
-	#modalSignup {
+	#modalSignup,
+	#modalLoader {
 	    width: 95%;
 	    margin-bottom: 100px;
 	}
