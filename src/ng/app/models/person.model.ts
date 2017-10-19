@@ -6,15 +6,6 @@ export class Person {
     public email: string,
     public phone_number?: string,
     public user_name?: string,
-  ) {
-      // this.personId = personId;
-      /*this.firstName = firstName;
-      this.lastName = lastName;
-      this.username = username;
-      this.password = password;
-      this.company = company;
-      this.phone = phone; */
-      // this.occupation = occupation;
-      // this.accountRole = accountRole;
-  }
+    public account_type: number = 3
+  ) {  }
 }
