@@ -85,15 +85,16 @@ export class SignupComponent implements OnInit {
   }
 
   signupResponse(res, f){
+    this.modalLoader.showLoader = false;
+    this.modalLoader.showMessage = true;
     if(res.status){
-      this.modalLoader.showLoader = false;
-      this.modalLoader.showMessage = true;
       this.modalLoader.message = 'Sign up successful! Please open your email and click the verification link.';
       this.modalLoader.iconColor = 'green';
       this.modalLoader.icon = 'check';
       this.resetFormElement(f);
     }else{
       this.modalLoader.iconColor = 'red';
+      this.modalLoader.icon = 'clear';
       for(let i in res.data){
         if(i == 'email_taken'){
           this.emailTaken = true;

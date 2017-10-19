@@ -2,8 +2,11 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
+import { EmailSender } from '../models/email.sender';
+import { Token } from '../models/token.model';
 import  * as fs  from 'fs';
 import * as path from 'path';
+import * as moment from 'moment';
 const validator = require('validator');
 const md5 = require('md5');
 /**
@@ -28,6 +31,10 @@ const md5 = require('md5');
 
 	   	router.get('/users', (req: Request, res: Response, next: NextFunction) => {
 	   		new RegisterRoute().getUsers(req, res, next);
+	   	});
+
+	   	router.get('/register/account-verification/:user_id/:token', (req: Request, res: Response, next: NextFunction) => {
+	   		new RegisterRoute().accountVerification(req, res, next);
 	   	});
    	}
 
@@ -171,7 +178,7 @@ const md5 = require('md5');
 						res.send(response);
 					},
 					(e) => {
-						this.saveUser(reqBody, res, next, response);
+						this.saveUser(reqBody, req, res, next, response);
 					}
 				);
 			}else{
@@ -183,7 +190,59 @@ const md5 = require('md5');
 		}
 	}
 
-	private saveUser(reqBody, res: Response, next: NextFunction, response){
+	private sendEmailForRegistration(userData, req, success, error){ 
+		let opts = {
+	        from : 'allantaw2@gmail.com',
+	        fromName : 'EvacConnect',
+	        to : [],
+	        body : '',
+	        attachments: [],
+	        subject : 'EvacConnect Signup Verification'
+	    };
+
+		let email = new EmailSender(opts),
+			emailBody = email.getEmailHTMLHeader(),
+			tokenModel = new Token(),
+			token = tokenModel.generateRandomChars(25),
+			link = req.protocol + '://' + req.get('host') + req.originalUrl+'/account-verification/'+userData.user_id+'/'+token;
+
+		emailBody += '<h3 style="text-transform:capitalize;">Hi '+userData.first_name+' '+userData.last_name+'</h3> <br/>';
+		emailBody += '<h4>Thank you for using EvacConnect Compliance Management System</h4> <br/>';
+		emailBody += '<h5>Please verify your account by clicking the link below</h5> <br/>';
+		emailBody += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
+
+		emailBody += email.getEmailHTMLFooter();
+
+		email.assignOptions({
+			body : emailBody,
+			to: [userData.email]
+		});
+
+		let expDate = moment(),
+			expDateFormat = '';
+		expDate.add(2, 'hours');
+		expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
+
+		tokenModel.create({
+			'token':token,
+			'user_id': userData.user_id,
+			'action': 'verify',
+			'verified': 0,
+			'expiration_date' : expDateFormat
+		}).then(
+			() => {
+				email.send(
+					(data) => { success(data); },
+					(err) => { error(err); }
+				);
+			},
+			() => {
+				error('Unable to save token');
+			}
+		);
+	}
+
+	private saveUser(reqBody, req: Request, res: Response, next: NextFunction, response){
 		// Save the data
 		const user = new User();
 		const userRole = new UserRoleRelation();
@@ -191,6 +250,14 @@ const md5 = require('md5');
 		reqBody.evac_role = 'Client';
 		user.create(reqBody).then(
 			() => {
+				let emailUserdata = {
+					user_id : user.ID(),
+					first_name: reqBody.first_name,
+					last_name: reqBody.last_name,
+					email : reqBody.email
+				};
+				emailUserdata['user_id'] = user.ID();
+
 				/* CURRENT AVAILABLE TO INSERT TRP AND FRP */
 				if(reqBody.role_id == 2 || reqBody.role_id == 1){
 					userRole.create({
@@ -198,11 +265,21 @@ const md5 = require('md5');
 						'role_id' : reqBody.role_id
 					}).then(
 						() => {
-							res.statusCode = 200;
-							response.status = true;
-							response.data = reqBody;
-							response.data['user_id'] = user.ID();
-							res.send(response);
+							this.sendEmailForRegistration(
+								emailUserdata,
+								req, 
+								(successData)=>{
+									res.statusCode = 200;
+									response.status = true;
+									response.data = emailUserdata;
+									response.data['user_id'] = user.ID();
+									res.send(response);
+								}, 
+								(errorData)=>{
+									response.message = 'Unable to send email. See reference : '+errorData;
+									res.send(response);
+								}
+							);
 						},
 						() => {
 							res.statusCode = 500;
@@ -210,11 +287,23 @@ const md5 = require('md5');
 						}
 					);
 				}else{
-					res.statusCode = 200;
-					response.status = true;
-					response.data = reqBody;
-					response.data['user_id'] = user.ID();
-					res.send(response);
+					console.log(emailUserdata);
+					this.sendEmailForRegistration(
+						emailUserdata,
+						req, 
+						(successData)=>{
+							res.statusCode = 200;
+							response.status = true;
+							response.data = emailUserdata;
+							response.data['user_id'] = user.ID();
+							res.send(response);
+						}, 
+						(errorData)=>{
+							response.message = 'Unable to send email. See reference : '+errorData;
+							res.send(response);
+						}
+					);
+					
 				}
 			},
 			() => {
@@ -245,6 +334,62 @@ const md5 = require('md5');
 			},
 			(e) => {
 				res.send(response);
+			}
+		);
+	}
+
+	public accountVerification(req: Request, res: Response, next: NextFunction){
+		let token = req.params.token,
+			userId = req.params.user_id,
+			tokenModel = new Token(),
+			userModel = new User(userId);
+
+		res.statusCode = 400;
+
+		tokenModel.getByToken(token).then(
+			(tokenData) => {
+				let expDateMoment = moment(tokenData['expiration_date']),
+					currentDateMoment = moment();
+				if(currentDateMoment.isBefore(expDateMoment)){
+					if( tokenData['user_id'] == userId){
+
+						userModel.load().then(
+							(userData) => {
+								let userNewToken = tokenModel.generateRandomChars(15);
+								userModel.set('token', userNewToken);
+								userModel.dbUpdate().then(
+									() => {
+										tokenModel.set('verified', 1);
+										
+										tokenModel.dbUpdate().then(
+											() => {
+												res.statusCode = 200;
+												res.send('Success! redirecting... <script type="text/javascript"> setTimeout(function(){ window.location.replace(location.origin); }, 2000); </script>');
+											},
+											() => {
+												res.send('Error occured upon verification');
+											}
+										);
+									},
+									() => {
+										res.send('Error occured upon user token update');
+									}
+								);
+							},
+							() => {
+								res.send('User is not existing');
+							}
+						);
+
+					}else{
+						res.send('User is not valid');
+					}
+				}else{
+					res.send('Token already expired');
+				}
+			},
+			() => {
+				res.send('Invalid token');
 			}
 		);
 	}
