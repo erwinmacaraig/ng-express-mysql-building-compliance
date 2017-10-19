@@ -71,7 +71,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 				});
 			}else{
 				if(this.userData['roleId'] == 1 || this.userData['roleId'] == 2){
-					$('.row').html("<h4> Show here the form for creating account </h4>");
+					$('.row-company-info').html("<h4> Show here the form for creating account </h4>");
 				}else{
 					
 				}
