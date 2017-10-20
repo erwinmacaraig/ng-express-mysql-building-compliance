@@ -23,7 +23,14 @@ export class DashboardComponent implements OnInit {
 	}
 
 	ngOnInit() {
-		
+		let userData = this.auth.getUserData();
+		if( userData ){
+			if( userData.roleId == '1' || userData.roleId == '2' ){
+				if(userData.accountId < 1){
+					alert();
+				}
+			}
+		}
 	}
 
 }
