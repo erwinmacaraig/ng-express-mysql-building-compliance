@@ -9,7 +9,7 @@
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
-  "host": "ec2-52-64-253-171.ap-southeast-2.compute.amazonaws.com",
+  "host": "localhost",
   "basePath": "/",
   "tags": [
     {
@@ -120,6 +120,41 @@
         }
       }
     },
+    "/person-info":{
+      "get": {
+        "tags": ["users"],
+        "summary": "Get person info",
+        "produces": ["application/json"],
+        "parameters":[
+          {
+            "in" : "header",
+            "name" : "Authorization",
+            "type" : "string",
+            "required": true
+          },
+          {
+            "in" : "query",
+            "name" : "userId",
+            "type" : "number",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request, there's an invalid field or email existance",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
     "/users":{
       "get": {
         "tags": [
@@ -147,7 +182,7 @@
           "200": {
             "description": "Request successful",
             "schema": {
-              "$ref": "#/definitions/ApiResponseStructure"
+              "$ref": "#/definitions/ApiPersonStructure"
             }
           },
           "400": {
@@ -176,6 +211,18 @@
             "type": "object"
           }
         }
+      }
+    },
+    "ApiPersonStructure": {
+      "type": "object",
+      "properties": {
+        "first_name": { "type":"string" },
+        "last_name": { "type":"string" },
+        "email": { "type": "string" },
+        "phone_number": { "type": "string" },
+        "user_name": { "type": "string" },
+        "account_name": { "type": "string" },
+        "occupation": { "type": "string"}
       }
     }
   }

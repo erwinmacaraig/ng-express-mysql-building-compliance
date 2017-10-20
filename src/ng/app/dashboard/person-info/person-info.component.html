@@ -8,12 +8,12 @@
         <div class="col s12">
           <div class="input-field col s3">
               <input id="input_text" type="text" data-length="15" [readonly]="!editCtrl"  [ngModel]="person.first_name" name="first_name" required>
-              <label for="input_text">First Name</label>
+              <label for="input_text" [ngClass]="{'active': person.first_name}">First Name</label>
           </div>
 
           <div class="input-field col s3">
             <input id="input_text" type="text" data-length="15" [readonly]="!editCtrl" [ngModel]="person.last_name" name="last_name" required>
-            <label for="input_text">Last Name</label>
+            <label for="input_text" [ngClass]="{'active': person.last_name}">Last Name</label>
           </div>
         </div>
       </div>
@@ -21,33 +21,32 @@
           <div class="col s12">
             <div class="input-field col s3">
               <input id="input_text" type="text" data-length="15" [ngModel]="person.account_name" name="account_name" readonly="readonly">
-              <label for="input_text">Company</label>
+              <label for="input_text" [ngClass]="{'active': person.account_name}">Company</label>
             </div>
 
             <div class="input-field col s3">
               <input id="input_text" type="text" data-length="15" [readonly]="!editCtrl" [ngModel]="person.occupation" name="occupation">
-              <label for="input_text">Occupation</label>
+              <label for="input_text" [ngClass]="{'active': person.occupation}">Occupation</label>
             </div>
           </div>
         </div>
         <div class="row">
           <div class="col s12">
             <div class="input-field col s3">
-              <input id="input_text" type="text" data-length="15"  [readonly]="!editCtrl" [ngModel]="person.email" name="email" email>
-              <label for="input_text">Email</label>
+              <input id="input_text" type="text" data-length="15" [readonly]="!editCtrl" [ngModel]="person.email" name="email" email>
+              <label for="input_text" [ngClass]="{'active': person.email}">Email</label>
             </div>
 
             <div class="input-field col s3">
               <input id="input_text" type="text" data-length="15" [readonly]="!editCtrl" [ngModel]="person.phone_number" name="phone_number">
-              <label for="input_text">Phone No</label>
+              <label for="input_text" [ngClass]="{'active': person.phone_number}">Phone No</label>
             </div>
           </div>
         </div>
       </div>
     </div>
       <div class="wrapper">
-          <div *ngIf="message" [ngClass]="{'alert alert-success':updateStatus,
-          'alert alert-warning': !updateStatus}">{{ message }}</div>
+
           <div *ngIf="!f.valid" class="alert alert-warning">Invalid Form Data</div>
         <div *ngIf="editCtrl">
           <div style="float:left;"><button class="two-button" type="submit" [disabled]="!f.valid">Submit</button></div>

@@ -41,12 +41,17 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
           data.personInfo.occupation,
           data.personInfo.account_name,
           data.personInfo.user_name);
-      });
-      console.log(this.person);
-
+      }, (err: HttpErrorResponse) => {
+        if (err.error instanceof Error) {
+          alert('There was a problem getting your account.');
+        } else {
+            alert(`Backend returned code ${err.status}, body was: ${err.error}`);
+            console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
+        }
+      }
+    ); // end of subscribe
   }
   onSumbitModifyPersonInfo(f: NgForm) {
-    console.log(f);
     const header = new HttpHeaders({
       'Content-Type': 'application/json'
     });
@@ -66,21 +71,19 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
       this.person.phone_number = f.value.phone_number;
       this.person.occupation = f.value.occupation;
       this.onResetForm();
-      this.message = 'Update Successful!';
+      alert('Update Successful');
       }, (err: HttpErrorResponse) => {
           if (err.error instanceof Error) {
-            this.message = 'There was a problem with the udpate query.';
+            alert('There was a problem with the udpate query.');
           } else {
-              this.message = `Backend returned code ${err.status}, body was: ${err.error}`;
+              alert(`Backend returned code ${err.status}, body was: ${err.error}`);
               console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
           }
       } // end HttpErrorResponse
     );
-
    } // emd onSubmitModifyPersonInfo
 
   onResetForm() {
-    console.log(this.personInfoForm);
     this.editCtrl = false;
     this.personInfoForm.resetForm(this.person);
 
@@ -91,7 +94,6 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
     if (!$('.vertical-m').hasClass('fadeInRight')) {
       $('.vertical-m').addClass('fadeInRight animated');
     }
-    $('input[type="text"]').trigger('change');
   }
 
 
