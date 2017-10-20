@@ -43,7 +43,7 @@ export class User extends BaseClass {
       this.id = id;
     }
   }
-  
+
   public load() {
     return new Promise((resolve, reject) => {
       const sql_load = 'SELECT * FROM users WHERE user_id = ?';
@@ -123,6 +123,7 @@ export class User extends BaseClass {
       email,
       phone_number,
       mobile_number,
+      occupation,
       mobility_impaired,
       time_zone,
       can_login,
@@ -138,14 +139,15 @@ export class User extends BaseClass {
       archived,
       must_change_password,
       user_name
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const user = [
       ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
       ('last_name' in this.dbData) ? this.dbData['last_name'] : '',
       ('email' in this.dbData) ? this.dbData['email'] : '',
       ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
-      ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : '',
+      ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : ' ',
+      ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
       ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : '0',
       ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
       ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
@@ -184,6 +186,7 @@ export class User extends BaseClass {
       email = ?,
       phone_number = ?,
       mobile_number = ?,
+      occupation = ?,
       mobility_impaired = ?,
       time_zone = ?,
       can_login = ?,
@@ -205,13 +208,14 @@ export class User extends BaseClass {
       ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
       ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
       ('email' in this.dbData) ? this.dbData['email'] : null,
-      ('phone_number' in this.dbData) ? this.dbData['phone_number'] : null,
-      ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : null,
+      ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
+      ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : '',
+      ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
       ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : '0',
       ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
       ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
       ('password' in this.dbData) ? this.dbData['password'] : null,
-      ('account_id' in this.dbData) ? this.dbData['account_id'] : null,
+      ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
       ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
       ('evac_role' in this.dbData) ? this.dbData['evac_role'] : null,
       ('invitation_date' in this.dbData) ? this.dbData['invitation_date'] : null,
@@ -227,14 +231,14 @@ export class User extends BaseClass {
       const connection = db.createConnection(dbconfig);
       connection.query(sql_update, user, (err, results, fields) => {
         if (err) {
-          throw new Error(err);
+          throw new Error(err + ' ' + sql_update);
         }
         resolve(true);
       });
       connection.end();
     }); // end Promise
   }
-  
+
   public create(createData) {
     return new Promise((resolve, reject) => {
       for (let key in createData ) {

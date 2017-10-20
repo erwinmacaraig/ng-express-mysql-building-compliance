@@ -27,4 +27,8 @@ export class AuthService {
     return localStorage.removeItem('userData');
   }
 
+  public userDataItem(item: string): any {
+    return this.getUserData()[item];
+  }
+
 }
