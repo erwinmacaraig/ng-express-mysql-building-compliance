@@ -120,6 +120,107 @@
         }
       }
     },
+    "/person-info":{
+      "get": {
+        "tags": ["users"],
+        "summary": "Get person info",
+        "produces": ["application/json"],
+        "parameters":[
+          {
+            "in" : "header",
+            "name" : "Authorization",
+            "type" : "string",
+            "required": true
+          },
+          {
+            "in" : "query",
+            "name" : "userId",
+            "type" : "number",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiPersonStructure"
+            }
+          },
+          "400": {
+            "description": "Invalid internal operation(SQL)",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/update-person-info":{
+      "patch":{
+        "summary": "Update person information",
+        "tags": [
+          "users"
+        ],
+        "parameters": [
+          {
+            "in" : "header",
+            "name" : "Authorization",
+            "type" : "string",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "person information",
+            "description": "Information about the user to be updated",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "first_name": {
+                  "type":"string",
+                  "description": "The user's first name"
+                },
+                "last_name": {
+                  "type":"string",
+                  "description": "The user's family name"
+                },
+                "email": {
+                  "type": "string",
+                  "description": "The user's validated email used  in signing up"
+                },
+                "phone_number": {
+                  "type": "string",
+                  "description": "Landline contact number"
+                },
+                "occupation": {
+                  "type": "string",
+                  "description": "The user's occupation"
+                }
+              },
+                "required": [
+                  "first_name",
+                  "last_name",
+                  "email"
+                ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Person Info Updated Successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+
+    }
+  },
     "/users":{
       "get": {
         "tags": [
@@ -176,6 +277,17 @@
             "type": "object"
           }
         }
+      }
+    },
+    "ApiPersonStructure": {
+      "type": "object",
+      "properties": {
+        "first_name": { "type":"string", "required": true },
+        "last_name": { "type":"string", "required": true },
+        "email": { "type": "string", "required": true },
+        "phone_number": { "type": "string" },
+        "account_name": { "type": "string" },
+        "occupation": { "type": "string"}
       }
     }
   }
