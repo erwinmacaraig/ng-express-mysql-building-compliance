@@ -4,11 +4,16 @@ import { User } from '../models/user.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
 import { EmailSender } from '../models/email.sender';
 import { Token } from '../models/token.model';
+
 import  * as fs  from 'fs';
 import * as path from 'path';
 import * as moment from 'moment';
+import * as jwt from 'jsonwebtoken';
+
 const validator = require('validator');
 const md5 = require('md5');
+
+
 /**
  * / route
  *
@@ -33,8 +38,9 @@ const md5 = require('md5');
 	   		new RegisterRoute().getUsers(req, res, next);
 	   	});
 
-	   	router.get('/register/account-verification/:user_id/:token', (req: Request, res: Response, next: NextFunction) => {
-	   		new RegisterRoute().accountVerification(req, res, next);
+	   	// Verify user for first signed user
+	   	router.get('/register/user-verification/:user_id/:token/:redirect', (req: Request, res: Response, next: NextFunction) => {
+	   		new RegisterRoute().userVerification(req, res, next);
 	   	});
    	}
 
@@ -204,7 +210,7 @@ const md5 = require('md5');
 			emailBody = email.getEmailHTMLHeader(),
 			tokenModel = new Token(),
 			token = tokenModel.generateRandomChars(25),
-			link = req.protocol + '://' + req.get('host') + req.originalUrl+'/account-verification/'+userData.user_id+'/'+token;
+			link = req.protocol + '://' + req.get('host') + req.originalUrl+'/user-verification/'+userData.user_id+'/'+token+'/true';
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+userData.first_name+' '+userData.last_name+'</h3> <br/>';
 		emailBody += '<h4>Thank you for using EvacConnect Compliance Management System</h4> <br/>';
@@ -220,7 +226,7 @@ const md5 = require('md5');
 
 		let expDate = moment(),
 			expDateFormat = '';
-		expDate.add(2, 'hours');
+		expDate.add(24, 'hours');
 		expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
 
 		tokenModel.create({
@@ -338,58 +344,149 @@ const md5 = require('md5');
 		);
 	}
 
-	public accountVerification(req: Request, res: Response, next: NextFunction){
+	private userVerificationLogin(userData, callBack){
+	
+		const token = jwt.sign(
+          {
+            user_db_token: userData.token,
+            user: userData.user_id
+          }, 
+          process.env.KEY, { expiresIn: 7200 }
+        );
+
+        let reponse = {
+        	status: 'Authentication Success',
+            message: 'Successfully logged in',
+            token: token,
+            data: {
+              userId: userData.user_id,
+              name: userData.first_name+' '+userData.last_name,
+              email: userData.email,
+              accountId: userData.account_id,
+              roleId : 0
+            }
+        };
+
+        new UserRoleRelation().getByUserId(userData.user_id).then(
+	        (userRole) => {
+	        	reponse.data.roleId = userRole['role_id'];
+	        	callBack(reponse);
+	        },
+	        (m) => {
+	          	callBack(reponse);
+	        }
+        );
+	}
+
+	private userVerificationNewUsersToken(tokenModel, userModel, userData, success, error){
+		let userNewToken = tokenModel.generateRandomChars(15);
+			userModel.set('token', userNewToken);
+			userModel.dbUpdate().then(
+				() => {
+					tokenModel.set('verified', 1);
+					tokenModel.dbUpdate().then(
+						() => {
+							success();
+						},
+						() => {
+							error('Error occured upon verification');
+						}
+					);
+				},
+				() => {
+					error('Error occured upon user token update');
+				}
+			);
+	}
+
+	public userVerification(req: Request, res: Response, next: NextFunction){
 		let token = req.params.token,
 			userId = req.params.user_id,
+			redirect = (req.params.redirect == true) ? true : false,
 			tokenModel = new Token(),
-			userModel = new User(userId);
+			userModel = new User(userId),
+			responseData = {
+				status : false,
+				message : '',
+				data : {}
+			};
 
 		res.statusCode = 400;
+		console.log(redirect);
 
 		tokenModel.getByToken(token).then(
 			(tokenData) => {
 				let expDateMoment = moment(tokenData['expiration_date']),
 					currentDateMoment = moment();
+
 				if(currentDateMoment.isBefore(expDateMoment)){
 					if( tokenData['user_id'] == userId){
 
+						let 
+						newUserTokenCallback = (userData) => {
+							this.userVerificationNewUsersToken(
+								tokenModel, 
+								userModel, 
+								userData,
+								() => {
+									this.userVerificationLogin( 
+										userData,  
+										(loginData) => { loginCallback(loginData); }
+									);
+								},
+								(msg) => {
+									responseData.message = msg;
+									res.send(responseData);
+								}
+							);
+						},
+						loginCallback = (loginData) => {
+							res.statusCode = 200;
+							responseData.status = true;
+							responseData.data = {
+								token : loginData.token,
+								user : loginData.data
+							};
+							responseData.message = 'Auto login user';
+							if(redirect){
+								let script = `
+									<strong>Success! redirecting....</strong>
+									<script type="text/javascript">
+										setTimeout(function(){
+											localStorage.setItem('currentUser', '`+loginData.token+`');
+											localStorage.setItem('userData', '`+ JSON.stringify(loginData.data) +`');
+											location.replace(location.origin);
+										}, 2000);
+									</script>
+								`;
+								res.send(script);
+							}else{
+								res.send(responseData);
+							}
+						};
+
 						userModel.load().then(
 							(userData) => {
-								let userNewToken = tokenModel.generateRandomChars(15);
-								userModel.set('token', userNewToken);
-								userModel.dbUpdate().then(
-									() => {
-										tokenModel.set('verified', 1);
-										
-										tokenModel.dbUpdate().then(
-											() => {
-												res.statusCode = 200;
-												res.send('Success! redirecting... <script type="text/javascript"> setTimeout(function(){ window.location.replace(location.origin); }, 2000); </script>');
-											},
-											() => {
-												res.send('Error occured upon verification');
-											}
-										);
-									},
-									() => {
-										res.send('Error occured upon user token update');
-									}
-								);
+								newUserTokenCallback(userData);
 							},
 							() => {
-								res.send('User is not existing');
+								responseData.message = 'User is not existing';
+								res.send(responseData);
 							}
 						);
 
 					}else{
-						res.send('User is not valid');
+						responseData.message = 'User is not valid';
+						res.send(responseData);
 					}
 				}else{
-					res.send('Token already expired');
+					responseData.message = 'Token already expired';
+					res.send(responseData);
 				}
 			},
 			() => {
-				res.send('Invalid token');
+				responseData.message = 'Invalid token';
+				res.send(responseData);
 			}
 		);
 	}

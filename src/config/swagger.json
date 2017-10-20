@@ -9,7 +9,7 @@
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
-  "host": "ec2-52-64-253-171.ap-southeast-2.compute.amazonaws.com",
+  "host": "localhost",
   "basePath": "/",
   "tags": [
     {
@@ -69,6 +69,45 @@
           },
           "400": {
             "description": "Bad request, there's an invalid field or email existance",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/register/user-verification/{user_id}/{token}/false" : {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Verify new user",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in" : "path",
+            "name" : "user_id",
+            "type" : "number",
+            "value" : 0
+          },
+          {
+            "in" : "path",
+            "name" : "token",
+            "type" : "string",
+            "value" : ""
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request, invalid parameters",
             "schema": {
               "$ref": "#/definitions/ApiResponseStructure"
             }
@@ -165,7 +204,7 @@
       "type": "object",
       "properties": {
         "status": {
-          "type": "string"
+          "type": "boolean"
         },
         "message": {
           "type": "string"
