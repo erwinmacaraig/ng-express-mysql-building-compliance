@@ -105,12 +105,16 @@ const md5 = require('md5');
 		if(validator.isEmpty(data.first_name)){
 			response.data['first_name'] = ' First name is required ';
 			errors++;
+		}else{
+			data.first_name = data.first_name.toLowerCase();
 		}
 
 		// last name validation
 		if(validator.isEmpty(data.last_name)){
 			response.data['last_name'] = ' Last name is required ';
 			errors++;
+		}else{
+			data.last_name = data.last_name.toLowerCase();
 		}
 
 		// email validation
@@ -152,6 +156,10 @@ const md5 = require('md5');
 		}
 
 		return response;
+	}
+
+	public capitalizeFirstLetter(string) {
+	    return string.charAt(0).toUpperCase() + string.slice(1);
 	}
 
 	/**
@@ -258,8 +266,8 @@ const md5 = require('md5');
 			() => {
 				let emailUserdata = {
 					user_id : user.ID(),
-					first_name: reqBody.first_name,
-					last_name: reqBody.last_name,
+					first_name: this.capitalizeFirstLetter(reqBody.first_name.toLowerCase()),
+					last_name: this.capitalizeFirstLetter(reqBody.last_name.toLowerCase()),
 					email : reqBody.email
 				};
 				emailUserdata['user_id'] = user.ID();

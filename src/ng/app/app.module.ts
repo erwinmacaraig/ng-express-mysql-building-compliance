@@ -20,6 +20,7 @@ import { NavbarComponent } from './navbar/navbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { SignoutComponent } from './signout/signout.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
+import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
 
 @NgModule({
@@ -32,7 +33,8 @@ import { CompanyInformationComponent } from './dashboard/company_information/com
     NavbarComponent,
     DashboardComponent,
     SignoutComponent,
-    CompanyInformationComponent
+    CompanyInformationComponent,
+    SetupCompanyComponent
   ],
   imports: [
     BrowserModule,

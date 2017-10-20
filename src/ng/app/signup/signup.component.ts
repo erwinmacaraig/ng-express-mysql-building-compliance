@@ -91,9 +91,9 @@ export class SignupComponent implements OnInit, AfterViewInit {
           this.modalLoader.message = 'The email that you used is already taken.';
         }else{
           f.controls[i].markAsDirty();
-          this.modalLoader.message = 'There\'s an invalid field, please review tour form again.';
         }
       }
+      this.modalLoader.message = 'There\'s an invalid field, please review tour form again.';
     }
 
     setTimeout(() => {
@@ -116,9 +116,6 @@ export class SignupComponent implements OnInit, AfterViewInit {
         'confirm_password' : controls.confirm_password.value,
         'role_id' : parseInt(accountType.val())
       };
-
-    console.log(controls);
-    console.log(this.selectAccountType);
 
     if( isNaN(userData.role_id) ){
       if(f.valid){

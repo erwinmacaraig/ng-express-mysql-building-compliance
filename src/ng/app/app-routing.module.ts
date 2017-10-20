@@ -9,6 +9,7 @@ import { ChangepasswordComponent } from './changepassword/changepassword.compone
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { SignoutComponent } from './signout/signout.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
+import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
 import { AuthGuard } from './services/auth-guard.service';
 
@@ -22,8 +23,9 @@ const appRoutes: Routes = [
       { path:'company-information', component: CompanyInformationComponent }
     ]
   },
+  { path : 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
-  { path: '**', redirectTo: '/dashboard'},
+  { path: '**', redirectTo: '/dashboard'}
 ];
 
 @NgModule({
