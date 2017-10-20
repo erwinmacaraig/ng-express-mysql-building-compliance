@@ -9,7 +9,7 @@
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
-  "host": "localhost",
+  "host": "ec2-52-64-253-171.ap-southeast-2.compute.amazonaws.com",
   "basePath": "/",
   "tags": [
     {
