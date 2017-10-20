@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,13 +16,15 @@ import { AccountTypes } from '../models/account.types';
   styleUrls: ['./signup.component.css'],
   providers: [ SignupService ]
 })
-export class SignupComponent implements OnInit {
+export class SignupComponent implements OnInit, AfterViewInit {
 
-  private UserType: Object;
+  private UserType = new AccountTypes().getTypes();
   private headers: Object;
   private options: Object;
   private baseUrl: String;
   emailTaken = false;
+
+  arrUserType = Object.keys(this.UserType).map((key) => { return this.UserType[key]; });
 
   modalLoader = {
     showLoader : true,
@@ -35,46 +37,34 @@ export class SignupComponent implements OnInit {
 
   elems = {};
 
+  selectAccountType = 3;
+
   constructor(private router: Router, private http: HttpClient, platformLocation: PlatformLocation, private signupService:SignupService) {
     this.headers = new Headers({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers };
     this.baseUrl = (platformLocation as any).location.origin;
   }
 
-  documentReady(){
-    $(document).ready(() => {
-      this.elems['modalSignup'] = $('#modalSignup');
-      this.elems['modalLoader'] = $('#modalLoader');
-      let  modalOpts = {
-        dismissible: false,
-        startingTop: '0%', // Starting top style attribute
-        endingTop: '5%'
-      };
-
-      // init modal
-      this.elems['modalSignup'].modal(modalOpts);
-      modalOpts.endingTop = '25%';
-      this.elems['modalLoader'].modal(modalOpts);
-
-      this.elems['modalSignup'].modal('open');
-
-      for(let i in this.UserType){
-        $('#accountType').append('<option value="'+this.UserType[i]['role_id']+'"> '+this.UserType[i]['description']+' </option>');
-      }
-
-      // Init select field
-      $('select').material_select();
-      // $(".dropdown-content li:not(.disabled) span").attr('style', 'color: #39a1ff !important;');
-    });
+  ngOnInit() {
+    this.elems['modalSignup'] = $('#modalSignup');
+    this.elems['modalLoader'] = $('#modalLoader');
   }
 
-  ngOnInit() {
-    if(this.UserType === undefined){
-      this.UserType = new AccountTypes().getTypes();
-      this.documentReady();
-    }else{
-      this.documentReady();
-    }
+  ngAfterViewInit(){
+    $('select').material_select();
+
+    let  modalOpts = {
+      dismissible: false,
+      startingTop: '0%', // Starting top style attribute
+      endingTop: '5%'
+    };
+
+    // init modal
+    this.elems['modalSignup'].modal(modalOpts);
+    modalOpts.endingTop = '25%';
+    this.elems['modalLoader'].modal(modalOpts);
+
+    this.elems['modalSignup'].modal('open');
   }
 
   resetFormElement(form){
@@ -127,6 +117,9 @@ export class SignupComponent implements OnInit {
         'role_id' : parseInt(accountType.val())
       };
 
+    console.log(controls);
+    console.log(this.selectAccountType);
+
     if( isNaN(userData.role_id) ){
       if(f.valid){
         accountType.siblings('input.select-dropdown').css('border-bottom', '1px solid #F44336');
@@ -159,10 +152,6 @@ export class SignupComponent implements OnInit {
   onCloseSelfSignUp() {
     this.elems['modalSignup'].modal('close');
     this.router.navigate(['/login']);
-  }
-
-  ngOnDestroy () {
-
   }
 
 }
