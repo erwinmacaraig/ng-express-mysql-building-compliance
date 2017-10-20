@@ -67,13 +67,13 @@ export class Location extends BaseClass {
         return new Promise((resolve, reject) => {
           const sql_update = `UPDATE locations SET
             parent_id = ?, name = ?, unit = ?, street = ?, city = ?, state = ?,
-            postal_code = ?, country = ?, time_zone = ?, order = ?,
+            postal_code = ?, country = ?, time_zone = ?, \`order\` = ?,
             is_building = ?, location_directory_name = ?, archived = ?  
             WHERE location_id = ?`;
           const param = [
             ('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
             ('name' in this.dbData) ? this.dbData['name'] : '',
-            ('unit' in this.dbData) ? this.dbData['unit'] : '',
+            ('unit' in this.dbData) ? this.dbData['unit'] : ' ',
             ('street' in this.dbData) ? this.dbData['street'] : '',
             ('city' in this.dbData) ? this.dbData['city'] : '',
             ('state' in this.dbData) ? this.dbData['state'] : '',
@@ -102,16 +102,11 @@ export class Location extends BaseClass {
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
-          const sql_insert = `INSERT INTO locations (
-            parent_id, name, unit, street, city, state,
-            postal_code, country, time_zone, order,
-            is_building, location_directory_name, archived
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `;
+          const sql_insert = 'INSERT INTO locations (`parent_id`, `name`, `unit`, `street`, `city`, `state`, `postal_code`, `country`, `time_zone`, `order`, `is_building`, `location_directory_name`, `archived`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
           const param = [
             ('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
             ('name' in this.dbData) ? this.dbData['name'] : '',
-            ('unit' in this.dbData) ? this.dbData['unit'] : '',
+            ('unit' in this.dbData) ? this.dbData['unit'] : ' ',
             ('street' in this.dbData) ? this.dbData['street'] : '',
             ('city' in this.dbData) ? this.dbData['city'] : '',
             ('state' in this.dbData) ? this.dbData['state'] : '',
@@ -143,7 +138,7 @@ export class Location extends BaseClass {
               this.dbData[key] = createData[key];
             }
             if ('location_id' in createData) {
-              this.id = createData.token_id;
+              this.id = createData.location_id;
             }
             resolve(this.write());
         });

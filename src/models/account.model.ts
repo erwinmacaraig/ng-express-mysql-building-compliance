@@ -75,12 +75,12 @@ export class Account extends BaseClass {
             ('billing_postal_code' in this.dbData) ? this.dbData['billing_postal_code'] : "",
             ('billing_country' in this.dbData) ? this.dbData['billing_country'] : "",
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
-            ('account_type' in this.dbData) ? this.dbData['account_type'] : "",
+            ('account_type' in this.dbData) ? this.dbData['account_type'] : "Account",
             ('account_directory_name' in this.dbData) ? this.dbData['account_directory_name'] : null,
             ('archived' in this.dbData) ? this.dbData['archived'] : 0,
             ('block_access' in this.dbData) ? this.dbData['block_access'] : 0,
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
-            ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "",
+            ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "1;8;General Occupant,0;9;Warden",
             ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             this.ID() ? this.ID() : 0
@@ -132,12 +132,12 @@ export class Account extends BaseClass {
             ('billing_postal_code' in this.dbData) ? this.dbData['billing_postal_code'] : "",
             ('billing_country' in this.dbData) ? this.dbData['billing_country'] : "",
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
-            ('account_type' in this.dbData) ? this.dbData['account_type'] : "",
+            ('account_type' in this.dbData) ? this.dbData['account_type'] : "Account",
             ('account_directory_name' in this.dbData) ? this.dbData['account_directory_name'] : null,
             ('archived' in this.dbData) ? this.dbData['archived'] : 0,
             ('block_access' in this.dbData) ? this.dbData['block_access'] : 0,
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
-            ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "",
+            ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "1;8;General Occupant,0;9;Warden",
             ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0
           ];
           const connection = db.createConnection(dbconfig);
@@ -160,7 +160,7 @@ export class Account extends BaseClass {
               this.dbData[key] = createData[key];
             }
             if ('account_id' in createData) {
-              this.id = createData.token_id;
+              this.id = createData.account_id;
             }
             resolve(this.write());
         });
