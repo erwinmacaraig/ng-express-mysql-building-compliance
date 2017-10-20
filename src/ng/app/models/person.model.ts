@@ -5,6 +5,7 @@ export class Person {
     public last_name: string,
     public email: string,
     public phone_number?: string,
+    public occupation?: string,
     public account_name?: string,
     public user_name?: string
   ) {  }

@@ -46,7 +46,9 @@
       </div>
     </div>
       <div class="wrapper">
-        <div *ngIf="!f.valid"> Invalid </div>
+          <div *ngIf="message" [ngClass]="{'alert alert-success':updateStatus,
+          'alert alert-warning': !updateStatus}">{{ message }}</div>
+          <div *ngIf="!f.valid" class="alert alert-warning">Invalid Form Data</div>
         <div *ngIf="editCtrl">
           <div style="float:left;"><button class="two-button" type="submit" [disabled]="!f.valid">Submit</button></div>
           <div style="float:left;"><button class="two-button-gray" (click)="onResetForm()">Cancel</button></div>
