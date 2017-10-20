@@ -272,6 +272,15 @@ h5[myaccount]{
 
 }
 
+@media only screen
+  and (min-width: 840px){
+  
+  .burger-content{
+    display: none;
+  }
+
+}
+
 @media only screen 
   and (min-width: 425px)
   and (max-width: 1024px){

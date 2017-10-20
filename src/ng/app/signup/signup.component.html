@@ -69,8 +69,9 @@
 								</div>
 
 								<div class="select-field col m12 s12">
-									<select id="accountType" required  >
+									<select id="accountType" [(ngModel)]="selectAccountType" required  name="account_type">
 										<option value="-1" disabled selected>Please select account type</option>
+										<option *ngFor="let utype of arrUserType" value="{{ utype.role_id }}"> {{ utype.description }} </option>
 									</select>
 									<label class="select-label">Account Type</label>
 								</div>
