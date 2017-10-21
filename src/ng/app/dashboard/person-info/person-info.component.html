@@ -7,12 +7,12 @@
       <div class="row">
         <div class="col s12">
           <div class="input-field col s3">
-              <input id="input_text" type="text" data-length="15" [readonly]="!editCtrl"  [ngModel]="person.first_name" name="first_name" required>
+              <input id="input_text" type="text" placeholder="Please enter your first name" data-length="25" [readonly]="!editCtrl"  [ngModel]="person.first_name" name="first_name" required>
               <label for="input_text" [ngClass]="{'active': person.first_name}">First Name</label>
           </div>
 
           <div class="input-field col s3">
-            <input id="input_text" type="text" data-length="15" [readonly]="!editCtrl" [ngModel]="person.last_name" name="last_name" required>
+            <input id="input_text" type="text" placeholder="Please enter your last name" data-length="25" [readonly]="!editCtrl" [ngModel]="person.last_name" name="last_name" required>
             <label for="input_text" [ngClass]="{'active': person.last_name}">Last Name</label>
           </div>
         </div>
@@ -20,12 +20,12 @@
         <div class="row">
           <div class="col s12">
             <div class="input-field col s3">
-              <input id="input_text" type="text" data-length="15" [ngModel]="person.account_name" name="account_name" readonly="readonly">
-              <label for="input_text" [ngClass]="{'active': person.account_name}">Company</label>
+              <input id="account_name" type="text" data-length="15" placeholder="Account name" [ngModel]="person.account_name" name="account_name" disabled>
+              <label for="account_name" class="active">Company</label>
             </div>
 
             <div class="input-field col s3">
-              <input id="input_text" type="text" data-length="15" [readonly]="!editCtrl" [ngModel]="person.occupation" name="occupation">
+              <input id="input_text" type="text" placeholder="Please enter your occupation" data-length="15" [readonly]="!editCtrl" [ngModel]="person.occupation" name="occupation">
               <label for="input_text" [ngClass]="{'active': person.occupation}">Occupation</label>
             </div>
           </div>
@@ -33,12 +33,12 @@
         <div class="row">
           <div class="col s12">
             <div class="input-field col s3">
-              <input id="input_text" type="text" data-length="15" [readonly]="!editCtrl" [ngModel]="person.email" name="email" email>
+              <input id="input_text" type="text" placeholder="Enter a valid email" data-length="50" [readonly]="!editCtrl" [ngModel]="person.email" name="email" email>
               <label for="input_text" [ngClass]="{'active': person.email}">Email</label>
             </div>
 
             <div class="input-field col s3">
-              <input id="input_text" type="text" data-length="15" [readonly]="!editCtrl" [ngModel]="person.phone_number" name="phone_number">
+              <input id="input_text" type="text" placeholder="Provide a valid contact number" data-length="" [readonly]="!editCtrl" [ngModel]="person.phone_number" name="phone_number">
               <label for="input_text" [ngClass]="{'active': person.phone_number}">Phone No</label>
             </div>
           </div>
