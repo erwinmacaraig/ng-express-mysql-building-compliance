@@ -25,8 +25,8 @@
             </div>
 
             <div class="input-field col s3">
-              <input id="input_text" type="text" placeholder="Please enter your occupation" data-length="15" [readonly]="!editCtrl" [ngModel]="person.occupation" name="occupation">
-              <label for="input_text" [ngClass]="{'active': person.occupation}">Occupation</label>
+              <input id="input_text" type="text" placeholder="Please enter your occupation" data-length="15" [disabled]="!editCtrl" [ngModel]="person.occupation" name="occupation">
+              <label for="input_text" class="active">Occupation</label>
             </div>
           </div>
         </div>
@@ -38,8 +38,8 @@
             </div>
 
             <div class="input-field col s3">
-              <input id="input_text" type="text" placeholder="Provide a valid contact number" data-length="" [readonly]="!editCtrl" [ngModel]="person.phone_number" name="phone_number">
-              <label for="input_text" [ngClass]="{'active': person.phone_number}">Phone No</label>
+              <input id="input_text" type="text" placeholder="Provide a valid contact number" data-length="" [disabled]="!editCtrl" [ngModel]="person.phone_number" name="phone_number">
+              <label for="input_text" class="active">Phone No</label>
             </div>
           </div>
         </div>
