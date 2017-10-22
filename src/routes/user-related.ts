@@ -36,9 +36,14 @@ export class UserRelatedRoute extends BaseRoute {
           occupation: user.get('occupation')
         });
       }).catch((e) => {
-        return res.status(400).send({
-          status: 'Bad Request',
-          message: e
+        return res.status(200).send({
+           first_name: user.get('first_name'),
+          last_name: user.get('last_name'),
+          email:  user.get('email'),
+          phone_number: user.get('phone_number'),
+          user_name: user.get('user_name'),
+          account_name: '',
+          occupation: user.get('occupation')
           });
       });
     }).catch((e) => {
