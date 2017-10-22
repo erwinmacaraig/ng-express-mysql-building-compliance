@@ -410,7 +410,7 @@ const md5 = require('md5');
 	public userVerification(req: Request, res: Response, next: NextFunction){
 		let token = req.params.token,
 			userId = req.params.user_id,
-			redirect = (req.params.redirect == true) ? true : false,
+			redirect = (req.params.redirect == 'true') ? true : false,
 			tokenModel = new Token(),
 			userModel = new User(userId),
 			responseData = {
