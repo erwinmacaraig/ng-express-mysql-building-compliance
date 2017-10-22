@@ -4,10 +4,9 @@ import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
-declare var $: any;
 
 @Injectable()
-export class SignupService {
+export class AccountsDataProviderService {
 
 	private headers: Object;
   	private options: Object;
@@ -19,8 +18,8 @@ export class SignupService {
 		this.baseUrl = (platformLocation as any).location.origin;
 	}
 
-	sendUserData(data, callBack){
-		this.http.post(this.baseUrl+"/register", data, this.options)
+	getByUserId(user_id, callBack){
+		this.http.get(this.baseUrl+"/accounts/get-by-user/"+user_id, this.options)
 	      .subscribe(res => {
 	        callBack(res);
 	      }, err => {
@@ -28,8 +27,8 @@ export class SignupService {
 	      });
 	}
 
-	sendCompanyInfoSetupData(data, callBack){
-		this.http.post(this.baseUrl+"/accounts/create/setup", data, this.options)
+	generateInvitationCode(opt, callBack){
+		this.http.post(this.baseUrl+"/accounts/generate-invitation-code/", opt, this.options)
 	      .subscribe(res => {
 	        callBack(res);
 	      }, err => {

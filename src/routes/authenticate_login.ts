@@ -5,8 +5,8 @@ import { UserRoleRelation } from '../models/user.role.relation.model';
 
 import Validator from 'better-validator';
 import * as md5 from 'md5';
-
 import * as jwt from 'jsonwebtoken';
+import * as moment from 'moment';
 
 export class AuthenticateLoginRoute extends BaseRoute {
 
@@ -39,6 +39,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
     if (req.body.keepSignedin) {
       signedInExpiry = signedInExpiry * 12;
     }
+
     const user = new User();
     user.loadByCredentials(req.body.username, req.body.password).then(
       () => {
@@ -48,34 +49,28 @@ export class AuthenticateLoginRoute extends BaseRoute {
             user: user.get('user_id')
           }, 
           process.env.KEY, { expiresIn: signedInExpiry }
-        ).toString();
+        );
+
+        let reponse = {
+          status: 'Authentication Success',
+            message: 'Successfully logged in',
+            token: token,
+            data: {
+              userId: user.get('user_id'),
+              name: user.get('first_name')+' '+user.get('last_name'),
+              email: user.get('email'),
+              accountId: user.get('account_id'),
+              roleId : 0
+            }
+        };
 
         new UserRoleRelation().getByUserId(user.get('user_id')).then(
             (userRole) => {
-              return res.status(200).send({
-                status: 'Authentication Success',
-                message: 'Successfully logged in',
-                token: token,
-                data: {
-                  userId: user.get('user_id'),
-                  name: user.get('first_name')+' '+user.get('last_name'),
-                  email: user.get('email'),
-                  roleId : userRole['role_id']
-                }
-              });
+              reponse.data.roleId = userRole['role_id'];
+              return res.status(200).send(reponse);
             },
             (m) => {
-              return res.status(200).send({
-                status: 'Authentication Success',
-                message: 'Successfully logged in',
-                token: token,
-                data: {
-                  userId: user.get('user_id'),
-                  name: user.get('first_name')+' '+user.get('last_name'),
-                  email: user.get('email'),
-                  roleId : 0
-                }
-              });
+              return res.status(200).send(reponse);
             });
       }, (e) => {
         res.status(401).send({

@@ -1,1 +1,80 @@
 /* You can add global styles to this file, and also import other style files */
+.workspace.container{
+	font-family: 'Open Sans';
+	font-size: 12px;
+	padding: 1% 2%;
+    max-width: 100vw;
+    width: 100%;
+}
+
+.input-field{
+	margin-top: 0px;
+}
+
+.input-field label{
+	font-size: 14px;
+}
+
+.input-field input{
+	margin: 0 0 10px 0 !important;
+	box-shadow: none !important;
+}
+
+.input-field label:not(.label-icon).active{
+	-webkit-transform: translateY(-4px) scale(0.8);
+    transform: translateY(-4px) scale(0.8);
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
+}
+
+.input-field input:focus{
+	border-bottom: 1px solid #39a1ff !important;
+    box-shadow: none !important;
+}
+
+.input-field input:focus + label{
+	color: #39a1ff !important;
+}
+
+.select-field{
+	position: relative;
+	margin-top: 10px;
+}
+
+.select-field label{
+	position: absolute !important;
+    top: -3px !important;
+    left: 11px !important;
+    font-size: .7rem !important;
+}
+
+.select-wrapper li{
+	color: #9e9e9e !important;
+}
+
+.invalid+label{
+	color: #F44336 !important;
+}
+
+.dropdown-content li:not(.disabled) > a,
+.dropdown-content li:not(.disabled) > span{
+	color: #39a1ff !important;
+	font-size: 15px !important;
+}
+
+@media only screen 
+  and (min-width: 1024px)
+  and (max-width: 1440px){
+
+	.input-field{
+		width: 100%;
+	}
+}
+
+@media only screen 
+  and (max-width: 1024px){
+
+	.input-field{
+		width: 100%;
+	}
+}

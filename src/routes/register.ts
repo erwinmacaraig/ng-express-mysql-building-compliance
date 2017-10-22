@@ -2,10 +2,18 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
+import { EmailSender } from '../models/email.sender';
+import { Token } from '../models/token.model';
+
 import  * as fs  from 'fs';
 import * as path from 'path';
+import * as moment from 'moment';
+import * as jwt from 'jsonwebtoken';
+
 const validator = require('validator');
 const md5 = require('md5');
+
+
 /**
  * / route
  *
@@ -28,6 +36,11 @@ const md5 = require('md5');
 
 	   	router.get('/users', (req: Request, res: Response, next: NextFunction) => {
 	   		new RegisterRoute().getUsers(req, res, next);
+	   	});
+
+	   	// Verify user for first signed user
+	   	router.get('/register/user-verification/:user_id/:token/:redirect', (req: Request, res: Response, next: NextFunction) => {
+	   		new RegisterRoute().userVerification(req, res, next);
 	   	});
    	}
 
@@ -92,12 +105,16 @@ const md5 = require('md5');
 		if(validator.isEmpty(data.first_name)){
 			response.data['first_name'] = ' First name is required ';
 			errors++;
+		}else{
+			data.first_name = data.first_name.toLowerCase();
 		}
 
 		// last name validation
 		if(validator.isEmpty(data.last_name)){
 			response.data['last_name'] = ' Last name is required ';
 			errors++;
+		}else{
+			data.last_name = data.last_name.toLowerCase();
 		}
 
 		// email validation
@@ -141,6 +158,10 @@ const md5 = require('md5');
 		return response;
 	}
 
+	public capitalizeFirstLetter(string) {
+	    return string.charAt(0).toUpperCase() + string.slice(1);
+	}
+
 	/**
 	 * Index
 	 * @param {Request}      req  
@@ -171,7 +192,7 @@ const md5 = require('md5');
 						res.send(response);
 					},
 					(e) => {
-						this.saveUser(reqBody, res, next, response);
+						this.saveUser(reqBody, req, res, next, response);
 					}
 				);
 			}else{
@@ -183,7 +204,59 @@ const md5 = require('md5');
 		}
 	}
 
-	private saveUser(reqBody, res: Response, next: NextFunction, response){
+	private sendEmailForRegistration(userData, req, success, error){ 
+		let opts = {
+	        from : 'allantaw2@gmail.com',
+	        fromName : 'EvacConnect',
+	        to : [],
+	        body : '',
+	        attachments: [],
+	        subject : 'EvacConnect Signup Verification'
+	    };
+
+		let email = new EmailSender(opts),
+			emailBody = email.getEmailHTMLHeader(),
+			tokenModel = new Token(),
+			token = tokenModel.generateRandomChars(25),
+			link = req.protocol + '://' + req.get('host') + req.originalUrl+'/user-verification/'+userData.user_id+'/'+token+'/true';
+
+		emailBody += '<h3 style="text-transform:capitalize;">Hi '+userData.first_name+' '+userData.last_name+'</h3> <br/>';
+		emailBody += '<h4>Thank you for using EvacConnect Compliance Management System</h4> <br/>';
+		emailBody += '<h5>Please verify your account by clicking the link below</h5> <br/>';
+		emailBody += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
+
+		emailBody += email.getEmailHTMLFooter();
+
+		email.assignOptions({
+			body : emailBody,
+			to: [userData.email]
+		});
+
+		let expDate = moment(),
+			expDateFormat = '';
+		expDate.add(24, 'hours');
+		expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
+
+		tokenModel.create({
+			'token':token,
+			'user_id': userData.user_id,
+			'action': 'verify',
+			'verified': 0,
+			'expiration_date' : expDateFormat
+		}).then(
+			() => {
+				email.send(
+					(data) => { success(data); },
+					(err) => { error(err); }
+				);
+			},
+			() => {
+				error('Unable to save token');
+			}
+		);
+	}
+
+	private saveUser(reqBody, req: Request, res: Response, next: NextFunction, response){
 		// Save the data
 		const user = new User();
 		const userRole = new UserRoleRelation();
@@ -191,6 +264,14 @@ const md5 = require('md5');
 		reqBody.evac_role = 'Client';
 		user.create(reqBody).then(
 			() => {
+				let emailUserdata = {
+					user_id : user.ID(),
+					first_name: this.capitalizeFirstLetter(reqBody.first_name.toLowerCase()),
+					last_name: this.capitalizeFirstLetter(reqBody.last_name.toLowerCase()),
+					email : reqBody.email
+				};
+				emailUserdata['user_id'] = user.ID();
+
 				/* CURRENT AVAILABLE TO INSERT TRP AND FRP */
 				if(reqBody.role_id == 2 || reqBody.role_id == 1){
 					userRole.create({
@@ -198,11 +279,21 @@ const md5 = require('md5');
 						'role_id' : reqBody.role_id
 					}).then(
 						() => {
-							res.statusCode = 200;
-							response.status = true;
-							response.data = reqBody;
-							response.data['user_id'] = user.ID();
-							res.send(response);
+							this.sendEmailForRegistration(
+								emailUserdata,
+								req, 
+								(successData)=>{
+									res.statusCode = 200;
+									response.status = true;
+									response.data = emailUserdata;
+									response.data['user_id'] = user.ID();
+									res.send(response);
+								}, 
+								(errorData)=>{
+									response.message = 'Unable to send email. See reference : '+errorData;
+									res.send(response);
+								}
+							);
 						},
 						() => {
 							res.statusCode = 500;
@@ -210,11 +301,23 @@ const md5 = require('md5');
 						}
 					);
 				}else{
-					res.statusCode = 200;
-					response.status = true;
-					response.data = reqBody;
-					response.data['user_id'] = user.ID();
-					res.send(response);
+					console.log(emailUserdata);
+					this.sendEmailForRegistration(
+						emailUserdata,
+						req, 
+						(successData)=>{
+							res.statusCode = 200;
+							response.status = true;
+							response.data = emailUserdata;
+							response.data['user_id'] = user.ID();
+							res.send(response);
+						}, 
+						(errorData)=>{
+							response.message = 'Unable to send email. See reference : '+errorData;
+							res.send(response);
+						}
+					);
+					
 				}
 			},
 			() => {
@@ -245,6 +348,153 @@ const md5 = require('md5');
 			},
 			(e) => {
 				res.send(response);
+			}
+		);
+	}
+
+	private userVerificationLogin(userData, callBack){
+	
+		const token = jwt.sign(
+          {
+            user_db_token: userData.token,
+            user: userData.user_id
+          }, 
+          process.env.KEY, { expiresIn: 7200 }
+        );
+
+        let reponse = {
+        	status: 'Authentication Success',
+            message: 'Successfully logged in',
+            token: token,
+            data: {
+              userId: userData.user_id,
+              name: userData.first_name+' '+userData.last_name,
+              email: userData.email,
+              accountId: userData.account_id,
+              roleId : 0
+            }
+        };
+
+        new UserRoleRelation().getByUserId(userData.user_id).then(
+	        (userRole) => {
+	        	reponse.data.roleId = userRole['role_id'];
+	        	callBack(reponse);
+	        },
+	        (m) => {
+	          	callBack(reponse);
+	        }
+        );
+	}
+
+	private userVerificationNewUsersToken(tokenModel, userModel, userData, success, error){
+		let userNewToken = tokenModel.generateRandomChars(15);
+			userModel.set('token', userNewToken);
+			userModel.dbUpdate().then(
+				() => {
+					tokenModel.set('verified', 1);
+					tokenModel.dbUpdate().then(
+						() => {
+							success();
+						},
+						() => {
+							error('Error occured upon verification');
+						}
+					);
+				},
+				() => {
+					error('Error occured upon user token update');
+				}
+			);
+	}
+
+	public userVerification(req: Request, res: Response, next: NextFunction){
+		let token = req.params.token,
+			userId = req.params.user_id,
+			redirect = (req.params.redirect == true) ? true : false,
+			tokenModel = new Token(),
+			userModel = new User(userId),
+			responseData = {
+				status : false,
+				message : '',
+				data : {}
+			};
+
+		res.statusCode = 400;
+		console.log(redirect);
+
+		tokenModel.getByToken(token).then(
+			(tokenData) => {
+				let expDateMoment = moment(tokenData['expiration_date']),
+					currentDateMoment = moment();
+
+				if(currentDateMoment.isBefore(expDateMoment)){
+					if( tokenData['user_id'] == userId){
+
+						let 
+						newUserTokenCallback = (userData) => {
+							this.userVerificationNewUsersToken(
+								tokenModel, 
+								userModel, 
+								userData,
+								() => {
+									this.userVerificationLogin( 
+										userData,  
+										(loginData) => { loginCallback(loginData); }
+									);
+								},
+								(msg) => {
+									responseData.message = msg;
+									res.send(responseData);
+								}
+							);
+						},
+						loginCallback = (loginData) => {
+							res.statusCode = 200;
+							responseData.status = true;
+							responseData.data = {
+								token : loginData.token,
+								user : loginData.data
+							};
+							responseData.message = 'Auto login user';
+							if(redirect){
+								let script = `
+									<strong>Success! redirecting....</strong>
+									<script type="text/javascript">
+										setTimeout(function(){
+											localStorage.setItem('currentUser', '`+loginData.token+`');
+											localStorage.setItem('userData', '`+ JSON.stringify(loginData.data) +`');
+											location.replace(location.origin);
+										}, 2000);
+									</script>
+								`;
+								res.send(script);
+							}else{
+								res.send(responseData);
+							}
+						};
+
+						userModel.load().then(
+							(userData) => {
+								newUserTokenCallback(userData);
+							},
+							() => {
+								responseData.message = 'User is not existing';
+								res.send(responseData);
+							}
+						);
+
+					}else{
+						responseData.message = 'User is not valid';
+						res.send(responseData);
+					}
+				}else{
+					responseData.message = 'Token already expired';
+					res.send(responseData);
+				}
+			},
+			() => {
+				responseData.message = 'Invalid token';
+				res.send(responseData);
 			}
 		);
 	}
