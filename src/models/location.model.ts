@@ -63,6 +63,35 @@ export class Location extends BaseClass {
         });
     }
 
+    public getByUserId(userId: Number) {
+        return new Promise((resolve, reject) => {
+            const sql_load = `
+                SELECT
+                    lau.location_account_relation_id,
+                    l.*
+                FROM locations l
+                LEFT JOIN location_account_user lau
+                ON l.location_id = lau.location_id
+                WHERE lau.user_id = ? AND l.archived = 0
+                ORDER BY l.location_id ASC
+            `;
+            const param = [userId];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              if(!results.length){
+                reject('Location not found');
+              }else{
+                this.dbData = results;
+                resolve(this.dbData);
+              }
+            });
+            connection.end();
+        });
+    }
+
     public dbUpdate() {
         return new Promise((resolve, reject) => {
           const sql_update = `UPDATE locations SET
@@ -91,8 +120,6 @@ export class Location extends BaseClass {
             if (err) {
               throw new Error(err);
             }
-            this.id = results.insertId;
-            this.dbData['location_id'] = this.id;
             resolve(true);
           });
           connection.end();

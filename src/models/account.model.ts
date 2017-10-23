@@ -90,8 +90,6 @@ export class Account extends BaseClass {
             if (err) {
               throw new Error(err);
             }
-            this.id = results.insertId;
-            this.dbData['account_id'] = this.id;
             resolve(true);
           });
           connection.end();

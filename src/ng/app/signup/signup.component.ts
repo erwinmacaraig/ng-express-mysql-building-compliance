@@ -93,7 +93,7 @@ export class SignupComponent implements OnInit, AfterViewInit {
           f.controls[i].markAsDirty();
         }
       }
-      this.modalLoader.message = 'There\'s an invalid field, please review tour form again.';
+      this.modalLoader.message = res.message;
     }
 
     setTimeout(() => {

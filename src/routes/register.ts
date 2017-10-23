@@ -106,7 +106,7 @@ const md5 = require('md5');
 			response.data['first_name'] = ' First name is required ';
 			errors++;
 		}else{
-			data.first_name = data.first_name.toLowerCase();
+			data.first_name = this.capitalizeFirstLetter(data.first_name.toLowerCase());
 		}
 
 		// last name validation
@@ -114,7 +114,7 @@ const md5 = require('md5');
 			response.data['last_name'] = ' Last name is required ';
 			errors++;
 		}else{
-			data.last_name = data.last_name.toLowerCase();
+			data.last_name = this.capitalizeFirstLetter(data.last_name.toLowerCase());
 		}
 
 		// email validation
@@ -272,53 +272,32 @@ const md5 = require('md5');
 				};
 				emailUserdata['user_id'] = user.ID();
 
-				/* CURRENT AVAILABLE TO INSERT TRP AND FRP */
-				if(reqBody.role_id == 2 || reqBody.role_id == 1){
-					userRole.create({
-						'user_id' : user.ID(),
-						'role_id' : reqBody.role_id
-					}).then(
-						() => {
-							this.sendEmailForRegistration(
-								emailUserdata,
-								req, 
-								(successData)=>{
-									res.statusCode = 200;
-									response.status = true;
-									response.data = emailUserdata;
-									response.data['user_id'] = user.ID();
-									res.send(response);
-								}, 
-								(errorData)=>{
-									response.message = 'Unable to send email. See reference : '+errorData;
-									res.send(response);
-								}
-							);
-						},
-						() => {
-							res.statusCode = 500;
-							res.send('Unable to save user role');
-						}
-					);
-				}else{
-					console.log(emailUserdata);
-					this.sendEmailForRegistration(
-						emailUserdata,
-						req, 
-						(successData)=>{
-							res.statusCode = 200;
-							response.status = true;
-							response.data = emailUserdata;
-							response.data['user_id'] = user.ID();
-							res.send(response);
-						}, 
-						(errorData)=>{
-							response.message = 'Unable to send email. See reference : '+errorData;
-							res.send(response);
-						}
-					);
-					
-				}
+				userRole.create({
+					'user_id' : user.ID(),
+					'role_id' : reqBody.role_id
+				}).then(
+					() => {
+						this.sendEmailForRegistration(
+							emailUserdata,
+							req, 
+							(successData)=>{
+								res.statusCode = 200;
+								response.status = true;
+								response.data = emailUserdata;
+								response.data['user_id'] = user.ID();
+								res.send(response);
+							}, 
+							(errorData)=>{
+								response.message = 'Unable to send email. See reference : '+errorData;
+								res.send(response);
+							}
+						);
+					},
+					() => {
+						res.statusCode = 500;
+						res.send('Unable to save user role');
+					}
+				);
 			},
 			() => {
 				res.statusCode = 500;

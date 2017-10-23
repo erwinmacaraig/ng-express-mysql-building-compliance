@@ -7,6 +7,10 @@
     width: 100%;
 }
 
+.btn{
+	text-transform: capitalize !important;
+}
+
 .input-field{
 	margin-top: 0px;
 }
@@ -38,13 +42,13 @@
 
 .select-field{
 	position: relative;
-	margin-top: 10px;
+	margin-top: 15px;
 }
 
 .select-field label{
 	position: absolute !important;
-    top: -3px !important;
-    left: 11px !important;
+    top: -10px !important;
+    left: 0px !important;
     font-size: .7rem !important;
 }
 

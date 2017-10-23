@@ -3,6 +3,10 @@ import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Account } from '../models/account.model';
 import { Location } from '../models/location.model';
+import { LocationAccountRelation } from '../models/location.account.relation';
+import { UserRoleRelation } from '../models/user.role.relation.model';
+import { LocationAccountUser } from '../models/location.account.user';
+
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 const validator = require('validator');
@@ -34,6 +38,10 @@ import * as Promise from 'promise';
 
 	   	router.post('/accounts/create/setup', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 	   		new AccountRoute().setupNewAccount(req, res);
+	   	});
+
+	   	router.post('/accounts/save-account-code', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().saveAccountCode(req, res);
 	   	});
 
    	}
@@ -197,11 +205,11 @@ import * as Promise from 'promise';
 					'country' : data.country,
 					'time_zone' : data.time_zone
 				};
-			accountModel.create(accountData).then(
-				(accountResponseData) => {
-					locationModel.create(locationData).then(
-						(locationResponseData) => {
 
+			accountModel.create(accountData).then(
+				() => {
+					locationModel.create(locationData).then(
+						() => {
 							locationModel.set('order', locationModel.get('location_id'));
 							locationModel.dbUpdate().then(
 								()=>{
@@ -225,6 +233,50 @@ import * as Promise from 'promise';
 				}
 			);
 		});
+	}
+
+	public saveNewAccountAndLocationRelation(user, account, location, success, error){
+		let locationAccountRelation = new LocationAccountRelation(),
+			userRoleRelation = new UserRoleRelation(),
+			locationAccountUser = new LocationAccountUser();
+
+		userRoleRelation.getByUserId(user.user_id).then(
+			() => {
+				userRoleRelation.set('location_id', location.location_id);
+				userRoleRelation.dbUpdate().then(
+					() => {
+						let responsibility = ( userRoleRelation.get('role_id') == 1 ) ? 'Manager' : 'Tenant';
+						locationAccountRelation.create({
+							'location_id' : location.location_id,
+							'account_id' : account.account_id,
+							'responsibility' : responsibility 
+						}).then(
+							() => {
+								locationAccountUser.create({
+									'location_id' : location.location_id,
+									'account_id': account.account_id,
+									'user_id' : user.user_id
+								}).then(
+									() => { success(); },
+									() => { error('Location-Account-User saved unsuccessfully'); }
+								);
+							},
+							() => {
+								error('Location-Account relation saved unsuccessfully');
+							}
+						);
+					},
+					() => {
+						error('User role update save unsuccessfully');
+					}
+				);
+			},
+			() => {
+				// We are assuming this is a warden 
+				// Previous system has no warden lookup data in user role relation
+				error('No role relation found assuming user is a warden');
+			}
+		);
 	}
 
 	public setupNewAccount(req: AuthRequest, res: Response){
@@ -256,18 +308,29 @@ import * as Promise from 'promise';
 
 							userModel.load().then(
 								(usersData) => {
-									userModel.set('account_id', account.account_id);
-									userModel.dbUpdate().then(
+									this.saveNewAccountAndLocationRelation(
+										usersData, 
+										account, 
+										location,
 										() => {
-											response.data = {
-												'account' : account
-											};
-											res.statusCode = 200;
-											response.status = true;
-											res.send(response);
+											userModel.set('account_id', account.account_id);
+											userModel.dbUpdate().then(
+												() => {
+													response.data = {
+														'account' : account
+													};
+													res.statusCode = 200;
+													response.status = true;
+													res.send(response);
+												},
+												() => {
+													response.message = 'User was not able to update account id';
+													res.send(response);
+												}
+											);
 										},
-										() => {
-											response.message = 'User was not able to update account id';
+										(msg) => {
+											response.message = msg;
 											res.send(response);
 										}
 									);
@@ -287,8 +350,54 @@ import * as Promise from 'promise';
 			response.data = validationData.data;
 			res.send(response);
 		}
+	}
 
-		
+	public saveAccountCode(req: AuthRequest, res: Response){
+		let accountModel = new Account(),
+			reqBody = req.body,
+			response = {
+				status: false,
+				message : '',
+				data : {}
+			},
+			error = 0;
+
+		res.statusCode = 400;
+		if( ('account_id' in reqBody === false) || ('code' in reqBody === false) ){
+			error++;
+		}else{
+			if(  (validator.isInt(''+reqBody.account_id+'') === false)  ){
+				error++;
+			}
+		}
+
+		if(error == 0){
+			accountModel.setID(reqBody.account_id);
+			accountModel.load().then(
+				() => {
+					accountModel.set('account_code', reqBody.code);
+					accountModel.dbUpdate().then(
+						() => {
+							res.statusCode = 200;
+							response.status = true;
+							res.send(response);
+						},
+						() => {
+							response.message = 'Update unsuccessful';
+							res.send(response);
+						}
+					);
+				},
+				() => {
+					response.message = 'No account found';
+					res.send(response);
+				}
+			);
+
+		}else{
+			response.message = 'Invalid fields';
+			res.send(response);
+		}
 	}
 
 }
