@@ -410,7 +410,7 @@ const md5 = require('md5');
 	public userVerification(req: Request, res: Response, next: NextFunction){
 		let token = req.params.token,
 			userId = req.params.user_id,
-			redirect = (req.params.redirect == true) ? true : false,
+			redirect = (req.params.redirect == 'true') ? true : false,
 			tokenModel = new Token(),
 			userModel = new User(userId),
 			responseData = {
@@ -457,7 +457,7 @@ const md5 = require('md5');
 							};
 							responseData.message = 'Auto login user';
 							if(redirect){
-								let script = `
+								/*let script = `
 									<strong>Success! redirecting....</strong>
 									<script type="text/javascript">
 										setTimeout(function(){
@@ -467,7 +467,9 @@ const md5 = require('md5');
 										}, 2000);
 									</script>
 								`;
-								res.send(script);
+								res.send(script);*/
+
+								this.render(req, res, 'success-verification.hbs');
 							}else{
 								res.send(responseData);
 							}
