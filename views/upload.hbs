@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Sample File Upload</title>
+  </head>
+  <body>
+    <h3>File Upload</h3>
+    <h2>Sample file uploads using multer</h2>
+
+    <form id="uploadMe"
+          enctype="multipart/form-data"
+          action="/test/sample/upload"
+          method="post">
+
+          <label for="fileupload">CHoose your file to upload:</label>
+          <p>
+          <input type="file" name="file">
+        </p>
+          <p>
+          <input type="submit" name="submit" value="Upload">
+        </p>
+    </form>
+
+  </body>
+</html>
