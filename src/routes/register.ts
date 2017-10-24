@@ -261,7 +261,7 @@ const md5 = require('md5');
 		const user = new User();
 		const userRole = new UserRoleRelation();
 		reqBody.password = md5('Ideation'+reqBody.password+'Max');
-		reqBody.evac_role = 'Client';
+		reqBody.evac_role = ('evac_role' in reqBody) ? reqBody.evac_role : 'Client';
 		user.create(reqBody).then(
 			() => {
 				let emailUserdata = {
@@ -277,21 +277,52 @@ const md5 = require('md5');
 					'role_id' : reqBody.role_id
 				}).then(
 					() => {
-						this.sendEmailForRegistration(
-							emailUserdata,
-							req, 
-							(successData)=>{
-								res.statusCode = 200;
-								response.status = true;
-								response.data = emailUserdata;
-								response.data['user_id'] = user.ID();
-								res.send(response);
-							}, 
-							(errorData)=>{
-								response.message = 'Unable to send email. See reference : '+errorData;
-								res.send(response);
-							}
-						);
+						if('code' in reqBody){
+							let tokenModel = new Token(),
+								userModel = user,
+								userData = user.getDBData();
+
+							this.userVerificationNewUsersToken(
+								tokenModel, 
+								userModel,
+								() => {
+									this.userVerificationLogin(userData, 
+										(resp) => {
+											let responseData = {
+												status : true,
+												data : {
+													token : resp.token,
+													user : resp.data
+												},
+												message : 'Successfully created user'
+											};
+											res.statusCode = 200;
+											res.send(responseData);
+										}
+									);
+								}, 
+								(errorData) => {
+									response.message = 'Unable to save user. See reference : '+errorData;
+									res.send(response);
+								}
+							);
+						}else{
+							this.sendEmailForRegistration(
+								emailUserdata,
+								req, 
+								(successData)=>{
+									res.statusCode = 200;
+									response.status = true;
+									response.data = emailUserdata;
+									response.data['user_id'] = user.ID();
+									res.send(response);
+								}, 
+								(errorData)=>{
+									response.message = 'Unable to send email. See reference : '+errorData;
+									res.send(response);
+								}
+							);
+						}
 					},
 					() => {
 						res.statusCode = 500;
@@ -365,7 +396,7 @@ const md5 = require('md5');
         );
 	}
 
-	private userVerificationNewUsersToken(tokenModel, userModel, userData, success, error){
+	private userVerificationNewUsersToken(tokenModel, userModel, success, error){
 		let userNewToken = tokenModel.generateRandomChars(15);
 			userModel.set('token', userNewToken);
 			userModel.dbUpdate().then(
@@ -414,7 +445,6 @@ const md5 = require('md5');
 							this.userVerificationNewUsersToken(
 								tokenModel, 
 								userModel, 
-								userData,
 								() => {
 									this.userVerificationLogin( 
 										userData,  

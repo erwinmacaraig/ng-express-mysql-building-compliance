@@ -40,86 +40,90 @@
 		<div class="col s12 m6 l3">
 			<h5 class="title">Send Invite</h5>
 			
-			<div class="input-field">
-				<input id="inpName" type="text" required [(ngModel)]="inpName">
-				<label for="inpName" >Name</label>
-			</div>
+			<form  #formIniviteUser="ngForm" (ngSubmit)="submitInviteUsers(formIniviteUser, $event)" >
 
-			<div class="input-field">
-				<input id="inpEmail" type="email" required [(ngModel)]="inpEmail">
-				<label for="inpEmail" >Email</label>
-			</div>
-
-			<div class="select-field">
-				<select id="accountType" [(ngModel)]="selectAccountType" required  name="account_type">
-					<option value="0" disabled selected>  User role </option>
-					<option *ngFor="let utype of arrUserType" value="{{ utype.role_id }}"> {{ utype.description }} </option>
-				</select>
-				<label class="select-label">Select Account Role </label>
-			</div>
-
-			<form *ngIf=" (formToShow == 'frp-to-frp') " #formFRPtoFRP="ngForm" (ngSubmit)="submitInviteFRPtoFRP(formFRPtoFRP, $event)" >
-				
-				<div class="select-field">
-					<select required  name="location">
-						<option *ngFor="let location of frpToFrp.locations" value="{{ location.location_id }}"> {{ location.name }} </option>
-					</select>
-					<label class="select-label">Select Location </label>
+				<div class="input-field">
+					<input id="inpFirstName" type="text" name="first_name" required >
+					<label for="inpFirstName" >First Name</label>
 				</div>
 
 				<div class="input-field">
-					<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
-					<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelFRPtoFRP" >Cancel</button>
+					<input id="inpLastName" type="text" name="last_name" required >
+					<label for="inpLastName" >Last Name</label>
+				</div>
+
+				<div class="input-field">
+					<input id="inpEmail" type="email" name="email" required >
+					<label for="inpEmail" >Email</label>
+				</div>
+
+				<div class="select-field">
+					<select id="accountType" [(ngModel)]="selectAccountType" required  name="account_type">
+						<option value="0" disabled selected>  User role </option>
+						<option *ngFor="let utype of arrUserType" value="{{ utype.role_id }}"> {{ utype.description }} </option>
+					</select>
+					<label class="select-label">Select Account Role </label>
+				</div>
+
+				<div *ngIf=" (formToShow == 'frp-to-frp') ">
+					<div class="select-field">
+						<select required  name="location">
+							<option *ngFor="let location of parentLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
+						</select>
+						<label class="select-label">Select Location </label>
+					</div>
+
+					<div class="input-field">
+						<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
+						<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					</div>
+				</div>
+
+				<div *ngIf=" (formToShow == 'frp-to-trp') ">
+					<div class="select-field">
+						<select required  name="location">
+							<option *ngFor="let location of parentLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
+						</select>
+						<label class="select-label">Select Location </label>
+					</div>
+
+					<div class="select-field" *ngIf="showSpecificLevel">
+						<select required  name="sublocation">
+							<option *ngFor="let location of childLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
+						</select>
+						<label class="select-label">Select Specific Level(s) </label>
+					</div>
+
+					<div class="input-field">
+						<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
+						<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					</div>
+				</div>
+
+				<div *ngIf=" (formToShow == 'frp-to-warden') ">
+					<div class="select-field">
+						<select required  name="location">
+							<option *ngFor="let location of parentLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
+						</select>
+						<label class="select-label">Select Location </label>
+					</div>
+
+					<div class="checkbox-field" *ngIf="showSpecificLevel">
+						<label class="select-label">Select Specific Level(s) </label>
+						<p *ngFor="let location of childLocations">
+					      <input  type="checkbox"  class="filled-in grey" value="{{ location.location_id }}" id="filled-in-box-{{ location.location_id }}" />
+					      <label for="filled-in-box-{{ location.location_id }}">{{ location.name }}</label>
+					    </p>
+					</div>
+
+					<div class="input-field">
+						<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
+						<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					</div>
 				</div>
 
 			</form>
 
-			<form *ngIf=" (formToShow == 'frp-to-trp') " #formFRPtoTRP="ngForm" (ngSubmit)="submitInviteFRPtoTRP(formFRPtoTRP, $event)" >
-				
-				<div class="select-field">
-					<select required  name="role">
-						<option *ngFor="let account of frpToTrp.accounts" value="">  </option>
-					</select>
-					<label class="select-label">Select Account </label>
-				</div>
-
-				<div class="select-field">
-					<select required  >
-					</select>
-					<label class="select-label">Select Location </label>
-				</div>
-
-				<div class="input-field">
-					<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
-					<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelFRPtoTRP" >Cancel</button>
-				</div>
-
-			</form>
-
-			<form *ngIf=" (formToShow == 'frp-to-warden') " #formFRPtoWarden="ngForm" (ngSubmit)="submitInviteFRPtoWarden(formFRPtoWarden, $event)" >
-				
-				<div class="select-field">
-					<select required  >
-					</select>
-					<label class="select-label">Select Account </label>
-				</div>
-
-				<div class="select-field">
-					<select required  >
-					</select>
-					<label class="select-label">Select Location </label>
-				</div>
-
-				<div class="select-field">
-					<label class="select-label">Select Specific Level(s) </label>
-				</div>
-
-				<div class="input-field">
-					<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
-					<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelFRPtoWarden" >Cancel</button>
-				</div>
-
-			</form>
 
 		</div>
 	</div>	

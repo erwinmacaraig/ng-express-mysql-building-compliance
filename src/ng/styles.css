@@ -45,6 +45,10 @@
 	margin-top: 15px;
 }
 
+.checkbox-field label {
+    position: relative;
+}
+
 .select-field label{
 	position: absolute !important;
     top: -10px !important;
@@ -66,10 +70,19 @@
 	font-size: 15px !important;
 }
 
+[type="checkbox"].filled-in.red:checked+label:after {
+    border: 2px solid #f44336;
+    background-color: #f44336;
+}
+
+[type="checkbox"].filled-in.grey:checked+label:after {
+    border: 2px solid #757575;
+    background-color: #757575;
+}
+
 @media only screen 
   and (min-width: 1024px)
   and (max-width: 1440px){
-
 	.input-field{
 		width: 100%;
 	}
@@ -77,8 +90,14 @@
 
 @media only screen 
   and (max-width: 1024px){
-
 	.input-field{
 		width: 100%;
+	}
+}
+
+@media only screen 
+  and (max-width: 768px){
+	.row .col {
+	    padding: 0 1.75rem !important;
 	}
 }

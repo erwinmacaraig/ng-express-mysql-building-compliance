@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
-
+import { Router, NavigationEnd  } from '@angular/router';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -43,16 +43,10 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 
 	formToShow = '';
 
-	frpToFrp = {
-		locations : []
-	};
-
-	frpToTrp = {
-		accounts : []
-	};
-
 	saveWardenInvitationCodeText = "Save";
 	saveWardenInvitationCodeDisable = false;
+
+	showSpecificLevel = true;
 
 	modalLoaderElem;
 	modalLoader = {
@@ -66,13 +60,17 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 
 	selectAccountType;
 
+	parentLocations = [];
+	childLocations = [];
+
 	constructor(
 		private platformLocation: PlatformLocation, 
 		private http: HttpClient, 
 		private auth: AuthService,
 		private accountDataProviderService: AccountsDataProviderService,
 		private locationsService: LocationsService,
-		private preloaderService : DashboardPreloaderService
+		private preloaderService : DashboardPreloaderService,
+		private router : Router
 	) {
 		this.baseUrl = (platformLocation as any).location.origin;
 		this.options = { headers : this.headers };
@@ -99,22 +97,75 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 		});
 	}
 
+	flattenRecurciveItems(items, index) {
+		let itemsForRecursive = [],
+			flatItems = [];
+
+		for(let i in items){
+			flatItems.push(items[i]);
+			if( Object.keys(items[i][index]).length > 0 ){
+				flatItems = flatItems.concat( this.flattenRecurciveItems(items[i][index], index) );
+			}
+		}
+
+		return flatItems;
+	};
+
+	getParentLocations(locations){
+		let returnData = [];
+		for(let i in locations){
+			if(locations[i]['parent_id'] < 0){ returnData.push(locations[i]); };
+		}
+
+		return returnData;
+	}
+
+	getChildLocations(locations){
+		let returnData = [];
+		for(let i in locations){
+			if(locations[i]['parent_id'] > 0){ returnData.push(locations[i]); };
+		}
+
+		return returnData;
+	}
+
 	getAccountInfoAndDisplay(){
 		this.accountDataProviderService.getByUserId(this.userData['userId'], (resAccount) => {
 			if(Object.keys(resAccount.data).length > 0){
 				this.companyName = resAccount.data['account_name'];
 				this.accountData = resAccount.data;
-				this.locationsService.getByAccountId(resAccount.data['account_id'], (resLocation) => {
-					this.locations = Object.keys(resLocation.data).map(function (key) { return resLocation.data[key]; });
-					this.preloaderService.hide();
-					$('select').material_select();
-					this.startEvents();
-				});
+
+				this.locationsService.getUsersLocationByIdAndAccountId(
+					{
+						account_id : resAccount.data['account_id'],
+						user_id : this.userData['userId']
+
+					}, (resLocation)=>{
+						let arrNames = [];
+						for(let i in resLocation.data){
+							arrNames.push(resLocation.data[i]['name']);
+						}
+						$('#inpLocationName').val( arrNames.join(', ') ).trigger('focusin');
+					}
+				);
+
+				this.locationsService.getByAccountId(
+					resAccount.data['account_id'], 
+					(resLocation) => 
+					{
+						this.locations = this.flattenRecurciveItems(resLocation.data, 'sublocations');
+
+						this.parentLocations = this.getParentLocations(this.locations);
+						this.childLocations = this.getChildLocations(this.locations);
+
+						this.preloaderService.hide();
+						$('select').material_select();
+						this.startEvents();
+					}
+				);
 			}else{
 				if(this.userData['roleId'] == 1 || this.userData['roleId'] == 2){
-					$('.row-company-info').html("<h4> Show here the form for creating account </h4>");
-				}else{
-					
+					this.router.navigate(['/setup-company']);
 				}
 				this.preloaderService.hide();
 			}
@@ -129,13 +180,13 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 			if( this.accountData['account_code'] !== null ){
 				this.formWardenInvitationCode.controls.code.setValue(this.accountData['account_code']);
 				this.saveWardenInvitationCodeText = "Update";
-				$('#inpInviCode').trigger('change');
+				$('#inpInviCode').trigger('focusin');
 			}
 
-			$('#inpCompanyName').val( this.accountData['account_name'] ).trigger('change');
+			$('#inpCompanyName').val( this.accountData['account_name'] ).trigger('focusin');
 			for(let i in this.arrUserType){
 				if(this.userRoleID == this.arrUserType[i]['role_id']){
-					$('#inpRoleName').val(this.arrUserType[i]['description']).trigger('change');
+					$('#inpRoleName').val(this.arrUserType[i]['description']).trigger('focusin');
 				}
 			}
 		}
@@ -144,22 +195,23 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	}
 
 	selectAccountTypeEvent(){
-		let accountType = $('#accountType');
-		accountType.on('change', () => {
-			if( accountType.val() == 1 && this.userRoleID == 1 ){
+		let selAccountType = $('#accountType');
+		selAccountType.on('change', () => {
+			if( selAccountType.val() == 1 && this.userRoleID == 1 ){
 				this.formToShow = 'frp-to-frp';
-			}else if( accountType.val() == 2 && this.userRoleID == 1 ){
+			}else if( selAccountType.val() == 2 && this.userRoleID == 1 ){
 				this.formToShow = 'frp-to-trp';
-			}else if( accountType.val() == 3 && this.userRoleID == 1 ){
+			}else if( selAccountType.val() == 3 && this.userRoleID == 1 ){
 				this.formToShow = 'frp-to-warden';
+			}else{
+				this.formToShow = '';
 			}
 
 			setTimeout(() => { $('select').material_select(); }, 100);
 		});
 	}
 
-
-	// COMPANY WARDEN INVITATION CODE
+	// COMPANY WARDEN INVITATION CODE SUBMIT EVENT
 	wardenInvitationCodeSubmit(f, e){
 		e.preventDefault();
 		if(f.valid){
@@ -194,18 +246,17 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 		}else{
 			f.controls.code.markAsDirty();
 		}
-
 	}
 
-
-	// FRP TO FRP
-	submitInviteFRPtoFRP(f: NgForm, event){
+	// SUBMIT EVENT INVITE USERS
+	submitInviteUsers(f: NgForm, event){
 		event.preventDefault();
 	}
 
-	// FRP TO TRP
-	submitInviteFRPtoTRP(f: NgForm, event){
-		event.preventDefault();
+	cancelForm(){
+		let selAccountType = $('#accountType');
+		selAccountType.val(0);
+		selAccountType.trigger('change');
 	}
 
 

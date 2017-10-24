@@ -16,7 +16,8 @@ CREATE TABLE `token` (
 CREATE TABLE `invitation_codes` (
  `invitation_code_id` int(11) NOT NULL AUTO_INCREMENT,
  `code` varchar(250) NOT NULL,
- `name` varchar(250) NOT NULL,
+ `first_name` varchar(150) NOT NULL,
+ `last_name` varchar(150) NOT NULL,
  `email` varchar(150) NOT NULL,
  `location_id` int(11) NOT NULL,
  `account_id` int(11) NOT NULL,

@@ -33,6 +33,55 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
+    public getMany(arrWhere: Object, showLocations: Boolean = false){
+      return new Promise((resolve, reject) => {
+            let sql_load = 'SELECT * FROM location_account_user ',
+              sqlWhere = '',
+              count = 0,
+              param = [];
+
+            if(showLocations){
+              sql_load = ' SELECT l.* FROM locations l LEFT JOIN location_account_user lau ON l.location_id = lau.location_id  ';
+            }
+
+            for(let i in arrWhere){
+              if(count == 0){
+                sqlWhere += ' WHERE ';
+              }else{
+                sqlWhere += ' AND ';
+              }
+
+              if(showLocations){
+                sqlWhere += 'lau.'+arrWhere[i][0]+' ';
+              }else{
+                sqlWhere += arrWhere[i][0]+' ';
+              }
+
+              if( typeof arrWhere[i][2] !== undefined  ){
+                sqlWhere += arrWhere[i][1]+' ? ';
+                param.push(arrWhere[i][2]);
+              }
+              count++;
+            }
+
+            sql_load += sqlWhere;
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              if(!results.length){
+                reject('Record not found');
+              }else{
+                this.dbData = results;
+                resolve(this.dbData);
+              }
+            });
+            connection.end();
+        });
+    }
+
     public getByLocationId(locationId: Number) {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_user WHERE location_id = ?';
