@@ -24,7 +24,7 @@ declare var $: any;
 })
 
 export class CompanyInformationComponent implements OnInit, AfterViewInit {
-	@ViewChild('formWardenInvitationCode') formWardenInvitationCode: NgForm;
+	@ViewChild('formWardenInvitationCode') formWardenInvitationCode: NgForm; 
 	private UserType = new AccountTypes().getTypes();
 	private baseUrl: String;
 	private options;
@@ -67,6 +67,10 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	childLocations = [];
 
 	selectAccounts = [];
+	selectAccount = 0;
+	selectLocation = 0;
+
+	emailTaken = false;
 
 	constructor(
 		private platformLocation: PlatformLocation, 
@@ -101,7 +105,6 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 			}
 
 		}
-
 	}
 
 	ngAfterViewInit(){
@@ -154,6 +157,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 			if(Object.keys(resAccount.data).length > 0){
 				this.companyName = resAccount.data['account_name'];
 				this.accountData = resAccount.data;
+				this.selectAccount = resAccount.data['account_id'];
 
 				this.locationsService.getUsersLocationByIdAndAccountId(
 					{
@@ -163,6 +167,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 					}, (resLocation)=>{
 						let arrNames = [];
 						for(let i in resLocation.data){
+							this.selectLocation = resLocation.data[i]['location_id'];
 							arrNames.push(resLocation.data[i]['name']);
 						}
 						$('#inpLocationName').val( arrNames.join(', ') ).trigger('focusin');
@@ -183,6 +188,11 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 						this.startEvents();
 					}
 				);
+
+				this.accountDataProviderService.getRelatedAccounts(resAccount.data['account_id'], (responseAccounts) => {
+					this.selectAccounts = responseAccounts.data;
+				});
+
 			}else{
 				if(this.userData['roleId'] == 1 || this.userData['roleId'] == 2){
 					this.router.navigate(['/setup-company']);
@@ -277,6 +287,70 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	// SUBMIT EVENT INVITE USERS
 	submitInviteUsers(f: NgForm, event){
 		event.preventDefault();
+		f.controls.account_type.markAsDirty();
+		f.controls.account_type.setValue( $('#accountType').val() );
+		this.emailTaken = false;
+		let formValues = {
+			sublocations : []
+		};
+
+		for(let i in f.controls){
+			f.controls[i].markAsDirty();
+			if(i == 'account'){
+				f.controls[i].setValue( $('select[name="account"]').val() );
+				formValues['account_id'] = f.controls[i].value;
+			}
+
+			if(i == 'location'){
+				f.controls[i].setValue( $('select[name="location"]').val() );
+				formValues['location_id'] = f.controls[i].value;
+			}
+
+			if(i.indexOf('sublocation-') > -1){
+				if( f.controls[i].value == true ){
+					let sub = i,
+						splitted = sub.split('-'),
+						subLocationId = splitted[1];
+
+					formValues.sublocations.push({
+						location_id : subLocationId
+					});
+				}
+			}
+		}
+
+		if(f.valid){
+			formValues = Object.assign(formValues, f.value);
+			formValues['user_role_id'] = this.userRoleID;
+			this.modalLoader.showLoader = true;
+			this.modalLoader.loadingMessage = 'Sending invitation';
+			this.modalLoader.showMessage = false;
+			this.modalLoaderElem.modal('open');
+
+			this.accountDataProviderService.sendUserInvitation( formValues, 
+				(response) => {
+					this.modalLoader.showLoader = false;
+					this.modalLoader.showMessage = true;
+					if(response.status){
+						this.modalLoader.icon = 'check';
+						this.modalLoader.iconColor = 'green';
+						this.modalLoader.message = 'Successfully updated!';
+						this.accountData['account_code'] = f.controls.code.value.trim();
+					}else{
+						this.modalLoader.icon = 'clear';
+						this.modalLoader.iconColor = 'red';
+						this.modalLoader.message = response.message;
+						if('emailtaken' in response){
+							this.emailTaken = response.emailtaken;
+						}
+					}
+					setTimeout(()=>{ 
+						this.modalLoaderElem.modal('close'); 
+					}, 2000);
+				}
+			);
+		}
+
 	}
 
 	cancelForm(){

@@ -45,4 +45,22 @@ export class AccountsDataProviderService {
 	      });
 	}
 
+	getRelatedAccounts(account_id, callBack){
+		this.http.get(this.baseUrl+"/accounts/get-realated-accounts/"+account_id, this.options)
+	      .subscribe(res => {
+	        callBack(res);
+	      }, err => {
+	        callBack( JSON.parse(err.error) );
+	      });
+	}
+
+	sendUserInvitation(opt, callBack){
+		this.http.post(this.baseUrl+"/accounts/send-user-invitation/", opt, this.options)
+	      .subscribe(res => {
+	        callBack(res);
+	      }, err => {
+	        callBack( JSON.parse(err.error) );
+	      });
+	}
+
 }

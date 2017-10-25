@@ -44,6 +44,14 @@ import * as Promise from 'promise';
 	   		new AccountRoute().saveAccountCode(req, res);
 	   	});
 
+	   	router.get('/accounts/get-realated-accounts/:account_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().getRelatedAccounts(req, res);
+	   	});
+
+	   	router.post('/accounts/send-user-invitation/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().sendUserInvitation(req, res);
+	   	});
+
    	}
 
 	/**
@@ -398,6 +406,155 @@ import * as Promise from 'promise';
 			response.message = 'Invalid fields';
 			res.send(response);
 		}
+	}
+
+	public getRelatedAccounts(req: AuthRequest, res: Response){
+		let accountModel = new Account(),
+			response = {
+				status: false,
+				message : '',
+				data : {}
+			},
+			account_id = req.params.account_id;
+
+		res.statusCode = 400;
+
+		accountModel.setID(account_id);
+		accountModel.load().then(
+			() => {
+				response.status = true;
+				response.data = [accountModel.getDBData()];
+				res.statusCode = 200;
+				res.send(response);
+			},
+			() => {
+				response.message = 'No accounts found';
+				res.send(response);
+			}
+		);
+		
+	}
+
+	public validateSendUserInvitation(data){
+		let response = {
+			status : false,
+			message : ''
+		},
+		error = 0;
+
+		if( ('first_name' in data) === false ){
+			error++;
+		}else{
+			data.first_name = data.first_name.trim();
+			if(validator.isEmpty(data.first_name)){
+				error++;
+			}
+		}
+
+		if( ('last_name' in data) === false ){
+			error++;
+		}else{
+			data.last_name = data.last_name.trim();
+			if(validator.isEmpty(data.last_name)){
+				error++;
+			}
+		}
+
+		if( ('email' in data) === false ){
+			error++;
+		}else{
+			data.email = data.email.trim();
+			if(!validator.isEmail(data.email)){
+				error++;
+			}
+		}
+
+
+		if( ('account_id' in data) === false ){
+			error++;
+		}else{
+			data.account_id = data.account_id.trim();
+			if(validator.isEmpty(''+data.account_id+'')){
+				error++;
+			}
+		}
+
+		if( ('location_id' in data) === false ){
+			error++;
+		}else{
+			data.location_id = data.location_id.trim();
+			if(validator.isEmpty(''+data.location_id+'')){
+				error++;
+			}
+		}
+
+		if( ('account_type' in data) === false ){
+			error++;
+		}else{
+			data.account_type = data.account_type.trim();
+			if(validator.isEmpty(''+data.account_type+'')){
+				error++;
+			}
+		}
+
+		if( ('sublocations' in data) === false ){
+			error++;
+		}
+
+		if( ('user_role_id' in data) === false ){
+			error++;
+		}else{
+			data.user_role_id = data.user_role_id.trim();
+			if(validator.isEmpty(''+data.user_role_id+'')){
+				error++;
+			}
+		}
+
+		if(error > 0){
+			response.message = (response.message.length > 0) ? response.message : 'Invalid fields';
+		}else{
+			response.status = true;
+		}
+
+		return response;
+
+	}
+
+	public sendUserInvitation(req: AuthRequest, res: Response){
+		let userEmail = new User(),
+			newUser = new User(),
+			reqBody = req.body,
+			validateResponse = this.validateSendUserInvitation(reqBody),
+			response = {
+				status : false,
+				data: {},
+				message : ''
+			};
+
+		res.statusCode = 400;
+
+		if(validateResponse.status){
+
+			userEmail.getByEmail(reqBody.email).then(
+				() => {
+
+					let invitationCode = this.generateRandomChars(25);
+
+
+				},
+				() => {
+					response['emailtaken'] = true;
+					response.message = 'Email is already taken';
+					res.send(response);
+				}
+			);
+
+
+		}else{
+			response.message = validateResponse.message;
+			res.send(response);
+		}
+
 	}
 
 }
