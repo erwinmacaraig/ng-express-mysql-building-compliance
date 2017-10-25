@@ -23,7 +23,7 @@ import { PersonInfoComponent } from './dashboard/person-info/person-info.compone
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
-
+import { SignupService } from './services/signup.service';
 @NgModule({
   declarations: [
     AppComponent,
@@ -47,6 +47,7 @@ import { SetupCompanyComponent } from './setupcompany/setup.company.component';
   providers: [
     AuthService,
     AuthGuard,
+    SignupService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: TokenInterceptor,

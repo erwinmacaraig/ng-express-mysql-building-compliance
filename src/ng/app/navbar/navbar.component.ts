@@ -22,7 +22,9 @@ export class NavbarComponent implements OnInit {
 	constructor(
 		private auth: AuthService
 	) {
-		this.userData = this.auth.getUserData();
+    this.userData = this.auth.getUserData();
+    this.usersImageURL = 'https://s3.amazonaws.com/allan-delfin/listing.png';
+    console.log(this.usersImageURL);
 	}
 
 	public getInitials(fullName){
