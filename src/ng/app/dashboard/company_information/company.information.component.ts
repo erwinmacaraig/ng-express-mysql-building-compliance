@@ -69,6 +69,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	selectAccounts = [];
 	selectAccount = 0;
 	selectLocation = 0;
+	selectSubLocation = 0;
 
 	emailTaken = false;
 
@@ -182,6 +183,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 
 						this.parentLocations = this.getParentLocations(this.locations);
 						this.childLocations = this.getChildLocations(this.locations);
+						this.selectSubLocation = ( Object.keys(this.childLocations).length  > 0) ? this.childLocations[0]['location_id'] : 0;
 
 						this.preloaderService.hide();
 						$('select').material_select();
@@ -316,12 +318,16 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 						location_id : subLocationId
 					});
 				}
+			}else if(i.indexOf('sublocation') > -1){
+				f.controls[i].setValue( $('select[name="sublocation"]').val() );
+				formValues['location_id'] = f.controls[i].value;
 			}
 		}
 
 		if(f.valid){
 			formValues = Object.assign(formValues, f.value);
 			formValues['user_role_id'] = this.userRoleID;
+			formValues['creator_id'] = this.userData['userId'];
 			this.modalLoader.showLoader = true;
 			this.modalLoader.loadingMessage = 'Sending invitation';
 			this.modalLoader.showMessage = false;
@@ -334,8 +340,9 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 					if(response.status){
 						this.modalLoader.icon = 'check';
 						this.modalLoader.iconColor = 'green';
-						this.modalLoader.message = 'Successfully updated!';
-						this.accountData['account_code'] = f.controls.code.value.trim();
+						this.modalLoader.message = 'Success! invitation code was sent';
+						f.reset();
+						$('.invitation-form .active').removeClass('active');
 					}else{
 						this.modalLoader.icon = 'clear';
 						this.modalLoader.iconColor = 'red';

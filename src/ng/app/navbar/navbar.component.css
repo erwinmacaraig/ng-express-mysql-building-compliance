@@ -96,6 +96,10 @@ nav ul  {
   text-align: center;
 }
 
+#myAccountPhoto{
+  width: 65px !important;
+  height: 65px !important;
+}
 
 /*Fixed Right Navigation Bar*/
 .container-myaccounts{
