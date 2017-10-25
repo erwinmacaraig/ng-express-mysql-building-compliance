@@ -3,6 +3,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Account } from '../models/account.model';
+import { InvitationCode  } from '../models/invitation.code.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import * as validator from 'validator';
@@ -16,10 +17,43 @@ export class UserRelatedRoute extends BaseRoute {
     router.patch('/update-person-info', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new UserRelatedRoute().updateUserPersonalInfo(req, res);
     });
+
+    router.get('/person-invi-code', (req: Request, res: Response, next: NextFunction) => {
+      new UserRelatedRoute().getUserInvitationCode(req, res, next);
+    });
   }
 
-  public getUserPersonalInfo(req: AuthRequest, res: Response) {
+  public getUserInvitationCode(req: Request, res: Response, next: NextFunction) {
+    const queryParamCode = req.query.code;
+    const invitation_code = new InvitationCode();
 
+
+    invitation_code.getInvitationByCode(queryParamCode, false).then((dbData) => {
+      return res.status(200).send({
+        status: 'OK',
+        message: 'Query Successful',
+        data: {
+          invitation_code_id: dbData['invitation_code_id'],
+          code: dbData['code'],
+          first_name: dbData['first_name'],
+          last_name: dbData['last_name'],
+          email: dbData['email'],
+          location_id: dbData['location_id'],
+          account_id: dbData['account_id'],
+          role_id: dbData['role_id'],
+          was_used: dbData['was_used']
+        }
+      });
+    }).catch((e) => {
+      return res.status(400).send({
+        status: 'No Content',
+        message: e
+      });
+    });
+
+  } // end getUserInvitationCode
+  public getUserPersonalInfo(req: AuthRequest, res: Response) {
+    console.log(req.query.userId);
     const queryParamUser = req.query.userId;
     const user = new User(queryParamUser);
     const account = new Account();
@@ -37,7 +71,7 @@ export class UserRelatedRoute extends BaseRoute {
         });
       }).catch((e) => {
         return res.status(200).send({
-           first_name: user.get('first_name'),
+          first_name: user.get('first_name'),
           last_name: user.get('last_name'),
           email:  user.get('email'),
           phone_number: user.get('phone_number'),
