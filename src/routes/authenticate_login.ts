@@ -60,7 +60,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
               name: user.get('first_name')+' '+user.get('last_name'),
               email: user.get('email'),
               accountId: user.get('account_id'),
-              roleId : 0
+              roleId : 3
             }
         };
 

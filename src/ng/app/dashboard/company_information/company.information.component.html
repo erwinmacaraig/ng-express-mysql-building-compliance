@@ -18,26 +18,29 @@
 				<label for="inpRoleName" >My Account Role</label>
 			</div>
 			
-			<h5 class="title">Warden Invitation Code</h5>
-			
-			<form #formWardenInvitationCode="ngForm" (ngSubmit)="wardenInvitationCodeSubmit(formWardenInvitationCode, $event)">
-				<div class="input-field">
-					<input id="inpInviCode" type="text" name="code" minlength="4" ngModel #inpInviCode="ngModel" [ngClass]="{ 'invalid' : !inpInviCode.valid  && inpInviCode.dirty }" required>
-					<label for="inpInviCode" >Invitation Code
-						<small *ngIf=" !inpInviCode.valid && inpInviCode.dirty "> *Required </small>
-					</label>
-				</div>
+			<div *ngIf="showWardenInvitationCode">
+				<h5 class="title">Warden Invitation Code</h5>
+				
+				<form  #formWardenInvitationCode="ngForm" (ngSubmit)="wardenInvitationCodeSubmit(formWardenInvitationCode, $event)">
+					<div class="input-field">
+						<input id="inpInviCode" type="text" name="code" minlength="4" ngModel #inpInviCode="ngModel" [ngClass]="{ 'invalid' : !inpInviCode.valid  && inpInviCode.dirty }" required>
+						<label for="inpInviCode" >Invitation Code
+							<small *ngIf=" !inpInviCode.valid && inpInviCode.dirty "> *Required </small>
+						</label>
+					</div>
 
-				<div class="input-field">
-					<button type="submit" class="btn orange waves-effect waves-light" > {{ saveWardenInvitationCodeText }} </button>
-				</div>
-			</form>
+					<div class="input-field">
+						<button type="submit" class="btn orange waves-effect waves-light" > {{ saveWardenInvitationCodeText }} </button>
+					</div>
+				</form>
+			</div>
+
 
 		</div>
 
 		<div class="col l1 show-on-large " style="border-right: 1px solid #999;"></div>
 
-		<div class="col s12 m6 l3">
+		<div class="col s12 m6 l3" *ngIf="showSendInvite">
 			<h5 class="title">Send Invite</h5>
 			
 			<form  #formIniviteUser="ngForm" (ngSubmit)="submitInviteUsers(formIniviteUser, $event)" >
@@ -60,12 +63,19 @@
 				<div class="select-field">
 					<select id="accountType" [(ngModel)]="selectAccountType" required  name="account_type">
 						<option value="0" disabled selected>  User role </option>
-						<option *ngFor="let utype of arrUserType" value="{{ utype.role_id }}"> {{ utype.description }} </option>
+						<option *ngFor="let utype of selectUserType" value="{{ utype.role_id }}"> {{ utype.description }} </option>
 					</select>
 					<label class="select-label">Select Account Role </label>
 				</div>
 
 				<div *ngIf=" (formToShow == 'frp-to-frp') ">
+					<div class="select-field">
+						<select name="account" required>
+							<option *ngFor="let account of selectAccounts" value="{{ account.account_id }}" >{{ account.account_name }}</option>
+						</select>
+						<label class="select-label">Select Account </label>
+					</div>
+
 					<div class="select-field">
 						<select required  name="location">
 							<option *ngFor="let location of parentLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
@@ -81,26 +91,12 @@
 
 				<div *ngIf=" (formToShow == 'frp-to-trp') ">
 					<div class="select-field">
-						<select required  name="location">
-							<option *ngFor="let location of parentLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
+						<select name="account" required>
+							<option *ngFor="let account of selectAccounts" value="{{ account.account_id }}" >{{ account.account_name }}</option>
 						</select>
-						<label class="select-label">Select Location </label>
+						<label class="select-label">Select Account </label>
 					</div>
 
-					<div class="select-field" *ngIf="showSpecificLevel">
-						<select required  name="sublocation">
-							<option *ngFor="let location of childLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
-						</select>
-						<label class="select-label">Select Specific Level(s) </label>
-					</div>
-
-					<div class="input-field">
-						<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
-						<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
-					</div>
-				</div>
-
-				<div *ngIf=" (formToShow == 'frp-to-warden') ">
 					<div class="select-field">
 						<select required  name="location">
 							<option *ngFor="let location of parentLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
@@ -116,6 +112,77 @@
 					    </p>
 					</div>
 
+					<div class="input-field">
+						<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
+						<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					</div>
+				</div>
+
+				<div *ngIf=" (formToShow == 'frp-to-warden') ">
+					<div class="select-field">
+						<select name="account" required>
+							<option *ngFor="let account of selectAccounts" value="{{ account.account_id }}" >{{ account.account_name }}</option>
+						</select>
+						<label class="select-label">Select Account </label>
+					</div>
+
+					<div class="select-field">
+						<select required  name="location">
+							<option *ngFor="let location of parentLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
+						</select>
+						<label class="select-label">Select Location </label>
+					</div>
+
+					<div class="select-field" *ngIf="showSpecificLevel">
+						<select required  name="sublocation">
+							<option *ngFor="let location of childLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
+						</select>
+						<label class="select-label">Select Specific Level(s) </label>
+					</div>
+					
+					<div class="input-field">
+						<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
+						<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					</div>
+				</div>
+
+				<div *ngIf=" (formToShow == 'trp-to-trp') ">
+					<div class="select-field">
+						<select required  name="location">
+							<option *ngFor="let location of parentLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
+						</select>
+						<label class="select-label">Select Location </label>
+					</div>
+
+					<div class="checkbox-field" *ngIf="showSpecificLevel">
+						<label class="select-label">Select Specific Level(s) </label>
+						<p *ngFor="let location of childLocations">
+					      <input  type="checkbox"  class="filled-in grey" value="{{ location.location_id }}" id="filled-in-box-{{ location.location_id }}" />
+					      <label for="filled-in-box-{{ location.location_id }}">{{ location.name }}</label>
+					    </p>
+					</div>
+
+					<div class="input-field">
+						<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
+						<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					</div>
+				</div>
+
+				<div *ngIf=" (formToShow == 'trp-to-warden') ">
+					<div class="select-field">
+						<select required  name="location">
+							<option *ngFor="let location of parentLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
+						</select>
+						<label class="select-label">Select Location </label>
+					</div>
+
+					<div class="select-field" *ngIf="showSpecificLevel">
+						<select required  name="sublocation">
+							<option *ngFor="let location of childLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
+						</select>
+						<label class="select-label">Select Specific Level(s) </label>
+					</div>
+					
 					<div class="input-field">
 						<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
 						<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>

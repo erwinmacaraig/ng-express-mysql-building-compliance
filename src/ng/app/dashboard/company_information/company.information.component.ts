@@ -40,6 +40,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	locations = [];
 
 	arrUserType = Object.keys(this.UserType).map((key) => { return this.UserType[key]; });
+	selectUserType = Object.keys(this.UserType).map((key) => { return this.UserType[key]; });
 
 	formToShow = '';
 
@@ -47,6 +48,8 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	saveWardenInvitationCodeDisable = false;
 
 	showSpecificLevel = true;
+	showSendInvite = false;
+	showWardenInvitationCode = false;
 
 	modalLoaderElem;
 	modalLoader = {
@@ -62,6 +65,8 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 
 	parentLocations = [];
 	childLocations = [];
+
+	selectAccounts = [];
 
 	constructor(
 		private platformLocation: PlatformLocation, 
@@ -82,6 +87,21 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	ngOnInit() {
 		this.userRoleID = this.userData['roleId'];
 		this.getAccountInfoAndDisplay();
+		
+		if(this.userRoleID == 1 || this.userRoleID == 2){
+			this.showSendInvite = true;
+			this.showWardenInvitationCode = true;
+		}
+
+		for(let i in this.selectUserType){
+
+			// TRP 
+			if(this.selectUserType[i]['role_id'] == 1 && this.userRoleID == 2){
+				this.selectUserType.splice( parseInt(i) , 1 );
+			}
+
+		}
+
 	}
 
 	ngAfterViewInit(){
@@ -178,9 +198,11 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 		/*SET WARDEN INVITATION CODE*/
 		if(Object.keys(this.accountData).length > 0){
 			if( this.accountData['account_code'] !== null ){
-				this.formWardenInvitationCode.controls.code.setValue(this.accountData['account_code']);
-				this.saveWardenInvitationCodeText = "Update";
-				$('#inpInviCode').trigger('focusin');
+				if(this.showWardenInvitationCode){
+					this.formWardenInvitationCode.controls.code.setValue(this.accountData['account_code']);
+					this.saveWardenInvitationCodeText = "Update";
+					$('#inpInviCode').trigger('focusin');
+				}
 			}
 
 			$('#inpCompanyName').val( this.accountData['account_name'] ).trigger('focusin');
@@ -203,6 +225,10 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 				this.formToShow = 'frp-to-trp';
 			}else if( selAccountType.val() == 3 && this.userRoleID == 1 ){
 				this.formToShow = 'frp-to-warden';
+			}else if( selAccountType.val() == 2 && this.userRoleID == 2 ){
+				this.formToShow = 'trp-to-trp';
+			}else if( selAccountType.val() == 3 && this.userRoleID == 2 ){
+				this.formToShow = 'trp-to-warden';
 			}else{
 				this.formToShow = '';
 			}
