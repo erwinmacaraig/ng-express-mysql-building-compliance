@@ -20,7 +20,7 @@ const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent},
   { path: 'forgot-password', component: ForgotpasswordComponent},
-  { path: 'change-password/:user_id/:fullname/:token', component: ChangepasswordComponent},
+  { path: 'change-user-password/:user_id/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
   { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent, children: [
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
