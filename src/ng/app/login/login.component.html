@@ -8,7 +8,7 @@
 
 			<div class="row">
 				<div class="col m5 s12 left-column ">
-					<form  novalidate (ngSubmit)="signInFormSubmit(formSignIn)" #formSignIn="ngForm"  >
+					<form  novalidate (ngSubmit)="signInFormSubmit(formSignIn)" #formSignIn="ngForm">
 
 						<input type="text" name="username" placeholder="Username or Email" id="username" ngModel /><br>
 						<input type="password" name="password" placeholder="Password" id="password" ngModel /><br>
@@ -54,9 +54,9 @@
 					<div class="col m6">
 						<button type="submit" class="waves-effect waves-light"> Submit </button>
 		      </div>
-
-				</form>
+				</form>				
 			</div>
+			<p *ngIf="showInvalidCode" class="error-message">Invalid invitation </p>
 		</div>
 	</div>
 

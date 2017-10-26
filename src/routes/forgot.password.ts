@@ -168,7 +168,6 @@ const md5 = require('md5');
 						}
 					},
 					e => {
-						console.log('ss');
 						res.send('User is invalid');
 					}
 				);

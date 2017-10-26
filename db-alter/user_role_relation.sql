@@ -1,0 +1,1 @@
+ALTER TABLE `user_role_relation` ADD `location_id` INT NOT NULL DEFAULT '0' AFTER `role_id`;

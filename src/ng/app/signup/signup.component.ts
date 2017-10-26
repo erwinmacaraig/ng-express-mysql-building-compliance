@@ -9,21 +9,22 @@ import 'rxjs/add/operator/catch';
 declare var $: any;
 import { SignupService } from '../services/signup.service';
 import { AccountTypes } from '../models/account.types';
+import { InvitationCode } from '../models/invitation-code';
 
 @Component({
   selector: 'app-signup',
   templateUrl: './signup.component.html',
-  styleUrls: ['./signup.component.css'],
-  providers: [ SignupService ]
+  styleUrls: ['./signup.component.css']
 })
-export class SignupComponent implements OnInit, AfterViewInit {
+export class SignupComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private UserType = new AccountTypes().getTypes();
   private headers: Object;
   private options: Object;
   private baseUrl: String;
   emailTaken = false;
-
+  public invitationCodePresent = false;
+  public inviCode;
   arrUserType = Object.keys(this.UserType).map((key) => { return this.UserType[key]; });
 
   modalLoader = {
@@ -39,19 +40,31 @@ export class SignupComponent implements OnInit, AfterViewInit {
 
   selectAccountType = 3;
 
-  constructor(private router: Router, private http: HttpClient, platformLocation: PlatformLocation, private signupService:SignupService) {
+  constructor(private router: Router, private http: HttpClient, platformLocation: PlatformLocation, private signupService: SignupService) {
     this.headers = new Headers({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers };
     this.baseUrl = (platformLocation as any).location.origin;
+
+    console.log(this.arrUserType);
   }
 
   ngOnInit() {
     this.elems['modalSignup'] = $('#modalSignup');
     this.elems['modalLoader'] = $('#modalLoader');
+    if (this.signupService.getInvitationCode()) {
+      this.inviCode = this.signupService.getInvitationCode();
+      this.invitationCodePresent = true;
+    } else {
+      this.inviCode = new InvitationCode();
+    }
+    console.log(this.invitationCodePresent);
   }
 
-  ngAfterViewInit(){
-    $('select').material_select();
+  ngAfterViewInit() {
+
+    if (!this.invitationCodePresent) {
+      $('select').material_select();
+    }
 
     let  modalOpts = {
       dismissible: false,
@@ -93,7 +106,7 @@ export class SignupComponent implements OnInit, AfterViewInit {
           f.controls[i].markAsDirty();
         }
       }
-      this.modalLoader.message = 'There\'s an invalid field, please review tour form again.';
+      this.modalLoader.message = res.message;
     }
 
     setTimeout(() => {
@@ -147,8 +160,16 @@ export class SignupComponent implements OnInit, AfterViewInit {
   }
 
   onCloseSelfSignUp() {
+    this.signupService.invalidateInvitationCode();
+    this.inviCode = new InvitationCode();
+    this.invitationCodePresent = false;
     this.elems['modalSignup'].modal('close');
     this.router.navigate(['/login']);
+  }
+
+  ngOnDestroy() {
+    this.signupService.invalidateInvitationCode();
+    this.invitationCodePresent = false;
   }
 
 }

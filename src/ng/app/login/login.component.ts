@@ -1,9 +1,11 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { PersonDataProviderService } from '../services/person-data-provider.service';
+import { SignupService } from '../services/signup.service';
 
 declare var $: any;
 
@@ -12,14 +14,20 @@ declare var $: any;
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   loginMessageStatus: string;
   showInvalid = false;
+  showInvalidCode = false;
   showErrorOccured = false;
   showSuccess = false;
   errorOccuredMessage = '';
+  private subscription;
   private baseUrl: String;
-  constructor(public http: HttpClient, private auth: AuthService, private platformLocation: PlatformLocation, private router: Router) {
+  constructor(public http: HttpClient,
+    private auth: AuthService,
+    private signupService: SignupService,
+    private platformLocation: PlatformLocation,
+    private router: Router) {
     this.baseUrl = (platformLocation as any).location.origin;
   }
 
@@ -79,7 +87,27 @@ export class LoginComponent implements OnInit {
   }
 
   invitationCodeForm(f: NgForm) {
+    this.subscription = this.signupService.getPersonInvitationCode(f.value.code).subscribe((data) => {
+      // console.log(data['data']);
+      this.signupService.setInvitationCode(data['data']);
+      this.router.navigate(['/signup']);
+    },
+    (err: HttpErrorResponse) => {
+      if (err.error instanceof Error) {
+        console.log('An error occurred:', err.error.message);
+        this.showInvalidCode = true;
 
+      } else {
+        this.showInvalidCode = true;
+        console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
 }
