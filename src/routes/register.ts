@@ -201,17 +201,23 @@ const md5 = require('md5');
 			// reqBody = this.sanitizeData(reqBody);
 			let validatorResponse:any = this.validateData(reqBody);
 			if(validatorResponse.status){
-				const userEmailCheck = new User();
-				userEmailCheck.getByEmail(reqBody.email).then(
-					(userdata) => {
-						response.message = 'Email already taken';
-						response.data['email_taken'] = 'Email already taken';
-						res.send(response);
-					},
-					(e) => {
-						this.saveUser(reqBody, req, res, next, response);
-					}
-				);
+        if('email' in reqBody){
+          const userEmailCheck = new User();
+          userEmailCheck.getByEmail(reqBody.email).then(
+            (userdata) => {
+              response.message = 'Email already taken';
+              response.data['email_taken'] = 'Email already taken';
+              res.send(response);
+            },
+            (e) => {
+              this.saveUser(reqBody, req, res, next, response);
+            }
+          );
+        }else{
+          this.saveUser(reqBody, req, res, next, response);
+        }
+				
+			
 			}else{
 				res.send(validatorResponse);
 			}
@@ -315,8 +321,7 @@ const md5 = require('md5');
                       };
                        // update invitation code to be used
                       const code = new InvitationCode(reqBody.invi_code_id);
-                      code.load().then(() => {
-                        if (code.get('role_id') !== 3) {
+                      code.load().then(() => {                        
                           code.set('was_used', 1);
                           code.write().then(() => {
                             let locationAccountUser = new LocationAccountUser();
@@ -337,27 +342,6 @@ const md5 = require('md5');
                                 }
                               );
                           });
-                        } else {
-                          let locationAccountUser = new LocationAccountUser();
-                          locationAccountUser.create({
-                            'location_id' : code.get('location_id'),
-                            'account_id': code.get('account_id'),
-                            'user_id' : userData['user_id']
-                          }).then(
-                            () => {
-                              res.statusCode = 200;
-                              responseData.data['code'] = code.get('code');
-                              console.log(responseData);
-                              res.send(responseData);
-                            },
-                            () => {
-                              responseData.message = 'Location-Account-User saved unsuccessfully';
-                              res.send(responseData);
-                            }
-                          );
-                        }
-
-
                       });
 
 										}
