@@ -216,8 +216,8 @@ const md5 = require('md5');
         }else{
           this.saveUser(reqBody, req, res, next, response);
         }
-				
-			
+
+
 			}else{
 				res.send(validatorResponse);
 			}
@@ -321,7 +321,7 @@ const md5 = require('md5');
                       };
                        // update invitation code to be used
                       const code = new InvitationCode(reqBody.invi_code_id);
-                      code.load().then(() => {                        
+                      code.load().then(() => {
                           code.set('was_used', 1);
                           code.write().then(() => {
                             let locationAccountUser = new LocationAccountUser();
@@ -523,8 +523,8 @@ const md5 = require('md5');
 									</script>
 								`;
 								res.send(script);*/
-
-								this.render(req, res, 'success-verification.hbs');
+                return res.redirect('/success-valiadation');
+								// this.render(req, res, 'success-verification.hbs');
 							}else{
 								res.send(responseData);
 							}
