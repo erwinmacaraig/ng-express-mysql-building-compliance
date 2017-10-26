@@ -357,7 +357,6 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 				}
 			);
 		}
-
 	}
 
 	cancelForm(){
