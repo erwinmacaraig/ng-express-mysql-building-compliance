@@ -31,12 +31,23 @@
 				</div>
 				<div class="col m6 s12 right-column">
 					<div class="column">
-						<h1>
+						<h1 class="top-message-try-evac">
 							<p>Don't have an account yet?</p>
-							<p>
-								<a [routerLink]="['/signup']" class="try-free">Try EvacConnect for free</a>
+							<p class="try-evac">
+								Try EvacConnect for free
 							</p>
 						</h1>
+
+						<div class="signup-link-container">
+							<a [routerLink]="['/signup']" class="try-free">
+								<div>
+									Sign up
+								</div>
+								<div>
+									<img src="assets/images/arrow_signup.png" alt="">
+								</div>
+							</a>
+						</div>
 					</div>
 				</div>
 			</div>

@@ -94,22 +94,6 @@ import * as Promise from 'promise';
 		);
 	}
 
-	/**
-	 * To generate random characters
-	 * @return {String} characters
-	 */
-	public generateRandomChars(length){
-		let chars = 'ABCDEFGHIJKKLMNOPQRSTUVWXYZ0987654321',
-			len = (typeof length == 'number') ? length : 15,
-			responseCode = '';
-
-		for(let i=0; i<=len; i++){
-			responseCode += chars[ Math.floor(Math.random() * chars.length) ];
-		}
-
-		return responseCode;
-	}
-
 
 	public generateInvitationCode(req: AuthRequest, res: Response){
 		let reqBody = req.body,
