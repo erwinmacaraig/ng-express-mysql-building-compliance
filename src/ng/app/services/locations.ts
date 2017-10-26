@@ -27,4 +27,13 @@ export class LocationsService {
 	      });
 	}
 
+	getUsersLocationByIdAndAccountId(opt, callBack){
+		this.http.get(this.baseUrl+"/location/get-by-userid-accountid/"+opt.user_id+'/'+opt.account_id, this.options)
+	      .subscribe(res => {
+	        callBack(res);
+	      }, err => {
+	        callBack( JSON.parse(err.error) );
+	      });
+	}
+
 }

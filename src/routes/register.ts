@@ -5,6 +5,8 @@ import { UserRoleRelation } from '../models/user.role.relation.model';
 import { EmailSender } from '../models/email.sender';
 import { Token } from '../models/token.model';
 import { InvitationCode  } from '../models/invitation.code.model';
+import { LocationAccountRelation } from '../models/location.account.relation';
+import { LocationAccountUser } from '../models/location.account.user';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -63,7 +65,6 @@ const md5 = require('md5');
 		if(
 			('first_name' in data) &&
 			('last_name' in data) &&
-			('email' in data) &&
 			('password' in data) &&
 			('confirm_password' in data) &&
 			('role_id' in data)
@@ -118,14 +119,29 @@ const md5 = require('md5');
 			data.last_name = this.capitalizeFirstLetter(data.last_name.toLowerCase());
 		}
 
-		// email validation
-		if(validator.isEmpty(data.email)){
-			response.data['email'] = ' Email is required ';
-			errors++;
-		}else if( !validator.isEmail(data.email) ){
-			response.data['email'] = ' Email is invalid ';
-			errors++;
-		}
+    // email validation
+    if('email' in data){
+      if(validator.isEmpty(data.email)){
+        response.data['email'] = ' Email is required ';
+        errors++;
+      }else if( !validator.isEmail(data.email) ){
+        response.data['email'] = ' Email is invalid ';
+        errors++;
+      }
+    }
+     // user name or email validation
+    if('user_name' in data){
+      if(!validator.isEmpty(data.user_name)){
+        if( validator.isEmail(data.user_name) ){
+          data.email = data.user_name;
+          data.user_name = null;
+        }
+      }else{
+        response.data['user_name'] = ' Username or email is required';
+        errors++;
+      }
+    }
+
 
 		if(validator.isEmpty(data.password) || validator.isEmpty(data.confirm_password)){
 			response.data['password'] = ' Password is required ';
@@ -258,7 +274,7 @@ const md5 = require('md5');
 	}
 
 	private saveUser(reqBody, req: Request, res: Response, next: NextFunction, response){
-		// Save the data
+    // Save the data
 		const user = new User();
 		const userRole = new UserRoleRelation();
 		reqBody.password = md5('Ideation'+reqBody.password+'Max');
@@ -293,18 +309,55 @@ const md5 = require('md5');
 												status : true,
 												data : {
 													token : resp.token,
-													user : resp.data
+                          user : resp.data
 												},
 												message : 'Successfully created user'
                       };
                        // update invitation code to be used
                       const code = new InvitationCode(reqBody.invi_code_id);
                       code.load().then(() => {
-                        code.set('was_used', 1);
-                        code.write().then(() => {
-                          res.statusCode = 200;
-                          res.send(responseData);
-                        });;
+                        if (code.get('role_id') !== 3) {
+                          code.set('was_used', 1);
+                          code.write().then(() => {
+                            let locationAccountUser = new LocationAccountUser();
+                              locationAccountUser.create({
+                                'location_id' : code.get('location_id'),
+                                'account_id': code.get('account_id'),
+                                'user_id' : userData['user_id']
+                              }).then(
+                                () => {
+                                  res.statusCode = 200;
+                                  responseData.data['code'] = code.get('code');
+                                  console.log(responseData);
+                                  res.send(responseData);
+                                },
+                                () => {
+                                  responseData.message = 'Location-Account-User saved unsuccessfully';
+                                  res.send(responseData);
+                                }
+                              );
+                          });
+                        } else {
+                          let locationAccountUser = new LocationAccountUser();
+                          locationAccountUser.create({
+                            'location_id' : code.get('location_id'),
+                            'account_id': code.get('account_id'),
+                            'user_id' : userData['user_id']
+                          }).then(
+                            () => {
+                              res.statusCode = 200;
+                              responseData.data['code'] = code.get('code');
+                              console.log(responseData);
+                              res.send(responseData);
+                            },
+                            () => {
+                              responseData.message = 'Location-Account-User saved unsuccessfully';
+                              res.send(responseData);
+                            }
+                          );
+                        }
+
+
                       });
 
 										}
@@ -314,11 +367,9 @@ const md5 = require('md5');
 									response.message = 'Unable to save user. See reference : '+errorData;
 									res.send(response);
 								}
-              );
-
-
-              } else {
-                this.sendEmailForRegistration(
+							);
+						}else{
+							this.sendEmailForRegistration(
 								emailUserdata,
 								req,
 								(successData)=>{

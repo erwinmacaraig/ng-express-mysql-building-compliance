@@ -96,6 +96,10 @@ nav ul  {
   text-align: center;
 }
 
+#myAccountPhoto{
+  width: 65px !important;
+  height: 65px !important;
+}
 
 /*Fixed Right Navigation Bar*/
 .container-myaccounts{
@@ -226,6 +230,7 @@ h5[myaccount]{
   width: 100%;
   margin-top: -2px;
   margin-left: 0px;
+  z-index: 9;
 }
 
 .burger-content.inactive{
