@@ -32,7 +32,6 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-      this.accountTypes = new AccountTypes().getTypesInArray();
       this.route.data.subscribe(data => {
          this.person = new Person(data.personInfo.first_name,
           data.personInfo.last_name,

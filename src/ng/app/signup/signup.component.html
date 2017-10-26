@@ -23,59 +23,72 @@
 						<div class="col m12">
 							<div class="input-container">
 								<div class="input-field col m12">
-									<input id="first_name" type="text" name="first_name" ngModel #inputFirstName="ngModel" [ngClass]="{ 'invalid' : !inputFirstName.valid  && inputFirstName.dirty }" required>
-									<label for="first_name">First Name
+									<input id="first_name" type="text" name="first_name" [ngModel]="inviCode.first_name"  #inputFirstName="ngModel" [ngClass]="{ 'invalid' : !inputFirstName.valid  && inputFirstName.dirty }" required>
+									<label for="first_name" [ngClass]="{'active': invitationCodePresent}">First Name
 										<small *ngIf=" !inputFirstName.valid && inputFirstName.dirty "> *Required </small>
 									</label>
 								</div>
 
 								<div class="input-field col m12">
-									<input id="last_name" type="text" name="last_name" ngModel #inputLastName="ngModel" [ngClass]="{ 'invalid' : !inputLastName.valid  && inputLastName.dirty }" required>
-									<label for="last_name">Last Name
+									<input id="last_name" type="text" name="last_name" [ngModel]="inviCode.last_name" #inputLastName="ngModel" [ngClass]="{ 'invalid' : !inputLastName.valid  && inputLastName.dirty }" required>
+									<label for="last_name" [ngClass]="{'active': invitationCodePresent}">Last Name
 										<small *ngIf=" !inputLastName.valid && inputLastName.dirty "> *Required </small>
 									</label>
 								</div>
 
 								<div class="input-field col m12">
-									<input id="email" type="email" name="email" email ngModel #inputEmail="ngModel" [ngClass]="{ 'invalid' : !inputEmail.valid && inputEmail.dirty  }" required  >
-									<label for="email">Email
+                  <input id="email" type="email" name="email" [readonly]="invitationCodePresent" 
+                        email 
+                        ngModel
+                        [ngModel]="inviCode.email"
+                        #inputEmail="ngModel" 
+                        [ngClass]="{ 'invalid' : !inputEmail.valid && inputEmail.dirty  }"
+                        required>
+									<label for="email" [ngClass]="{'active': invitationCodePresent}">Email
 										<small *ngIf=" !inputEmail.valid && inputEmail.dirty "> *Invalid </small>
 										<span *ngIf=" emailTaken " email-taken class="red-text"> *Email taken </span>
 									</label>
-								</div>
+                </div>
+                
+               
 
 								<div class="input-field col m12">
-									<input id="password" type="password" name="password" ngModel #inputPassword="ngModel" 
-									[ngClass]="{ 
+									<input id="password" type="password" name="password" ngModel #inputPassword="ngModel"
+									[ngClass]="{
 										'invalid' : !inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
-									}" 
+									}"
 									required minlength="6" maxlength="150"  >
 									<label for="password">Password
 										<small *ngIf=" inputPassword.value != inputConfirmPassword.value "> *Mismatched </small>
-										<small *ngIf=" !inputPassword.valid && inputPassword.dirty "> *Required </small>  
+										<small *ngIf=" !inputPassword.valid && inputPassword.dirty "> *Required </small>
 									</label>
 								</div>
 
 								<div class="input-field col m12">
-									<input id="confirm_password" type="password" ngModel name="confirm_password" 
-										ngModel #inputConfirmPassword="ngModel" 
-										[ngClass]="{ 
+									<input id="confirm_password" type="password" ngModel name="confirm_password"
+										ngModel #inputConfirmPassword="ngModel"
+										[ngClass]="{
 											'invalid' : !inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
-										}" 
+										}"
 										required minlength="6" maxlength="150" >
-									<label for="confirm_password"> Confirm password 
-										<small *ngIf=" !inputConfirmPassword.valid && inputConfirmPassword.dirty "> *Required </small>  
+									<label for="confirm_password"> Confirm password
+										<small *ngIf=" !inputConfirmPassword.valid && inputConfirmPassword.dirty "> *Required </small>
 									</label>
-								</div>
-
-								<div class="select-field col m12 s12">
+                </div>
+                <div *ngIf="invitationCodePresent" class="input-field col m12">
+                  <input type="text" disabled name="account_type_name" id="account_type_name" [ngModel]="inviCode.role_text">
+                  <!-- <input type="hidden" id="accountType" name="account_type" [ngModel]="inviCode.role_id">
+                   <input type="hidden" id="invi_code_id" name="invi_code_id" [ngModel]="inviCode.invitation_code_id"> -->
+                  <label for="account_type_name" class="active">Account Type</label>
+                </div>
+								<div class="select-field col m12 s12" *ngIf="!invitationCodePresent">
 									<select id="accountType" [(ngModel)]="selectAccountType" required  name="account_type">
 										<option value="-1" disabled selected>Please select account type</option>
 										<option *ngFor="let utype of arrUserType" value="{{ utype.role_id }}"> {{ utype.description }} </option>
 									</select>
 									<label class="select-label">Account Type</label>
 								</div>
-								
+
 								<!--
 								<div class="select-field col m12 s12">
 									<select ngModel name="location">
@@ -85,7 +98,7 @@
 								</div> -->
 
 								<div class="input-field col m6">
-									<button type="submit" class="btn block waves-effect waves-light btn-submit"   >Submit</button>
+									<button type="submit" class="btn block waves-effect waves-light btn-submit">Submit</button>
 								</div>
 								<div class="input-field col m6">
 									<a class="btn block waves-effect waves-light btn-close" (click)="onCloseSelfSignUp()">Close</a>

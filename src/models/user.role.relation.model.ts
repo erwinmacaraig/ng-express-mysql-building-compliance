@@ -71,8 +71,6 @@ export class UserRoleRelation extends BaseClass {
         if (err) {
           throw new Error(err);
         }
-        this.id = results.insertId;
-        this.dbData['user_role_relation_id'] = this.id;
         resolve(true);
       });
       connection.end();
@@ -93,8 +91,6 @@ export class UserRoleRelation extends BaseClass {
         if (err) {
           throw new Error(err);
         }
-        this.id = results.insertId;
-        this.dbData['user_role_relation_id'] = this.id;
         resolve(true);
       });
       connection.end();
@@ -112,6 +108,6 @@ export class UserRoleRelation extends BaseClass {
       }
       resolve(this.write());
     });
- 	}   
+ 	}
 
 }

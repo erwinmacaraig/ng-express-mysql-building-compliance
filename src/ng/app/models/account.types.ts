@@ -8,12 +8,20 @@ export class AccountTypes {
     };
   }
 
-  getTypesInArray() {
+  getTypeName() {
+    return [
+      '',
+      'Building Manager',
+      'Tenant',
+      'ECO'
+    ];
+    /*
     return [
       {'role_id' : 1, 'value' : 'FRP', 'description' : 'Building Manager' },
       { 'role_id' : 2, 'value' : 'TRP', 'description' : 'Tenant' },
       { 'role_id' : 3, 'value' : 'ECO', 'description' : 'ECO' }
     ];
+    */
   }
 
 

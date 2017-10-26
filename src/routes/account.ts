@@ -3,6 +3,13 @@ import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Account } from '../models/account.model';
 import { Location } from '../models/location.model';
+import { LocationAccountRelation } from '../models/location.account.relation';
+import { UserRoleRelation } from '../models/user.role.relation.model';
+import { LocationAccountUser } from '../models/location.account.user';
+import { InvitationCode } from '../models/invitation.code.model';
+import { EmailSender } from '../models/email.sender';
+
+
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 const validator = require('validator');
@@ -34,6 +41,18 @@ import * as Promise from 'promise';
 
 	   	router.post('/accounts/create/setup', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 	   		new AccountRoute().setupNewAccount(req, res);
+	   	});
+
+	   	router.post('/accounts/save-account-code', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().saveAccountCode(req, res);
+	   	});
+
+	   	router.get('/accounts/get-realated-accounts/:account_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().getRelatedAccounts(req, res);
+	   	});
+
+	   	router.post('/accounts/send-user-invitation/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().sendUserInvitation(req, res);
 	   	});
 
    	}
@@ -73,22 +92,6 @@ import * as Promise from 'promise';
 				res.send(response);
 			}
 		);
-	}
-
-	/**
-	 * To generate random characters
-	 * @return {String} characters
-	 */
-	public generateRandomChars(length){
-		let chars = 'ABCDEFGHIJKKLMNOPQRSTUVWXYZ0987654321',
-			len = (typeof length == 'number') ? length : 15,
-			responseCode = '';
-
-		for(let i=0; i<=len; i++){
-			responseCode += chars[ Math.floor(Math.random() * chars.length) ];
-		}
-
-		return responseCode;
 	}
 
 
@@ -197,11 +200,11 @@ import * as Promise from 'promise';
 					'country' : data.country,
 					'time_zone' : data.time_zone
 				};
-			accountModel.create(accountData).then(
-				(accountResponseData) => {
-					locationModel.create(locationData).then(
-						(locationResponseData) => {
 
+			accountModel.create(accountData).then(
+				() => {
+					locationModel.create(locationData).then(
+						() => {
 							locationModel.set('order', locationModel.get('location_id'));
 							locationModel.dbUpdate().then(
 								()=>{
@@ -225,6 +228,50 @@ import * as Promise from 'promise';
 				}
 			);
 		});
+	}
+
+	public saveNewAccountAndLocationRelation(user, account, location, success, error){
+		let locationAccountRelation = new LocationAccountRelation(),
+			userRoleRelation = new UserRoleRelation(),
+			locationAccountUser = new LocationAccountUser();
+
+		userRoleRelation.getByUserId(user.user_id).then(
+			() => {
+				userRoleRelation.set('location_id', location.location_id);
+				userRoleRelation.dbUpdate().then(
+					() => {
+						let responsibility = ( userRoleRelation.get('role_id') == 1 ) ? 'Manager' : 'Tenant';
+						locationAccountRelation.create({
+							'location_id' : location.location_id,
+							'account_id' : account.account_id,
+							'responsibility' : responsibility 
+						}).then(
+							() => {
+								locationAccountUser.create({
+									'location_id' : location.location_id,
+									'account_id': account.account_id,
+									'user_id' : user.user_id
+								}).then(
+									() => { success(); },
+									() => { error('Location-Account-User saved unsuccessfully'); }
+								);
+							},
+							() => {
+								error('Location-Account relation saved unsuccessfully');
+							}
+						);
+					},
+					() => {
+						error('User role update save unsuccessfully');
+					}
+				);
+			},
+			() => {
+				// We are assuming this is a warden 
+				// Previous system has no warden lookup data in user role relation
+				error('No role relation found assuming user is a warden');
+			}
+		);
 	}
 
 	public setupNewAccount(req: AuthRequest, res: Response){
@@ -256,18 +303,29 @@ import * as Promise from 'promise';
 
 							userModel.load().then(
 								(usersData) => {
-									userModel.set('account_id', account.account_id);
-									userModel.dbUpdate().then(
+									this.saveNewAccountAndLocationRelation(
+										usersData, 
+										account, 
+										location,
 										() => {
-											response.data = {
-												'account' : account
-											};
-											res.statusCode = 200;
-											response.status = true;
-											res.send(response);
+											userModel.set('account_id', account.account_id);
+											userModel.dbUpdate().then(
+												() => {
+													response.data = {
+														'account' : account
+													};
+													res.statusCode = 200;
+													response.status = true;
+													res.send(response);
+												},
+												() => {
+													response.message = 'User was not able to update account id';
+													res.send(response);
+												}
+											);
 										},
-										() => {
-											response.message = 'User was not able to update account id';
+										(msg) => {
+											response.message = msg;
 											res.send(response);
 										}
 									);
@@ -287,8 +345,292 @@ import * as Promise from 'promise';
 			response.data = validationData.data;
 			res.send(response);
 		}
+	}
 
+	public saveAccountCode(req: AuthRequest, res: Response){
+		let accountModel = new Account(),
+			reqBody = req.body,
+			response = {
+				status: false,
+				message : '',
+				data : {}
+			},
+			error = 0;
+
+		res.statusCode = 400;
+		if( ('account_id' in reqBody === false) || ('code' in reqBody === false) ){
+			error++;
+		}else{
+			if(  (validator.isInt(''+reqBody.account_id+'') === false)  ){
+				error++;
+			}
+		}
+
+		if(error == 0){
+			accountModel.setID(reqBody.account_id);
+			accountModel.load().then(
+				() => {
+					accountModel.set('account_code', reqBody.code);
+					accountModel.dbUpdate().then(
+						() => {
+							res.statusCode = 200;
+							response.status = true;
+							res.send(response);
+						},
+						() => {
+							response.message = 'Update unsuccessful';
+							res.send(response);
+						}
+					);
+				},
+				() => {
+					response.message = 'No account found';
+					res.send(response);
+				}
+			);
+
+		}else{
+			response.message = 'Invalid fields';
+			res.send(response);
+		}
+	}
+
+	public getRelatedAccounts(req: AuthRequest, res: Response){
+		let accountModel = new Account(),
+			response = {
+				status: false,
+				message : '',
+				data : {}
+			},
+			account_id = req.params.account_id;
+
+		res.statusCode = 400;
+
+		accountModel.setID(account_id);
+		accountModel.load().then(
+			() => {
+				response.status = true;
+				response.data = [accountModel.getDBData()];
+				res.statusCode = 200;
+				res.send(response);
+			},
+			() => {
+				response.message = 'No accounts found';
+				res.send(response);
+			}
+		);
 		
+	}
+
+	public validateSendUserInvitation(data){
+		let response = {
+			status : false,
+			message : ''
+		},
+		error = 0;
+
+		if( ('creator_id' in data) === false ){
+			error++;
+		}else{
+			data.creator_id = ''+data.creator_id+''.trim();
+			if(validator.isEmpty(data.creator_id)){
+				error++;
+			}
+		}
+
+		if( ('first_name' in data) === false ){
+			error++;
+		}else{
+			data.first_name = data.first_name.trim();
+			if(validator.isEmpty(data.first_name)){
+				error++;
+			}
+		}
+
+		if( ('last_name' in data) === false ){
+			error++;
+		}else{
+			data.last_name = data.last_name.trim();
+			if(validator.isEmpty(data.last_name)){
+				error++;
+			}
+		}
+
+		if( ('email' in data) === false ){
+			error++;
+		}else{
+			data.email = data.email.trim();
+			if(!validator.isEmail(data.email)){
+				error++;
+			}
+		}
+
+
+		if( ('account_id' in data) === false ){
+			error++;
+		}else{
+			data.account_id = ''+data.account_id+''.trim();
+			if(validator.isEmpty(data.account_id)){
+				error++;
+			}
+		}
+
+		if( ('location_id' in data) === false ){
+			error++;
+		}else{
+			data.location_id = ''+data.location_id+''.trim();
+			if(validator.isEmpty(data.location_id)){
+				error++;
+			}
+		}
+
+		if( ('account_type' in data) === false ){
+			error++;
+		}else{
+			data.account_type = ''+data.account_type+''.trim();
+			if(validator.isEmpty(data.account_type)){
+				error++;
+			}
+		}
+
+		if( ('sublocations' in data) === false ){
+			error++;
+		}
+
+		if( ('user_role_id' in data) === false ){
+			error++;
+		}else{
+			data.user_role_id = ''+data.user_role_id+''.trim();
+			if(validator.isEmpty(data.user_role_id)){
+				error++;
+			}
+		}
+
+		if(error > 0){
+			response.message = (response.message.length > 0) ? response.message : 'Invalid fields';
+		}else{
+			response.status = true;
+		}
+
+		return response;
+
+	}
+
+	public sendUserInvitationEmail(req, userData, creatorData, success, error){
+		let opts = { 
+	        from : 'allantaw2@gmail.com',
+	        fromName : 'EvacConnect',
+	        to : [],
+	        body : '',
+	        attachments: [],
+	        subject : 'EvacConnect Invitation'
+	    };
+
+		let email = new EmailSender(opts),
+			emailBody = email.getEmailHTMLHeader(),
+			link = req.protocol + '://' + req.get('host') +'/login';
+
+		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(userData.first_name)+' '+this.capitalizeFirstLetter(userData.last_name)+'</h3> <br/>';
+		emailBody += '<h4> '+this.capitalizeFirstLetter(creatorData.first_name)+' '+this.capitalizeFirstLetter(creatorData.last_name)+' sents you an invitation code. </h4> <br/>';
+		emailBody += '<h5> Invitation Code : <span style="text-decoration:underline; color:red;"> '+userData.code+' </span> </h5> <br/>';
+		emailBody += '<h5> Please copy the code then go to this page <a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> and submit the code. Thank you! </h5> <br/>';
+
+		emailBody += email.getEmailHTMLFooter();
+
+		email.assignOptions({
+			body : emailBody,
+			to: [userData.email]
+		});
+
+		email.send(success, error);
+
+	}
+
+	public sendUserInvitation(req: AuthRequest, res: Response){
+		let userEmail = new User(),
+			newUser = new User(),
+			creatorModel = new User(),
+			reqBody = req.body,
+			validateResponse = this.validateSendUserInvitation(reqBody),
+			response = {
+				status : false,
+				data: {},
+				message : ''
+			};
+
+		res.statusCode = 400;
+
+		if(validateResponse.status){
+
+			creatorModel.setID(reqBody.creator_id);
+			creatorModel.load().then(
+				(creatorData) => {
+					userEmail.getByEmail(reqBody.email).then(
+						() => {
+							response['emailtaken'] = true;
+							response.message = 'Email is already taken';
+							res.send(response);
+						},
+						() => {
+
+							let invitationCode = this.generateRandomChars(25),
+								inviModel = new InvitationCode(),
+								inviData = {
+									'code' : invitationCode,
+									'first_name' : reqBody.first_name,
+									'last_name' : reqBody.last_name,
+									'email' : reqBody.email,
+									'location_id' : reqBody.location_id,
+									'account_id' : reqBody.account_id,
+									'role_id' : reqBody.account_type,
+									'was_used' : 0
+								};
+
+							// SPECIFY THE LOCATION ID
+							if(reqBody.account_type == 2 || reqBody.account_type == 3){
+								if( Object.keys( reqBody.sublocations ).length > 0 ){
+									inviData.location_id = reqBody.sublocations[0]['location_id'];
+								}
+							}
+
+							inviModel.create(inviData).then(
+								() => {
+									this.sendUserInvitationEmail(
+										req,
+										inviData,
+										creatorData,
+										() => {
+											res.statusCode = 200;
+											response.status = true;
+											response.message = 'Success';
+											res.send(response);
+										},
+										(msg) => {
+											response.message = 'Error on sending email';
+											res.send(response);
+										}
+									);
+								},
+								() => {
+									response.message = 'Error on saving invitation code';
+									res.send(response);
+								}
+							);
+
+						}
+					);
+				},
+				() => {
+					response.message = 'Invalid creator';
+					res.send(response);
+				}
+			);
+
+		}else{
+			response.message = validateResponse.message;
+			res.send(response);
+		}
+
 	}
 
 }

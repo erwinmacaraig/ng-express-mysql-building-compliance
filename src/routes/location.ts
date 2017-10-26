@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Location } from '../models/location.model';
+import { LocationAccountUser } from '../models/location.account.user';
 import  * as fs  from 'fs';
 import * as path from 'path';
 const validator = require('validator');
@@ -27,6 +28,10 @@ const md5 = require('md5');
 	   		new LocationRoute().getByAccountId(req, res, next);
 	   	});
 
+	   	router.get('/location/get-by-userid-accountid/:user_id/:account_id', (req: Request, res: Response, next: NextFunction) => {
+	   		new LocationRoute().getByUserIdAndAccountId(req, res, next);
+	   	});
+
    	}
 
 	/**
@@ -50,11 +55,11 @@ const md5 = require('md5');
 		// Default status code
 		res.statusCode = 400;
 
-		location.getByAccountId(req.params['account_id']).then(
-			(accountData) => {
+		location.getManyByAccountId(req.params['account_id']).then(
+			(locaData) => {
 				response.status = true;
 				res.statusCode = 200;
-				response.data = accountData;
+				response.data = locaData;
 				res.send(response);
 			},
 			(e) => {
@@ -64,8 +69,33 @@ const md5 = require('md5');
 				res.send(response);
 			}
 		);
+	}
 
-		 
+	public getByUserIdAndAccountId(req: Request, res: Response, next: NextFunction){
+		let  response = {
+				status : false,
+				message : '',
+				data : {}
+			},
+			locAccUser = new LocationAccountUser();
+
+		// Default status code
+		res.statusCode = 200;
+
+		let arrWhere = [];
+		arrWhere.push([ 'user_id', '=', req.params.user_id ]);
+		arrWhere.push([ 'account_id', '=', req.params.account_id ]);
+
+		locAccUser.getMany(arrWhere, true).then(
+			(locations) => {
+				response.data = locations;
+				res.send(response);
+			},
+			() => {
+				res.send(response);
+			}
+		);
+
 	}
 
 }
