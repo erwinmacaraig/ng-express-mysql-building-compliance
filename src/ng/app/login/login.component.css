@@ -24,6 +24,25 @@ h1,h2{
   margin:0px;
 }
 
+.top-message-try-evac{
+  position: absolute;
+  top: 30%;
+}
+
+.try-evac{
+  font-size: 22px;
+  margin: 30px 0px 15px 0px !important;
+}
+
+.signup-link-container{
+  position: absolute;
+  bottom: 26%;
+}
+
+.signup-link-container div{
+  display: inline-block;
+}
+
 [type="checkbox"].filled-in:not(:checked)+label:after{
   border-color: #fff;
 }
@@ -40,8 +59,8 @@ h1,h2{
   line-height: 30px;
 }
 
-.try-free:hover,
-.try-free:focus{
+.try-free:hover div,
+.try-free:focus div{
   color: #ffac49;
   text-decoration: underline;
 }
@@ -366,6 +385,14 @@ h1,h2{
     font-size: 18px;
   }
 
+  .try-evac{
+    font-size: 22px !important;
+  }
+
+  .middle-line{
+    display: none;
+  }
+
 
 }
 
@@ -375,4 +402,19 @@ h1,h2{
     .right-column .column{
       height: 85px;
     }
+
+    .top-message-try-evac,
+    .signup-link-container{
+      position: inherit;
+    }
+
+    .top-message-try-evac{
+      margin-top: 30px !important;
+    }
+  
+    .invitation_code input, button{
+      width: 100% !important;
+      margin-bottom: 20px !important;
+    }
+
   }

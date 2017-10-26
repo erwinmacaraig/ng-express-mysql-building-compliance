@@ -37,7 +37,7 @@ nav ul  {
   color: #fff;
   display: block;
   cursor: pointer;
-  line-height: 56px; 
+  line-height: 56px;
 }
 .navbrand {
 	-webkit-transition: background-color .3s;
@@ -72,7 +72,7 @@ nav ul  {
   font-size: 1rem;
   color: #fff;
   cursor: pointer;
-  line-height: 56px; 
+  line-height: 56px;
 }
 
 .right .navbar .users-name{
@@ -96,11 +96,15 @@ nav ul  {
   text-align: center;
 }
 
+#myAccountPhoto{
+  width: 65px !important;
+  height: 65px !important;
+}
 
 /*Fixed Right Navigation Bar*/
 .container-myaccounts{
   width: 100%;
-} 
+}
 
 .vertical-m {
   position: fixed;
@@ -127,7 +131,7 @@ nav ul  {
 }
 .vertical-nav-title img {
   padding-left: 1.375rem;
-}  
+}
 .vertical-nav img {
   padding-top: .5rem;
   padding-left: 30px;
@@ -195,6 +199,11 @@ h5[myaccount]{
   text-align: center;
 }
 
+.img-container {
+  height: 65px;
+  width: 65px;
+}
+
 .responsive-logo{
   display: none;
 }
@@ -221,6 +230,7 @@ h5[myaccount]{
   width: 100%;
   margin-top: -2px;
   margin-left: 0px;
+  z-index: 9;
 }
 
 .burger-content.inactive{
@@ -252,7 +262,7 @@ h5[myaccount]{
 }
 
 
-@media only screen 
+@media only screen
   and (max-width: 1220px){
   .main-logo{
     display: none;
@@ -263,9 +273,9 @@ h5[myaccount]{
   }
 }
 
-@media only screen 
+@media only screen
   and (max-width: 1024px){
-  
+
   .navbar .users-name{
     display: none;
   }
@@ -274,14 +284,14 @@ h5[myaccount]{
 
 @media only screen
   and (min-width: 840px){
-  
+
   .burger-content{
     display: none;
   }
 
 }
 
-@media only screen 
+@media only screen
   and (min-width: 425px)
   and (max-width: 1024px){
 
@@ -296,17 +306,17 @@ h5[myaccount]{
 
 }
 
-@media only screen 
+@media only screen
   and (min-width: 425px)
   and (max-width: 768px){
   .burger{
     display: block;
   }
-  
+
   .right .navbar{
     display: none;
   }
-  
+
   .burger-content.active{
     opacity: 1;
   }
@@ -317,9 +327,9 @@ h5[myaccount]{
 
 }
 
-@media only screen 
+@media only screen
   and (max-width: 425px){
-  
+
   .nav-list li span{
     display: none;
   }
@@ -331,7 +341,7 @@ h5[myaccount]{
   .burger{
     display: block;
   }
-  
+
   .right .navbar{
     display: none;
   }
@@ -345,7 +355,7 @@ h5[myaccount]{
   }
 }
 
-@media only screen 
+@media only screen
   and (max-width: 375px){
   nav ul a {
     padding: 0 5px;

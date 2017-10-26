@@ -5,15 +5,15 @@ import { NextFunction, Request, Response } from 'express';
  *
  * @class BaseRoute
  */
-export class BaseRoute {
+ export class BaseRoute {
   /**
    * Constructor
    *
    * @class BaseRoute
    * @constructor
    */
-  constructor() {
-  }
+   constructor() {
+   }
 
   /**
    * Render a page.
@@ -26,11 +26,31 @@ export class BaseRoute {
    * @param options {Object} Additional options to append to the view's local scope.
    * @return void
    */
-  public render(req: Request, res: Response, view: string, options?: Object) {
-    // add constants
-    res.locals.BASE_URL = '/';
+   public render(req: Request, res: Response, view: string, options?: Object) {
+       // add constants
+       res.locals.BASE_URL = '/';
 
-    // render view
-    res.render(view, options);
-  }
+       // render view
+       res.render(view, options);
+   }
+
+   public capitalizeFirstLetter(string) {
+       return string.charAt(0).toUpperCase() + string.slice(1);
+   }
+
+    /**
+    * To generate random characters
+    * @return {String} characters
+    */
+    public generateRandomChars(length){
+        let chars = 'ABCDEFGHIJKKLMNOPQRSTUVWXYZ0987654321',
+        len = (typeof length == 'number') ? length : 15,
+        responseCode = '';
+
+        for(let i=0; i<=len; i++){
+           responseCode += chars[ Math.floor(Math.random() * chars.length) ];
+        }
+
+        return responseCode;
+    }
 }

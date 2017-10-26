@@ -7,6 +7,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 
+import { FileUploader } from '../models/upload-file';
+
 /**
  * / route
  *
@@ -25,6 +27,14 @@ export class IndexRoute extends BaseRoute {
     // add home page route
     router.get('/test', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new IndexRoute().index(req, res);
+    });
+
+    router.post('/test/sample/upload', (req: Request, res: Response, next: NextFunction) => {
+      new IndexRoute().uploadUserPhoto(req, res, next);
+    });
+
+    router.get('/test/upload/form', (req: Request, res: Response, next: NextFunction) => {
+      new IndexRoute().displayUploadForm(req, res, next);
     });
   }
 
@@ -59,6 +69,29 @@ export class IndexRoute extends BaseRoute {
 
     // render template
     this.render(req, res, 'index.hbs', options);
+  }
+
+  displayUploadForm(req: Request, res: Response, next: NextFunction) {
+    this.render(req, res, 'upload.hbs');
+  }
+
+  uploadUserPhoto(req: Request, res: Response, next: NextFunction) {
+     const fu = new FileUploader(req, res, next);
+     const link = fu.uploadFile().then(
+       (url) => {
+         return res.send('<img src="' + fu.getUploadedFileLocation() + '" />');
+       }
+     ).catch((e) => {
+       return res.end('Error uploading file');
+     });
+  }
+
+
+
+
+
+
+  // ===================================================
 
      /*
     interface AuthRequest extends Request {
@@ -182,7 +215,4 @@ u.create({
       });
 
     });*/
-
-
-  }
 }
