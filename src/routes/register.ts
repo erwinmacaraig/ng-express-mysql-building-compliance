@@ -4,8 +4,9 @@ import { User } from '../models/user.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
 import { EmailSender } from '../models/email.sender';
 import { Token } from '../models/token.model';
+import { InvitationCode  } from '../models/invitation.code.model';
 
-import  * as fs  from 'fs';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as moment from 'moment';
 import * as jwt from 'jsonwebtoken';
@@ -50,7 +51,7 @@ const md5 = require('md5');
 	* @class RegisterRoute
 	* @constructor
 	*/
-	constructor() {	
+	constructor() {
 		super();
 	}
 
@@ -80,7 +81,7 @@ const md5 = require('md5');
 
 		data.last_name = validator.trim(data.last_name);
 		data.last_name = validator.escape(data.last_name);
-		
+
 		data.email = validator.trim(data.email);
 		data.email = validator.normalizeEmail(data.email);
 
@@ -106,7 +107,7 @@ const md5 = require('md5');
 			response.data['first_name'] = ' First name is required ';
 			errors++;
 		}else{
-			data.first_name = data.first_name.toLowerCase();
+			data.first_name = this.capitalizeFirstLetter(data.first_name.toLowerCase());
 		}
 
 		// last name validation
@@ -114,7 +115,7 @@ const md5 = require('md5');
 			response.data['last_name'] = ' Last name is required ';
 			errors++;
 		}else{
-			data.last_name = data.last_name.toLowerCase();
+			data.last_name = this.capitalizeFirstLetter(data.last_name.toLowerCase());
 		}
 
 		// email validation
@@ -164,9 +165,9 @@ const md5 = require('md5');
 
 	/**
 	 * Index
-	 * @param {Request}      req  
-	 * @param {Response}     res  
-	 * @param {NextFunction} next 
+	 * @param {Request}      req
+	 * @param {Response}     res
+	 * @param {NextFunction} next
 	 */
 	public index(req: Request, res: Response, next: NextFunction){
 
@@ -204,7 +205,7 @@ const md5 = require('md5');
 		}
 	}
 
-	private sendEmailForRegistration(userData, req, success, error){ 
+	private sendEmailForRegistration(userData, req, success, error){
 		let opts = {
 	        from : 'allantaw2@gmail.com',
 	        fromName : 'EvacConnect',
@@ -261,7 +262,7 @@ const md5 = require('md5');
 		const user = new User();
 		const userRole = new UserRoleRelation();
 		reqBody.password = md5('Ideation'+reqBody.password+'Max');
-		reqBody.evac_role = 'Client';
+    reqBody.evac_role = ('evac_role' in reqBody) ? reqBody.evac_role : 'Client';
 		user.create(reqBody).then(
 			() => {
 				let emailUserdata = {
@@ -272,53 +273,73 @@ const md5 = require('md5');
 				};
 				emailUserdata['user_id'] = user.ID();
 
-				/* CURRENT AVAILABLE TO INSERT TRP AND FRP */
-				if(reqBody.role_id == 2 || reqBody.role_id == 1){
-					userRole.create({
-						'user_id' : user.ID(),
-						'role_id' : reqBody.role_id
-					}).then(
-						() => {
-							this.sendEmailForRegistration(
+				userRole.create({
+					'user_id' : user.ID(),
+					'role_id' : reqBody.role_id
+				}).then(
+					() => {
+						if('invi_code_id' in reqBody) {
+							let tokenModel = new Token(),
+								userModel = user,
+								userData = user.getDBData();
+
+							this.userVerificationNewUsersToken(
+								tokenModel,
+								userModel,
+								() => {
+									this.userVerificationLogin(userData,
+										(resp) => {
+											let responseData = {
+												status : true,
+												data : {
+													token : resp.token,
+													user : resp.data
+												},
+												message : 'Successfully created user'
+                      };
+                       // update invitation code to be used
+                      const code = new InvitationCode(reqBody.invi_code_id);
+                      code.load().then(() => {
+                        code.set('was_used', 1);
+                        code.write().then(() => {
+                          res.statusCode = 200;
+                          res.send(responseData);
+                        });;
+                      });
+
+										}
+									);
+								},
+								(errorData) => {
+									response.message = 'Unable to save user. See reference : '+errorData;
+									res.send(response);
+								}
+              );
+
+
+              } else {
+                this.sendEmailForRegistration(
 								emailUserdata,
-								req, 
+								req,
 								(successData)=>{
 									res.statusCode = 200;
 									response.status = true;
 									response.data = emailUserdata;
 									response.data['user_id'] = user.ID();
 									res.send(response);
-								}, 
+								},
 								(errorData)=>{
 									response.message = 'Unable to send email. See reference : '+errorData;
 									res.send(response);
 								}
 							);
-						},
-						() => {
-							res.statusCode = 500;
-							res.send('Unable to save user role');
 						}
-					);
-				}else{
-					console.log(emailUserdata);
-					this.sendEmailForRegistration(
-						emailUserdata,
-						req, 
-						(successData)=>{
-							res.statusCode = 200;
-							response.status = true;
-							response.data = emailUserdata;
-							response.data['user_id'] = user.ID();
-							res.send(response);
-						}, 
-						(errorData)=>{
-							response.message = 'Unable to send email. See reference : '+errorData;
-							res.send(response);
-						}
-					);
-					
-				}
+					},
+					() => {
+						res.statusCode = 500;
+						res.send('Unable to save user role');
+					}
+				);
 			},
 			() => {
 				res.statusCode = 500;
@@ -353,12 +374,12 @@ const md5 = require('md5');
 	}
 
 	private userVerificationLogin(userData, callBack){
-	
+
 		const token = jwt.sign(
           {
             user_db_token: userData.token,
             user: userData.user_id
-          }, 
+          },
           process.env.KEY, { expiresIn: 7200 }
         );
 
@@ -371,7 +392,7 @@ const md5 = require('md5');
               name: userData.first_name+' '+userData.last_name,
               email: userData.email,
               accountId: userData.account_id,
-              roleId : 0
+              roleId : 3
             }
         };
 
@@ -386,7 +407,7 @@ const md5 = require('md5');
         );
 	}
 
-	private userVerificationNewUsersToken(tokenModel, userModel, userData, success, error){
+	private userVerificationNewUsersToken(tokenModel, userModel, success, error){
 		let userNewToken = tokenModel.generateRandomChars(15);
 			userModel.set('token', userNewToken);
 			userModel.dbUpdate().then(
@@ -430,15 +451,14 @@ const md5 = require('md5');
 				if(currentDateMoment.isBefore(expDateMoment)){
 					if( tokenData['user_id'] == userId){
 
-						let 
+						let
 						newUserTokenCallback = (userData) => {
 							this.userVerificationNewUsersToken(
-								tokenModel, 
-								userModel, 
-								userData,
+								tokenModel,
+								userModel,
 								() => {
-									this.userVerificationLogin( 
-										userData,  
+									this.userVerificationLogin(
+										userData,
 										(loginData) => { loginCallback(loginData); }
 									);
 								},
@@ -502,5 +522,3 @@ const md5 = require('md5');
 	}
 
 }
-
-  

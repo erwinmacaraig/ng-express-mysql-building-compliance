@@ -53,7 +53,7 @@ export class UserRelatedRoute extends BaseRoute {
 
   } // end getUserInvitationCode
   public getUserPersonalInfo(req: AuthRequest, res: Response) {
-    console.log(req.query.userId);
+
     const queryParamUser = req.query.userId;
     const user = new User(queryParamUser);
     const account = new Account();
