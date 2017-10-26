@@ -385,6 +385,14 @@ h1,h2{
     font-size: 18px;
   }
 
+  .try-evac{
+    font-size: 22px !important;
+  }
+
+  .middle-line{
+    display: none;
+  }
+
 
 }
 
@@ -394,4 +402,19 @@ h1,h2{
     .right-column .column{
       height: 85px;
     }
+
+    .top-message-try-evac,
+    .signup-link-container{
+      position: inherit;
+    }
+
+    .top-message-try-evac{
+      margin-top: 30px !important;
+    }
+  
+    .invitation_code input, button{
+      width: 100% !important;
+      margin-bottom: 20px !important;
+    }
+
   }
