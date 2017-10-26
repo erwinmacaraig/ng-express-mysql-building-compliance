@@ -35,10 +35,6 @@ import * as Promise from 'promise';
 	   		new AccountRoute().getAccountByUserId(req, res);
 	   	});
 
-	   	router.post('/accounts/generate-invitation-code', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-	   		new AccountRoute().generateInvitationCode(req, res);
-	   	});
-
 	   	router.post('/accounts/create/setup', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 	   		new AccountRoute().setupNewAccount(req, res);
 	   	});
@@ -92,53 +88,6 @@ import * as Promise from 'promise';
 				res.send(response);
 			}
 		);
-	}
-
-
-	public generateInvitationCode(req: AuthRequest, res: Response){
-		let reqBody = req.body,
-			response = {
-				status : false,
-				message : '',
-				data : {}
-			},
-			error = 0;
-
-		res.statusCode = 400;
-
-		if( !('location_id' in reqBody ) ){
-			response.message = 'Location is required, ';
-			error++;
-		}else{
-			if( !('account_id' in reqBody ) ){
-				response.message = 'Account is required, ';
-				error++;
-			}else{
-				if( !('roles' in reqBody ) ){
-					response.message = 'Roles are required, ';
-					error++;
-				}
-			}
-		}
-
-		if(error == 0){
-			let responseCodes = {};
-			for(let i in reqBody.roles){
-				responseCodes[ Object.keys(responseCodes).length ] = {
-					'role' : reqBody.roles[i], 'code' : this.generateRandomChars(25)
-				};
-			}
-
-			response.data = responseCodes;
-			res.statusCode = 200;
-			res.send(response);
-		}else{
-			res.send(response);
-		}
-	}
-
-	public capitalizeFirstLetter(string) {
-	    return string.charAt(0).toUpperCase() + string.slice(1);
 	}
 
 	private validateSetupNewAccount(reqBody, res: Response){
@@ -349,6 +298,7 @@ import * as Promise from 'promise';
 
 	public saveAccountCode(req: AuthRequest, res: Response){
 		let accountModel = new Account(),
+			inviCodeModel = new InvitationCode(),
 			reqBody = req.body,
 			response = {
 				status: false,
@@ -358,36 +308,94 @@ import * as Promise from 'promise';
 			error = 0;
 
 		res.statusCode = 400;
-		if( ('account_id' in reqBody === false) || ('code' in reqBody === false) ){
+		if( ('account_id' in reqBody === false) || ('code' in reqBody === false) || ('location_id' in reqBody === false) ){
 			error++;
 		}else{
 			if(  (validator.isInt(''+reqBody.account_id+'') === false)  ){
 				error++;
 			}
+			if(  (validator.isInt(''+reqBody.location_id+'') === false)  ){
+				error++;
+			}
 		}
 
 		if(error == 0){
-			accountModel.setID(reqBody.account_id);
-			accountModel.load().then(
-				() => {
-					accountModel.set('account_code', reqBody.code);
-					accountModel.dbUpdate().then(
-						() => {
-							res.statusCode = 200;
-							response.status = true;
-							res.send(response);
-						},
-						() => {
-							response.message = 'Update unsuccessful';
-							res.send(response);
-						}
-					);
+
+			let canSaveCallBack = () => {
+				accountModel.setID(reqBody.account_id);
+				accountModel.load().then(
+					() => {
+						accountModel.set('account_code', reqBody.code);
+						accountModel.dbUpdate().then(
+							() => {
+
+								let 
+								success = () => {
+									res.statusCode = 200;
+									response.status = true;
+									res.send(response);
+								},
+								error = () => {
+									response.message = 'Update unsuccessful';
+									res.send(response);
+								};
+
+								inviCodeModel.getInvitationByAccountId(reqBody.account_id, 3).then(
+									(inviCodeData) => {
+
+										inviCodeModel.set('code', reqBody.code);
+										inviCodeModel.setID(inviCodeModel.ID());
+										inviCodeModel.dbUpdate().then(
+											success, error
+										);
+
+									},
+									() => {
+										inviCodeModel.create({
+											'account_id' : reqBody.account_id,
+											'location_id' : reqBody.location_id,
+											'role_id': 3,
+											'first_name' : '',
+											'last_name' : '',
+											'email' : '',
+											'code' : reqBody.code
+										}).then(
+											success, error
+										);
+									}
+								);
+							},
+							() => {
+								response.message = 'Update unsuccessful';
+								res.send(response);
+							}
+						);
+					},
+					() => {
+						response.message = 'No account found';
+						res.send(response);
+					}
+				);
+			}
+
+			let cannotSaveCallBack = () => {
+				response.message = 'The code is invalid or is been used by others';
+				res.send(response);
+			}
+
+			accountModel.getByAccountCode(reqBody.code).then(
+				(accountData) => {
+					if( accountData['account_id'] == reqBody.account_id ){
+						canSaveCallBack();
+					}else{
+						cannotSaveCallBack();
+					}
 				},
-				() => {
-					response.message = 'No account found';
-					res.send(response);
-				}
+				canSaveCallBack
 			);
+
+
+			
 
 		}else{
 			response.message = 'Invalid fields';

@@ -72,6 +72,11 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	selectSubLocation = 0;
 
 	emailTaken = false;
+	wardenInvitationCodeData = {
+		location_id : 0,
+		account_id : 0,
+		code : ''
+	};
 
 	constructor(
 		private platformLocation: PlatformLocation, 
@@ -159,6 +164,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 				this.companyName = resAccount.data['account_name'];
 				this.accountData = resAccount.data;
 				this.selectAccount = resAccount.data['account_id'];
+				this.wardenInvitationCodeData.account_id = resAccount.data['account_id'];
 
 				this.locationsService.getUsersLocationByIdAndAccountId(
 					{
@@ -169,6 +175,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 						let arrNames = [];
 						for(let i in resLocation.data){
 							this.selectLocation = resLocation.data[i]['location_id'];
+							this.wardenInvitationCodeData.location_id = resLocation.data[i]['location_id'];
 							arrNames.push(resLocation.data[i]['name']);
 						}
 						$('#inpLocationName').val( arrNames.join(', ') ).trigger('focusin');
@@ -257,11 +264,9 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 			this.modalLoader.loadingMessage = 'Saving warden invitation code...';
 			this.modalLoader.showMessage = false;
 			this.modalLoaderElem.modal('open');
+			this.wardenInvitationCodeData.code = f.controls.code.value.trim();
 			this.accountDataProviderService.saveAccountInvitationCode(
-				{ 
-					account_id : this.accountData['account_id'],
-					code : f.controls.code.value.trim()
-				}, 
+				this.wardenInvitationCodeData, 
 				(response) => {
 					this.modalLoader.showLoader = false;
 					this.modalLoader.showMessage = true;
