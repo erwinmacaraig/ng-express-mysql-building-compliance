@@ -47,11 +47,9 @@ export class SignupService {
   }
 
   public setInvitationCode(code: InvitationCode): void {
-    console.log(code);
     this.invitation_code = new InvitationCode(code.invitation_code_id, code.code,
     code.first_name, code.last_name, code.email, code.location_id, code.account_id, code.role_id,
     code.was_used);
-    console.log('invitation ', this.invitation_code);
   }
 
   public invalidateInvitationCode() {

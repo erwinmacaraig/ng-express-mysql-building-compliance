@@ -59,14 +59,12 @@ export class UserRoleRelation extends BaseClass {
  		return new Promise((resolve, reject) => {
       const sql_insert = `INSERT INTO user_role_relation (
         user_id,
-        role_id,
-        location_id
-      ) VALUES (?, ?, ?)
+        role_id
+      ) VALUES (?, ?)
       `;
       const user = [
         ('user_id' in this.dbData) ? this.dbData['user_id'] : null,
-        ('role_id' in this.dbData) ? this.dbData['role_id'] : null,
-        ('location_id' in this.dbData) ? this.dbData['location_id'] : 0
+        ('role_id' in this.dbData) ? this.dbData['role_id'] : null
       ];
       const connection = db.createConnection(dbconfig);
       connection.query(sql_insert, user, (err, results, fields) => {
@@ -82,11 +80,10 @@ export class UserRoleRelation extends BaseClass {
 
  	public dbUpdate() {
  		return new Promise((resolve, reject) => {
-      const sql_update = `UPDATE user_role_relation SET user_id = ?, role_id = ?, location_id = ? WHERE user_role_relation_id = ? `;
+      const sql_update = `UPDATE user_role_relation SET user_id = ?, role_id = ? WHERE user_role_relation_id = ? `;
       const user = [
         ('user_id' in this.dbData) ? this.dbData['user_id'] : null,
         ('role_id' in this.dbData) ? this.dbData['role_id'] : null,
-        ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
         this.ID() ? this.ID() : 0
       ];
       const connection = db.createConnection(dbconfig);
@@ -111,6 +108,6 @@ export class UserRoleRelation extends BaseClass {
       }
       resolve(this.write());
     });
- 	}   
+ 	}
 
 }

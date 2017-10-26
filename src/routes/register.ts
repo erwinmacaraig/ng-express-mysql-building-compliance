@@ -4,8 +4,11 @@ import { User } from '../models/user.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
 import { EmailSender } from '../models/email.sender';
 import { Token } from '../models/token.model';
+import { InvitationCode  } from '../models/invitation.code.model';
+import { LocationAccountRelation } from '../models/location.account.relation';
+import { LocationAccountUser } from '../models/location.account.user';
 
-import  * as fs  from 'fs';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as moment from 'moment';
 import * as jwt from 'jsonwebtoken';
@@ -50,7 +53,7 @@ const md5 = require('md5');
 	* @class RegisterRoute
 	* @constructor
 	*/
-	constructor() {	
+	constructor() {
 		super();
 	}
 
@@ -62,7 +65,6 @@ const md5 = require('md5');
 		if(
 			('first_name' in data) &&
 			('last_name' in data) &&
-			('email' in data) &&
 			('password' in data) &&
 			('confirm_password' in data) &&
 			('role_id' in data)
@@ -80,7 +82,7 @@ const md5 = require('md5');
 
 		data.last_name = validator.trim(data.last_name);
 		data.last_name = validator.escape(data.last_name);
-		
+
 		data.email = validator.trim(data.email);
 		data.email = validator.normalizeEmail(data.email);
 
@@ -117,14 +119,29 @@ const md5 = require('md5');
 			data.last_name = this.capitalizeFirstLetter(data.last_name.toLowerCase());
 		}
 
-		// email validation
-		if(validator.isEmpty(data.email)){
-			response.data['email'] = ' Email is required ';
-			errors++;
-		}else if( !validator.isEmail(data.email) ){
-			response.data['email'] = ' Email is invalid ';
-			errors++;
-		}
+    // email validation
+    if('email' in data){
+      if(validator.isEmpty(data.email)){
+        response.data['email'] = ' Email is required ';
+        errors++;
+      }else if( !validator.isEmail(data.email) ){
+        response.data['email'] = ' Email is invalid ';
+        errors++;
+      }
+    }
+     // user name or email validation
+    if('user_name' in data){
+      if(!validator.isEmpty(data.user_name)){
+        if( validator.isEmail(data.user_name) ){
+          data.email = data.user_name;
+          data.user_name = null;
+        }
+      }else{
+        response.data['user_name'] = ' Username or email is required';
+        errors++;
+      }
+    }
+
 
 		if(validator.isEmpty(data.password) || validator.isEmpty(data.confirm_password)){
 			response.data['password'] = ' Password is required ';
@@ -164,9 +181,9 @@ const md5 = require('md5');
 
 	/**
 	 * Index
-	 * @param {Request}      req  
-	 * @param {Response}     res  
-	 * @param {NextFunction} next 
+	 * @param {Request}      req
+	 * @param {Response}     res
+	 * @param {NextFunction} next
 	 */
 	public index(req: Request, res: Response, next: NextFunction){
 
@@ -184,17 +201,23 @@ const md5 = require('md5');
 			// reqBody = this.sanitizeData(reqBody);
 			let validatorResponse:any = this.validateData(reqBody);
 			if(validatorResponse.status){
-				const userEmailCheck = new User();
-				userEmailCheck.getByEmail(reqBody.email).then(
-					(userdata) => {
-						response.message = 'Email already taken';
-						response.data['email_taken'] = 'Email already taken';
-						res.send(response);
-					},
-					(e) => {
-						this.saveUser(reqBody, req, res, next, response);
-					}
-				);
+        if('email' in reqBody){
+          const userEmailCheck = new User();
+          userEmailCheck.getByEmail(reqBody.email).then(
+            (userdata) => {
+              response.message = 'Email already taken';
+              response.data['email_taken'] = 'Email already taken';
+              res.send(response);
+            },
+            (e) => {
+              this.saveUser(reqBody, req, res, next, response);
+            }
+          );
+        }else{
+          this.saveUser(reqBody, req, res, next, response);
+        }
+				
+			
 			}else{
 				res.send(validatorResponse);
 			}
@@ -204,7 +227,7 @@ const md5 = require('md5');
 		}
 	}
 
-	private sendEmailForRegistration(userData, req, success, error){ 
+	private sendEmailForRegistration(userData, req, success, error){
 		let opts = {
 	        from : 'allantaw2@gmail.com',
 	        fromName : 'EvacConnect',
@@ -257,11 +280,11 @@ const md5 = require('md5');
 	}
 
 	private saveUser(reqBody, req: Request, res: Response, next: NextFunction, response){
-		// Save the data
+    // Save the data
 		const user = new User();
 		const userRole = new UserRoleRelation();
 		reqBody.password = md5('Ideation'+reqBody.password+'Max');
-		reqBody.evac_role = ('evac_role' in reqBody) ? reqBody.evac_role : 'Client';
+    reqBody.evac_role = ('evac_role' in reqBody) ? reqBody.evac_role : 'Client';
 		user.create(reqBody).then(
 			() => {
 				let emailUserdata = {
@@ -277,30 +300,53 @@ const md5 = require('md5');
 					'role_id' : reqBody.role_id
 				}).then(
 					() => {
-						if('code' in reqBody){
+						if('invi_code_id' in reqBody) {
 							let tokenModel = new Token(),
 								userModel = user,
 								userData = user.getDBData();
 
 							this.userVerificationNewUsersToken(
-								tokenModel, 
+								tokenModel,
 								userModel,
 								() => {
-									this.userVerificationLogin(userData, 
+									this.userVerificationLogin(userData,
 										(resp) => {
 											let responseData = {
 												status : true,
 												data : {
 													token : resp.token,
-													user : resp.data
+                          user : resp.data
 												},
 												message : 'Successfully created user'
-											};
-											res.statusCode = 200;
-											res.send(responseData);
+                      };
+                       // update invitation code to be used
+                      const code = new InvitationCode(reqBody.invi_code_id);
+                      code.load().then(() => {                        
+                          code.set('was_used', 1);
+                          code.write().then(() => {
+                            let locationAccountUser = new LocationAccountUser();
+                              locationAccountUser.create({
+                                'location_id' : code.get('location_id'),
+                                'account_id': code.get('account_id'),
+                                'user_id' : userData['user_id']
+                              }).then(
+                                () => {
+                                  res.statusCode = 200;
+                                  responseData.data['code'] = code.get('code');
+                                  console.log(responseData);
+                                  res.send(responseData);
+                                },
+                                () => {
+                                  responseData.message = 'Location-Account-User saved unsuccessfully';
+                                  res.send(responseData);
+                                }
+                              );
+                          });
+                      });
+
 										}
 									);
-								}, 
+								},
 								(errorData) => {
 									response.message = 'Unable to save user. See reference : '+errorData;
 									res.send(response);
@@ -309,14 +355,14 @@ const md5 = require('md5');
 						}else{
 							this.sendEmailForRegistration(
 								emailUserdata,
-								req, 
+								req,
 								(successData)=>{
 									res.statusCode = 200;
 									response.status = true;
 									response.data = emailUserdata;
 									response.data['user_id'] = user.ID();
 									res.send(response);
-								}, 
+								},
 								(errorData)=>{
 									response.message = 'Unable to send email. See reference : '+errorData;
 									res.send(response);
@@ -363,12 +409,12 @@ const md5 = require('md5');
 	}
 
 	private userVerificationLogin(userData, callBack){
-	
+
 		const token = jwt.sign(
           {
             user_db_token: userData.token,
             user: userData.user_id
-          }, 
+          },
           process.env.KEY, { expiresIn: 7200 }
         );
 
@@ -440,14 +486,14 @@ const md5 = require('md5');
 				if(currentDateMoment.isBefore(expDateMoment)){
 					if( tokenData['user_id'] == userId){
 
-						let 
+						let
 						newUserTokenCallback = (userData) => {
 							this.userVerificationNewUsersToken(
-								tokenModel, 
-								userModel, 
+								tokenModel,
+								userModel,
 								() => {
-									this.userVerificationLogin( 
-										userData,  
+									this.userVerificationLogin(
+										userData,
 										(loginData) => { loginCallback(loginData); }
 									);
 								},
@@ -511,5 +557,3 @@ const md5 = require('md5');
 	}
 
 }
-
-  

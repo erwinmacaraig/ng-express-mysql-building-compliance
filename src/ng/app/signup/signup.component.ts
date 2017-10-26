@@ -18,14 +18,15 @@ import { InvitationCode } from '../models/invitation-code';
 })
 export class SignupComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  private UserType = new AccountTypes().getTypes();
+  // private UserType = new AccountTypes().getTypes();
+  private UserType = new AccountTypes();
   private headers: Object;
   private options: Object;
   private baseUrl: String;
   emailTaken = false;
   public invitationCodePresent = false;
   public inviCode;
-  arrUserType = Object.keys(this.UserType).map((key) => { return this.UserType[key]; });
+  arrUserType = Object.keys(this.UserType.getTypes()).map((key) => { return this.UserType.getTypes()[key]; });
 
   modalLoader = {
     showLoader : true,
@@ -44,8 +45,6 @@ export class SignupComponent implements OnInit, AfterViewInit, OnDestroy {
     this.headers = new Headers({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers };
     this.baseUrl = (platformLocation as any).location.origin;
-
-    console.log(this.arrUserType);
   }
 
   ngOnInit() {
@@ -54,10 +53,10 @@ export class SignupComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.signupService.getInvitationCode()) {
       this.inviCode = this.signupService.getInvitationCode();
       this.invitationCodePresent = true;
+      this.inviCode.role_text = this.UserType.getTypeName()[this.signupService.getInvitationCode().role_id];
     } else {
       this.inviCode = new InvitationCode();
     }
-    console.log(this.invitationCodePresent);
   }
 
   ngAfterViewInit() {
@@ -87,19 +86,29 @@ export class SignupComponent implements OnInit, AfterViewInit, OnDestroy {
     $('#accountType').val("-1").material_select();
   }
 
-  signupResponse(res, f){
+  signupResponse(res, f) {
     this.modalLoader.showLoader = false;
     this.modalLoader.showMessage = true;
-    if(res.status){
+    console.log(res.data);
+    if (res.status) {
       this.modalLoader.message = 'Sign up successful! Please open your email and click the verification link.';
+      if (res.data.code) {
+        this.modalLoader.message = 'Sign up successful!';
+      }
+
+      console.log(res.data);
       this.modalLoader.iconColor = 'green';
       this.modalLoader.icon = 'check';
       this.resetFormElement(f);
-    }else{
+      this.elems['modalLoader'].modal('open');
+      setTimeout(() => {
+        this.router.navigate(['/login']);
+      }, 3000);
+    } else {
       this.modalLoader.iconColor = 'red';
       this.modalLoader.icon = 'clear';
-      for(let i in res.data){
-        if(i == 'email_taken'){
+      for (let i in res.data) {
+        if(i == 'email_taken') {
           this.emailTaken = true;
           this.modalLoader.message = 'The email that you used is already taken.';
         }else{
@@ -107,16 +116,16 @@ export class SignupComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
       this.modalLoader.message = res.message;
+      setTimeout(() => {
+        this.elems['modalLoader'].modal('close');
+        this.elems['modalSignup'].modal('open');
+      }, 2000);
     }
-
-    setTimeout(() => {
-      this.elems['modalLoader'].modal('close');
-      this.elems['modalSignup'].modal('open');
-    },2000);
-
   }
 
-  signUpFormSubmit(f: NgForm, event){
+
+
+  signUpFormSubmit(f: NgForm, event) {
     event.preventDefault();
     let
       controls = f.controls,
@@ -127,18 +136,22 @@ export class SignupComponent implements OnInit, AfterViewInit, OnDestroy {
         'email' : controls.email.value,
         'password' : controls.password.value,
         'confirm_password' : controls.confirm_password.value,
-        'role_id' : parseInt(accountType.val())
+        'role_id' : parseInt(accountType.val()) || this.inviCode.role_id
       };
 
-    if( isNaN(userData.role_id) ){
-      if(f.valid){
-        accountType.siblings('input.select-dropdown').css('border-bottom', '1px solid #F44336');
-      }else{
-        for(let x in f.controls){
-          f.controls[x].markAsDirty();
-        }
+      if (this.invitationCodePresent) {
+        userData['invi_code_id'] = this.inviCode.invitation_code_id;
+        userData['account_id'] = this.inviCode.account_id;
       }
-    }else{
+      if ( isNaN(userData.role_id) ){
+        if (f.valid) {
+          accountType.siblings('input.select-dropdown').css('border-bottom', '1px solid #F44336');
+        } else {
+          for (let x in f.controls) {
+            f.controls[x].markAsDirty();
+          }
+        }
+      } else {
       accountType.siblings('input.select-dropdown').css('border-bottom', '1px solid #9e9e9e');
       if(f.valid){
         this.modalLoader.showLoader = true;
@@ -170,6 +183,9 @@ export class SignupComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this.signupService.invalidateInvitationCode();
     this.invitationCodePresent = false;
+
+    this.elems['modalSignup'].modal('close');
+    this.elems['modalLoader'].modal('close');
   }
 
 }
