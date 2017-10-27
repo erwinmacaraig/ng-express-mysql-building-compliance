@@ -524,7 +524,7 @@ import * as Promise from 'promise';
 
 	}
 
-	public sendUserInvitationEmail(req, userData, creatorData, success, error){
+	public sendUserInvitationEmail(req, inviData, creatorData, success, error){
 		let opts = { 
 	        from : 'allantaw2@gmail.com',
 	        fromName : 'EvacConnect',
@@ -536,18 +536,19 @@ import * as Promise from 'promise';
 
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
-			link = req.protocol + '://' + req.get('host') +'/login';
+			link = req.protocol + '://' + req.get('host') +'/signup/user?role_id='+inviData.role_id+'&invitation_code_id='+inviData.invitation_code_id;
 
-		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(userData.first_name)+' '+this.capitalizeFirstLetter(userData.last_name)+'</h3> <br/>';
+		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(inviData.first_name)+' '+this.capitalizeFirstLetter(inviData.last_name)+'</h3> <br/>';
 		emailBody += '<h4> '+this.capitalizeFirstLetter(creatorData.first_name)+' '+this.capitalizeFirstLetter(creatorData.last_name)+' sents you an invitation code. </h4> <br/>';
-		emailBody += '<h5> Invitation Code : <span style="text-decoration:underline; color:red;"> '+userData.code+' </span> </h5> <br/>';
-		emailBody += '<h5> Please copy the code then go to this page <a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> and submit the code. Thank you! </h5> <br/>';
+		emailBody += '<h5> Please go to the link below and fill out the fields. <br/>   </h5> ';
+		emailBody += '<h5><a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a>  <br/></h5>';
+		emailBody += '<h5>Thank you!</h5>';
 
 		emailBody += email.getEmailHTMLFooter();
 
 		email.assignOptions({
 			body : emailBody,
-			to: [userData.email]
+			to: [inviData.email]
 		});
 
 		email.send(success, error);
@@ -601,8 +602,15 @@ import * as Promise from 'promise';
 								}
 							}
 
-							inviModel.create(inviData).then(
+							for(let i in inviData){
+								inviModel.set(i, inviData[i]);
+							}
+
+							inviModel.dbInsert().then(
 								() => {
+									let inviDataResponse = inviModel.getDBData();
+									inviData = Object.assign(inviDataResponse, inviData);
+
 									this.sendUserInvitationEmail(
 										req,
 										inviData,

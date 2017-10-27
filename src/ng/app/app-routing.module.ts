@@ -11,6 +11,8 @@ import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
+import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
+import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 
 import { AuthGuard } from './services/auth-guard.service';
 import { PersonInfoResolver } from './services/person-info.resolver';
@@ -19,7 +21,12 @@ import { EmailSuccessVerficiationComponent } from './email-success-verficiation/
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
-  { path: 'signup', component: SignupComponent},
+  { path: 'signup', component: SignupComponent,
+      children : [
+        { path : '', component : SignupSelectRoleComponent  },
+        { path : 'user', component : SignupUserInfoComponent  }
+      ]
+  },
   { path: 'success-valiadation', component: EmailSuccessVerficiationComponent },
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-user-password/:user_id/:token', component: ChangepasswordComponent},

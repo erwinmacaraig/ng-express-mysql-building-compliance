@@ -25,6 +25,9 @@ import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
 import { SignupService } from './services/signup.service';
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
+import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
+import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -38,7 +41,9 @@ import { EmailSuccessVerficiationComponent } from './email-success-verficiation/
     CompanyInformationComponent,
     SetupCompanyComponent,
     PersonInfoComponent,
-    EmailSuccessVerficiationComponent
+    EmailSuccessVerficiationComponent,
+    SignupSelectRoleComponent,
+    SignupUserInfoComponent
   ],
   imports: [
     BrowserModule,

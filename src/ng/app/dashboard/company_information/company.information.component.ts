@@ -324,8 +324,10 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 					});
 				}
 			}else if(i.indexOf('sublocation') > -1){
-				f.controls[i].setValue( $('select[name="sublocation"]').val() );
-				formValues['location_id'] = f.controls[i].value;
+				if($('select[name="sublocation"]').val() !== null){
+					f.controls[i].setValue( $('select[name="sublocation"]').val() );
+					formValues['location_id'] = f.controls[i].value;
+				}
 			}
 		}
 
@@ -346,7 +348,9 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 						this.modalLoader.icon = 'check';
 						this.modalLoader.iconColor = 'green';
 						this.modalLoader.message = 'Success! invitation code was sent';
-						f.reset();
+						f.controls.first_name.reset();
+						f.controls.last_name.reset();
+						f.controls.email.reset();
 						$('.invitation-form .active').removeClass('active');
 					}else{
 						this.modalLoader.icon = 'clear';
