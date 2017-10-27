@@ -67,7 +67,7 @@ const md5 = require('md5');
 			('last_name' in data) &&
 			('password' in data) &&
 			('confirm_password' in data) &&
-			('role_id' in data)
+      ('role_id' in data)
 		){
 			return true;
 		}else{
@@ -95,7 +95,8 @@ const md5 = require('md5');
 		return data;
 	}
 
-	public validateData(data){
+	public validateData(data) {
+    console.log(data);
 		let errors = 0,
 			response = {
 				status : false,
@@ -129,6 +130,7 @@ const md5 = require('md5');
         errors++;
       }
     }
+    /*
      // user name or email validation
     if('user_name' in data){
       if(!validator.isEmpty(data.user_name)){
@@ -141,7 +143,7 @@ const md5 = require('md5');
         errors++;
       }
     }
-
+*/
 
 		if(validator.isEmpty(data.password) || validator.isEmpty(data.confirm_password)){
 			response.data['password'] = ' Password is required ';
@@ -171,7 +173,7 @@ const md5 = require('md5');
 		}else{
 			response.status = true;
 		}
-
+    console.log(response);
 		return response;
 	}
 
@@ -185,8 +187,8 @@ const md5 = require('md5');
 	 * @param {Response}     res
 	 * @param {NextFunction} next
 	 */
-	public index(req: Request, res: Response, next: NextFunction){
-
+	public index(req: Request, res: Response, next: NextFunction) {
+    console.log(req.body);
 		let reqBody = req.body,
 			response = {
 				status : false,
@@ -197,7 +199,7 @@ const md5 = require('md5');
 		// Default status code && content type
 		res.statusCode = 400;
 
-		if(this.validateKeys(reqBody)){
+		if(this.validateKeys(reqBody)) {
 			// reqBody = this.sanitizeData(reqBody);
 			let validatorResponse:any = this.validateData(reqBody);
 			if(validatorResponse.status){
@@ -221,7 +223,7 @@ const md5 = require('md5');
 			}else{
 				res.send(validatorResponse);
 			}
-		}else{
+		} else{
 			response.message = 'Please complete required fields';
 			res.send(response);
 		}

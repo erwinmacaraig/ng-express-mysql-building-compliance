@@ -25,6 +25,7 @@ import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
 import { SignupService } from './services/signup.service';
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
+import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -38,7 +39,8 @@ import { EmailSuccessVerficiationComponent } from './email-success-verficiation/
     CompanyInformationComponent,
     SetupCompanyComponent,
     PersonInfoComponent,
-    EmailSuccessVerficiationComponent
+    EmailSuccessVerficiationComponent,
+    WardenSignupComponent
   ],
   imports: [
     BrowserModule,
