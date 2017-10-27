@@ -10,7 +10,8 @@ export class InvitationCode {
         public location_id: string = '',
         public account_id: string = '',
         public role_id: number = 0,
-        public was_used: number = 0
+        public was_used: number = 0,
+        public role_text?: string
     ) {
 
     }

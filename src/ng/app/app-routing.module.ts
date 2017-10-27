@@ -15,10 +15,12 @@ import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 import { AuthGuard } from './services/auth-guard.service';
 import { PersonInfoResolver } from './services/person-info.resolver';
 import { PersonDataProviderService } from './services/person-data-provider.service';
+import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent},
+  { path: 'success-valiadation', component: EmailSuccessVerficiationComponent },
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-user-password/:user_id/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
