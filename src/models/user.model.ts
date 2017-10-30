@@ -207,7 +207,7 @@ export class User extends BaseClass {
             const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
             ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
-            ('email' in this.dbData) ? this.dbData['email'] : null,
+            ('email' in this.dbData) ? this.dbData['email'] : '',
             ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
             ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : '',
             ('occupation' in this.dbData) ? this.dbData['occupation'] : '',

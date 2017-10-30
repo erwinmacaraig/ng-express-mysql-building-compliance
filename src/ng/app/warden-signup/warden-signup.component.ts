@@ -92,7 +92,8 @@ export class WardenSignupComponent implements OnInit, OnDestroy,  AfterViewInit 
       'confirm_password': controls.confirm_password.value,
       'location_id': this.inviCode.location_id,
       'account_id': this.inviCode.account_id,
-      'role_id': this.inviCode.role_id || 3
+      'role_id': this.inviCode.role_id || 3,
+      'invi_code_id': this.inviCode.invitation_code_id
     };
     if (f.valid) {
       this.modalLoader.showLoader = true;
