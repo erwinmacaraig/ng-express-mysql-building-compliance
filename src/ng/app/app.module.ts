@@ -21,6 +21,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
+import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
 import { SignupService } from './services/signup.service';
@@ -43,7 +44,8 @@ import { SignupUserInfoComponent } from './signup/user.info/user.info.component'
     PersonInfoComponent,
     EmailSuccessVerficiationComponent,
     SignupSelectRoleComponent,
-    SignupUserInfoComponent
+    SignupUserInfoComponent,
+    SendInviteComponent
   ],
   imports: [
     BrowserModule,
