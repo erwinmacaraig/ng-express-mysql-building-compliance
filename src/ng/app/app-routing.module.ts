@@ -19,13 +19,15 @@ import { AuthGuard } from './services/auth-guard.service';
 import { PersonInfoResolver } from './services/person-info.resolver';
 import { PersonDataProviderService } from './services/person-data-provider.service';
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
+import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
       children : [
         { path : '', component : SignupSelectRoleComponent  },
-        { path : 'user', component : SignupUserInfoComponent  }
+        { path : 'user', component : SignupUserInfoComponent  },
+        { path: 'warden-signup', component: WardenSignupComponent }
       ]
   },
   { path: 'success-valiadation', component: EmailSuccessVerficiationComponent },

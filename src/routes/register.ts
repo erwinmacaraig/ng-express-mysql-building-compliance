@@ -67,7 +67,7 @@ const md5 = require('md5');
 			('last_name' in data) &&
 			('password' in data) &&
 			('confirm_password' in data) &&
-			('role_id' in data)
+      ('role_id' in data)
 		){
 			return true;
 		}else{
@@ -95,7 +95,7 @@ const md5 = require('md5');
 		return data;
 	}
 
-	public validateData(data){
+	public validateData(data) {
 		let errors = 0,
 			response = {
 				status : false,
@@ -129,6 +129,7 @@ const md5 = require('md5');
         errors++;
       }
     }
+    /*
      // user name or email validation
     if('user_name' in data){
       if(!validator.isEmpty(data.user_name)){
@@ -141,7 +142,7 @@ const md5 = require('md5');
         errors++;
       }
     }
-
+*/
 
 		if(validator.isEmpty(data.password) || validator.isEmpty(data.confirm_password)){
 			response.data['password'] = ' Password is required ';
@@ -171,7 +172,6 @@ const md5 = require('md5');
 		}else{
 			response.status = true;
 		}
-
 		return response;
 	}
 
@@ -185,8 +185,7 @@ const md5 = require('md5');
 	 * @param {Response}     res
 	 * @param {NextFunction} next
 	 */
-	public index(req: Request, res: Response, next: NextFunction){
-
+	public index(req: Request, res: Response, next: NextFunction) {
 		let reqBody = req.body,
 			response = {
 				status : false,
@@ -197,7 +196,7 @@ const md5 = require('md5');
 		// Default status code && content type
 		res.statusCode = 400;
 
-		if(this.validateKeys(reqBody)){
+		if(this.validateKeys(reqBody)) {
 			// reqBody = this.sanitizeData(reqBody);
 			let validatorResponse:any = this.validateData(reqBody);
 			if(validatorResponse.status){
@@ -213,19 +212,43 @@ const md5 = require('md5');
               this.saveUser(reqBody, req, res, next, response);
             }
           );
-        }else{
+        } else if ('user_email' in reqBody) {
+          // checks if input is email
+          if (validator.isEmail(reqBody.user_email)) {
+            const userEmailCheck = new User();
+            userEmailCheck.getByEmail(reqBody.user_email).then(
+              (userdata) => {
+                response.message = 'Email already taken';
+                response.data['email_taken'] = 'Email already taken';
+                return res.send(response);
+              },
+              (e) => {
+                reqBody['email'] = reqBody['user_email'];
+                this.saveUser(reqBody, req, res, next, response);
+              }
+            );
+          } else {
+            // a user name is entered
+            // checks for illegal characters 
+            const username = reqBody.user_email;
+            if (username.match(/[-\*'`\\\s]+/)) {
+                response.message = 'Username should only contain alphanumeric characters only.';
+                return res.send(response);
+            }
+            reqBody['user_name'] = reqBody.user_email;
+            this.saveUser(reqBody, req, res, next, response);
+          }
+        } else {
           this.saveUser(reqBody, req, res, next, response);
         }
-
-
-			}else{
-				res.send(validatorResponse);
-			}
-		}else{
-			response.message = 'Please complete required fields';
-			res.send(response);
-		}
-	}
+      } else {
+        res.send(validatorResponse);
+      }
+    } else{
+        response.message = 'Please complete required fields';
+        res.send(response);
+    }
+  }
 
 	private sendEmailForRegistration(userData, req, success, error){
 		let opts = {
@@ -291,7 +314,7 @@ const md5 = require('md5');
 					user_id : user.ID(),
 					first_name: this.capitalizeFirstLetter(reqBody.first_name.toLowerCase()),
 					last_name: this.capitalizeFirstLetter(reqBody.last_name.toLowerCase()),
-					email : reqBody.email
+					email : reqBody.email || ''
 				};
 				emailUserdata['user_id'] = user.ID();
 
@@ -319,29 +342,29 @@ const md5 = require('md5');
 												},
 												message : 'Successfully created user'
                       };
+
+                      let locationAccountUser = new LocationAccountUser();
+
+
                        // update invitation code to be used
                       const code = new InvitationCode(reqBody.invi_code_id);
+
                       code.load().then(() => {
-                          code.set('was_used', 1);
-                          code.write().then(() => {
-                            let locationAccountUser = new LocationAccountUser();
-                              locationAccountUser.create({
-                                'location_id' : code.get('location_id'),
-                                'account_id': code.get('account_id'),
-                                'user_id' : userData['user_id']
-                              }).then(
-                                () => {
-                                  res.statusCode = 200;
-                                  responseData.data['code'] = code.get('code');
-                                  console.log(responseData);
-                                  res.send(responseData);
-                                },
-                                () => {
-                                  responseData.message = 'Location-Account-User saved unsuccessfully';
-                                  res.send(responseData);
-                                }
-                              );
-                          });
+                          locationAccountUser.create({
+                            'location_id' : code.get('location_id'),
+                            'account_id': code.get('account_id'),
+                            'user_id' : userData['user_id']
+                          }).then(
+                            () => {
+                              res.statusCode = 200;
+                              responseData.data['code'] = code.get('code');
+                              return res.send(responseData);
+                            },
+                            () => {
+                              responseData.message = 'Location-Account-User saved unsuccessfully';
+                              return res.send(responseData);
+                            }
+                          );
                       });
 
 										}
@@ -349,10 +372,10 @@ const md5 = require('md5');
 								},
 								(errorData) => {
 									response.message = 'Unable to save user. See reference : '+errorData;
-									res.send(response);
+									return res.send(response);
 								}
 							);
-						}else{
+						} else if('email' in reqBody) {
 							this.sendEmailForRegistration(
 								emailUserdata,
 								req,
@@ -361,14 +384,20 @@ const md5 = require('md5');
 									response.status = true;
 									response.data = emailUserdata;
 									response.data['user_id'] = user.ID();
-									res.send(response);
+									return res.send(response);
 								},
 								(errorData)=>{
 									response.message = 'Unable to send email. See reference : '+errorData;
-									res.send(response);
+									return res.send(response);
 								}
 							);
+						} else {
+                            res.statusCode = 200;
+                            response.status = true;
+                            response.data['user_id'] = user.ID();
+                            return res.send(response);
 						}
+						
 					},
 					() => {
 						res.statusCode = 500;
@@ -476,7 +505,6 @@ const md5 = require('md5');
 			};
 
 		res.statusCode = 400;
-		console.log(redirect);
 
 		tokenModel.getByToken(token).then(
 			(tokenData) => {

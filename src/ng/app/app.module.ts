@@ -26,6 +26,7 @@ import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
 import { SignupService } from './services/signup.service';
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
+import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 
@@ -43,6 +44,7 @@ import { SignupUserInfoComponent } from './signup/user.info/user.info.component'
     SetupCompanyComponent,
     PersonInfoComponent,
     EmailSuccessVerficiationComponent,
+    WardenSignupComponent,
     SignupSelectRoleComponent,
     SignupUserInfoComponent,
     SendInviteComponent
