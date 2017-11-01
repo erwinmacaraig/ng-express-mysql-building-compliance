@@ -72,6 +72,11 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	selectSubLocation = 0;
 
 	emailTaken = false;
+	wardenInvitationCodeData = {
+		location_id : 0,
+		account_id : 0,
+		code : ''
+	};
 
 	constructor(
 		private platformLocation: PlatformLocation, 
@@ -159,6 +164,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 				this.companyName = resAccount.data['account_name'];
 				this.accountData = resAccount.data;
 				this.selectAccount = resAccount.data['account_id'];
+				this.wardenInvitationCodeData.account_id = resAccount.data['account_id'];
 
 				this.locationsService.getUsersLocationByIdAndAccountId(
 					{
@@ -169,6 +175,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 						let arrNames = [];
 						for(let i in resLocation.data){
 							this.selectLocation = resLocation.data[i]['location_id'];
+							this.wardenInvitationCodeData.location_id = resLocation.data[i]['location_id'];
 							arrNames.push(resLocation.data[i]['name']);
 						}
 						$('#inpLocationName').val( arrNames.join(', ') ).trigger('focusin');
@@ -257,11 +264,9 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 			this.modalLoader.loadingMessage = 'Saving warden invitation code...';
 			this.modalLoader.showMessage = false;
 			this.modalLoaderElem.modal('open');
+			this.wardenInvitationCodeData.code = f.controls.code.value.trim();
 			this.accountDataProviderService.saveAccountInvitationCode(
-				{ 
-					account_id : this.accountData['account_id'],
-					code : f.controls.code.value.trim()
-				}, 
+				this.wardenInvitationCodeData, 
 				(response) => {
 					this.modalLoader.showLoader = false;
 					this.modalLoader.showMessage = true;
@@ -319,8 +324,10 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 					});
 				}
 			}else if(i.indexOf('sublocation') > -1){
-				f.controls[i].setValue( $('select[name="sublocation"]').val() );
-				formValues['location_id'] = f.controls[i].value;
+				if($('select[name="sublocation"]').val() !== null){
+					f.controls[i].setValue( $('select[name="sublocation"]').val() );
+					formValues['location_id'] = f.controls[i].value;
+				}
 			}
 		}
 
@@ -341,7 +348,9 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 						this.modalLoader.icon = 'check';
 						this.modalLoader.iconColor = 'green';
 						this.modalLoader.message = 'Success! invitation code was sent';
-						f.reset();
+						f.controls.first_name.reset();
+						f.controls.last_name.reset();
+						f.controls.email.reset();
 						$('.invitation-form .active').removeClass('active');
 					}else{
 						this.modalLoader.icon = 'clear';
