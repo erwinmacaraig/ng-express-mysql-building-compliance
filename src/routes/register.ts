@@ -96,7 +96,6 @@ const md5 = require('md5');
 	}
 
 	public validateData(data) {
-    console.log(data);
 		let errors = 0,
 			response = {
 				status : false,
@@ -173,7 +172,6 @@ const md5 = require('md5');
 		}else{
 			response.status = true;
 		}
-    console.log(response);
 		return response;
 	}
 
@@ -188,7 +186,6 @@ const md5 = require('md5');
 	 * @param {NextFunction} next
 	 */
 	public index(req: Request, res: Response, next: NextFunction) {
-    console.log(req.body);
 		let reqBody = req.body,
 			response = {
 				status : false,
@@ -216,10 +213,8 @@ const md5 = require('md5');
             }
           );
         } else if ('user_email' in reqBody) {
-          console.log('check 1');
           // checks if input is email
           if (validator.isEmail(reqBody.user_email)) {
-            console.log('check 2');
             const userEmailCheck = new User();
             userEmailCheck.getByEmail(reqBody.user_email).then(
               (userdata) => {
@@ -234,16 +229,19 @@ const md5 = require('md5');
             );
           } else {
             // a user name is entered
+            // checks for illegal characters 
+            const username = reqBody.user_email;
+            if (username.match(/[-\*'`\\\s]+/)) {
+                response.message = 'Username should only contain alphanumeric characters only.';
+                return res.send(response);
+            }
             reqBody['user_name'] = reqBody.user_email;
             this.saveUser(reqBody, req, res, next, response);
-            console.log('check point 3');
           }
         } else {
-          console.log('checkpoint 4');
           this.saveUser(reqBody, req, res, next, response);
         }
       } else {
-        console.log('check point 5');
         res.send(validatorResponse);
       }
     } else{
@@ -360,7 +358,6 @@ const md5 = require('md5');
                             () => {
                               res.statusCode = 200;
                               responseData.data['code'] = code.get('code');
-                              console.log(responseData);
                               res.send(responseData);
                             },
                             () => {
@@ -502,7 +499,6 @@ const md5 = require('md5');
 			};
 
 		res.statusCode = 400;
-		console.log(redirect);
 
 		tokenModel.getByToken(token).then(
 			(tokenData) => {
