@@ -168,17 +168,21 @@ const md5 = require('md5');
 					(tokenData) => {
 						if(tokenData['user_id'] == userId){
 
-							let currentDate = moment(),
-								expirationDate = moment(tokenData['expiration_date'], ['YYYY-MM-DD HH:mm:ss']);
-
-							if(expirationDate.isAfter(currentDate)){
-								// Redirect to angular Router
-								//change-user-password/:user_id/:token
-								let link = req.protocol + '://' + req.get('host') + '/change-user-password/'+userId+'/'+token;
-								res.redirect(link);
+							if(tokenData['verified'] == 1){
+								res.send('Token is already verified');
 							}else{
-								response.message = 'Token expired';
-								res.send(response);
+								let currentDate = moment(),
+									expirationDate = moment(tokenData['expiration_date'], ['YYYY-MM-DD HH:mm:ss']);
+
+								if(expirationDate.isAfter(currentDate)){
+									// Redirect to angular Router
+									//change-user-password/:user_id/:token
+									let link = req.protocol + '://' + req.get('host') + '/change-user-password/'+userId+'/'+token;
+									res.redirect(link);
+								}else{
+									response.message = 'Token expired';
+									res.send(response);
+								}
 							}
 
 						}else{
@@ -245,6 +249,7 @@ const md5 = require('md5');
 		res.statusCode = 400;
 
 		let validateData = this.validateChangeUserPassword(reqBody);
+ 
 		if(validateData.status){
 			let userId = reqBody.user_id,
 				token = reqBody.token,
@@ -263,20 +268,34 @@ const md5 = require('md5');
 									expirationDate = moment(tokenData['expiration_date'], ['YYYY-MM-DD HH:mm:ss']);
 
 								if(expirationDate.isAfter(currentDate)){
-									
-									user.set('password', md5('Ideation'+newPass+'Max'));
-									user.dbUpdate().then(
-										() => {
-											res.statusCode = 200;
-											response.status = true;
-											response.message = 'Success';
-											res.send(response);
-										},
-										() => {
-											response.message = 'Unable to update';
-											res.send(response);
-										}
-									);
+
+									if(tokenData['verified'] == 1){
+										response.message = 'This request was already verified';
+										res.send(response);
+									}else{
+										tokenModel.set('verified', 1);
+										tokenModel.dbUpdate().then(
+											() => {
+												user.set('password', md5('Ideation'+newPass+'Max'));
+												user.dbUpdate().then(
+													() => {
+														res.statusCode = 200;
+														response.status = true;
+														response.message = 'Success';
+														res.send(response);
+													},
+													() => {
+														response.message = 'Unable to update';
+														res.send(response);
+													}
+												);
+											},
+											() => {
+												response.message = 'Token update unsuccessful'
+											}
+										);
+									}
+
 
 								}else{
 									response.message = 'Token expired';

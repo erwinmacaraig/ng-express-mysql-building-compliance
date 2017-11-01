@@ -10,7 +10,10 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
+import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
+import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
+import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 
 import { AuthGuard } from './services/auth-guard.service';
 import { PersonInfoResolver } from './services/person-info.resolver';
@@ -20,15 +23,21 @@ import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
-  { path: 'signup', component: SignupComponent},
-  { path: 'warden-signup', component: WardenSignupComponent },
+  { path: 'signup', component: SignupComponent,
+      children : [
+        { path : '', component : SignupSelectRoleComponent  },
+        { path : 'user', component : SignupUserInfoComponent  },
+        { path: 'warden-signup', component: WardenSignupComponent }
+      ]
+  },
   { path: 'success-valiadation', component: EmailSuccessVerficiationComponent },
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-user-password/:user_id/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
   { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent, children: [
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
-      { path: 'company-information', component: CompanyInformationComponent }
+      { path: 'company-information', component: CompanyInformationComponent },
+      { path : 'send-invite', component : SendInviteComponent }
     ]
   },
   { path : 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },

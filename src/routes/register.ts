@@ -358,11 +358,11 @@ const md5 = require('md5');
                             () => {
                               res.statusCode = 200;
                               responseData.data['code'] = code.get('code');
-                              res.send(responseData);
+                              return res.send(responseData);
                             },
                             () => {
                               responseData.message = 'Location-Account-User saved unsuccessfully';
-                              res.send(responseData);
+                              return res.send(responseData);
                             }
                           );
                       });
@@ -372,10 +372,10 @@ const md5 = require('md5');
 								},
 								(errorData) => {
 									response.message = 'Unable to save user. See reference : '+errorData;
-									res.send(response);
+									return res.send(response);
 								}
 							);
-						} else {
+						} else if('email' in reqBody) {
 							this.sendEmailForRegistration(
 								emailUserdata,
 								req,
@@ -384,14 +384,20 @@ const md5 = require('md5');
 									response.status = true;
 									response.data = emailUserdata;
 									response.data['user_id'] = user.ID();
-									res.send(response);
+									return res.send(response);
 								},
 								(errorData)=>{
 									response.message = 'Unable to send email. See reference : '+errorData;
-									res.send(response);
+									return res.send(response);
 								}
 							);
+						} else {
+                            res.statusCode = 200;
+                            response.status = true;
+                            response.data['user_id'] = user.ID();
+                            return res.send(response);
 						}
+						
 					},
 					() => {
 						res.statusCode = 500;

@@ -34,10 +34,11 @@ export class WardenSignupComponent implements OnInit, OnDestroy,  AfterViewInit 
   elems = {};
 
   constructor(private router: Router, private signupService: SignupService) {
-
+    
     if (!this.signupService.getInvitationCode()) {
       this.router.navigate(['/login']);
     }
+    
   }
 
   ngOnInit() {
@@ -51,7 +52,7 @@ export class WardenSignupComponent implements OnInit, OnDestroy,  AfterViewInit 
     } else {
       this.inviCode = new InvitationCode();
     }
-    console.log(this.signupService.getInvitationCode());
+
   }
 
   ngAfterViewInit() {
@@ -90,11 +91,13 @@ export class WardenSignupComponent implements OnInit, OnDestroy,  AfterViewInit 
       'user_email': controls.user_email.value,
       'password': controls.password.value,
       'confirm_password': controls.confirm_password.value,
-      'location_id': this.inviCode.location_id,
-      'account_id': this.inviCode.account_id,
+      'location_id': this.inviCode.location_id || 0,
+      'account_id': this.inviCode.account_id || 0,
       'role_id': this.inviCode.role_id || 3,
-      'invi_code_id': this.inviCode.invitation_code_id
+      'invi_code_id': this.inviCode.invitation_code_id || 0 
     };
+    
+    
     if (f.valid) {
       this.modalLoader.showLoader = true;
       this.modalLoader.showMessage = false;
@@ -122,10 +125,9 @@ export class WardenSignupComponent implements OnInit, OnDestroy,  AfterViewInit 
   signupResponse(res, f) {
     this.modalLoader.showLoader = false;
     this.modalLoader.showMessage = true;
-    console.log(res.data);
+
     if (res.status) {
       this.modalLoader.message = 'Sign up successful!';
-      console.log(res.data);
       this.modalLoader.iconColor = 'green';
       this.modalLoader.icon = 'check';
       this.resetFormElement(f);

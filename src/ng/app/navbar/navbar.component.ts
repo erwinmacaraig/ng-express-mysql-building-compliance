@@ -19,6 +19,8 @@ export class NavbarComponent implements OnInit {
 	public hasUserImage: boolean = false;
 	public usersInitial: String = 'AA';
 
+	showSendInviteLink = false;
+
 	constructor(
 		private auth: AuthService
 	) {
@@ -55,6 +57,11 @@ export class NavbarComponent implements OnInit {
 				}, 1000);
 			}
 		});
+
+		if(this.userRoleID == 1 || this.userRoleID == 2){
+			this.showSendInviteLink = true;
+		}
+
 	}
 
 	showEvent(){

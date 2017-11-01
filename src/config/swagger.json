@@ -20,6 +20,9 @@
     },
     {
       "name": "accounts"
+    },
+    {
+      "name": "passwords"
     }
   ],
   "schemes": [
@@ -40,22 +43,22 @@
           {
             "in" : "body",
             "name" : "user",
-            "description" : "This is the JSON data to be send to API",
+            "description" : "This is the JSON data to be sent to API",
             "required" : true,
             "schema" : {
               "properties" : {
                 "first_name" :
-                  { "type" : "string" },
+                { "type" : "string" },
                 "last_name" :
-                  { "type" : "string" },
+                { "type" : "string" },
                 "email" :
-                  { "type" : "string" },
+                { "type" : "string" },
                 "password" :
-                  { "type" : "string" },
+                { "type" : "string" },
                 "confirm_password" :
-                  { "type" : "string" },
+                { "type" : "string" },
                 "role_id" :
-                  { "type" : "number", "value" : 0 }
+                { "type" : "number", "value" : 0 }
               }
             }
           }
@@ -121,32 +124,33 @@
         "tags": [
           "users"
         ],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "description": "Authentication needs username/email and password",
-          "required": true,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "username": {
-                "type": "string",
-                "description": "Enter username/email of user"
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Authentication needs username/email and password",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "type": "string",
+                  "description": "Enter username/email of user"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "User password"
+                },
+                "keepSignedIn": {
+                  "type": "boolean"
+                }
               },
-              "password": {
-                "type": "string",
-                "description": "User password"
-              },
-              "keepSignedIn": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "username",
-              "password"
-            ]
+              "required": [
+                "username",
+                "password"
+              ]
+            }
           }
-        }
         ],
         "produces": ["application/json"],
         "responses": {
@@ -236,11 +240,11 @@
                   "description": "The user's occupation"
                 }
               },
-                "required": [
-                  "first_name",
-                  "last_name",
-                  "email"
-                ]
+              "required": [
+                "first_name",
+                "last_name",
+                "email"
+              ]
             }
           }
         ],
@@ -258,8 +262,8 @@
           }
         }
 
-    }
-  },
+      }
+    },
     "/users":{
       "get": {
         "tags": [
@@ -292,6 +296,368 @@
           },
           "400": {
             "description": "Bad request, there's an invalid field or email existance",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/accounts/get-by-user/{user_id}":{
+      "get" : {
+        "summary" : "Get account by user's id",
+        "tags" : [ "accounts" ],
+        "parameters" : [
+          {
+            "in" : "header",
+            "name" : "Authorization",
+            "type" : "string",
+            "required": true
+          },
+          {
+            "in" : "path",
+            "name" : "user_id",
+            "required" : true,
+            "description" : "User's id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully responded",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/accounts/save-account-code" : {
+      "post" : {
+        "summary" : "Save code for warden",
+        "tags" : [ "accounts" ],
+        "parameters" : [
+          {
+            "in" : "header",
+            "name" : "Authorization",
+            "type" : "string",
+            "required": true
+          },
+          {
+            "in" : "body",
+            "name" : "Account details",
+            "description" : "This is the JSON data to be sent to API",
+            "required" : true,
+            "schema" : {
+              "properties" : {
+                "account_id" :
+                { "type" : "number" },
+                "location_id" :
+                { "type" : "number" },
+                "code" :
+                { "type" : "string" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully responded",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/accounts/get-realated-accounts/{account_id}" : {
+      "get" : {
+        "summary" : "Get related accounts by account's id",
+        "tags" : [ "accounts" ],
+        "parameters" : [
+          {
+            "in" : "header",
+            "name" : "Authorization",
+            "type" : "string",
+            "required": true
+          },
+          {
+            "in" : "path",
+            "name" : "account_id",
+            "required" : true,
+            "description" : "Account's id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully responded",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/accounts/send-user-invitation/" : {
+      "post" : {
+        "summary" : "Send's user invitation",
+        "tags" : [ "accounts" ],
+        "parameters" : [
+          {
+            "in" : "header",
+            "name" : "Authorization",
+            "type" : "string",
+            "required": true
+          },
+          {
+            "in" : "body",
+            "name" : "Invitation details",
+            "description" : "This is the JSON data to be sent to API",
+            "required" : true,
+            "schema" : {
+              "properties" : {
+                "creator_id" : {
+                  "type" : "number"
+                },
+                "first_name" : { 
+                  "type" : "string"
+                },
+                "last_name" : { 
+                  "type" : "string"
+                },
+                "email" : { 
+                  "type" : "string"
+                },
+                "account_id" : { 
+                  "type" : "number"
+                },
+                "location_id" : { 
+                  "type" : "number"
+                },
+                "account_type" : { 
+                  "type" : "number"
+                },
+                "sublocations" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "number"
+                  }
+                },
+                "user_role_id" : {
+                  "type" : "number"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully responded",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/location/get-by-account/{account_id}" : {
+      "get" : {
+        "summary": "Get locations by Account's id",
+        "tags" : ["locations"],
+        "parameters" : [
+          {
+            "in" : "header",
+            "name" : "Authorization",
+            "type" : "string",
+            "required": true
+          },
+          {
+            "in" : "path",
+            "name" : "account_id",
+            "description" : "Account id",
+            "required" : true
+          }
+        ],
+        "produces" : ["application/json"],
+        "responses":{
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/location/get-by-userid-accountid/{user_id}/{account_id}":{
+      "get" : {
+        "summary": "Get locations by User's id Account's id",
+        "tags" : ["locations"],
+        "parameters" : [
+          {
+            "in" : "header",
+            "name" : "Authorization",
+            "type" : "string",
+            "required": true
+          },
+          {
+            "in" : "path",
+            "name" : "user_id",
+            "description" : "User id",
+            "required" : true
+          },
+          {
+            "in" : "path",
+            "name" : "account_id",
+            "description" : "Account id",
+            "required" : true
+          }
+        ],
+        "produces" : ["application/json"],
+        "responses":{
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/forgot/password/request" : {
+      "post" : {
+        "tags" : ["passwords"],
+        "summary" : "Request of changing password",
+        "parameters" : [
+          {
+            "in" : "body",
+            "name" : "User's email",
+            "description" : "This is the JSON data to be sent to API",
+            "required" : true,
+            "schema" : {
+              "properties" : {
+                "email" :
+                { "type" : "string" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully responded",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/change/password-request/{user_id}/{token}" : {
+      "get" : {
+        "summary": "This is the link users will receive for changing of password",
+        "tags" : ["passwords"],
+        "parameters" : [
+          {
+            "in" : "path",
+            "name" : "user_id",
+            "description" : "User's id",
+            "required" : true,
+            "type" : "number"
+          },
+          {
+            "in" : "path",
+            "name" : "token",
+            "description" : "Token",
+            "required" : true,
+            "type" : "string"
+          }
+        ],
+        "produces" : ["application/json"],
+        "responses" : {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          }
+        }
+      }
+    },
+    "/forgot/password/change/users/password" : {
+      "post" : {
+        "tags" : ["passwords"],
+        "summary" : "Changing password",
+        "parameters" : [
+          {
+            "in" : "body",
+            "name" : "user's details",
+            "required" : true,
+            "schema" : {
+              "properties" : {
+                "user_id" : { "type" : "number" },
+                "token" : { "type" : "string" },
+                "new_password" : { "type" : "string" },
+                "confirm_password" : { "type" : "string" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully responded",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseStructure"
+            }
+          },
+          "400": {
+            "description": "Bad request",
             "schema": {
               "$ref": "#/definitions/ApiResponseStructure"
             }
