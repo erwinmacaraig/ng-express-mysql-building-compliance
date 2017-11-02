@@ -29,6 +29,7 @@ export class UserRelatedRoute extends BaseRoute {
 
 
     invitation_code.getInvitationByCode(queryParamCode, false).then((dbData) => {
+      console.log('dbData', dbData);
       return res.status(200).send({
         status: 'OK',
         message: 'Query Successful',
@@ -46,7 +47,7 @@ export class UserRelatedRoute extends BaseRoute {
       });
     }).catch((e) => {
       return res.status(400).send({
-        status: 'No Content',
+        status: 'Bad Request',
         message: e
       });
     });

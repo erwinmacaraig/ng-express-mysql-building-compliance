@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, ViewEncapsulation, OnDestroy } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,  HttpErrorResponse } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PlatformLocation } from '@angular/common';
@@ -26,6 +26,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
     emailTaken = false;
     public invitationCodePresent = false;
     public inviCode;
+    private subscription;
     arrUserType = Object.keys(this.UserType.getTypes()).map((key) => { return this.UserType.getTypes()[key]; });
 
     modalLoader = {
@@ -47,7 +48,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
         this.options = { headers : this.headers };
         this.baseUrl = (platformLocation as any).location.origin;
 
-        this.roleId = this.activatedRoute.snapshot.queryParams["role_id"];    
+        this.roleId = this.activatedRoute.snapshot.queryParams['role_id'];
         this.selectAccountType = this.roleId;
     }
 

@@ -95,7 +95,10 @@ export class User extends BaseClass {
             } else {
                 whereClause = 'WHERE user_name = ?';
             }
-            const sql_user = 'SELECT * FROM users ' + whereClause + ' AND password = ?';
+            // whereClause = whereClause + ' AND token.verified = 1'
+            const sql_user = `SELECT * FROM users ` 
+                              + whereClause + ` AND password = ?
+                              AND token <> '' AND token IS NOT NULL`;
             const newPasswd = md5('Ideation' + passwd + 'Max');
             const credential = [username, newPasswd];
             const connection = db.createConnection(dbconfig);
@@ -207,7 +210,7 @@ export class User extends BaseClass {
             const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
             ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
-            ('email' in this.dbData) ? this.dbData['email'] : null,
+            ('email' in this.dbData) ? this.dbData['email'] : '',
             ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
             ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : '',
             ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
