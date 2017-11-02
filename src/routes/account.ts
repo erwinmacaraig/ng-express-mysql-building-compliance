@@ -30,7 +30,7 @@ import * as Promise from 'promise';
    	*/
 	public static create(router: Router) {
 	   	// add route
-	   	
+
 	   	router.get('/accounts/get-by-user/:user_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 	   		new AccountRoute().getAccountByUserId(req, res);
 	   	});
@@ -59,7 +59,7 @@ import * as Promise from 'promise';
 	* @class RegisterRoute
 	* @constructor
 	*/
-	constructor() {	
+	constructor() {
 		super();
 	}
 
@@ -73,7 +73,7 @@ import * as Promise from 'promise';
 
 		// Default status code
 		res.statusCode = 400;
-		
+
 		account.getByUserId(req.params['user_id']).then(
 			(accountData) => {
 				response.status = true;
@@ -110,7 +110,7 @@ import * as Promise from 'promise';
 
 		}
 
-		response.status = (error == 0) ? true : false; 
+		response.status = (error == 0) ? true : false;
 		return response;
 	}
 
@@ -193,7 +193,7 @@ import * as Promise from 'promise';
 						locationAccountRelation.create({
 							'location_id' : location.location_id,
 							'account_id' : account.account_id,
-							'responsibility' : responsibility 
+							'responsibility' : responsibility
 						}).then(
 							() => {
 								locationAccountUser.create({
@@ -216,7 +216,7 @@ import * as Promise from 'promise';
 				);
 			},
 			() => {
-				// We are assuming this is a warden 
+				// We are assuming this is a warden
 				// Previous system has no warden lookup data in user role relation
 				error('No role relation found assuming user is a warden');
 			}
@@ -253,8 +253,8 @@ import * as Promise from 'promise';
 							userModel.load().then(
 								(usersData) => {
 									this.saveNewAccountAndLocationRelation(
-										usersData, 
-										account, 
+										usersData,
+										account,
 										location,
 										() => {
 											userModel.set('account_id', account.account_id);
@@ -329,7 +329,7 @@ import * as Promise from 'promise';
 						accountModel.dbUpdate().then(
 							() => {
 
-								let 
+								let
 								success = () => {
 									res.statusCode = 200;
 									response.status = true;
@@ -395,7 +395,7 @@ import * as Promise from 'promise';
 			);
 
 
-			
+
 
 		}else{
 			response.message = 'Invalid fields';
@@ -427,7 +427,7 @@ import * as Promise from 'promise';
 				res.send(response);
 			}
 		);
-		
+
 	}
 
 	public validateSendUserInvitation(data){
@@ -525,7 +525,7 @@ import * as Promise from 'promise';
 	}
 
 	public sendUserInvitationEmail(req, inviData, creatorData, success, error){
-		let opts = { 
+		let opts = {
 	        from : 'allantaw2@gmail.com',
 	        fromName : 'EvacConnect',
 	        to : [],
@@ -536,7 +536,7 @@ import * as Promise from 'promise';
 
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
-			link = req.protocol + '://' + req.get('host') +'/signup/user?role_id='+inviData.role_id+'&invitation_code_id='+inviData.invitation_code_id;
+			link = req.protocol + '://' + req.get('host') +'/custom-resolver?role_id='+inviData.role_id+'&invitation_code_id='+inviData.invitation_code_id+'&code='+inviData.code;
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(inviData.first_name)+' '+this.capitalizeFirstLetter(inviData.last_name)+'</h3> <br/>';
 		emailBody += '<h4> '+this.capitalizeFirstLetter(creatorData.first_name)+' '+this.capitalizeFirstLetter(creatorData.last_name)+' sents you an invitation code. </h4> <br/>';
@@ -651,4 +651,3 @@ import * as Promise from 'promise';
 
 }
 
-  

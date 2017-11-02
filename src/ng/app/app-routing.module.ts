@@ -21,6 +21,8 @@ import { PersonDataProviderService } from './services/person-data-provider.servi
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 
+import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
+
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -42,6 +44,7 @@ const appRoutes: Routes = [
   },
   { path : 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
+  { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
   { path: '**', redirectTo: '/dashboard'}
 ];
 
