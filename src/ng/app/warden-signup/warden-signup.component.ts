@@ -34,11 +34,11 @@ export class WardenSignupComponent implements OnInit, OnDestroy,  AfterViewInit 
   elems = {};
 
   constructor(private router: Router, private signupService: SignupService) {
-    
+
     if (!this.signupService.getInvitationCode()) {
       this.router.navigate(['/login']);
     }
-    
+
   }
 
   ngOnInit() {
@@ -94,10 +94,10 @@ export class WardenSignupComponent implements OnInit, OnDestroy,  AfterViewInit 
       'location_id': this.inviCode.location_id || 0,
       'account_id': this.inviCode.account_id || 0,
       'role_id': this.inviCode.role_id || 3,
-      'invi_code_id': this.inviCode.invitation_code_id || 0 
+      'invi_code_id': this.inviCode.invitation_code_id || 0
     };
-    
-    
+
+
     if (f.valid) {
       this.modalLoader.showLoader = true;
       this.modalLoader.showMessage = false;
