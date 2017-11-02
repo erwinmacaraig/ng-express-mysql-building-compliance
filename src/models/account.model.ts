@@ -7,7 +7,7 @@ export class Account extends BaseClass {
 
     constructor(id?: number){
         super();
-        if(id) {
+        if (id) {
             this.id = id;
         }
     }
@@ -21,9 +21,9 @@ export class Account extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              if(!results.length){
+              if (!results.length){
                 reject('Account not found');
-              }else{
+              } else {
                 this.dbData = results[0];
                 this.setID(results[0]['account_id']);
                 resolve(this.dbData);
@@ -77,12 +77,12 @@ export class Account extends BaseClass {
 
     public dbUpdate() {
         return new Promise((resolve, reject) => {
-          const sql_update = `UPDATE accounts SET 
-                lead = ?, online_training = ?, account_name = ?, 
-                billing_unit = ?, billing_street = ?, billing_city = ?, 
-                billing_state = ?, billing_postal_code = ?, billing_country = ?, 
-                location_id = ?, account_type = ?, account_directory_name = ?, 
-                archived = ?, block_access = ?, account_code = ?, 
+          const sql_update = `UPDATE accounts SET
+                lead = ?, online_training = ?, account_name = ?,
+                billing_unit = ?, billing_street = ?, billing_city = ?,
+                billing_state = ?, billing_postal_code = ?, billing_country = ?,
+                location_id = ?, account_type = ?, account_directory_name = ?,
+                archived = ?, block_access = ?, account_code = ?,
                 default_em_role = ?, epc_committee_on_hq = ?
                 WHERE account_id = ? `;
           const param = [

@@ -229,7 +229,7 @@ const md5 = require('md5');
             );
           } else {
             // a user name is entered
-            // checks for illegal characters 
+            // checks for illegal characters
             const username = reqBody.user_email;
             if (username.match(/[-\*'`\\\s]+/)) {
                 response.message = 'Username should only contain alphanumeric characters only.';
@@ -356,9 +356,21 @@ const md5 = require('md5');
                             'user_id' : userData['user_id']
                           }).then(
                             () => {
-                              res.statusCode = 200;
-                              responseData.data['code'] = code.get('code');
-                              return res.send(responseData);
+                              code.set('was_used', 1);
+                              code.write().then(() => {
+                                res.statusCode = 200;
+                                responseData.data['code'] = code.get('code');
+                                return res.send(responseData);
+                              },
+                              () => {
+                                return res.status(400).send({
+                                  message: 'Internal Server Error. Cannot Update token code status',
+                                  data: {
+                                    code: code.get('code')
+                                  }
+                                });
+                              }
+                            );
                             },
                             () => {
                               responseData.message = 'Location-Account-User saved unsuccessfully';
@@ -397,7 +409,7 @@ const md5 = require('md5');
                             response.data['user_id'] = user.ID();
                             return res.send(response);
 						}
-						
+
 					},
 					() => {
 						res.statusCode = 500;

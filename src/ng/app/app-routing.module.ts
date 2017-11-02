@@ -22,6 +22,7 @@ import { EmailSuccessVerficiationComponent } from './email-success-verficiation/
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
+import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -45,6 +46,7 @@ const appRoutes: Routes = [
   { path : 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
+  { path: 'validation-criteria', component: AccountValidationCriteriaComponent },
   { path: '**', redirectTo: '/dashboard'}
 ];
 
