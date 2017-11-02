@@ -1,13 +1,14 @@
-import { Component, OnInit, AfterViewInit, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewEncapsulation, OnDestroy, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { PlatformLocation, NgForOf } from '@angular/common';
-import { Observable } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 declare var $: any;
 import { SignupService } from '../services/signup.service';
+import { AccountsDataProviderService } from '../services/accounts';
 import { AuthService } from '../services/auth.service';
 import { Countries } from '../models/country.model';
 import { Timezone } from '../models/timezone';
@@ -18,7 +19,7 @@ import { Timezone } from '../models/timezone';
   selector: 'app-setup.company',
   templateUrl: './setup.company.component.html',
   styleUrls: ['./setup.company.component.css'],
-  providers: [SignupService]
+  providers: [SignupService, AccountsDataProviderService]
 })
 export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
@@ -41,13 +42,23 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	timezones = new Timezone().get();
 	selCountry;
 	selTimezone;
+	inputReadOnly = true;
+	inputCompanyName;
+
+	searchElem = {};
+	searchedAccounts = [];
+
+	newCompany = false;
+	selectedAccountData = {};
 
 	constructor(
 		private router: Router, 
 		private http: HttpClient, 
 		platformLocation: PlatformLocation, 
 		private signupService:SignupService,
-		private auth: AuthService
+		private auth: AuthService,
+		private accounts : AccountsDataProviderService,
+		public zone: NgZone
 	) {
 		this.headers = new Headers({ 'Content-type' : 'application/json' });
 		this.options = { headers : this.headers };
@@ -75,8 +86,37 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	}
 
 	ngOnInit() {
+
+		this.searchElem = {
+			'searchContainer' : $('.search-container'),
+			'preLoaderMain' : $('.search-container .pre-loader-main-wrapper'),
+			'ulContainer' : $('.search-container > ul'),
+		};
+
 		this.selCountry = 'AU';
 		this.selTimezone = 'AEST';
+
+
+		this.inputCompanyName = Rx.Observable.fromEvent(document.querySelector('input[name="company_name"]'), 'input');
+
+		let thisClass = this;
+
+		this.inputCompanyName.delay(50)
+			.map(event => event.target.value)
+			.subscribe((value) => {
+				if(!this.newCompany){
+					thisClass.searchElem['searchContainer'].addClass('active');
+					thisClass.searchElem['preLoaderMain'].show();
+				}
+			});
+
+		this.inputCompanyName.debounceTime(800)
+			.map(event => event.target.value)
+			.subscribe((value) => {
+				if(!this.newCompany){
+					this.searchCompanyTypingStopEvent(value, thisClass);
+				}
+			});
 	}
 
 	ngAfterViewInit(){
@@ -118,7 +158,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 				f.controls[i].markAsDirty();
 			}
 
-			this.modalLoader.message = 'There\'s an invalid field, please review tour form again.';
+			this.modalLoader.message = 'There\'s an invalid field, please review your form again.';
 			setTimeout(() => {
 				this.elems['modalLoader'].modal('close');
 				this.elems['modalSignup'].modal('open');
@@ -144,21 +184,83 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		let formData = this.getFormData(f);
 
 		if(f.valid){
-			this.modalLoader.showLoader = true;
-	        this.modalLoader.showMessage = false;
 
-	        this.elems['modalSignup'].modal('close');
-	        this.elems['modalLoader'].modal('open');
+	        if(this.newCompany){
 
-	        this.signupService.sendCompanyInfoSetupData(formData, (res) => {
-	          this.setupResponse(res, f);
-	        });
+	        	this.modalLoader.showLoader = true;
+		        this.modalLoader.showMessage = false;
+
+		        this.elems['modalSignup'].modal('close');
+		        this.elems['modalLoader'].modal('open');
+
+		        this.signupService.sendCompanyInfoSetupData(formData, (res) => {
+		          this.setupResponse(res, f);
+		        });
+	        }else{
+	        	let qParam = {
+	        		'account_id' : this.selectedAccountData['account_id'],
+	        		'location_id' : this.selectedAccountData['location_id']
+	        	};
+	        	this.router.navigate(['/validation-criteria'], { queryParams: qParam });
+	        }
+
 		}else{
 			for(let x in f.controls){
 	          f.controls[x].markAsDirty();
 	        }
 		}
+	}
 
+	searchCompanyTypingStopEvent(value, thisClass){
+		if(value.trim().length > 0){
+			thisClass.accounts.searhByName(value.trim(), (response) => {
+				thisClass.searchedAccounts = response.data;
+				thisClass.searchElem['preLoaderMain'].hide();
+			});
+		}else{
+			thisClass.searchElem['searchContainer'].removeClass('active');
+		}
+
+	}
+
+	selectCompanyFromListEvent(selectedAccount, f: NgForm){
+		this.selectedAccountData = selectedAccount;
+		this.searchedAccounts = [];
+		this.searchElem['searchContainer'].removeClass('active');
+		
+		f.controls.company_name.setValue(selectedAccount.account_name);
+		if(selectedAccount.tenant_key_contact != null){
+			f.controls.tenant_key_contact.setValue(selectedAccount.tenant_key_contact);
+		}else{
+			f.controls.tenant_key_contact.setValue('none');
+		}
+		f.controls.building_name.setValue(selectedAccount.name);
+		f.controls.unit_no.setValue(selectedAccount.unit);
+		f.controls.street.setValue(selectedAccount.street);
+		f.controls.city.setValue(selectedAccount.city);
+		f.controls.state.setValue(selectedAccount.state);
+		f.controls.postal_code.setValue(selectedAccount.postal_code);
+		this.selCountry = selectedAccount.country;
+		this.selTimezone = (selectedAccount.time_zone !== null || selectedAccount.time_zone.length > 0) ? selectedAccount.time_zone : 'AEST';
+		$('input').trigger('focusin');
+		setTimeout(() => { 
+			$('#selCountry').material_select(); 
+			$('#selTimezone').material_select(); 
+			setTimeout(() => {
+				if($('#selTimezone').val() == null){
+					$('#selTimezone').val('AEST').material_select();
+				}
+			}, 50);
+		}, 100);
+
+	}
+
+	cantFindMyCompanyEvent(f: NgForm){
+		this.searchedAccounts = [];
+		this.searchElem['searchContainer'].removeClass('active');
+		$('[readonly]').removeAttr('readonly');
+		f.reset();
+		this.newCompany = true;
 	}
 
 }

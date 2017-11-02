@@ -51,6 +51,10 @@ import * as Promise from 'promise';
 	   		new AccountRoute().sendUserInvitation(req, res);
 	   	});
 
+	   	router.get('/accounts/search/:name', (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().searchByName(req, res);
+	   	});
+
    	}
 
 	/**
@@ -136,7 +140,8 @@ import * as Promise from 'promise';
 					'billing_city' : data.city,
 					'billing_state': data.state,
 					'billing_postal_code' : data.postal_code,
-					'billing_country' : data.country
+					'billing_country' : data.country,
+					'tenant_key_contact' : data.tenant_key_contact
 				},
 				locationData = {
 					'parent_id' : '-1',
@@ -340,17 +345,35 @@ import * as Promise from 'promise';
 									res.send(response);
 								};
 
-								inviCodeModel.getInvitationByAccountId(reqBody.account_id, 3).then(
+								let Where = [];
+								Where.push( ["account_id", "=", reqBody.account_id] );
+								Where.push( ["role_id", "=", "3"] );
+								Where.push( ["was_used", "=", "0"] );
+								Where.push( ["first_name", "=", ""] );
+								Where.push( ["last_name", "=", ""] );
+
+								inviCodeModel.getWhere(Where).then(
 									(inviCodeData) => {
 
-										inviCodeModel.set('code', reqBody.code);
-										inviCodeModel.setID(inviCodeModel.ID());
-										inviCodeModel.dbUpdate().then(
+										let updateInvi = new InvitationCode();
+										updateInvi.set('code', reqBody.code);
+										updateInvi.set('invitation_code_id', inviCodeData[0]['invitation_code_id']);
+										updateInvi.set('account_id', inviCodeData[0]['account_id']);
+										updateInvi.set('location_id', reqBody.location_id);
+										updateInvi.set('role_id', 3);
+										updateInvi.set('was_used', 0);
+										updateInvi.set('first_name', "");
+										updateInvi.set('last_name', "");
+										updateInvi.setID(inviCodeData[0]['invitation_code_id']);
+
+										
+										updateInvi.dbUpdate().then(
 											success, error
 										);
 
 									},
 									() => {
+
 										inviCodeModel.create({
 											'account_id' : reqBody.account_id,
 											'location_id' : reqBody.location_id,
@@ -427,7 +450,6 @@ import * as Promise from 'promise';
 				res.send(response);
 			}
 		);
-		
 	}
 
 	public validateSendUserInvitation(data){
@@ -521,7 +543,6 @@ import * as Promise from 'promise';
 		}
 
 		return response;
-
 	}
 
 	public sendUserInvitationEmail(req, inviData, creatorData, success, error){
@@ -552,7 +573,6 @@ import * as Promise from 'promise';
 		});
 
 		email.send(success, error);
-
 	}
 
 	public sendUserInvitation(req: AuthRequest, res: Response){
@@ -644,6 +664,44 @@ import * as Promise from 'promise';
 
 		}else{
 			response.message = validateResponse.message;
+			res.send(response);
+		}
+	}
+
+	public searchByName(req: AuthRequest, res: Response){
+		let  response = {
+				status : false,
+				message : '',
+				data : {}
+			},
+			account = new Account();
+
+		// Default status code
+		res.statusCode = 400;
+
+		if(req.params['name']){
+
+			if(!validator.isEmpty(req.params['name'])){
+
+				account.searchByAccountName(req.params['name']).then(
+					(results) => {
+						res.statusCode = 200;
+						response.data = results;
+						res.send(response);
+					},
+					(err) => {
+						response.message = 'Error on searching';
+						res.send(response);
+					}
+				);
+
+			}else{
+				response.message = 'must have a value to search';
+				res.send(response);
+			}
+
+		}else{
+			response.message = 'search a name, invalid field';
 			res.send(response);
 		}
 

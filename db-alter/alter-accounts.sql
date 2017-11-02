@@ -1,0 +1,1 @@
+ALTER TABLE `accounts` ADD `tenant_key_contact` VARCHAR(200) NULL AFTER `epc_committee_on_hq`;

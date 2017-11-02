@@ -54,4 +54,13 @@ export class AccountsDataProviderService {
 	      });
 	}
 
+	searhByName(name, callBack){
+		this.http.get(this.baseUrl+"/accounts/search/"+name, this.options)
+	      .subscribe(res => {
+	        callBack(res);
+	      }, err => {
+	        callBack( JSON.parse(err.error) );
+	      });
+	}
+
 }

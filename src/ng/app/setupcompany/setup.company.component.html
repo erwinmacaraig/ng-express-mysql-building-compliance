@@ -4,7 +4,7 @@
 	<div id="modalSignup" class="modal">
 		<div class="modal-content">
 
-			<form  novalidate (ngSubmit)="setupFormSubmit(formSignIn, $event)" #formSignIn="ngForm"  >
+			<form  novalidate (ngSubmit)="setupFormSubmit(formSetupCompany, $event)" #formSetupCompany="ngForm"  >
 
 				<div class="container">
 					<div class="row">
@@ -20,75 +20,109 @@
 						<div class="col m12">
 							<div class="input-container">
 
-								<div class="input-field col m6">
-									<input id="company_name" type="text" name="company_name" ngModel #inpCompanyName="ngModel" [ngClass]="{ 'invalid' : !inpCompanyName.valid  && inpCompanyName.dirty }" required>
-									<label for="company_name">Company Name
+								<div class="search-container">
+									<div class="pre-loader-main-wrapper">
+										<div class="pre-loader-container">
+											<div class="preloader-wrapper active">
+												<div class="spinner-layer spinner-red-only">
+													<div class="circle-clipper left">
+														<div class="circle"></div>
+													</div>
+													<div class="gap-patch">
+														<div class="circle"></div>
+													</div>
+													<div class="circle-clipper right">
+														<div class="circle"></div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+
+									<ul>
+										<li *ngFor="let account of searchedAccounts">
+											<a href="javascript:void(0)" attr.account-id="{{account.account_id}}" (click)="selectCompanyFromListEvent(account, formSetupCompany)" >{{account.account_name}}</a>
+										</li>
+									</ul>
+									<div class="cant-find-my-company">
+										<a href="javascript:void(0)" (click)="cantFindMyCompanyEvent(formSetupCompany)">Can't find company. Create new isntance.</a>
+									</div>
+								</div>
+
+								<div class="input-field col m12 s12">
+									<input id="company_name" type="text" name="company_name" ngModel #inpCompanyName="ngModel" [ngClass]="{ 'invalid' : !inpCompanyName.valid  && inpCompanyName.dirty }"  required>
+									<label for="company_name">Search Your Company Name Here
 										<small *ngIf=" !inpCompanyName.valid && inpCompanyName.dirty "> *Required </small>
 									</label>
+
 								</div>
 
 								<div class="input-field col m6">
-									<input id="tenant_key_contact" type="text" name="tenant_key_contact" ngModel #inpTenantKeyContact="ngModel" [ngClass]="{ 'invalid' : !inpTenantKeyContact.valid  && inpTenantKeyContact.dirty }" required>
+									<input id="tenant_key_contact" type="text" name="tenant_key_contact" ngModel #inpTenantKeyContact="ngModel" [ngClass]="{ 'invalid' : !inpTenantKeyContact.valid  && inpTenantKeyContact.dirty }" required readonly="true">
 									<label for="tenant_key_contact">Tenant Key Contact
 										<small *ngIf=" !inpTenantKeyContact.valid && inpTenantKeyContact.dirty "> *Required </small>
 									</label>
 								</div>
 
 								<div class="input-field col m6">
-									<input id="building_name" type="text" name="building_name" ngModel #inpBuildingName="ngModel" [ngClass]="{ 'invalid' : !inpBuildingName.valid  && inpBuildingName.dirty }" required>
+									<input id="building_name" type="text" name="building_name" ngModel #inpBuildingName="ngModel" [ngClass]="{ 'invalid' : !inpBuildingName.valid  && inpBuildingName.dirty }" required readonly="true">
 									<label for="building_name">Building Name
 										<small *ngIf=" !inpBuildingName.valid && inpBuildingName.dirty "> *Required </small>
 									</label>
 								</div>
 
 								<div class="input-field col m6">
-									<input id="unit_no" type="text" name="unit_no" ngModel >
+									<input id="unit_no" type="text" name="unit_no" ngModel readonly="true">
 									<label for="unit_no">Unit No</label>
 								</div>
 
 								<div class="input-field col m6">
-									<input id="street" type="text" name="street" ngModel #inpStreet="ngModel" [ngClass]="{ 'invalid' : !inpStreet.valid  && inpStreet.dirty }" required>
+									<input id="street" type="text" name="street" ngModel #inpStreet="ngModel" [ngClass]="{ 'invalid' : !inpStreet.valid  && inpStreet.dirty }" required readonly="true">
 									<label for="street">Street
 										<small *ngIf=" !inpStreet.valid && inpStreet.dirty "> *Required </small>
 									</label>
 								</div>
 
 								<div class="input-field col m6">
-									<input id="city" type="text" name="city" ngModel #inpCity="ngModel" [ngClass]="{ 'invalid' : !inpCity.valid  && inpCity.dirty }" required>
+									<input id="city" type="text" name="city" ngModel #inpCity="ngModel" [ngClass]="{ 'invalid' : !inpCity.valid  && inpCity.dirty }" required readonly="true">
 									<label for="city">City
 										<small *ngIf=" !inpCity.valid && inpCity.dirty "> *Required </small>
 									</label>
 								</div>
 
 								<div class="input-field col m6">
-									<input id="state" type="text" name="state" ngModel #inpState="ngModel" [ngClass]="{ 'invalid' : !inpState.valid  && inpState.dirty }" required>
+									<input id="state" type="text" name="state" ngModel #inpState="ngModel" [ngClass]="{ 'invalid' : !inpState.valid  && inpState.dirty }" required readonly="true">
 									<label for="state">State
 										<small *ngIf=" !inpState.valid && inpState.dirty "> *Required </small>
 									</label>
 								</div>
 
 								<div class="input-field col m6">
-									<input id="postal_code" type="text" name="postal_code" ngModel #inpPostalCode="ngModel" [ngClass]="{ 'invalid' : !inpPostalCode.valid  && inpPostalCode.dirty }" required>
+									<input id="postal_code" type="text" name="postal_code" ngModel #inpPostalCode="ngModel" [ngClass]="{ 'invalid' : !inpPostalCode.valid  && inpPostalCode.dirty }" required readonly="true">
 									<label for="postal_code">Postal Code
 										<small *ngIf=" !inpPostalCode.valid && inpPostalCode.dirty "> *Required </small>
 									</label>
 								</div>
 
 								<div class="select-field col m6 s12">
-									<select id="selCountry" [(ngModel)]="selCountry"  name="country">
+									<select id="selCountry" [(ngModel)]="selCountry"  name="country" readonly="true">
 										<option *ngFor="let country of countries;"  [value]="country.abbr" > {{ country.name }} </option>
 									</select>
 									<label class="select-label">Country</label>
 								</div>
 
-								<div class="select-field col m6 s12">
-									<select id="selTimezone" [(ngModel)]="selTimezone"  name="time_zone">
+								<div class="select-field col m12 s12">
+									<select id="selTimezone" [(ngModel)]="selTimezone"  name="time_zone" readonly="true">
 										<option *ngFor="let timezone of timezones" [value]="timezone.abbr" > {{ timezone.text }} </option>
 									</select>
 									<label class="select-label">Time-Zone</label>
 								</div>
 
-								<div class="input-field col m6 s12 right-align"></div>
+								<div class="select-field col m12 s12"></div>
+
+								<div class="input-field col m6 s12 right-align">
+									<a [routerLink]="['/login']" class="btn block waves-effect waves-light grey btn-go-back" >Go Back</a>
+								</div>
 								<div class="input-field col m6 s12 right-align">
 									<button type="submit" class="btn block waves-effect waves-light btn-submit" >Submit</button>
 								</div>
