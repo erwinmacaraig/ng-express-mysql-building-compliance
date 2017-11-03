@@ -129,7 +129,6 @@ export class Account extends BaseClass {
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
             ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "1;8;General Occupant,0;9;Warden",
             ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
-            ('tenant_key_contact' in this.dbData) ? this.dbData['tenant_key_contact'] : null,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             this.ID() ? this.ID() : 0
           ];
@@ -184,8 +183,7 @@ export class Account extends BaseClass {
             ('block_access' in this.dbData) ? this.dbData['block_access'] : 0,
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
             ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "1;8;General Occupant,0;9;Warden",
-            ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
-            ('tenant_key_contact' in this.dbData) ? this.dbData['tenant_key_contact'] : null
+            ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_insert, param, (err, results, fields) => {

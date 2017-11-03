@@ -140,8 +140,7 @@ import * as Promise from 'promise';
 					'billing_city' : data.city,
 					'billing_state': data.state,
 					'billing_postal_code' : data.postal_code,
-					'billing_country' : data.country,
-					'tenant_key_contact' : data.tenant_key_contact
+					'billing_country' : data.country
 				},
 				locationData = {
 					'parent_id' : '-1',
@@ -152,7 +151,8 @@ import * as Promise from 'promise';
 					'state': data.state,
 					'postal_code' : data.postal_code,
 					'country' : data.country,
-					'time_zone' : data.time_zone
+					'time_zone' : data.time_zone,
+					'tenant_key_contact' : data.tenant_key_contact
 				};
 
 			accountModel.create(accountData).then(

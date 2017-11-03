@@ -172,9 +172,20 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	}
 
 	getFormData(f: NgForm){
-		f.controls.country.setValue( $('#selCountry').val() );
+
+		if($('#selCountry').val() == null){
+			f.controls.country.setValue( this.defaultCountry );
+		}else{
+			f.controls.country.setValue( $('#selCountry').val() );
+		}
+
+		if($('#selTimezone').val() == null){
+			f.controls.time_zone.setValue( this.defaultTimeZone );
+		}else{
+			f.controls.time_zone.setValue( $('#selTimezone').val() );
+		}
+		
 		f.controls.country.markAsDirty();
-		f.controls.time_zone.setValue( $('#selTimezone').val() );
 		f.controls.time_zone.markAsDirty();
 
 		let 
