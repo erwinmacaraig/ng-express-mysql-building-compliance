@@ -16,7 +16,7 @@ import { SignupSelectRoleComponent } from './signup/select.role/select.role.comp
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 
 import { AuthGuard } from './services/auth-guard.service';
-import { PersonInfoResolver } from './services/person-info.resolver';
+import { PersonInfoResolver, TRPListResolver, FRPListResolver } from './services/person-info.resolver';
 import { PersonDataProviderService } from './services/person-data-provider.service';
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
@@ -46,7 +46,12 @@ const appRoutes: Routes = [
   { path : 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
-  { path: 'validation-criteria', component: AccountValidationCriteriaComponent },
+  { path: 'validation-criteria', component: AccountValidationCriteriaComponent,
+        resolve: {
+          trpList: TRPListResolver,
+          frpList: FRPListResolver
+        }
+  },
   { path: '**', redirectTo: '/dashboard'}
 ];
 
@@ -54,7 +59,13 @@ const appRoutes: Routes = [
   imports: [
     RouterModule.forRoot(appRoutes)
   ],
-  providers: [AuthGuard, PersonDataProviderService, PersonInfoResolver],
+  providers: [
+    AuthGuard,
+    PersonDataProviderService,
+    PersonInfoResolver,
+    TRPListResolver,
+    FRPListResolver
+  ],
   exports: [
     RouterModule
   ]

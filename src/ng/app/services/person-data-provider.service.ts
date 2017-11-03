@@ -38,17 +38,15 @@ export class PersonDataProviderService {
   }
 
   public listAllTRP(location: number, account?: number): Observable<any> {
-    const http_params = new HttpParams();
-    http_params.set('location_id', location.toString());
+    let http_params = new HttpParams().set('location_id', location.toString());
     if (account) {
-      http_params.set('account_id', account.toString());
+      http_params = http_params.set('account_id', account.toString());
     }
+
     this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers, params: http_params };
-
-
-
-
+    console.log(http_params);
+    return this.http.get<any>(this.baseUrl + '/listAllTRP', this.options);
   }
 }
 

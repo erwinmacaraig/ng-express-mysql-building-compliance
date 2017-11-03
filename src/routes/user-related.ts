@@ -164,8 +164,8 @@ export class UserRelatedRoute extends BaseRoute {
 
   public listAllTRP(req: AuthRequest, res: Response) {
     const utils = new Utils();
-
-    if (!('location' in req.query)) {
+    console.log('TRP', req.query);
+    if (!('location_id' in req.query)) {
       return res.status(400).send({
         message: 'Bad Request. Invalid parameters.'
       });

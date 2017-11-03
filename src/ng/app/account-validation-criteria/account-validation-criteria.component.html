@@ -2,5 +2,16 @@
 <br>
 <button (click)="listAllFRP()"> Get FRP List </button>
 <br>
-<button (click)="listAllFRP()"> Get TRP List </button>
+<select name="FRPs" id="FRPs" *ngIf="trpList">
+  <option *ngFor="let trp of trpList" [value]="trp.user_id"> {{trp.first_name}}</option>
+</select>
+<button (click)="listAllTRP()"> Get TRP List </button>
+<br>
+<select name="TRPs" id="TRPs" *ngIf="trpList">
+    <option *ngFor="let trp of trpList" [value]="trp.user_id"> {{trp.first_name}}</option>
+  </select>
+<br>
+
+
+<a [routerLink]="['/validation-criteria']" [queryParams]="{account:'5'}">Account is 5</a>
 

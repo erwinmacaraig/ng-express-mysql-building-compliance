@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { PersonDataProviderService } from '../services/person-data-provider.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute, ParamMap } from '@angular/router';
+
+declare var $: any;
 
 @Component({
   selector: 'app-account-validation-criteria',
@@ -8,15 +11,24 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrls: ['./account-validation-criteria.component.css']
 })
 export class AccountValidationCriteriaComponent implements OnInit {
-
-  constructor(private dataProvider: PersonDataProviderService) { }
+  public trpList = [];
+  public frpList = [];
+  constructor(private route: ActivatedRoute) {
+    // ,private dataProvider: PersonDataProviderService
+    this.listAllFRP();
+   }
 
   ngOnInit() {
-
+    $('select').material_select();
   }
 
   public listAllFRP() {
-    this.dataProvider.listAllFRP().subscribe((data) => {
+    this.route.data.subscribe((data) => {
+      console.log(data);
+      console.log(data['frpList']['data']);
+      console.log(data['frpList']);
+      this.trpList = data['frpList']['data'];
+      $('#FRPs').material_select();
     }, (err: HttpErrorResponse) => {
       if (err.error instanceof Error) {
         console.log('An error occurred:', err.error.message);
@@ -25,5 +37,7 @@ export class AccountValidationCriteriaComponent implements OnInit {
       }
     });
   }
+
+
 
 }
