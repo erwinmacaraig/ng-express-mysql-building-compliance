@@ -51,6 +51,9 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	newCompany = false;
 	selectedAccountData = {};
 
+	defaultCountry = 'AU';
+	defaultTimeZone = 'AEST';
+
 	constructor(
 		private router: Router, 
 		private http: HttpClient, 
@@ -93,8 +96,8 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 			'ulContainer' : $('.search-container > ul'),
 		};
 
-		this.selCountry = 'AU';
-		this.selTimezone = 'AEST';
+		this.selCountry = this.defaultCountry;
+		this.selTimezone = this.defaultTimeZone;
 
 
 		this.inputCompanyName = Rx.Observable.fromEvent(document.querySelector('input[name="company_name"]'), 'input');
@@ -117,6 +120,8 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 					this.searchCompanyTypingStopEvent(value, thisClass);
 				}
 			});
+
+		$('input[name="company_name"]').focus();
 	}
 
 	ngAfterViewInit(){
@@ -220,13 +225,21 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		}else{
 			thisClass.searchElem['searchContainer'].removeClass('active');
 		}
-
 	}
 
 	selectCompanyFromListEvent(selectedAccount, f: NgForm){
 		this.selectedAccountData = selectedAccount;
 		this.searchedAccounts = [];
 		this.searchElem['searchContainer'].removeClass('active');
+
+		let hasInsideOpt = false;
+
+		$('select option').each(function(){
+			if($(this).text().indexOf(selectedAccount.time_zone) > -1){ 
+				hasInsideOpt = true;
+				selectedAccount.time_zone = $(this).attr('value');
+			}
+		});
 		
 		f.controls.company_name.setValue(selectedAccount.account_name);
 		if(selectedAccount.tenant_key_contact != null){
@@ -240,19 +253,25 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		f.controls.city.setValue(selectedAccount.city);
 		f.controls.state.setValue(selectedAccount.state);
 		f.controls.postal_code.setValue(selectedAccount.postal_code);
+
 		this.selCountry = selectedAccount.country;
+		$('#selCountry').val( selectedAccount.country );
 		this.selTimezone = (selectedAccount.time_zone !== null || selectedAccount.time_zone.length > 0) ? selectedAccount.time_zone : 'AEST';
-		$('input').trigger('focusin');
+		$('#selCountry').val( this.selTimezone );
+
+		$('input').trigger('focusin').trigger('focusout');
 		setTimeout(() => { 
 			$('#selCountry').material_select(); 
 			$('#selTimezone').material_select(); 
 			setTimeout(() => {
 				if($('#selTimezone').val() == null){
-					$('#selTimezone').val('AEST').material_select();
+					$('#selTimezone').val(this.defaultTimeZone).material_select();
+				}
+				if($('#selCountry').val() == null){
+					$('#selCountry').val(this.defaultCountry).material_select();
 				}
 			}, 50);
 		}, 100);
-
 	}
 
 	cantFindMyCompanyEvent(f: NgForm){

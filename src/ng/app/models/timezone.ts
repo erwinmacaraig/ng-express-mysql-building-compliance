@@ -54,27 +54,18 @@ export class Timezone{
 			    ]
 			  },
 			  {
-			    "value": "Pacific Standard Time (Mexico)",
-			    "abbr": "PDT",
-			    "offset": -7,
-			    "isdst": true,
-			    "text": "(UTC-08:00) Baja California",
-			    "utc": [
-			      "America/Santa_Isabel"
-			    ]
-			  },
-			  {
 			    "value": "Pacific Standard Time",
 			    "abbr": "PDT",
 			    "offset": -7,
 			    "isdst": true,
-			    "text": "(UTC-08:00) Pacific Time (US & Canada)",
+			    "text": "(UTC-08:00) Baja California, Pacific Time (US & Canada)",
 			    "utc": [
 			      "America/Dawson",
 			      "America/Los_Angeles",
 			      "America/Tijuana",
 			      "America/Vancouver",
 			      "America/Whitehorse",
+			      "America/Santa_Isabel",
 			      "PST8PDT"
 			    ]
 			  },
@@ -94,7 +85,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Mountain Standard Time (Mexico)",
-			    "abbr": "MDT",
+			    "abbr": "MST",
 			    "offset": -6,
 			    "isdst": true,
 			    "text": "(UTC-07:00) Chihuahua, La Paz, Mazatlan",
@@ -122,7 +113,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Central America Standard Time",
-			    "abbr": "CAST",
+			    "abbr": "CAMST",
 			    "offset": -6,
 			    "isdst": false,
 			    "text": "(UTC-06:00) Central America",
@@ -359,7 +350,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Argentina Standard Time",
-			    "abbr": "AST",
+			    "abbr": "ARST",
 			    "offset": -3,
 			    "isdst": false,
 			    "text": "(UTC-03:00) Buenos Aires",
@@ -410,7 +401,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Montevideo Standard Time",
-			    "abbr": "MST",
+			    "abbr": "MONST",
 			    "offset": -3,
 			    "isdst": false,
 			    "text": "(UTC-03:00) Montevideo",
@@ -442,7 +433,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Mid-Atlantic Standard Time",
-			    "abbr": "MDT",
+			    "abbr": "MADT",
 			    "offset": -1,
 			    "isdst": true,
 			    "text": "(UTC-02:00) Mid-Atlantic - Old",
@@ -450,7 +441,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Azores Standard Time",
-			    "abbr": "ADT",
+			    "abbr": "AZDT",
 			    "offset": 0,
 			    "isdst": true,
 			    "text": "(UTC-01:00) Azores",
@@ -472,7 +463,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Morocco Standard Time",
-			    "abbr": "MDT",
+			    "abbr": "MRCDT",
 			    "offset": 1,
 			    "isdst": true,
 			    "text": "(UTC) Casablanca",
@@ -511,8 +502,8 @@ export class Timezone{
 			    ]
 			  },
 			  {
-			    "value": "Greenwich Standard Time",
-			    "abbr": "GST",
+			    "value": "Greenwich Mean Time",
+			    "abbr": "GMT",
 			    "offset": 0,
 			    "isdst": false,
 			    "text": "(UTC) Monrovia, Reykjavik",
@@ -558,22 +549,6 @@ export class Timezone{
 			      "Europe/Vatican",
 			      "Europe/Vienna",
 			      "Europe/Zurich"
-			    ]
-			  },
-			  {
-			    "value": "Central Europe Standard Time",
-			    "abbr": "CEDT",
-			    "offset": 2,
-			    "isdst": true,
-			    "text": "(UTC+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague",
-			    "utc": [
-			      "Europe/Belgrade",
-			      "Europe/Bratislava",
-			      "Europe/Budapest",
-			      "Europe/Ljubljana",
-			      "Europe/Podgorica",
-			      "Europe/Prague",
-			      "Europe/Tirane"
 			    ]
 			  },
 			  {
@@ -772,53 +747,23 @@ export class Timezone{
 			    ]
 			  },
 			  {
-			    "value": "Jordan Standard Time",
-			    "abbr": "JST",
-			    "offset": 3,
-			    "isdst": false,
-			    "text": "(UTC+03:00) Amman",
-			    "utc": [
-			      "Asia/Amman"
-			    ]
-			  },
-			  {
-			    "value": "Arabic Standard Time",
-			    "abbr": "AST",
-			    "offset": 3,
-			    "isdst": false,
-			    "text": "(UTC+03:00) Baghdad",
-			    "utc": [
-			      "Asia/Baghdad"
-			    ]
-			  },
-			  {
-			    "value": "Kaliningrad Standard Time",
-			    "abbr": "KST",
-			    "offset": 3,
-			    "isdst": false,
-			    "text": "(UTC+03:00) Kaliningrad, Minsk",
-			    "utc": [
-			      "Europe/Kaliningrad",
-			      "Europe/Minsk"
-			    ]
-			  },
-			  {
 			    "value": "Arab Standard Time",
 			    "abbr": "AST",
 			    "offset": 3,
 			    "isdst": false,
-			    "text": "(UTC+03:00) Kuwait, Riyadh",
+			    "text": "(UTC+03:00) Kuwait, Riyadh, Baghdad",
 			    "utc": [
 			      "Asia/Aden",
 			      "Asia/Bahrain",
 			      "Asia/Kuwait",
 			      "Asia/Qatar",
-			      "Asia/Riyadh"
+			      "Asia/Riyadh",
+			      "Asia/Baghdad"
 			    ]
 			  },
 			  {
-			    "value": "E. Africa Standard Time",
-			    "abbr": "EAST",
+			    "value": "East Africa Time",
+			    "abbr": "EAT",
 			    "offset": 3,
 			    "isdst": false,
 			    "text": "(UTC+03:00) Nairobi",
@@ -888,7 +833,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Azerbaijan Standard Time",
-			    "abbr": "ADT",
+			    "abbr": "AZRDT",
 			    "offset": 5,
 			    "isdst": true,
 			    "text": "(UTC+04:00) Baku",
@@ -898,7 +843,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Mauritius Standard Time",
-			    "abbr": "MST",
+			    "abbr": "MAUST",
 			    "offset": 4,
 			    "isdst": false,
 			    "text": "(UTC+04:00) Port Louis",
@@ -919,18 +864,8 @@ export class Timezone{
 			    ]
 			  },
 			  {
-			    "value": "Caucasus Standard Time",
-			    "abbr": "CST",
-			    "offset": 4,
-			    "isdst": false,
-			    "text": "(UTC+04:00) Yerevan",
-			    "utc": [
-			      "Asia/Yerevan"
-			    ]
-			  },
-			  {
 			    "value": "Afghanistan Standard Time",
-			    "abbr": "AST",
+			    "abbr": "AFT",
 			    "offset": 4.5,
 			    "isdst": false,
 			    "text": "(UTC+04:30) Kabul",
@@ -990,7 +925,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Nepal Standard Time",
-			    "abbr": "NST",
+			    "abbr": "NPST",
 			    "offset": 5.75,
 			    "isdst": false,
 			    "text": "(UTC+05:45) Kathmandu",
@@ -1016,28 +951,19 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Bangladesh Standard Time",
-			    "abbr": "BST",
+			    "abbr": "BDT",
 			    "offset": 6,
 			    "isdst": false,
-			    "text": "(UTC+06:00) Dhaka",
+			    "text": "(UTC+06:00) Dhaka, Ekaterinburg",
 			    "utc": [
 			      "Asia/Dhaka",
-			      "Asia/Thimphu"
-			    ]
-			  },
-			  {
-			    "value": "Ekaterinburg Standard Time",
-			    "abbr": "EST",
-			    "offset": 6,
-			    "isdst": false,
-			    "text": "(UTC+06:00) Ekaterinburg",
-			    "utc": [
+			      "Asia/Thimphu",
 			      "Asia/Yekaterinburg"
 			    ]
 			  },
 			  {
 			    "value": "Myanmar Standard Time",
-			    "abbr": "MST",
+			    "abbr": "MYNMRST",
 			    "offset": 6.5,
 			    "isdst": false,
 			    "text": "(UTC+06:30) Yangon (Rangoon)",
@@ -1048,7 +974,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "SE Asia Standard Time",
-			    "abbr": "SAST",
+			    "abbr": "SEAST",
 			    "offset": 7,
 			    "isdst": false,
 			    "text": "(UTC+07:00) Bangkok, Hanoi, Jakarta",
@@ -1116,8 +1042,8 @@ export class Timezone{
 			    ]
 			  },
 			  {
-			    "value": "W. Australia Standard Time",
-			    "abbr": "WAST",
+			    "value": "Australian Western Standard Time",
+			    "abbr": "AWST",
 			    "offset": 8,
 			    "isdst": false,
 			    "text": "(UTC+08:00) Perth",
@@ -1128,7 +1054,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Taipei Standard Time",
-			    "abbr": "TST",
+			    "abbr": "TPST",
 			    "offset": 8,
 			    "isdst": false,
 			    "text": "(UTC+08:00) Taipei",
@@ -1158,8 +1084,8 @@ export class Timezone{
 			    ]
 			  },
 			  {
-			    "value": "Tokyo Standard Time",
-			    "abbr": "TST",
+			    "value": "Japan Standard Time",
+			    "abbr": "JST",
 			    "offset": 9,
 			    "isdst": false,
 			    "text": "(UTC+09:00) Osaka, Sapporo, Tokyo",
@@ -1183,24 +1109,15 @@ export class Timezone{
 			    ]
 			  },
 			  {
-			    "value": "Cen. Australia Standard Time",
-			    "abbr": "CAST",
-			    "offset": 9.5,
-			    "isdst": false,
-			    "text": "(UTC+09:30) Adelaide",
-			    "utc": [
-			      "Australia/Adelaide",
-			      "Australia/Broken_Hill"
-			    ]
-			  },
-			  {
-			    "value": "AUS Central Standard Time",
+			    "value": "Australian Central Standard Time",
 			    "abbr": "ACST",
 			    "offset": 9.5,
 			    "isdst": false,
-			    "text": "(UTC+09:30) Darwin",
+			    "text": "(UTC+09:30) Darwin, Adelaide",
 			    "utc": [
-			      "Australia/Darwin"
+			      "Australia/Darwin",
+			      "Australia/Adelaide",
+			      "Australia/Broken_Hill"
 			    ]
 			  },
 			  {
@@ -1281,7 +1198,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Vladivostok Standard Time",
-			    "abbr": "VST",
+			    "abbr": "VLAST",
 			    "offset": 11,
 			    "isdst": false,
 			    "text": "(UTC+11:00) Vladivostok",
@@ -1304,7 +1221,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "UTC+12",
-			    "abbr": "U",
+			    "abbr": "UTC12",
 			    "offset": 12,
 			    "isdst": false,
 			    "text": "(UTC+12:00) Coordinated Universal Time+12",
@@ -1331,7 +1248,7 @@ export class Timezone{
 			  },
 			  {
 			    "value": "Magadan Standard Time",
-			    "abbr": "MST",
+			    "abbr": "MAGST",
 			    "offset": 12,
 			    "isdst": false,
 			    "text": "(UTC+12:00) Magadan",
@@ -1353,26 +1270,17 @@ export class Timezone{
 			    ]
 			  },
 			  {
-			    "value": "Tonga Standard Time",
-			    "abbr": "TST",
-			    "offset": 13,
-			    "isdst": false,
-			    "text": "(UTC+13:00) Nuku'alofa",
-			    "utc": [
-			      "Etc/GMT-13",
-			      "Pacific/Enderbury",
-			      "Pacific/Fakaofo",
-			      "Pacific/Tongatapu"
-			    ]
-			  },
-			  {
 			    "value": "Samoa Standard Time",
 			    "abbr": "SST",
 			    "offset": 13,
 			    "isdst": false,
 			    "text": "(UTC+13:00) Samoa",
 			    "utc": [
-			      "Pacific/Apia"
+			      "Pacific/Apia",
+			      "Etc/GMT-13",
+			      "Pacific/Enderbury",
+			      "Pacific/Fakaofo",
+			      "Pacific/Tongatapu"
 			    ]
 			  }
 			];
