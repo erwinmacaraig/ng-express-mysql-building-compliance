@@ -1,132 +1,132 @@
 <div class="signup-main-container ">
-	<div class="background"></div>
-
-	<div id="modalSignup" class="modal">
-		<div class="modal-content">
-
-			<form  novalidate (ngSubmit)="signUpFormSubmit(formSignIn, $event)" #formSignIn="ngForm">
-				<div class="container">
-					<div class="row">
-						<div class="col m12 center-align">
-							<h4 class="title">
-								Welcome to EvacConnect Safety
-								<br>
-								Management Tools
-							</h4>
-							<p class="center-align please-fill-up">
-								Please fill up all fields and submit
-							</p>
-						</div>
-						<div class="col m12">
-							<div class="input-container">
-								<div class="input-field col m12">
-                  <input id="first_name" type="text"
-                         name="first_name"
-                         ngModel
-                         #inputFirstName="ngModel"
-                         [ngClass]="{ 'invalid' : !inputFirstName.valid  && inputFirstName.dirty }"
-                         required>
-									<label for="first_name" [ngClass]="{'active': invitationCodePresent}">First Name
-										<small *ngIf=" !inputFirstName.valid && inputFirstName.dirty "> *Required </small>
-									</label>
-								</div>
-
-								<div class="input-field col m12">
-                  <input id="last_name"
-                         type="text"
-                         name="last_name"
-                         ngModel
-                         #inputLastName="ngModel"
-                         [ngClass]="{ 'invalid' : !inputLastName.valid  && inputLastName.dirty }"
-                         required>
-									<label for="last_name" [ngClass]="{'active': invitationCodePresent}">Last Name
-										<small *ngIf=" !inputLastName.valid && inputLastName.dirty "> *Required </small>
-									</label>
-								</div>
-
-								<div class="input-field col m12">
-                  <input id="user_email" type="text" name="user_email"
+   <div class="background"></div>
+   <div id="modalSignup" class="modal">
+      <div class="modal-content">
+         <form  novalidate (ngSubmit)="signUpFormSubmit(formSignIn, $event)" #formSignIn="ngForm">
+         <div class="container">
+            <div class="row">
+               <div class="col m12 center-align">
+                  <h4 class="title">
+                     Welcome to EvacConnect Safety
+                     <br>
+                     Management Tools
+                  </h4>
+                  <p class="center-align please-fill-up">
+                     Please fill up all fields and submit
+                  </p>
+               </div>
+               <div class="col m12">
+                  <div class="input-container">
+                     <div class="input-field col m12">
+                        <input id="first_name" type="text"
+                        name="first_name"
+                        ngModel
+                        #inputFirstName="ngModel"
+                        [ngClass]="{ 'invalid' : !inputFirstName.valid  && inputFirstName.dirty }"
+                        required>
+                        <label for="first_name" [ngClass]="{'active': invitationCodePresent}">First Name
+                        <small *ngIf=" !inputFirstName.valid && inputFirstName.dirty "> *Required </small>
+                        </label>
+                     </div>
+                     <div class="input-field col m12">
+                        <input id="last_name"
+                        type="text"
+                        name="last_name"
+                        ngModel
+                        #inputLastName="ngModel"
+                        [ngClass]="{ 'invalid' : !inputLastName.valid  && inputLastName.dirty }"
+                        required>
+                        <label for="last_name" [ngClass]="{'active': invitationCodePresent}">Last Name
+                        <small *ngIf=" !inputLastName.valid && inputLastName.dirty "> *Required </small>
+                        </label>
+                     </div>
+                     <div class="input-field col m12">
+                        <input id="user_email" type="text" name="user_email"
                         ngModel
                         #inputUserEmail="ngModel"
                         [ngClass]="{ 'invalid' : !inputUserEmail.valid && inputUserEmail.dirty  }"
                         required>
-									<label for="user_email" [ngClass]="{'active': invitationCodePresent}"> Email/Username
-										<small *ngIf=" !inputUserEmail.valid && inputUserEmail.dirty "> *Invalid </small>
-										<span  *ngIf="emailTaken" email-taken class="red-text"> *Email taken </span>
-									</label>
-                </div>
-
-								<div class="input-field col m12">
-									<input id="password" type="password" name="password" ngModel #inputPassword="ngModel"
-									[ngClass]="{
-										'invalid' : !inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
-									}"
-									required minlength="6" maxlength="150"  >
-									<label for="password">Password
-										<small *ngIf=" inputPassword.value != inputConfirmPassword.value "> *Mismatched </small>
-										<small *ngIf=" !inputPassword.valid && inputPassword.dirty "> *Required </small>
-									</label>
-								</div>
-
-								<div class="input-field col m12">
-									<input id="confirm_password" type="password" ngModel name="confirm_password"
-										ngModel #inputConfirmPassword="ngModel"
-										[ngClass]="{
-											'invalid' : !inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
-										}"
-										required minlength="6" maxlength="150" >
-									<label for="confirm_password"> Confirm password
-										<small *ngIf=" !inputConfirmPassword.valid && inputConfirmPassword.dirty "> *Required </small>
-									</label>
-                </div>
-                <div class="input-field col m12">
-                  <input type="text" disabled name="account_type_name" id="account_type_name" [ngModel]="inviCode.role_text">
-                  <label for="account_type_name" class="active">Account Type</label>
-                </div>
-								<div class="input-field col m6">
-									<button type="submit" class="btn block waves-effect waves-light btn-submit">Submit</button>
-								</div>
-								<div class="input-field col m6">
-									<a class="btn block waves-effect waves-light btn-close" (click)="onCloseSelfSignUp()">Close</a>
-								</div>
-							</div>
-						</div>
-
-					</div>
-				</div>
-
-			</form>
-
-		</div>
-	</div>
-
-	<div id="modalLoader" class="modal">
-		<div class="modal-content center-align" style="padding: 20px;">
-			<div *ngIf="modalLoader.showLoader">
-				<div class="preloader-wrapper active">
-					<div class="spinner-layer spinner-red-only">
-						<div class="circle-clipper left">
-							<div class="circle"></div>
-						</div><div class="gap-patch">
-							<div class="circle"></div>
-						</div><div class="circle-clipper right">
-							<div class="circle"></div>
-						</div>
-					</div>
-				</div>
-				<div>
-					<h6>{{ modalLoader.loadingMessage }}</h6>
-				</div>
-			</div>
-
-			<div *ngIf="modalLoader.showMessage" class="center-align">
-				<p>
-					<i class="material-icons {{ modalLoader.iconColor }}-text" style="font-size: 80px;">{{ modalLoader.icon }}</i>
-				</p>
-				<p style="font-size: 27px; line-height: 30px;">{{ modalLoader.message }}</p>
-			</div>
-		</div>
-	</div>
-
+                        <label for="user_email" [ngClass]="{'active': invitationCodePresent}"> Email/Username
+                        <small *ngIf=" !inputUserEmail.valid && inputUserEmail.dirty "> *Invalid </small>
+                        <span  *ngIf="emailTaken" email-taken class="red-text"> *Email taken </span>
+                        </label>
+                     </div>
+                     <div class="input-field col m12">
+                        <input id="password" type="password" name="password" ngModel #inputPassword="ngModel"
+                        [ngClass]="{
+                        'invalid' : !inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+                        }"
+                        required minlength="6" maxlength="150"  >
+                        <label for="password">Password
+                        <small *ngIf=" inputPassword.value != inputConfirmPassword.value "> *Mismatched </small>
+                        <small *ngIf=" !inputPassword.valid && inputPassword.dirty "> *Required </small>
+                        </label>
+                     </div>
+                     <div class="input-field col m12">
+                        <input id="confirm_password" type="password" ngModel name="confirm_password"
+                        ngModel #inputConfirmPassword="ngModel"
+                        [ngClass]="{
+                        'invalid' : !inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+                        }"
+                        required minlength="6" maxlength="150" >
+                        <label for="confirm_password"> Confirm password
+                        <small *ngIf=" !inputConfirmPassword.valid && inputConfirmPassword.dirty "> *Required </small>
+                        </label>
+                     </div>
+                     <div class="select-field col m12 s12" >
+                        <select id="securityQuestion" [(ngModel)]="selectedSecurityQuestion" name="security_question" required>
+                        <option value="0" disabled selected>Please select security question</option>
+                        <option *ngFor="let q of securityQuestions" value="{{ q.security_question_id }}"> {{ q.question }} </option>
+                        </select>
+                     </div>
+                     <div class="input-field col m12" >
+                        <input type="text" name="security_answer" ngModel #inpSecAnswer="ngModel" [ngClass]="{ 'invalid' : !inpSecAnswer.valid && inpSecAnswer.dirty }" required>
+                        <label for="password">Security Answer
+                        <small *ngIf=" !inpSecAnswer.valid && inpSecAnswer.dirty "> *Required </small>
+                        </label>
+                     </div>
+                     <div class="input-field col m12">
+                        <input type="text" disabled name="account_type_name" id="account_type_name" [ngModel]="inviCode.role_text">
+                     </div>
+                     <div class="input-field col m6">
+                        <button type="submit" class="btn block waves-effect waves-light btn-submit">Submit</button>
+                     </div>
+                     <div class="input-field col m6">
+                        <a class="btn block waves-effect waves-light btn-close" (click)="onCloseSelfSignUp()">Close</a>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+         </form>
+      </div>
+   </div>
+   <div id="modalLoader" class="modal">
+      <div class="modal-content center-align" style="padding: 20px;">
+         <div *ngIf="modalLoader.showLoader">
+            <div class="preloader-wrapper active">
+               <div class="spinner-layer spinner-red-only">
+                  <div class="circle-clipper left">
+                     <div class="circle"></div>
+                  </div>
+                  <div class="gap-patch">
+                     <div class="circle"></div>
+                  </div>
+                  <div class="circle-clipper right">
+                     <div class="circle"></div>
+                  </div>
+               </div>
+            </div>
+            <div>
+               <h6>{{ modalLoader.loadingMessage }}</h6>
+            </div>
+         </div>
+         <div *ngIf="modalLoader.showMessage" class="center-align">
+            <p>
+               <i class="material-icons {{ modalLoader.iconColor }}-text" style="font-size: 80px;">{{ modalLoader.icon }}</i>
+            </p>
+            <p style="font-size: 27px; line-height: 30px;">{{ modalLoader.message }}</p>
+         </div>
+      </div>
+   </div>
 </div>
-

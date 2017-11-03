@@ -3,6 +3,9 @@ import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Token } from '../models/token.model';
 import { EmailSender } from '../models/email.sender';
+import { SecurityAnswers } from '../models/security-answers.model';
+import { SecurityQuestions } from '../models/security-questions.model';
+
 import * as moment from 'moment';
 
 import  * as fs  from 'fs';
@@ -36,6 +39,10 @@ const md5 = require('md5');
 
 	   	router.post('/forgot/password/change/users/password', (req: Request, res: Response, next: NextFunction) => {
 	   		new ForgotPasswordRequestRoute().changeUsersPassword(req, res, next);
+	   	});
+
+	   	router.get('/forgot/password/find/username/:username', (req: Request, res: Response, next: NextFunction) => {
+	   		new ForgotPasswordRequestRoute().findUsername(req, res, next);
 	   	});
 
    	}
@@ -322,8 +329,57 @@ const md5 = require('md5');
 			response.message = (validateData.message.length == 0) ? 'There\'s an invalid field' : validateData.message;
 			res.send(response);
 		}
+	}
 
-		
+	public findUsername(req: Request, res: Response, next: NextFunction){
+		let username = req.params.username,
+			response = {
+				status : false,
+				message : '',
+				data : {}
+			},
+			userModel = new User(),
+			answerModel = new SecurityAnswers(),
+			questionModel = new SecurityQuestions();
+
+		// Default status code
+		res.statusCode = 400;
+
+		console.log(username);
+
+		userModel.getByUsername(username).then(
+			(userdata) => {
+				answerModel.getByUserId(userdata['user_id']).then(
+					(answerdata) => {
+						questionModel.setID(answerdata['security_question_id']);
+						questionModel.load().then(
+							(questiondata) => {
+								response.data = {
+									'question' : questiondata['question'],
+									'question_id' : questiondata['security_question_id']
+								};
+								response.status = true;
+								res.statusCode = 200;
+								res.send(response);
+							},
+							() => {
+								response.message = 'This user is invalid has no security question';
+								res.send(response);
+							}
+						);
+					},
+					() => {
+						response.message = 'This user is invalid has no security question';
+						res.send(response);
+					}
+				);
+			},
+			() => {
+				response.message = 'Invalid username';
+				res.send(response);
+			}
+		);
+
 	}
 
 

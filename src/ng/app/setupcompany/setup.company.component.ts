@@ -265,7 +265,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.selCountry = selectedAccount.country;
 		$('#selCountry').val( selectedAccount.country );
 		this.selTimezone = (selectedAccount.time_zone !== null || selectedAccount.time_zone.length > 0) ? selectedAccount.time_zone : 'AEST';
-		$('#selCountry').val( this.selTimezone );
+		$('#selTimezone').val( this.selTimezone );
 
 		setTimeout(() => {
 			$('input').trigger('focusin');

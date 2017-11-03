@@ -42,6 +42,8 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
 
     roleId = 0;
     selectAccountType = 0;
+    securityQuestions = [];
+    selectedSecurityQuestion = 0;
 
     constructor(private router: Router, private activatedRoute: ActivatedRoute, private http: HttpClient, platformLocation: PlatformLocation, private signupService: SignupService) {
         this.headers = new Headers({ 'Content-type' : 'application/json' });
@@ -62,6 +64,11 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
         } else {
             this.inviCode = new InvitationCode();
         }
+
+        this.signupService.getSecurityQuestions((securityQuestionsResponse) => {
+            this.securityQuestions = securityQuestionsResponse.data;
+            setTimeout(() => { $('#securityQuestion').material_select(); }, 100);
+        });
     }
 
     ngAfterViewInit() {
@@ -141,6 +148,11 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
             'confirm_password' : controls.confirm_password.value,
             'role_id' : parseInt(accountType.val()) || this.inviCode.role_id
         };
+
+        if(userData['role_id'] == 3){
+            userData['question_id'] = $('#securityQuestion').val();
+            userData['security_answer'] = controls.security_answer.value;
+        }
 
         if (this.invitationCodePresent) {
             userData['invi_code_id'] = this.inviCode.invitation_code_id;

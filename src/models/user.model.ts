@@ -87,6 +87,29 @@ export class User extends BaseClass {
         });
     }
 
+    public getByUsername(username: String) {
+        console.log(username);
+        return new Promise((resolve, reject) => {
+            const sql_load = 'SELECT * FROM users WHERE user_name = ?';
+            const param = [username];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+
+                if (!results.length) {
+                    reject('No user found');
+                } else {
+                    this.dbData = results[0];
+                    this.setID(results[0]['user_id']);
+                    resolve(this.dbData);
+                }
+            });
+            connection.end();
+        });
+    }
+
     loadByCredentials(username: string, passwd: string) {
         return new Promise((resolve, reject) => {
             let whereClause = '';
