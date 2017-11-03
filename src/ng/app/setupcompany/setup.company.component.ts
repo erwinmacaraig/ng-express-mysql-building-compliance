@@ -242,12 +242,9 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.selectedAccountData = selectedAccount;
 		this.searchedAccounts = [];
 		this.searchElem['searchContainer'].removeClass('active');
-
-		let hasInsideOpt = false;
-
+ 
 		$('select option').each(function(){
 			if($(this).text().indexOf(selectedAccount.time_zone) > -1){ 
-				hasInsideOpt = true;
 				selectedAccount.time_zone = $(this).attr('value');
 			}
 		});
@@ -270,18 +267,9 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.selTimezone = (selectedAccount.time_zone !== null || selectedAccount.time_zone.length > 0) ? selectedAccount.time_zone : 'AEST';
 		$('#selCountry').val( this.selTimezone );
 
-		$('input').trigger('focusin').trigger('focusout');
 		setTimeout(() => { 
 			$('#selCountry').material_select(); 
-			$('#selTimezone').material_select(); 
-			setTimeout(() => {
-				if($('#selTimezone').val() == null){
-					$('#selTimezone').val(this.defaultTimeZone).material_select();
-				}
-				if($('#selCountry').val() == null){
-					$('#selCountry').val(this.defaultCountry).material_select();
-				}
-			}, 50);
+			$('#selTimezone').material_select();
 		}, 100);
 	}
 
