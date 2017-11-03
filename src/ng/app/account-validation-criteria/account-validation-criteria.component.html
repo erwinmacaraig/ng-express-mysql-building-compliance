@@ -2,8 +2,8 @@
 <br>
 <button (click)="listAllFRP()"> Get FRP List </button>
 <br>
-<select name="FRPs" id="FRPs" *ngIf="trpList">
-  <option *ngFor="let trp of trpList" [value]="trp.user_id"> {{trp.first_name}}</option>
+<select name="FRPs" id="FRPs" *ngIf="frpList">
+  <option *ngFor="let frp of frpList" [value]="frp.user_id"> {{frp.first_name}}</option>
 </select>
 <button (click)="listAllTRP()"> Get TRP List </button>
 <br>

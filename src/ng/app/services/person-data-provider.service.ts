@@ -45,7 +45,6 @@ export class PersonDataProviderService {
 
     this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers, params: http_params };
-    console.log(http_params);
     return this.http.get<any>(this.baseUrl + '/listAllTRP', this.options);
   }
 }
