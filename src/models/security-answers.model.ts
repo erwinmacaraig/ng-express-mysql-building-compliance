@@ -15,7 +15,7 @@ export class SecurityAnswers extends BaseClass {
 
     public load() {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM security_answers WHERE security_answer_id = ?';
+            const sql_load = 'SELECT * FROM security_answer WHERE security_answer_id = ?';
             const uid = [this.id];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, uid, (error, results, fields) => {
@@ -36,7 +36,7 @@ export class SecurityAnswers extends BaseClass {
 
     public getByQuestionId(qID:Number) {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM security_answers WHERE security_question_id = ?  ',
+            let sql_load = 'SELECT * FROM security_answer WHERE security_question_id = ?  ',
                param = [qID];
 
             const connection = db.createConnection(dbconfig);
@@ -58,7 +58,7 @@ export class SecurityAnswers extends BaseClass {
 
     public getByUserId(userId:Number) {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM security_answers WHERE user_id = ? ',
+            let sql_load = 'SELECT * FROM security_answer WHERE user_id = ? ',
                param = [userId];
 
             const connection = db.createConnection(dbconfig);
@@ -80,7 +80,7 @@ export class SecurityAnswers extends BaseClass {
 
     public dbUpdate() {
         return new Promise((resolve, reject) => {
-          const sql_update = `UPDATE security_answers SET security_question_id = ?, answer = ?,  user_id = ? WHERE security_answer_id = ? `;
+          const sql_update = `UPDATE security_answer SET security_question_id = ?, answer = ?,  user_id = ? WHERE security_answer_id = ? `;
           const param = [
             ('security_question_id' in this.dbData) ? this.dbData['security_question_id'] : 0,
             ('answer' in this.dbData) ? this.dbData['answer'] : '',
@@ -101,7 +101,7 @@ export class SecurityAnswers extends BaseClass {
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
-          const sql_insert = `INSERT INTO security_answers (security_question_id, answer, user_id) VALUES (?, ?, ?)`;
+          const sql_insert = `INSERT INTO security_answer (security_question_id, answer, user_id) VALUES (?, ?, ?)`;
           const param = [
             ('security_question_id' in this.dbData) ? this.dbData['security_question_id'] : 0,
             ('answer' in this.dbData) ? this.dbData['answer'] : '',

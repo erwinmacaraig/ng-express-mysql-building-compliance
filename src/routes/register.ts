@@ -333,7 +333,7 @@ const md5 = require('md5');
 											'user_id' : userData['user_id']
 										}).then(
 											() => {
-											res.statusCode = 200;
+												res.statusCode = 200;
 												responseData.data['code'] = code.get('code');
 												res.send(responseData);
 											},

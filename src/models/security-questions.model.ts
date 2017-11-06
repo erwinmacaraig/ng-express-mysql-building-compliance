@@ -15,7 +15,7 @@ export class SecurityQuestions extends BaseClass {
 
     public load() {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM security_questions WHERE security_question_id = ?';
+            const sql_load = 'SELECT * FROM security_question WHERE security_question_id = ?';
             const uid = [this.id];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, uid, (error, results, fields) => {
@@ -36,7 +36,7 @@ export class SecurityQuestions extends BaseClass {
 
     public getAll() {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM security_questions';
+            const sql_load = 'SELECT * FROM security_question';
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
               if (error) {
@@ -51,7 +51,7 @@ export class SecurityQuestions extends BaseClass {
 
     public dbUpdate() {
         return new Promise((resolve, reject) => {
-          const sql_update = `UPDATE security_questions SET question = ? WHERE security_question_id = ? `;
+          const sql_update = `UPDATE security_question SET question = ? WHERE security_question_id = ? `;
           const token = [
             ('question' in this.dbData) ? this.dbData['question'] : '',
             this.ID() ? this.ID() : 0
@@ -70,7 +70,7 @@ export class SecurityQuestions extends BaseClass {
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
-          const sql_insert = `INSERT INTO security_questions (question) VALUES (?)`;
+          const sql_insert = `INSERT INTO security_question (question) VALUES (?)`;
           const token = [
             ('question' in this.dbData) ? this.dbData['user_id'] : ''
           ];

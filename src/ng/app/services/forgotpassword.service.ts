@@ -62,4 +62,15 @@ export class ForgotPasswordService {
 	    );
 	}
 
+	public submitSecurityQuestion(opt, callBack){
+		this.http.post(this.baseUrl+"/forgot/password/security/question/answer", opt, { headers: this.headers }).subscribe(
+			(res) => {
+		        callBack(res);
+	      	},
+	      	(err) => {
+	        	callBack( JSON.parse(err.error) );
+	      	}
+	    );
+	}
+
 }
