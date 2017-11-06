@@ -29,7 +29,7 @@ export class Utils {
         if (account) {
           sql_get_frp = sql_get_frp + ' AND users.account_id = ?';
           val.push(account);
-        }
+        } console.log(sql_get_frp);
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_frp, val, (error, results, fields) => {
           if (error) {

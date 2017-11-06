@@ -1,17 +1,59 @@
+<div class="validation-main-controller">
+  <div class="background"></div>
+  <div id="modalSignup" class="modal">
+      <div class="modal-content">
+        <form (ngSubmit)="onSubmitForValidation(f)" #f="ngForm">
+            <div class="container">
+              <div class="row">
+                <div class="col m12 center-align">
+                  <h4 class="title">Account Validation</h4>
+                  <p></p>
+                </div>
+              </div>
+            </div>
 
-<br>
-<button (click)="listAllFRP()"> Get FRP List </button>
-<br>
-<select name="FRPs" id="FRPs" *ngIf="frpList">
-  <option *ngFor="let frp of frpList" [value]="frp.user_id"> {{frp.first_name}}</option>
-</select>
-<button (click)="listAllTRP()"> Get TRP List </button>
-<br>
-<select name="TRPs" id="TRPs" *ngIf="trpList">
-    <option *ngFor="let trp of trpList" [value]="trp.user_id"> {{trp.first_name}}</option>
-  </select>
-<br>
+            <div class="col m12">
+              <div class="input-container">
+                <p>
+                  <input name="emailcriteria" class="with-gap" type="radio" value="frp" id="frpcriteria" ngModel (change)="toggleFRPCtrl()">
+                  <label for="frpcriteria">Get verified by another FRP of your account</label>
+                </p>
+                <div class="input-field col s12" [hidden]="!toggleFRP">
+                  <select name="FRPs" id="FRPs">
+                    <option value="">Choose FRP to validate your identity</option>
+                    <option *ngFor="let frp of frpList" [value]="frp.user_id"> {{frp.first_name}}</option>
+                  </select>
+                </div>
 
+                <p>
+                  <input name="emailcriteria" class="with-gap" type="radio" value="trp" ngModel id="trpcriteria" (change)="toggleTRPCtrl()">
+                  <label for="trpcriteria">Get verified by another TRP of your account</label>
+                </p>
 
-<a [routerLink]="['/validation-criteria']" [queryParams]="{account:'5'}">Account is 5</a>
+                <div class="input-field col s12" [hidden]="!toggleTRP">
+                  <select name="TRPs" id="TRPs">
+                    <option value="">Choose TRP to validate your identity</option>
+                    <option *ngFor="let trp of trpList" [value]="trp.user_id"> {{trp.first_name}}</option>
+                  </select>
+                </div>
+
+                <div class="input-field col m12">
+                    <input id="trp_code" type="text" name="trp_code" ngModel #trpCode [ngClass]="{ 'invalid' : !trpCode.valid  && trpCode.dirty }" required>
+                    <label for="trp_code">Please provide your TRP Code
+                      <small *ngIf=" !trpCode.valid && trpCode.dirty "> *Required </small>
+                    </label>
+                </div>
+
+                <div class="input-field col m6">
+                    <button type="submit" class="btn block waves-effect waves-light btn-submit">Submit</button>
+                </div>
+                <div style="clear:both"></div>
+
+              </div>
+            </div>
+        </form>
+      </div> <!-- modal-content -->
+  </div> <!-- modalSignup -->
+
+</div> <!-- validation-main-controller -->
 
