@@ -75,6 +75,32 @@ export class Account extends BaseClass {
         });
     }
 
+     public searchByAccountName(name: String) {
+        return new Promise((resolve, reject) => {
+            const sql_load = `SELECT 
+            locations.*, 
+            accounts.account_id, accounts.account_name, accounts.account_code, accounts.default_em_role
+            FROM accounts 
+            LEFT JOIN location_account_relation ON accounts.account_id = location_account_relation.account_id 
+            LEFT JOIN locations ON location_account_relation.location_id = locations.location_id 
+            WHERE accounts.account_name LIKE "%`+name+`%" 
+            AND accounts.archived = 0 
+            GROUP BY accounts.account_id
+            ORDER BY accounts.account_name ASC `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+
+              this.dbData = results;
+              resolve(this.dbData);
+
+            });
+            connection.end();
+        });
+    }
+
     public dbUpdate() {
         return new Promise((resolve, reject) => {
           const sql_update = `UPDATE accounts SET 

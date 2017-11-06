@@ -20,13 +20,13 @@ export class NavbarComponent implements OnInit {
 	public usersInitial: String = 'AA';
 
 	showSendInviteLink = false;
+	elems = {};
 
 	constructor(
 		private auth: AuthService
 	) {
-    this.userData = this.auth.getUserData();
-    this.usersImageURL = 'https://s3.amazonaws.com/allan-delfin/listing.png';
-    console.log(this.usersImageURL);
+	    this.userData = this.auth.getUserData();
+	    this.usersImageURL = 'assets/images/camera_upload_hover.png';
 	}
 
 	public getInitials(fullName){
@@ -40,6 +40,7 @@ export class NavbarComponent implements OnInit {
 		this.userRoleID = this.userData['roleId'];
 		this.showEvent();
 		this.closeEvent();
+		this.setElements();
 		this.changePhotoEvent();
 
 		// Burger click event
@@ -64,6 +65,26 @@ export class NavbarComponent implements OnInit {
 
 	}
 
+	setElements(){
+		let modalSelectChangePhotoAction = $('#modalSelectChangePhotoAction'),
+			webcamContainer = modalSelectChangePhotoAction.find('.webcam-content');
+		this.elems = {
+			'modalSelectChangePhotoAction' : modalSelectChangePhotoAction,
+			'btnSelectFile' : $('#btnSelectFile'),
+			'actionContainer' : modalSelectChangePhotoAction.find('.action-content'),
+			'inputFile' : modalSelectChangePhotoAction.find('.action-content').find('input[type="file"]'),
+			'imgSelectedFile' : modalSelectChangePhotoAction.find('.image-select-file'),
+			'chooseBtnFile' : modalSelectChangePhotoAction.find('.btn-choose-file-select'),
+			'btnTakePhoto' : $('#btnTakePhoto'),
+			'webcamContainer' : webcamContainer,
+			'imgHolder' : webcamContainer.find('img[holder]'),
+			'btnRetake' : webcamContainer.find('.btn-retake'),
+			'btnCancel' : webcamContainer.find('.btn-cancel'),
+			'btnChoose' : webcamContainer.find('.btn-choose'),
+			'btnCapture' : webcamContainer.find('.btn-capture')
+		};
+	}
+
 	showEvent(){
 		$('.user-right-click-nav').click(function(){ $('.vertical-m').removeClass('fadeOutRightBig animated').addClass('fadeInRight animated'); });
 	}
@@ -73,41 +94,32 @@ export class NavbarComponent implements OnInit {
 	}
 
 	changePhotoSelectFileEvent(){
-		let modalSelectChangePhotoAction = $('#modalSelectChangePhotoAction'),
-			btnSelectFile = $('#btnSelectFile'),
-			actionContainer = modalSelectChangePhotoAction.find('.action-content'),
-			inputFile = actionContainer.find('input[type="file"]'),
-			imgSelectedFile = modalSelectChangePhotoAction.find('.image-select-file'),
-			chooseBtnFile = modalSelectChangePhotoAction.find('.btn-choose-file-select');
-
-		inputFile.on('change', function(){
-			let file = inputFile[0].files[0],
+		
+		this.elems['inputFile'].on('change', () => {
+			let file = this.elems['inputFile'][0].files[0],
 				reader = new FileReader();
-	        reader.onload = function (e) {
-	            imgSelectedFile.attr('src', reader.result);
+	        reader.onload = (e) => {
+	            this.elems['imgSelectedFile'].attr('src', reader.result);
 	        }
 	        reader.readAsDataURL(file);
-	        imgSelectedFile.show();
-	        chooseBtnFile.show();
+	        this.elems['imgSelectedFile'].show();
+	        this.elems['chooseBtnFile'].show();
 		});
 
-		btnSelectFile.click(function() {
-			inputFile.click();
+		this.elems['btnSelectFile'].click(() => {
+			this.elems['inputFile'].click();
+		});
+
+		this.elems['chooseBtnFile'].click(() => {
+			this.elems['btnSelectFile'].prop('disabled', true);
+			this.elems['chooseBtnFile'].prop('disabled', true);
+			this.elems['btnTakePhoto'].prop('disabled', true);
 		});
 	}
 
 	changePhotoWebCamEvent(){
-		let btnTakePhoto = $('#btnTakePhoto'),
-			modalSelectChangePhotoAction = $('#modalSelectChangePhotoAction'),
-			webcamContainer = modalSelectChangePhotoAction.find('.webcam-content'),
-			actionContainer = modalSelectChangePhotoAction.find('.action-content'),
-			imgHolder = webcamContainer.find('img[holder]'),
-			btnRetake = webcamContainer.find('.btn-retake'),
-			btnCancel = webcamContainer.find('.btn-cancel'),
-			btnChoose = webcamContainer.find('.btn-choose'),
-			btnCapture = webcamContainer.find('.btn-capture');
 
-		btnTakePhoto.click(function(){
+		this.elems['btnTakePhoto'].click(() => {
 			Webcam.reset();
 			Webcam.set({
 				width: 300,
@@ -116,36 +128,37 @@ export class NavbarComponent implements OnInit {
 				jpeg_quality: 90
 			});
 
-			Webcam.on('error', function(){
+			Webcam.on('error', () => {
 				alert();
 			});
 
 			Webcam.attach( 'div[webcam]' );
-			actionContainer.hide();
-			webcamContainer.show();
+			this.elems['actionContainer'].hide();
+			this.elems['webcamContainer'].show();
 		});
 
-		btnCapture.click(function(){
+		this.elems['btnCapture'].click(() => {
 			Webcam.freeze();
-			btnCapture.hide();
-			btnChoose.show();
+			this.elems['btnCapture'].hide();
+			this.elems['btnChoose'].show();
 		});
 
-		btnRetake.click(function(){
+		this.elems['btnRetake'].click(() => {
 			Webcam.unfreeze();
-			btnCapture.show();
-			btnChoose.hide();
+			this.elems['btnCapture'].show();
+			this.elems['btnChoose'].hide();
 		});
 
-		btnChoose.click(function(){
-			Webcam.snap(function(data_uri){
-				imgHolder.attr('src', data_uri);
+		this.elems['btnChoose'].click(() => {
+			Webcam.snap((data_uri) => {
+				this.elems['imgHolder'].attr('src', data_uri);
 			});
 		});
 
-		btnCancel.click(function(){
-			actionContainer.show();
-			webcamContainer.hide();
+		this.elems['btnCancel'].click(function(){
+			Webcam.reset();
+			this.elems['actionContainer'].show();
+			this.elems['webcamContainer'].hide();
 		});
 	}
 
@@ -183,7 +196,8 @@ export class NavbarComponent implements OnInit {
         		imgSelectedFile.hide();
         		chooseBtnFile.hide();
         		btnCancel.click();
-        		inputFile[0].files = null;
+        		actionContainer.find('input[type="file"]')[0].value = "";
+        		inputFile = actionContainer.find('input[type="file"]');
         		Webcam.reset();
         	}
 		});
