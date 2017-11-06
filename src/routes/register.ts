@@ -9,6 +9,8 @@ import { LocationAccountRelation } from '../models/location.account.relation';
 import { LocationAccountUser } from '../models/location.account.user';
 import { SecurityQuestions } from '../models/security-questions.model';
 import { SecurityAnswers } from '../models/security-answers.model';
+import { BlacklistedEmails } from '../models/blacklisted-emails';
+
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -73,11 +75,18 @@ const md5 = require('md5');
 			('last_name' in data) &&
 			('password' in data) &&
 			('confirm_password' in data) &&
-			('role_id' in data) && 
-			('question_id' in data) &&
-			('security_answer' in data)
+			('role_id' in data)
 		){
-			return true;
+			if(data.role_id == 3){
+				if('question_id' in data && 'security_answer' in data){
+					return true;
+				}else{
+					return false;
+				}
+			}else{
+				return true;
+			}
+			
 		}else{
 			return false;
 		}
@@ -115,6 +124,12 @@ const md5 = require('md5');
 			}else if( !validator.isEmail(data.email) ){
 				response.data['email'] = ' Email is invalid ';
 				errors++;
+			}else{
+				let blackEmails = new BlacklistedEmails();
+				if(blackEmails.isEmailBlacklisted(data.email)){
+					response.data['black_listed'] = "The email's domain is blacklisted";
+					errors++;
+				}
 			}
 		}
 		/*
@@ -149,7 +164,7 @@ const md5 = require('md5');
 				errors++;
 			}
 
-			if(validator.isEmpty(data.security_answer)){
+			if(validator.isEmpty( ''+data.security_answer+'' )){
 				response.data['security_answer'] = ' Answer is required ';
 				errors++;
 			}

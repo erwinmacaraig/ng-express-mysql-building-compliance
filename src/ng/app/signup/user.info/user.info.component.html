@@ -42,7 +42,7 @@
 				                    [ngClass]="{ 'invalid' : !inputEmail.valid && inputEmail.dirty  }"
 				                    required>
 								<label for="email" [ngClass]="{'active': invitationCodePresent}">Email
-									<small *ngIf=" !inputEmail.valid && inputEmail.dirty "> *Invalid </small>
+									<small *ngIf=" !inputEmail.valid && inputEmail.dirty "> {{ emailInvalidMessage }} </small>
 									<span *ngIf=" emailTaken " email-taken class="red-text"> *Email taken </span>
 								</label>
            					</div>
