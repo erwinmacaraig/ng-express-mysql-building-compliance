@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from '@angular/core';
 import { PersonDataProviderService } from '../services/person-data-provider.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, ParamMap } from '@angular/router';
+import { NgForm } from '@angular/forms';
 
 declare var $: any;
 
@@ -11,6 +12,7 @@ declare var $: any;
   styleUrls: ['./account-validation-criteria.component.css']
 })
 export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('f') validationForm: NgForm;
   public trpList = [];
   public frpList = [];
   private frpListSubscription;
@@ -94,7 +96,9 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
     this.frpListSubscription.unsubscribe();
   }
 
-  onSubmitForValidation() {}
+  onSubmitForValidation() {
+
+  }
 
 
   toggleFRPCtrl() {
