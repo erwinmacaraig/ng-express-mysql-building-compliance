@@ -4,6 +4,7 @@ import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
+import { BlacklistedEmails } from '../../models/blacklisted-emails';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 declare var $: any;
@@ -42,6 +43,10 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
 
     roleId = 0;
     selectAccountType = 0;
+    securityQuestions = [];
+    selectedSecurityQuestion = 0;
+
+    emailInvalidMessage = 'Invalid email';
 
     constructor(private router: Router, private activatedRoute: ActivatedRoute, private http: HttpClient, platformLocation: PlatformLocation, private signupService: SignupService) {
         this.headers = new Headers({ 'Content-type' : 'application/json' });
@@ -62,6 +67,14 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
         } else {
             this.inviCode = new InvitationCode();
         }
+
+        if(this.roleId == 3){
+            this.signupService.getSecurityQuestions((securityQuestionsResponse) => {
+                this.securityQuestions = securityQuestionsResponse.data;
+                setTimeout(() => { $('#securityQuestion').material_select(); }, 100);
+            });
+        }
+
     }
 
     ngAfterViewInit() {
@@ -116,6 +129,10 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
                 if(i == 'email_taken') {
                     this.emailTaken = true;
                     this.modalLoader.message = 'The email that you used is already taken.';
+                }else if(i == 'black_listed') {
+                    f.controls.email.setErrors({ blacklisted : true });
+                    this.emailInvalidMessage = '*Domain must be non-commercial';
+                    this.modalLoader.message = "The email must be company's email otherwise it is not valid";
                 }else{
                     f.controls[i].markAsDirty();
                 }
@@ -142,6 +159,11 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
             'role_id' : parseInt(accountType.val()) || this.inviCode.role_id
         };
 
+        if(userData['role_id'] == 3){
+            userData['question_id'] = $('#securityQuestion').val();
+            userData['security_answer'] = controls.security_answer.value;
+        }
+
         if (this.invitationCodePresent) {
             userData['invi_code_id'] = this.inviCode.invitation_code_id;
             userData['account_id'] = this.inviCode.account_id;
@@ -157,16 +179,26 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
         } else {
             accountType.siblings('input.select-dropdown').css('border-bottom', '1px solid #9e9e9e');
             if(f.valid){
-                this.modalLoader.showLoader = true;
-                this.modalLoader.showMessage = false;
+                let blackEmails = new BlacklistedEmails();
 
-                this.elems['modalSignup'].modal('close');
-                this.elems['modalLoader'].modal('open');
+                if( !blackEmails.isEmailBlacklisted(controls.email.value) ){
 
-                this.emailTaken = false;
-                this.signupService.sendUserData(userData, (res) => {
-                    this.signupResponse(res, f);
-                });
+                    this.modalLoader.showLoader = true;
+                    this.modalLoader.showMessage = false;
+
+                    this.elems['modalSignup'].modal('close');
+                    this.elems['modalLoader'].modal('open');
+
+                    this.emailTaken = false;
+
+                    this.signupService.sendUserData(userData, (res) => {
+                        this.signupResponse(res, f);
+                    });
+                }else{
+                    controls.email.setErrors({ blacklisted : true });
+                    this.emailInvalidMessage = '*Domain must be non-commercial';
+                }
+
             }else{
                 for(let x in f.controls){
                     f.controls[x].markAsDirty();

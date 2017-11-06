@@ -31,6 +31,7 @@ import { SignupSelectRoleComponent } from './signup/select.role/select.role.comp
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
+import { NoemailComponent } from './noemail/noemail.component';
 
 @NgModule({
   declarations: [
@@ -51,7 +52,8 @@ import { AccountValidationCriteriaComponent } from './account-validation-criteri
     SignupUserInfoComponent,
     SendInviteComponent,
     CustomHttpDataProviderComponent,
-    AccountValidationCriteriaComponent
+    AccountValidationCriteriaComponent,
+    NoemailComponent
   ],
   imports: [
     BrowserModule,

@@ -14,6 +14,7 @@ import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
+import { NoemailComponent } from './noemail/noemail.component';
 
 import { AuthGuard } from './services/auth-guard.service';
 import { PersonInfoResolver, TRPListResolver, FRPListResolver } from './services/person-info.resolver';
@@ -24,6 +25,7 @@ import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
 
+
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -33,6 +35,7 @@ const appRoutes: Routes = [
         { path: 'warden-signup', component: WardenSignupComponent }
       ]
   },
+  { path: 'no-email', component: NoemailComponent },
   { path: 'success-valiadation', component: EmailSuccessVerficiationComponent },
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-user-password/:user_id/:token', component: ChangepasswordComponent},

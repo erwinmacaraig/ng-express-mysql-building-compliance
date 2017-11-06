@@ -5,7 +5,7 @@ const dbconfig = require('../config/db');
 import * as Promise from 'promise';
 export class Account extends BaseClass {
 
-    constructor(id?: number){
+    constructor(id?: number) {
         super();
         if (id) {
             this.id = id;
@@ -75,6 +75,33 @@ export class Account extends BaseClass {
         });
     }
 
+     public searchByAccountName(name: String) {
+        return new Promise((resolve, reject) => {
+            const sql_load = `SELECT
+            locations.*,
+            accounts.account_id, accounts.account_name, accounts.account_code, accounts.default_em_role,
+            accounts.trp_code, accounts.account_domain
+            FROM accounts
+            LEFT JOIN location_account_relation ON accounts.account_id = location_account_relation.account_id
+            LEFT JOIN locations ON location_account_relation.location_id = locations.location_id
+            WHERE accounts.account_name LIKE "%`+name+`%"
+            AND accounts.archived = 0
+            GROUP BY accounts.account_id
+            ORDER BY accounts.account_name ASC `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+
+              this.dbData = results;
+              resolve(this.dbData);
+
+            });
+            connection.end();
+        });
+    }
+
     public dbUpdate() {
         return new Promise((resolve, reject) => {
           const sql_update = `UPDATE accounts SET
@@ -83,7 +110,7 @@ export class Account extends BaseClass {
                 billing_state = ?, billing_postal_code = ?, billing_country = ?,
                 location_id = ?, account_type = ?, account_directory_name = ?,
                 archived = ?, block_access = ?, account_code = ?,
-                default_em_role = ?, epc_committee_on_hq = ?
+                default_em_role = ?, epc_committee_on_hq = ?, trp_code = ?, account_domain = ?
                 WHERE account_id = ? `;
           const param = [
             ('lead' in this.dbData) ? this.dbData['lead'] : 0,
@@ -103,6 +130,8 @@ export class Account extends BaseClass {
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
             ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "1;8;General Occupant,0;9;Warden",
             ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
+            ('trp_code' in this.dbData) ? this.dbData['trp_code'] : null,
+            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : null,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             this.ID() ? this.ID() : 0
           ];
@@ -137,8 +166,10 @@ export class Account extends BaseClass {
             block_access,
             account_code,
             default_em_role,
-            epc_committee_on_hq
-          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            epc_committee_on_hq,
+            trp_code,
+            account_domain
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
           `;
           const param = [
             ('lead' in this.dbData) ? this.dbData['lead'] : 0,
@@ -157,7 +188,9 @@ export class Account extends BaseClass {
             ('block_access' in this.dbData) ? this.dbData['block_access'] : 0,
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
             ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "1;8;General Occupant,0;9;Warden",
-            ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0
+            ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
+            ('trp_code' in this.dbData) ? this.dbData['trp_code'] : null,
+            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : null
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_insert, param, (err, results, fields) => {

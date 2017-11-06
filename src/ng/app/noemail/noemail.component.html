@@ -1,0 +1,110 @@
+<div class="no-email-container">
+	<div class="background"></div>
+	
+	<div class="fadeIn  animated" style="opacity:0;">
+		<div class="center-box">
+			<div class="no_email_box">
+				
+				<div *ngIf="showFormOneContainer">
+					<h1 class="white-text">Don't Have An Email?</h1>
+					<p class="white-text">We just need your username to find your ECO account.</p><br>
+
+					<form novalidate #formSubmit="ngForm" (ngSubmit)="submitEvent(formSubmit, $event)" >
+						<p class="invalid-message"   >
+							<span>{{ InvalidMessage }}</span>
+						</p>
+						<input type="text" name="username" ngModel placeholder="Enter your username here" 
+							#inputUsername="ngModel" required>
+
+						<button type="submit" class="btn waves-effect waves-light btn-submit" >
+							Submit
+						</button>
+					</form>
+
+					
+					<p class="white-text">
+						<a [routerLink]="['/login']" class="back-to-login">Back to login</a>
+					</p>
+				</div>
+
+				<div *ngIf="showFormTwoContainer">	
+					<h1 class="white-text">Your sercurity question</h1>
+					<p class="white-text">Please answer your sercurity question</p><br>
+
+					<form novalidate #formQuestion="ngForm" (ngSubmit)="submitQuestionEvent(formQuestion, $event)" >
+						<p class="invalid-message"   >
+							<span>{{ InvalidMessageTwo }}</span>
+						</p>
+						<h5 class="white-text question">
+							{{ securityQuestion }}
+						</h5>
+						<input type="text" name="answer" ngModel placeholder="Enter your answer here" required>
+
+						<button type="submit" class="btn waves-effect waves-light btn-submit" >
+							Submit
+						</button>
+					</form>
+
+					<p class="white-text">
+						<a [routerLink]="['/login']" class="back-to-login">Back to login</a>
+					</p>
+				</div>
+
+				<div class="loader-container center-align"  *ngIf="showLoading">
+					<div class="preloader-wrapper big active">
+						<div class="spinner-layer spinner-red-only">
+							<div class="circle-clipper left">
+								<div class="circle"></div>
+							</div><div class="gap-patch">
+								<div class="circle"></div>
+							</div><div class="circle-clipper right">
+								<div class="circle"></div>
+							</div>
+						</div>
+					</div>
+					<div class="white-text">{{loadingText}}</div>
+				</div>
+
+				<div class="center-align" *ngIf="showCorrectField">
+					<i class="material-icons large green-text">check</i>
+					<h5 class="white-text new-password-text">
+						{{ correctMessage }}
+					</h5>
+				</div>
+
+				<div *ngIf="showFormNewPassword">
+					<h1 class="white-text">New password</h1>
+					<p class="white-text">Please set your new password</p><br>
+
+					<form novalidate #formPassword="ngForm" (ngSubmit)="submitNewPassword(formPassword, $event)" >
+						<p class="invalid-message"   >
+							<span>{{ InvalidMessagePassword }}</span>
+						</p>
+						<input type="password" name="new_password" ngModel placeholder="Enter your new password here" minlength="6" required>
+						<input type="password" name="confirm_password" ngModel placeholder="Confirm your password here" minlength="6" required>
+
+						<button type="submit" class="btn waves-effect waves-light btn-submit" >
+							Submit
+						</button>
+					</form>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+</div>
+
+<div id="modalMsg" class="modal">
+	<div class="modal-content center-align">
+		<i class="material-icons large green-text" [hidden]="!showCheckIcon">check</i>
+		<i class="material-icons large red-text" [hidden]="!showCloseIcon">close</i>
+		<h5>
+			{{message}}
+		</h5>
+	</div>
+	<div class="modal-footer">
+		<a href="javascript:void(0)" class="modal-action modal-close waves-effect waves-green btn-flat">CLOSE</a>
+	</div>
+</div>
+
