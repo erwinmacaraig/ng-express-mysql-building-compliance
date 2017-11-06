@@ -101,7 +101,7 @@ import * as Promise from 'promise';
 			data : {}
 		},
 		error = 0,
-		arrValidField = [ 'creator_id', 'company_name', 'tenant_key_contact', 'building_name', 'unit_no', 'street', 'city', 'state', 'postal_code', 'country', 'time_zone' ];
+		arrValidField = [ 'creator_id', 'company_name', 'tenant_key_contact', 'building_name', 'unit_no', 'street', 'city', 'state', 'postal_code', 'country', 'time_zone', 'account_domain', 'trp_code' ];
 		arrValidField.forEach((val)=>{ if( val in reqBody === false ){ error++; } });
 
 		if(error == 0){
@@ -126,6 +126,7 @@ import * as Promise from 'promise';
 		data.state = this.capitalizeFirstLetter(data.state.toLowerCase());
 		data.tenant_key_contact = this.capitalizeFirstLetter(data.tenant_key_contact.toLowerCase());
 		data.unit_no = validator.isEmpty( ''+data['unit_no']+'' ) ? ' ' : data['unit_no'];
+		data.account_domain = data.account_domain.toLowerCase();
 		return data;
 	}
 
@@ -140,7 +141,9 @@ import * as Promise from 'promise';
 					'billing_city' : data.city,
 					'billing_state': data.state,
 					'billing_postal_code' : data.postal_code,
-					'billing_country' : data.country
+					'billing_country' : data.country,
+					'trp_code' : data.trp_code,
+					'account_domain' : data.account_domain
 				},
 				locationData = {
 					'parent_id' : '-1',

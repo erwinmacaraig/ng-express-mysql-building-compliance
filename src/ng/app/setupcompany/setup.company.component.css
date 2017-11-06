@@ -176,15 +176,17 @@
 
 	#modalSignup,
 	#modalLoader {
-	    width: 50%;
+	    width: 85%;
 	}
 
 	.modal .modal-content {
 	    padding: 20px 0px;
 	}
 
-	.input-field{
+	.input-field,
+	.select-field{
 		width: 100%;
+		padding: 0px 10px !important;
 	}
 }
 
@@ -202,7 +204,7 @@
 
 	#modalSignup,
 	#modalLoader {
-	    width: 60%;
+	    width: 85%;
 	    margin-bottom: 100px;
 	}
 

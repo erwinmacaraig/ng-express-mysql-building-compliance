@@ -261,6 +261,8 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		f.controls.city.setValue(selectedAccount.city);
 		f.controls.state.setValue(selectedAccount.state);
 		f.controls.postal_code.setValue(selectedAccount.postal_code);
+		f.controls.trp_code.setValue(selectedAccount.trp_code);
+		f.controls.account_domain.setValue(selectedAccount.account_domain);
 
 		this.selCountry = selectedAccount.country;
 		$('#selCountry').val( selectedAccount.country );
@@ -278,6 +280,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.searchedAccounts = [];
 		this.searchElem['searchContainer'].removeClass('active');
 		$('[readonly]').removeAttr('readonly');
+		$('[for="company_name"]').html('Company Name Here');
 		f.reset();
 		this.newCompany = true;
 	}
