@@ -118,6 +118,20 @@
 									<label class="select-label">Time-Zone</label>
 								</div>
 
+								<div class="input-field col m6">
+									<input id="trpCode" type="text" name="trp_code" ngModel #trpCode="ngModel" [ngClass]="{ 'invalid' : !trpCode.valid  && inpState.dirty }" required readonly="true">
+									<label for="trpCode">TRP Code
+										<small *ngIf=" !trpCode.valid && trpCode.dirty "> *Required </small>
+									</label>
+								</div>
+
+								<div class="input-field col m6">
+									<input id="domain" type="text" name="account_domain" ngModel #inpDomain="ngModel" [ngClass]="{ 'invalid' : !inpDomain.valid  && inpDomain.dirty }" required readonly="true">
+									<label for="domain">Account Domain name
+										<small *ngIf=" !inpDomain.valid && inpDomain.dirty "> *Required </small>
+									</label>
+								</div>
+
 								<div class="select-field col m12 s12"></div>
 
 								<div class="input-field col m6 s12 right-align">
