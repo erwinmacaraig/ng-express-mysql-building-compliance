@@ -84,7 +84,7 @@
 	display: inline;
 }
 
-[readonly]{
+[readonly]:not(.select-dropdown){
 	pointer-events: none;
 }
 

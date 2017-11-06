@@ -30,6 +30,7 @@ import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
+import { NoemailComponent } from './noemail/noemail.component';
 
 @NgModule({
   declarations: [
@@ -49,7 +50,8 @@ import { CustomHttpDataProviderComponent } from './custom-http-data-provider/cus
     SignupSelectRoleComponent,
     SignupUserInfoComponent,
     SendInviteComponent,
-    CustomHttpDataProviderComponent
+    CustomHttpDataProviderComponent,
+    NoemailComponent
   ],
   imports: [
     BrowserModule,

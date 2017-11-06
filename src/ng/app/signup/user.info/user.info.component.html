@@ -71,6 +71,20 @@
 								</label>
             				</div>
 
+            				<div class="select-field col m12 s12" *ngIf="selectAccountType == 3">
+								<select id="securityQuestion" [(ngModel)]="selectedSecurityQuestion" name="security_question" required>
+									<option value="0" disabled selected>Please select security question</option>
+									<option *ngFor="let q of securityQuestions" value="{{ q.security_question_id }}"> {{ q.question }} </option>
+								</select>
+							</div>
+							
+							<div class="input-field col m12" *ngIf="selectAccountType == 3">
+								<input type="text" name="security_answer" ngModel #inpSecAnswer="ngModel" [ngClass]="{ 'invalid' : !inpSecAnswer.valid && inpSecAnswer.dirty }" required>
+								<label for="password">Security Answer
+									<small *ngIf=" !inpSecAnswer.valid && inpSecAnswer.dirty "> *Required </small>
+								</label>
+							</div>
+
 				            <div  class="input-field col m12" *ngIf="invitationCodePresent">
 				              <input type="text" disabled name="account_type_name" id="account_type_name" [ngModel]="inviCode.role_text">
 				              <label for="account_type_name" class="active">Account Type</label>
@@ -83,6 +97,8 @@
 								</select>
 								<!-- <label class="select-label">Account Type</label> -->
 							</div>
+
+							
 
 							<!--
 							<div class="select-field col m12 s12">
