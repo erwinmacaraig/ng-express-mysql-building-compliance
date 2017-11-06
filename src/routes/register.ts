@@ -158,7 +158,7 @@ const md5 = require('md5');
 		if( !validator.isInt( ''+data.role_id+'' ) ){
 			response.data['role_id'] = ' Role id is required and must be a number ';
 			errors++;
-		}else{
+		}else if(data.role_id == 3){
 			if( !validator.isInt( ''+data.question_id+'' ) ){
 				response.data['role_id'] = ' Question id is required and must be a number ';
 				errors++;
