@@ -233,6 +233,7 @@ h5[myaccount]{
 
 .burger-content.inactive{
   opacity: 0;
+  z-index: 0;
 }
 
 .burger-content ul{
@@ -258,7 +259,6 @@ h5[myaccount]{
   display: inline-block !important;
   margin-right: 10px;
 }
-
 
 @media only screen
   and (max-width: 1220px){

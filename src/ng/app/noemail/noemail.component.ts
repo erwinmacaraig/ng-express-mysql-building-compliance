@@ -65,6 +65,7 @@ export class NoemailComponent implements OnInit {
 						this.showLoading = false;
 						this.securityQuestion = response.data.question;
 						this.securityQuestionID = response.data.question_id;
+						this.securityUserID = response.data.user_id;
 					}, 1000);
 				}else{
 					setTimeout(() => {
@@ -87,27 +88,34 @@ export class NoemailComponent implements OnInit {
 			this.showFormTwoContainer = false;
 			this.showLoading = true;
 
-			this.fpService.submitSecurityQuestion({ answer : f.controls.answer.value, question_id : this.securityQuestionID }, (response) => {
-				if(response.status){
-					this.showFormTwoContainer = false;
-					this.showLoading = false;
-					this.showCorrectField = true;
-					this.correctMessage = 'Correct! please setup your new password in the next form.';
-					this.securityToken = response.data.token;
-					this.securityUserID = response.data.user_id;
-					setTimeout(() => {
-						this.showCorrectField = false;
-						this.showFormNewPassword = true;
+			this.fpService.submitSecurityQuestion(
+				{ 
+					answer : f.controls.answer.value, 
+					question_id : this.securityQuestionID,
+					user_id : this.securityUserID
+				}, 
+				(response) => {
+					if(response.status){
+						this.showFormTwoContainer = false;
 						this.showLoading = false;
-					}, 2000);
-				}else{
-					setTimeout(() => {
-						this.InvalidMessageTwo = response.message;
-						this.showFormTwoContainer = true;
-						this.showLoading = false;
-					}, 500);
+						this.showCorrectField = true;
+						this.correctMessage = 'Correct! please setup your new password in the next form.';
+						this.securityToken = response.data.token;
+						this.securityUserID = response.data.user_id;
+						setTimeout(() => {
+							this.showCorrectField = false;
+							this.showFormNewPassword = true;
+							this.showLoading = false;
+						}, 2000);
+					}else{
+						setTimeout(() => {
+							this.InvalidMessageTwo = response.message;
+							this.showFormTwoContainer = true;
+							this.showLoading = false;
+						}, 500);
+					}
 				}
-			});
+			);
 
 		}else{
 			this.InvalidMessageTwo = 'Answer is required';

@@ -8,7 +8,7 @@ import { UserRoleRelation } from '../models/user.role.relation.model';
 import { LocationAccountUser } from '../models/location.account.user';
 import { InvitationCode } from '../models/invitation.code.model';
 import { EmailSender } from '../models/email.sender';
-
+import { BlacklistedEmails } from '../models/blacklisted-emails';
 
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
@@ -605,56 +605,65 @@ import * as Promise from 'promise';
 						},
 						() => {
 
-							let invitationCode = this.generateRandomChars(25),
-								inviModel = new InvitationCode(),
-								inviData = {
-									'code' : invitationCode,
-									'first_name' : reqBody.first_name,
-									'last_name' : reqBody.last_name,
-									'email' : reqBody.email,
-									'location_id' : reqBody.location_id,
-									'account_id' : reqBody.account_id,
-									'role_id' : reqBody.account_type,
-									'was_used' : 0
-								};
+							const blacklistedEmails = new BlacklistedEmails();
+							if(!blacklistedEmails.isEmailBlacklisted(reqBody.email)){
+								let invitationCode = this.generateRandomChars(25),
+									inviModel = new InvitationCode(),
+									inviData = {
+										'code' : invitationCode,
+										'first_name' : reqBody.first_name,
+										'last_name' : reqBody.last_name,
+										'email' : reqBody.email,
+										'location_id' : reqBody.location_id,
+										'account_id' : reqBody.account_id,
+										'role_id' : reqBody.account_type,
+										'was_used' : 0
+									};
 
-							// SPECIFY THE LOCATION ID
-							if(reqBody.account_type == 2 || reqBody.account_type == 3){
-								if( Object.keys( reqBody.sublocations ).length > 0 ){
-									inviData.location_id = reqBody.sublocations[0]['location_id'];
+								// SPECIFY THE LOCATION ID
+								if(reqBody.account_type == 2 || reqBody.account_type == 3){
+									if( Object.keys( reqBody.sublocations ).length > 0 ){
+										inviData.location_id = reqBody.sublocations[0]['location_id'];
+									}
 								}
+
+								for(let i in inviData){
+									inviModel.set(i, inviData[i]);
+								}
+
+								inviModel.dbInsert().then(
+									() => {
+										let inviDataResponse = inviModel.getDBData();
+										inviData = Object.assign(inviDataResponse, inviData);
+
+										this.sendUserInvitationEmail(
+											req,
+											inviData,
+											creatorData,
+											() => {
+												res.statusCode = 200;
+												response.status = true;
+												response.message = 'Success';
+												res.send(response);
+											},
+											(msg) => {
+												response.message = 'Error on sending email';
+												res.send(response);
+											}
+										);
+									},
+									() => {
+										response.message = 'Error on saving invitation code';
+										res.send(response);
+									}
+								);
+							}else{
+								response.status = false;
+								response['domain_blacklisted'] = true;
+								response.message = "Email's domain must be non-commercial";
+								res.send(response);
 							}
 
-							for(let i in inviData){
-								inviModel.set(i, inviData[i]);
-							}
-
-							inviModel.dbInsert().then(
-								() => {
-									let inviDataResponse = inviModel.getDBData();
-									inviData = Object.assign(inviDataResponse, inviData);
-
-									this.sendUserInvitationEmail(
-										req,
-										inviData,
-										creatorData,
-										() => {
-											res.statusCode = 200;
-											response.status = true;
-											response.message = 'Success';
-											res.send(response);
-										},
-										(msg) => {
-											response.message = 'Error on sending email';
-											res.send(response);
-										}
-									);
-								},
-								() => {
-									response.message = 'Error on saving invitation code';
-									res.send(response);
-								}
-							);
 
 						}
 					);
