@@ -10,7 +10,7 @@ import { LocationAccountUser } from '../models/location.account.user';
 import { SecurityQuestions } from '../models/security-questions.model';
 import { SecurityAnswers } from '../models/security-answers.model';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
-
+import { Utils } from '../models/utils.model';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -35,35 +35,80 @@ const md5 = require('md5');
    	* @method create
    	* @static
    	*/
-	public static create(router: Router) {
-	   	// add register route
-	   	router.post('/register', (req: Request, res: Response, next: NextFunction) => {
-	   		new RegisterRoute().index(req, res, next);
-	   	});
+  public static create(router: Router) {
+      // add register route
+      router.post('/register', (req: Request, res: Response, next: NextFunction) => {
+        new RegisterRoute().index(req, res, next);
+      });
 
-	   	router.get('/users', (req: Request, res: Response, next: NextFunction) => {
-	   		new RegisterRoute().getUsers(req, res, next);
-	   	});
+      router.get('/users', (req: Request, res: Response, next: NextFunction) => {
+        new RegisterRoute().getUsers(req, res, next);
+      });
 
-	   	// Verify user for first signed user
-	   	router.get('/register/user-verification/:user_id/:token/:redirect', (req: Request, res: Response, next: NextFunction) => {
-	   		new RegisterRoute().userVerification(req, res, next);
-	   	});
+      // Verify user for first signed user
+      router.get('/register/user-verification/:user_id/:token/:redirect', (req: Request, res: Response, next: NextFunction) => {
+        new RegisterRoute().userVerification(req, res, next);
+      });
 
-	   	router.get('/get-security-questions', (req: Request, res: Response, next: NextFunction) => {
-	   		new RegisterRoute().getSecurityQuestions(req, res, next);
-	   	});
-   	}
+      router.get('/get-security-questions', (req: Request, res: Response, next: NextFunction) => {
+        new RegisterRoute().getSecurityQuestions(req, res, next);
+      });
 
-	/**
+      router.get('/user-account-validation/:validation_id/:frp/:user/:account', (req: Request, res: Response, next: NextFunction) => {
+        new RegisterRoute().validateUserAgainstAccount(req, res, next);
+      });
+    }
+
+  /**
 	* Constructor
 	*
 	* @class RegisterRoute
 	* @constructor
 	*/
-	constructor() {
-		super();
-	}
+  constructor() {
+    super();
+  }
+
+  public validateUserAgainstAccount(req: Request, res: Response, next: NextFunction) {
+      // get parameters
+      const user_frp_validation_id = req.params.validation_id;
+      const FRP_user_id = req.params.frp;
+      const user_id = req.params.user;
+      const account_id = req.params.account;
+      const validatedUser = new User(user_id);
+      const utils = new Utils();
+      utils.validateUserIntoAccount(user_frp_validation_id, user_id, FRP_user_id, account_id).then((data) => {
+        // email user that he is validated.
+        validatedUser.load().then(() => {
+          const emailOpts = {
+            'from': 'allantaw2@gmail.com',
+            'fromName': 'EvacConnect Compliance Management System',
+            'to': ['emacaraig@evacgroup.com.au'],
+            'subject': 'User Validation Successful',
+            'body': `
+            Hi <strong>${validatedUser.get('first_name')} ${validatedUser.get('last_name')}</strong>,
+            <br /> <br />
+            Your account has been successfully validated. <br />
+            You can now login to <a href="${req.protocol}://${req.get('host')}${req.originalUrl}/login">EvacConnect Compliance Management System</a>
+            <br />
+            Thank you.
+            `,
+          };
+          const email = new EmailSender(emailOpts);
+          email.send(
+            (d) => console.log(d),
+            (err) => console.log(err)
+          );
+          return res.redirect('/success-valiadation?account-validation=1');
+        });
+
+      }).catch((e) => {
+        res.status(400).send({
+          message: e
+        });
+      });
+
+  }
 
 	/**
 	 * Required keys
@@ -648,8 +693,6 @@ const md5 = require('md5');
 				res.send(response);
 			}
 		);
-
-
-	}
+  }
 
 }

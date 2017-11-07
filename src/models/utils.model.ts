@@ -41,6 +41,7 @@ export class Utils {
             resolve(results);
           }
         });
+        connection.end();
       }); // end Promise
     }
 
@@ -88,8 +89,127 @@ export class Utils {
             resolve(results);
           }
         });
+        connection.end();
       }); // end of promise
     }
+
+    public storeRequestValidation(validation_request: any): Promise<number> {
+      console.log(validation_request);
+      return new Promise((resolve, reject) => {
+        const sql_request = `INSERT INTO user_frp_validation (
+          user_id,
+          FRP_user_id,
+          validation_request_date
+        )
+        VALUES (
+          ?,
+          ?,
+          NOW()
+        )`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_request, [
+          validation_request['user_id'],
+          validation_request['approvalFrom']
+        ], (error, results, fields) => {
+          if (error) {
+            console.log('Error here', error);
+            reject(error);
+          }
+          console.log(results);
+          resolve(results.insertId);
+        });
+        connection.end();
+      });
+    }
+
+    public getUserAccountRoleLocationInfo(user_id: number,
+           location_id: number,
+           account_id: number) {
+
+      return new Promise((resolve, reject) => {
+        const sql_get = `SELECT
+                            user_role_relation.role_id,
+                            IF(user_role_relation.role_id=2, 'Building Manager', 'Tenant') as role_text,
+                            locations.name,
+                            locations.unit,
+                            locations.street,
+                            locations.city,
+                            locations.state,
+                            locations.postal_code,
+                            accounts.account_name
+                        FROM
+                            locations
+                        INNER JOIN
+                            location_account_user
+                        ON
+                            locations.location_id = location_account_user.location_id
+                        INNER JOIN
+                            accounts
+                        ON
+                            location_account_user.account_id = accounts.account_id
+                        INNER JOIN
+                            user_role_relation
+                        ON
+                            user_role_relation.user_id = location_account_user.user_id
+                        WHERE
+                            location_account_user.user_id = ?
+                        AND
+                           location_account_user.location_id = ?
+                        AND
+                            location_account_user.account_id = ?`;
+
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql_get, [
+            user_id,
+            location_id,
+            account_id
+          ], (error, results, fields) => {
+            if (error) {
+              console.log('Error here', error);
+              reject(error);
+            }
+            resolve(results[0]);
+          });
+          connection.end();
+
+      });
+    }
+    public validateUserIntoAccount(validationId: number, userId: number, frpId: number, accountId: number) {
+      return new Promise((resolve, reject) => {
+        const sql_upate = `UPDATE
+                            user_frp_validation
+                          INNER JOIN
+                            users
+                          ON
+                            user_frp_validation.user_id = users.user_id
+                          SET
+                            response = 1,
+                            account_id = ?,
+                            response_date = NOW()
+                          WHERE
+                            user_frp_validation_id = ?
+                          AND
+                            users.user_id = ?
+                          AND
+                            FRP_user_id = ?`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_upate, [
+          accountId,
+          validationId,
+          userId,
+          frpId
+        ], (error, results, fields) => {
+          if (error) {
+            console.log(error);
+            reject(error);
+          }
+          resolve(true);
+        });
+        connection.end();
+      });
+
+    }
+
 }
 
 

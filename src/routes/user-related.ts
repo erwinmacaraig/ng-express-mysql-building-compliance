@@ -8,6 +8,7 @@ import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { Utils } from '../models/utils.model';
 import * as validator from 'validator';
+import { EmailSender } from '../models/email.sender';
 
 export class UserRelatedRoute extends BaseRoute {
   public static create(router: Router) {
@@ -29,6 +30,10 @@ export class UserRelatedRoute extends BaseRoute {
 
     router.get('/listAllTRP', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new UserRelatedRoute().listAllTRP(req, res);
+    });
+
+    router.post('/validate-info', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response)=> {
+      new UserRelatedRoute().processValidation(req, res);
     });
   }
 
@@ -185,6 +190,71 @@ export class UserRelatedRoute extends BaseRoute {
         message: e
       });
     });
+  }
+
+  public processValidation(req: AuthRequest, res: Response) {
+    const user = req.user;
+    const location_id = req.body.location_id;
+    const account_id = req.body.account_id;
+    const userDomain =  user['email'].substr( user['email'].indexOf('@') + 1,  user['email'].length);
+    const approver = new User(req.body.approvalFrom);
+
+    // get all user details
+    // console.log(user);
+    console.log(req.body);
+    const utils = new Utils();
+    // save request validation
+    const requestValidationData = {
+      'user_id': user['user_id'],
+      'approvalFrom': parseInt(req.body.approvalFrom, 10)
+    };
+    approver.load().then(() => {
+      utils.getUserAccountRoleLocationInfo(user['user_id'], location_id, account_id).then((r) => {
+        utils.storeRequestValidation(requestValidationData).then((data) => {
+          const emailOpts = {
+            'from': 'allantaw2@gmail.com',
+            'fromName': 'EvacConnect Compliance Management System',
+            'to': ['emacaraig@evacgroup.com.au'],
+            'subject': 'User Validation',
+            'body': `
+            Hi <strong>${approver.get('first_name')} ${approver.get('last_name')}</strong>,
+            <br /> <br />
+            This person is trying to register as a <strong>${r['role_text']}</strong> to <strong>${r['account_name']}</strong>.
+            <br /><br />Please refer to the information below:<br />
+            Name: <strong>${user['first_name']}</strong><br />
+            Last Name: <strong>${user['last_name']}</strong> <br />
+            Email: <strong> ${user['email']}</strong> <br />
+            Submitted TRP Code: <strong>${req.body.trp_code}</strong><br />
+            Domain Name Submitted: <strong> ${userDomain}</strong> <br />
+            Location:
+            <strong>${r['name']} ${r['unit']} ${r['street']} ${r['city']} ${r['state']} ${r['postal_code']}</strong>
+            <br />
+            approver email :${approver.get('email')}
+            <br /><br />
+            Please click on the link below to verify this user or just ignore this message. <br />
+            <a href="${req.protocol}://${req.get('host')}/user-account-validation/${data}/${req.body.approvalFrom}/${user['user_id']}/${account_id}"
+            target="_blank" style="text-decoration:none; color:#0277bd;">
+            ${req.protocol}://${req.get('host')}/user-account-validation/${data}/${req.body.approvalFrom}/${user['user_id']}/${account_id}
+            </a>
+            <br /><br />
+            Thank you.
+            `,
+          };
+          const email = new EmailSender(emailOpts);
+          email.send((d) => console.log(d),
+          (err) => console.log(err));
+
+          return res.status(200).send({
+            status: 'OK',
+            data: data
+          });
+        }); // request validation
+
+      }); // get UserAccountRoleLocationInfo
+    }); // load
+   // get info to be validated
+
+
 
   }
 }
