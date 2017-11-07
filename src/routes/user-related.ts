@@ -225,6 +225,7 @@ export class UserRelatedRoute extends BaseRoute {
 
   public processValidation(req: AuthRequest, res: Response) {
     const user = req.user;
+    const role_id = req.body.role_id;
     const location_id = req.body.location_id;
     const account_id = req.body.account_id;
     const userDomain =  user['email'].substr( user['email'].indexOf('@') + 1,  user['email'].length);
@@ -240,12 +241,14 @@ export class UserRelatedRoute extends BaseRoute {
       'approvalFrom': parseInt(req.body.approvalFrom, 10)
     };
     approver.load().then(() => {
-      utils.getUserAccountRoleLocationInfo(user['user_id'], location_id, account_id).then((r) => {
+      utils.getAccountLocationRelationInfo(location_id, account_id).then((r) => {
         utils.storeRequestValidation(requestValidationData).then((data) => {
+          r['role_text'] = (role_id == 1) ? 'Building Manager' : 'Tenant';
+
           const emailOpts = {
             'from': 'allantaw2@gmail.com',
             'fromName': 'EvacConnect Compliance Management System',
-            'to': ['emacaraig@evacgroup.com.au'],
+            'to': [approver.get('email')],
             'subject': 'User Validation',
             'body': `
             Hi <strong>${approver.get('first_name')} ${approver.get('last_name')}</strong>,
@@ -259,13 +262,11 @@ export class UserRelatedRoute extends BaseRoute {
             Domain Name Submitted: <strong> ${userDomain}</strong> <br />
             Location:
             <strong>${r['name']} ${r['unit']} ${r['street']} ${r['city']} ${r['state']} ${r['postal_code']}</strong>
-            <br />
-            approver email :${approver.get('email')}
             <br /><br />
             Please click on the link below to verify this user or just ignore this message. <br />
-            <a href="${req.protocol}://${req.get('host')}/user-account-validation/${data}/${req.body.approvalFrom}/${user['user_id']}/${account_id}"
+            <a href="${req.protocol}://${req.get('host')}/user-account-validation/${data}/${req.body.approvalFrom}/${user['user_id']}/${account_id}/${location_id}"
             target="_blank" style="text-decoration:none; color:#0277bd;">
-            ${req.protocol}://${req.get('host')}/user-account-validation/${data}/${req.body.approvalFrom}/${user['user_id']}/${account_id}
+            ${req.protocol}://${req.get('host')}/user-account-validation/${data}/${req.body.approvalFrom}/${user['user_id']}/${account_id}/${location_id}
             </a>
             <br /><br />
             Thank you.
@@ -279,9 +280,20 @@ export class UserRelatedRoute extends BaseRoute {
             status: 'OK',
             data: data
           });
-        }); // request validation
+        }).catch((e) => {
+          console.log(e);
+          return res.status(400).send({
+            status: 'Bad request storeRequestValidation',
+            data: e
+          });
+        });// request validation
 
       }); // get UserAccountRoleLocationInfo
+    }).catch((e) => {
+      return res.status(400).send({
+        status: 'Bad request approver',
+        data: e
+      });
     }); // load
    // get info to be validated
 

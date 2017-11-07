@@ -49,7 +49,7 @@ const appRoutes: Routes = [
   { path : 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
-  { path: 'validation-criteria', component: AccountValidationCriteriaComponent },
+  { path: 'validation-criteria', canActivate: [AuthGuard], component: AccountValidationCriteriaComponent },
   { path: '**', redirectTo: '/dashboard'}
 ];
 

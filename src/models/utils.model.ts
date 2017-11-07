@@ -122,14 +122,12 @@ export class Utils {
       });
     }
 
-    public getUserAccountRoleLocationInfo(user_id: number,
+    public getAccountLocationRelationInfo(
            location_id: number,
            account_id: number) {
 
       return new Promise((resolve, reject) => {
         const sql_get = `SELECT
-                            user_role_relation.role_id,
-                            IF(user_role_relation.role_id=2, 'Building Manager', 'Tenant') as role_text,
                             locations.name,
                             locations.unit,
                             locations.street,
@@ -140,27 +138,20 @@ export class Utils {
                         FROM
                             locations
                         INNER JOIN
-                            location_account_user
+                            location_account_relation
                         ON
-                            locations.location_id = location_account_user.location_id
+                            locations.location_id = location_account_relation.location_id
                         INNER JOIN
                             accounts
                         ON
-                            location_account_user.account_id = accounts.account_id
-                        INNER JOIN
-                            user_role_relation
-                        ON
-                            user_role_relation.user_id = location_account_user.user_id
+                            location_account_relation.account_id = accounts.account_id
                         WHERE
-                            location_account_user.user_id = ?
+                           location_account_relation.location_id = ?
                         AND
-                           location_account_user.location_id = ?
-                        AND
-                            location_account_user.account_id = ?`;
+                            location_account_relation.account_id = ?`;
 
           const connection = db.createConnection(dbconfig);
           connection.query(sql_get, [
-            user_id,
             location_id,
             account_id
           ], (error, results, fields) => {
@@ -168,6 +159,7 @@ export class Utils {
               console.log('Error here', error);
               reject(error);
             }
+            console.log(results);
             resolve(results[0]);
           });
           connection.end();

@@ -193,6 +193,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		userData = this.auth.getUserData(),
 		formData = f.value;
 		formData.creator_id = userData.userId;
+		formData.unit_no = (formData.unit_no === null) ? '' : formData.unit_no; 
 		return formData;
 	}
 
@@ -218,7 +219,10 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	        		'account_id' : this.selectedAccountData['account_id'],
 	        		'location_id' : this.selectedAccountData['location_id']
 	        	};
-	        	this.router.navigate(['/validation-criteria'], { queryParams: qParam });
+
+	        	location.replace( this.baseUrl + '/validation-criteria?account_id='+qParam.account_id+'&location_id='+qParam.location_id );
+
+	        	/*this.router.navigate(['/validation-criteria'], { queryParams: qParam });*/
 	        }
 
 		}else{

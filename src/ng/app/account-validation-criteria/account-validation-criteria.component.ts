@@ -137,7 +137,8 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
         'approvalFrom': approvalFrom,
         'trp_code': this.validationForm.controls.trp_code.value,
         'account_id': this.account,
-        'location_id': this.location
+        'location_id': this.location,
+        'role_id' : this.authService.getUserData()['roleId']
       };
       const header = new HttpHeaders({
         'Content-Type': 'application/json'

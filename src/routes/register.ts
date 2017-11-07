@@ -54,7 +54,7 @@ const md5 = require('md5');
         new RegisterRoute().getSecurityQuestions(req, res, next);
       });
 
-      router.get('/user-account-validation/:validation_id/:frp/:user/:account', (req: Request, res: Response, next: NextFunction) => {
+      router.get('/user-account-validation/:validation_id/:frp/:user/:account/:location', (req: Request, res: Response, next: NextFunction) => {
         new RegisterRoute().validateUserAgainstAccount(req, res, next);
       });
     }
@@ -75,32 +75,49 @@ const md5 = require('md5');
       const FRP_user_id = req.params.frp;
       const user_id = req.params.user;
       const account_id = req.params.account;
+      const location_id = req.params.location;
       const validatedUser = new User(user_id);
       const utils = new Utils();
       utils.validateUserIntoAccount(user_frp_validation_id, user_id, FRP_user_id, account_id).then((data) => {
-        // email user that he is validated.
-        validatedUser.load().then(() => {
-          const emailOpts = {
-            'from': 'allantaw2@gmail.com',
-            'fromName': 'EvacConnect Compliance Management System',
-            'to': ['emacaraig@evacgroup.com.au'],
-            'subject': 'User Validation Successful',
-            'body': `
-            Hi <strong>${validatedUser.get('first_name')} ${validatedUser.get('last_name')}</strong>,
-            <br /> <br />
-            Your account has been successfully validated. <br />
-            You can now login to <a href="${req.protocol}://${req.get('host')}${req.originalUrl}/login">EvacConnect Compliance Management System</a>
-            <br />
-            Thank you.
-            `,
-          };
-          const email = new EmailSender(emailOpts);
-          email.send(
-            (d) => console.log(d),
-            (err) => console.log(err)
-          );
-          return res.redirect('/success-valiadation?account-validation=1');
-        });
+
+      	const locationAccountUser = new LocationAccountUser();
+      	locationAccountUser.create({
+      		'user_id' : user_id,
+      		'location_id' : location_id,
+      		'account_id' : account_id
+      	}).then(
+      		() => {
+      			// email user that he is validated.
+		        validatedUser.load().then(() => {
+		          const emailOpts = {
+		            'from': 'allantaw2@gmail.com',
+		            'fromName': 'EvacConnect Compliance Management System',
+		            'to': [validatedUser.get('email')],
+		            'subject': 'User Validation Successful',
+		            'body': `
+		            Hi <strong>${validatedUser.get('first_name')} ${validatedUser.get('last_name')}</strong>,
+		            <br /> <br />
+		            Your account has been successfully validated. <br />
+		            You can now login to <a href="${req.protocol}://${req.get('host')}/login">EvacConnect Compliance Management System</a>
+		            <br />
+		            Thank you.
+		            `,
+		          };
+		          const email = new EmailSender(emailOpts);
+		          email.send(
+		            (d) => console.log(d),
+		            (err) => console.log(err)
+		          );
+		          return res.redirect('/success-valiadation?account-validation=1');
+		        });
+      		},
+      		() => {
+
+      		}
+      	);
+
+
+        
 
       }).catch((e) => {
         res.status(400).send({
