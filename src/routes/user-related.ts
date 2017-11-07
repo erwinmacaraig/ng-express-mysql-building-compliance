@@ -9,6 +9,7 @@ import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { Utils } from '../models/utils.model';
 import * as validator from 'validator';
 import { EmailSender } from '../models/email.sender';
+import { BlacklistedEmails } from '../models/blacklisted-emails';
 
 export class UserRelatedRoute extends BaseRoute {
   public static create(router: Router) {
@@ -127,11 +128,19 @@ export class UserRelatedRoute extends BaseRoute {
         message: errMessage
       });
     }
-    const user = new User(req.user.user_id);
-    user.load().then(() => {
-      user.create(req.body).then(() => {
-        return res.status(200).send({
-          'message': 'Success'
+
+    const saveAction = () => {
+      const user = new User(req.user.user_id);
+      user.load().then(() => {
+        user.create(req.body).then(() => {
+          return res.status(200).send({
+            'message': 'Success'
+          });
+        }).catch((e) => {
+          return res.status(400).send({
+            status: 'Bad Request',
+            message: e
+            });
         });
       }).catch((e) => {
         return res.status(400).send({
@@ -139,12 +148,34 @@ export class UserRelatedRoute extends BaseRoute {
           message: e
           });
       });
-    }).catch((e) => {
+    };
+
+    const blacklistedEmails = new BlacklistedEmails(),
+      isBlacked = blacklistedEmails.isEmailBlacklisted(req.body.email);
+
+    if(!isBlacked){
+      const userEmail = new User();
+      userEmail.getByEmail(req.body.email).then(
+        (userData) => {
+          if(userData['user_id'] == req.user.user_id){
+            saveAction();
+          }else{
+            return res.status(400).send({
+              status: false,
+              message: 'Email taken'
+            });
+          }
+        },
+        () => {
+          saveAction();
+        }
+      );
+    }else{
       return res.status(400).send({
-        status: 'Bad Request',
-        message: e
-        });
-    });
+        status: false,
+        message: 'Domain blacklisted'
+      });
+    }
   }
 
   public listAllFRP(req: AuthRequest, res: Response) {

@@ -41,30 +41,9 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 
 	arrUserType = Object.keys(this.UserType).map((key) => { return this.UserType[key]; });
 
-	saveWardenInvitationCodeText = "Save";
-	saveWardenInvitationCodeDisable = false;
-
-	showWardenInvitationCode = false;
-
-	modalLoaderElem;
-	modalLoader = {
-	    showLoader : true,
-	    loadingMessage : '',
-	    showMessage : false,
-	    iconColor: 'green',
-	    icon: 'check',
-	    message: ''
-	};
-
 	selectAccounts = [];
 	selectAccount = 0;
 	selectLocation = 0;
-
-	wardenInvitationCodeData = {
-		location_id : 0,
-		account_id : 0,
-		code : ''
-	};
 
 	constructor(
 		private platformLocation: PlatformLocation, 
@@ -85,23 +64,12 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	ngOnInit() {
 		this.userRoleID = this.userData['roleId'];
 		this.getAccountInfoAndDisplay();
-		
-		if(this.userRoleID == 1 || this.userRoleID == 2){
-			this.showWardenInvitationCode = true;
-		}
 	}
 
 	ngAfterViewInit(){
 		if(!$('.vertical-m').hasClass('fadeInRight')){
 			$('.vertical-m').addClass('fadeInRight animated');
 		}
-
-		this.modalLoaderElem = $('#modalLoader');
-		this.modalLoaderElem.modal({
-			dismissible: false,
-			startingTop: '0%', 
-			endingTop: '5%'
-		});
 	}
 
 	flattenRecurciveItems(items, index) {
@@ -142,7 +110,6 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 				this.companyName = resAccount.data['account_name'];
 				this.accountData = resAccount.data;
 				this.selectAccount = resAccount.data['account_id'];
-				this.wardenInvitationCodeData.account_id = resAccount.data['account_id'];
 
 				this.locationsService.getUsersLocationByIdAndAccountId(
 					{
@@ -153,7 +120,6 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 						let arrNames = [];
 						for(let i in resLocation.data){
 							this.selectLocation = resLocation.data[i]['location_id'];
-							this.wardenInvitationCodeData.location_id = resLocation.data[i]['location_id'];
 							arrNames.push(resLocation.data[i]['name']);
 						}
 						$('#inpLocationName').val( arrNames.join(', ') ).trigger('focusin');
@@ -186,16 +152,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	}
 
 	startEvents(){
-		/*SET WARDEN INVITATION CODE*/
 		if(Object.keys(this.accountData).length > 0){
-			if( this.accountData['account_code'] !== null ){
-				if(this.showWardenInvitationCode){
-					this.formWardenInvitationCode.controls.code.setValue(this.accountData['account_code']);
-					this.saveWardenInvitationCodeText = "Update";
-					$('#inpInviCode').trigger('focusin');
-				}
-			}
-
 			$('#inpCompanyName').val( this.accountData['account_name'] ).trigger('focusin');
 			for(let i in this.arrUserType){
 				if(this.userRoleID == this.arrUserType[i]['role_id']){
@@ -203,45 +160,6 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 				}
 			}
 		}
-
-		setTimeout(() => { $('select').material_select(); }, 300);
 	}
-
-
-	// COMPANY WARDEN INVITATION CODE SUBMIT EVENT
-	wardenInvitationCodeSubmit(f, e){
-		e.preventDefault();
-		if(f.valid){
-			this.modalLoader.showLoader = true;
-			this.modalLoader.loadingMessage = 'Saving warden invitation code...';
-			this.modalLoader.showMessage = false;
-			this.modalLoaderElem.modal('open');
-			this.wardenInvitationCodeData.code = f.controls.code.value.trim();
-			this.accountDataProviderService.saveAccountInvitationCode(
-				this.wardenInvitationCodeData, 
-				(response) => {
-					this.modalLoader.showLoader = false;
-					this.modalLoader.showMessage = true;
-					if(response.status){
-						this.modalLoader.icon = 'check';
-						this.modalLoader.iconColor = 'green';
-						this.modalLoader.message = 'Successfully updated!';
-						this.accountData['account_code'] = f.controls.code.value.trim();
-					}else{
-						this.modalLoader.icon = 'clear';
-						this.modalLoader.iconColor = 'red';
-						this.modalLoader.message = response.message;
-					}
-					setTimeout(()=>{ 
-						this.modalLoaderElem.modal('close'); 
-					}, 2000);
-				}
-			);
-
-		}else{
-			f.controls.code.markAsDirty();
-		}
-	}
-
 
 }

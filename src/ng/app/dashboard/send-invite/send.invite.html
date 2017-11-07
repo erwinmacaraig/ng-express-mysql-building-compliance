@@ -1,28 +1,29 @@
 <div class="row">
-	<div class="col s12 m6 l6" *ngIf="showSendInvite">
+	<div class="col s12 m8 l4" *ngIf="showSendInvite">
 		<h5 class="title">Send Invite</h5>
-		
+		<br>
 		<form class="invitation-form"  #formIniviteUser="ngForm" (ngSubmit)="submitInviteUsers(formIniviteUser, $event)" >
 
 			<div class="input-field">
-				<input id="inpFirstName" type="text" name="first_name" ngModel #inputFirstName="ngModel" [ngClass]="{ 'invalid' : !inputFirstName.valid  && inputFirstName.dirty }" required >
+				<input id="inpFirstName" type="text" name="first_name" ngModel #inputFirstName="ngModel" [ngClass]="{ 'invalid' : !inputFirstName.valid  && inputFirstName.dirty }" placeholder="First name here" required >
 				<label for="inpFirstName" >First Name
 					<small *ngIf=" !inputFirstName.valid && inputFirstName.dirty "> *Required </small>
 				</label>
 			</div>
 
 			<div class="input-field">
-				<input id="inpLastName" type="text" name="last_name" ngModel #inputLastName="ngModel" [ngClass]="{ 'invalid' : !inputLastName.valid  && inputLastName.dirty }" required >
+				<input id="inpLastName" type="text" name="last_name" ngModel #inputLastName="ngModel" [ngClass]="{ 'invalid' : !inputLastName.valid  && inputLastName.dirty }" placeholder="Last name here" required >
 				<label for="inpLastName" >Last Name
 					<small *ngIf=" !inputLastName.valid && inputLastName.dirty "> *Required </small>
 				</label>
 			</div>
 
 			<div class="input-field">
-				<input id="inpEmail" type="email" name="email" email ngModel #inputEmail="ngModel" [ngClass]="{ 'invalid' : !inputEmail.valid && inputEmail.dirty  }" required >
+				<input id="inpEmail" type="email" name="email" email ngModel #inputEmail="ngModel" [ngClass]="{ 'invalid' : !inputEmail.valid && inputEmail.dirty  }" placeholder="Email here" required >
 				<label for="inpEmail" >Email
 					<small *ngIf=" !inputEmail.valid && inputEmail.dirty "> *Invalid </small>
 					<span *ngIf=" emailTaken " email-taken class="red-text"> *Email taken </span>
+					<span *ngIf=" emailBlacklisted " class="red-text"> *Email's domain must be non-commercial </span>
 				</label>
 			</div>
 
@@ -49,9 +50,9 @@
 					<label class="select-label">Select Location </label>
 				</div>
 
-				<div class="input-field right-align">
+				<div class="input-field ">
 					<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
-					<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					<button  class="btn grey lighten-1 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
 				</div>
 			</div>
 
@@ -78,9 +79,9 @@
 				    </p>
 				</div>
 
-				<div class="input-field right-align">
+				<div class="input-field ">
 					<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
-					<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					<button  class="btn grey lighten-1 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
 				</div>
 			</div>
 
@@ -106,9 +107,9 @@
 					<label class="select-label">Select Specific Level(s) </label>
 				</div>
 				
-				<div class="input-field right-align">
+				<div class="input-field ">
 					<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
-					<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					<button  class="btn grey lighten-1 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
 				</div>
 			</div>
 
@@ -128,9 +129,9 @@
 				    </p>
 				</div>
 
-				<div class="input-field right-align">
+				<div class="input-field ">
 					<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
-					<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					<button  class="btn grey lighten-1 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
 				</div>
 			</div>
 
@@ -149,15 +150,32 @@
 					<label class="select-label">Select Specific Level(s) </label>
 				</div>
 				
-				<div class="input-field right-align">
+				<div class="input-field ">
 					<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
-					<button  class="btn grey lighten-2 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					<button  class="btn grey lighten-1 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
 				</div>
 			</div>
 
 		</form>
+	</div>
 
+	<div class="col l1 m1 hide-on-small-only" style="width: 10px;"></div>
 
+	<div class="col s12 m8 l4" *ngIf="showWardenInvitationCode">
+		<h5 class="title">Warden Invitation Code</h5>
+		<br>
+		<form  #formWardenInvitationCode="ngForm" (ngSubmit)="wardenInvitationCodeSubmit(formWardenInvitationCode, $event)">
+			<div class="input-field">
+				<input id="inpInviCode" type="text" name="code" minlength="4" ngModel #inpInviCode="ngModel" [ngClass]="{ 'invalid' : !inpInviCode.valid  && inpInviCode.dirty }" placeholder="Invitation code here" required>
+				<label for="inpInviCode" >Invitation Code
+					<small *ngIf=" !inpInviCode.valid && inpInviCode.dirty "> *Required </small>
+				</label>
+			</div>
+
+			<div class="input-field">
+				<button type="submit" class="btn orange waves-effect waves-light" > {{ saveWardenInvitationCodeText }} </button>
+			</div>
+		</form>
 	</div>
 </div>
 

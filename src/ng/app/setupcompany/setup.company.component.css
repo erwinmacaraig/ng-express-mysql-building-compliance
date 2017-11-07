@@ -92,15 +92,16 @@
 
 .search-container{
 	position: absolute;
-    width: 100%;
+    width: 96%;
     padding: 20px;
     z-index: 999;
-    background-color: #fafafa;
+    background-color: rgb(248, 249, 226);
     top: 65px;
-    max-height: 380px;
-    height: 380px;
     text-align: left;
     display: none;
+    box-shadow: 0px 5px 6px 0px #333;
+    border-radius: 3px;
+    margin: 0 2%;
 }
 
 .search-container.active{
@@ -108,12 +109,12 @@
 }
 
 .search-container ul{
-    height: 300px;
+    min-height: 100px;
     overflow-y: auto;
 }
 
 .search-container ul li a{
-	font-size: 18px;
+	font-size: 16px;
 }
 
 .search-container ul li a:hover{
@@ -121,18 +122,14 @@
 }
 
 .search-container .cant-find-my-company{
-	position: absolute;
-    bottom: 10px;
-    right: 10px;
+    text-align: center;
+    width: 55%;
+    margin: 0 auto;
 }
 
 .search-container .cant-find-my-company a{
-	color: #f44336;
+	color: #000000;
 	font-size: 18px;
-}
-
-.search-container .cant-find-my-company a:hover{
-	color: #eb7970;
 }
 
 .search-container .pre-loader-container{

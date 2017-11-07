@@ -34,10 +34,15 @@ export class SecurityAnswers extends BaseClass {
         });
     }
 
-    public getByQuestionId(qID:Number) {
+    public getByQuestionId(qID:Number, userId?:Number) {
         return new Promise((resolve, reject) => {
             let sql_load = 'SELECT * FROM security_answer WHERE security_question_id = ?  ',
-               param = [qID];
+              param = [qID];
+
+            if(userId){
+              sql_load += ' AND user_id = ? ';
+              param.push(userId);
+            }
 
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {

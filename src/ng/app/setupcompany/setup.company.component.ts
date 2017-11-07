@@ -50,6 +50,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 	newCompany = false;
 	selectedAccountData = {};
+	companyIsSelected = false;
 
 	defaultCountry = 'AU';
 	defaultTimeZone = 'AEST';
@@ -242,6 +243,8 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.selectedAccountData = selectedAccount;
 		this.searchedAccounts = [];
 		this.searchElem['searchContainer'].removeClass('active');
+		this.companyIsSelected = true;
+		this.newCompany = false;
  
 		$('select option').each(function(){
 			if($(this).text().indexOf(selectedAccount.time_zone) > -1){ 
@@ -283,6 +286,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		$('[for="company_name"]').html('Company Name Here');
 		f.reset();
 		this.newCompany = true;
+		this.companyIsSelected = true;
 	}
 
 }
