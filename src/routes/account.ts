@@ -101,7 +101,7 @@ import * as Promise from 'promise';
 			data : {}
 		},
 		error = 0,
-		arrValidField = [ 'creator_id', 'company_name', 'tenant_key_contact', 'building_name', 'unit_no', 'street', 'city', 'state', 'postal_code', 'country', 'time_zone', 'account_domain', 'trp_code' ];
+		arrValidField = [ 'creator_id', 'company_name', 'tenant_key_contact', 'building_name', 'unit_no', 'street', 'city', 'state', 'postal_code', 'country', 'time_zone', 'account_domain' ];
 		arrValidField.forEach((val)=>{ if( val in reqBody === false ){ error++; } });
 
 		if(error == 0){
@@ -369,7 +369,7 @@ import * as Promise from 'promise';
 										updateInvi.set('last_name', "");
 										updateInvi.setID(inviCodeData[0]['invitation_code_id']);
 
-										
+
 										updateInvi.dbUpdate().then(
 											success, error
 										);

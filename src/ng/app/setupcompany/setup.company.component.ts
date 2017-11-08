@@ -56,9 +56,9 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	defaultTimeZone = 'AEST';
 
 	constructor(
-		private router: Router, 
-		private http: HttpClient, 
-		platformLocation: PlatformLocation, 
+		private router: Router,
+		private http: HttpClient,
+		platformLocation: PlatformLocation,
 		private signupService:SignupService,
 		private auth: AuthService,
 		private accounts : AccountsDataProviderService,
@@ -70,12 +70,12 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.subscribeAndCheckUserHasAccountToSetup(router);
 	}
 
-	subscribeAndCheckUserHasAccountToSetup(router){
+	subscribeAndCheckUserHasAccountToSetup(router) {
 		router.events.subscribe((val) => {
-			if(val instanceof NavigationEnd){
+			if(val instanceof NavigationEnd) {
 				let userData = this.auth.getUserData();
 				if( userData ){
-					if( userData.roleId == '1' || userData.roleId == '2' ){
+					if( userData.roleId == '1' || userData.roleId == '2' ) {
 						if(userData.accountId > 0){
 							router.navigate(['/']);
 						}
@@ -108,7 +108,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.inputCompanyName.delay(50)
 			.map(event => event.target.value)
 			.subscribe((value) => {
-				if(!this.newCompany){
+				if(!this.newCompany) {
 					thisClass.searchElem['searchContainer'].addClass('active');
 					thisClass.searchElem['preLoaderMain'].show();
 				}
@@ -148,7 +148,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	setupResponse(res, f){
 		this.modalLoader.showLoader = false;
 		this.modalLoader.showMessage = true;
-		if(res.status){
+		if(res.status) {
 			this.modalLoader.message = 'Success! Redirecting...';
 			this.modalLoader.iconColor = 'green';
 			this.modalLoader.icon = 'check';
@@ -157,7 +157,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 			userdata.accountId = res.data.account.account_id;
 			this.auth.setUserData(userdata);
 			setTimeout(() => { location.replace(location.origin + '/dashboard/company-information'); }, 500);
-		}else{
+		} else {
 			this.modalLoader.iconColor = 'red';
 			this.modalLoader.icon = 'clear';
 			for(let i in res.data){
@@ -174,26 +174,26 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 	getFormData(f: NgForm){
 
-		if($('#selCountry').val() == null){
+		if($('#selCountry').val() == null) {
 			f.controls.country.setValue( this.defaultCountry );
-		}else{
+		} else {
 			f.controls.country.setValue( $('#selCountry').val() );
 		}
 
-		if($('#selTimezone').val() == null){
+		if ($('#selTimezone').val() == null) {
 			f.controls.time_zone.setValue( this.defaultTimeZone );
 		}else{
 			f.controls.time_zone.setValue( $('#selTimezone').val() );
 		}
-		
+
 		f.controls.country.markAsDirty();
 		f.controls.time_zone.markAsDirty();
 
-		let 
+		let
 		userData = this.auth.getUserData(),
 		formData = f.value;
 		formData.creator_id = userData.userId;
-		formData.unit_no = (formData.unit_no === null) ? '' : formData.unit_no; 
+		formData.unit_no = (formData.unit_no === null) ? '' : formData.unit_no;
 		return formData;
 	}
 
@@ -201,7 +201,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		event.preventDefault();
 		let formData = this.getFormData(f);
 
-		if(f.valid){
+		if(f.valid) {
 
 	        if(this.newCompany){
 
@@ -249,13 +249,13 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.searchElem['searchContainer'].removeClass('active');
 		this.companyIsSelected = true;
 		this.newCompany = false;
- 
+
 		$('select option').each(function(){
-			if($(this).text().indexOf(selectedAccount.time_zone) > -1){ 
+			if($(this).text().indexOf(selectedAccount.time_zone) > -1){
 				selectedAccount.time_zone = $(this).attr('value');
 			}
 		});
-		
+
 		f.controls.company_name.setValue(selectedAccount.account_name);
 		if(selectedAccount.tenant_key_contact != null){
 			f.controls.tenant_key_contact.setValue(selectedAccount.tenant_key_contact);
@@ -268,7 +268,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		f.controls.city.setValue(selectedAccount.city);
 		f.controls.state.setValue(selectedAccount.state);
 		f.controls.postal_code.setValue(selectedAccount.postal_code);
-		f.controls.trp_code.setValue(selectedAccount.trp_code);
+		// f.controls.trp_code.setValue(selectedAccount.trp_code);
 		f.controls.account_domain.setValue(selectedAccount.account_domain);
 
 		this.selCountry = selectedAccount.country;
@@ -278,7 +278,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 		setTimeout(() => {
 			$('input').trigger('focusin');
-			$('#selCountry').material_select(); 
+			$('#selCountry').material_select();
 			$('#selTimezone').material_select();
 		}, 100);
 	}

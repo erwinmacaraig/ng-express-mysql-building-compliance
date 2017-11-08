@@ -38,7 +38,7 @@
 											</div>
 										</div>
 									</div>
-									
+
 									<h6 *ngIf=" searchedAccounts.length  > 0 ">Did you mean?</h6>
 									<ul>
 										<li *ngFor="let account of searchedAccounts">
@@ -122,24 +122,25 @@
 									</select>
 									<label class="select-label">Time-Zone</label>
 								</div>
-
+                <!--
 								<div class="input-field col m6" [ngClass]="{ 'hide' : !newCompany, 'show' : newCompany || (newCompany && !formSetupCompany.valid) }">
 									<input id="trpCode" type="text" name="trp_code" ngModel #trpCode="ngModel" [ngClass]="{ 'invalid' : !trpCode.valid  && inpState.dirty }" required readonly="true">
 									<label for="trpCode">TRP Code
 										<small *ngIf=" !trpCode.valid && trpCode.dirty "> *Required </small>
 									</label>
 								</div>
-
-								<div class="input-field col m6" [ngClass]="{ 'hide' : !newCompany, 'show' : newCompany || (newCompany && !formSetupCompany.valid) }">
-									<input id="domain" type="text" name="account_domain" ngModel #inpDomain="ngModel" [ngClass]="{ 'invalid' : !inpDomain.valid  && inpDomain.dirty }" required readonly="true">
+                -->
+								<div class="input-field col m6" *ngIf="newCompany">
+									<input id="domain" type="text" name="account_domain" ngModel #inpDomain="ngModel" [ngClass]="{ 'invalid' : !inpDomain.valid  && inpDomain.dirty }" required>
 									<label for="domain">Account Domain name
 										<small *ngIf=" !inpDomain.valid && inpDomain.dirty "> *Required </small>
 									</label>
-								</div>
+                </div>
+
 
 								<div class="select-field col m12 s12"></div>
 
-								<div class="input-field col s12 right-align" 
+								<div class="input-field col s12 right-align"
 									[ngClass]="{ 'm12 l12 ' : (!companyIsSelected && !newCompany), 'l6 m6' : (companyIsSelected || newCompany) }">
 									<a href="/login" class="btn block waves-effect waves-light grey btn-go-back" >Go Back</a>
 								</div>

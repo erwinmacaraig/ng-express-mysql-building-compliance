@@ -25,6 +25,7 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
   private account = 0;
   toggleFRP = false;
   toggleTRP = false;
+  toggleCode = false;
   public emailDomain;
   public baseUrl;
   private elems = {};
@@ -110,7 +111,6 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
 
   onSubmitForValidation() {
     this.errMsg = '';
-    console.log(this.validationForm);
     const emailTo = this.validationForm.controls.emailcriteria.value;
     let approvalFrom = 0;
 
@@ -119,7 +119,7 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
     } else if (emailTo === 'TRPs') {
       approvalFrom = $('#TRPs').val();
     }
-
+    /*
     if (this.validationForm.controls.emailcriteria.invalid) {
       this.errMsg = `Please choose between verified by another FRP/TRP of your account.
 
@@ -128,17 +128,19 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
     if (this.validationForm.controls.trp_code.invalid) {
       this.errMsg = this.errMsg + `Please provide the TRP Code for this account.`;
     }
+    */
     if (this.validationForm.valid) {
 
       this.modalElem.modal({
         dismissible: false
       });
       const userData = {
-        'approvalFrom': approvalFrom,
-        'trp_code': this.validationForm.controls.trp_code.value,
+        'approvalFrom': approvalFrom || 0,
+        'trp_code': this.validationForm.controls.trp_code.value || '',
         'account_id': this.account,
         'location_id': this.location,
-        'role_id' : this.authService.getUserData()['roleId']
+        'role_id' : this.authService.getUserData()['roleId'],
+        'criteria': this.validationForm.controls.emailcriteria.value
       };
       const header = new HttpHeaders({
         'Content-Type': 'application/json'
@@ -151,6 +153,8 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
       this.modalElem.modal('open');
 
       });
+    } else {
+      this.errMsg = `Please choose any among the available validation criteria.`;
     }
   }
 
@@ -158,6 +162,7 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
   toggleFRPCtrl() {
     this.toggleFRP = true;
     this.toggleTRP = false;
+    this.toggleCode = false;
     if (this.toggleFRP) {
       $('#FRPs').material_select();
 
@@ -166,10 +171,17 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
 
   toggleTRPCtrl() {
     this.toggleFRP = false;
+    this.toggleCode = false;
     this.toggleTRP = true;
     if (this.toggleTRP) {
       $('#TRPs').material_select();
     }
+  }
+
+  toggleCodeCtrl() {
+    this.toggleCode = true;
+    this.toggleTRP = false;
+    this.toggleFRP = false;
   }
 
 

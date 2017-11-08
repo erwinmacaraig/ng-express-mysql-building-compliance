@@ -18,9 +18,13 @@
                       <input type="text" name="email_domain" [ngModel]="emailDomain"  readonly>
                       <label for="email_domain" class="active"> Your E-mail domain </label>
                   </div>
-                  <div class="input-field col m12">
-                    <input id="trp_code" type="text" name="trp_code" ngModel #trpCode [ngClass]="{ 'invalid' : !trpCode.valid  && trpCode.dirty }" required>
-                    <label for="trp_code">Please provide your TRP Code</label>
+                  <br />
+                  <p>
+                    <input name="emailcriteria" class="with-gap" type="radio" value="trp_code" ngModel id="codecriteria" (change)="toggleCodeCtrl()" required>
+                    <label for="codecriteria">Get verified using TRP Code</label>
+                  </p>
+                  <div class="input-field col m12" [hidden]="!toggleCode">
+                    <input id="trp_code" placeholder="Enter code here" type="text" name="trp_code" ngModel required>
                   </div>
                 <br />
                 <p>

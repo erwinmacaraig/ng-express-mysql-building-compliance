@@ -230,12 +230,20 @@ export class UserRelatedRoute extends BaseRoute {
     const account_id = req.body.account_id;
     const userDomain =  user['email'].substr( user['email'].indexOf('@') + 1,  user['email'].length);
     const approver = new User(req.body.approvalFrom);
-
+    const criteria = req.body.criteria;
+    console.log(req.body);
     // get all user details
     // console.log(user);
     console.log(req.body);
     const utils = new Utils();
     // save request validation
+
+    if (criteria === 'trp_code') {
+
+    }
+
+
+
     const requestValidationData = {
       'user_id': user['user_id'],
       'approvalFrom': parseInt(req.body.approvalFrom, 10)
