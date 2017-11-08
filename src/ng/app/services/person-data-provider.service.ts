@@ -47,5 +47,19 @@ export class PersonDataProviderService {
     this.options = { headers : this.headers, params: http_params };
     return this.http.get<any>(this.baseUrl + '/listAllTRP', this.options);
   }
+
+  public listValidationQuestion(location: number, account: number) {
+    const role_id = this.auth.userDataItem('roleId');
+    const http_params =
+      new HttpParams().set('account_id', account.toString())
+      .set('location_id', location.toString())
+      .set('role_id', role_id)
+      .set('currentQ', '1');
+
+    this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
+    this.options = { headers : this.headers, params: http_params };
+    return this.http.get<any>(this.baseUrl + '/list-validation-question', this.options);
+
+  }
 }
 

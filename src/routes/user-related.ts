@@ -36,6 +36,51 @@ export class UserRelatedRoute extends BaseRoute {
     router.post('/validate-info', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response)=> {
       new UserRelatedRoute().processValidation(req, res);
     });
+
+    router.get('/list-validation-question', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new UserRelatedRoute().generateValidationQuestions(req, res);
+    });
+  }
+
+  public generateValidationQuestions(req: AuthRequest, res: Response) {
+    let role_id = 0;
+    let account_id = 0;
+    console.log(req.query);
+    let numberOfValidationQuestions = 1;
+    let currentQuestionIndex = req.query.currentQ || 0;
+    let currentQuestion = 0;
+    if ('account_id' in req.query) {
+      account_id = req.query.account_id;
+    }
+    if ('role_id' in req.query) {
+      role_id = req.query.role_id;
+    }
+    const utils = new Utils();
+    // get total validation for the user and first question id
+    utils.queryValidationQuestions(role_id).then((results: any[]) => {
+      numberOfValidationQuestions = results.length;
+      if (currentQuestionIndex > results.length) {
+        currentQuestionIndex = 0;
+      }
+      console.log(results);
+      console.log(results[0]);
+      console.log(results[1]);
+      console.log(results[currentQuestionIndex]);
+      console.log('currentIndex = ' + currentQuestionIndex);
+      currentQuestion = results[currentQuestionIndex]['question_id'];
+      utils.deployQuestions(account_id, 0, req.user['user_id'], 2, currentQuestion).then((data) => {
+        console.log(data);
+        return res.status(200).send({
+          qid: currentQuestionIndex,
+          question: results[currentQuestionIndex]['question'],
+          choices: [10, data, 5]
+        });
+      });
+    });
+
+
+
+
   }
 
   public getUserInvitationCode(req: Request, res: Response, next: NextFunction) {
@@ -237,11 +282,6 @@ export class UserRelatedRoute extends BaseRoute {
     console.log(req.body);
     const utils = new Utils();
     // save request validation
-
-    if (criteria === 'trp_code') {
-
-    }
-
 
 
     const requestValidationData = {

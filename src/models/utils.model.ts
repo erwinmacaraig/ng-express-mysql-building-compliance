@@ -202,6 +202,76 @@ export class Utils {
 
     }
 
+    public deployQuestions(account_id: number,
+          location_id: number,
+          user_id: number,
+          role_id: number,
+          ctrl: number = 1) {
+
+      return new Promise((resolve, reject) => {
+        const questionData = [];
+        const placeHolder = {};
+
+        switch (ctrl) {
+          case 1:
+            // How many TRP does this account have? (1)
+            const sql_get = `SELECT
+                  COUNT(responsibility) as total
+                FROM
+                  location_account_relation
+                WHERE
+                  responsibility = 'Tenant'
+                AND
+                  account_id = ?`;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_get, [account_id],
+            (error, results, fields) => {
+              if (error) {
+                console.log('Error ', error);
+                reject(error);
+              }
+              console.log(results[0]);
+              console.log(results[0]['total']);
+              // should save to db
+              resolve(results[0]['total']);
+            });
+            connection.end();
+            break;
+          case 2:
+            resolve('ok');
+            break;
+
+        }
+      });
+    }
+    public queryValidationQuestions(role_id: number, question_id?: number) {
+      return new Promise((resolve, reject) => {
+
+        let sql = `SELECT
+                        question_id,
+                        question
+                    FROM
+                        question_pool
+                    WHERE
+                        role_id = ?`;
+        const val = [role_id];
+        if (question_id) {
+          sql = sql + ` AND question_id = ?`;
+          val.push(question_id);
+        }
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, val,
+          (error, results, fields) => {
+            if (error) {
+              console.log(error);
+              reject(error);
+            }
+            resolve(results);
+          });
+          connection.end();
+      });
+    }
+
 }
 
 

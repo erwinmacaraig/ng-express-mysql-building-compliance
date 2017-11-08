@@ -21,6 +21,7 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
   public frpList = [];
   private frpListSubscription;
   private trpListSubscription;
+  private listValidationQuestionSubscription;
   private location = 0;
   private account = 0;
   toggleFRP = false;
@@ -30,7 +31,8 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
   public baseUrl;
   private elems = {};
   public errMsg = '';
-
+  public questionare = '';
+  public answer_choices = [];
   public modalLoader = {
     showLoader : true,
     loadingMessage : '',
@@ -73,6 +75,13 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
       } else {
         console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
       }
+    });
+
+    this.listValidationQuestionSubscription = this.dataProvider.listValidationQuestion(this.location, this.account).subscribe(
+      (data) => {
+        this.questionare = data['question'];
+        this.answer_choices = data['choices'];
+        console.log(data);
     });
 
    }

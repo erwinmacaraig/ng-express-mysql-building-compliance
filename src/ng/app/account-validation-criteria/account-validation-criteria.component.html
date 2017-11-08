@@ -20,11 +20,23 @@
                   </div>
                   <br />
                   <p>
-                    <input name="emailcriteria" class="with-gap" type="radio" value="trp_code" ngModel id="codecriteria" (change)="toggleCodeCtrl()" required>
-                    <label for="codecriteria">Get verified using TRP Code</label>
+                    <input name="emailcriteria" class="with-gap" type="radio" value="q_code" ngModel id="codecriteria" (change)="toggleCodeCtrl()" required>
+                    <label for="codecriteria">Verification through questionaire(s)</label>
                   </p>
-                  <div class="input-field col m12" [hidden]="!toggleCode">
-                    <input id="trp_code" placeholder="Enter code here" type="text" name="trp_code" ngModel required>
+                  <div [hidden]="!toggleCode">
+                    <p>{{ questionare }}</p>
+                    <p>
+                      <input name="vq" class="with-gap" type="radio" value="{{answer_choices[0]}}" id="vq1" required>
+                      <label for="vq1">{{answer_choices[0]}}</label>
+                    </p>
+                    <p>
+                      <input name="vq" class="with-gap" type="radio" value="{{ answer_choices[1]" id="vq2" required>
+                      <label for="vq2">{{answer_choices[1]}}</label>
+                    </p>
+                    <p>
+                      <input name="vq" class="with-gap" type="radio" value="{{answer_choices[2]}}" id="vq3" required>
+                      <label for="vq3">{{answer_choices[2]}}</label>
+                    </p>
                   </div>
                 <br />
                 <p>

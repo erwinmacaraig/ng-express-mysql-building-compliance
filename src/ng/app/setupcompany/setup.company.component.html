@@ -122,14 +122,7 @@
 									</select>
 									<label class="select-label">Time-Zone</label>
 								</div>
-                <!--
-								<div class="input-field col m6" [ngClass]="{ 'hide' : !newCompany, 'show' : newCompany || (newCompany && !formSetupCompany.valid) }">
-									<input id="trpCode" type="text" name="trp_code" ngModel #trpCode="ngModel" [ngClass]="{ 'invalid' : !trpCode.valid  && inpState.dirty }" required readonly="true">
-									<label for="trpCode">TRP Code
-										<small *ngIf=" !trpCode.valid && trpCode.dirty "> *Required </small>
-									</label>
-								</div>
-                -->
+
 								<div class="input-field col m6" *ngIf="newCompany">
 									<input id="domain" type="text" name="account_domain" ngModel #inpDomain="ngModel" [ngClass]="{ 'invalid' : !inpDomain.valid  && inpDomain.dirty }" required>
 									<label for="domain">Account Domain name
