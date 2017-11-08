@@ -43,6 +43,7 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
   };
   public showCheckIcon = true;
   private modalElem;
+  private qid = 0;
 
   constructor(private route: ActivatedRoute,
     private dataProvider: PersonDataProviderService,
@@ -81,6 +82,7 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
       (data) => {
         this.questionare = data['question'];
         this.answer_choices = data['choices'];
+        this.qid = data['qid'];
         console.log(data);
     });
 
@@ -116,6 +118,7 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
 
   ngOnDestroy() {
     this.frpListSubscription.unsubscribe();
+    this.listValidationQuestionSubscription.unsubscribe();
   }
 
   onSubmitForValidation() {
@@ -193,5 +196,17 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
     this.toggleFRP = false;
   }
 
+  getNextQuestion(event) {
+    event.preventDefault();
+    this.qid = +this.qid + 1;
+    this.listValidationQuestionSubscription = this.dataProvider.listValidationQuestion(this.location, this.account, this.qid).subscribe(
+      (data) => {
+        this.questionare = data['question'];
+        this.answer_choices = data['choices'];
+        this.qid = data['qid'];
+        console.log(data);
+    });
+
+  }
 
 }

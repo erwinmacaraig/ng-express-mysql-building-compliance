@@ -37,6 +37,9 @@
                       <input name="vq" class="with-gap" type="radio" value="{{answer_choices[2]}}" id="vq3" required>
                       <label for="vq3">{{answer_choices[2]}}</label>
                     </p>
+                    <p>
+                        <a href="" (click)="getNextQuestion($event)">Not sure? Click here to try a different question.</a>
+                    </p>
                   </div>
                 <br />
                 <p>
@@ -91,4 +94,3 @@
   </div>
 
 </div> <!-- validation-main-controller -->
-

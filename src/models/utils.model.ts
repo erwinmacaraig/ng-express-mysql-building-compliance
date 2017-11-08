@@ -232,9 +232,17 @@ export class Utils {
               }
               console.log(results[0]);
               console.log(results[0]['total']);
-              // should save to db
               resolve(results[0]['total']);
             });
+
+            const sql = `INSERT INTO question_validation_relation (
+                  question_pool_id,
+                  user_id,
+                  account_id,
+                  ans
+                ) VALUES (?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE question_pool_id = ?, ans = ?`;
+
             connection.end();
             break;
           case 2:
@@ -273,7 +281,3 @@ export class Utils {
     }
 
 }
-
-
-
-

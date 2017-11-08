@@ -59,7 +59,7 @@ export class UserRelatedRoute extends BaseRoute {
     // get total validation for the user and first question id
     utils.queryValidationQuestions(role_id).then((results: any[]) => {
       numberOfValidationQuestions = results.length;
-      if (currentQuestionIndex > results.length) {
+      if (currentQuestionIndex >= results.length) {
         currentQuestionIndex = 0;
       }
       console.log(results);
