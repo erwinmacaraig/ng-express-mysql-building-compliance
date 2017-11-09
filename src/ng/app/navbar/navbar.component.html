@@ -112,8 +112,9 @@
 
 		<div class="col sm12">
 			<ul class="links">
-        <li><a [routerLink]="['/dashboard/company-information']">Company Information</a></li>
-        <li><a [routerLink]="['/dashboard/person-info']">Personal Information</a></li>
+		        <li><a [routerLink]="['/dashboard/company-information']">Company Information</a></li>
+		        <li><a [routerLink]="['/dashboard/person-info']">Personal Information</a></li>
+		        <li *ngIf="showSendInviteLink"><a [routerLink]="['/dashboard/send-invite']">Send Invitation</a></li>
 				<li><a href="/">Subscription</a></li>
 				<li><a href="/">Security & Privacy</a></li>
 				<li><a href="/signout">Sign Out</a></li>
@@ -139,19 +140,19 @@
 				<div class="col m12 s12">
 					<img src="" class="image-select-file" style="display: none;">
 					<button style="width: 100%;" class="btn btn-large orange waves-effect waves-light" id="btnSelectFile">
-						Select File
+						SELECT FILE
 					</button>
 					<button class="btn btn-large green waves-effect waves-light btn-choose-file-select" style="width: 100%; display: none;">
-						Set as photo
+						SET AS PHOTO
 					</button>
-					<input type="file" accept="image/*" style="display: none;">
+					<input type="file" name="file" accept="image/*" required style="display: none;">
 				</div>
 			</div>
 
 			<div class="row">
 				<div class="col m12 s12">
 					<button style="width: 100%;" class="btn btn-large blue waves-effect waves-light" id="btnTakePhoto">
-						Take a photo
+						TAKE A PHOTO
 					</button>
 				</div>
 			</div>
@@ -166,24 +167,24 @@
 			<div class="row">
 				<div class="m12">
 					<button style="width: 100%;" class="btn btn-large green waves-effect waves-light btn-capture" >
-						Capture
+						CAPTURE
 					</button>
 					<button style="width: 100%; display: none;" class="btn btn-large green waves-effect waves-light btn-choose" >
-						Set as photo
+						SET AS PHOTO
 					</button>
 				</div>
 			</div>
 			<div class="row">
 				<div class="m12">
 					<button style="width: 100%;" class="btn btn-large red red lighten-1 waves-effect waves-light btn-retake" >
-						Retake
+						RETAKE
 					</button>
 				</div>
 			</div>
 			<div class="row">
 				<div class="m12">
-					<button style="width: 100%;" class="btn btn-large grey waves-effect waves-light btn-cancel" >
-						Cancel
+					<button style="width: 100%;" class="btn btn-large lighten-1 grey waves-effect waves-light btn-cancel" >
+						CANCEL
 					</button>
 				</div>
 			</div>

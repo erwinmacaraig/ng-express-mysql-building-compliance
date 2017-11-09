@@ -1,61 +1,84 @@
 <form (ngSubmit)="onSumbitModifyPersonInfo(f)" #f="ngForm">
-<div class="form">
-   <div class="row">
-    <div class="col s12">
-      <h5>Personal Information</h5>
-      <br>
-      <div class="row">
-        <div class="col s12">
-          <div class="input-field col s3">
-              <input id="input_text" type="text" placeholder="Please enter your first name" data-length="25" [readonly]="!editCtrl"  [ngModel]="person.first_name" name="first_name" required>
-              <label for="input_text" [ngClass]="{'active': person.first_name}">First Name</label>
-          </div>
+    <div class="row">
+        <div class="col l6 m12 s12">
+            <h5 class="title">Personal Information</h5>
+            <br>
 
-          <div class="input-field col s3">
-            <input id="input_text" type="text" placeholder="Please enter your last name" data-length="25" [readonly]="!editCtrl" [ngModel]="person.last_name" name="last_name" required>
-            <label for="input_text" [ngClass]="{'active': person.last_name}">Last Name</label>
-          </div>
-        </div>
-      </div>
-        <div class="row">
-          <div class="col s12">
-            <div class="input-field col s3">
-              <input id="account_name" type="text" data-length="15" placeholder="Account name" [ngModel]="person.account_name" name="account_name" disabled>
-              <label for="account_name" class="active">Company</label>
+            <div class="row">
+                
+                <div class="col l6 m6 s12">
+                    <div class="input-field">
+                        <input id="input_text" type="text" placeholder="Please enter your first name" data-length="25" [readonly]="!editCtrl"  [ngModel]="person.first_name" name="first_name" ngModel #inputFirstName="ngModel" required>
+                        <label for="input_text" [ngClass]="{'active': person.first_name}">
+                            First Name
+                            <span class="red-text" *ngIf=" !inputFirstName.valid && inputFirstName.dirty ">*Required</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col l6 m6 s12">
+                    <div class="input-field">
+                        <input id="input_text" type="text" placeholder="Please enter your last name" data-length="25" [readonly]="!editCtrl" [ngModel]="person.last_name" name="last_name" ngModel #inputLastName="ngModel" required>
+                        <label for="input_text" [ngClass]="{'active': person.last_name}">
+                            Last Name
+                            <span class="red-text" *ngIf=" !inputLastName.valid && inputLastName.dirty ">*Required</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col l6 m6 s12">
+                    <div class="input-field">
+                        <input id="account_name" type="text" data-length="15" placeholder="Account name" [ngModel]="person.account_name" name="account_name" disabled>
+                        <label for="account_name" class="active">Company</label>
+                    </div>
+                </div>
+                <div class="col l6 m6 s12">
+                    <div class="input-field">
+                        <input id="input_text" type="text" placeholder="Please enter your occupation" data-length="15" [disabled]="!editCtrl" [ngModel]="person.occupation" name="occupation">
+                        <label for="input_text" class="active">Occupation</label>
+                    </div>
+                </div>
+
+                <div class="col l6 m6 s12">
+                    <div class="input-field">
+                        <input id="input_text" type="text" placeholder="Enter a valid email" data-length="50" [readonly]="!editCtrl" [ngModel]="person.email" name="email" ngModel #inputEmail="ngModel" email>
+                        <label for="input_text" [ngClass]="{'active': person.email}">
+                            Email
+                            <span class="red-text" *ngIf=" !inputEmail.valid && inputEmail.dirty "> *Invalid email </span>
+                            <span class="red-text" *ngIf=" emailTaken "> *Email taken </span>
+                            <span class="red-text" *ngIf=" emailBlackListed "> *Email's domain must be non-commercial </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="col l6 m6 s12">
+                    <div class="input-field">
+                        <input id="input_text" type="text" placeholder="Provide a valid contact number" data-length="" [disabled]="!editCtrl" [ngModel]="person.phone_number" name="phone_number">
+                        <label for="input_text" class="active">Phone No</label>
+                    </div>
+                </div>
+
+                <div class="col s12 m12 l12">
+                    <div *ngIf="!f.valid" class="alert alert-warning">Invalid Form Data</div>
+                </div>
+
+                <div class="col s12 m12 l12 input-field" *ngIf="editCtrl">
+                    <button class="btn orange waves-effect waves-light" type="submit" [disabled]="!f.valid" style="margin-right: 10px;">Submit</button>
+                    <button class="btn grey grey lighten-1 waves-effect waves-light" (click)="onResetForm()">Cancel</button>
+                </div>
+
+                <div class="col s12 m12 l12 input-field" *ngIf="!editCtrl">
+                    <button class="btn orange waves-effect waves-light" (click)="editCtrl=!editCtrl">Edit</button>
+                </div>
+
             </div>
 
-            <div class="input-field col s3">
-              <input id="input_text" type="text" placeholder="Please enter your occupation" data-length="15" [disabled]="!editCtrl" [ngModel]="person.occupation" name="occupation">
-              <label for="input_text" class="active">Occupation</label>
-            </div>
-          </div>
         </div>
-        <div class="row">
-          <div class="col s12">
-            <div class="input-field col s3">
-              <input id="input_text" type="text" placeholder="Enter a valid email" data-length="50" [readonly]="!editCtrl" [ngModel]="person.email" name="email" email>
-              <label for="input_text" [ngClass]="{'active': person.email}">Email</label>
-            </div>
 
-            <div class="input-field col s3">
-              <input id="input_text" type="text" placeholder="Provide a valid contact number" data-length="" [disabled]="!editCtrl" [ngModel]="person.phone_number" name="phone_number">
-              <label for="input_text" class="active">Phone No</label>
-            </div>
-          </div>
-        </div>
-      </div>
+        
+        
+
+        
+
     </div>
-      <div class="wrapper">
 
-          <div *ngIf="!f.valid" class="alert alert-warning">Invalid Form Data</div>
-        <div *ngIf="editCtrl">
-          <div style="float:left;"><button class="two-button" type="submit" [disabled]="!f.valid">Submit</button></div>
-          <div style="float:left;"><button class="two-button-gray" (click)="onResetForm()">Cancel</button></div>
-        </div>
-        <div *ngIf="!editCtrl">
-            <div style="float:left;"><button class="two-button" (click)="editCtrl=!editCtrl">Edit</button></div>
-        </div>
-        <div style="clear:both"></div>
-      </div>
-   </div>
 </form>

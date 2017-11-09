@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 declare var $: any;
 
@@ -10,8 +10,16 @@ declare var $: any;
 })
 export class EmailSuccessVerficiationComponent implements OnInit {
   public showCheckIcon = true;
-	private modalElem;
-  constructor(private router: Router) { }
+  private modalElem;
+  public message;
+  constructor(private router: Router, private route: ActivatedRoute) {
+    this.message = 'You have successfully verified your account.';
+
+    if (this.route.snapshot.queryParams['account-validation']) {
+      this.message = 'You have successfully validated the account.';
+    }
+
+  }
 
   ngOnInit() {
     this.modalElem = $('#modalMsg');
@@ -20,7 +28,7 @@ export class EmailSuccessVerficiationComponent implements OnInit {
 			dismissible: false
 		});
 
-    this.modalElem.modal('open');   
+    this.modalElem.modal('open');
 
   }
 

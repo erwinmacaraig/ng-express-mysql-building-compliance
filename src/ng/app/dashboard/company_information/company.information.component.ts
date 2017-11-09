@@ -40,38 +40,10 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	locations = [];
 
 	arrUserType = Object.keys(this.UserType).map((key) => { return this.UserType[key]; });
-	selectUserType = Object.keys(this.UserType).map((key) => { return this.UserType[key]; });
-
-	formToShow = '';
-
-	saveWardenInvitationCodeText = "Save";
-	saveWardenInvitationCodeDisable = false;
-
-	showSpecificLevel = true;
-	showSendInvite = false;
-	showWardenInvitationCode = false;
-
-	modalLoaderElem;
-	modalLoader = {
-	    showLoader : true,
-	    loadingMessage : '',
-	    showMessage : false,
-	    iconColor: 'green',
-	    icon: 'check',
-	    message: ''
-	};
-
-	selectAccountType;
-
-	parentLocations = [];
-	childLocations = [];
 
 	selectAccounts = [];
 	selectAccount = 0;
 	selectLocation = 0;
-	selectSubLocation = 0;
-
-	emailTaken = false;
 
 	constructor(
 		private platformLocation: PlatformLocation, 
@@ -92,33 +64,12 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	ngOnInit() {
 		this.userRoleID = this.userData['roleId'];
 		this.getAccountInfoAndDisplay();
-		
-		if(this.userRoleID == 1 || this.userRoleID == 2){
-			this.showSendInvite = true;
-			this.showWardenInvitationCode = true;
-		}
-
-		for(let i in this.selectUserType){
-
-			// TRP 
-			if(this.selectUserType[i]['role_id'] == 1 && this.userRoleID == 2){
-				this.selectUserType.splice( parseInt(i) , 1 );
-			}
-
-		}
 	}
 
 	ngAfterViewInit(){
 		if(!$('.vertical-m').hasClass('fadeInRight')){
 			$('.vertical-m').addClass('fadeInRight animated');
 		}
-
-		this.modalLoaderElem = $('#modalLoader');
-		this.modalLoaderElem.modal({
-			dismissible: false,
-			startingTop: '0%', 
-			endingTop: '5%'
-		});
 	}
 
 	flattenRecurciveItems(items, index) {
@@ -181,10 +132,6 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 					{
 						this.locations = this.flattenRecurciveItems(resLocation.data, 'sublocations');
 
-						this.parentLocations = this.getParentLocations(this.locations);
-						this.childLocations = this.getChildLocations(this.locations);
-						this.selectSubLocation = ( Object.keys(this.childLocations).length  > 0) ? this.childLocations[0]['location_id'] : 0;
-
 						this.preloaderService.hide();
 						$('select').material_select();
 						this.startEvents();
@@ -205,18 +152,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	}
 
 	startEvents(){
-		this.selectAccountTypeEvent();
-
-		/*SET WARDEN INVITATION CODE*/
 		if(Object.keys(this.accountData).length > 0){
-			if( this.accountData['account_code'] !== null ){
-				if(this.showWardenInvitationCode){
-					this.formWardenInvitationCode.controls.code.setValue(this.accountData['account_code']);
-					this.saveWardenInvitationCodeText = "Update";
-					$('#inpInviCode').trigger('focusin');
-				}
-			}
-
 			$('#inpCompanyName').val( this.accountData['account_name'] ).trigger('focusin');
 			for(let i in this.arrUserType){
 				if(this.userRoleID == this.arrUserType[i]['role_id']){
@@ -224,146 +160,6 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 				}
 			}
 		}
-
-		setTimeout(() => { $('select').material_select(); }, 300);
 	}
-
-	selectAccountTypeEvent(){
-		let selAccountType = $('#accountType');
-		selAccountType.on('change', () => {
-			if( selAccountType.val() == 1 && this.userRoleID == 1 ){
-				this.formToShow = 'frp-to-frp';
-			}else if( selAccountType.val() == 2 && this.userRoleID == 1 ){
-				this.formToShow = 'frp-to-trp';
-			}else if( selAccountType.val() == 3 && this.userRoleID == 1 ){
-				this.formToShow = 'frp-to-warden';
-			}else if( selAccountType.val() == 2 && this.userRoleID == 2 ){
-				this.formToShow = 'trp-to-trp';
-			}else if( selAccountType.val() == 3 && this.userRoleID == 2 ){
-				this.formToShow = 'trp-to-warden';
-			}else{
-				this.formToShow = '';
-			}
-
-			setTimeout(() => { $('select').material_select(); }, 100);
-		});
-	}
-
-	// COMPANY WARDEN INVITATION CODE SUBMIT EVENT
-	wardenInvitationCodeSubmit(f, e){
-		e.preventDefault();
-		if(f.valid){
-			this.modalLoader.showLoader = true;
-			this.modalLoader.loadingMessage = 'Saving warden invitation code...';
-			this.modalLoader.showMessage = false;
-			this.modalLoaderElem.modal('open');
-			this.accountDataProviderService.saveAccountInvitationCode(
-				{ 
-					account_id : this.accountData['account_id'],
-					code : f.controls.code.value.trim()
-				}, 
-				(response) => {
-					this.modalLoader.showLoader = false;
-					this.modalLoader.showMessage = true;
-					if(response.status){
-						this.modalLoader.icon = 'check';
-						this.modalLoader.iconColor = 'green';
-						this.modalLoader.message = 'Successfully updated!';
-						this.accountData['account_code'] = f.controls.code.value.trim();
-					}else{
-						this.modalLoader.icon = 'clear';
-						this.modalLoader.iconColor = 'red';
-						this.modalLoader.message = response.message;
-					}
-					setTimeout(()=>{ 
-						this.modalLoaderElem.modal('close'); 
-					}, 2000);
-				}
-			);
-
-		}else{
-			f.controls.code.markAsDirty();
-		}
-	}
-
-	// SUBMIT EVENT INVITE USERS
-	submitInviteUsers(f: NgForm, event){
-		event.preventDefault();
-		f.controls.account_type.markAsDirty();
-		f.controls.account_type.setValue( $('#accountType').val() );
-		this.emailTaken = false;
-		let formValues = {
-			sublocations : []
-		};
-
-		for(let i in f.controls){
-			f.controls[i].markAsDirty();
-			if(i == 'account'){
-				f.controls[i].setValue( $('select[name="account"]').val() );
-				formValues['account_id'] = f.controls[i].value;
-			}
-
-			if(i == 'location'){
-				f.controls[i].setValue( $('select[name="location"]').val() );
-				formValues['location_id'] = f.controls[i].value;
-			}
-
-			if(i.indexOf('sublocation-') > -1){
-				if( f.controls[i].value == true ){
-					let sub = i,
-						splitted = sub.split('-'),
-						subLocationId = splitted[1];
-
-					formValues.sublocations.push({
-						location_id : subLocationId
-					});
-				}
-			}else if(i.indexOf('sublocation') > -1){
-				f.controls[i].setValue( $('select[name="sublocation"]').val() );
-				formValues['location_id'] = f.controls[i].value;
-			}
-		}
-
-		if(f.valid){
-			formValues = Object.assign(formValues, f.value);
-			formValues['user_role_id'] = this.userRoleID;
-			formValues['creator_id'] = this.userData['userId'];
-			this.modalLoader.showLoader = true;
-			this.modalLoader.loadingMessage = 'Sending invitation';
-			this.modalLoader.showMessage = false;
-			this.modalLoaderElem.modal('open');
-
-			this.accountDataProviderService.sendUserInvitation( formValues, 
-				(response) => {
-					this.modalLoader.showLoader = false;
-					this.modalLoader.showMessage = true;
-					if(response.status){
-						this.modalLoader.icon = 'check';
-						this.modalLoader.iconColor = 'green';
-						this.modalLoader.message = 'Success! invitation code was sent';
-						f.reset();
-						$('.invitation-form .active').removeClass('active');
-					}else{
-						this.modalLoader.icon = 'clear';
-						this.modalLoader.iconColor = 'red';
-						this.modalLoader.message = response.message;
-						if('emailtaken' in response){
-							this.emailTaken = response.emailtaken;
-						}
-					}
-					setTimeout(()=>{ 
-						this.modalLoaderElem.modal('close'); 
-					}, 2000);
-				}
-			);
-		}
-	}
-
-	cancelForm(){
-		let selAccountType = $('#accountType');
-		selAccountType.val(0);
-		selAccountType.trigger('change');
-	}
-
 
 }
