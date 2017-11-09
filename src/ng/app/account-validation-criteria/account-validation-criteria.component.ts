@@ -83,7 +83,6 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
         this.questionare = data['question'];
         this.answer_choices = data['choices'];
         this.qid = data['qid'];
-        console.log(data);
     });
 
    }
@@ -204,7 +203,6 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
         this.questionare = data['question'];
         this.answer_choices = data['choices'];
         this.qid = data['qid'];
-        console.log(data);
     });
 
   }
