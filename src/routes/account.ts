@@ -101,7 +101,7 @@ import * as Promise from 'promise';
 			data : {}
 		},
 		error = 0,
-		arrValidField = [ 'creator_id', 'company_name', 'key_contact', 'building_name', 'unit_no', 'street', 'city', 'state', 'postal_code', 'country', 'time_zone'  ];
+		arrValidField = [ 'creator_id', 'company_name', 'building_name', 'unit_no', 'street', 'city', 'state', 'postal_code', 'country', 'time_zone'  ];
 		arrValidField.forEach((val)=>{ if( val in reqBody === false ){ error++; } });
 
 		if(error == 0){
@@ -150,7 +150,6 @@ import * as Promise from 'promise';
 			userModel.load().then(
 				(usersData) => {
 					if(usersData['account_id'] == 0){
-						
 						let userUpdateAccountId = (account) => {
 							userModel.set('account_id', account.ID());
 							userModel.dbUpdate().then(
@@ -169,7 +168,7 @@ import * as Promise from 'promise';
 							);
 						};
 
-						if('account_id' in reqBody){
+						if(reqBody.account_id > 0){
 							account.setID(reqBody['account_id']);
 							account.load().then(
 								() => {
