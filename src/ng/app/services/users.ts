@@ -20,9 +20,7 @@ export class UserService {
 
 	uploadProfilePicture(formData, callBack){
 
-		this.http.post(this.baseUrl+"/users/upload-profile-picture", formData, {
-			headers : new HttpHeaders({ 'Content-type' : 'multipart/form-data'  })
-		})
+		this.http.post(this.baseUrl+"/users/upload-profile-picture", formData)
 		.subscribe(res => {
 			callBack(res);
 		}, err => {
