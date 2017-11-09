@@ -89,7 +89,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   invitationCodeForm(f: NgForm) {
     this.subscription = this.signupService.getPersonInvitationCode(f.value.code).subscribe((data) => {
       this.signupService.setInvitationCode(data['data']);
-      this.router.navigate(['/signup']);
+      this.router.navigate(['/signup/warden-signup']);
     },
     (err: HttpErrorResponse) => {
       if (err.error instanceof Error) {

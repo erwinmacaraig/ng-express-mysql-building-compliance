@@ -3,6 +3,9 @@ import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Token } from '../models/token.model';
 import { EmailSender } from '../models/email.sender';
+import { SecurityAnswers } from '../models/security-answers.model';
+import { SecurityQuestions } from '../models/security-questions.model';
+
 import * as moment from 'moment';
 
 import  * as fs  from 'fs';
@@ -36,6 +39,14 @@ const md5 = require('md5');
 
 	   	router.post('/forgot/password/change/users/password', (req: Request, res: Response, next: NextFunction) => {
 	   		new ForgotPasswordRequestRoute().changeUsersPassword(req, res, next);
+	   	});
+
+	   	router.get('/forgot/password/find/username/:username', (req: Request, res: Response, next: NextFunction) => {
+	   		new ForgotPasswordRequestRoute().findUsername(req, res, next);
+	   	});
+
+	   	router.post('/forgot/password/security/question/answer', (req: Request, res: Response, next: NextFunction) => {
+	   		new ForgotPasswordRequestRoute().securityAnswer(req, res, next);
 	   	});
 
    	}
@@ -168,17 +179,21 @@ const md5 = require('md5');
 					(tokenData) => {
 						if(tokenData['user_id'] == userId){
 
-							let currentDate = moment(),
-								expirationDate = moment(tokenData['expiration_date'], ['YYYY-MM-DD HH:mm:ss']);
-
-							if(expirationDate.isAfter(currentDate)){
-								// Redirect to angular Router
-								//change-user-password/:user_id/:token
-								let link = req.protocol + '://' + req.get('host') + '/change-user-password/'+userId+'/'+token;
-								res.redirect(link);
+							if(tokenData['verified'] == 1){
+								res.send('Token is already verified');
 							}else{
-								response.message = 'Token expired';
-								res.send(response);
+								let currentDate = moment(),
+									expirationDate = moment(tokenData['expiration_date'], ['YYYY-MM-DD HH:mm:ss']);
+
+								if(expirationDate.isAfter(currentDate)){
+									// Redirect to angular Router
+									//change-user-password/:user_id/:token
+									let link = req.protocol + '://' + req.get('host') + '/change-user-password/'+userId+'/'+token;
+									res.redirect(link);
+								}else{
+									response.message = 'Token expired';
+									res.send(response);
+								}
 							}
 
 						}else{
@@ -245,6 +260,7 @@ const md5 = require('md5');
 		res.statusCode = 400;
 
 		let validateData = this.validateChangeUserPassword(reqBody);
+ 
 		if(validateData.status){
 			let userId = reqBody.user_id,
 				token = reqBody.token,
@@ -263,20 +279,34 @@ const md5 = require('md5');
 									expirationDate = moment(tokenData['expiration_date'], ['YYYY-MM-DD HH:mm:ss']);
 
 								if(expirationDate.isAfter(currentDate)){
-									
-									user.set('password', md5('Ideation'+newPass+'Max'));
-									user.dbUpdate().then(
-										() => {
-											res.statusCode = 200;
-											response.status = true;
-											response.message = 'Success';
-											res.send(response);
-										},
-										() => {
-											response.message = 'Unable to update';
-											res.send(response);
-										}
-									);
+
+									if(tokenData['verified'] == 1){
+										response.message = 'This request was already verified';
+										res.send(response);
+									}else{
+										tokenModel.set('verified', 1);
+										tokenModel.dbUpdate().then(
+											() => {
+												user.set('password', md5('Ideation'+newPass+'Max'));
+												user.dbUpdate().then(
+													() => {
+														res.statusCode = 200;
+														response.status = true;
+														response.message = 'Success';
+														res.send(response);
+													},
+													() => {
+														response.message = 'Unable to update';
+														res.send(response);
+													}
+												);
+											},
+											() => {
+												response.message = 'Token update unsuccessful'
+											}
+										);
+									}
+
 
 								}else{
 									response.message = 'Token expired';
@@ -303,8 +333,123 @@ const md5 = require('md5');
 			response.message = (validateData.message.length == 0) ? 'There\'s an invalid field' : validateData.message;
 			res.send(response);
 		}
+	}
 
-		
+	public findUsername(req: Request, res: Response, next: NextFunction){
+		let username = req.params.username,
+			response = {
+				status : false,
+				message : '',
+				data : {}
+			},
+			userModel = new User(),
+			answerModel = new SecurityAnswers(),
+			questionModel = new SecurityQuestions();
+
+		// Default status code
+		res.statusCode = 400;
+
+		userModel.getByUsername(username).then(
+			(userdata) => {
+				answerModel.getByUserId(userdata['user_id']).then(
+					(answerdata) => {
+						questionModel.setID(answerdata['security_question_id']);
+						questionModel.load().then(
+							(questiondata) => {
+								response.data = {
+									'question' : questiondata['question'],
+									'question_id' : questiondata['security_question_id'],
+									'user_id' : userdata['user_id']
+								};
+								response.status = true;
+								res.statusCode = 200;
+								res.send(response);
+							},
+							() => {
+								response.message = 'This user is invalid has no security question';
+								res.send(response);
+							}
+						);
+					},
+					() => {
+						response.message = 'This user is invalid has no security question';
+						res.send(response);
+					}
+				);
+			},
+			() => {
+				response.message = 'Invalid username';
+				res.send(response);
+			}
+		);
+	}
+
+	public securityAnswer(req: Request, res: Response, next: NextFunction){
+		let answer = req.body.answer,
+			questionId = req.body.question_id,
+			userId = req.body.user_id,
+			response = {
+				status : false,
+				message : '',
+				data : {}
+			},
+			userModel = new User(),
+			answerModel = new SecurityAnswers(),
+			questionModel = new SecurityQuestions();
+
+		// Default status code
+		res.statusCode = 400;
+
+		answerModel.getByQuestionId(questionId, userId).then(
+			(answerData) => {
+				if( Object.keys(answerData).length > 0 ){
+
+					if(answerData['answer'] == md5(answer)){
+
+						let currentDate = moment(),
+						expirationDate = currentDate.add(1, 'day'),
+						expDateFormat = expirationDate.format('YYYY-MM-DD HH:mm:ss'),
+						saveData = {
+							user_id : answerData['user_id'],
+							token : this.generateRandomChars(25)+'-'+this.generateRandomChars(25),
+							action : 'forgot-password',
+							expiration_date : expDateFormat
+						},
+						tokenModel = new Token();
+
+						tokenModel.create(saveData).then(
+							() => {
+								res.statusCode = 200;
+								response.status = true;
+								response.message = 'Correct';
+								response.data = {
+									token : saveData.token,
+									user_id : saveData.user_id
+								};
+								res.send(response);
+							},
+							() => {
+								response.message = 'Saving token interupted';
+								res.send(response);
+							}
+						);
+
+						
+					}else{
+						response.message = 'Wrong answer';
+						res.send(response);
+					}
+
+				}else{
+					response.message = 'Wrong answer';
+					res.send(response);
+				}
+			},
+			() => {
+				response.message = 'Wrong answer';
+				res.send(response);
+			}
+		);
 	}
 
 

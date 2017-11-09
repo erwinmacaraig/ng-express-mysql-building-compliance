@@ -13,6 +13,7 @@ import { RegisterRoute } from './routes/register';
 import { ForgotPasswordRequestRoute } from './routes/forgot.password';
 import { AuthenticateLoginRoute } from './routes/authenticate_login';
 import {  UserRelatedRoute } from './routes/user-related';
+import {  UsersRoute } from './routes/users';
 
 import { AwsRoute } from './routes/aws-ses';
 import { AccountRoute } from './routes/account';
@@ -126,6 +127,9 @@ export class Server {
 
       // Locations
       LocationRoute.create(router);
+
+      // Users
+      UsersRoute.create(router);
 
       this.app.use('/api/v1', router);
 

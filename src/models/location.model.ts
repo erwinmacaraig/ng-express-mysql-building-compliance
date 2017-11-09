@@ -146,7 +146,7 @@ export class Location extends BaseClass {
 			const sql_update = `UPDATE locations SET
 			parent_id = ?, name = ?, unit = ?, street = ?, city = ?, state = ?,
 			postal_code = ?, country = ?, time_zone = ?, \`order\` = ?,
-			is_building = ?, location_directory_name = ?, archived = ?  
+			is_building = ?, location_directory_name = ?, archived = ?, tenant_key_contact = ?  
 			WHERE location_id = ?`;
 			const param = [
 			('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
@@ -162,6 +162,7 @@ export class Location extends BaseClass {
 			('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
 			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : null,
 			('archived' in this.dbData) ? this.dbData['archived'] : 0,
+			('tenant_key_contact' in this.dbData) ? this.dbData['tenant_key_contact'] : null,
 			this.ID() ? this.ID() : 0
 			];
 			const connection = db.createConnection(dbconfig);
@@ -178,7 +179,7 @@ export class Location extends BaseClass {
 
 	public dbInsert() {
 		return new Promise((resolve, reject) => {
-			const sql_insert = 'INSERT INTO locations (`parent_id`, `name`, `unit`, `street`, `city`, `state`, `postal_code`, `country`, `time_zone`, `order`, `is_building`, `location_directory_name`, `archived`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+			const sql_insert = 'INSERT INTO locations (`parent_id`, `name`, `unit`, `street`, `city`, `state`, `postal_code`, `country`, `time_zone`, `order`, `is_building`, `location_directory_name`, `archived`, `tenant_key_contact`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 			const param = [
 			('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
 			('name' in this.dbData) ? this.dbData['name'] : '',
@@ -192,7 +193,8 @@ export class Location extends BaseClass {
 			('order' in this.dbData) ? this.dbData['order'] : null,
 			('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
 			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : null,
-			('archived' in this.dbData) ? this.dbData['archived'] : 0
+			('archived' in this.dbData) ? this.dbData['archived'] : 0,
+			('tenant_key_contact' in this.dbData) ? this.dbData['tenant_key_contact'] : null
 			];
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_insert, param, (err, results, fields) => {

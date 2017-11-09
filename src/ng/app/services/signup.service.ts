@@ -60,4 +60,13 @@ export class SignupService {
     return this.invitation_code;
   }
 
+  getSecurityQuestions(callBack){
+    this.http.get(this.baseUrl+"/get-security-questions",  this.options)
+        .subscribe(res => {
+          callBack(res);
+        }, err => {
+          callBack( JSON.parse(err.error) );
+        });
+  }
+
 }

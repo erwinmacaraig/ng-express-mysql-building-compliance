@@ -108,11 +108,11 @@ h1,h2{
 }
 
 .login-block {
-  position: relative;
-  width: 670px;
-  padding: 20px;
-  background: rgba(0,0,0,0.8);
-  border-radius: 10px;
+  position: relative !important;
+  width: 670px !important;
+  padding: 20px !important;
+  background: rgba(0,0,0,0.8) !important;
+  border-radius: 10px !important;
   /*
   margin: 0 auto;
   display: flex;

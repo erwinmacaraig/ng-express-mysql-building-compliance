@@ -1,0 +1,187 @@
+.no-email-container{
+    font-family: 'Open Sans';
+    font-size: 12px;
+}
+
+.background {
+  background: url('/assets/images/login/login_banner.jpg') no-repeat fixed center center !important;
+  background-size: cover;
+  width: 100%;
+  z-index: -1;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+}
+
+h1 {
+    font-size: 20px;
+    color: #FFFFFF;
+    font-weight: 500;
+    margin-top: 10px;
+    margin-bottom: 1px;
+}
+h2 {
+    font-size: 24px;
+    color: #f7941d;  
+    font-weight: 700;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+h3 {
+    margin-top: 2px;
+    margin-bottom: 20px;
+    line-height: 20%;
+}
+p {
+    font-size: 14px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.back-to-login{
+    font-weight: 400;
+    color: #FFFFFF;
+}
+
+.click-here{
+    font-size: 20px;
+    color: #f7941d;  
+    font-weight: 500;
+}
+
+.click-here:hover,
+.back-to-login:hover{
+    text-decoration: underline;
+}
+
+.center-box {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    font-size: 0;
+    text-align: center;
+}
+.center-box:after{
+   content: "";
+   display: inline-block;
+   height: 100%;
+   width: 0;
+   vertical-align: middle;
+}
+.no_email_box {
+    display: inline-block;
+    vertical-align: middle;
+    position: relative; 
+    width: 370px;
+    padding: 3rem;
+    text-align: center; 
+    min-width: 0;
+    background: rgba(0,0,0,0.8);
+    background-clip: border-box;
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: .30rem;
+    font-size: 1rem;
+}
+.no_email_box input {
+    height: 50px;
+    box-sizing: border-box;
+    border-radius: 5px !important;
+    font-size: 14px;
+    font-family: Open Sans;
+    padding: 0 20px 0 50px !important;
+    outline: none;
+}
+.no_email_box input[name="username"] {
+    background: #fff url('/assets/images/login/user_login.png') 20px center no-repeat;
+    background-size: 15px 16px;
+    margin-top: 10px;
+}
+.no_email_box input[name="username"]:focus {
+    background: #fff url('/assets/images/login/user_login_hover.png') 20px center no-repeat;
+}
+
+.no_email_box input[name="username"]:focus,
+.no_email_box input[name="username"]:active{
+    box-shadow: none;
+}
+
+.no_email_box input[name="answer"],
+.no_email_box input[name="new_password"],
+.no_email_box input[name="confirm_password"]{
+    background: #fff url('/assets/images/login/password_icon.png') 20px center no-repeat;
+    background-size: 15px 19px;
+    margin-top: 10px;
+}
+
+.no_email_box input[name="answer"]:focus,
+.no_email_box input[name="new_password"]:focus,
+.no_email_box input[name="confirm_password"]:focus {
+    background: #fff url('/assets/images/login/password_icon_hover.png') 20px center no-repeat;
+}
+
+.no_email_box input[name="answer"]:focus,
+.no_email_box input[name="answer"]:active{
+    box-shadow: none;
+}
+
+.no_email_box input[name="confirm_password"]{
+    margin-top: 0px;
+}
+
+.no_email_box  button {
+    width: 25%;
+    height: 50px;
+    background: #39a1ff;
+    box-sizing: border-box;
+    border-radius: 5px;
+    color: #fff;
+    font-weight: normal;
+    font-size: 18px;
+    font-family: Open Sans;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 10px;
+    text-transform: none;
+}
+.no_email_box button:hover {
+    background: #1879d0;
+}
+
+.invalid-message{
+    color: #F44336;
+    margin: 0px 0px 2px 0px;
+    text-align: center;
+}
+
+#modalMsg{
+    width: 30%;
+    top: calc(100% - 85%) !important;
+}
+
+.question,
+.new-password-text {
+    font-size: 22px;
+}
+
+@media only screen
+and (max-width: 768px){
+    
+    .no_email_box{
+        width: 90%;
+    }
+
+    #modalMsg{
+        width: 60% !important;
+    }
+
+}
+
+@media only screen
+and (min-width: 768px)
+and (max-width: 1024px){
+    #modalMsg{
+        width: 50% !important;
+    }
+}
