@@ -107,14 +107,12 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
     signupResponse(res, f) {
         this.modalLoader.showLoader = false;
         this.modalLoader.showMessage = true;
-        console.log(res.data);
         if (res.status) {
             this.modalLoader.message = 'Sign up successful! Please open your email and click the verification link.';
             if (res.data.code) {
                 this.modalLoader.message = 'Sign up successful!';
             }
 
-            console.log(res.data);
             this.modalLoader.iconColor = 'green';
             this.modalLoader.icon = 'check';
             this.resetFormElement(f);
@@ -179,9 +177,15 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
         } else {
             accountType.siblings('input.select-dropdown').css('border-bottom', '1px solid #9e9e9e');
             if(f.valid){
-                let blackEmails = new BlacklistedEmails();
+                let blackEmails = new BlacklistedEmails(),
+                    isBlackListed = false;
+                if(userData['role_id'] < 3){
+                    if( blackEmails.isEmailBlacklisted(controls.email.value) ){
+                        isBlackListed = true;
+                    };
+                }
 
-                if( !blackEmails.isEmailBlacklisted(controls.email.value) ){
+                if( !isBlackListed ){
 
                     this.modalLoader.showLoader = true;
                     this.modalLoader.showMessage = false;

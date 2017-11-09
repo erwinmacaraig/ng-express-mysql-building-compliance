@@ -194,7 +194,9 @@ export class Account extends BaseClass {
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_insert, param, (err, results, fields) => {
+
             if (err) {
+              reject(err);
               throw new Error(err);
             }
             this.id = results.insertId;
