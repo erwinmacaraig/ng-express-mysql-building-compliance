@@ -111,6 +111,7 @@
 .search-container ul{
     min-height: 100px;
     overflow-y: auto;
+    max-height: 300px;
 }
 
 .search-container ul li a{
