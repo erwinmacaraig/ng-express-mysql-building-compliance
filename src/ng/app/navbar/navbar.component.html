@@ -36,7 +36,7 @@
 					<a href="javascript:void(0)" class="user-right-click-nav">
 						<div class="users-name">{{ userData.name }}</div>
 						<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
-						<img alt="Report" src=" {{ usersImageURL }} " *ngIf=" hasUserImage " >
+						<img alt="Report" class="img-user-initials" [src]="filterUrl(usersImageURL)" *ngIf=" hasUserImage " >
 					</a>
 				</li>
 
@@ -68,7 +68,7 @@
 		<li>
 			<a href="javascript:void(0)" class="user-right-click-nav">
 				<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
-				<img alt="Report" src=" {{ usersImageURL }} " *ngIf=" hasUserImage " >
+				<img alt="Report" class="img-user-initials" [src]="filterUrl(usersImageURL)" *ngIf=" hasUserImage " >
 				<div class="users-name">{{ userData.name }}</div>
 			</a>
 		</li>
@@ -104,7 +104,7 @@
 		<div class="col sm12">
 			<div class="wrapper upload-photo">
 				<a href="javascript:void(0)" id="changePhotoLink">
-					<div class="img-container"><img id="myAccountPhoto" alt="EvacConnect" [src]="usersImageURL"> </div>
+					<div class="img-container"><img id="myAccountPhoto" alt="EvacConnect" [src]="filterUrl(usersImageURL) "> </div>
 					<div><h6>Upload Photo</h6></div>
 				</a>
 			</div>
@@ -130,6 +130,8 @@
 		<div class="modal-close">X</div>
 
 		<div class="action-content">
+			
+
 			<div class="row">
 				<div class="m12 s12">
 					<h5>Please confirm action</h5>
@@ -139,12 +141,16 @@
 			<div class="row">
 				<div class="col m12 s12">
 					<img src="" class="image-select-file" style="display: none;">
+					
 					<button style="width: 100%;" class="btn btn-large orange waves-effect waves-light" id="btnSelectFile">
 						SELECT FILE
 					</button>
+					
 					<button class="btn btn-large green waves-effect waves-light btn-choose-file-select" style="width: 100%; display: none;">
 						SET AS PHOTO
 					</button>
+
+					
 					<input type="file" name="file" accept="image/*" required style="display: none;">
 				</div>
 			</div>
@@ -186,6 +192,32 @@
 					<button style="width: 100%;" class="btn btn-large lighten-1 grey waves-effect waves-light btn-cancel" >
 						CANCEL
 					</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="row-loader" style="display: none;">
+			<div class="m12 s12">
+				<div >
+					<div class="preloader-wrapper active">
+						<div class="spinner-layer spinner-red-only">
+							<div class="circle-clipper left">
+								<div class="circle"></div>
+							</div>
+							<div class="gap-patch">
+								<div class="circle"></div>
+							</div>
+							<div class="circle-clipper right">
+								<div class="circle"></div>
+							</div>
+						</div>
+					</div>
+					<p class="p-icon" style="display: none;">
+						<i class="material-icons" style="font-size: 50px;">check</i>
+					</p>
+					<div >
+						<h6 class="message">Uploading...</h6>
+					</div>
 				</div>
 			</div>
 		</div>
