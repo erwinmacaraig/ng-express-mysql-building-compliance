@@ -1,1 +1,1 @@
-ALTER TABLE `locations` ADD `tenant_key_contact` VARCHAR(200) NULL AFTER `archived`;
+ALTER TABLE `locations` DROP `tenant_key_contact`;

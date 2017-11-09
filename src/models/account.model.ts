@@ -75,19 +75,9 @@ export class Account extends BaseClass {
         });
     }
 
-     public searchByAccountName(name: String) {
+    public searchByAccountName(name: String) {
         return new Promise((resolve, reject) => {
-            const sql_load = `SELECT
-            locations.*,
-            accounts.account_id, accounts.account_name, accounts.account_code, accounts.default_em_role,
-            accounts.trp_code, accounts.account_domain
-            FROM accounts
-            LEFT JOIN location_account_relation ON accounts.account_id = location_account_relation.account_id
-            LEFT JOIN locations ON location_account_relation.location_id = locations.location_id
-            WHERE accounts.account_name LIKE "%`+name+`%"
-            AND accounts.archived = 0
-            GROUP BY accounts.account_id
-            ORDER BY accounts.account_name ASC `;
+            const sql_load = `SELECT * FROM accounts WHERE account_name LIKE "%`+name+`%" AND archived = 0 ORDER BY account_name ASC `;
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
               if (error) {
@@ -105,17 +95,19 @@ export class Account extends BaseClass {
     public dbUpdate() {
         return new Promise((resolve, reject) => {
           const sql_update = `UPDATE accounts SET
-                lead = ?, online_training = ?, account_name = ?,
+                lead = ?, online_training = ?, account_name = ?, building_number = ?,
                 billing_unit = ?, billing_street = ?, billing_city = ?,
                 billing_state = ?, billing_postal_code = ?, billing_country = ?,
                 location_id = ?, account_type = ?, account_directory_name = ?,
                 archived = ?, block_access = ?, account_code = ?,
-                default_em_role = ?, epc_committee_on_hq = ?, trp_code = ?, account_domain = ?
+                default_em_role = ?, epc_committee_on_hq = ?, trp_code = ?, account_domain = ?,
+                key_contact = ?, time_zone = ?
                 WHERE account_id = ? `;
           const param = [
             ('lead' in this.dbData) ? this.dbData['lead'] : 0,
             ('online_training' in this.dbData) ? this.dbData['online_training'] : 0,
             ('account_name' in this.dbData) ? this.dbData['account_name'] : "",
+            ('building_number' in this.dbData) ? this.dbData['building_number'] : "",
             ('billing_unit' in this.dbData) ? this.dbData['billing_unit'] : "",
             ('billing_street' in this.dbData) ? this.dbData['billing_street'] : "",
             ('billing_city' in this.dbData) ? this.dbData['billing_city'] : "",
@@ -132,6 +124,8 @@ export class Account extends BaseClass {
             ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
             ('trp_code' in this.dbData) ? this.dbData['trp_code'] : null,
             ('account_domain' in this.dbData) ? this.dbData['account_domain'] : null,
+            ('key_contact' in this.dbData) ? this.dbData['key_contact'] : "",
+            ('time_zone' in this.dbData) ? this.dbData['time_zone'] : "",
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             this.ID() ? this.ID() : 0
           ];
@@ -153,6 +147,7 @@ export class Account extends BaseClass {
             lead,
             online_training,
             account_name,
+            building_number,
             billing_unit,
             billing_street,
             billing_city,
@@ -168,13 +163,16 @@ export class Account extends BaseClass {
             default_em_role,
             epc_committee_on_hq,
             trp_code,
-            account_domain
-          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            account_domain,
+            key_contact,
+            time_zone
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
           `;
           const param = [
             ('lead' in this.dbData) ? this.dbData['lead'] : 0,
             ('online_training' in this.dbData) ? this.dbData['online_training'] : 0,
             ('account_name' in this.dbData) ? this.dbData['account_name'] : "",
+            ('building_number' in this.dbData) ? this.dbData['building_number'] : "",
             ('billing_unit' in this.dbData) ? this.dbData['billing_unit'] : "",
             ('billing_street' in this.dbData) ? this.dbData['billing_street'] : "",
             ('billing_city' in this.dbData) ? this.dbData['billing_city'] : "",
@@ -190,7 +188,9 @@ export class Account extends BaseClass {
             ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "1;8;General Occupant,0;9;Warden",
             ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
             ('trp_code' in this.dbData) ? this.dbData['trp_code'] : null,
-            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : null
+            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : null,
+            ('key_contact' in this.dbData) ? this.dbData['key_contact'] : "",
+            ('time_zone' in this.dbData) ? this.dbData['time_zone'] : ""
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_insert, param, (err, results, fields) => {
