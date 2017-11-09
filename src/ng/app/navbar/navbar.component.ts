@@ -3,6 +3,8 @@ import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/users';
 import { NgForm } from '@angular/forms';
 import { ViewChild } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
+import * as moment from 'moment';
 declare var $: any;
 declare var Webcam: any;
 declare var navigator: any;
@@ -68,6 +70,13 @@ export class NavbarComponent implements OnInit {
 			this.showSendInviteLink = true;
 		}
 
+		if('profilePic' in this.userData){
+			if(this.userData['profilePic'].length > 5){
+				this.usersImageURL = this.userData['profilePic'];
+				this.hasUserImage = true;
+			}
+		}
+
 	}
 
 	setElements(){
@@ -88,7 +97,8 @@ export class NavbarComponent implements OnInit {
 			'btnChoose' : webcamContainer.find('.btn-choose'),
 			'btnCapture' : webcamContainer.find('.btn-capture'),
 			'changePhotoLink' : $('#changePhotoLink'),
-			'modalCloseBtn' : modalSelectChangePhotoAction.find('.modal-close')
+			'modalCloseBtn' : modalSelectChangePhotoAction.find('.modal-close'),
+			'rowLoader' : modalSelectChangePhotoAction.find('.row-loader')
 		};
 	}
 
@@ -100,26 +110,63 @@ export class NavbarComponent implements OnInit {
 		$('#closeRightNav').click(function(){ $('.vertical-m').removeClass('fadeInRight animated').addClass('fadeOutRightBig animated'); });
 	}
 
+	filterUrl(url:String){
+		return url.replace('unsafe:', '').trim();
+	}
+
+	uploadResponseHandler(response, callBack){
+		if(response.status){
+			let userData = this.userData;
+			userData['profilePic'] = response.data.url;
+			this.auth.setUserData(userData);
+
+			this.hasUserImage = true;
+			this.usersImageURL = response.data.url;
+
+			this.elems['rowLoader'].find('.preloader-wrapper').show();
+			this.elems['rowLoader'].find('.p-icon').html('Uploading...').hide();
+			callBack();
+			this.elems['modalCloseBtn'].trigger('click');
+		}else{
+			this.elems['rowLoader'].find('.preloader-wrapper').hide();
+			this.elems['rowLoader'].find('.p-icon').html(response.message).show();
+			setTimeout(() => {
+				this.elems['rowLoader'].find('.preloader-wrapper').show();
+				this.elems['rowLoader'].find('.p-icon').html('Uploading...').hide();
+
+				callBack();
+			}, 2000);
+		}
+	}
 
 	submitSelectFile(){
-		this.elems['btnSelectFile'].prop('disabled', true);
-		this.elems['chooseBtnFile'].prop('disabled', true);
-		this.elems['btnTakePhoto'].prop('disabled', true);
+
+		if(this.elems['inputFile'][0].files.length == 0){
+			return false;
+		}
+
+		this.elems['rowLoader'].show();
 		this.elems['modalCloseBtn'].hide();
+		this.elems['btnSelectFile'].hide();
+		this.elems['chooseBtnFile'].hide();
+		// this.elems['btnTakePhoto'].hide();
 
 		let 
-		file = this.elems['inputFile'][0].files,
+		file = this.elems['inputFile'][0].files[0],
 		formData = new FormData();
 		formData.append('user_id', this.userData['userId']);
-		formData.append('file', file);
+		formData.append('file', file, file.name);
 		this.userService.uploadProfilePicture(formData, (response) => {
-			if(response.status){
+			let showBtns = () => {
+				this.elems['rowLoader'].hide();
+				this.elems['modalCloseBtn'].show();
+				this.elems['btnSelectFile'].show();
+				this.elems['chooseBtnFile'].show();
+				// this.elems['btnTakePhoto'].show();
+			};
 
-			}else{
-
-			}
+			this.uploadResponseHandler(response, showBtns);
 		}); 
-
 	}
 
 	changePhotoSelectFileEvent(){
@@ -142,6 +189,32 @@ export class NavbarComponent implements OnInit {
 		this.elems['chooseBtnFile'].click(() => {
 			this.submitSelectFile();
 		});
+	}
+
+	submitWebCam(){
+		// this.elems['imgHolder']
+		this.elems['rowLoader'].show();
+		this.elems['modalCloseBtn'].hide();
+		this.elems['btnCancel'].hide();
+		this.elems['btnChoose'].hide();
+		this.elems['btnRetake'].hide();
+
+		let 
+		file = this.elems['imgHolder'].attr('src'),
+		formData = new FormData();
+		formData.append('user_id', this.userData['userId']);
+		formData.append('file', file, this.userData['userId']+''+moment().valueOf()+'.jpg');
+		this.userService.uploadProfilePicture(formData, (response) => {
+			let showBtns = () => {
+				this.elems['rowLoader'].hide();
+				this.elems['modalCloseBtn'].show();
+				this.elems['btnCancel'].show();
+				this.elems['btnChoose'].show();
+				this.elems['btnRetake'].show();
+			};
+
+			this.uploadResponseHandler(response, showBtns);
+		}); 
 	}
 
 	changePhotoWebCamEvent(){
@@ -185,11 +258,10 @@ export class NavbarComponent implements OnInit {
 				this.elems['imgHolder'].attr('src', data_uri);
 			});
 
-			this.elems['btnCancel'].prop('disabled', true);
-			this.elems['btnChoose'].prop('disabled', true);
-			this.elems['btnRetake'].prop('disabled', true);
+			
 			this.elems['modalCloseBtn'].hide();
 			Webcam.freeze();
+			this.submitWebCam();
 		});
 
 		this.elems['btnCancel'].click(() => {
@@ -244,7 +316,5 @@ export class NavbarComponent implements OnInit {
 		this.changePhotoSelectFileEvent();
 		this.changePhotoWebCamEvent();
 	}
-
-
 
 }

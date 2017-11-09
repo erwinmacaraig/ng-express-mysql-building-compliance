@@ -75,6 +75,12 @@ nav ul  {
   line-height: 56px;
 }
 
+.img-user-initials{
+  width: 40px;
+  height: 40px;
+  border-radius: 40px;
+}
+
 .right .navbar .users-name{
   margin: 0px 15px 0px 0px;
   display: inline-block;
@@ -99,6 +105,8 @@ nav ul  {
 #myAccountPhoto{
   width: 65px !important;
   height: 70px !important;
+  overflow: hidden;
+  border-radius: 40px;
 }
 
 /*Fixed Right Navigation Bar*/

@@ -54,6 +54,7 @@ export class FileUploader {
             console.log(err, 'there was an internal problem');
             throw err;
           }
+          console.log(this.req['file']);
           this.filename = this.req['file']['originalname'];
           fs.readFile(this.req['file']['path'], (error, data) => {
             if (error) {

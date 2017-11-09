@@ -564,7 +564,8 @@ const md5 = require('md5');
               name: userData.first_name+' '+userData.last_name,
               email: userData.email,
               accountId: userData.account_id,
-              roleId : 3
+              roleId : 3,
+              profilePic : ''
             }
         };
 
