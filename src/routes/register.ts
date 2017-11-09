@@ -188,7 +188,7 @@ const md5 = require('md5');
 				errors++;
 			}else{
 				let blackEmails = new BlacklistedEmails();
-				if(blackEmails.isEmailBlacklisted(data.email)){
+				if(blackEmails.isEmailBlacklisted(data.email) && data.role_id < 3){
 					response.data['black_listed'] = "The email's domain is blacklisted";
 					errors++;
 				}

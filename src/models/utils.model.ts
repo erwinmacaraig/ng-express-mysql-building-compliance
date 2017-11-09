@@ -211,11 +211,11 @@ export class Utils {
       return new Promise((resolve, reject) => {
         const questionData = [];
         const placeHolder = {};
-
+        let connection;
         switch (ctrl) {
           case 1:
             // How many TRP does this account have? (1)
-            const sql_get = `SELECT
+            let sql_get = `SELECT
                   COUNT(responsibility) as total
                 FROM
                   location_account_relation
@@ -223,7 +223,7 @@ export class Utils {
                   responsibility = 'Tenant'
                 AND
                   account_id = ?`;
-            const connection = db.createConnection(dbconfig);
+            connection = db.createConnection(dbconfig);
             connection.query(sql_get, [account_id],
             (error, results, fields) => {
               if (error) {
@@ -246,7 +246,20 @@ export class Utils {
             connection.end();
             break;
           case 2:
-            resolve('ok');
+            sql_get = `SELECT
+                          user_id
+                      FROM
+                        users
+                      WHERE
+                        users.user_id
+                      NOT IN
+                        (SELECT DISTINCT user_id FROM user_role_relation)
+                      AND
+                        account_id <> 0
+                      AND
+                        account_id = ?`;
+            connection = db.createConnection(dbconfig);
+            connection.query();
             break;
 
         }

@@ -269,8 +269,6 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 		event.preventDefault();
 		f.controls.account_type.markAsDirty();
 		f.controls.account_type.setValue( $('#accountType').val() );
-		
-		console.log(this.selectLocation);
 
 		if($('select[name="location"]').val() === null){
 

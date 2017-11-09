@@ -150,15 +150,21 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.modalLoader.showLoader = false;
 		this.modalLoader.showMessage = true;
 		if(res.status) {
-			this.modalLoader.message = 'Success! Redirecting...';
+			this.modalLoader.message = 'Success! Redirecting to your dashboard';
 			this.modalLoader.iconColor = 'green';
 			this.modalLoader.icon = 'check';
 
 			let userdata = this.auth.getUserData();
 			userdata.accountId = res.data.account.account_id;
-			this.auth.setUserData(userdata);
-			setTimeout(() => { location.replace(location.origin + '/dashboard/company-information'); }, 500);
-		} else {
+      this.auth.setUserData(userdata);
+      //
+      setTimeout(() => {
+       // location.replace(location.origin + '/dashboard/company-information'); }, 500);
+         this.elems['modalLoader'].modal('close');
+         this.router.navigate(['/dashboard/company-information']);
+        }, 2000);
+
+      } else {
 			this.modalLoader.iconColor = 'red';
 			this.modalLoader.icon = 'clear';
 			for(let i in res.data){
@@ -203,7 +209,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		return formData;
 	}
 
-	setupFormSubmit(f: NgForm, event){
+	setupFormSubmit(f: NgForm, event) {
 		event.preventDefault();
 		let formData = this.getFormData(f);
 
@@ -287,6 +293,12 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		f.reset();
 		this.newCompany = true;
 		this.companyIsSelected = true;
-	}
+  }
+
+  public refreshMarkers() {
+    event.preventDefault();
+    this.companyIsSelected = false;
+    this.newCompany = false;
+  }
 
 }
