@@ -51,6 +51,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	newCompany = false;
 	selectedAccountData = {};
 	companyIsSelected = false;
+	selectedAccountId = 0;
 
 	defaultCountry = 'AU';
 	defaultTimeZone = 'AEST';
@@ -194,6 +195,11 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		formData = f.value;
 		formData.creator_id = userData.userId;
 		formData.unit_no = (formData.unit_no === null) ? '' : formData.unit_no;
+
+		if(this.companyIsSelected){
+			formData['account_id'] = this.selectedAccountId;
+		}
+
 		return formData;
 	}
 
@@ -203,27 +209,15 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 		if(f.valid) {
 
-	        if(this.newCompany){
+	        this.modalLoader.showLoader = true;
+	        this.modalLoader.showMessage = false;
 
-	        	this.modalLoader.showLoader = true;
-		        this.modalLoader.showMessage = false;
+	        this.elems['modalSignup'].modal('close');
+	        this.elems['modalLoader'].modal('open');
 
-		        this.elems['modalSignup'].modal('close');
-		        this.elems['modalLoader'].modal('open');
-
-		        this.signupService.sendCompanyInfoSetupData(formData, (res) => {
-		          this.setupResponse(res, f);
-		        });
-	        }else{
-	        	let qParam = {
-	        		'account_id' : this.selectedAccountData['account_id'],
-	        		'location_id' : this.selectedAccountData['location_id']
-	        	};
-
-	        	location.replace( this.baseUrl + '/validation-criteria?account_id='+qParam.account_id+'&location_id='+qParam.location_id );
-
-	        	/*this.router.navigate(['/validation-criteria'], { queryParams: qParam });*/
-	        }
+	        this.signupService.sendCompanyInfoSetupData(formData, (res) => {
+	          this.setupResponse(res, f);
+	        });
 
 		}else{
 			for(let x in f.controls){
@@ -249,6 +243,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.searchElem['searchContainer'].removeClass('active');
 		this.companyIsSelected = true;
 		this.newCompany = false;
+		this.selectedAccountId = selectedAccount.account_id;
 
 		$('select option').each(function(){
 			if($(this).text().indexOf(selectedAccount.time_zone) > -1){
@@ -256,23 +251,24 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 			}
 		});
 
-		f.controls.company_name.setValue(selectedAccount.account_name);
-		if(selectedAccount.tenant_key_contact != null){
-			f.controls.tenant_key_contact.setValue(selectedAccount.tenant_key_contact);
-		}else{
-			f.controls.tenant_key_contact.setValue('none');
-		}
-		f.controls.building_name.setValue(selectedAccount.name);
-		f.controls.unit_no.setValue(selectedAccount.unit);
-		f.controls.street.setValue(selectedAccount.street);
-		f.controls.city.setValue(selectedAccount.city);
-		f.controls.state.setValue(selectedAccount.state);
-		f.controls.postal_code.setValue(selectedAccount.postal_code);
-		// f.controls.trp_code.setValue(selectedAccount.trp_code);
-		f.controls.account_domain.setValue(selectedAccount.account_domain);
+		selectedAccount.key_contact = (selectedAccount.key_contact != null) ? selectedAccount.key_contact : '';
 
-		this.selCountry = selectedAccount.country;
-		$('#selCountry').val( selectedAccount.country );
+		f.controls.company_name.setValue(selectedAccount.account_name);
+		f.controls.key_contact.setValue(selectedAccount.key_contact);
+		f.controls.building_name.setValue(selectedAccount.account_name);
+		f.controls.unit_no.setValue(selectedAccount.billing_unit);
+		f.controls.street.setValue(selectedAccount.	billing_street);
+		f.controls.city.setValue(selectedAccount.billing_city);
+		f.controls.state.setValue(selectedAccount.billing_state);
+		f.controls.postal_code.setValue(selectedAccount.billing_postal_code);
+		// f.controls.trp_code.setValue(selectedAccount.trp_code);
+		if(f.controls.account_domain){
+			f.controls.account_domain.setValue(selectedAccount.account_domain);
+		}
+		f.controls.building_number.setValue(selectedAccount.building_number);
+
+		this.selCountry = selectedAccount.billing_country;
+		$('#selCountry').val( selectedAccount.billing_country );
 		this.selTimezone = (selectedAccount.time_zone !== null || selectedAccount.time_zone.length > 0) ? selectedAccount.time_zone : 'AEST';
 		$('#selTimezone').val( this.selTimezone );
 

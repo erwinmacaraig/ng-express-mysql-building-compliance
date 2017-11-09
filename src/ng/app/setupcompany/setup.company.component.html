@@ -63,9 +63,9 @@
 								</div>
 
 								<div class="input-field col m6" [ngClass]="{ 'hide' : !companyIsSelected }">
-									<input id="tenant_key_contact" type="text" name="tenant_key_contact" ngModel #inpTenantKeyContact="ngModel" [ngClass]="{ 'invalid' : !inpTenantKeyContact.valid  && inpTenantKeyContact.dirty }" required readonly="true">
-									<label for="tenant_key_contact">Tenant Key Contact
-										<small *ngIf=" !inpTenantKeyContact.valid && inpTenantKeyContact.dirty "> *Required </small>
+									<input id="key_contact" type="text" name="key_contact" ngModel #inpKeyContact="ngModel" [ngClass]="{ 'invalid' : !inpKeyContact.valid  && inpKeyContact.dirty }"  readonly="true">
+									<label for="key_contact">Key Contact
+										<small *ngIf=" !inpKeyContact.valid && inpKeyContact.dirty "> *Required </small>
 									</label>
 								</div>
 
@@ -73,6 +73,13 @@
 									<input id="building_name" type="text" name="building_name" ngModel #inpBuildingName="ngModel" [ngClass]="{ 'invalid' : !inpBuildingName.valid  && inpBuildingName.dirty }" required readonly="true">
 									<label for="building_name">Building Name
 										<small *ngIf=" !inpBuildingName.valid && inpBuildingName.dirty "> *Required </small>
+									</label>
+								</div>
+
+								<div class="input-field col m6" [ngClass]="{ 'hide' : !companyIsSelected }">
+									<input id="building_number" type="text" name="building_number" ngModel #inpBuildingNumber="ngModel" [ngClass]="{ 'invalid' : !inpBuildingNumber.valid  && inpBuildingNumber.dirty }"  readonly="true">
+									<label for="building_number">Building Number
+										<small *ngIf=" !inpBuildingNumber.valid && inpBuildingNumber.dirty "> *Required </small>
 									</label>
 								</div>
 
@@ -116,7 +123,7 @@
 									<label class="select-label">Country</label>
 								</div>
 
-								<div class="select-field col m12 s12" [ngClass]="{ 'hide' : !companyIsSelected }">
+								<div class="select-field col m6 s12" [ngClass]="{ 'hide' : !companyIsSelected }">
 									<select id="selTimezone" [(ngModel)]="selTimezone"  name="time_zone" readonly="true">
 										<option *ngFor="let timezone of timezones" [value]="timezone.abbr" > {{ timezone.text }} </option>
 									</select>
@@ -128,7 +135,7 @@
 									<label for="domain">Account Domain name
 										<small *ngIf=" !inpDomain.valid && inpDomain.dirty "> *Required </small>
 									</label>
-                </div>
+                				</div>
 
 
 								<div class="select-field col m12 s12"></div>
