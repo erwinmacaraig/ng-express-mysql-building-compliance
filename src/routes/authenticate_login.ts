@@ -67,7 +67,7 @@ public validate(req: Request, res: Response, next: NextFunction) {
 
             fileCB = (fileData) => {
                 if(fileData !== false){
-                    response.data.profilePic = fileData.url;
+                    response.data.profilePic = fileData[0].url;
                 }
 
                 new UserRoleRelation().getByUserId(user.get('user_id')).then(

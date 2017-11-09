@@ -41,8 +41,7 @@ export class Files extends BaseClass {
 
     public getByUserIdAndType(userId, type){
         return new Promise((resolve, reject) => {
-            const sql_load = `SELECT f.*, fu.type FROM 
-                            files f LEFT JOIN file_user fu WHERE fu.user_id = ? fu.type = ? ORDER BY fu.file_user_id DESC`;
+            const sql_load = `SELECT f.*, fu.type FROM files f LEFT JOIN file_user fu ON f.file_id = fu.file_id WHERE fu.user_id = ? AND fu.type = ? ORDER BY fu.file_user_id DESC`;
             const param = [userId, type];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
