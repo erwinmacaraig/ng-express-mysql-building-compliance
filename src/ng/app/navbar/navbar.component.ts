@@ -149,7 +149,7 @@ export class NavbarComponent implements OnInit {
 		this.elems['modalCloseBtn'].hide();
 		this.elems['btnSelectFile'].hide();
 		this.elems['chooseBtnFile'].hide();
-		this.elems['btnTakePhoto'].hide();
+		// this.elems['btnTakePhoto'].hide();
 
 		let 
 		file = this.elems['inputFile'][0].files[0],
@@ -162,7 +162,7 @@ export class NavbarComponent implements OnInit {
 				this.elems['modalCloseBtn'].show();
 				this.elems['btnSelectFile'].show();
 				this.elems['chooseBtnFile'].show();
-				this.elems['btnTakePhoto'].show();
+				// this.elems['btnTakePhoto'].show();
 			};
 
 			this.uploadResponseHandler(response, showBtns);
