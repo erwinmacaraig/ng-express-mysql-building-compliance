@@ -50,14 +50,16 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 	newCompany = false;
 	selectedAccountData = {};
+	companyIsSelected = false;
+	selectedAccountId = 0;
 
 	defaultCountry = 'AU';
 	defaultTimeZone = 'AEST';
 
 	constructor(
-		private router: Router, 
-		private http: HttpClient, 
-		platformLocation: PlatformLocation, 
+		private router: Router,
+		private http: HttpClient,
+		platformLocation: PlatformLocation,
 		private signupService:SignupService,
 		private auth: AuthService,
 		private accounts : AccountsDataProviderService,
@@ -69,12 +71,12 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.subscribeAndCheckUserHasAccountToSetup(router);
 	}
 
-	subscribeAndCheckUserHasAccountToSetup(router){
+	subscribeAndCheckUserHasAccountToSetup(router) {
 		router.events.subscribe((val) => {
-			if(val instanceof NavigationEnd){
+			if(val instanceof NavigationEnd) {
 				let userData = this.auth.getUserData();
 				if( userData ){
-					if( userData.roleId == '1' || userData.roleId == '2' ){
+					if( userData.roleId == '1' || userData.roleId == '2' ) {
 						if(userData.accountId > 0){
 							router.navigate(['/']);
 						}
@@ -107,7 +109,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.inputCompanyName.delay(50)
 			.map(event => event.target.value)
 			.subscribe((value) => {
-				if(!this.newCompany){
+				if(!this.newCompany) {
 					thisClass.searchElem['searchContainer'].addClass('active');
 					thisClass.searchElem['preLoaderMain'].show();
 				}
@@ -147,16 +149,22 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	setupResponse(res, f){
 		this.modalLoader.showLoader = false;
 		this.modalLoader.showMessage = true;
-		if(res.status){
-			this.modalLoader.message = 'Success! Redirecting...';
+		if(res.status) {
+			this.modalLoader.message = 'Success! Redirecting to your dashboard';
 			this.modalLoader.iconColor = 'green';
 			this.modalLoader.icon = 'check';
 
 			let userdata = this.auth.getUserData();
 			userdata.accountId = res.data.account.account_id;
-			this.auth.setUserData(userdata);
-			setTimeout(() => { location.replace(location.origin + '/dashboard/company-information'); }, 500);
-		}else{
+      this.auth.setUserData(userdata);
+      //
+      setTimeout(() => {
+       // location.replace(location.origin + '/dashboard/company-information'); }, 500);
+         this.elems['modalLoader'].modal('close');
+         this.router.navigate(['/dashboard/company-information']);
+        }, 2000);
+
+      } else {
 			this.modalLoader.iconColor = 'red';
 			this.modalLoader.icon = 'clear';
 			for(let i in res.data){
@@ -173,52 +181,49 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 	getFormData(f: NgForm){
 
-		if($('#selCountry').val() == null){
+		if($('#selCountry').val() == null) {
 			f.controls.country.setValue( this.defaultCountry );
-		}else{
+		} else {
 			f.controls.country.setValue( $('#selCountry').val() );
 		}
 
-		if($('#selTimezone').val() == null){
+		if ($('#selTimezone').val() == null) {
 			f.controls.time_zone.setValue( this.defaultTimeZone );
 		}else{
 			f.controls.time_zone.setValue( $('#selTimezone').val() );
 		}
-		
+
 		f.controls.country.markAsDirty();
 		f.controls.time_zone.markAsDirty();
 
-		let 
+		let
 		userData = this.auth.getUserData(),
 		formData = f.value;
 		formData.creator_id = userData.userId;
+		formData.unit_no = (formData.unit_no === null) ? '' : formData.unit_no;
+
+		if(this.companyIsSelected){
+			formData['account_id'] = this.selectedAccountId;
+		}
+
 		return formData;
 	}
 
-	setupFormSubmit(f: NgForm, event){
+	setupFormSubmit(f: NgForm, event) {
 		event.preventDefault();
 		let formData = this.getFormData(f);
 
-		if(f.valid){
+		if(f.valid) {
 
-	        if(this.newCompany){
+	        this.modalLoader.showLoader = true;
+	        this.modalLoader.showMessage = false;
 
-	        	this.modalLoader.showLoader = true;
-		        this.modalLoader.showMessage = false;
+	        this.elems['modalSignup'].modal('close');
+	        this.elems['modalLoader'].modal('open');
 
-		        this.elems['modalSignup'].modal('close');
-		        this.elems['modalLoader'].modal('open');
-
-		        this.signupService.sendCompanyInfoSetupData(formData, (res) => {
-		          this.setupResponse(res, f);
-		        });
-	        }else{
-	        	let qParam = {
-	        		'account_id' : this.selectedAccountData['account_id'],
-	        		'location_id' : this.selectedAccountData['location_id']
-	        	};
-	        	this.router.navigate(['/validation-criteria'], { queryParams: qParam });
-	        }
+	        this.signupService.sendCompanyInfoSetupData(formData, (res) => {
+	          this.setupResponse(res, f);
+	        });
 
 		}else{
 			for(let x in f.controls){
@@ -242,36 +247,40 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.selectedAccountData = selectedAccount;
 		this.searchedAccounts = [];
 		this.searchElem['searchContainer'].removeClass('active');
- 
+		this.companyIsSelected = true;
+		this.newCompany = false;
+		this.selectedAccountId = selectedAccount.account_id;
+
 		$('select option').each(function(){
-			if($(this).text().indexOf(selectedAccount.time_zone) > -1){ 
+			if($(this).text().indexOf(selectedAccount.time_zone) > -1){
 				selectedAccount.time_zone = $(this).attr('value');
 			}
 		});
-		
-		f.controls.company_name.setValue(selectedAccount.account_name);
-		if(selectedAccount.tenant_key_contact != null){
-			f.controls.tenant_key_contact.setValue(selectedAccount.tenant_key_contact);
-		}else{
-			f.controls.tenant_key_contact.setValue('none');
-		}
-		f.controls.building_name.setValue(selectedAccount.name);
-		f.controls.unit_no.setValue(selectedAccount.unit);
-		f.controls.street.setValue(selectedAccount.street);
-		f.controls.city.setValue(selectedAccount.city);
-		f.controls.state.setValue(selectedAccount.state);
-		f.controls.postal_code.setValue(selectedAccount.postal_code);
-		f.controls.trp_code.setValue(selectedAccount.trp_code);
-		f.controls.account_domain.setValue(selectedAccount.account_domain);
 
-		this.selCountry = selectedAccount.country;
-		$('#selCountry').val( selectedAccount.country );
+		selectedAccount.key_contact = (selectedAccount.key_contact != null) ? selectedAccount.key_contact : '';
+
+		f.controls.company_name.setValue(selectedAccount.account_name);
+		f.controls.key_contact.setValue(selectedAccount.key_contact);
+		f.controls.building_name.setValue(selectedAccount.account_name);
+		f.controls.unit_no.setValue(selectedAccount.billing_unit);
+		f.controls.street.setValue(selectedAccount.	billing_street);
+		f.controls.city.setValue(selectedAccount.billing_city);
+		f.controls.state.setValue(selectedAccount.billing_state);
+		f.controls.postal_code.setValue(selectedAccount.billing_postal_code);
+		// f.controls.trp_code.setValue(selectedAccount.trp_code);
+		if(f.controls.account_domain){
+			f.controls.account_domain.setValue(selectedAccount.account_domain);
+		}
+		f.controls.building_number.setValue(selectedAccount.building_number);
+
+		this.selCountry = selectedAccount.billing_country;
+		$('#selCountry').val( selectedAccount.billing_country );
 		this.selTimezone = (selectedAccount.time_zone !== null || selectedAccount.time_zone.length > 0) ? selectedAccount.time_zone : 'AEST';
 		$('#selTimezone').val( this.selTimezone );
 
 		setTimeout(() => {
 			$('input').trigger('focusin');
-			$('#selCountry').material_select(); 
+			$('#selCountry').material_select();
 			$('#selTimezone').material_select();
 		}, 100);
 	}
@@ -283,6 +292,13 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		$('[for="company_name"]').html('Company Name Here');
 		f.reset();
 		this.newCompany = true;
-	}
+		this.companyIsSelected = true;
+  }
+
+  public refreshMarkers() {
+    event.preventDefault();
+    this.companyIsSelected = false;
+    this.newCompany = false;
+  }
 
 }

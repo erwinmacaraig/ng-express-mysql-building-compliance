@@ -34,11 +34,11 @@
 							</div>
 
 							<div class="input-field col m12">
-		              			<input id="email" type="email" name="email" [readonly]="invitationCodePresent" 
-				                    email 
+		              			<input id="email" type="email" name="email" [readonly]="invitationCodePresent"
+				                    email
 				                    ngModel
 				                    [ngModel]="inviCode.email"
-				                    #inputEmail="ngModel" 
+				                    #inputEmail="ngModel"
 				                    [ngClass]="{ 'invalid' : !inputEmail.valid && inputEmail.dirty  }"
 				                    required>
 								<label for="email" [ngClass]="{'active': invitationCodePresent}">Email
@@ -46,7 +46,7 @@
 									<span *ngIf=" emailTaken " email-taken class="red-text"> *Email taken </span>
 								</label>
            					</div>
-            
+
 							<div class="input-field col m12">
 								<input id="password" type="password" name="password" ngModel #inputPassword="ngModel"
 								[ngClass]="{
@@ -112,7 +112,7 @@
 								<button type="submit" class="btn block waves-effect waves-light btn-submit">Submit</button>
 							</div>
 							<div class="input-field col m6">
-								<a class="btn block waves-effect waves-light btn-close" (click)="onCloseSelfSignUp()">Back</a>
+								<a class="btn block waves-effect waves-light btn-close grey lighten-1" (click)="onCloseSelfSignUp()">Back</a>
 							</div>
 						</div>
 					</div>

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-
+import { UserService } from '../services/users';
+import { NgForm } from '@angular/forms';
+import { ViewChild } from '@angular/core';
 declare var $: any;
 declare var Webcam: any;
 declare var navigator: any;
@@ -8,9 +10,11 @@ declare var navigator: any;
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.css']
+  styleUrls: ['./navbar.component.css'],
+  providers : [UserService]
 })
 export class NavbarComponent implements OnInit {
+	@ViewChild('formFile') formFile: NgForm; 
 
 	public userData: Object;
 	public userRoleID: Number = 0;
@@ -23,7 +27,8 @@ export class NavbarComponent implements OnInit {
 	elems = {};
 
 	constructor(
-		private auth: AuthService
+		private auth: AuthService,
+		private userService: UserService
 	) {
 	    this.userData = this.auth.getUserData();
 	    this.usersImageURL = 'assets/images/camera_upload_hover.png';
@@ -81,7 +86,9 @@ export class NavbarComponent implements OnInit {
 			'btnRetake' : webcamContainer.find('.btn-retake'),
 			'btnCancel' : webcamContainer.find('.btn-cancel'),
 			'btnChoose' : webcamContainer.find('.btn-choose'),
-			'btnCapture' : webcamContainer.find('.btn-capture')
+			'btnCapture' : webcamContainer.find('.btn-capture'),
+			'changePhotoLink' : $('#changePhotoLink'),
+			'modalCloseBtn' : modalSelectChangePhotoAction.find('.modal-close')
 		};
 	}
 
@@ -91,6 +98,28 @@ export class NavbarComponent implements OnInit {
 
 	closeEvent(){
 		$('#closeRightNav').click(function(){ $('.vertical-m').removeClass('fadeInRight animated').addClass('fadeOutRightBig animated'); });
+	}
+
+
+	submitSelectFile(){
+		this.elems['btnSelectFile'].prop('disabled', true);
+		this.elems['chooseBtnFile'].prop('disabled', true);
+		this.elems['btnTakePhoto'].prop('disabled', true);
+		this.elems['modalCloseBtn'].hide();
+
+		let 
+		file = this.elems['inputFile'][0].files,
+		formData = new FormData();
+		formData.append('user_id', this.userData['userId']);
+		formData.append('file', file);
+		this.userService.uploadProfilePicture(formData, (response) => {
+			if(response.status){
+
+			}else{
+
+			}
+		}); 
+
 	}
 
 	changePhotoSelectFileEvent(){
@@ -111,9 +140,7 @@ export class NavbarComponent implements OnInit {
 		});
 
 		this.elems['chooseBtnFile'].click(() => {
-			this.elems['btnSelectFile'].prop('disabled', true);
-			this.elems['chooseBtnFile'].prop('disabled', true);
-			this.elems['btnTakePhoto'].prop('disabled', true);
+			this.submitSelectFile();
 		});
 	}
 
@@ -135,6 +162,9 @@ export class NavbarComponent implements OnInit {
 			Webcam.attach( 'div[webcam]' );
 			this.elems['actionContainer'].hide();
 			this.elems['webcamContainer'].show();
+
+			this.elems['btnCapture'].show();
+			this.elems['btnChoose'].hide();
 		});
 
 		this.elems['btnCapture'].click(() => {
@@ -150,12 +180,19 @@ export class NavbarComponent implements OnInit {
 		});
 
 		this.elems['btnChoose'].click(() => {
+			Webcam.freeze();
 			Webcam.snap((data_uri) => {
 				this.elems['imgHolder'].attr('src', data_uri);
 			});
+
+			this.elems['btnCancel'].prop('disabled', true);
+			this.elems['btnChoose'].prop('disabled', true);
+			this.elems['btnRetake'].prop('disabled', true);
+			this.elems['modalCloseBtn'].hide();
+			Webcam.freeze();
 		});
 
-		this.elems['btnCancel'].click(function(){
+		this.elems['btnCancel'].click(() => {
 			Webcam.reset();
 			this.elems['actionContainer'].show();
 			this.elems['webcamContainer'].hide();
@@ -163,47 +200,45 @@ export class NavbarComponent implements OnInit {
 	}
 
 	changePhotoEvent(){
-		let changePhotoLink = $('#changePhotoLink'),
-			modalSelectChangePhotoAction = $('#modalSelectChangePhotoAction'),
-			btnSelectFile = $('#btnSelectFile'),
-			btnTakePhoto = $('#btnTakePhoto'),
-			actionContainer = modalSelectChangePhotoAction.find('.action-content'),
-			webcamContainer = modalSelectChangePhotoAction.find('.webcam-content'),
-			btnCancel = webcamContainer.find('.btn-cancel'),
-			btnChooseFile = modalSelectChangePhotoAction.find('.btn-choose-file-select'),
-			imgSelectedFile = modalSelectChangePhotoAction.find('.image-select-file'),
-			inputFile = actionContainer.find('input[type="file"]'),
-			myAccountPhotoSRC = $('#myAccountPhoto').attr('src'),
-			chooseBtnFile = modalSelectChangePhotoAction.find('.btn-choose-file-select');
 
-		modalSelectChangePhotoAction.modal({
-			startingTop: '0%',
-        	endingTop: '5%',
-        	ready: function(){
+		let  modalOpts = {
+            dismissible: false,
+            startingTop: '0%', // Starting top style attribute
+            endingTop: '5%',
+            ready: () => {
         		navigator.getMedia = ( navigator.getUserMedia ||
 		               navigator.webkitGetUserMedia ||
 		               navigator.mozGetUserMedia ||
 		               navigator.msGetUserMedia);
 
-				navigator.getMedia({video: true}, function() {
-					btnTakePhoto.prop('disabled', false).html('TAKE A PHOTO');
-				}, function() {
-					btnTakePhoto.prop('disabled', true).html('NO CAMERA FOUND');
+				navigator.getMedia({video: true}, () => {
+					this.elems['btnTakePhoto'].prop('disabled', false).html('TAKE A PHOTO');
+				}, () => {
+					this.elems['btnTakePhoto'].prop('disabled', true).html('NO CAMERA FOUND');
 				});
+
+				this.elems['btnSelectFile'].prop('disabled', false);
+				this.elems['chooseBtnFile'].prop('disabled', false);
+				this.elems['btnTakePhoto'].prop('disabled', false);
+				this.elems['modalCloseBtn'].show();
+				this.elems['btnCapture'].show();
+				this.elems['btnChoose'].hide();
         	},
-        	complete: function() {
-        		btnSelectFile.html('SELECT FILE');
-        		imgSelectedFile.hide();
-        		chooseBtnFile.hide();
-        		btnCancel.click();
-        		actionContainer.find('input[type="file"]')[0].value = "";
-        		inputFile = actionContainer.find('input[type="file"]');
+        	complete: () => {
+        		this.elems['btnSelectFile'].html('SELECT FILE');
+        		this.elems['imgSelectedFile'].hide();
+        		this.elems['chooseBtnFile'].hide();
+        		this.elems['btnCancel'].click();
+        		this.elems['actionContainer'].find('input[type="file"]')[0].value = "";
+        		this.elems['inputFile'] = this.elems['actionContainer'].find('input[type="file"]');
         		Webcam.reset();
         	}
-		});
+        };
 
-		changePhotoLink.click(function(){
-			modalSelectChangePhotoAction.modal('open');
+		this.elems['modalSelectChangePhotoAction'].modal(modalOpts);
+
+		this.elems['changePhotoLink'].click(() => {
+			this.elems['modalSelectChangePhotoAction'].modal('open');
 		});
 
 		this.changePhotoSelectFileEvent();

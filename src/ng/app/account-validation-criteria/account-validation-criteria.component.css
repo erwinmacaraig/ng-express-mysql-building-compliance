@@ -1,4 +1,4 @@
-.signup-main-container,
+.validation-main-container,
 .modal{
 	font-family: 'Open Sans';
 	font-size: 12px;
@@ -90,55 +90,6 @@
     left: 10px !important;
 }
 
-.search-container{
-	position: absolute;
-    width: 96%;
-    padding: 20px;
-    z-index: 999;
-    background-color: rgb(248, 249, 226);
-    top: 65px;
-    text-align: left;
-    display: none;
-    box-shadow: 0px 5px 6px 0px #333;
-    border-radius: 3px;
-    margin: 0 2%;
-}
-
-.search-container.active{
-	display: block;
-}
-
-.search-container ul{
-    min-height: 100px;
-    overflow-y: auto;
-}
-
-.search-container ul li a{
-	font-size: 16px;
-}
-
-.search-container ul li a:hover{
-	color: #62c0ee;
-}
-
-.search-container .cant-find-my-company{
-    text-align: center;
-    width: 55%;
-    margin: 0 auto;
-}
-
-.search-container .cant-find-my-company a{
-	color: #000000;
-	font-size: 18px;
-}
-
-.search-container .pre-loader-container{
-	position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-right: -50%;
-    transform: translate(-50%, -50%);
-}
 
 .pre-loader-main-wrapper{
 	position: absolute;
@@ -150,7 +101,7 @@
     z-index: 99;
 }
 
-@media only screen 
+@media only screen
   and (min-width: 1024px)
   and (max-width: 1440px){
 
@@ -168,29 +119,27 @@
 	}
 }
 
-@media only screen 
+@media only screen
   and (max-width: 1024px){
 
 	#modalSignup,
 	#modalLoader {
-	    width: 85%;
+	    width: 50%;
 	}
 
 	.modal .modal-content {
 	    padding: 20px 0px;
 	}
 
-	.input-field,
-	.select-field{
+	.input-field{
 		width: 100%;
-		padding: 0px 10px !important;
 	}
 }
 
-@media only screen 
+@media only screen
   and (min-width: 480px)
   and (max-width: 768px){
-	
+
 	.modal{
 		overflow-y: none;
 	}
@@ -201,13 +150,13 @@
 
 	#modalSignup,
 	#modalLoader {
-	    width: 85%;
+	    width: 60%;
 	    margin-bottom: 100px;
 	}
 
 }
 
-@media only screen 
+@media only screen
   and (max-width: 480px){
 	#modalSignup,
 	#modalLoader {
@@ -218,4 +167,11 @@
 	.modal{
 		overflow: overlay;
 	}
+}
+
+.error {
+  text-align: left;
+  font-size: 13px;
+  color: red;
+
 }

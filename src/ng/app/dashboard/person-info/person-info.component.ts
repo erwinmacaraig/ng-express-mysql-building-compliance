@@ -8,13 +8,15 @@ import { NgForm } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { AccountTypes } from '../../models/account.types';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
 declare var $: any;
 
 @Component({
   selector: 'app-person-info',
   templateUrl: './person-info.component.html',
-  styleUrls: ['./person-info.component.css']
+  styleUrls: ['./person-info.component.css'],
+  providers: [DashboardPreloaderService]
 })
 export class PersonInfoComponent implements OnInit, AfterViewInit {
   @ViewChild('f') personInfoForm: NgForm;
@@ -23,12 +25,15 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
   editCtrl = false;
   private baseUrl;
   public message;
+  emailBlackListed = false;
+  emailTaken = false;
   constructor(private route: ActivatedRoute,
               private http: HttpClient,
-              private platformLocation: PlatformLocation) {
+              private platformLocation: PlatformLocation,
+              private preloaderService : DashboardPreloaderService) {
 
     this.baseUrl = (platformLocation as any).location.origin;
-
+    this.preloaderService.show();
   }
 
   ngOnInit() {
@@ -54,6 +59,8 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
     const header = new HttpHeaders({
       'Content-Type': 'application/json'
     });
+    this.emailBlackListed = false;
+    this.emailTaken = false;
 
     this.http.patch(this.baseUrl + '/update-person-info', {
       'first_name': f.value.first_name,
@@ -72,11 +79,18 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
       this.onResetForm();
       alert('Update Successful');
       }, (err: HttpErrorResponse) => {
+          const parsedErrorMessage = JSON.parse(err.error);
           if (err.error instanceof Error) {
             alert('There was a problem with the udpate query.');
           } else {
-              alert(`Backend returned code ${err.status}, body was: ${err.error}`);
-              console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
+              if(parsedErrorMessage.message == 'Email taken'){
+                this.emailTaken = true;
+              }else if(parsedErrorMessage.message == 'Domain blacklisted'){
+                this.emailBlackListed = true;
+              }else{
+                alert(`Backend returned code ${err.status}, body was: ${err.error}`);
+                console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
+              }
           }
       } // end HttpErrorResponse
     );
@@ -93,6 +107,8 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
     if (!$('.vertical-m').hasClass('fadeInRight')) {
       $('.vertical-m').addClass('fadeInRight animated');
     }
+
+    this.preloaderService.hide();
   }
 
 

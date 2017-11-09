@@ -358,7 +358,8 @@ const md5 = require('md5');
 							(questiondata) => {
 								response.data = {
 									'question' : questiondata['question'],
-									'question_id' : questiondata['security_question_id']
+									'question_id' : questiondata['security_question_id'],
+									'user_id' : userdata['user_id']
 								};
 								response.status = true;
 								res.statusCode = 200;
@@ -386,6 +387,7 @@ const md5 = require('md5');
 	public securityAnswer(req: Request, res: Response, next: NextFunction){
 		let answer = req.body.answer,
 			questionId = req.body.question_id,
+			userId = req.body.user_id,
 			response = {
 				status : false,
 				message : '',
@@ -398,7 +400,7 @@ const md5 = require('md5');
 		// Default status code
 		res.statusCode = 400;
 
-		answerModel.getByQuestionId(questionId).then(
+		answerModel.getByQuestionId(questionId, userId).then(
 			(answerData) => {
 				if( Object.keys(answerData).length > 0 ){
 
@@ -417,6 +419,7 @@ const md5 = require('md5');
 
 						tokenModel.create(saveData).then(
 							() => {
+								res.statusCode = 200;
 								response.status = true;
 								response.message = 'Correct';
 								response.data = {

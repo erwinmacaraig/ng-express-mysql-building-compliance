@@ -67,6 +67,15 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 	selectSubLocation = 0;
 
 	emailTaken = false;
+	emailBlacklisted = false;
+
+	showWardenInvitationCode = false;
+	saveWardenInvitationCodeText = "Save";
+	wardenInvitationCodeData = {
+		location_id : 0,
+		account_id : 0,
+		code : ''
+	};
 
 	constructor(
 		private platformLocation: PlatformLocation, 
@@ -90,6 +99,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 		
 		if(this.userRoleID == 1 || this.userRoleID == 2){
 			this.showSendInvite = true;
+			this.showWardenInvitationCode = true;
 		}
 
 		for(let i in this.selectUserType){
@@ -152,6 +162,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 			if(Object.keys(resAccount.data).length > 0){
 				this.accountData = resAccount.data;
 				this.selectAccount = resAccount.data['account_id'];
+				this.wardenInvitationCodeData.account_id = resAccount.data['account_id'];
 
 				this.locationsService.getUsersLocationByIdAndAccountId(
 					{
@@ -163,6 +174,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 						for(let i in resLocation.data){
 							if(resLocation.data[i]['parent_id'] == -1){
 								this.selectLocation = resLocation.data[i]['location_id'];
+								this.wardenInvitationCodeData.location_id = resLocation.data[i]['location_id'];
 							}
 							arrNames.push(resLocation.data[i]['name']);
 						}
@@ -182,6 +194,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 								this.preloaderService.hide();
 								$('select').material_select();
 								this.startEvents();
+								$('input').trigger('focusin');
 							}
 						);
 
@@ -206,6 +219,24 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 
 	startEvents(){
 		this.selectAccountTypeEvent();
+
+		/*SET WARDEN INVITATION CODE*/
+		if(Object.keys(this.accountData).length > 0){
+			if( this.accountData['account_code'] !== null ){
+				if(this.showWardenInvitationCode){
+					this.formWardenInvitationCode.controls.code.setValue(this.accountData['account_code']);
+					this.saveWardenInvitationCodeText = "Update";
+					$('#inpInviCode').trigger('focusin');
+				}
+			}
+
+			$('#inpCompanyName').val( this.accountData['account_name'] ).trigger('focusin');
+			for(let i in this.arrUserType){
+				if(this.userRoleID == this.arrUserType[i]['role_id']){
+					$('#inpRoleName').val(this.arrUserType[i]['description']).trigger('focusin');
+				}
+			}
+		}
 
 		setTimeout(() => { $('select').material_select(); }, 300);
 	}
@@ -311,7 +342,9 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 						this.modalLoader.iconColor = 'red';
 						this.modalLoader.message = response.message;
 						if('emailtaken' in response){
-							this.emailTaken = response.emailtaken;
+							this.emailTaken = true;
+						}else if('domain_blacklisted' in response){
+							this.emailBlacklisted = true;
 						}
 					}
 					setTimeout(()=>{ 
@@ -326,6 +359,41 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 		let selAccountType = $('#accountType');
 		selAccountType.val(0);
 		selAccountType.trigger('change');
+	}
+
+	// COMPANY WARDEN INVITATION CODE SUBMIT EVENT
+	wardenInvitationCodeSubmit(f, e){
+		e.preventDefault();
+		if(f.valid){
+			this.modalLoader.showLoader = true;
+			this.modalLoader.loadingMessage = 'Saving warden invitation code...';
+			this.modalLoader.showMessage = false;
+			this.modalLoaderElem.modal('open');
+			this.wardenInvitationCodeData.code = f.controls.code.value.trim();
+			this.accountDataProviderService.saveAccountInvitationCode(
+				this.wardenInvitationCodeData, 
+				(response) => {
+					this.modalLoader.showLoader = false;
+					this.modalLoader.showMessage = true;
+					if(response.status){
+						this.modalLoader.icon = 'check';
+						this.modalLoader.iconColor = 'green';
+						this.modalLoader.message = 'Successfully updated!';
+						this.accountData['account_code'] = f.controls.code.value.trim();
+					}else{
+						this.modalLoader.icon = 'clear';
+						this.modalLoader.iconColor = 'red';
+						this.modalLoader.message = response.message;
+					}
+					setTimeout(()=>{ 
+						this.modalLoaderElem.modal('close'); 
+					}, 2000);
+				}
+			);
+
+		}else{
+			f.controls.code.markAsDirty();
+		}
 	}
 
 

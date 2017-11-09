@@ -8,7 +8,7 @@ import { UserRoleRelation } from '../models/user.role.relation.model';
 import { LocationAccountUser } from '../models/location.account.user';
 import { InvitationCode } from '../models/invitation.code.model';
 import { EmailSender } from '../models/email.sender';
-
+import { BlacklistedEmails } from '../models/blacklisted-emails';
 
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
@@ -101,7 +101,7 @@ import * as Promise from 'promise';
 			data : {}
 		},
 		error = 0,
-		arrValidField = [ 'creator_id', 'company_name', 'tenant_key_contact', 'building_name', 'unit_no', 'street', 'city', 'state', 'postal_code', 'country', 'time_zone', 'account_domain', 'trp_code' ];
+		arrValidField = [ 'creator_id', 'company_name', 'key_contact', 'building_name', 'unit_no', 'street', 'city', 'state', 'postal_code', 'country', 'time_zone'  ];
 		arrValidField.forEach((val)=>{ if( val in reqBody === false ){ error++; } });
 
 		if(error == 0){
@@ -122,113 +122,13 @@ import * as Promise from 'promise';
 		data.creator_id = parseInt(data.creator_id);
 		data.company_name = this.capitalizeFirstLetter(data.company_name.toLowerCase());
 		data.building_name = this.capitalizeFirstLetter(data.building_name.toLowerCase());
+		data.building_number = validator.isEmpty(''+data.building_number+'') ? '' : data.building_number;
 		data.city = this.capitalizeFirstLetter(data.city.toLowerCase());
 		data.state = this.capitalizeFirstLetter(data.state.toLowerCase());
-		data.tenant_key_contact = this.capitalizeFirstLetter(data.tenant_key_contact.toLowerCase());
+		data.key_contact = this.capitalizeFirstLetter(data.key_contact.toLowerCase());
 		data.unit_no = validator.isEmpty( ''+data['unit_no']+'' ) ? ' ' : data['unit_no'];
-		data.account_domain = data.account_domain.toLowerCase();
+		
 		return data;
-	}
-
-	private saveNewAccountAndLocation(data){
-		return new Promise((resolve, reject) => {
-			let accountModel = new Account(),
-				locationModel = new Location(),
-				accountData = {
-					'account_name' : data.company_name,
-					'billing_unit' : data.unit_no,
-					'billing_street': data.street,
-					'billing_city' : data.city,
-					'billing_state': data.state,
-					'billing_postal_code' : data.postal_code,
-					'billing_country' : data.country,
-					'trp_code' : data.trp_code,
-					'account_domain' : data.account_domain
-				},
-				locationData = {
-					'parent_id' : '-1',
-					'name' : data.building_name,
-					'unit' : data.unit_no,
-					'street' : data.street,
-					'city' : data.city,
-					'state': data.state,
-					'postal_code' : data.postal_code,
-					'country' : data.country,
-					'time_zone' : data.time_zone,
-					'tenant_key_contact' : data.tenant_key_contact
-				};
-
-			accountModel.create(accountData).then(
-				() => {
-					locationModel.create(locationData).then(
-						() => {
-							locationModel.set('order', locationModel.get('location_id'));
-							locationModel.dbUpdate().then(
-								()=>{
-									resolve({
-										account : accountModel.getDBData(),
-										location : locationModel.getDBData()
-									});
-								},
-								()=>{
-									reject('Location\'s order, was not able to update ');
-								}
-							);
-						},
-						() => {
-							reject('Location was not saved');
-						}
-					);
-				},
-				() => {
-					reject('Account was not saved');
-				}
-			);
-		});
-	}
-
-	public saveNewAccountAndLocationRelation(user, account, location, success, error){
-		let locationAccountRelation = new LocationAccountRelation(),
-			userRoleRelation = new UserRoleRelation(),
-			locationAccountUser = new LocationAccountUser();
-
-		userRoleRelation.getByUserId(user.user_id).then(
-			() => {
-				userRoleRelation.set('location_id', location.location_id);
-				userRoleRelation.dbUpdate().then(
-					() => {
-						let responsibility = ( userRoleRelation.get('role_id') == 1 ) ? 'Manager' : 'Tenant';
-						locationAccountRelation.create({
-							'location_id' : location.location_id,
-							'account_id' : account.account_id,
-							'responsibility' : responsibility
-						}).then(
-							() => {
-								locationAccountUser.create({
-									'location_id' : location.location_id,
-									'account_id': account.account_id,
-									'user_id' : user.user_id
-								}).then(
-									() => { success(); },
-									() => { error('Location-Account-User saved unsuccessfully'); }
-								);
-							},
-							() => {
-								error('Location-Account relation saved unsuccessfully');
-							}
-						);
-					},
-					() => {
-						error('User role update save unsuccessfully');
-					}
-				);
-			},
-			() => {
-				// We are assuming this is a warden
-				// Previous system has no warden lookup data in user role relation
-				error('No role relation found assuming user is a warden');
-			}
-		);
 	}
 
 	public setupNewAccount(req: AuthRequest, res: Response){
@@ -239,61 +139,76 @@ import * as Promise from 'promise';
 				data : {}
 			},
 			validationData = this.validateSetupNewAccount(reqBody, res),
-			account = new Account();
+			account = new Account(),
+			userModel = new User(reqBody.creator_id);
 
 		res.statusCode = 400;
 
 		if(validationData.status){
 			reqBody = this.cleanNewAccountData(reqBody);
 
-			account.getByUserId(reqBody.creator_id).then(
-				(accountData) => {
-					response.message = "User already have a company";
-					res.send(response);
-				},
-				() => {
-					this.saveNewAccountAndLocation(reqBody).then(
-						(resAccLoc) => {
-							let account = resAccLoc['account'],
-								location = resAccLoc['location'],
-								userModel = new User(reqBody.creator_id);
-
-							userModel.load().then(
-								(usersData) => {
-									this.saveNewAccountAndLocationRelation(
-										usersData,
-										account,
-										location,
-										() => {
-											userModel.set('account_id', account.account_id);
-											userModel.dbUpdate().then(
-												() => {
-													response.data = {
-														'account' : account
-													};
-													res.statusCode = 200;
-													response.status = true;
-													res.send(response);
-												},
-												() => {
-													response.message = 'User was not able to update account id';
-													res.send(response);
-												}
-											);
-										},
-										(msg) => {
-											response.message = msg;
-											res.send(response);
-										}
-									);
+			userModel.load().then(
+				(usersData) => {
+					if(usersData['account_id'] == 0){
+						
+						let userUpdateAccountId = (account) => {
+							userModel.set('account_id', account.ID());
+							userModel.dbUpdate().then(
+								() => {
+									response.data = {
+										'account' : account
+									};
+									res.statusCode = 200;
+									response.status = true;
+									res.send(response);
+								},
+								() => {
+									response.message = 'User was not able to update account id';
+									res.send(response);
 								}
 							);
-						},
-						(msg) => {
-							response.message = msg;
-							res.send(response);
+						};
+
+						if('account_id' in reqBody){
+							account.setID(reqBody['account_id']);
+							account.load().then(
+								() => {
+									userUpdateAccountId(account);
+								}
+							);
+						}else{
+							account.create({
+								'account_name' : reqBody.company_name,
+								'billing_unit' : reqBody.unit_no,
+								'building_number' : reqBody.building_number,
+								'billing_street': reqBody.street,
+								'billing_city' : reqBody.city,
+								'billing_state': reqBody.state,
+								'billing_postal_code' : reqBody.postal_code,
+								'billing_country' : reqBody.country,
+								'trp_code' : reqBody.trp_code,
+								'account_domain' : reqBody.account_domain,
+								'time_zone' : reqBody.time_zone,
+								'key_contact' : reqBody.key_contact
+							}).then(
+								() => {
+									userUpdateAccountId(account);
+								},
+								() => {
+									response.message = 'Unable to save account';
+									res.send(response);
+								}
+							);
 						}
-					);
+
+					}else{
+						response.message = 'User already have a company';
+						res.send(response);
+					}
+				},
+				() => {
+					response.message = 'User not found';
+					res.send(response);
 				}
 			);
 
@@ -369,7 +284,7 @@ import * as Promise from 'promise';
 										updateInvi.set('last_name', "");
 										updateInvi.setID(inviCodeData[0]['invitation_code_id']);
 
-										
+
 										updateInvi.dbUpdate().then(
 											success, error
 										);
@@ -605,56 +520,65 @@ import * as Promise from 'promise';
 						},
 						() => {
 
-							let invitationCode = this.generateRandomChars(25),
-								inviModel = new InvitationCode(),
-								inviData = {
-									'code' : invitationCode,
-									'first_name' : reqBody.first_name,
-									'last_name' : reqBody.last_name,
-									'email' : reqBody.email,
-									'location_id' : reqBody.location_id,
-									'account_id' : reqBody.account_id,
-									'role_id' : reqBody.account_type,
-									'was_used' : 0
-								};
+							const blacklistedEmails = new BlacklistedEmails();
+							if(!blacklistedEmails.isEmailBlacklisted(reqBody.email)){
+								let invitationCode = this.generateRandomChars(25),
+									inviModel = new InvitationCode(),
+									inviData = {
+										'code' : invitationCode,
+										'first_name' : reqBody.first_name,
+										'last_name' : reqBody.last_name,
+										'email' : reqBody.email,
+										'location_id' : reqBody.location_id,
+										'account_id' : reqBody.account_id,
+										'role_id' : reqBody.account_type,
+										'was_used' : 0
+									};
 
-							// SPECIFY THE LOCATION ID
-							if(reqBody.account_type == 2 || reqBody.account_type == 3){
-								if( Object.keys( reqBody.sublocations ).length > 0 ){
-									inviData.location_id = reqBody.sublocations[0]['location_id'];
+								// SPECIFY THE LOCATION ID
+								if(reqBody.account_type == 2 || reqBody.account_type == 3){
+									if( Object.keys( reqBody.sublocations ).length > 0 ){
+										inviData.location_id = reqBody.sublocations[0]['location_id'];
+									}
 								}
+
+								for(let i in inviData){
+									inviModel.set(i, inviData[i]);
+								}
+
+								inviModel.dbInsert().then(
+									() => {
+										let inviDataResponse = inviModel.getDBData();
+										inviData = Object.assign(inviDataResponse, inviData);
+
+										this.sendUserInvitationEmail(
+											req,
+											inviData,
+											creatorData,
+											() => {
+												res.statusCode = 200;
+												response.status = true;
+												response.message = 'Success';
+												res.send(response);
+											},
+											(msg) => {
+												response.message = 'Error on sending email';
+												res.send(response);
+											}
+										);
+									},
+									() => {
+										response.message = 'Error on saving invitation code';
+										res.send(response);
+									}
+								);
+							}else{
+								response.status = false;
+								response['domain_blacklisted'] = true;
+								response.message = "Email's domain must be non-commercial";
+								res.send(response);
 							}
 
-							for(let i in inviData){
-								inviModel.set(i, inviData[i]);
-							}
-
-							inviModel.dbInsert().then(
-								() => {
-									let inviDataResponse = inviModel.getDBData();
-									inviData = Object.assign(inviDataResponse, inviData);
-
-									this.sendUserInvitationEmail(
-										req,
-										inviData,
-										creatorData,
-										() => {
-											res.statusCode = 200;
-											response.status = true;
-											response.message = 'Success';
-											res.send(response);
-										},
-										(msg) => {
-											response.message = 'Error on sending email';
-											res.send(response);
-										}
-									);
-								},
-								() => {
-									response.message = 'Error on saving invitation code';
-									res.send(response);
-								}
-							);
 
 						}
 					);
