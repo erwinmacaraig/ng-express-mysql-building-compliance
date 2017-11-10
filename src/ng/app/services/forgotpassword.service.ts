@@ -29,8 +29,8 @@ export class ForgotPasswordService {
 	    );
 	}
 
-	public getTokenData(tokenId, userId, callBack){
-		this.http.get(this.baseUrl+"/forgot/password/get-token-data/"+tokenId+"/"+userId,  { headers: this.headers }).subscribe(
+	public getTokenData(token, callBack){
+		this.http.get(this.baseUrl+"/forgot/password/get-token-data/"+token,  { headers: this.headers }).subscribe(
 			(res) => {
 		        callBack(res);
 	      	},

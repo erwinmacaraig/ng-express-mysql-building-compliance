@@ -335,7 +335,7 @@ const md5 = require('md5');
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
 			tokenModel = new Token(),
-			token = tokenModel.generateRandomChars(25),
+			token = userData['user_id']+''+tokenModel.generateRandomChars(50),
 			link = req.protocol + '://' + req.get('host') + req.originalUrl+'/user-verification/'+token+'/true';
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+userData.first_name+' '+userData.last_name+'</h3> <br/>';
