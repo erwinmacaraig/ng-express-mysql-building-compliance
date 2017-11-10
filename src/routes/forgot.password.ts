@@ -33,7 +33,7 @@ const md5 = require('md5');
 	   		new ForgotPasswordRequestRoute().index(req, res, next);
 	   	});
 
-	   	router.get('/change/password-request/:user_id/:token', (req: Request, res: Response, next: NextFunction) => {
+	   	router.get('/change/password-request/:token', (req: Request, res: Response, next: NextFunction) => {
 	   		new ForgotPasswordRequestRoute().changePasswordRequest(req, res, next);
 	   	});
 
@@ -47,6 +47,10 @@ const md5 = require('md5');
 
 	   	router.post('/forgot/password/security/question/answer', (req: Request, res: Response, next: NextFunction) => {
 	   		new ForgotPasswordRequestRoute().securityAnswer(req, res, next);
+	   	});
+
+	   	router.get('/forgot/password/get-token-data/:token', (req: Request, res: Response, next: NextFunction) => {
+	   		new ForgotPasswordRequestRoute().getTokenData(req, res, next);
 	   	});
 
    	}
@@ -91,7 +95,7 @@ const md5 = require('md5');
 						expDateFormat = expirationDate.format('YYYY-MM-DD HH:mm:ss'),
 						saveData = {
 							user_id : userdata['user_id'],
-							token : this.generateRandomChars(25)+'-'+this.generateRandomChars(25),
+							token : userdata['user_id']+''+this.generateRandomChars(50),
 							action : 'forgot-password',
 							expiration_date : expDateFormat
 						},
@@ -143,7 +147,7 @@ const md5 = require('md5');
 
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
-			link = req.protocol + '://' + req.get('host') +'/change/password-request/'+userData.user_id+'/'+userData.token;
+			link = req.protocol + '://' + req.get('host') +'/change/password-request/'+userData.token;
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(userData.first_name)+' '+this.capitalizeFirstLetter(userData.last_name)+'</h3> <br/>';
 		emailBody += '<h4> Please click the link below to create new password. </h4> <br/>';
@@ -160,9 +164,9 @@ const md5 = require('md5');
 	}
 
 	public changePasswordRequest(req: Request, res: Response, next: NextFunction){
-		let userId = req.params.user_id,
+		let userId = 0,
 			token = req.params.token,
-			user = new User(userId),
+			user = new User(),
 			tokenModel = new Token(),
 			response = {
 				status : false,
@@ -173,42 +177,41 @@ const md5 = require('md5');
 		// Default status code
 		res.statusCode = 400;
 
-		user.load().then(
-			(userdata) => {
-				tokenModel.getByToken(token).then(
-					(tokenData) => {
-						if(tokenData['user_id'] == userId){
+		tokenModel.getByToken(token).then(
+			(tokenData) => {
+				userId = tokenData['user_id'];
+				if(tokenData['verified'] == 1){
+					res.send('Token is already verified');
+				}else{
 
-							if(tokenData['verified'] == 1){
-								res.send('Token is already verified');
+					user.setID(userId);
+					user.load().then(
+						() => {
+							let currentDate = moment(),
+								expirationDate = moment(tokenData['expiration_date'], ['YYYY-MM-DD HH:mm:ss']);
+
+							if(expirationDate.isAfter(currentDate)){
+
+								// Redirect to angular Router
+								//change-user-password/:user_id/:token
+								let link = req.protocol + '://' + req.get('host') + '/change-user-password/'+token;
+								res.redirect(link);
+
 							}else{
-								let currentDate = moment(),
-									expirationDate = moment(tokenData['expiration_date'], ['YYYY-MM-DD HH:mm:ss']);
-
-								if(expirationDate.isAfter(currentDate)){
-									// Redirect to angular Router
-									//change-user-password/:user_id/:token
-									let link = req.protocol + '://' + req.get('host') + '/change-user-password/'+userId+'/'+token;
-									res.redirect(link);
-								}else{
-									response.message = 'Token expired';
-									res.send(response);
-								}
+								response.message = 'Token expired';
+								res.send(response);
 							}
-
-						}else{
-							response.message = 'Invalid user in token';
+						},
+						() => {
+							response.message = 'User not found';
 							res.send(response);
 						}
-					},
-					() => {
-						response.message = 'Invalid token';
-						res.send(response);
-					}
-				);
+					);
+				}
+
 			},
 			() => {
-				response.message = 'User not found';
+				response.message = 'Invalid token';
 				res.send(response);
 			}
 		);
@@ -246,6 +249,33 @@ const md5 = require('md5');
 		}
 
 		return response;
+	}
+
+	public getTokenData(req: Request, res: Response, next: NextFunction){
+		let token = req.params.token,
+			response = {
+				status : false,
+				message : '',
+				data : {}
+			},
+			tokenModel = new Token();
+
+		// Default status code
+		res.statusCode = 400;
+
+		tokenModel.getByToken(token).then(
+			(tokenData) => {
+				res.statusCode = 200;
+				response.status = true;
+				response.data = tokenData;
+				res.send(response);
+			},
+			() => {
+				response.message = 'No token found';
+				res.send(response);
+			}
+		);
+
 	}
 
 	public changeUsersPassword(req: Request, res: Response, next: NextFunction){
