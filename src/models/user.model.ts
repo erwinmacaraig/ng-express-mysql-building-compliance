@@ -16,6 +16,7 @@ export class User extends BaseClass {
             if (parts.length === 2 && parts[0] === 'Bearer') {
                 try {
                     const decoded = jwt.verify(parts[1], process.env.KEY);
+                    console.log(decoded);
                     const sql_load = 'SELECT * FROM users WHERE user_id = ? AND token = ?';
                     const val = [decoded.user, decoded.user_db_token];
                     const connection = db.createConnection(dbconfig);
@@ -118,7 +119,7 @@ export class User extends BaseClass {
             } else {
                 whereClause = 'WHERE user_name = ?';
             }
-            const sql_user = `SELECT * FROM users
+            const sql_user = `SELECT users.* FROM users
                               INNER JOIN token ON users.user_id = token.user_id `
                               + whereClause + ` AND password = ?
                               AND users.token <> '' AND users.token IS NOT NULL
