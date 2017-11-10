@@ -142,7 +142,7 @@ const md5 = require('md5');
 	        to : [],
 	        body : '',
 	        attachments: [],
-	        subject : 'EvacConnect Invitation'
+	        subject : 'EvacConnect Change Password'
 	    };
 
 		let email = new EmailSender(opts),
