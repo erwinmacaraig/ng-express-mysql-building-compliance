@@ -1,0 +1,11 @@
+<div id="modalMsg" class="modal">
+	<div class="modal-content center-align">
+		<i class="material-icons large green-text" [hidden]="!showCheckIcon">check</i>
+		<h5>
+			{{ message }}
+		</h5>
+	</div>
+	<div class="modal-footer">
+		<a [routerLink]="['/login']" class="modal-action modal-close waves-effect waves-green btn-flat">CLOSE</a>
+	</div>
+</div>

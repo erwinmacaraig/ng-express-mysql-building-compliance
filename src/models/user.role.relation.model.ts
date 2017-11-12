@@ -71,8 +71,6 @@ export class UserRoleRelation extends BaseClass {
         if (err) {
           throw new Error(err);
         }
-        this.id = results.insertId;
-        this.dbData['user_role_relation_id'] = this.id;
         resolve(true);
       });
       connection.end();
@@ -85,15 +83,14 @@ export class UserRoleRelation extends BaseClass {
       const sql_update = `UPDATE user_role_relation SET user_id = ?, role_id = ? WHERE user_role_relation_id = ? `;
       const user = [
         ('user_id' in this.dbData) ? this.dbData['user_id'] : null,
-        ('role_id' in this.dbData) ? this.dbData['role_id'] : null
+        ('role_id' in this.dbData) ? this.dbData['role_id'] : null,
+        this.ID() ? this.ID() : 0
       ];
       const connection = db.createConnection(dbconfig);
       connection.query(sql_update, user, (err, results, fields) => {
         if (err) {
           throw new Error(err);
         }
-        this.id = results.insertId;
-        this.dbData['user_role_relation_id'] = this.id;
         resolve(true);
       });
       connection.end();
@@ -111,6 +108,6 @@ export class UserRoleRelation extends BaseClass {
       }
       resolve(this.write());
     });
- 	}   
+ 	}
 
 }

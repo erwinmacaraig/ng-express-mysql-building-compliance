@@ -1,0 +1,83 @@
+.background {
+  background: url('/assets/images/login/login_banner.jpg') no-repeat fixed center center !important;
+  background-size: cover;
+  width: 100%;
+  z-index: -1;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+}
+
+h1 {
+    font-size: 20px;
+    color: #FFFFFF;
+    font-weight: 500;
+    margin-top: 10px;
+    margin-bottom: 1px;
+}
+h2 {
+    font-size: 24px;
+    color: #f7941d;
+    font-weight: 700;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+h3 {
+    margin-top: 2px;
+    margin-bottom: 20px;
+    line-height: 20%;
+}
+p {
+    font-size: 14px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.back-to-login{
+    font-weight: 400;
+    color: #FFFFFF;
+}
+
+.click-here{
+    font-size: 20px;
+    color: #f7941d;
+    font-weight: 500;
+}
+
+.click-here:hover,
+.back-to-login:hover{
+    text-decoration: underline;
+}
+
+
+
+
+
+
+
+#modalMsg{
+    width: 30%;
+    top: calc(100% - 85%) !important;
+}
+
+@media only screen
+and (max-width: 768px){
+
+    .forget_password_box{
+        width: 90%;
+    }
+
+    #modalMsg{
+        width: 60% !important;
+    }
+
+}
+
+@media only screen
+and (min-width: 768px)
+and (max-width: 1024px){
+    #modalMsg{
+        width: 50% !important;
+    }
+}

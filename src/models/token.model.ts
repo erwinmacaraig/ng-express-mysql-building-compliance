@@ -1,5 +1,6 @@
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
+
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
@@ -56,19 +57,20 @@ export class Token extends BaseClass {
 
     public dbUpdate() {
         return new Promise((resolve, reject) => {
-          const sql_update = `UPDATE token SET token = ?, user_id = ?, action = ? WHERE token_id = ? `;
+          const sql_update = `UPDATE token SET user_id = ?, token = ?, action = ?, verified = ?, expiration_date = ? WHERE token_id = ? `;
           const token = [
             ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
             ('token' in this.dbData) ? this.dbData['token'] : 0,
-            ('action' in this.dbData) ? this.dbData['action'] : ""
+            ('action' in this.dbData) ? this.dbData['action'] : "",
+            ('verified' in this.dbData) ? this.dbData['verified'] : 0,
+            ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : '',
+            this.ID() ? this.ID() : 0
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_update, token, (err, results, fields) => {
             if (err) {
               throw new Error(err);
             }
-            this.id = results.insertId;
-            this.dbData['token_id'] = this.id;
             resolve(true);
           });
           connection.end();
@@ -81,13 +83,17 @@ export class Token extends BaseClass {
           const sql_insert = `INSERT INTO token (
             user_id,
             token,
-            action
-          ) VALUES (?, ?, ?)
+            action,
+            verified,
+            expiration_date
+          ) VALUES (?, ?, ?, ?, ?)
           `;
           const token = [
             ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
             ('token' in this.dbData) ? this.dbData['token'] : 0,
-            ('action' in this.dbData) ? this.dbData['action'] : ""
+            ('action' in this.dbData) ? this.dbData['action'] : "",
+            ('verified' in this.dbData) ? this.dbData['verified'] : 0,
+            ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : ''
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_insert, token, (err, results, fields) => {
@@ -113,6 +119,22 @@ export class Token extends BaseClass {
             }
             resolve(this.write());
         });
+    }
+
+    /**
+     * To generate random characters
+     * @return {String} characters
+     */
+    public generateRandomChars(length){
+      let chars = 'ABCDEFGHIJKKLMNOPQRSTUVWXYZ0987654321',
+        len = (typeof length == 'number') ? length : 15,
+        responseCode = '';
+
+      for(let i=0; i<=len; i++){
+        responseCode += chars[ Math.floor(Math.random() * chars.length) ];
+      }
+
+      return responseCode;
     }
 
 }

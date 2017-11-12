@@ -19,15 +19,58 @@ export class ForgotPasswordService {
 	}
 
   	public sendData(data, callBack){
-		this.http.post(this.baseUrl+"/forgot/password/request", data, {
-      headers: this.headers
-    })
-      .subscribe(res => {
-	      	console.log('subs');
-	        callBack(res);
-	      }, err => {
-	        callBack( JSON.parse(err.error) );
-	      });
+		this.http.post(this.baseUrl+"/forgot/password/request", data, { headers: this.headers }).subscribe(
+			(res) => {
+		        callBack(res);
+	      	},
+	      	(err) => {
+	        	callBack( JSON.parse(err.error) );
+	      	}
+	    );
+	}
+
+	public getTokenData(tokenId, userId, callBack){
+		this.http.get(this.baseUrl+"/forgot/password/get-token-data/"+tokenId+"/"+userId,  { headers: this.headers }).subscribe(
+			(res) => {
+		        callBack(res);
+	      	},
+	      	(err) => {
+	        	callBack( JSON.parse(err.error) );
+	      	}
+	    );
+	}
+
+	public changeUsersPassword(data, callBack){
+		this.http.post(this.baseUrl+"/forgot/password/change/users/password", data, { headers: this.headers }).subscribe(
+			(res) => {
+		        callBack(res);
+	      	},
+	      	(err) => {
+	        	callBack( JSON.parse(err.error) );
+	      	}
+	    );
+	}
+
+	public lookForUsername(username, callBack){
+		this.http.get(this.baseUrl+"/forgot/password/find/username/"+username,  { headers: this.headers }).subscribe(
+			(res) => {
+		        callBack(res);
+	      	},
+	      	(err) => {
+	        	callBack( JSON.parse(err.error) );
+	      	}
+	    );
+	}
+
+	public submitSecurityQuestion(opt, callBack){
+		this.http.post(this.baseUrl+"/forgot/password/security/question/answer", opt, { headers: this.headers }).subscribe(
+			(res) => {
+		        callBack(res);
+	      	},
+	      	(err) => {
+	        	callBack( JSON.parse(err.error) );
+	      	}
+	    );
 	}
 
 }

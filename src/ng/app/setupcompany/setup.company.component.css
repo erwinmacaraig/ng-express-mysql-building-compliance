@@ -1,0 +1,222 @@
+.signup-main-container,
+.modal{
+	font-family: 'Open Sans';
+	font-size: 12px;
+}
+
+.background {
+  background: url('/assets/images/login/login_banner.jpg') no-repeat fixed center center !important;
+  background-size: cover;
+  width: 100%;
+  z-index: -1;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+}
+
+#modalSignup,
+#modalLoader{
+	width: 40%;
+}
+
+.modal{
+	max-height: 100% !important;
+	overflow: visible;
+}
+
+.modal .modal-content {
+    padding: 30px 0px 10px 0px;
+}
+
+.modal .modal-content .container{
+	width: 85%;
+}
+
+.modal .modal-content .input-container{
+	width: 90%;
+	margin: 0 auto;
+	text-align: center;
+	position: relative;
+}
+
+.title{
+	font-size: 24px;
+    color: #39a1ff;
+}
+
+.please-fill-up{
+	font-size: 16px;
+	margin: 25px 0px 15px 0px !important;
+}
+
+.modal .modal-content .input-container .btn{
+	width: 100%;
+	text-transform: none;
+	text-decoration: none;
+	height: 45px;
+	line-height: 45px;
+	font-size: 16px;
+	border-radius: 5px;
+	margin-top: 10px;
+}
+
+.btn-submit,
+.btn-submit:hover,
+.btn-submit:active,
+.btn-submit:focus{
+	background-color: #f7941d;
+	box-shadow: none !important;
+}
+
+.btn-go-back,
+.btn-go-back:hover,
+.btn-go-back:active,
+.btn-go-back:focus{
+	background-color: #f7941d;
+	box-shadow: none !important;
+}
+
+.btn-close,
+.btn-close:hover,
+.btn-close:active,
+.btn-close:focus{
+	background-color: #ddd;
+	box-shadow: none !important;
+	color: #111;
+}
+
+.select-field label{
+    left: 10px !important;
+}
+
+.search-container{
+	position: absolute;
+    width: 96%;
+    padding: 20px;
+    z-index: 999;
+    background-color: rgb(248, 249, 226);
+    top: 65px;
+    text-align: left;
+    display: none;
+    box-shadow: 0px 5px 6px 0px #333;
+    border-radius: 3px;
+    margin: 0 2%;
+}
+
+.search-container.active{
+	display: block;
+}
+
+.search-container ul{
+    min-height: 100px;
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+.search-container ul li a{
+	font-size: 16px;
+}
+
+.search-container ul li a:hover{
+	color: #62c0ee;
+}
+
+.search-container .cant-find-my-company{
+    text-align: center;
+    width: 55%;
+    margin: 0 auto;
+}
+
+.search-container .cant-find-my-company a{
+	color: #000000;
+	font-size: 18px;
+}
+
+.search-container .pre-loader-container{
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+}
+
+.pre-loader-main-wrapper{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	left: 0px;
+	top: 0px;
+	background-color: #fafafa;
+    z-index: 99;
+}
+
+@media only screen 
+  and (min-width: 1024px)
+  and (max-width: 1440px){
+
+	#modalSignup,
+	#modalLoader {
+	    width: 35%;
+	}
+
+	.modal .modal-content {
+	    padding: 20px 0px;
+	}
+
+	.input-field{
+		width: 100%;
+	}
+}
+
+@media only screen 
+  and (max-width: 1024px){
+
+	#modalSignup,
+	#modalLoader {
+	    width: 85%;
+	}
+
+	.modal .modal-content {
+	    padding: 20px 0px;
+	}
+
+	.input-field,
+	.select-field{
+		width: 100%;
+		padding: 0px 10px !important;
+	}
+}
+
+@media only screen 
+  and (min-width: 480px)
+  and (max-width: 768px){
+	
+	.modal{
+		overflow-y: none;
+	}
+
+	.col{
+		padding: 0px;
+	}
+
+	#modalSignup,
+	#modalLoader {
+	    width: 85%;
+	    margin-bottom: 100px;
+	}
+
+}
+
+@media only screen 
+  and (max-width: 480px){
+	#modalSignup,
+	#modalLoader {
+	    width: 95%;
+	    margin-bottom: 100px;
+	}
+
+	.modal{
+		overflow: overlay;
+	}
+}

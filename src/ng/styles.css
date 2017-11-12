@@ -1,1 +1,130 @@
 /* You can add global styles to this file, and also import other style files */
+.workspace.container{
+	font-family: 'Open Sans';
+	font-size: 12px;
+	padding: 1% 2%;
+    max-width: 100vw;
+    width: 100%;
+}
+
+.btn{
+	text-transform: capitalize !important;
+    height: 45px !important;
+    box-sizing: border-box;
+    border-radius: 5px !important;
+    color: #fff !important;
+    font-weight: normal !important;
+    font-size: 17px !important;
+    font-family: Open Sans;
+    cursor: pointer !important;
+    box-shadow: none !important;
+}
+.btn:hover{
+	filter: brightness(90%);
+}
+
+.btn-large,
+.btn-large:hover{
+  height: 54px !important;
+  border: 0px !important;
+}
+
+.input-field{
+	margin-top: 0px;
+}
+
+.input-field label{
+	font-size: 14px;
+}
+
+.input-field input{
+	margin: 0 0 10px 0 !important;
+	box-shadow: none !important;
+}
+
+.input-field label:not(.label-icon).active{
+	-webkit-transform: translateY(-4px) scale(0.8);
+    transform: translateY(-4px) scale(0.8);
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
+}
+
+.input-field input:focus{
+	border-bottom: 1px solid #39a1ff !important;
+    box-shadow: none !important;
+}
+
+.input-field input:focus + label{
+	color: #39a1ff !important;
+}
+
+.select-field{
+	position: relative;
+	margin-top: 15px;
+	display: flow-root;
+}
+
+.checkbox-field label {
+    position: relative;
+}
+
+.select-field label{
+	position: absolute !important;
+    top: -10px !important;
+    left: 0px !important;
+    font-size: .7rem !important;
+}
+
+.select-wrapper li{
+	color: #9e9e9e !important;
+}
+
+.invalid+label{
+	color: #F44336 !important;
+}
+
+.dropdown-content li:not(.disabled) > a,
+.dropdown-content li:not(.disabled) > span{
+	color: #39a1ff !important;
+	font-size: 15px !important;
+}
+
+[type="checkbox"].filled-in.red:checked+label:after {
+    border: 2px solid #f44336;
+    background-color: #f44336;
+}
+
+[type="checkbox"].filled-in.grey:checked+label:after {
+    border: 2px solid #757575;
+    background-color: #757575;
+}
+
+[type="checkbox"]+label{
+	display: inline;
+}
+
+[readonly]:not(.select-dropdown){
+	pointer-events: none;
+}
+
+@media only screen 
+  and (min-width: 1024px)
+  and (max-width: 1440px){
+	.input-field{
+		width: 100%;
+	}
+}
+
+@media only screen 
+  and (max-width: 1024px){
+	.input-field{
+		width: 100%;
+	}
+}
+
+@media only screen 
+  and (max-width: 768px){
+	.row .col {
+	    padding: 0 1.75rem !important;
+	}
+}
