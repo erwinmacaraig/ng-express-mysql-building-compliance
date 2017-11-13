@@ -379,98 +379,119 @@ const md5 = require('md5');
 			'user_id' : user.ID(),
 			'role_id' : reqBody.role_id
 		}).then(
-			() => {
-				if('invi_code_id' in reqBody) {
-					let tokenModel = new Token(),
-						userModel = user,
-						userData = user.getDBData();
+		() => {
+			let tokenModel = new Token(),
+				userModel = user,
+				userData = user.getDBData();
+			if('invi_code_id' in reqBody) {
+				this.userVerificationNewUsersToken(
+					tokenModel,
+					userModel,
+					() => {
+						this.userVerificationLogin(userData,
+							(resp) => {
+								let responseData = {
+									status : true,
+									data : {
+										token : resp.token,
+										user : resp.data
+									},
+									message : 'Successfully created user'
+								};
 
-					this.userVerificationNewUsersToken(
-						tokenModel,
-            userModel,
-            () => {
-              this.userVerificationLogin(userData,
-                (resp) => {
-                  let responseData = {
-                    status : true,
-                    data : {
-                      token : resp.token,
-                      user : resp.data
-                    },
-                    message : 'Successfully created user'
-                  };
+								let locationAccountUser = new LocationAccountUser();
 
-                  let locationAccountUser = new LocationAccountUser();
+								// update invitation code to be used
+								const code = new InvitationCode(reqBody.invi_code_id);
+								code.load().then(
+									() => {
+										locationAccountUser.create({
+											'location_id' : code.get('location_id'),
+											'account_id': code.get('account_id'),
+											'user_id' : userData['user_id']
+										}).then(
+										() => {
+											code.set('was_used', 1);
+											code.write().then(() => {
+												res.statusCode = 200;
+												responseData.data['code'] = code.get('code');
+												return res.send(responseData);
+											},
+											() => {
+												return res.status(400).send({
+													message: 'Internal Server Error. Cannot Update token code status',
+													data: {
+														code: code.get('code')
+													}
+												});
+											}
+											);
+										},
+										() => {
+											responseData.message = 'Location-Account-User saved unsuccessfully';
+											return res.send(responseData);
+										}
+										);
+									}
+									);
 
-                  // update invitation code to be used
-                  const code = new InvitationCode(reqBody.invi_code_id);
-                  code.load().then(
-                    () => {
-                      locationAccountUser.create({
-                        'location_id' : code.get('location_id'),
-                        'account_id': code.get('account_id'),
-                        'user_id' : userData['user_id']
-                      }).then(
-                        () => {
-                          code.set('was_used', 1);
-                          code.write().then(() => {
-                            res.statusCode = 200;
-                            responseData.data['code'] = code.get('code');
-                            return res.send(responseData);
-                          },
-                          () => {
-                            return res.status(400).send({
-                              message: 'Internal Server Error. Cannot Update token code status',
-                              data: {
-                                code: code.get('code')
-                              }
-                            });
-                          }
-                        );
-                        },
-                        () => {
-                          responseData.message = 'Location-Account-User saved unsuccessfully';
-                          return res.send(responseData);
-                        }
-                      );
-                    }
-                  );
-
-								}
+							}
 							);
-						},
-						(errorData) => {
-							response.message = 'Unable to save user. See reference : '+errorData;
-							res.send(response);
-						}
+					},
+					(errorData) => {
+						response.message = 'Unable to save user. See reference : '+errorData;
+						res.send(response);
+					}
 					);
-				} else if('email' in reqBody) {
-					this.sendEmailForRegistration(
-						emailUserdata,
-						req,
-						(successData)=>{
-							res.statusCode = 200;
-							response.status = true;
-							response.data = emailUserdata;
-							response.data['user_id'] = user.ID();
-							res.send(response);
-						},
-						(errorData)=>{
-							response.message = 'Unable to send email. See reference : '+errorData;
-							res.send(response);
-						}
+			} else if('email' in reqBody) {
+				this.sendEmailForRegistration(
+					emailUserdata,
+					req,
+					(successData)=>{
+
+						this.userVerificationNewUsersToken(
+							tokenModel,
+							userModel,
+							() => {
+								this.userVerificationLogin(userData,
+									(resp) => {
+										let responseData = {
+											status : true,
+											data : {
+												token : resp.token,
+												user : resp.data
+											},
+											message : 'Success!'
+										};
+
+										res.statusCode = 200;
+										res.send(responseData);
+									}
+								);
+							},
+							(errorData) => {
+								response.message = 'Unable to save user. See reference : '+errorData;
+								res.send(response);
+							},
+							0
+						);
+					},
+					(errorData)=>{
+						response.message = 'Unable to send email. See reference : '+errorData;
+						res.send(response);
+					}
 					);
-				} else {
-                    res.statusCode = 200;
-                    response.status = true;
-                    response.data['user_id'] = user.ID();
-                    res.send(response);
-        }
-			},
-			() => {
-				res.statusCode = 500;
-				res.send('Unable to save user role');
+			} else {
+				res.statusCode = 200;
+				response.status = true;
+				response.data['user_id'] = user.ID();
+				res.send(response);
 			}
+		},
+		() => {
+			res.statusCode = 500;
+			res.send('Unable to save user role');
+		}
 		);
 	}
 
@@ -581,12 +602,17 @@ const md5 = require('md5');
         );
 	}
 
-	private userVerificationNewUsersToken(tokenModel, userModel, success, error){
+	private userVerificationNewUsersToken(tokenModel, userModel, success, error, verified?){
 		let userNewToken = tokenModel.generateRandomChars(15);
 			userModel.set('token', userNewToken);
 			userModel.dbUpdate().then(
 				() => {
-					tokenModel.set('verified', 1);
+					if(verified){
+						tokenModel.set('verified', verified);
+					}else{
+						tokenModel.set('verified', 1);
+					}
+					
 					tokenModel.dbUpdate().then(
 						() => {
 							success();
