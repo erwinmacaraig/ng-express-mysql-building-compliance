@@ -36,6 +36,10 @@ export class IndexRoute extends BaseRoute {
     router.get('/test/upload/form', (req: Request, res: Response, next: NextFunction) => {
       new IndexRoute().displayUploadForm(req, res, next);
     });
+    
+    router.get('/test/location', (req: Request, res: Response, next: NextFunction) => {
+    	new IndexRoute().displaySearchLocation(req, res, next);
+    });
   }
 
   /**
@@ -71,9 +75,16 @@ export class IndexRoute extends BaseRoute {
     this.render(req, res, 'index.hbs', options);
   }
 
+
+  displaySearchLocation(req: Request, res: Response, next: NextFunction) {
+  	this.render(req, res, 'locationService.hbs');
+  }
+  
   displayUploadForm(req: Request, res: Response, next: NextFunction) {
     this.render(req, res, 'upload.hbs');
   }
+  
+  
 
   uploadUserPhoto(req: Request, res: Response, next: NextFunction) {
      const fu = new FileUploader(req, res, next);

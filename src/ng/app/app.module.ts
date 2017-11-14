@@ -33,6 +33,11 @@ import { CustomHttpDataProviderComponent } from './custom-http-data-provider/cus
 import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
+// todo: move to locations module
+import { ReactiveFormsModule } from '@angular/forms';
+import { AgmCoreModule } from '@agm/core';
+import { SetupLocationComponent } from './location/setup-location/setup-location.component';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -53,13 +58,22 @@ import { NoemailComponent } from './noemail/noemail.component';
     SendInviteComponent,
     CustomHttpDataProviderComponent,
     AccountValidationCriteriaComponent,
-    NoemailComponent
+    NoemailComponent,
+    // todo: move to location module
+    SetupLocationComponent,
+
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpClientModule,
-    AppRoutingModule
+    AppRoutingModule,
+    AgmCoreModule.forRoot({
+      apiKey: 'AIzaSyD4QEsIs8QgjTj0bOIizxUZqIk7zVgFxzk',
+      libraries: ['places']
+    }),
+    // todo: move to location module
+    ReactiveFormsModule
   ],
   providers: [
     AuthService,

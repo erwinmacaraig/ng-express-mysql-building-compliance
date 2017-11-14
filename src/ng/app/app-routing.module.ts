@@ -24,7 +24,7 @@ import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
-
+import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -46,7 +46,9 @@ const appRoutes: Routes = [
       { path : 'send-invite', component : SendInviteComponent }
     ]
   },
-  { path : 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
+  //
+  { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },
+  { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
   { path: 'validation-criteria', canActivate: [AuthGuard], component: AccountValidationCriteriaComponent },
