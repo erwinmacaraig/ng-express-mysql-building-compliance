@@ -275,7 +275,6 @@ const md5 = require('md5');
 				res.send(response);
 			}
 		);
-
 	}
 
 	public changeUsersPassword(req: Request, res: Response, next: NextFunction){

@@ -25,6 +25,10 @@ import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
 
+//Locations Template Components
+import { LocationsUiComponent } from './locations-ui/locations.ui';
+import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
+import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -50,7 +54,14 @@ const appRoutes: Routes = [
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
   { path: 'validation-criteria', canActivate: [AuthGuard], component: AccountValidationCriteriaComponent },
-  { path: '**', redirectTo: '/dashboard'}
+  /*{ path: '**', redirectTo: '/dashboard'},*/
+  { 
+    path: 'locations-ui', component : LocationsUiComponent,
+    children : [
+      { path : 'add-single-location', component : AddSingleLocationComponent },
+      { path : 'add-multiple-location', component : AddMultipleLocationComponent }
+    ]
+  }
 ];
 
 @NgModule({

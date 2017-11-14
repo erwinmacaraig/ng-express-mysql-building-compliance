@@ -33,6 +33,12 @@ import { CustomHttpDataProviderComponent } from './custom-http-data-provider/cus
 import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
+//Locations Template Components
+import { LocationsUiComponent } from './locations-ui/locations.ui';
+import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
+import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
+
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -53,7 +59,11 @@ import { NoemailComponent } from './noemail/noemail.component';
     SendInviteComponent,
     CustomHttpDataProviderComponent,
     AccountValidationCriteriaComponent,
-    NoemailComponent
+    NoemailComponent,
+
+    LocationsUiComponent,
+    AddSingleLocationComponent,
+    AddMultipleLocationComponent
   ],
   imports: [
     BrowserModule,

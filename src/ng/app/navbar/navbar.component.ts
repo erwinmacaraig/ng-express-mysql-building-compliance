@@ -37,9 +37,12 @@ export class NavbarComponent implements OnInit {
 	}
 
 	public getInitials(fullName){
-		let initials = fullName.match(/\b\w/g) || [];
-		initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-		return initials;
+		if(fullName){
+			let initials = fullName.match(/\b\w/g) || [];
+			initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+			return initials;
+		}
+		return 'A';
 	}
 
 	ngOnInit() {
