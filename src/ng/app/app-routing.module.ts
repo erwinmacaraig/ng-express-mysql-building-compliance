@@ -38,7 +38,7 @@ const appRoutes: Routes = [
   { path: 'no-email', component: NoemailComponent },
   { path: 'success-valiadation', component: EmailSuccessVerficiationComponent },
   { path: 'forgot-password', component: ForgotpasswordComponent},
-  { path: 'change-user-password/:user_id/:token', component: ChangepasswordComponent},
+  { path: 'change-user-password/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
   { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent, children: [
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },

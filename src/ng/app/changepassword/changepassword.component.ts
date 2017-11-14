@@ -23,7 +23,6 @@ export class ChangepasswordComponent implements OnInit, AfterViewInit {
   	private baseUrl: String;
 	private options;
 	private headers;
-
 	userId = 0;
 	token = '';
 	invalidMessage = '';
@@ -48,8 +47,18 @@ export class ChangepasswordComponent implements OnInit, AfterViewInit {
 
 	ngOnInit() {
 		this.route.params.subscribe(params => {
-			this.userId = params.user_id,
 			this.token = params.token;
+
+			this.fpService.getTokenData(this.token, (response) => {
+				if(response.status){
+					this.userId = response.data.user_id;
+				}else{
+					this.modalshowCheckIcon = false;
+					this.modalshowCloseIcon = true;
+					this.modalMessage = response.message;
+				}
+			});
+
 		});
 	}
 

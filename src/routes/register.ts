@@ -41,12 +41,13 @@ const md5 = require('md5');
         new RegisterRoute().index(req, res, next);
       });
 
+      /* Remove before moving to production */
       router.get('/users', (req: Request, res: Response, next: NextFunction) => {
         new RegisterRoute().getUsers(req, res, next);
       });
 
       // Verify user for first signed user
-      router.get('/register/user-verification/:user_id/:token/:redirect', (req: Request, res: Response, next: NextFunction) => {
+      router.get('/register/user-verification/:token/:redirect', (req: Request, res: Response, next: NextFunction) => {
         new RegisterRoute().userVerification(req, res, next);
       });
 
@@ -334,8 +335,8 @@ const md5 = require('md5');
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
 			tokenModel = new Token(),
-			token = tokenModel.generateRandomChars(25),
-			link = req.protocol + '://' + req.get('host') + req.originalUrl+'/user-verification/'+userData.user_id+'/'+token+'/true';
+			token = userData['user_id']+''+tokenModel.generateRandomChars(50),
+			link = req.protocol + '://' + req.get('host') + req.originalUrl+'/user-verification/'+token+'/true';
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+userData.first_name+' '+userData.last_name+'</h3> <br/>';
 		emailBody += '<h4>Thank you for using EvacConnect Compliance Management System</h4> <br/>';
@@ -603,10 +604,10 @@ const md5 = require('md5');
 
 	public userVerification(req: Request, res: Response, next: NextFunction){
 		let token = req.params.token,
-			userId = req.params.user_id,
+			userId = 0,
 			redirect = (req.params.redirect == 'true') ? true : false,
 			tokenModel = new Token(),
-			userModel = new User(userId),
+			userModel = new User(),
 			responseData = {
 				status : false,
 				message : '',
@@ -620,67 +621,63 @@ const md5 = require('md5');
 				let expDateMoment = moment(tokenData['expiration_date']),
 					currentDateMoment = moment();
 
+				userId = tokenData['user_id'];
+				userModel.setID(userId);
+
 				if(currentDateMoment.isBefore(expDateMoment)){
-					if( tokenData['user_id'] == userId){
-
-						let
-						newUserTokenCallback = (userData) => {
-							this.userVerificationNewUsersToken(
-								tokenModel,
-								userModel,
-								() => {
-									this.userVerificationLogin(
-										userData,
-										(loginData) => { loginCallback(loginData); }
-									);
-								},
-								(msg) => {
-									responseData.message = msg;
-									res.send(responseData);
-								}
-							);
-						},
-						loginCallback = (loginData) => {
-							res.statusCode = 200;
-							responseData.status = true;
-							responseData.data = {
-								token : loginData.token,
-								user : loginData.data
-							};
-							responseData.message = 'Auto login user';
-							if(redirect){
-								/*let script = `
-									<strong>Success! redirecting....</strong>
-									<script type="text/javascript">
-										setTimeout(function(){
-											localStorage.setItem('currentUser', '`+loginData.token+`');
-											localStorage.setItem('userData', '`+ JSON.stringify(loginData.data) +`');
-											location.replace(location.origin);
-										}, 2000);
-									</script>
-								`;
-								res.send(script);*/
-                return res.redirect('/success-valiadation');
-								// this.render(req, res, 'success-verification.hbs');
-							}else{
-								res.send(responseData);
-							}
-						};
-
-						userModel.load().then(
-							(userData) => {
-								newUserTokenCallback(userData);
-							},
+					let
+					newUserTokenCallback = (userData) => {
+						this.userVerificationNewUsersToken(
+							tokenModel,
+							userModel,
 							() => {
-								responseData.message = 'User is not existing';
+								this.userVerificationLogin(
+									userData,
+									(loginData) => { loginCallback(loginData); }
+								);
+							},
+							(msg) => {
+								responseData.message = msg;
 								res.send(responseData);
 							}
 						);
+					},
+					loginCallback = (loginData) => {
+						res.statusCode = 200;
+						responseData.status = true;
+						responseData.data = {
+							token : loginData.token,
+							user : loginData.data
+						};
+						responseData.message = 'Auto login user';
+						if(redirect){
+							/*let script = `
+								<strong>Success! redirecting....</strong>
+								<script type="text/javascript">
+									setTimeout(function(){
+										localStorage.setItem('currentUser', '`+loginData.token+`');
+										localStorage.setItem('userData', '`+ JSON.stringify(loginData.data) +`');
+										location.replace(location.origin);
+									}, 2000);
+								</script>
+							`;
+							res.send(script);*/
+            				return res.redirect('/success-valiadation');
+							// this.render(req, res, 'success-verification.hbs');
+						}else{
+							res.send(responseData);
+						}
+					};
 
-					}else{
-						responseData.message = 'User is not valid';
-						res.send(responseData);
-					}
+					userModel.load().then(
+						(userData) => {
+							newUserTokenCallback(userData);
+						},
+						() => {
+							responseData.message = 'User is not existing';
+							res.send(responseData);
+						}
+					);
 				}else{
 					responseData.message = 'Token already expired';
 					res.send(responseData);
