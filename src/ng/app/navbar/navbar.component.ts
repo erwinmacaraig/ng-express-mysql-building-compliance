@@ -1,9 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Subscription } from 'rxjs/Subscription';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/users';
 import { NgForm } from '@angular/forms';
 import { ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { MessageService } from '../services/messaging.service';
+
+
 import * as moment from 'moment';
 declare var $: any;
 declare var Webcam: any;
@@ -15,22 +19,26 @@ declare var navigator: any;
   styleUrls: ['./navbar.component.css'],
   providers : [UserService]
 })
-export class NavbarComponent implements OnInit {
-	@ViewChild('formFile') formFile: NgForm; 
+export class NavbarComponent implements OnInit, AfterViewInit {
+	@ViewChild('formFile') formFile: NgForm;
 
 	public userData: Object;
 	public userRoleID: Number = 0;
 	public showUpgradePremium: boolean = true;
 	public usersImageURL: String;
 	public hasUserImage: boolean = false;
-	public usersInitial: String = 'AA';
+  public usersInitial: String = 'AA';
+
+  public mySubscription: Subscription;
+  public username: string;
 
 	showSendInviteLink = false;
 	elems = {};
 
 	constructor(
 		private auth: AuthService,
-		private userService: UserService
+    private userService: UserService,
+    private messageService: MessageService
 	) {
 	    this.userData = this.auth.getUserData();
 	    this.usersImageURL = 'assets/images/camera_upload_hover.png';
@@ -43,7 +51,8 @@ export class NavbarComponent implements OnInit {
 	}
 
 	ngOnInit() {
-		this.usersInitial = this.getInitials(this.userData['name']);
+    this.username = this.userData['name'];
+		this.usersInitial = this.getInitials(this.username);
 		this.userRoleID = this.userData['roleId'];
 		this.showEvent();
 		this.closeEvent();
@@ -151,7 +160,7 @@ export class NavbarComponent implements OnInit {
 		this.elems['chooseBtnFile'].hide();
 		// this.elems['btnTakePhoto'].hide();
 
-		let 
+		let
 		file = this.elems['inputFile'][0].files[0],
 		formData = new FormData();
 		formData.append('user_id', this.userData['userId']);
@@ -166,11 +175,11 @@ export class NavbarComponent implements OnInit {
 			};
 
 			this.uploadResponseHandler(response, showBtns);
-		}); 
+		});
 	}
 
 	changePhotoSelectFileEvent(){
-		
+
 		this.elems['inputFile'].on('change', () => {
 			let file = this.elems['inputFile'][0].files[0],
 				reader = new FileReader();
@@ -199,7 +208,7 @@ export class NavbarComponent implements OnInit {
 		this.elems['btnChoose'].hide();
 		this.elems['btnRetake'].hide();
 
-		let 
+		let
 		file = this.elems['imgHolder'].attr('src'),
 		formData = new FormData();
 		formData.append('user_id', this.userData['userId']);
@@ -214,7 +223,7 @@ export class NavbarComponent implements OnInit {
 			};
 
 			this.uploadResponseHandler(response, showBtns);
-		}); 
+		});
 	}
 
 	changePhotoWebCamEvent(){
@@ -258,7 +267,7 @@ export class NavbarComponent implements OnInit {
 				this.elems['imgHolder'].attr('src', data_uri);
 			});
 
-			
+
 			this.elems['modalCloseBtn'].hide();
 			Webcam.freeze();
 			this.submitWebCam();
@@ -315,6 +324,15 @@ export class NavbarComponent implements OnInit {
 
 		this.changePhotoSelectFileEvent();
 		this.changePhotoWebCamEvent();
-	}
+  }
+
+  ngAfterViewInit() {
+    this.mySubscription = this.messageService.getMessage().subscribe((message) => {
+      this.username = message.person_first_name + ' ' + message.person_last_name;
+      this.usersInitial = this.getInitials(this.username);
+
+    });
+  }
+
 
 }

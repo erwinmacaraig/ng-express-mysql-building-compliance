@@ -10,6 +10,8 @@ import { TokenInterceptor } from './auth/token.interceptor';
 // services section
 import { AuthService } from './services/auth.service';
 import { AuthGuard } from './services/auth-guard.service';
+import { SignupService } from './services/signup.service';
+import { MessageService } from './services/messaging.service';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
@@ -24,7 +26,7 @@ import { CompanyInformationComponent } from './dashboard/company_information/com
 import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
-import { SignupService } from './services/signup.service';
+
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
@@ -78,6 +80,7 @@ import { SetupLocationComponent } from './location/setup-location/setup-location
   providers: [
     AuthService,
     AuthGuard,
+    MessageService,
     SignupService,
     {
       provide: HTTP_INTERCEPTORS,

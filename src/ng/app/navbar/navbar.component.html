@@ -34,7 +34,7 @@
 				</li>
 				<li>
 					<a href="javascript:void(0)" class="user-right-click-nav">
-						<div class="users-name">{{ userData.name }}</div>
+						<div class="users-name">{{ username }}</div>
 						<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
 						<img alt="Report" class="img-user-initials" [src]="filterUrl(usersImageURL)" *ngIf=" hasUserImage " >
 					</a>
