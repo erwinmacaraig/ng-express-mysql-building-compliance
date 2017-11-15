@@ -2,4 +2,11 @@
 <div class="workspace container">
 	<router-outlet></router-outlet>
 </div>
+<div class="red alert-email-verification align-center" *ngIf="showEmailVerification">
+	<div *ngIf="showResponse">{{responseMessage}}</div>
+	<div *ngIf="!showResponse">
+		Please validate your account by opening your email. <br/>
+		<a href="javascript:void(0)" id="aClickResend" (click)="resendEmailVerification()"> Click here to resend </a>
+	</div>
+</div>
 <div preloader></div>

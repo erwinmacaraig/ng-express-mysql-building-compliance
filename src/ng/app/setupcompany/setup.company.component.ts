@@ -8,6 +8,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 declare var $: any;
 import { SignupService } from '../services/signup.service';
+import { UserService } from '../services/users';
 import { AccountsDataProviderService } from '../services/accounts';
 import { AuthService } from '../services/auth.service';
 import { Countries } from '../models/country.model';
@@ -19,13 +20,14 @@ import { Timezone } from '../models/timezone';
   selector: 'app-setup.company',
   templateUrl: './setup.company.component.html',
   styleUrls: ['./setup.company.component.css'],
-  providers: [SignupService, AccountsDataProviderService]
+  providers: [SignupService, AccountsDataProviderService, UserService]
 })
 export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 	private headers: Object;
 	private options: Object;
 	private baseUrl: String;
+	public userData: Object;
 
 	modalLoader = {
 	    showLoader : true,
@@ -52,6 +54,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	selectedAccountData = {};
 	companyIsSelected = false;
 	selectedAccountId = 0;
+	showCreateButton = false;
 
 	defaultCountry = 'AU';
 	defaultTimeZone = 'AEST';
@@ -63,8 +66,10 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		private signupService:SignupService,
 		private auth: AuthService,
 		private accounts : AccountsDataProviderService,
-		public zone: NgZone
+		public zone: NgZone,
+		private userService: UserService
 	) {
+		this.userData = this.auth.getUserData();
 		this.headers = new Headers({ 'Content-type' : 'application/json' });
 		this.options = { headers : this.headers };
 		this.baseUrl = (platformLocation as any).location.origin;
@@ -101,7 +106,6 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.selCountry = this.defaultCountry;
 		this.selTimezone = this.defaultTimeZone;
 
-
 		this.inputCompanyName = Rx.Observable.fromEvent(document.querySelector('input[name="company_name"]'), 'input');
 
 		let thisClass = this;
@@ -124,6 +128,14 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 			});
 
 		$('input[name="company_name"]').focus();
+
+		this.userService.checkUserVerified( this.userData['userId'] , (response) => {
+			if(response.status === false && response.message == 'not verified'){
+				localStorage.setItem('showemailverification', 'true');
+			}else{
+				this.showCreateButton = true;
+			}
+		});
 	}
 
 	ngAfterViewInit(){
@@ -293,12 +305,12 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		f.reset();
 		this.newCompany = true;
 		this.companyIsSelected = true;
-  }
+  	}
 
-  public refreshMarkers() {
-    event.preventDefault();
-    this.companyIsSelected = false;
-    this.newCompany = false;
-  }
+	public refreshMarkers() {
+		event.preventDefault();
+		this.companyIsSelected = false;
+		this.newCompany = false;
+	}
 
 }
