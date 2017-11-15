@@ -129,7 +129,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
                     this.modalLoader.message = 'The email that you used is already taken.';
                 }else if(i == 'black_listed') {
                     f.controls.email.setErrors({ blacklisted : true });
-                    this.emailInvalidMessage = '*Domain must be non-commercial';
+                    this.emailInvalidMessage = '*Domain must not be personal';
                     this.modalLoader.message = "The email must be company's email otherwise it is not valid";
                 }else{
                     f.controls[i].markAsDirty();
@@ -200,7 +200,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
                     });
                 }else{
                     controls.email.setErrors({ blacklisted : true });
-                    this.emailInvalidMessage = '*Domain must be non-commercial';
+                    this.emailInvalidMessage = '*Domain must not be personal';
                 }
 
             }else{
