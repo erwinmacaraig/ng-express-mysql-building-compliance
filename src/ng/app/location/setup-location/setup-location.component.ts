@@ -5,6 +5,7 @@ import { FormControl } from '@angular/forms';
 import { } from 'googlemaps';
 import { MapsAPILoader } from '@agm/core';
 
+declare var $: any;
 @Component({
   selector: 'app-setup-location',
   templateUrl: './setup-location.component.html',
@@ -20,6 +21,8 @@ export class SetupLocationComponent implements OnInit {
   public state: FormControl;
   public postal_code: FormControl;
   public country: FormControl;
+
+  public readonlyCtrl = false;
 
   componentForm = {
             street_number: 'short_name',
@@ -62,8 +65,10 @@ export class SetupLocationComponent implements OnInit {
         this.ngZone.run(() => {
           const place: google.maps.places.PlaceResult = autocomplete.getPlace();
           if (place.geometry === undefined || place.geometry === null) {
+            this.readonlyCtrl = false;
             return;
           }
+          this.readonlyCtrl = true;
           console.log(place);
           for (let i = 0; i < place.address_components.length; i++) {
             const addressType = place.address_components[i].types[0];
@@ -93,8 +98,6 @@ export class SetupLocationComponent implements OnInit {
               }
             }
           }
-
-
         });
       });
     });
