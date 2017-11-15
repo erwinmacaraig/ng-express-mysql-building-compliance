@@ -13,6 +13,8 @@ export class SignoutComponent implements OnInit {
 
 	ngOnInit() {
 		this.auth.removeToken();
+		this.auth.removeUserData();
+		localStorage.removeItem('showemailverification');
 		setTimeout(()=>{ this.router.navigate(['/login']) }, 300);
 	}
 

@@ -37,9 +37,12 @@ export class NavbarComponent implements OnInit {
 	}
 
 	public getInitials(fullName){
-		let initials = fullName.match(/\b\w/g) || [];
-		initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-		return initials;
+		if(fullName){
+			let initials = fullName.match(/\b\w/g) || [];
+			initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+			return initials;
+		}
+		return 'A';
 	}
 
 	ngOnInit() {
@@ -149,7 +152,7 @@ export class NavbarComponent implements OnInit {
 		this.elems['modalCloseBtn'].hide();
 		this.elems['btnSelectFile'].hide();
 		this.elems['chooseBtnFile'].hide();
-		// this.elems['btnTakePhoto'].hide();
+		this.elems['btnTakePhoto'].hide();
 
 		let 
 		file = this.elems['inputFile'][0].files[0],
@@ -162,7 +165,7 @@ export class NavbarComponent implements OnInit {
 				this.elems['modalCloseBtn'].show();
 				this.elems['btnSelectFile'].show();
 				this.elems['chooseBtnFile'].show();
-				// this.elems['btnTakePhoto'].show();
+				this.elems['btnTakePhoto'].show();
 			};
 
 			this.uploadResponseHandler(response, showBtns);
@@ -191,6 +194,30 @@ export class NavbarComponent implements OnInit {
 		});
 	}
 
+	b64toBlob(b64Data, contentType, sliceSize?) {
+        contentType = contentType || '';
+        sliceSize = sliceSize || 512;
+
+        var byteCharacters = atob(b64Data);
+        var byteArrays = [];
+
+        for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+            var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+            var byteNumbers = new Array(slice.length);
+            for (var i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+
+            var byteArray = new Uint8Array(byteNumbers);
+
+            byteArrays.push(byteArray);
+        }
+
+		var blob = new Blob(byteArrays, {type: contentType});
+		return blob;
+	}
+
 	submitWebCam(){
 		// this.elems['imgHolder']
 		this.elems['rowLoader'].show();
@@ -200,7 +227,12 @@ export class NavbarComponent implements OnInit {
 		this.elems['btnRetake'].hide();
 
 		let 
-		file = this.elems['imgHolder'].attr('src'),
+		src = this.elems['imgHolder'].attr('src'),
+		block = src.split(";"),
+		contentType = block[0].split(":")[1],
+		realData = block[1].split(",")[1],
+		blob = this.b64toBlob(realData, contentType),
+		file = blob,
 		formData = new FormData();
 		formData.append('user_id', this.userData['userId']);
 		formData.append('file', file, this.userData['userId']+''+moment().valueOf()+'.jpg');

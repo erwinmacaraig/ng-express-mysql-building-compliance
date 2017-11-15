@@ -16,6 +16,8 @@ export class FileUploader {
     private aws_s3;
     private storageConfig;
     public filename;
+    public extname = '';
+    private uploadDir = this.getUploadDir();
 
     constructor(req: Request, res: Response, next: NextFunction) {
       this.req = req;
@@ -25,13 +27,63 @@ export class FileUploader {
 
       this.storageConfig = multer.diskStorage({
         destination: (rq, file, callback) => {
-          callback(null, './uploads/');
+          callback(null, this.uploadDir);
         },
         filename: (rq, file, callback) => {
-          callback(null, file.originalname);
+          this.extname = this.getFileExtension(file.originalname);
+          this.filename = this.generateRandomChars(50) + '.' + this.extname;
+          callback(null, this.filename);
         }
       });
 
+    }
+
+    public getUploadDir(){
+      let currentDir = String.raw``+__dirname,
+        separator = (currentDir.indexOf('/') > 0) ? '/' : "\\",
+        arr = currentDir.split(separator),
+        dir = '',
+        bSave = true;
+
+      arr.forEach((val) => {
+        if(val == 'dist'){
+          bSave = false;
+        }
+        if(bSave){
+          dir += val + separator;
+        }
+      });
+      dir += 'uploads'+separator;
+      console.log(dir);
+      return dir;
+    }
+
+    /**
+    * To generate random characters
+    * @return {String} characters
+    */
+    public generateRandomChars(length){
+        let chars = 'ABCDEFGHIJKKLMNOPQRSTUVWXYZ0987654321',
+        len = (typeof length == 'number') ? length : 15,
+        responseCode = '';
+
+        for(let i=0; i<=len; i++){
+           responseCode += chars[ Math.floor(Math.random() * chars.length) ];
+        }
+
+        return responseCode;
+    }
+
+    public getFileExtension(filename?:String){
+      let ext = 'jpg';
+      if(filename){
+        let arr = filename.split('.'),
+          len = arr.length;
+        if(len > 0){
+          ext = arr[ len - 1 ];
+        }
+      }
+      return ext.toLowerCase();
     }
 
     private setAWS_S3() {
@@ -54,8 +106,7 @@ export class FileUploader {
             console.log(err, 'there was an internal problem');
             throw err;
           }
-          console.log(this.req['file']);
-          this.filename = this.req['file']['originalname'];
+          
           fs.readFile(this.req['file']['path'], (error, data) => {
             if (error) {
               console.log('There was a problem reading the uploaded file ', error);
@@ -73,8 +124,8 @@ export class FileUploader {
                   console.log('error reading file from path ', this.req['file']['path']);
                   reject('Cannot upload file. Error reading file from path ' + this.req['file']['path']);
                 } else {
-                  console.log('Uploaded file to s3');
                   resolve('File upload successful');
+                  fs.unlink(this.uploadDir+this.filename, () => {});
                   /*
                   this.aws_s3.getSignedUrl('getObject', {
                     Bucket: this.aws_bucket_name,

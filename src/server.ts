@@ -18,6 +18,7 @@ import {  UsersRoute } from './routes/users';
 import { AwsRoute } from './routes/aws-ses';
 import { AccountRoute } from './routes/account';
 import { LocationRoute } from './routes/location';
+import { TokenRoute } from './routes/token';
 
 import * as cors from 'cors';
 
@@ -130,6 +131,9 @@ export class Server {
 
       // Users
       UsersRoute.create(router);
+
+      //TokenRoute
+      TokenRoute.create(router);
 
       this.app.use('/api/v1', router);
 
