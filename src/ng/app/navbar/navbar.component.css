@@ -129,8 +129,12 @@ nav ul  {
   height: 100%;
   color: #5c5c5c;
   opacity: 0;
+  z-index: -1;
+}
+.vertical-m.fadeInRight{
   z-index: 100;
 }
+
 .vertical-m h5 {
   font-size: 1.64rem;
   margin-left: 28px;
