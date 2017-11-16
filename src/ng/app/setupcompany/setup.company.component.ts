@@ -133,7 +133,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 			if(response.status === false && response.message == 'not verified'){
 				localStorage.setItem('showemailverification', 'true');
 			}else{
-				this.showCreateButton = true;
+				// this.showCreateButton = true;
 			}
 		});
 	}
