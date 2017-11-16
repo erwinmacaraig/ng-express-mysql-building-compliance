@@ -123,7 +123,7 @@ const md5 = require('md5');
 	  	);
 
 
-	    
+
 
 	  }).catch((e) => {
 	    res.status(400).send({
@@ -515,35 +515,39 @@ const md5 = require('md5');
 
 		user.create(reqBody).then(
 			() => {
-				let emailUserdata = {
-					user_id : user.ID(),
-					first_name: this.capitalizeFirstLetter(reqBody.first_name.toLowerCase()),
-					last_name: this.capitalizeFirstLetter(reqBody.last_name.toLowerCase()),
-					email : reqBody.email || ''
-				};
-				emailUserdata['user_id'] = user.ID();
+				user.load().then(
+					() => {
+						let emailUserdata = {
+							user_id : user.ID(),
+							first_name: this.capitalizeFirstLetter(reqBody.first_name.toLowerCase()),
+							last_name: this.capitalizeFirstLetter(reqBody.last_name.toLowerCase()),
+							email : reqBody.email || ''
+						};
+						emailUserdata['user_id'] = user.ID();
 
-				if(reqBody.role_id == 3){
-					let
-					securityAnswersModel = new SecurityAnswers(),
-					saveSecurityData = {
-						'security_question_id' : reqBody.question_id,
-						'answer' : md5(reqBody.security_answer.toLowerCase()),
-						'user_id' : user.ID()
-					};
+						if(reqBody.role_id == 3){
+							let
+							securityAnswersModel = new SecurityAnswers(),
+							saveSecurityData = {
+								'security_question_id' : reqBody.question_id,
+								'answer' : md5(reqBody.security_answer.toLowerCase()),
+								'user_id' : user.ID()
+							};
 
-					securityAnswersModel.create(saveSecurityData).then(
-						() => {
+							securityAnswersModel.create(saveSecurityData).then(
+								() => {
+									this.saveUserExtend(reqBody, userRole, user, req, res, emailUserdata, response);
+								},
+								() => {
+									res.statusCode = 500;
+									res.send('Unable to save security question');
+								}
+							);
+						}else{
 							this.saveUserExtend(reqBody, userRole, user, req, res, emailUserdata, response);
-						},
-						() => {
-							res.statusCode = 500;
-							res.send('Unable to save security question');
 						}
-					);
-				}else{
-					this.saveUserExtend(reqBody, userRole, user, req, res, emailUserdata, response);
-				}
+					}
+				);
 			},
 			() => {
 				res.statusCode = 500;
@@ -613,29 +617,34 @@ const md5 = require('md5');
 	}
 
 	private userVerificationNewUsersToken(tokenModel, userModel, success, error, verified?){
-		let userNewToken = tokenModel.generateRandomChars(15);
+
+		console.log(userModel);
+		if(userModel.get('token') === null){
+			let userNewToken = tokenModel.generateRandomChars(15);
 			userModel.set('token', userNewToken);
-			userModel.dbUpdate().then(
-				() => {
-					if(verified){
-						tokenModel.set('verified', verified);
-					}else{
-						tokenModel.set('verified', 1);
-					}
-					
-					tokenModel.dbUpdate().then(
-						() => {
-							success();
-						},
-						() => {
-							error('Error occured upon verification');
-						}
-					);
-				},
-				() => {
-					error('Error occured upon user token update');
+		}
+
+		userModel.dbUpdate().then(
+			() => {
+				if(verified){
+					tokenModel.set('verified', verified);
+				}else{
+					tokenModel.set('verified', 1);
 				}
-			);
+
+				tokenModel.dbUpdate().then(
+					() => {
+						success();
+					},
+					() => {
+						error('Error occured upon verification');
+					}
+				);
+			},
+			() => {
+				error('Error occured upon user token update');
+			}
+		);
 	}
 
 	public userVerification(req: Request, res: Response, next: NextFunction){
@@ -768,7 +777,7 @@ const md5 = require('md5');
 				bodyEmail += '<h5>Please verify your account by clicking the link below</h5> <br/>';
 				bodyEmail += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
 
-				this.sendEmailForRegistration(userData, req, 
+				this.sendEmailForRegistration(userData, req,
 					() => {
 						response.message = 'Success! email resent.';
 						response.status = true;

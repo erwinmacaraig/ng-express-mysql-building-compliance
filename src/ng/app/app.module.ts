@@ -10,6 +10,8 @@ import { TokenInterceptor } from './auth/token.interceptor';
 // services section
 import { AuthService } from './services/auth.service';
 import { AuthGuard } from './services/auth-guard.service';
+import { SignupService } from './services/signup.service';
+import { MessageService } from './services/messaging.service';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
@@ -24,7 +26,7 @@ import { CompanyInformationComponent } from './dashboard/company_information/com
 import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
-import { SignupService } from './services/signup.service';
+
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
@@ -33,10 +35,17 @@ import { CustomHttpDataProviderComponent } from './custom-http-data-provider/cus
 import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
+// todo: integrate 
 //Locations Template Components
 import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
 import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
+
+
+// todo: move to locations module
+import { ReactiveFormsModule } from '@angular/forms';
+import { AgmCoreModule } from '@agm/core';
+import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 
 
 @NgModule({
@@ -60,20 +69,30 @@ import { AddMultipleLocationComponent } from './locations-ui/add.multiple.locati
     CustomHttpDataProviderComponent,
     AccountValidationCriteriaComponent,
     NoemailComponent,
-
+    // todo: integrate
     LocationsUiComponent,
     AddSingleLocationComponent,
-    AddMultipleLocationComponent
+    AddMultipleLocationComponent,
+
+    // todo: move to location module
+    SetupLocationComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpClientModule,
-    AppRoutingModule
+    AppRoutingModule,
+    AgmCoreModule.forRoot({
+      apiKey: 'AIzaSyD4QEsIs8QgjTj0bOIizxUZqIk7zVgFxzk',
+      libraries: ['places']
+    }),
+    // todo: move to location module
+    ReactiveFormsModule
   ],
   providers: [
     AuthService,
     AuthGuard,
+    MessageService,
     SignupService,
     {
       provide: HTTP_INTERCEPTORS,

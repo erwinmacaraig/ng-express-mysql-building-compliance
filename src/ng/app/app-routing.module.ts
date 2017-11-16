@@ -30,6 +30,9 @@ import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
 import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
 
+import { SetupLocationComponent } from './location/setup-location/setup-location.component';
+
+
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -50,7 +53,9 @@ const appRoutes: Routes = [
       { path : 'send-invite', component : SendInviteComponent }
     ]
   },
-  { path : 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
+  //
+  { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },
+  { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
   { path: 'validation-criteria', canActivate: [AuthGuard], component: AccountValidationCriteriaComponent },
