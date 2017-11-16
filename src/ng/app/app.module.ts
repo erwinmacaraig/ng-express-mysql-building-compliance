@@ -37,7 +37,7 @@ import { NoemailComponent } from './noemail/noemail.component';
 import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
 import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
-
+import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.next.location/add.multiple.next.location';
 
 @NgModule({
   declarations: [
@@ -63,7 +63,8 @@ import { AddMultipleLocationComponent } from './locations-ui/add.multiple.locati
 
     LocationsUiComponent,
     AddSingleLocationComponent,
-    AddMultipleLocationComponent
+    AddMultipleLocationComponent,
+    AddMultipleNextLocationComponent
   ],
   imports: [
     BrowserModule,

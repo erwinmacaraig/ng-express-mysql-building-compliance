@@ -29,6 +29,7 @@ import { AccountValidationCriteriaComponent } from './account-validation-criteri
 import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
 import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
+import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.next.location/add.multiple.next.location';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -59,7 +60,8 @@ const appRoutes: Routes = [
     path: 'locations-ui', component : LocationsUiComponent,
     children : [
       { path : 'add-single-location', component : AddSingleLocationComponent },
-      { path : 'add-multiple-location', component : AddMultipleLocationComponent }
+      { path : 'add-multiple-location', component : AddMultipleLocationComponent },
+      { path : 'add-multiple-next-location', component : AddMultipleNextLocationComponent }
     ]
   }
 ];
