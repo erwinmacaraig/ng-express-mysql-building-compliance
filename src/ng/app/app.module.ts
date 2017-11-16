@@ -72,7 +72,7 @@ import { SetupLocationComponent } from './location/setup-location/setup-location
     // todo: integrate
     LocationsUiComponent,
     AddSingleLocationComponent,
-    AddMultipleLocationComponent
+    AddMultipleLocationComponent,
 
     // todo: move to location module
     SetupLocationComponent
