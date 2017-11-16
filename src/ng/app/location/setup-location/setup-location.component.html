@@ -1,0 +1,78 @@
+<app-navbar></app-navbar>
+<div class="location-form-container">
+	<div class="row">
+		<div class="col s12 m12">
+			<div class="search-container">
+				<div class="input-container">
+          <input placeholder="search for location" autocorrect="off" autocapitalize="off" spellcheck="off" type="text" class="form-control" #search [formControl]="searchControl">
+				</div>
+				<div class="button-container">
+					<button class="btn blue">
+						Search
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col l5 m12 s12 input-field">
+			<input id="locationName" type="text">
+			<label for="locationName">Location Name</label>
+		</div>
+		<div class="col l5 m12 s12 input-field">
+			<input id="unitNumber" type="text">
+			<label for="unitNumber">Unit Number</label>
+		</div>
+		<div class="col l5 m12 s12 input-field">
+			<input id="streetNumber" type="text" [formControl]="street_number">
+			<label for="streetNumber">Street Number</label>
+		</div>
+		<div class="col l5 m12 s12 input-field">
+			<input id="streetName" type="text" [formControl]="street_name">
+			<label for="streetName">Street Name</label>
+		</div>
+		<div class="col l5 m12 s12">
+			<div class="input-field">
+				<input id="city" type="text" [formControl]="city">
+				<label for="city">City</label>
+			</div>
+		</div>
+		<div class="col l5 m12 s12">
+			<div class="input-field">
+				<input id="state" type="text" [formControl]="state">
+				<label for="state">State</label>
+			</div>
+		</div>
+		<div class="col l5 m12 s12">
+			<div class="input-field">
+				<input id="zipCode" type="text" [formControl]="postal_code">
+				<label for="zipCode">Zip Code</label>
+			</div>
+		</div>
+		<div class="col l5 m12 s12">
+			<div class="select-field">
+				<select>
+					<option value="0" disabled selected> Select Country </option>
+				</select>
+			</div>
+		</div>
+		<div class="col l5 m12 s12">
+			<div class="input-field">
+				<input id="occupiedLevel" type="text">
+				<label for="occupiedLevel">Occupied Level</label>
+			</div>
+		</div>
+		<div class="col l5 m12 s12">
+			<div class="input-field">
+				<input id="levelLabel" type="text">
+				<label for="levelLabel">Level Labels</label>
+			</div>
+		</div>
+		<div class="col l12 m12 s12">
+			<button class="btn grey">Cancel</button>
+			<button class="btn orange">Submit</button>
+		</div>
+  </div>
+
+</div>
