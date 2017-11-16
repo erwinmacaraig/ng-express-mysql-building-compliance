@@ -25,7 +25,7 @@ export class FileUploader {
 
       this.storageConfig = multer.diskStorage({
         destination: (rq, file, callback) => {
-          callback(null, './uploads/');
+          callback(null, '/home/ubuntu/EvacPlatform/evacconnect/uploads/');
         },
         filename: (rq, file, callback) => {
           callback(null, file.originalname);
