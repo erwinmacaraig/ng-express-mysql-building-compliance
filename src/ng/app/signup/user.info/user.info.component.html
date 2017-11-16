@@ -77,7 +77,7 @@
 									<option *ngFor="let q of securityQuestions" value="{{ q.security_question_id }}"> {{ q.question }} </option>
 								</select>
 							</div>
-							
+
 							<div class="input-field col m12" *ngIf="selectAccountType == 3">
 								<input type="text" name="security_answer" ngModel #inpSecAnswer="ngModel" [ngClass]="{ 'invalid' : !inpSecAnswer.valid && inpSecAnswer.dirty }" required>
 								<label for="password">Security Answer
@@ -98,7 +98,7 @@
 								<!-- <label class="select-label">Account Type</label> -->
 							</div>
 
-							
+
 
 							<!--
 							<div class="select-field col m12 s12">
@@ -110,11 +110,12 @@
 
 							
 							<div class="input-field col m6">
-								<a class="btn block waves-effect waves-light btn-close grey lighten-1" (click)="onCloseSelfSignUp()">Back</a>
+ 								<a class="btn block waves-effect waves-light btn-close grey lighten-1" (click)="onCloseSelfSignUp()">Back</a>
 							</div>
 							<div class="input-field col m6">
-								<button type="submit" class="btn block waves-effect waves-light btn-submit">Submit</button>
+			                  <button type="submit" class="btn block waves-effect waves-light btn-submit">Submit</button>
 							</div>
+							
 						</div>
 					</div>
 

@@ -123,7 +123,7 @@ const md5 = require('md5');
 	  	);
 
 
-	    
+
 
 	  }).catch((e) => {
 	    res.status(400).send({
@@ -618,12 +618,11 @@ const md5 = require('md5');
 
 	private userVerificationNewUsersToken(tokenModel, userModel, success, error, verified?){
 
-		console.log(userModel);
 		if(userModel.get('token') === null){
 			let userNewToken = tokenModel.generateRandomChars(15);
 			userModel.set('token', userNewToken);
 		}
-			
+
 		userModel.dbUpdate().then(
 			() => {
 				if(verified){
@@ -631,7 +630,7 @@ const md5 = require('md5');
 				}else{
 					tokenModel.set('verified', 1);
 				}
-				
+
 				tokenModel.dbUpdate().then(
 					() => {
 						success();
@@ -777,7 +776,7 @@ const md5 = require('md5');
 				bodyEmail += '<h5>Please verify your account by clicking the link below</h5> <br/>';
 				bodyEmail += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
 
-				this.sendEmailForRegistration(userData, req, 
+				this.sendEmailForRegistration(userData, req,
 					() => {
 						response.message = 'Success! email resent.';
 						response.status = true;

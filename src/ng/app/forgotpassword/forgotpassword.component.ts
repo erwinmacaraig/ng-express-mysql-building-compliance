@@ -24,7 +24,10 @@ export class ForgotpasswordComponent implements OnInit {
 	public showCheckIcon = false;
 	public showCloseIcon = false;
 	public message = '';
-	public UserType: Object;
+  public UserType: Object;
+  public showResendLinkText = true;
+
+  public user_email: string;
 
 	constructor(private platformLocation: PlatformLocation, private fpService:ForgotPasswordService, private http: HttpClient) {
 		this.baseUrl = (platformLocation as any).location.origin;
@@ -74,7 +77,8 @@ export class ForgotpasswordComponent implements OnInit {
 		this.showCheckIcon = false;
 		this.showCloseIcon = false;
 		if(f.valid){
-			this.disableFormElement();
+      this.disableFormElement();
+      this.user_email = f.controls.email.value;
 			this.fpService.sendData({ email : f.controls.email.value }, (res) => {
 				this.message = res.message;
 				if(res.status){
@@ -87,6 +91,23 @@ export class ForgotpasswordComponent implements OnInit {
 				this.modalElem.modal('open');
 			});
 		}
-	}
+  }
+
+  onResendPasswordLink() {
+    this.showCheckIcon = false;
+    this.showCloseIcon = false;
+    this.showResendLinkText = false;
+    this.fpService.sendData({ email : this.user_email }, (res) => {
+      this.message = res.message;
+      this.showResendLinkText = true;
+      if (res.status) {
+        this.showCheckIcon = true;
+      } else {
+        this.showCloseIcon = true;
+        this.enableElem();
+      }
+      this.modalElem.modal('open');
+    });
+  }
 
 }
