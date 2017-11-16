@@ -45,12 +45,28 @@ table.bordered>tbody>tr {
     border-bottom: 1px solid #d3d3d3;
 }
 
-tbody tr td{
+table tr td{
 	border-left: 1px solid #d3d3d3;
 	padding: 10px;
 	font-size: 14px;
 }
 
-tbody tr td:last-child{
+table tr td:last-child{
 	border-right: 1px solid #d3d3d3;
+}
+
+.submit-button-container{
+	margin-top: 40px;
+}
+
+.add-row{
+	padding: 0px !important;
+}
+
+.add-row .btn{
+	width: 100%;
+}
+
+@media only screen and (max-width: 992px){
+
 }
