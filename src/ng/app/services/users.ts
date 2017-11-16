@@ -36,4 +36,15 @@ export class UserService {
 		});
 	}
 
+	getRoles(userId, callBack){
+		this.http.get(this.baseUrl+"/users/get-roles/"+userId)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+
+
 }

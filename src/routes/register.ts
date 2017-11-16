@@ -446,13 +446,13 @@ const md5 = require('md5');
 									);
 
 							}
-							);
+						);
 					},
 					(errorData) => {
 						response.message = 'Unable to save user. See reference : '+errorData;
 						res.send(response);
 					}
-					);
+				);
 			} else if('email' in reqBody) {
 				this.sendEmailForRegistration(
 					emailUserdata,
@@ -600,14 +600,14 @@ const md5 = require('md5');
               name: userData.first_name+' '+userData.last_name,
               email: userData.email,
               accountId: userData.account_id,
-              roleId : 3,
+              roles : {},
               profilePic : ''
             }
         };
 
         new UserRoleRelation().getByUserId(userData.user_id).then(
-	        (userRole) => {
-	        	reponse.data.roleId = userRole['role_id'];
+	        (userRoles) => {
+	        	reponse.data['roles'] = userRoles;
 	        	callBack(reponse);
 	        },
 	        (m) => {

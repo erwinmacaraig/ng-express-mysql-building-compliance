@@ -60,7 +60,7 @@ public validate(req: Request, res: Response, next: NextFunction) {
                     name: user.get('first_name')+' '+user.get('last_name'),
                     email: user.get('email'),
                     accountId: user.get('account_id'),
-                    roleId : 3,
+                    roles : {},
                     profilePic : ''
                 }
             },
@@ -71,8 +71,8 @@ public validate(req: Request, res: Response, next: NextFunction) {
                 }
 
                 new UserRoleRelation().getByUserId(user.get('user_id')).then(
-                    (userRole) => {
-                        response.data.roleId = userRole['role_id'];
+                    (userRoles) => {
+                        response.data['roles'] = userRoles;
                         return res.status(200).send(response);
                     },
                     (m) => {

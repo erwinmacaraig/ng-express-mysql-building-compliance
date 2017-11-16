@@ -4,17 +4,17 @@
 			<h5 class="title">Company Information</h5>
 			<br>
 			<div class="input-field">
-				<input id="inpCompanyName" type="text" readonly  >
+				<input id="inpCompanyName" type="text" readonly [(ngModel)]="companyName" >
 				<label for="inpCompanyName" >Company</label>
 			</div>
 
 			<div class="input-field">
-				<input id="inpLocationName" type="text" readonly  >
-				<label for="inpLocationName" >Location</label>
+				<input id="inpAddress" type="text" readonly [(ngModel)]="companyAddress" >
+				<label for="inpAddress" >Billing Address</label>
 			</div>
 
 			<div class="input-field">
-				<input id="inpRoleName" type="text" readonly  >
+				<input id="inpRoleName" type="text" readonly [(ngModel)]="companyRoles" >
 				<label for="inpRoleName" >My Account Role</label>
 			</div>
 		</div>
