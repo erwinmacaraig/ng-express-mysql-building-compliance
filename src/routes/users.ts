@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
+import { Token } from '../models/token.model';
 import { Account } from '../models/account.model';
 import { InvitationCode  } from '../models/invitation.code.model';
 import { AuthRequest } from '../interfaces/auth.interface';
@@ -34,6 +35,10 @@ export class UsersRoute extends BaseRoute {
 	public static create(router: Router) {
 		router.post('/users/upload-profile-picture', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().uploadProfilePicture(req, res, next);
+	    });
+
+	    router.post('/users/check-is-verified', (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().checkVerifiedUser(req, res, next);
 	    });
 	}
 
@@ -88,8 +93,30 @@ export class UsersRoute extends BaseRoute {
 			response.message = 'Error on uploading';
 			res.end(response);
 		});
- 
-		
+	}
+
+	public checkVerifiedUser(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : false,
+			data : {},
+			message : ''
+		},
+		tokenModel = new Token();
+		res.statusCode = 400;
+
+		tokenModel.getkUserVerified(req.body.user_id).then(
+			(token) => {
+				res.statusCode = 200;
+				response.status = true;
+				response.message = 'User is verified';
+				res.send(response);
+			},
+			() => {
+				response.message = 'not verified';
+				res.send(response);
+			}
+		);
+
 	}
 
 }

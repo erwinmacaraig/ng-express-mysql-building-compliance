@@ -11,6 +11,7 @@ declare var $: any;
 import { SignupService } from '../../services/signup.service';
 import { AccountTypes } from '../../models/account.types';
 import { InvitationCode } from '../../models/invitation-code';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-signup-user-info',
@@ -48,7 +49,14 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
 
     emailInvalidMessage = 'Invalid email';
 
-    constructor(private router: Router, private activatedRoute: ActivatedRoute, private http: HttpClient, platformLocation: PlatformLocation, private signupService: SignupService) {
+    constructor(
+        private router: Router, 
+        private activatedRoute: ActivatedRoute, 
+        private http: HttpClient, 
+        platformLocation: PlatformLocation, 
+        private signupService: SignupService,
+        private auth: AuthService
+    ) {
         this.headers = new Headers({ 'Content-type' : 'application/json' });
         this.options = { headers : this.headers };
         this.baseUrl = (platformLocation as any).location.origin;
@@ -117,8 +125,12 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
             this.modalLoader.icon = 'check';
             this.resetFormElement(f);
             this.elems['modalLoader'].modal('open');
+
+            this.auth.setToken(res.data.token);
+            this.auth.setUserData(res.data.user);
+
             setTimeout(() => {
-                this.router.navigate(['/login']);
+                this.router.navigate(['/setup-company']);
             }, 3000);
         } else {
             this.modalLoader.iconColor = 'red';
@@ -129,7 +141,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
                     this.modalLoader.message = 'The email that you used is already taken.';
                 }else if(i == 'black_listed') {
                     f.controls.email.setErrors({ blacklisted : true });
-                    this.emailInvalidMessage = '*Domain must be non-commercial';
+                    this.emailInvalidMessage = '*Domain must not be personal';
                     this.modalLoader.message = "The email must be company's email otherwise it is not valid";
                 }else{
                     f.controls[i].markAsDirty();
@@ -200,7 +212,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
                     });
                 }else{
                     controls.email.setErrors({ blacklisted : true });
-                    this.emailInvalidMessage = '*Domain must be non-commercial';
+                    this.emailInvalidMessage = '*Domain must not be personal';
                 }
 
             }else{

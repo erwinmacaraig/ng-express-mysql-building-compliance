@@ -7,7 +7,7 @@
 			</a>
 			<ul class="right navbar nav-list">
 				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
-					<a href=""><img alt="Location" src="assets/images/location.png" ><span>Location</span></a>
+					<a [routerLink]="['/setup-location']"><img alt="Location" src="assets/images/location.png" ><span>Location</span></a>
 				</li>
 				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
 					<a href=""><img alt="Training" src="assets/images/training.png" ><span>Training</span></a>
@@ -34,7 +34,7 @@
 				</li>
 				<li>
 					<a href="javascript:void(0)" class="user-right-click-nav">
-						<div class="users-name">{{ userData.name }}</div>
+						<div class="users-name">{{ username }}</div>
 						<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
 						<img alt="Report" class="img-user-initials" [src]="filterUrl(usersImageURL)" *ngIf=" hasUserImage " >
 					</a>
@@ -130,7 +130,7 @@
 		<div class="modal-close">X</div>
 
 		<div class="action-content">
-			
+
 
 			<div class="row">
 				<div class="m12 s12">
@@ -141,23 +141,23 @@
 			<div class="row">
 				<div class="col m12 s12">
 					<img src="" class="image-select-file" style="display: none;">
-					
+
 					<button style="width: 100%;" class="btn btn-large orange waves-effect waves-light" id="btnSelectFile">
 						SELECT FILE
 					</button>
-					
+
 					<button class="btn btn-large green waves-effect waves-light btn-choose-file-select" style="width: 100%; display: none;">
 						SET AS PHOTO
 					</button>
 
-					
+
 					<input type="file" name="file" accept="image/*" required style="display: none;">
 				</div>
 			</div>
 
 			<div class="row">
 				<div class="col m12 s12">
-					<button style="width: 100%; display: none;" class="btn btn-large blue waves-effect waves-light" id="btnTakePhoto">
+					<button style="width: 100%;" class="btn btn-large blue waves-effect waves-light" id="btnTakePhoto">
 						TAKE A PHOTO
 					</button>
 				</div>

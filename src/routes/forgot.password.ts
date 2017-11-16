@@ -33,9 +33,9 @@ const md5 = require('md5');
 	   		new ForgotPasswordRequestRoute().index(req, res, next);
 	   	});
 
-	   	router.get('/change/password-request/:token', (req: Request, res: Response, next: NextFunction) => {
+	   	/*router.get('/change/password-request/:token', (req: Request, res: Response, next: NextFunction) => {
 	   		new ForgotPasswordRequestRoute().changePasswordRequest(req, res, next);
-	   	});
+	   	});*/
 
 	   	router.post('/forgot/password/change/users/password', (req: Request, res: Response, next: NextFunction) => {
 	   		new ForgotPasswordRequestRoute().changeUsersPassword(req, res, next);
@@ -147,7 +147,7 @@ const md5 = require('md5');
 
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
-			link = req.protocol + '://' + req.get('host') +'/change/password-request/'+userData.token;
+			link = req.protocol + '://' + req.get('host') +'/token/'+userData.token;
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(userData.first_name)+' '+this.capitalizeFirstLetter(userData.last_name)+'</h3> <br/>';
 		emailBody += '<h4> Please click the link below to create new password. </h4> <br/>';
@@ -275,7 +275,6 @@ const md5 = require('md5');
 				res.send(response);
 			}
 		);
-
 	}
 
 	public changeUsersPassword(req: Request, res: Response, next: NextFunction){
