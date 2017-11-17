@@ -30,6 +30,10 @@ import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
 import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
 import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.next.location/add.multiple.next.location';
+import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
+import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
+import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
+import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 
@@ -66,7 +70,11 @@ const appRoutes: Routes = [
     children : [
       { path : 'add-single-location', component : AddSingleLocationComponent },
       { path : 'add-multiple-location', component : AddMultipleLocationComponent },
-      { path : 'add-multiple-next-location', component : AddMultipleNextLocationComponent }
+      { path : 'add-multiple-next-location', component : AddMultipleNextLocationComponent },
+      { path : 'view-location-list', component : ViewLocationListComponent },
+      { path : 'view-location-single', component : ViewLocationSingleComponent },
+      { path : 'view-location-multiple', component : ViewLocationMultipleComponent },
+      { path : 'view-sublocation', component : ViewSublocationComponent }
     ]
   }
 ];
