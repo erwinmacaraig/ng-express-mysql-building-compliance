@@ -6,16 +6,16 @@
 				<img class="responsive-logo" src="assets/images/responsive-logo.png">
 			</a>
 			<ul class="right navbar nav-list">
-				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
-					<a [routerLink]="['/setup-location']"><img alt="Location" src="assets/images/location.png" ><span>Location</span></a>
+				<li *ngIf="showLinks.locations">
+					<a [routerLink]="['/setup-location']"><img alt="Location" src="assets/images/location.png" ><span>Locations</span></a>
 				</li>
-				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
+				<li *ngIf="showLinks.training">
 					<a href=""><img alt="Training" src="assets/images/training.png" ><span>Training</span></a>
 				</li >
-				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
+				<li *ngIf="showLinks.team">
 					<a href=""> <img alt="Team" src="assets/images/team.png" ><span>Team</span> </a>
 				</li>
-				<li *ngIf=" userRoleID === 2 || userRoleID === 1 ">
+				<li *ngIf="showLinks.report">
 					<a href=""><img alt="Report" src="assets/images/report.png" ><span>Report</span></a>
 				</li>
 			</ul>

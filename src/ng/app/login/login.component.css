@@ -342,8 +342,8 @@ h1,h2{
 
   .login-block,
   .invitation_code {
-    width: 90%;
-    padding: 10px;
+    width: 90% !important;
+    padding: 10px !important;
   }
 
   .logo{

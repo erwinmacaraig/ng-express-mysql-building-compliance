@@ -40,7 +40,7 @@ import { NoemailComponent } from './noemail/noemail.component';
 import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
 import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
-
+import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.next.location/add.multiple.next.location';
 
 // todo: move to locations module
 import { ReactiveFormsModule } from '@angular/forms';
@@ -73,6 +73,7 @@ import { SetupLocationComponent } from './location/setup-location/setup-location
     LocationsUiComponent,
     AddSingleLocationComponent,
     AddMultipleLocationComponent,
+    AddMultipleNextLocationComponent,
 
     // todo: move to location module
     SetupLocationComponent

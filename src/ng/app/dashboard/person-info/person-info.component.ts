@@ -92,18 +92,18 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
       this.authService.setUserData(userData);
 
       this.onResetForm();
-      alert('Update Successful');
+      
       }, (err: HttpErrorResponse) => {
           const parsedErrorMessage = JSON.parse(err.error);
           if (err.error instanceof Error) {
-            alert('There was a problem with the udpate query.');
+            // alert('There was a problem with the udpate query.');
           } else {
               if(parsedErrorMessage.message == 'Email taken'){
                 this.emailTaken = true;
               }else if(parsedErrorMessage.message == 'Domain blacklisted'){
                 this.emailBlackListed = true;
               }else{
-                alert(`Backend returned code ${err.status}, body was: ${err.error}`);
+                // alert(`Backend returned code ${err.status}, body was: ${err.error}`);
                 console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
               }
           }

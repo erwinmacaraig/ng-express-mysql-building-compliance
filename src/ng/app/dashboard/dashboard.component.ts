@@ -19,6 +19,7 @@ export class DashboardComponent implements OnInit {
 
 	private baseUrl: String;
 	public userData: Object;
+	public userRoles;
 	showEmailVerification = false;
 	showResponse = false;
 	responseMessage = '';
@@ -40,9 +41,12 @@ export class DashboardComponent implements OnInit {
 		router.events.subscribe((val) => {
 			if(val instanceof NavigationEnd){
 				if( this.userData ){
-					if( this.userData['roleId'] == '1' || this.userData['roleId'] == '2' ){
-						if(this.userData['accountId'] < 1){
-							router.navigate(['/setup-company']);
+					this.userRoles = this.userData['roles'];
+					for(let i in this.userRoles){
+						if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
+							if(this.userData['accountId'] < 1){
+								router.navigate(['/setup-company']);
+							}
 						}
 					}
 				}
