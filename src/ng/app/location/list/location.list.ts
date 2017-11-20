@@ -37,6 +37,11 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		this.options = { headers : this.headers };
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 		this.userData = this.auth.getUserData();
+
+		this.locationService.getLocationsForListing(this.userData['accountId'], (response) => {
+			this.preloaderService.hide();
+			this.locations = response.data;
+		});
 	}
 
 	ngOnInit(){
@@ -45,10 +50,23 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	}
 
 	ngAfterViewInit(){
-		setTimeout(() => { this.preloaderService.hide(); }, 1000);
+		$('.nav-list-locations').addClass('active');
+		$('.location-navigation .view-location').addClass('active');
 	}
 
 	ngOnDestroy(){
 
+	}
+
+	getInitial(name:String){
+		return name.split('')[0].toUpperCase();
+	}
+
+	formatNumber(number){
+		let sReturn = 0;
+		number.toFixed(2).replace(/./g, function(c, i, a) {
+		    sReturn = i && c !== "." && ((a.length - i) % 3 === 0) ? ',' + c : c;
+		});
+		return sReturn;
 	}
 }

@@ -36,4 +36,13 @@ export class LocationsService {
 	      });
 	}
 
+	getLocationsForListing(accountid, callBack){
+		this.http.get(this.baseUrl+"/location/get-for-listing/"+accountid, this.options)
+	      .subscribe(res => {
+	        callBack(res);
+	      }, err => {
+	        callBack( JSON.parse(err.error) );
+	      });
+	}
+
 }

@@ -37,8 +37,12 @@
 }
 
 .location-navigation ul li.green-theme:hover,
-.location-navigation ul li.green-theme:hover a{
+.location-navigation ul li.green-theme.active{
 	background-color: #36bb9b;
+}
+
+.location-navigation ul li.green-theme.active a,
+.location-navigation ul li.green-theme:hover a{
 	color: #fff;
 }
 
@@ -51,8 +55,12 @@
 }
 
 .location-navigation ul li.pink-theme:hover,
-.location-navigation ul li.pink-theme:hover a{
+.location-navigation ul li.pink-theme.active{
 	background-color: #dc4453;
+}
+grun
+.location-navigation ul li.pink-theme.active a,
+.location-navigation ul li.pink-theme:hover a{
 	color: #fff;
 }
 

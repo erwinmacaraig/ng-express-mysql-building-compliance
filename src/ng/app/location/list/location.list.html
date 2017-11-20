@@ -56,22 +56,22 @@
 					<tr *ngFor="let location of locations">
 						<td>
 							<div class="circle-initial"> {{getInitial(location.name)}} </div>
-							Jojomo Building
+							{{location.name}}
 						</td>
 						<td>
-							Brisbane
+							{{location.state}}
 						</td>
 						<td>
-							--
+							{{formatNumber(location.no_locations)}}
 						</td>
 						<td>
-							2
+							0
 						</td>
 						<td>
 							Unknown
 						</td>
 						<td class="compliance">
-							<div class="percent">100%</div>
+							<div class="percent">0%</div>
 							<div class="bar"></div>
 						</td>
 						<td>

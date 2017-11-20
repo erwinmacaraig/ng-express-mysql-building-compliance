@@ -3,6 +3,8 @@ import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Location } from '../models/location.model';
 import { LocationAccountUser } from '../models/location.account.user';
+import { AuthRequest } from '../interfaces/auth.interface';
+import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import  * as fs  from 'fs';
 import * as path from 'path';
 const validator = require('validator');
@@ -30,6 +32,10 @@ const md5 = require('md5');
 
 	   	router.get('/location/get-by-userid-accountid/:user_id/:account_id', (req: Request, res: Response, next: NextFunction) => {
 	   		new LocationRoute().getByUserIdAndAccountId(req, res, next);
+	   	});
+
+	   	router.get('/location/get-for-listing/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	   		new LocationRoute().getForListing(req, res, next);
 	   	});
 
    	}
@@ -96,6 +102,51 @@ const md5 = require('md5');
 			}
 		);
 
+	}
+
+	public getForListing(req: Request, res: Response, next: NextFunction){
+		let  response = {
+				status : false,
+				message : '',
+				data : []
+			},
+			locationFormat = {
+				name : '',
+				parent_id : -1,
+				state : '',
+				no_locations : 0,
+				frp : [],
+				compliance_percentage : 0,
+				wardens : [],
+				mobility_impaired : 0
+			},
+			location = new Location();
+
+		// Default status code
+		res.statusCode = 200;
+
+		location.getManyByAccountId(req.params['account_id']).then(
+			(results) => {
+				
+				for(let i in results){
+					results[i]['state'] = results[i]['state'].toUpperCase();
+					let d = Object.assign(locationFormat, results[i]);
+					
+					d.no_locations = Object.keys(results[i]['sublocations']).length;
+					response.data.push(d);
+				}
+
+				
+				res.statusCode = 200;
+				res.send(response);
+			},
+			(e) => {
+				response.status = true;
+				res.statusCode = 200;
+				response.message = 'no accounts found';
+				res.send(response);
+			}
+		);
 	}
 
 }
