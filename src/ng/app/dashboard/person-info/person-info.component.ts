@@ -114,7 +114,7 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
   onResetForm() {
     this.editCtrl = false;
     this.personInfoForm.resetForm(this.person);
-
+    this.emailBlackListed = false;
   }
 
   ngAfterViewInit() {
