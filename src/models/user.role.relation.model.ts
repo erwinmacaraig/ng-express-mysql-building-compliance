@@ -46,8 +46,7 @@ export class UserRoleRelation extends BaseClass {
         if(!results.length){
           reject('No role found');
         }else{
-          this.dbData = results[0];
-          this.setID(results[0]['user_role_relation_id']);
+          this.dbData = results;
           resolve(this.dbData);
         }
       });

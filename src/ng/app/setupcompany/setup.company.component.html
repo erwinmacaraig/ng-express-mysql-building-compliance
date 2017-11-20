@@ -55,13 +55,14 @@
 								</div>
 
 								<div class="input-field col m12 s12">
-                  <input id="company_name" type="text" name="company_name"
-                   ngModel
-                   #inpCompanyName="ngModel"
-                   [ngClass]="{ 'invalid' : !inpCompanyName.valid  && inpCompanyName.dirty }"
-                   autocomplete="off"
-                   required>
-									<label for="company_name">Search Company Name Here
+				                  	<input id="company_name" type="text" name="company_name"
+					                   ngModel
+					                   #inpCompanyName="ngModel"
+					                   [ngClass]="{ 'invalid' : !inpCompanyName.valid  && inpCompanyName.dirty }"
+					                   autocomplete="off"
+					                   required>
+									<label for="company_name">
+										<span class="text">Search Company Name Here</span>
 										<small *ngIf=" !inpCompanyName.valid && inpCompanyName.dirty "> *Required </small>
 									</label>
 
@@ -147,9 +148,9 @@
 
 								<div class="input-field col s12 right-align"
 									[ngClass]="{ 'm12 l12 ' : (!companyIsSelected && !newCompany), 'l6 m6' : (companyIsSelected || newCompany) }">
-                   <a *ngIf="!newCompany" href="/login" class="btn block waves-effect waves-light grey btn-go-back" >Cancel</a>
-                   <a *ngIf="newCompany" [routerLink]="['/setup-company']" class="btn block waves-effect waves-light grey btn-go-back" (click)="refreshMarkers()" >Cancel</a>
-                </div>
+				                   <a *ngIf="!newCompany" (click)="cancelClick(formSetupCompany)" class="btn block waves-effect waves-light grey btn-go-back" >Cancel</a>
+				                   <a *ngIf="newCompany" (click)="cancelClick(formSetupCompany)" class="btn block waves-effect waves-light grey btn-go-back"  >Cancel</a>
+				                </div>
 
 								<div class="input-field col m6 s12 right-align" [ngClass]="{ 'hide' : !companyIsSelected }">
 									<button type="submit" class="btn block waves-effect waves-light btn-submit" >Submit</button>

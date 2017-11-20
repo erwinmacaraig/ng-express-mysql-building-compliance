@@ -30,7 +30,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 	private options;
 	private headers;
 
-	public userRoleID: Number = 0;
+	public userRoles;
 	public userData: Object;
 
 	private accountData: Object;
@@ -94,21 +94,28 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 	}
 
 	ngOnInit() {
-		this.userRoleID = this.userData['roleId'];
+		this.userRoles = this.userData['roles'];
 		this.getAccountInfoAndDisplay();
-		
-		if(this.userRoleID == 1 || this.userRoleID == 2){
-			this.showSendInvite = true;
-			this.showWardenInvitationCode = true;
+		let isTRP = false, isFRP = false;
+
+		for(let i in this.userRoles){
+			if(this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2){
+				this.showSendInvite = true;
+				this.showWardenInvitationCode = true;
+			}
+			if(this.userRoles[i]['role_id'] == 1){
+				isFRP = true;
+			}
+			if(this.userRoles[i]['role_id'] == 2){
+				isTRP = true;
+			}
 		}
-
+		
 		for(let i in this.selectUserType){
-
 			// TRP 
-			if(this.selectUserType[i]['role_id'] == 1 && this.userRoleID == 2){
+			if(isTRP && this.selectUserType[i]['role_id'] == 1){
 				this.selectUserType.splice( parseInt(i) , 1 );
 			}
-
 		}
 	}
 
@@ -173,11 +180,12 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 						let arrNames = [];
 						for(let i in resLocation.data){
 							if(resLocation.data[i]['parent_id'] == -1){
-								this.selectLocation = resLocation.data[i]['location_id'];
+								// this.selectLocation = resLocation.data[i]['location_id'];
 								this.wardenInvitationCodeData.location_id = resLocation.data[i]['location_id'];
 							}
 							arrNames.push(resLocation.data[i]['name']);
 						}
+
 						$('#inpLocationName').val( arrNames.join(', ') ).trigger('focusin');
 
 
@@ -206,12 +214,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 					}
 				);
 
-				
-
 			}else{
-				if(this.userData['roleId'] == 1 || this.userData['roleId'] == 2){
-					this.router.navigate(['/setup-company']);
-				}
 				this.preloaderService.hide();
 			}
 		});
@@ -229,13 +232,6 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 					$('#inpInviCode').trigger('focusin');
 				}
 			}
-
-			$('#inpCompanyName').val( this.accountData['account_name'] ).trigger('focusin');
-			for(let i in this.arrUserType){
-				if(this.userRoleID == this.arrUserType[i]['role_id']){
-					$('#inpRoleName').val(this.arrUserType[i]['description']).trigger('focusin');
-				}
-			}
 		}
 
 		setTimeout(() => { $('select').material_select(); }, 300);
@@ -244,37 +240,44 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 	selectAccountTypeEvent(){
 		let selAccountType = $('#accountType');
 		selAccountType.on('change', () => {
-			if( selAccountType.val() == 1 && this.userRoleID == 1 ){
+			let isTRP = false, isFRP = false;
+			for(let i in this.userRoles){
+				if(this.userRoles[i]['role_id'] == 2){
+					isTRP = true;
+				}else if(this.userRoles[i]['role_id'] == 1){
+					isFRP = true;
+				}
+			}
+
+			if( selAccountType.val() == 1 && isFRP ){
 				this.formToShow = 'frp-to-frp';
-			}else if( selAccountType.val() == 2 && this.userRoleID == 1 ){
+			}else if( selAccountType.val() == 2 && isFRP ){
 				this.formToShow = 'frp-to-trp';
-			}else if( selAccountType.val() == 3 && this.userRoleID == 1 ){
+			}else if( selAccountType.val() == 3 && isFRP ){
 				this.formToShow = 'frp-to-warden';
-			}else if( selAccountType.val() == 2 && this.userRoleID == 2 ){
+			}else if( selAccountType.val() == 2 && isTRP ){
 				this.formToShow = 'trp-to-trp';
-			}else if( selAccountType.val() == 3 && this.userRoleID == 2 ){
+			}else if( selAccountType.val() == 3 && isTRP ){
 				this.formToShow = 'trp-to-warden';
 			}else{
 				this.formToShow = '';
 			}
 
-			$('select[name="location"] option[value="'+this.selectLocation+'"]').prop('selected', true);
-
-			setTimeout(() => { $('select').material_select(); }, 100);
+			setTimeout(() => { 
+				$('select[name="location"]').find('option:first-child').prop('selected', true);
+				setTimeout(() => {
+					$('select').material_select(); 
+				},100);
+			}, 100);
 		});
 	}
 
 	// SUBMIT EVENT INVITE USERS
 	submitInviteUsers(f: NgForm, event){
 		event.preventDefault();
-		f.controls.account_type.markAsDirty();
-		f.controls.account_type.setValue( $('#accountType').val() );
-
-		if($('select[name="location"]').val() === null){
-
-			$('select[name="location"]').val(this.selectLocation);
-			$('select[name="location"]').trigger('change');
-		}
+		f.controls.user_role_id.markAsDirty();
+		f.controls.user_role_id.setValue( $('#accountType').val() );
+		f.controls.location.setValue( $('select[name="location"]').val() );
 
 		this.emailTaken = false;
 		let formValues = {
@@ -316,7 +319,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 
 		if(f.valid){
 			formValues = Object.assign(formValues, f.value);
-			formValues['user_role_id'] = this.userRoleID;
+			// formValues['user_role_id'] = this.userRoleID;
 			formValues['creator_id'] = this.userData['userId'];
 			this.modalLoader.showLoader = true;
 			this.modalLoader.loadingMessage = 'Sending invitation';

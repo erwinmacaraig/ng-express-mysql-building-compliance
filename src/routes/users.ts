@@ -4,6 +4,7 @@ import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Token } from '../models/token.model';
 import { Account } from '../models/account.model';
+import { UserRoleRelation } from '../models/user.role.relation.model';
 import { InvitationCode  } from '../models/invitation.code.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
@@ -40,6 +41,10 @@ export class UsersRoute extends BaseRoute {
 	    router.post('/users/check-is-verified', (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().checkVerifiedUser(req, res, next);
 	    });
+
+	    router.get('/users/get-roles/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getUserRole(req, res, next);
+	    })
 	}
 
 
@@ -116,7 +121,30 @@ export class UsersRoute extends BaseRoute {
 				res.send(response);
 			}
 		);
+	}
 
+	public getUserRole(req: Request, res: Response, next: NextFunction){
+		let userRoleRelation = new UserRoleRelation(),
+			response = {
+				status : false,
+				message : '',
+				data : {}
+			};
+
+		res.statusCode = 400;
+		userRoleRelation.getByUserId(req.params['user_id']).then(
+			(roles) => {
+
+				response.data = roles;
+				response.status = true;
+				res.statusCode = 200;
+				res.send(response);
+			},
+			() => {
+				response.message = '';
+				res.send(response);
+			}
+		);
 	}
 
 }

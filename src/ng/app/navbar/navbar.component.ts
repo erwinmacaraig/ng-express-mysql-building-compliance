@@ -23,22 +23,28 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 	@ViewChild('formFile') formFile: NgForm;
 
 	public userData: Object;
-	public userRoleID: Number = 0;
+	public userRoles;
 	public showUpgradePremium: boolean = true;
 	public usersImageURL: String;
 	public hasUserImage: boolean = false;
-  public usersInitial: String = 'AA';
+	public usersInitial: String = 'AA';
 
-  public mySubscription: Subscription;
-  public username: string;
+	public mySubscription: Subscription;
+	public username: string;
+	public showLinks = {
+		locations : false,
+		training : false,
+		team : false,
+		report : false
+	};
 
 	showSendInviteLink = false;
 	elems = {};
 
 	constructor(
 		private auth: AuthService,
-    private userService: UserService,
-    private messageService: MessageService
+    	private userService: UserService,
+    	private messageService: MessageService
 	) {
 	    this.userData = this.auth.getUserData();
 	    this.usersImageURL = 'assets/images/camera_upload_hover.png';
@@ -50,13 +56,13 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 			initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
 			return initials;
 		}
-		return 'A';
+		return 'AA';
 	}
 
 	ngOnInit() {
     this.username = this.userData['name'];
 		this.usersInitial = this.getInitials(this.username);
-		this.userRoleID = this.userData['roleId'];
+		this.userRoles = this.userData['roles'];
 		this.showEvent();
 		this.closeEvent();
 		this.setElements();
@@ -78,8 +84,16 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 			}
 		});
 
-		if(this.userRoleID == 1 || this.userRoleID == 2){
-			this.showSendInviteLink = true;
+		for(let i in this.userRoles){
+			if(this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2){
+				this.showSendInviteLink = true;
+				this.showLinks = {
+					locations : true,
+					training : true,
+					team : true,
+					report : true
+				}
+			}
 		}
 
 		if('profilePic' in this.userData){

@@ -276,7 +276,7 @@ import * as Promise from 'promise';
 										updateInvi.set('code', reqBody.code);
 										updateInvi.set('invitation_code_id', inviCodeData[0]['invitation_code_id']);
 										updateInvi.set('account_id', inviCodeData[0]['account_id']);
-										updateInvi.set('location_id', reqBody.location_id);
+										updateInvi.set('location_id', 0);
 										updateInvi.set('role_id', 3);
 										updateInvi.set('was_used', 0);
 										updateInvi.set('first_name', "");
@@ -293,7 +293,7 @@ import * as Promise from 'promise';
 
 										inviCodeModel.create({
 											'account_id' : reqBody.account_id,
-											'location_id' : reqBody.location_id,
+											'location_id' : 0,
 											'role_id': 3,
 											'first_name' : '',
 											'last_name' : '',
@@ -431,15 +431,6 @@ import * as Promise from 'promise';
 			}
 		}
 
-		if( ('account_type' in data) === false ){
-			error++;
-		}else{
-			data.account_type = ''+data.account_type+''.trim();
-			if(validator.isEmpty(data.account_type)){
-				error++;
-			}
-		}
-
 		if( ('sublocations' in data) === false ){
 			error++;
 		}
@@ -530,12 +521,12 @@ import * as Promise from 'promise';
 										'email' : reqBody.email,
 										'location_id' : reqBody.location_id,
 										'account_id' : reqBody.account_id,
-										'role_id' : reqBody.account_type,
+										'role_id' : reqBody.user_role_id,
 										'was_used' : 0
 									};
 
 								// SPECIFY THE LOCATION ID
-								if(reqBody.account_type == 2 || reqBody.account_type == 3){
+								if(reqBody.user_role_id == 2 || reqBody.user_role_id == 3){
 									if( Object.keys( reqBody.sublocations ).length > 0 ){
 										inviData.location_id = reqBody.sublocations[0]['location_id'];
 									}
@@ -630,7 +621,6 @@ import * as Promise from 'promise';
 			response.message = 'search a name, invalid field';
 			res.send(response);
 		}
-
 	}
 
 }
