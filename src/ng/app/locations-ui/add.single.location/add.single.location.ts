@@ -20,5 +20,11 @@ export class AddSingleLocationComponent implements OnInit, OnDestroy {
 		$('select').material_select();
 	}
 
+	ngAfterViewInit(){
+		$('.modal').modal({
+			dismissible : false
+		});
+	}
+
 	ngOnDestroy(){}
 }
