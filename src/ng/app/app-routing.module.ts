@@ -34,6 +34,7 @@ import { ViewLocationListComponent } from './locations-ui/view.location.list/vie
 import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
 import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+import { SearchLocationComponent } from './locations-ui/search.location/search.location';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 import { LocationListComponent } from './location/list/location.list';
@@ -75,7 +76,8 @@ const appRoutes: Routes = [
       { path : 'view-location-list', component : ViewLocationListComponent },
       { path : 'view-location-single', component : ViewLocationSingleComponent },
       { path : 'view-location-multiple', component : ViewLocationMultipleComponent },
-      { path : 'view-sublocation', component : ViewSublocationComponent }
+      { path : 'view-sublocation', component : ViewSublocationComponent },
+      { path : 'search-location', component : SearchLocationComponent }
     ]
   },
   {
