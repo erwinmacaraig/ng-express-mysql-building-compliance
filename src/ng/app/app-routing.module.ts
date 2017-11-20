@@ -36,6 +36,7 @@ import { ViewLocationMultipleComponent } from './locations-ui/view.location.mult
 import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
+import { LocationListComponent } from './location/list/location.list';
 
 
 const appRoutes: Routes = [
@@ -76,6 +77,9 @@ const appRoutes: Routes = [
       { path : 'view-location-multiple', component : ViewLocationMultipleComponent },
       { path : 'view-sublocation', component : ViewSublocationComponent }
     ]
+  },
+  {
+    path : 'list-locations', canActivate: [AuthGuard], component : LocationListComponent
   }
 ];
 

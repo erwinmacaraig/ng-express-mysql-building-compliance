@@ -1,0 +1,95 @@
+<app-navbar></app-navbar>
+<div class="location-navigation">
+	<ul>
+
+		<li class="add-location pink-theme  ">
+			<a href="javascript:void(0)">
+				<img src="assets/images/locations/add_location.png" class="default">
+				<img src="assets/images/locations/add_location_hover.png" class="hover">
+				<span>
+					Add new location
+				</span>
+			</a>
+		</li>
+		
+		<li class="view-location green-theme">
+			<a href="javascript:void(0)">
+				<img src="assets/images/locations/view_all_location.png" class="default">
+				<img src="assets/images/locations/view_all_locations_hover.png" class="hover">
+				<span>
+					View location
+				</span>
+			</a>
+		</li>
+
+	</ul
+></div>
+<div class="workspace container">
+	<div class="row">
+		<div class="col m12">
+			<h5 class="text">Emapta Services</h5>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col m12 s12">
+			
+			<table class="highlight striped bordered">
+				<thead>
+					<tr class="grey darken-4 white-text">
+						<th>Location Name</th>
+						<th>State</th>
+						<th>No. of Locations</th>
+						<th>Level Occupied</th>
+						<th>FRP</th>
+						<th>Compliance</th>
+						<th>Wardens from Tenancy</th>
+						<th>Mobility Impaired</th>
+						<th>Manage</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngIf="locations.length == 0">
+						<td colspan="9" class="center-align">
+							<h6>No records yet</h6>
+						</td>
+					</tr>
+					<tr *ngFor="let location of locations">
+						<td>
+							<div class="circle-initial"> {{getInitial(location.name)}} </div>
+							Jojomo Building
+						</td>
+						<td>
+							Brisbane
+						</td>
+						<td>
+							--
+						</td>
+						<td>
+							2
+						</td>
+						<td>
+							Unknown
+						</td>
+						<td class="compliance">
+							<div class="percent">100%</div>
+							<div class="bar"></div>
+						</td>
+						<td>
+							0
+						</td>
+						<td>
+							0
+						</td>
+						<td>
+							<a href="javascript:void(0)">Details</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+		</div>
+	</div>
+</div>
+
+<div preloader></div>
+

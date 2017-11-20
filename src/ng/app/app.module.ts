@@ -50,6 +50,7 @@ import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.s
 import { ReactiveFormsModule } from '@angular/forms';
 import { AgmCoreModule } from '@agm/core';
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
+import { LocationListComponent } from './location/list/location.list';
 
 
 @NgModule({
@@ -84,7 +85,8 @@ import { SetupLocationComponent } from './location/setup-location/setup-location
     ViewSublocationComponent,
 
     // todo: move to location module
-    SetupLocationComponent
+    SetupLocationComponent,
+    LocationListComponent
   ],
   imports: [
     BrowserModule,
