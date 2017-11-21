@@ -34,6 +34,10 @@ export class LocationsService {
 	      }, err => {
 	        callBack( JSON.parse(err.error) );
 	      });
-	}
+  }
+
+  writeLocation(location: Object): Observable<any> {
+    return this.http.post<any>(this.baseUrl + '/location/write-location/', location);
+  }
 
 }

@@ -19,7 +19,14 @@
 			<div class="form-container">
 				<form>
 					<div class="input-container input-field">
-						<input type="text" placeholder="e.g Street Name, City Name">
+              <input
+              placeholder="e.g Street Name, City Name"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="off"
+              type="text"
+              #search
+              [formControl]="searchControl">
 					</div>
 					<div class="search-icon-container">
 						<img src="assets/images/locations/search_icon.png" alt="">
