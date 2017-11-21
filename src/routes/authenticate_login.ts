@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
+import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { Files } from '../models/files.model';
 import Validator from 'better-validator';
 import * as md5 from 'md5';
@@ -67,6 +68,24 @@ public validate(req: Request, res: Response, next: NextFunction) {
                     }
                 },
 
+                getWardenRoles = (callBack) =>{
+                    new UserEmRoleRelation().getEmRolesByUserId(user.get('user_id')).then(
+                        (userRoles) => {
+                            for(let i in userRoles){
+                                response.data['roles'][ Object.keys( response.data['roles'] ).length ] = {
+                                    role_id : userRoles[i]['em_roles_id'],
+                                    role_name : userRoles[i]['role_name'],
+                                    is_warden_role : userRoles[i]['is_warden_role']
+                                };
+                            }
+                            callBack();
+                        },
+                        (a) => {
+                            callBack();
+                        }
+                    );
+                },
+
                 fileCB = (fileData) => {
                     if(fileData !== false){
                         response.data.profilePic = fileData[0].url;
@@ -74,11 +93,17 @@ public validate(req: Request, res: Response, next: NextFunction) {
 
                     new UserRoleRelation().getByUserId(user.get('user_id')).then(
                         (userRoles) => {
-                            response.data['roles'] = userRoles;
-                            return res.status(200).send(response);
+                            getWardenRoles(() => {
+                                for(let i in userRoles){
+                                    response.data['roles'][ Object.keys( response.data['roles'] ).length ] = userRoles[i];
+                                }
+                                res.status(200).send(response);
+                            });
                         },
                         (m) => {
-                            return res.status(200).send(response);
+                            getWardenRoles(() => {
+                                res.status(200).send(response);
+                            });
                         }
                     );
                 }

@@ -76,10 +76,15 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		if(this.userData['accountId'] > 0){
 			router.navigate(['/dashboard']);
 		}
+
+		let hasFrpTrp = false;
 		for(let i in this.userData['roles']){
-			if(this.userData['roles'][i]['role_id'] == 3){
-				this.showCreateButton = false;
+			if(this.userData['roles'][i]['role_id'] == 1 || this.userData['roles'][i]['role_id'] == 2){
+				hasFrpTrp = true;
 			}
+		}
+		if(!hasFrpTrp){
+			this.showCreateButton = false;
 		}
 	}
 
