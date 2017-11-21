@@ -115,30 +115,78 @@ const md5 = require('md5');
 				parent_id : -1,
 				state : '',
 				no_locations : 0,
+				level_occupied : 0,
 				frp : [],
 				compliance_percentage : 0,
 				wardens : [],
 				mobility_impaired : 0
 			},
-			location = new Location();
+			location = new Location(),
+			wardensModel = new LocationAccountUser(),
+			frpTrpModel = new LocationAccountUser();
 
 		// Default status code
 		res.statusCode = 200;
 
 		location.getManyByAccountId(req.params['account_id']).then(
 			(results) => {
-				
+
 				for(let i in results){
-					results[i]['state'] = results[i]['state'].toUpperCase();
 					let d = Object.assign(locationFormat, results[i]);
 					
-					d.no_locations = Object.keys(results[i]['sublocations']).length;
+					d.level_occupied = Object.keys(results[i]['sublocations']).length;
 					response.data.push(d);
 				}
 
+
+				let 
+				callBackWarden = (wardens) => {
+					for(let i in response.data){
+						for(let w in wardens){
+							console.log(wardens[w]);
+							if(wardens[w]['location_id'] == response.data[i]['location_id']){
+								response.data[i]['wardens'].push(wardens[w]);
+							}
+						}
+
+						if(parseInt(i) == (Object.keys(response.data).length - 1)){
+							frpTrpModel.getFrpTrpByAccountId(req.params['account_id']).then(
+								(frptrps) => {
+									callBackFrpTrp(frptrps);
+								},
+								() => {
+									callBackFrpTrp({});
+								}
+							);
+						}
+					}
+				},
+				callBackFrpTrp = (frptrps) => {
+					for(let i in response.data){
+						for(let w in frptrps){
+							console.log(frptrps[w]);
+							if(frptrps[w]['location_id'] == response.data[i]['location_id'] && frptrps[w]['role_id'] == 1){
+								response.data[i]['frp'].push(frptrps[w]);
+							}
+						}
+
+						if(parseInt(i) == (Object.keys(response.data).length - 1)){
+							res.statusCode = 200;
+							res.send(response);
+						}
+					}
+				}
+
+				wardensModel.getWardensByAccountId(req.params['account_id']).then(
+					(wardensResults) => {
+						callBackWarden(wardensResults);
+					},
+					() => {
+						callBackWarden({});
+					}
+				);
 				
-				res.statusCode = 200;
-				res.send(response);
+				
 			},
 			(e) => {
 				response.status = true;

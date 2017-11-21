@@ -62,23 +62,24 @@
 							{{location.state}}
 						</td>
 						<td>
-							{{formatNumber(location.no_locations)}}
+							{{location.no_locations}}
 						</td>
 						<td>
-							0
+							{{location.level_occupied}}
 						</td>
 						<td>
-							Unknown
+							<span *ngIf="location.frp.length == 0">Unknown</span>
+							<span *ngFor="let frp of location.frp"> {{frp.first_name}} {{frp.last_name}} </span>
 						</td>
 						<td class="compliance">
 							<div class="percent">0%</div>
 							<div class="bar"></div>
 						</td>
 						<td>
-							0
+							{{location.wardens.length}}
 						</td>
 						<td>
-							0
+							{{location.mobility_impaired}}
 						</td>
 						<td>
 							<a href="javascript:void(0)">Details</a>

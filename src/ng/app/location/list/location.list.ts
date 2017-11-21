@@ -61,12 +61,4 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	getInitial(name:String){
 		return name.split('')[0].toUpperCase();
 	}
-
-	formatNumber(number){
-		let sReturn = 0;
-		number.toFixed(2).replace(/./g, function(c, i, a) {
-		    sReturn = i && c !== "." && ((a.length - i) % 3 === 0) ? ',' + c : c;
-		});
-		return sReturn;
-	}
 }
