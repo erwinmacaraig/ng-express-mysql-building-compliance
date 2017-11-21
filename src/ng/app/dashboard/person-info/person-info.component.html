@@ -5,7 +5,7 @@
             <br>
 
             <div class="row">
-                
+
                 <div class="col l6 m6 s12">
                     <div class="input-field">
                         <input id="input_text" type="text" placeholder="Please enter your first name" data-length="25" [readonly]="!editCtrl"  [ngModel]="person.first_name" name="first_name" ngModel #inputFirstName="ngModel" required>
@@ -46,7 +46,7 @@
                             Email
                             <span class="red-text" *ngIf=" !inputEmail.valid && inputEmail.dirty "> *Invalid email </span>
                             <span class="red-text" *ngIf=" emailTaken "> *Email taken </span>
-                            <span class="red-text" *ngIf=" emailBlackListed "> *Email's domain must be non-commercial </span>
+                            <span class="red-text" *ngIf=" emailBlackListed "> *Email's domain must not be personal </span>
                         </label>
                     </div>
                 </div>
@@ -74,10 +74,10 @@
 
         </div>
 
-        
-        
 
-        
+
+
+
 
     </div>
 
