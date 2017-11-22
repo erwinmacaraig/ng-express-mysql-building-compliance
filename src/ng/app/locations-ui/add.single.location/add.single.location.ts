@@ -30,7 +30,7 @@ export class AddSingleLocationComponent implements OnInit, OnDestroy {
   public postal_code: FormControl;
   public country: FormControl;
   public photoUrl;
-  public searchResultLocation = {};
+  public searchResultLocation;
   public formattedAddress: string;
   public numLevels: FormControl;
   public levels;
@@ -44,7 +44,7 @@ export class AddSingleLocationComponent implements OnInit, OnDestroy {
     locality: 'long_name',
     administrative_area_level_1: 'short_name',
     administrative_area_level_2: 'short_name',
-    country: 'long_name',
+    country: 'short_name',
     postal_code: 'short_name'
     };
 
@@ -177,10 +177,42 @@ export class AddSingleLocationComponent implements OnInit, OnDestroy {
   }
   createLocation() {
     const arr = <FormArray>this.levelGroup.controls.levels;
+    const sublevels = [];
+
     for (let i = 0; i < arr.controls.length; i++) {
       console.log(<FormControl>arr.controls[i]);
+      sublevels.push(<FormControl>arr.controls[i].value);
     }
-    console.log(this.searchResultLocation);
-    console.log(this.locationName.value);
+
+    console.log('test: ', this.searchResultLocation);
+    if (this.searchResultLocation) {
+      this.searchResultLocation['sublevels'] = sublevels;
+      this.searchResultLocation['location_name'] = this.locationName.value;
+      this.locationService.createSingleLocation(this.searchResultLocation).subscribe((data) => {
+        console.log(data);
+      });
+    } else {
+      this.locationService.createSingleLocation({
+        'street_number': this.locationService.getDataStore('street_number'),
+        'street': this.locationService.getDataStore('street'),
+        'city': this.locationService.getDataStore('city'),
+        'state': this.locationService.getDataStore('state'),
+        'country': this.locationService.getDataStore('country'),
+        'postal_code': this.locationService.getDataStore('postal_code'),
+        'formatted_address': this.locationService.getDataStore('formatted_address'),
+        'latitude': this.locationService.getDataStore('latitude'),
+        'longitude': this.locationService.getDataStore('longitude'),
+        'photoUrl': this.locationService.getDataStore('photoUrl'),
+        'google_place_id': this.locationService.getDataStore('google_place_id'),
+        'location_name': this.locationName.value,
+        'sublevels': sublevels
+      }).subscribe((data) => {
+        console.log(data);
+      });
+    }
+
+
+
+
   }
 }

@@ -1,3 +1,4 @@
+import { MiddlewareAuth } from './../middleware/authenticate.middleware';
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
@@ -8,7 +9,6 @@ import * as path from 'path';
 const validator = require('validator');
 const md5 = require('md5');
 
-import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { AuthRequest } from '../interfaces/auth.interface';
 
 /**
@@ -39,7 +39,11 @@ import { AuthRequest } from '../interfaces/auth.interface';
         new LocationRoute().searchDbForLocation(req, res);
       });
 
-   	}
+      router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new LocationRoute().createLocation(req, res);
+      });
+
+  }
 
 	/**
 	* Constructor
@@ -51,6 +55,14 @@ import { AuthRequest } from '../interfaces/auth.interface';
 		super();
   }
 
+  public createLocation(req: AuthRequest, res: Response) {
+    console.log(req.body);
+
+    return res.status(200).send({
+      'message': 'ok'
+    });
+
+  }
   public searchDbForLocation(req: AuthRequest, res: Response) {
 
     console.log(req.body);

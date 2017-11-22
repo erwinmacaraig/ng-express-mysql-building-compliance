@@ -51,4 +51,9 @@ export class LocationsService {
     return '';
   }
 
+  createSingleLocation(location: Object): Observable<any> {
+    return this.http.post<any>(this.baseUrl + '/location/create/', location);
+  }
+
+
 }
