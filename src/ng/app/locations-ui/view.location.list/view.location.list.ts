@@ -6,11 +6,11 @@ import { Router } from '@angular/router';
 
 declare var $: any;
 @Component({
-  selector: 'app-add-new-locations',
-  templateUrl: './add.single.location.html',
-  styleUrls: ['./add.single.location.css']
+  selector: 'app-view-locations',
+  templateUrl: './view.location.list.html',
+  styleUrls: ['./view.location.list.css']
 })
-export class AddSingleLocationComponent implements OnInit, OnDestroy {
+export class ViewLocationListComponent implements OnInit, OnDestroy {
 
 	constructor(){
 
@@ -18,12 +18,6 @@ export class AddSingleLocationComponent implements OnInit, OnDestroy {
 
 	ngOnInit(){
 		$('select').material_select();
-	}
-
-	ngAfterViewInit(){
-		$('.modal').modal({
-			dismissible : false
-		});
 	}
 
 	ngOnDestroy(){}

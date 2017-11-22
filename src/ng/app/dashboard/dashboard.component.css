@@ -1,13 +1,19 @@
 .alert-email-verification{
-	position: fixed;
-    z-index: 9999 !important;
-    bottom: 1%;
-    right: 1%;
+    z-index: 9 !important;
     color: #fff;
-    padding: 20px;
-    font-size: 16px;
-    border-radius: 10px;
+    padding: 18px;
+    font-size: 15px;
     box-shadow: 1px 2px 4px #999;
+    width: 100%;
+    position: relative;
+    top: 0%;
+    left: 0%;
+    margin-bottom: 30px;
+    -webkit-transition: all 0.3s ease-in;
+    -moz-transition: all 0.3s ease-in;
+    -o-transition: all 0.3s ease-in;
+    transition: opacity 0.3s ease-in;
+    opacity: 0;
 }
 
 .alert-email-verification a {

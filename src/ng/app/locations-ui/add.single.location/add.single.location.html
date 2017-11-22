@@ -13,94 +13,110 @@
 	
 	<div class="row">
 		<div class="col s12 m12">
-			<div class="search-container">
-				<div class="input-container">
-					<input type="text" placeholder="Search location on our data list (e.g building name, street name)">
-				</div>
-				<div class="button-container">
-					<button class="btn waves-effect waves-light blue btn-search">
-						Search
-					</button>
-				</div>
+			<div class="form-search-container">
+				<form>
+					<div class="input-container input-field">
+						<input type="text" placeholder="e.g Street Name, City Name">
+					</div>
+					<div class="search-icon-container">
+						<img src="assets/images/locations/search_icon.png" alt="">
+					</div>
+				</form>
 			</div>
+		</div>
+		<div class="col s12 m12">
+			<p class="searched-message">No locations(s) found on this address</p>
 		</div>
 	</div>
 
-	<div class="row">
-		<div class="col l10 m10 s12">
-			<div class="row">
-				<div class="col m12 s12">
-					<h4 class="title">
-						Building Details
-					</h4>
-				</div>
-				<div class="col l5 m12 s12 input-field">
-					<input id="buildingName" type="text"  >
-					<label for="buildingName">Building Name</label>
-				</div>
-				<div class="col l5 m12 s12 input-field">
-					<input id="streetNumber" type="text">
-					<label for="streetNumber">Street Number</label>
-				</div>
-				<div class="col l5 m12 s12 input-field">
-					<input id="streetName" type="text">
-					<label for="streetName">Street Name</label>
-				</div>
-				<div class="col l5 m12 s12">
-					<div class="input-field">
-						<input id="city" type="text">
-						<label for="city">City</label>
-					</div>
-				</div>
-				<div class="col l5 m12 s12">
-					<div class="input-field">
-						<input id="state" type="text">
-						<label for="state">State</label>
-					</div>
-				</div>
-				<div class="col l5 m12 s12">
-					<div class="input-field">
-						<input id="zipCode" type="text">
-						<label for="zipCode">Zip Code</label>
-					</div>
-				</div>
-				<div class="col l5 m12 s12">
-					<div class="select-field">
-						<select>
-							<option value="0" disabled selected> Select Country </option>
-						</select>
-					</div>
-				</div>
+	<div class="row row-form">
+		
+		<form>
+			
+			<div class="col l5 m5 s12">
 				
-			</div>
-			<div class="row">
-				<div class="col m12 s12">
-					<h4 class="title">
-						Details
-					</h4>
-				</div>
-				<div class="col l5 m12 s12 input-field">
-					<input id="unitNumber" type="text">
-					<label for="unitNumber">Unit Number</label>
-				</div>
-				<div class="col l5 m12 s12">
-					<div class="input-field">
-						<input id="occupiedLevel" type="text">
-						<label for="occupiedLevel">Occupied Level</label>
+				<div class="row">
+					<div class="col l12 m12 s12">
+						<h4 class="title">Address</h4>
+					</div>
+					<div class="col l6 m12 s12">
+						<div class="input-field">
+							<input id="inpBuildingNumber" type="text" placeholder="Building number here">
+							<label for="inpBuildingNumber"> Building Number </label>
+						</div>
+						<div class="input-field">
+							<input id="inpCity" type="text" placeholder="City here">
+							<label for="inpCity"> City </label>
+						</div>
+						<div class="input-field">
+							<input id="inpStreetNumber" type="text" placeholder="Street number here">
+							<label for="inpStreetNumber"> Street Number </label>
+						</div>
+					</div>
+					<div class="col l6 m12 s12">
+						<div class="input-field">
+							<input id="inpStreetName" type="text" placeholder="Street name here">
+							<label for="inpStreetName"> Street Name </label>
+						</div>
+						<div class="input-field">
+							<input id="inpState" type="text" placeholder="State here">
+							<label for="inpState"> State </label>
+						</div>
 					</div>
 				</div>
-				<div class="col l5 m12 s12">
-					<div class="input-field">
-						<input id="levelLabel" type="text">
-						<label for="levelLabel">Level Labels</label>
+
+			</div>
+			
+			<div class="col l1 m1 hide-on-small-only ">
+				<div class="horizontal-line"></div>
+			</div>
+
+			<div class="col l4 m5 s12">
+				<div class="row">
+					<div class="col l12 m12 s12">
+						<h4 class="title">Details</h4>
+					</div>
+					<div class="col l12 m12 s12">
+						<div class="input-field">
+							<input id="inpLocationName" type="text" placeholder="Location name here">
+							<label for="inpLocationName"> Location Name </label>
+						</div>
+						<div class="input-field">
+							<input id="inpLevels" type="number" placeholder="Number of levels here" min="1" value="1">
+							<label for="inpLevels"> How many levels are you occupying? </label>
+						</div>
+						<div class="input-field">
+							<input id="inpStreetNumber" type="text" placeholder="Street number here">
+							<label for="inpStreetNumber"> Street Number </label>
+						</div>
+					</div>
+					<div class="col l12 m12 s12 submit-button-container">
+						<button class="btn waves-effect waves-light orange btn-submit modal-trigger" href="#modalSetLevels">Submit</button>
 					</div>
 				</div>
-				<div class="col l12 m12 s12 submit-button-container">
-					<button class="btn waves-effect waves-light grey lighten-1 btn-cancel">Cancel</button>
-					<button class="btn waves-effect waves-light orange btn-submit">Submit</button>
-				</div>
 			</div>
-		</div>
+
+		</form>
+
 	</div>
 
+	
+
+
+</div>
+
+<!-- Modal Structure -->
+<div id="modalSetLevels" class="modal">
+	<div class="modal-content">
+		<h4 class="header">Building Name</h4>
+		<p class="tagline">Please set 1 level name</p>
+		<div class="input-field">
+			<input type="text" placeholder="e.q Level 1">
+		</div>
+
+		<div class="buttons-field">
+			<button class="btn waves-effect waves-light lighten-1 grey btn-cancel modal-close">Cancel</button>
+			<button class="btn waves-effect waves-light orange btn-submit">Submit</button>
+		</div>
+	</div>
 </div>
