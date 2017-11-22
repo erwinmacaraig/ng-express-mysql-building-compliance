@@ -8,9 +8,10 @@ import 'rxjs/add/operator/catch';
 @Injectable()
 export class LocationsService {
 
-	private headers: Object;
-  	private options: Object;
-	private baseUrl: String;
+  private headers: Object;
+  private options: Object;
+  private baseUrl: String;
+  public dataStore: Object;
 
 	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
@@ -36,8 +37,18 @@ export class LocationsService {
 	      });
   }
 
-  writeLocation(location: Object): Observable<any> {
-    return this.http.post<any>(this.baseUrl + '/location/write-location/', location);
+  searchForLocation(location: Object): Observable<any> {
+    return this.http.post<any>(this.baseUrl + '/location/search-db-location/', location);
+  }
+
+  locationDataStore(location) {
+    this.dataStore = location;
+  }
+  getDataStore(key: string) {
+    if ( this.dataStore && (key in this.dataStore)) {
+      return this.dataStore[key];
+    }
+    return '';
   }
 
 }

@@ -8,6 +8,9 @@ import * as path from 'path';
 const validator = require('validator');
 const md5 = require('md5');
 
+import { MiddlewareAuth } from '../middleware/authenticate.middleware';
+import { AuthRequest } from '../interfaces/auth.interface';
+
 /**
  * / route
  *
@@ -23,14 +26,18 @@ const md5 = require('md5');
    	*/
 	public static create(router: Router) {
 	   	// add route
-	   	
+
 	   	router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
 	   		new LocationRoute().getByAccountId(req, res, next);
 	   	});
 
 	   	router.get('/location/get-by-userid-accountid/:user_id/:account_id', (req: Request, res: Response, next: NextFunction) => {
 	   		new LocationRoute().getByUserIdAndAccountId(req, res, next);
-	   	});
+       });
+
+      router.post('/location/search-db-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new LocationRoute().searchDbForLocation(req, res);
+      });
 
    	}
 
@@ -40,9 +47,17 @@ const md5 = require('md5');
 	* @class RegisterRoute
 	* @constructor
 	*/
-	constructor() {	
+	constructor() {
 		super();
-	}
+  }
+
+  public searchDbForLocation(req: AuthRequest, res: Response) {
+
+    console.log(req.body);
+    return res.status(200).send({
+      'message': 'ok'
+    });
+  }
 
 	public getByAccountId(req: Request, res: Response, next: NextFunction){
 		let  response = {
@@ -100,4 +115,3 @@ const md5 = require('md5');
 
 }
 
-  

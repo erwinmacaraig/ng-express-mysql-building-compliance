@@ -12,6 +12,7 @@ import { AuthService } from './services/auth.service';
 import { AuthGuard } from './services/auth-guard.service';
 import { SignupService } from './services/signup.service';
 import { MessageService } from './services/messaging.service';
+import { LocationsService } from './services/locations';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
@@ -35,7 +36,7 @@ import { CustomHttpDataProviderComponent } from './custom-http-data-provider/cus
 import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
-// todo: integrate 
+// todo: integrate
 //Locations Template Components
 import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
@@ -105,6 +106,7 @@ import { LocationListComponent } from './location/list/location.list';
   providers: [
     AuthService,
     AuthGuard,
+    LocationsService,
     MessageService,
     SignupService,
     {
