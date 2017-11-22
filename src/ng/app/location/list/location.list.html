@@ -27,7 +27,7 @@
 <div class="workspace container">
 	<div class="row">
 		<div class="col m12">
-			<h5 class="text">Emapta Services</h5>
+			<h5 class="text">{{accountData.account_name}}</h5>
 		</div>
 	</div>
 	<div class="row">
@@ -37,13 +37,13 @@
 				<thead>
 					<tr class="grey darken-4 white-text">
 						<th>Location Name</th>
-						<th>State</th>
 						<th>No. of Locations</th>
 						<th>Level Occupied</th>
 						<th>FRP</th>
 						<th>Compliance</th>
 						<th>Wardens from Tenancy</th>
 						<th>Mobility Impaired</th>
+						<th>Activity</th>
 						<th>Manage</th>
 					</tr>
 				</thead>
@@ -54,12 +54,9 @@
 						</td>
 					</tr>
 					<tr *ngFor="let location of locations">
-						<td>
-							<div class="circle-initial"> {{getInitial(location.name)}} </div>
+						<td class="location-name">
+							<img src="assets/images/locations/single_location_icon.png"  >
 							{{location.name}}
-						</td>
-						<td>
-							{{location.state}}
 						</td>
 						<td>
 							{{location.no_locations}}
@@ -76,10 +73,13 @@
 							<div class="bar"></div>
 						</td>
 						<td>
-							{{location.wardens.length}}
+							{{location.overall_warden_count}}
 						</td>
 						<td>
-							{{location.mobility_impaired}}
+							{{location.overall_impaired}}
+						</td>
+						<td>
+							<a href="javascript:void(0)">View History</a>
 						</td>
 						<td>
 							<a href="javascript:void(0)">Details</a>

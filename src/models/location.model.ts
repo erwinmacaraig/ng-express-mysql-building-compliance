@@ -33,9 +33,23 @@ export class Location extends BaseClass {
 		});
 	}
 
-	private getAllChildren(parentId){
-		return new Promise((resolve, reject) => {
-			const sql_load = ` SELECT * FROM locations WHERE parent_id = ? AND archived = 0 `;
+	public getAllLocations(){
+		return new Promise((resolve) => {
+			const sql_load = `SELECT * FROM locations WHERE archived = 0 `;
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_load, (error, results, fields) => {
+				if (error) {
+					return console.log(error);
+				}
+				resolve(results);
+			});
+			connection.end();
+		});
+	}
+
+	public getChildren(parentId, call?){
+		return new Promise((resolve) => {
+			const sql_load = `SELECT * FROM locations WHERE parent_id = ? AND archived = 0 `;
 			const param = [parentId];
 			const connection = db.createConnection(dbconfig);
 
@@ -44,24 +58,37 @@ export class Location extends BaseClass {
 					return console.log(error);
 				}
 
+				resolve(results);
+			});
+			connection.end();
+		});
+	}
+
+	public getParentLocationByAccountId(accountId: Number){
+		return new Promise((resolve, reject) => {
+			const sql_load = `
+			SELECT * FROM locations
+			WHERE location_id IN (SELECT location_id FROM location_account_relation WHERE account_id = ?) 
+			AND archived = 0 AND parent_id = -1
+			ORDER BY location_id ASC
+			`;
+			const param = [accountId];
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_load, param, (error, results, fields) => {
+				if (error) {
+					return console.log(error);
+				}
 				if(!results.length){
-					resolve(results);
-				}
+					reject('Location not found');
+				}else{
 
-				for(let i in results){
-					results[i]['sublocations'] = [];
-					this.getAllChildren(results[i]['location_id']).then(
-						(child) => {
-							results[i]['sublocations'] = child;
-							resolve(results);
-						},
-						() => {
-							resolve(results);
-						}
-					);
-				}
+					for(let i in results){
+						results[i]['sublocations'] = [];
+					}
 
-				
+					this.dbData = results;
+					resolve(this.dbData);
+				}
 			});
 			connection.end();
 		});
@@ -86,26 +113,23 @@ export class Location extends BaseClass {
 				}else{
 
 					for(let i in results){
-
 						results[i]['sublocations'] = [];
-
-						this.getAllChildren(results[i]['location_id']).then(
-							(child) => {
-								results[i]['sublocations'] = child;
-								this.dbData = results;
-								resolve(this.dbData);
-							},
-							() => {
-								resolve(results);
-							}
-						);
-
+						if(getChild){
+							this.getChildren(results[i]['location_id']).then(
+								(child) => {
+									results[i]['sublocations'] = child;
+									this.dbData = results;
+									resolve(this.dbData);
+								}
+							);
+						}else{
+							this.dbData = results;
+							resolve(this.dbData);
+						}
 					}
 
-					if(!results.length){
-						this.dbData = results;
-						resolve(this.dbData);
-					}
+					this.dbData = results;
+					resolve(this.dbData);
 				}
 			});
 			connection.end();

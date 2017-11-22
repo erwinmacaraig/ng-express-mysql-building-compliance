@@ -126,13 +126,12 @@ export class LocationAccountUser extends BaseClass {
 
     public getWardensByAccountId(accountId: Number){
         return new Promise((resolve, reject) => {
-            const sql_load = `SELECT u.*, lau.location_id, uem.em_role_id
-                  FROM location_account_user lau
-                  INNER JOIN users u
-                    ON lau.user_id = u.user_id
-                  INNER JOIN user_em_roles_relation uem 
-                    ON uem.user_id = u.user_id
-                  WHERE lau.account_id = ? AND u.archived = 0`;
+            const sql_load = `SELECT u.*, er.role_name, lau.location_id, er.em_roles_id
+                  FROM users u
+                  LEFT JOIN user_em_roles_relation uem ON uem.user_id = u.user_id
+                  LEFT JOIN em_roles er ON uem.em_role_id = er.em_roles_id
+                  LEFT JOIN location_account_user lau ON lau.user_id = u.user_id
+                  WHERE u.account_id = ? AND u.archived = 0 GROUP BY u.user_id`;
             const param = [accountId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
@@ -158,7 +157,7 @@ export class LocationAccountUser extends BaseClass {
                     ON lau.user_id = u.user_id
                   INNER JOIN user_role_relation ur 
                     ON ur.user_id = u.user_id
-                  WHERE lau.account_id = ? AND u.archived = 0`;
+                  WHERE lau.account_id = ? AND u.archived = 0 GROUP BY u.user_id`;
             const param = [accountId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {

@@ -90,7 +90,6 @@ thead th{
 	background-color: #3d3d3d !important;
 	padding: 10px;
 	font-size: 14px;
-	border: 1px solid #3d3d3d;
 }
 
 table.bordered>thead>tr,
@@ -125,6 +124,11 @@ table tr td .circle-initial{
     font-weight: bold;
     text-align: center;
     margin-right: 8px;
+}
+
+table tr td.location-name img{
+	vertical-align: middle;
+    margin-right: 5px;
 }
 
 .compliance .percent,

@@ -4,6 +4,7 @@ import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LocationsService } from '../../services/locations';
+import { AccountsDataProviderService } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { AuthService } from '../../services/auth.service';
 import { Observable } from 'rxjs/Rx';
@@ -15,7 +16,7 @@ declare var $: any;
   selector: 'app-location-list',
   templateUrl: './location.list.html',
   styleUrls: ['./location.list.css'],
-  providers : [LocationsService, DashboardPreloaderService, AuthService]
+  providers : [LocationsService, DashboardPreloaderService, AuthService, AccountsDataProviderService]
 })
 export class LocationListComponent implements OnInit, OnDestroy {
 
@@ -23,7 +24,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	private baseUrl: String;
 	private options;
 	private headers;
-
+	private accountData = { account_name : " " };
 	public userData: Object;
 
 	constructor(
@@ -31,16 +32,21 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		private http: HttpClient, 
 		private auth: AuthService,
 		private preloaderService : DashboardPreloaderService,
-		private locationService : LocationsService
+		private locationService : LocationsService,
+		private accntService : AccountsDataProviderService
 	){
 		this.baseUrl = (platformLocation as any).location.origin;
 		this.options = { headers : this.headers };
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 		this.userData = this.auth.getUserData();
 
-		this.locationService.getLocationsForListing(this.userData['accountId'], (response) => {
+		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
 			this.preloaderService.hide();
 			this.locations = response.data;
+		});
+
+		this.accntService.getById(this.userData['accountId'], (response) => {
+			this.accountData = response.data;
 		});
 	}
 
