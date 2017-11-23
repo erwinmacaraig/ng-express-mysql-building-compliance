@@ -11,7 +11,7 @@
 				</span>
 			</a>
 		</li>
-		
+
 		<li class="view-location green-theme">
 			<a href="javascript:void(0)">
 				<img src="assets/images/locations/view_all_location.png" class="default">
@@ -80,10 +80,10 @@
 									<td>Address</td> <td> : </td> <td>  {{locationData.unit}} {{locationData.street}} {{locationData.city}} {{getCountryName(locationData.country)}}  </td>
 								</tr>
 								<tr>
-									<td>FRP</td> <td> : </td> 
+									<td>FRP</td> <td> : </td>
 									<td>
 										<span *ngIf="locationData.frp.length == 0">Unknown</span>
-										<span *ngFor="let frp of locationData.frp">{{frp.first_name}} {{frp.last_name}}</span>	
+										<span *ngFor="let frp of locationData.frp">{{frp.first_name}} {{frp.last_name}}</span>
 									</td>
 								</tr>
 							</table>
@@ -122,7 +122,7 @@
 									<p>No sublocations found</p>
 								</td>
 							</tr>
-							<tr  *ngFor="let sub of locationData.sublocations" *ngIf="locationData.sublocations.length > 0">
+							<tr *ngFor="let sub of locationData.sublocations">
 								<td>
 									{{sub.name}}
 								</td>
@@ -147,7 +147,7 @@
 					</table>
 				</div>
 			</div>
-			 
+
 		</div>
 	</div>
 </div>

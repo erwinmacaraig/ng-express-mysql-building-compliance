@@ -1,3 +1,4 @@
+import { AuthService } from '../../services/auth.service';
 import { LocationsService } from './../../services/locations';
 import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
@@ -54,7 +55,8 @@ export class AddSingleLocationComponent implements OnInit, OnDestroy {
   constructor(private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
     private locationService: LocationsService,
-    private router: Router) {
+    private router: Router,
+    private authService: AuthService) {
 
       if (!this.locationService.getDataStore('formatted_address')) {
         this.router.navigate(['/locations-ui', 'search-location']);
@@ -113,6 +115,7 @@ export class AddSingleLocationComponent implements OnInit, OnDestroy {
           this.searchResultLocation['longitude'] = place.geometry.location.lng();
           this.searchResultLocation['formatted_address'] = place.formatted_address;
           this.searchResultLocation['google_place_id'] = place.place_id;
+          this.formattedAddress = place.formatted_address;
 
           for (let i = 0; i < place.address_components.length; i++) {
             const addressType = place.address_components[i].types[0];
@@ -189,6 +192,8 @@ export class AddSingleLocationComponent implements OnInit, OnDestroy {
     if (this.searchResultLocation) {
       this.searchResultLocation['sublevels'] = sublevels;
       this.searchResultLocation['location_name'] = this.locationName.value;
+
+      this.searchResultLocation['account_id'] = this.authService.userDataItem('accountId');
       this.locationService.createSingleLocation(this.searchResultLocation).subscribe((data) => {
         console.log(data);
       });
