@@ -61,7 +61,7 @@ export class Location extends BaseClass {
 					);
 				}
 
-				
+
 			});
 			connection.end();
 		});
@@ -71,7 +71,7 @@ export class Location extends BaseClass {
 		return new Promise((resolve, reject) => {
 			const sql_load = `
 			SELECT * FROM locations
-			WHERE location_id IN (SELECT location_id FROM location_account_relation WHERE account_id = ?) 
+			WHERE location_id IN (SELECT location_id FROM location_account_relation WHERE account_id = ?)
 			AND archived = 0
 			ORDER BY location_id ASC
 			`;
@@ -145,8 +145,10 @@ export class Location extends BaseClass {
 		return new Promise((resolve, reject) => {
 			const sql_update = `UPDATE locations SET
 			parent_id = ?, name = ?, unit = ?, street = ?, city = ?, state = ?,
-			postal_code = ?, country = ?, time_zone = ?, \`order\` = ?,
-			is_building = ?, location_directory_name = ?, archived = ?, tenant_key_contact = ?  
+      postal_code = ?, country = ?, formatted_address = ?,
+      lat = ?, lng = ?,time_zone = ?, \`order\` = ?,
+      is_building = ?, location_directory_name = ?, archived = ?,
+      google_place_id = ? google_photo_url = ?
 			WHERE location_id = ?`;
 			const param = [
 			('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
@@ -156,13 +158,17 @@ export class Location extends BaseClass {
 			('city' in this.dbData) ? this.dbData['city'] : '',
 			('state' in this.dbData) ? this.dbData['state'] : '',
 			('postal_code' in this.dbData) ? this.dbData['postal_code'] : '',
-			('country' in this.dbData) ? this.dbData['country'] : '',
+      ('country' in this.dbData) ? this.dbData['country'] : '',
+      ('formatted_address' in this.dbData) ? this.dbData['formatted_address'] : null,
+      ('lat' in this.dbData) ? this.dbData['lat'] : null,
+      ('lng' in this.dbData) ? this.dbData['lng'] : null,
 			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
 			('order' in this.dbData) ? this.dbData['order'] : null,
 			('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
 			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : null,
-			('archived' in this.dbData) ? this.dbData['archived'] : 0,
-			('tenant_key_contact' in this.dbData) ? this.dbData['tenant_key_contact'] : null,
+      ('archived' in this.dbData) ? this.dbData['archived'] : 0,
+      ('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
+			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null,
 			this.ID() ? this.ID() : 0
 			];
 			const connection = db.createConnection(dbconfig);
@@ -178,29 +184,53 @@ export class Location extends BaseClass {
 	}
 
 	public dbInsert() {
-		return new Promise((resolve, reject) => {
-			const sql_insert = 'INSERT INTO locations (`parent_id`, `name`, `unit`, `street`, `city`, `state`, `postal_code`, `country`, `time_zone`, `order`, `is_building`, `location_directory_name`, `archived`, `tenant_key_contact`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-			const param = [
-			('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
-			('name' in this.dbData) ? this.dbData['name'] : '',
-			('unit' in this.dbData) ? this.dbData['unit'] : ' ',
-			('street' in this.dbData) ? this.dbData['street'] : '',
-			('city' in this.dbData) ? this.dbData['city'] : '',
-			('state' in this.dbData) ? this.dbData['state'] : '',
-			('postal_code' in this.dbData) ? this.dbData['postal_code'] : '',
-			('country' in this.dbData) ? this.dbData['country'] : '',
-			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
-			('order' in this.dbData) ? this.dbData['order'] : null,
-			('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
-			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : null,
-			('archived' in this.dbData) ? this.dbData['archived'] : 0,
-			('tenant_key_contact' in this.dbData) ? this.dbData['tenant_key_contact'] : null
-			];
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql_insert, param, (err, results, fields) => {
-				if (err) {
-					throw new Error(err);
-				}
+    return new Promise((resolve, reject) => {
+      const sql_insert = `INSERT INTO locations (
+          parent_id,
+          name,
+          unit,
+          street,
+          city,
+          state,
+          postal_code,
+          country,
+          formatted_address,
+          lat,
+          lng,
+          time_zone,
+          \`order\`,
+          is_building,
+          location_directory_name,
+          archived,
+          google_place_id,
+          google_photo_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const param = [
+      ('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
+      ('name' in this.dbData) ? this.dbData['name'] : '',
+      ('unit' in this.dbData) ? this.dbData['unit'] : '',
+      ('street' in this.dbData) ? this.dbData['street'] : '',
+      ('city' in this.dbData) ? this.dbData['city'] : '',
+      ('state' in this.dbData) ? this.dbData['state'] : '',
+      ('postal_code' in this.dbData) ? this.dbData['postal_code'] : '',
+      ('country' in this.dbData) ? this.dbData['country'] : '',
+      ('formatted_address' in this.dbData) ? this.dbData['formatted_address'] : null,
+      ('lat' in this.dbData) ? this.dbData['lat'] : null,
+      ('lng' in this.dbData) ? this.dbData['lng'] : null,
+      ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
+      ('order' in this.dbData) ? this.dbData['order'] : null,
+      ('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
+      ('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : null,
+      ('archived' in this.dbData) ? this.dbData['archived'] : 0,
+      ('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
+      ('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null
+    ];
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_insert, param, (err, results, fields) => {
+      if (err) {
+        console.log(sql_insert);
+        throw new Error(err);
+      }
 				this.id = results.insertId;
 				this.dbData['location_id'] = this.id;
 				resolve(true);

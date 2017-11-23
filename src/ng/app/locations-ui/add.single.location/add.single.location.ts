@@ -30,7 +30,7 @@ export class AddSingleLocationComponent implements OnInit, OnDestroy {
   public postal_code: FormControl;
   public country: FormControl;
   public photoUrl;
-  public searchResultLocation;
+  public searchResultLocation = {};
   public formattedAddress: string;
   public numLevels: FormControl;
   public levels;
@@ -93,6 +93,7 @@ export class AddSingleLocationComponent implements OnInit, OnDestroy {
     this.searchControl = new FormControl();
     // load places autocomplete
     this.mapsAPILoader.load().then(() => {
+
       const autocomplete = new google.maps.places.Autocomplete(this.searchElementRef.nativeElement, {
         types: []
       });
