@@ -67,6 +67,7 @@
     "@types/morgan": "^1.7.33",
     "@types/node": "~8.0.32",
     "codelyzer": "~3.2.0",
+    "crypto-js": "^3.1.9-1",
     "grunt": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-watch": "^1.0.0",

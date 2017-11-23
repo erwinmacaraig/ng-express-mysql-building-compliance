@@ -1,16 +1,16 @@
 
-import { MiddlewareAuth } from './../middleware/authenticate.middleware';
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Location } from '../models/location.model';
 import { LocationAccountUser } from '../models/location.account.user';
+import { AuthRequest } from '../interfaces/auth.interface';
+import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import * as fs from 'fs';
 import * as path from 'path';
 const validator = require('validator');
 const md5 = require('md5');
 
-import { AuthRequest } from '../interfaces/auth.interface';
 
 /**
  * / route
@@ -28,6 +28,10 @@ import { AuthRequest } from '../interfaces/auth.interface';
 	public static create(router: Router) {
 	   	// add route
 
+	   	router.get('/location/get/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	   		new LocationRoute().getId(req, res, next);
+	   	});
+
 	   	router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
 	   		new LocationRoute().getByAccountId(req, res, next);
 	   	});
@@ -38,6 +42,11 @@ import { AuthRequest } from '../interfaces/auth.interface';
 
       router.post('/location/search-db-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
         new LocationRoute().searchDbForLocation(req, res);
+      });
+
+      router.get('/location/get-parent-locations-by-account-id/:account_id',
+       new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+        new LocationRoute().getParentLocationsByAccount(req, res, next);
       });
 
       router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -51,10 +60,10 @@ import { AuthRequest } from '../interfaces/auth.interface';
             });
         });
       });
-
   }
 
-	/**
+
+ /**
 	* Constructor
 	*
 	* @class RegisterRoute
@@ -195,7 +204,100 @@ import { AuthRequest } from '../interfaces/auth.interface';
 				res.send(response);
 			}
 		);
+	}
 
+	public getParentLocationsByAccount(req: Request, res: Response, next: NextFunction){
+		let  response = { status : false, message : '', data : [] },
+			fetchingProgress = {
+				location : false, wardens : false, frptrp : false, accountsLocations : false
+			},
+			fetchedDatas = {
+				locations : <any>[], wardens:<any>[], frptrp:<any>[], accountLocations:<any>[]
+			},
+			location = new Location(),
+			wardensModel = new LocationAccountUser(),
+			frpTrpModel = new LocationAccountUser(),
+			callWait = (callBack) => {
+				setTimeout(() => {
+					if(fetchingProgress.location && fetchingProgress.wardens && fetchingProgress.frptrp && fetchingProgress.accountsLocations){
+						callBack();
+					}else{
+						callWait(callBack);
+					}
+
+				}, 100);
+			},
+			responseSend = () => {
+				response.data;
+				res.statusCode = 200;
+				res.send(response);
+			};
+
+		callWait(() => {
+
+			fetchedDatas.locations = this.addWardenToLocations(fetchedDatas.locations, fetchedDatas.wardens);
+			fetchedDatas.locations = this.addFrpTrpToLocations(fetchedDatas.locations, fetchedDatas.frptrp);
+
+			let toMergedData = Object.create(fetchedDatas.locations),
+				mergedData = this.mergeToParent(toMergedData),
+				finalData = [];
+
+			this.addWardenCounts(mergedData);
+
+			for(let i in fetchedDatas.accountLocations){
+				for(let n in mergedData){
+					if(fetchedDatas.accountLocations[i]['location_id'] == mergedData[n]['location_id']){
+						mergedData[n]['no_locations'] = 0;
+						mergedData[n]['level_occupied'] = mergedData[n]['sublocations'].length;
+						finalData.push(mergedData[n]);
+					}
+				}
+			}
+
+			response.data = finalData;
+			responseSend();
+
+		});
+
+		wardensModel.getWardensByAccountId(req.params['account_id']).then(
+			(wardens) => {
+				fetchedDatas.wardens = wardens;
+				fetchingProgress.wardens = true;
+			},
+			() => {
+				fetchingProgress.wardens = true;
+			}
+		);
+
+		frpTrpModel.getFrpTrpByAccountId(req.params['account_id']).then(
+			(frptrps) => {
+				fetchedDatas.frptrp = frptrps;
+				fetchingProgress.frptrp = true;
+			},
+			() => {
+				fetchingProgress.frptrp = true;
+			}
+		);
+
+		location.getAllLocations().then(
+			(results) => {
+				fetchedDatas.locations = results;
+				fetchingProgress.location = true;
+			},
+			() => {
+				responseSend();
+			}
+		);
+
+		location.getParentLocationByAccountId(req.params['account_id']).then(
+			(results) => {
+				fetchedDatas.accountLocations = results;
+				fetchingProgress.accountsLocations = true;
+			},
+			(e) => {
+				fetchingProgress.accountsLocations = true;
+			}
+		);
 	}
 
 }

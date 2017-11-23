@@ -32,7 +32,7 @@ nav ul a {
   display: block;
   padding: 0 12px;
   cursor: pointer;
-  height: 62px;
+  height: 65px;
 }
 
 nav ul  {
@@ -42,7 +42,7 @@ nav ul  {
   color: #fff;
   display: block;
   cursor: pointer;
-  line-height: 56px;
+  line-height: 60px;
 }
 .navbrand {
 	-webkit-transition: background-color .3s;
@@ -58,10 +58,24 @@ nav ul  {
   text-align: center;
 }
 
-.navbrand ul a:hover {
-  -webkit-transition: background-color .3s;
-  transition: background-color .3s;
+.navbrand ul li{
+  height: 65px;
 }
+
+.navbrand ul li:hover {
+  -webkit-transition-delay: .1s;
+  background-color: rgba(0,0,0,0.1);
+  transition-delay: .1s;
+}
+
+.navbrand ul li.active{
+  background-color: rgba(255,255,255,0.3);
+}
+
+nav ul a:hover{
+  background-color: rgba(0,0,0,0);
+}
+
 .navbrand img{
 	-webkit-transition: background-color .3s;
   transition: background-color .3s;

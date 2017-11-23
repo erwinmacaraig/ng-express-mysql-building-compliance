@@ -19,6 +19,15 @@ export class LocationsService {
 		this.baseUrl = (platformLocation as any).location.origin;
 	}
 
+	getById(id, callBack){
+		this.http.get(this.baseUrl+"/location/get/"+id, this.options)
+	      .subscribe(res => {
+	        callBack(res);
+	      }, err => {
+	        callBack( JSON.parse(err.error) );
+	      });
+	}
+
 	getByAccountId(accountid, callBack){
 		this.http.get(this.baseUrl+"/location/get-by-account/"+accountid, this.options)
 	      .subscribe(res => {
@@ -55,5 +64,14 @@ export class LocationsService {
     return this.http.post<any>(this.baseUrl + '/location/create/', location);
   }
 
+
+	getParentLocationsForListing(accountid, callBack){
+		this.http.get(this.baseUrl+"/location/get-parent-locations-by-account-id/"+accountid, this.options)
+	      .subscribe(res => {
+	        callBack(res);
+	      }, err => {
+	        callBack( JSON.parse(err.error) );
+	      });
+	}
 
 }

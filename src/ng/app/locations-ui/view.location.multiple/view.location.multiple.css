@@ -26,9 +26,18 @@ table tr td a:hover{
 	text-decoration: underline;
 }
 
+table tr td.location-name img{
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
 .right-top-container .btn{
 	font-size: 14px !important;
 	line-height: 13px !important;
+}
+
+.right-top-container .btn.grey{
+  margin-right: 10px;
 }
 
 .right-top-container a.text-grey{
@@ -80,6 +89,27 @@ table tr td a:hover{
 
 .details-container .image{
 	overflow: hidden;
+}
+
+.details .archived {
+  margin: 20px 0px;
+  font-size: 14px;
+}
+
+.details .archived img{
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.details .archived a,
+.details .edit-details a{
+  color: #3d3d3d;
+}
+
+.details .archived a:hover,
+.details .edit-details a:hover{
+  color: #039be5;
+  text-decoration: underline;
 }
 
 .image-container .image img{

@@ -27,6 +27,15 @@ export class AccountsDataProviderService {
 	      });
 	}
 
+	getById(id, callBack){
+		this.http.get(this.baseUrl+"/accounts/get/"+id, this.options)
+	      .subscribe(res => {
+	        callBack(res);
+	      }, err => {
+	        callBack( JSON.parse(err.error) );
+	      });
+	}
+
 	saveAccountInvitationCode(opt, callBack){
 		this.http.post(this.baseUrl+"/accounts/save-account-code", opt, this.options)
 	      .subscribe(res => {

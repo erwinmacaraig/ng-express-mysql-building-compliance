@@ -69,6 +69,7 @@ export class NoemailComponent implements OnInit {
 					}, 1000);
 				}else{
 					setTimeout(() => {
+						this.showLoading = false;
 						this.InvalidMessage = response.message;
 						this.showFormOneContainer = true;
 					}, 1000);

@@ -35,9 +35,11 @@ import { ViewLocationSingleComponent } from './locations-ui/view.location.single
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
 import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
 import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+import { SearchResultComponent } from './locations-ui/search.result/search.result';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 import { LocationListComponent } from './location/list/location.list';
+import { ViewSingleLocation } from './location/view.single/view.single';
 
 
 const appRoutes: Routes = [
@@ -77,11 +79,15 @@ const appRoutes: Routes = [
       { path : 'view-location-single', component : ViewLocationSingleComponent },
       { path : 'view-location-multiple', component : ViewLocationMultipleComponent },
       { path : 'view-sublocation', component : ViewSublocationComponent },
-      { path : 'search-location', component : SearchLocationComponent }
+      { path : 'search-location', component : SearchLocationComponent },
+      { path : 'search-result', component : SearchResultComponent }
     ]
   },
   {
     path : 'list-locations', canActivate: [AuthGuard], component : LocationListComponent
+  },
+  {
+    path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
   }
 ];
 

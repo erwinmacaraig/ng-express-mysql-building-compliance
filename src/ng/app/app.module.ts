@@ -47,12 +47,14 @@ import { ViewLocationSingleComponent } from './locations-ui/view.location.single
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
 import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
 import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+import { SearchResultComponent } from './locations-ui/search.result/search.result';
 
 // todo: move to locations module
 import { ReactiveFormsModule } from '@angular/forms';
 import { AgmCoreModule } from '@agm/core';
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 import { LocationListComponent } from './location/list/location.list';
+import { ViewSingleLocation } from './location/view.single/view.single';
 
 
 @NgModule({
@@ -86,10 +88,12 @@ import { LocationListComponent } from './location/list/location.list';
     ViewLocationMultipleComponent,
     ViewSublocationComponent,
     SearchLocationComponent,
+    SearchResultComponent,
 
     // todo: move to location module
     SetupLocationComponent,
-    LocationListComponent
+    LocationListComponent,
+    ViewSingleLocation
   ],
   imports: [
     BrowserModule,

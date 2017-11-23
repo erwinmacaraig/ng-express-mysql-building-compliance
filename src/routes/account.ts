@@ -35,6 +35,10 @@ import * as Promise from 'promise';
 	   		new AccountRoute().getAccountByUserId(req, res);
 	   	});
 
+	   	router.get('/accounts/get/:id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().getAccountById(req, res);
+	   	});
+
 	   	router.post('/accounts/create/setup', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 	   		new AccountRoute().setupNewAccount(req, res);
 	   	});
@@ -79,6 +83,33 @@ import * as Promise from 'promise';
 		res.statusCode = 400;
 
 		account.getByUserId(req.params['user_id']).then(
+			(accountData) => {
+				response.status = true;
+				res.statusCode = 200;
+				response.data = accountData;
+				res.send(response);
+			},
+			(e) => {
+				response.status = true;
+				res.statusCode = 200;
+				response.message = 'no accounts found';
+				res.send(response);
+			}
+		);
+	}
+
+	public getAccountById(req: AuthRequest, res: Response){
+		let  response = {
+				status : false,
+				message : '',
+				data : {}
+			},
+			account = new Account(req.params['id']);
+
+		// Default status code
+		res.statusCode = 400;
+
+		account.load().then(
 			(accountData) => {
 				response.status = true;
 				res.statusCode = 200;
