@@ -4,8 +4,11 @@ import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Location } from '../models/location.model';
 import { LocationAccountUser } from '../models/location.account.user';
+<<<<<<< HEAD
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
+=======
+>>>>>>> fbd47aae758c956b818a4a50974d72d5d9c2290c
 import * as fs from 'fs';
 import * as path from 'path';
 const validator = require('validator');

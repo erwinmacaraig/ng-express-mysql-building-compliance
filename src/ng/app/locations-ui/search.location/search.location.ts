@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-
+import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { ElementRef, NgZone, ViewChild } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, FormArray, FormGroup, Validators } from '@angular/forms';
 import { } from 'googlemaps';
 import { MapsAPILoader } from '@agm/core';
 import { LocationsService } from '../../services/locations';
@@ -28,6 +28,14 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
 
   public readonlyCtrl = false;
 
+  public numLevels: FormControl;
+  public levels;
+  public numbers;
+  public levelGroup: FormGroup;
+  public locationName: FormControl;
+
+  public showLoaderDiv = false;
+
   componentForm = {
    street_number: 'short_name',
    route: 'long_name',
@@ -47,6 +55,18 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     private ngZone: NgZone,
     private locationService: LocationsService,
     private router: Router) {
+
+    this.street_number = new FormControl();
+    this.street_name = new FormControl();
+    this.city = new FormControl();
+    this.state = new FormControl();
+    this.postal_code = new FormControl();
+    this.country = new FormControl();
+    this.numLevels = new FormControl();
+    this.locationName = new FormControl(null, Validators.required);
+    this.numLevels.setValue(1);
+    this.numbers = Array(1).fill(0).map((x, i) => i);
+    this.levels = new FormArray([]);
  }
 
   ngOnInit() {
@@ -72,7 +92,6 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
             return;
           }
           this.readonlyCtrl = true;
-          console.log(place);
           if (place.photos) {
             this.photoUrl = place.photos[0].getUrl({maxHeight: 250, maxWidth: 200});
             this.searchResultLocation['photoUrl'] = this.photoUrl;
@@ -80,6 +99,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
           this.searchResultLocation['latitude'] = place.geometry.location.lat();
           this.searchResultLocation['longitude'] = place.geometry.location.lng();
           this.searchResultLocation['formatted_address'] = place.formatted_address;
+          this.formattedAddress = place.formatted_address;
           this.searchResultLocation['google_place_id'] = place.place_id;
 
           for (let i = 0; i < place.address_components.length; i++) {
@@ -115,20 +135,89 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
               }
             }
           }
-          console.log(this.searchResultLocation);
           this.localLocationSearch(this.searchResultLocation);
         });
       });
+    });
+
+    this.levelGroup = new FormGroup({
+      'levels': new FormArray([])
     });
   }
 
   ngOnDestroy() {}
 
-  localLocationSearch(location: Object) {
-    this.locationService.searchForLocation(location).subscribe((data) => {
-      console.log(data);
-      this.locationService.locationDataStore(location);
-      this.router.navigate(['/locations-ui/add-single-location']);
+  clearSearch(){
+    $('.search-container').removeClass('active');
+    this.searchElementRef.nativeElement.value = "";
+  }
+
+  ngAfterViewInit(){
+    $('.modal').modal({
+      dismissible : false
     });
   }
+
+  localLocationSearch(location: Object) {
+    $('.search-container').addClass('active');
+    this.locationService.searchForLocation(location).subscribe((data) => {
+      this.locationService.locationDataStore(location);
+    });
+  }
+
+  updateLevels() {
+    const arr = <FormArray>this.levelGroup.controls.levels;
+    arr.controls = [];
+
+    this.numbers = Array(this.numLevels.value).fill(0).map((x, i) => i);
+    for (let i = 0; i < this.numbers.length; i++) {
+      const control = new FormControl(null, Validators.required);
+      (<FormArray>this.levelGroup.get('levels')).push(control);
+    }
+
+  }
+
+  createLocation() {
+    this.showLoaderDiv = true;
+    const arr = <FormArray>this.levelGroup.controls.levels;
+    const sublevels = [];
+
+    for (let i = 0; i < arr.controls.length; i++) {
+      console.log(<FormControl>arr.controls[i]);
+      sublevels.push(<FormControl>arr.controls[i].value);
+    }
+
+    let redirectToList = () => {
+      this.router.navigate(['list-locations'])
+    };
+
+    console.log('test: ', this.searchResultLocation);
+    if (this.searchResultLocation) {
+      this.searchResultLocation['sublevels'] = sublevels;
+      this.searchResultLocation['location_name'] = this.locationName.value;
+      this.locationService.createSingleLocation(this.searchResultLocation).subscribe((data) => {
+        redirectToList();
+      });
+    } else {
+      this.locationService.createSingleLocation({
+        'street_number': this.locationService.getDataStore('street_number'),
+        'street': this.locationService.getDataStore('street'),
+        'city': this.locationService.getDataStore('city'),
+        'state': this.locationService.getDataStore('state'),
+        'country': this.locationService.getDataStore('country'),
+        'postal_code': this.locationService.getDataStore('postal_code'),
+        'formatted_address': this.locationService.getDataStore('formatted_address'),
+        'latitude': this.locationService.getDataStore('latitude'),
+        'longitude': this.locationService.getDataStore('longitude'),
+        'photoUrl': this.locationService.getDataStore('photoUrl'),
+        'google_place_id': this.locationService.getDataStore('google_place_id'),
+        'location_name': this.locationName.value,
+        'sublevels': sublevels
+      }).subscribe((data) => {
+        redirectToList();
+      });
+    }
+
+  }
+
 }
