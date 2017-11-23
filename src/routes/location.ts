@@ -4,11 +4,8 @@ import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Location } from '../models/location.model';
 import { LocationAccountUser } from '../models/location.account.user';
-<<<<<<< HEAD
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
-=======
->>>>>>> fbd47aae758c956b818a4a50974d72d5d9c2290c
 import * as fs from 'fs';
 import * as path from 'path';
 const validator = require('validator');
@@ -141,7 +138,7 @@ const md5 = require('md5');
           locationAccnt = new LocationAccountRelation();
           await locationAccnt.create({
             'location_id': parent_id,
-            'account_id': req.body.account_id
+            'account_id': req.user.account_id
           });
           dbLocationData['parent_id'] = parent_id;
         } catch (er) {
@@ -157,7 +154,7 @@ const md5 = require('md5');
             await subLevel.create(dbLocationData);
             await locationAccnt.create({
               'location_id': subLevel.ID(),
-              'account_id': req.body.account_id
+              'account_id': req.user.account_id
             });
 
           } catch (e) {

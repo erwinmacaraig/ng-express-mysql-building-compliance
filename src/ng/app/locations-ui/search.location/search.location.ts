@@ -188,7 +188,10 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     }
 
     let redirectToList = () => {
-      this.router.navigate(['list-locations'])
+      $('#modalSetLevels').modal('close');
+      setTimeout(() => {
+        this.router.navigate(['list-locations']);
+      },300);
     };
 
     console.log('test: ', this.searchResultLocation);
