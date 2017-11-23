@@ -39,6 +39,7 @@ import { SearchResultComponent } from './locations-ui/search.result/search.resul
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 import { LocationListComponent } from './location/list/location.list';
+import { ViewSingleLocation } from './location/view.single/view.single';
 
 
 const appRoutes: Routes = [
@@ -84,6 +85,9 @@ const appRoutes: Routes = [
   },
   {
     path : 'list-locations', canActivate: [AuthGuard], component : LocationListComponent
+  },
+  {
+    path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
   }
 ];
 

@@ -53,6 +53,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AgmCoreModule } from '@agm/core';
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 import { LocationListComponent } from './location/list/location.list';
+import { ViewSingleLocation } from './location/view.single/view.single';
 
 
 @NgModule({
@@ -90,7 +91,8 @@ import { LocationListComponent } from './location/list/location.list';
 
     // todo: move to location module
     SetupLocationComponent,
-    LocationListComponent
+    LocationListComponent,
+    ViewSingleLocation
   ],
   imports: [
     BrowserModule,

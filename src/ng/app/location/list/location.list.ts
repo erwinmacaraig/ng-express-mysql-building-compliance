@@ -5,18 +5,20 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LocationsService } from '../../services/locations';
 import { AccountsDataProviderService } from '../../services/accounts';
+import { EncryptDecrypt } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { AuthService } from '../../services/auth.service';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
+
 declare var $: any;
 @Component({
   selector: 'app-location-list',
   templateUrl: './location.list.html',
   styleUrls: ['./location.list.css'],
-  providers : [LocationsService, DashboardPreloaderService, AuthService, AccountsDataProviderService]
+  providers : [LocationsService, DashboardPreloaderService, AuthService, AccountsDataProviderService, EncryptDecrypt]
 })
 export class LocationListComponent implements OnInit, OnDestroy {
 
@@ -33,7 +35,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		private auth: AuthService,
 		private preloaderService : DashboardPreloaderService,
 		private locationService : LocationsService,
-		private accntService : AccountsDataProviderService
+		private accntService : AccountsDataProviderService,
+		private encryptDecrypt : EncryptDecrypt
 	){
 		this.baseUrl = (platformLocation as any).location.origin;
 		this.options = { headers : this.headers };
@@ -43,6 +46,9 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
 			this.preloaderService.hide();
 			this.locations = response.data;
+			for(let i in this.locations){
+				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
+			}
 		});
 
 		this.accntService.getById(this.userData['accountId'], (response) => {

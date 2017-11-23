@@ -26,6 +26,10 @@ const md5 = require('md5');
 	public static create(router: Router) {
 	   	// add route
 	   	
+	   	router.get('/location/get/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	   		new LocationRoute().getId(req, res, next);
+	   	});
+
 	   	router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
 	   		new LocationRoute().getByAccountId(req, res, next);
 	   	});
@@ -48,6 +52,282 @@ const md5 = require('md5');
 	*/
 	constructor() {	
 		super();
+	}
+
+	private mergeObjects(obj1,obj2){
+	    var obj3 = {};
+	    for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
+	    for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
+	    return obj3;
+	}
+
+	private mergeToParent(data){
+		
+		for(let p in data){
+			let parent = data[p];
+			for(let c in data){
+				let child = data[c];
+				if(child.parent_id == parent.location_id){
+					if(parent.sublocations === undefined){
+						parent['sublocations'] = [];
+					}
+					parent.sublocations.push(child);
+				}
+			}
+		}
+
+		let finalData = [];
+		for(let i in data){
+			if(data[i]['parent_id'] == -1){
+				finalData.push(data[i]);
+			}
+		}
+
+		return finalData;
+	}
+
+	private countTotalImpairedOfParentLocation = (parentData) => {
+		let counter = 0,
+			count = (countData) => {
+				let thisCount =  0;
+				for(let x in countData['wardens']){
+					if(countData['wardens'][x]['mobility_impaired'] == 1){
+						thisCount += 1;
+					}
+				}
+				for(let x in countData['frp']){
+					if(countData['frp'][x]['mobility_impaired'] == 1){
+						thisCount += 1;
+					}
+				}
+				for(let x in countData['trp']){
+					if(countData['trp'][x]['mobility_impaired'] == 1){
+						thisCount += 1;
+					}
+				}
+				return thisCount;
+			},
+			searchChildWardens = (children) => {
+				for(let i in children){
+					if(children[i]['sublocations'] !== undefined){
+						if( Object.keys(children[i]['sublocations']).length > 0 ){
+							searchChildWardens(children[i]['sublocations']);
+						}
+					}
+					counter += count(children[i]);
+				}
+			};
+
+		counter += count(parentData);
+		searchChildWardens(parentData.sublocations);
+		return counter;
+	}
+
+	private countTotalFloorWarden = (parentData) => {
+		let counter = 0,
+			count = (countData) => {
+				let thisCount =  0;
+				for(let x in countData['wardens']){
+					//em_role_id = 10 == 'Floor Warden'
+					if(countData['wardens'][x]['em_role_id'] == 10){
+						thisCount += 1;
+					}
+				}
+				return thisCount;
+			},
+			searchChildWardens = (children) => {
+				for(let i in children){
+					if(children[i]['sublocations'] !== undefined){
+						if( Object.keys(children[i]['sublocations']).length > 0 ){
+							searchChildWardens(children[i]['sublocations']);
+						}
+					}
+					counter += count(children[i]);
+				}
+			};
+
+		counter += count(parentData);
+		searchChildWardens(parentData.sublocations);
+		return counter;
+	}
+
+	private countTotalWardenOfParentLocation = (parentData) => {
+		let wardens = {},
+			addToWarden = (oData) => {
+				for(let w in oData.wardens){
+					if(wardens[ oData.wardens[w]['user_id'] ] === undefined){
+						wardens[ oData.wardens[w]['user_id'] ] = oData.wardens[w];
+					}
+				}
+			},
+			searchChildWardens = (children) => {
+				for(let i in children){
+					if(children[i]['sublocations'] !== undefined){
+						if( Object.keys(children[i]['sublocations']).length > 0 ){
+							searchChildWardens(children[i]['sublocations']);
+						}
+					}
+					addToWarden(children[i]);
+				}
+			};
+
+		addToWarden(parentData);
+		searchChildWardens(parentData.sublocations);
+		return Object.keys(wardens).length;
+	}
+
+	private addWardenToLocations = (locations, wardens) => {
+		for(let i in locations){
+			if(locations[i]['wardens'] === undefined){ 
+				locations[i]['wardens'] = [];
+			}
+			for(let w in wardens){
+				if(locations[i]['location_id'] == wardens[w]['location_id']){
+					locations[i]['wardens'].push(wardens[w]);
+				}
+			}
+		}
+		return locations;
+	}
+
+	private addFrpTrpToLocations = (locations, frptrps) => {
+		for(let i in locations){
+			if(locations[i]['frp'] === undefined){ 
+				locations[i]['frp'] = [];
+			}
+			if(locations[i]['trp'] === undefined){ 
+				locations[i]['trp'] = [];
+			}
+
+			for(let w in frptrps){
+				if(locations[i]['location_id'] == frptrps[w]['location_id']){
+					if(frptrps[w]['role_id'] == 1){
+						locations[i]['frp'].push(frptrps[w]);
+					}else if(frptrps[w]['role_id'] == 2){
+						locations[i]['trp'].push(frptrps[w]);
+					}
+				}
+			}
+		}
+
+		return locations;
+	}
+
+	private addWardenCounts = (locations) => {
+		let searchChild = (children) => {
+				for(let i in children){
+					if(children[i]['sublocations'] !== undefined){
+						if( Object.keys(children[i]['sublocations']).length > 0 ){
+							searchChild(children[i]['sublocations']);
+						}
+					}
+					children[i]['overall_warden_count'] = this.countTotalWardenOfParentLocation(children[i]);
+					children[i]['overall_impaired'] = this.countTotalImpairedOfParentLocation(children[i]);
+					children[i]['overall_floor_warden'] = this.countTotalFloorWarden(children[i]);
+				}
+			};
+
+		searchChild(locations);
+		return locations;
+	}
+
+	public getId(req: Request, res: Response, next: NextFunction){
+		let locationId = req.params.location_id,
+			response = { status : false, message : '', data : [] },
+			fetchingProgress = {
+				location : false, wardens : false, frptrp : false, accountsLocations : false
+			},
+			fetchedDatas = { 
+				locations : <any>[], wardens:<any>[], frptrp:<any>[], accountLocations:<any>[]
+			},
+			user = req['user'],
+			location = new Location(),
+			locationSingle = new Location(locationId),
+			wardensModel = new LocationAccountUser(),
+			frpTrpModel = new LocationAccountUser(),
+			callWait = (callBack) => {
+				setTimeout(() => {
+					if(fetchingProgress.location && fetchingProgress.wardens && fetchingProgress.frptrp && fetchingProgress.accountsLocations){
+						callBack();
+					}else{
+						callWait(callBack);
+					}
+					
+				}, 100);
+			},
+			responseSend = () => {
+				response.data;
+				res.statusCode = 200;
+				res.send(response);
+			};
+
+		callWait(() => {
+
+			fetchedDatas.locations = this.addWardenToLocations(fetchedDatas.locations, fetchedDatas.wardens);
+			fetchedDatas.locations = this.addFrpTrpToLocations(fetchedDatas.locations, fetchedDatas.frptrp);
+			
+			let toMergedData = Object.create(fetchedDatas.locations),
+				mergedData = this.mergeToParent(toMergedData),
+				finalData = [];
+
+			this.addWardenCounts(mergedData);
+			
+			for(let i in fetchedDatas.accountLocations){
+				for(let n in mergedData){
+					if(fetchedDatas.accountLocations[i]['location_id'] == mergedData[n]['location_id']){
+						mergedData[n]['no_locations'] = 0;
+						mergedData[n]['level_occupied'] = mergedData[n]['sublocations'].length;
+						finalData.push(mergedData[n]);
+					}
+				}
+			}
+
+			response.data = finalData[0];
+			
+			responseSend();
+
+		});
+
+		wardensModel.getWardensByAccountId(user['account_id']).then(
+			(wardens) => {
+				fetchedDatas.wardens = wardens;
+				fetchingProgress.wardens = true;
+			},
+			() => {
+				fetchingProgress.wardens = true;
+			}
+		);
+
+		frpTrpModel.getFrpTrpByAccountId(user['account_id']).then(
+			(frptrps) => {
+				fetchedDatas.frptrp = frptrps;
+				fetchingProgress.frptrp = true;
+			},
+			() => {
+				fetchingProgress.frptrp = true;
+			}
+		);
+
+		location.getAllLocations().then(
+			(results) => {
+				fetchedDatas.locations = results;
+				fetchingProgress.location = true;
+			},
+			() => {
+				responseSend();
+			}
+		);
+
+		locationSingle.load().then(
+			(locationData) => {
+				fetchedDatas.accountLocations = [];
+				fetchedDatas.accountLocations.push(locationData);
+				fetchingProgress.accountsLocations = true;
+			},
+			(e) => {
+				fetchingProgress.accountsLocations = true;
+			}
+		);
 	}
 
 	public getByAccountId(req: Request, res: Response, next: NextFunction){
@@ -103,38 +383,6 @@ const md5 = require('md5');
 		);
 	}
 
-	private mergeObjects(obj1,obj2){
-	    var obj3 = {};
-	    for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
-	    for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
-	    return obj3;
-	}
-
-	private mergeToParent(data){
-		
-		for(let p in data){
-			let parent = data[p];
-			for(let c in data){
-				let child = data[c];
-				if(child.parent_id == parent.location_id){
-					if(parent.sublocations === undefined){
-						parent['sublocations'] = [];
-					}
-					parent.sublocations.push(child);
-				}
-			}
-		}
-
-		let finalData = [];
-		for(let i in data){
-			if(data[i]['parent_id'] == -1){
-				finalData.push(data[i]);
-			}
-		}
-
-		return finalData;
-	}
-
 	public getParentLocationsByAccount(req: Request, res: Response, next: NextFunction){
 		let  response = { status : false, message : '', data : [] },
 			fetchingProgress = {
@@ -160,111 +408,18 @@ const md5 = require('md5');
 				response.data;
 				res.statusCode = 200;
 				res.send(response);
-			},
-			addWardenToLocations = (locations, wardens) => {
-				for(let i in locations){
-					if(locations[i]['wardens'] === undefined){ 
-						locations[i]['wardens'] = [];
-					}
-					for(let w in wardens){
-						if(locations[i]['location_id'] == wardens[w]['location_id']){
-							locations[i]['wardens'].push(wardens[w]);
-						}
-					}
-				}
-
-				return locations;
-			},
-			addFrpTrpToLocations = (locations, frptrps) => {
-				for(let i in locations){
-					if(locations[i]['frp'] === undefined){ 
-						locations[i]['frp'] = [];
-					}
-					if(locations[i]['trp'] === undefined){ 
-						locations[i]['trp'] = [];
-					}
-
-					for(let w in frptrps){
-						if(locations[i]['location_id'] == frptrps[w]['location_id']){
-							if(frptrps[w]['role_id'] == 1){
-								locations[i]['frp'].push(frptrps[w]);
-							}else if(frptrps[w]['role_id'] == 2){
-								locations[i]['trp'].push(frptrps[w]);
-							}
-						}
-					}
-				}
-
-				return locations;
-			},
-			countTotalWardenOfParentLocation = (parentData) => {
-				let wardens = {},
-					searchChildWardens = (children) => {
-						for(let i in children){
-							if(children[i]['sublocations'] !== undefined){
-								if( Object.keys(children[i]['sublocations']).length > 0 ){
-									searchChildWardens(children[i]['sublocations']);
-								}
-							}
-							for(let x in children[i]['wardens']){
-								if( wardens[ children[i]['wardens'][x]['user_id'] ] === undefined ){
-									wardens[ children[i]['wardens'][x]['user_id'] ] = children[i]['wardens'][x];
-								}
-							}
-						}
-					};
-
-				searchChildWardens(parentData.sublocations);
-				return Object.keys(wardens).length;
-			},
-			countTotalImpairedOfParentLocation = (parentData) => {
-				let counter = 0,
-					searchChildWardens = (children) => {
-						for(let i in children){
-							let innerCount = 0;
-							if(children[i]['sublocations'] !== undefined){
-								if( Object.keys(children[i]['sublocations']).length > 0 ){
-									searchChildWardens(children[i]['sublocations']);
-								}
-							}
-							for(let x in children[i]['wardens']){
-								if(children[i]['wardens'][x]['mobility_impaired'] == 1){
-									innerCount += 1;
-								}
-							}
-							for(let x in children[i]['frp']){
-								if(children[i]['frp'][x]['mobility_impaired'] == 1){
-									innerCount += 1;
-								}
-							}
-							for(let x in children[i]['trp']){
-								if(children[i]['trp'][x]['mobility_impaired'] == 1){
-									innerCount += 1;
-								}
-							}
-
-							counter += innerCount;
-						}
-					};
-
-				searchChildWardens(parentData.sublocations);
-				return counter;
 			};
 
 		callWait(() => {
 
-			fetchedDatas.locations = addWardenToLocations(fetchedDatas.locations, fetchedDatas.wardens);
-			fetchedDatas.locations = addFrpTrpToLocations(fetchedDatas.locations, fetchedDatas.frptrp);
+			fetchedDatas.locations = this.addWardenToLocations(fetchedDatas.locations, fetchedDatas.wardens);
+			fetchedDatas.locations = this.addFrpTrpToLocations(fetchedDatas.locations, fetchedDatas.frptrp);
 			
 			let toMergedData = Object.create(fetchedDatas.locations),
 				mergedData = this.mergeToParent(toMergedData),
 				finalData = [];
 
-			for(let i in mergedData){
-				mergedData[i]['overall_warden_count'] = countTotalWardenOfParentLocation(mergedData[i]);
-				mergedData[i]['overall_impaired'] = countTotalImpairedOfParentLocation(mergedData[i]);
-			}
-			
+			this.addWardenCounts(mergedData);
 
 			for(let i in fetchedDatas.accountLocations){
 				for(let n in mergedData){
@@ -277,7 +432,6 @@ const md5 = require('md5');
 			}
 
 			response.data = finalData;
-			
 			responseSend();
 
 		});
@@ -321,7 +475,6 @@ const md5 = require('md5');
 				fetchingProgress.accountsLocations = true;
 			}
 		);
-
 	}
 
 }
