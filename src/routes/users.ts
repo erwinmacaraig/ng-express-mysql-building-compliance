@@ -5,6 +5,7 @@ import { User } from '../models/user.model';
 import { Token } from '../models/token.model';
 import { Account } from '../models/account.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
+import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { InvitationCode  } from '../models/invitation.code.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
@@ -129,20 +130,51 @@ export class UsersRoute extends BaseRoute {
 				status : false,
 				message : '',
 				data : {}
-			};
+			},
+
+			getWardenRoles = (callBack) => {
+				new UserEmRoleRelation().getEmRolesByUserId(req.params['user_id']).then(
+                    (userRoles) => {
+                        for(let i in userRoles){
+                            response.data[ Object.keys( response.data ).length ] = {
+                                role_id : userRoles[i]['em_roles_id'],
+                                role_name : userRoles[i]['role_name'],
+                                is_warden_role : userRoles[i]['is_warden_role']
+                            };
+                        }
+                        callBack();
+                    },
+                    (a) => {
+                        callBack();
+                    }
+                );
+			}
 
 		res.statusCode = 400;
 		userRoleRelation.getByUserId(req.params['user_id']).then(
 			(roles) => {
+				for(let i in roles){
+					if(roles[i]['role_id'] == 1){
+						roles[i]['role_name'] = 'Building Manager';
+					}else if(roles[i]['role_id'] == 2){
+						roles[i]['role_name'] = 'Tenant';
+					}
+				}
 
 				response.data = roles;
-				response.status = true;
-				res.statusCode = 200;
-				res.send(response);
+
+				getWardenRoles(() => {
+					response.status = true;
+					res.statusCode = 200;
+					res.send(response);
+				});
 			},
 			() => {
-				response.message = '';
-				res.send(response);
+				getWardenRoles(() => {
+					response.status = true;
+					res.statusCode = 200;
+					res.send(response);
+				});
 			}
 		);
 	}

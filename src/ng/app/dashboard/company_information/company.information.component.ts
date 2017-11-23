@@ -129,11 +129,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 
 				this.userService.getRoles(this.userData['userId'], (responseRoles) => {
 					for(let i in responseRoles.data){
-						for(let x in this.arrUserType){
-							if(responseRoles.data[i]['role_id'] == this.arrUserType[x]['role_id']){
-								this.userRoles.push( this.arrUserType[x]['description'] );
-							}
-						}
+						this.userRoles.push( responseRoles.data[i]['role_name'] );
 					}
 
 					this.companyRoles = this.userRoles.join(', ');

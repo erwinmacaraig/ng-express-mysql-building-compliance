@@ -27,7 +27,7 @@
 <div class="workspace container">
 	<div class="row">
 		<div class="col m12">
-			<h5 class="text">Emapta Services</h5>
+			<h5 class="text">{{accountData.account_name}}</h5>
 		</div>
 	</div>
 	<div class="row">
@@ -37,13 +37,13 @@
 				<thead>
 					<tr class="grey darken-4 white-text">
 						<th>Location Name</th>
-						<th>State</th>
 						<th>No. of Locations</th>
 						<th>Level Occupied</th>
 						<th>FRP</th>
 						<th>Compliance</th>
 						<th>Wardens from Tenancy</th>
 						<th>Mobility Impaired</th>
+						<th>Activity</th>
 						<th>Manage</th>
 					</tr>
 				</thead>
@@ -54,34 +54,35 @@
 						</td>
 					</tr>
 					<tr *ngFor="let location of locations">
-						<td>
-							<div class="circle-initial"> {{getInitial(location.name)}} </div>
-							Jojomo Building
+						<td class="location-name">
+							<img src="assets/images/locations/single_location_icon.png"  >
+							{{location.name}}
 						</td>
 						<td>
-							Brisbane
+							{{location.no_locations}}
 						</td>
 						<td>
-							--
+							{{location.level_occupied}}
 						</td>
 						<td>
-							2
-						</td>
-						<td>
-							Unknown
+							<span *ngIf="location.frp.length == 0">Unknown</span>
+							<span *ngFor="let frp of location.frp"> {{frp.first_name}} {{frp.last_name}} </span>
 						</td>
 						<td class="compliance">
-							<div class="percent">100%</div>
+							<div class="percent">0%</div>
 							<div class="bar"></div>
 						</td>
 						<td>
-							0
+							{{location.overall_warden_count}}
 						</td>
 						<td>
-							0
+							{{location.overall_impaired}}
 						</td>
 						<td>
-							<a href="javascript:void(0)">Details</a>
+							<a href="javascript:void(0)">View History</a>
+						</td>
+						<td>
+							<a [routerLink]="['/view-location/', location.location_id ]">Details</a>
 						</td>
 					</tr>
 				</tbody>
