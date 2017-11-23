@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
+import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { EmailSender } from '../models/email.sender';
 import { Token } from '../models/token.model';
 import { InvitationCode  } from '../models/invitation.code.model';
@@ -385,124 +386,158 @@ const md5 = require('md5');
 	}
 
 	private saveUserExtend(reqBody, userRole, user, req, res, emailUserdata, response){
-		userRole.create({
-			'user_id' : user.ID(),
-			'role_id' : reqBody.role_id
-		}).then(
-		() => {
-			let tokenModel = new Token(),
-				userModel = user,
-				userData = user.getDBData();
-			if('invi_code_id' in reqBody) {
-				this.userVerificationNewUsersToken(
-					tokenModel,
-					userModel,
-					() => {
-						this.userVerificationLogin(userData,
-							(resp) => {
-								let responseData = {
-									status : true,
-									data : {
-										token : resp.token,
-										user : resp.data
-									},
-									message : 'Successfully created user'
-								};
-
-								let locationAccountUser = new LocationAccountUser();
-
-								// update invitation code to be used
-								const code = new InvitationCode(reqBody.invi_code_id);
-								code.load().then(
-									() => {
-										locationAccountUser.create({
-											'location_id' : code.get('location_id'),
-											'account_id': code.get('account_id'),
-											'user_id' : userData['user_id']
-										}).then(
-										() => {
-											code.set('was_used', 1);
-											code.write().then(() => {
-												res.statusCode = 200;
-												responseData.data['code'] = code.get('code');
-												return res.send(responseData);
-											},
-											() => {
-												return res.status(400).send({
-													message: 'Internal Server Error. Cannot Update token code status',
-													data: {
-														code: code.get('code')
-													}
-												});
-											}
-											);
-										},
-										() => {
-											responseData.message = 'Location-Account-User saved unsuccessfully';
-											return res.send(responseData);
-										}
-										);
-									}
-									);
-
-							}
-						);
-					},
-					(errorData) => {
-						response.message = 'Unable to save user. See reference : '+errorData;
-						res.send(response);
-					}
-				);
-			} else if('email' in reqBody) {
-				this.sendEmailForRegistration(
-					emailUserdata,
-					req,
-					(successData)=>{
-
-						this.userVerificationNewUsersToken(
-							tokenModel,
-							userModel,
-							() => {
-								this.userVerificationLogin(userData,
-									(resp) => {
-										let responseData = {
-											status : true,
-											data : {
-												token : resp.token,
-												user : resp.data
-											},
-											message : 'Success!'
-										};
-
-										res.statusCode = 200;
-										res.send(responseData);
-									}
-								);
-							},
-							(errorData) => {
-								response.message = 'Unable to save user. See reference : '+errorData;
-								res.send(response);
-							},
-							0
-						);
-					},
-					(errorData)=>{
-						response.message = 'Unable to send email. See reference : '+errorData;
-						res.send(response);
-					}
-					);
-			} else {
-				res.statusCode = 200;
-				response.status = true;
-				response.data['user_id'] = user.ID();
-				res.send(response);
+		let tokenModel = new Token(),
+			userModel = user,
+			userData = user.getDBData(),
+			locationAccountUser = new LocationAccountUser(),
+			userEMrole = new UserEmRoleRelation(),
+			responseData = {
+				status : true,
+				data : {
+					token : {},
+					user : {}
+				},
+				message : ''
 			}
-		},
-		() => {
-			res.statusCode = 500;
-			res.send('Unable to save user role');
+		
+		let newUsersToken = (callBack) => {
+			this.userVerificationNewUsersToken(
+				tokenModel,
+				userModel,
+				() => {
+					callBack();
+				},
+				(errorData) => {
+					response.message = 'Unable to save user. See reference : '+errorData;
+					res.send(response);
+				}
+			);
+		};
+
+		let emailCall = (callBack) => {
+			this.sendEmailForRegistration(
+				emailUserdata,
+				req,
+				(successData)=>{
+					callBack();
+				},
+				(errorData) => {
+					response.message = 'Unable to send email. See reference : '+errorData;
+					res.send(response);
+				}
+			);
+		};
+
+		let loginCall = (callBack) => {
+			this.userVerificationLogin(
+				userData,
+				(resp) => {
+					callBack(resp);
+				}
+			);
+		};
+
+		let updateInviCode = (code, success, error) => {
+			code.load().then(
+				() => {
+					locationAccountUser.create({
+						'location_id' : code.get('location_id'),
+						'account_id': code.get('account_id'),
+						'user_id' : userData['user_id']
+					}).then(
+						() => {
+							code.set('was_used', 1);
+							code.write().then(
+								() => {
+									success();
+								},
+								() => {
+									res.status(400).send({
+										message: 'Internal Server Error. Cannot Update token code status',
+										data: {
+											code: code.get('code')
+										}
+									});
+								}
+							);
+						},
+						() => {
+							error();
+						}
+					);
+				}
+			);
+		};
+
+		let userTokenAndLoginCall = (callBack) => {
+			newUsersToken(() => {
+				loginCall((resp) => {
+					callBack(resp);
+				});
+			});
+		};
+
+		let emailCallAndUserTokenLogin = () => {
+			emailCall(() => {
+				userTokenAndLoginCall((resp) => {
+					responseData.status = true;
+					responseData.data.token = resp.token;
+					responseData.data.user = resp.data;
+					responseData.message = 'Success!';
+
+					res.statusCode = 200;
+					res.send(responseData);
+				});
+			});
+		};
+
+		if(reqBody.role_id == 1 || reqBody.role_id == 2){
+			userRole.create({
+				'user_id' : user.ID(),
+				'role_id' : reqBody.role_id
+			}).then(
+				() => {
+					if('invi_code_id' in reqBody) {
+						// update invitation code to be used
+						const code = new InvitationCode(reqBody.invi_code_id);
+						userTokenAndLoginCall((resp) => {
+							responseData.status = true;
+							responseData.data.token = resp.token;
+							responseData.data.user = resp.data;
+							responseData.message = 'Successfully created user';
+							
+							updateInviCode(
+								code,
+								() => {
+									res.statusCode = 200;
+									responseData.data['code'] = code.get('code');
+									res.send(responseData);
+								},
+								() => {
+									responseData.message = 'Location-Account-User saved unsuccessfully';
+									res.send(responseData);
+								}
+							);
+						});
+					}else if('email' in reqBody){
+						emailCallAndUserTokenLogin();
+					}
+					
+				},
+				() => {
+					res.statusCode = 500;
+					res.send('Unable to save user role');
+				}
+			);
+		}else{
+			userEMrole.create({
+				user_id : user.ID(), em_role_id : 9
+			}).then(() => {
+				if('email' in reqBody){
+					emailCallAndUserTokenLogin();
+				}
+			});	
 		}
-		);
 	}
 
 	private saveUser(reqBody, req: Request, res: Response, next: NextFunction, response){
@@ -611,7 +646,22 @@ const md5 = require('md5');
 	        	callBack(reponse);
 	        },
 	        (m) => {
-	          	callBack(reponse);
+	        	new UserEmRoleRelation().getEmRolesByUserId(userData.user_id).then(
+                    (userRoles) => {
+                        for(let i in userRoles){
+                            reponse.data['roles'][ Object.keys( reponse.data['roles'] ).length ] = {
+                                role_id : userRoles[i]['em_roles_id'],
+                                description : userRoles[i]['role_name'],
+                                is_warden_role : userRoles[i]['is_warden_role']
+                            };
+                        }
+                        callBack(reponse);
+                    },
+                    (a) => {
+                        callBack(reponse);
+                    }
+                );
+	          	
 	        }
         );
 	}

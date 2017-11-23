@@ -20,6 +20,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   showInvalidCode = false;
   showErrorOccured = false;
   showSuccess = false;
+  showVerification = false;
   errorOccuredMessage = '';
   private subscription;
   private baseUrl: String;
@@ -40,6 +41,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.showInvalid = false;
     this.showErrorOccured = false;
     this.showSuccess = false;
+    this.showVerification = false;
     this.errorOccuredMessage = '';
 
     interface UserLoginResponse {
@@ -75,11 +77,16 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.errorOccuredMessage = this.loginMessageStatus;
 
       } else {
-        this.showInvalid = true;
+        let errJSON = JSON.parse(err.error);
+        if(errJSON.verified === false){
+          this.showVerification = true;
+        }else{
+          this.showInvalid = true;
+        }
+        
         // todo error message for invalid user
         this.loginMessageStatus = `${err.error.message}`;
         console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
-        this.showInvalid = true;
         this.showErrorOccured = false;
       }
     });

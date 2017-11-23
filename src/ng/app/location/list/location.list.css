@@ -1,0 +1,146 @@
+.location-navigation{
+	border-bottom: 1px solid #ddd;
+}
+
+.location-navigation ul{
+	margin: 0px;
+}
+
+.location-navigation ul li{
+	display: inline-block;
+	padding: 20px;
+	cursor: pointer;
+	height: 70px;
+	margin-right: -4px;
+}
+
+.location-navigation ul li img{
+	vertical-align: middle;
+	display: none;
+}
+
+.location-navigation ul li img.default{
+	display: inline-block;
+}
+
+.location-navigation ul li:hover img.default{
+	display: none;
+}
+
+.location-navigation ul li:hover img.hover,
+.location-navigation ul li.active img.hover{
+	display: inline-block;
+}
+
+.location-navigation ul li.active img.default{
+	display: none;
+}
+
+.location-navigation ul li.green-theme:hover,
+.location-navigation ul li.green-theme.active{
+	background-color: #36bb9b;
+}
+
+.location-navigation ul li.green-theme.active a,
+.location-navigation ul li.green-theme:hover a{
+	color: #fff;
+}
+
+.location-navigation ul li.green-theme{
+	border-bottom: 1px solid #36bb9b;
+}
+
+.location-navigation ul li.green-theme:hover{
+	border-bottom: 2px solid #36bb9b;
+}
+
+.location-navigation ul li.pink-theme:hover,
+.location-navigation ul li.pink-theme.active{
+	background-color: #dc4453;
+}
+grun
+.location-navigation ul li.pink-theme.active a,
+.location-navigation ul li.pink-theme:hover a{
+	color: #fff;
+}
+
+.location-navigation ul li.pink-theme:hover{
+	border-bottom: 2px solid #dc4453;
+}
+
+.location-navigation ul li.active.pink-theme,
+.location-navigation ul li.active.pink-theme a{
+	background-color: #dc4453;
+	color: #fff;
+}
+
+.location-navigation ul li.pink-theme{
+	border-bottom: 1px solid #dc4453;
+}
+
+.location-navigation a{
+	color: #545454;
+	font-size: 16px;
+}
+
+
+thead th{
+	border-radius: 0px;
+	font-weight: normal;
+	background-color: #3d3d3d !important;
+	padding: 10px;
+	font-size: 14px;
+	border: 1px solid #3d3d3d;
+}
+
+table.bordered>thead>tr,
+table.bordered>tbody>tr {
+    border-bottom: 1px solid #d3d3d3;
+}
+
+table tr td{
+	border-left: 1px solid #d3d3d3;
+	padding: 10px;
+	font-size: 14px;
+	line-height: 27px;
+}
+
+table tr td:last-child{
+	border-right: 1px solid #d3d3d3;
+}
+
+table tr td a:hover{
+	text-decoration: underline;
+}
+
+table tr td .circle-initial{
+	float: left;
+    width: 30px;
+    height: 30px;
+    background-color: #36bb9b;
+    line-height: 30px;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    margin-right: 8px;
+}
+
+.compliance .percent,
+.compliance .bar {
+	display: inline-block;
+    color: #b71928;
+    font-size: 14px;
+}
+
+.compliance .percent{
+	width: 35px;
+	text-align: center;
+}
+
+.compliance .bar{
+	background-color: #b71928;
+    width: 60%;
+    height: 11px;
+}

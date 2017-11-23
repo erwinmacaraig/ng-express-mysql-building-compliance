@@ -16,7 +16,6 @@ declare var $:any;
   providers: [UserService]
 })
 export class DashboardComponent implements OnInit {
-
 	private baseUrl: String;
 	public userData: Object;
 	public userRoles;
@@ -71,6 +70,9 @@ export class DashboardComponent implements OnInit {
 			if(response.status === false && response.message == 'not verified'){
 				localStorage.setItem('showemailverification', 'true');
 				this.showEmailVerification = true;
+				setTimeout(() => {
+					$('.alert-email-verification').removeAttr('style').css('opacity', '1');
+				},1000);
 			}
 		});
 	}
