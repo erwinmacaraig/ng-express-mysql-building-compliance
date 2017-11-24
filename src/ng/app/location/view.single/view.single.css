@@ -300,17 +300,16 @@ table.no-borders td{
   border-radius: 50%;
   color: #c91e2f;
   font-size: 0.25em;
-  line-height: 2.6em;
+  line-height: 2.9em;
   text-align: center;
   cursor: default;
   z-index: 2;
 }
 
 .pie-wrapper .smaller {
-  padding-bottom: 20px;
   color: #c91e2f;
   font-size: .45em;
-  vertical-align: super;
+  vertical-align: top;
 }
 
 .pie-wrapper .shadow {

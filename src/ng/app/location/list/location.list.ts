@@ -36,7 +36,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		private preloaderService : DashboardPreloaderService,
 		private locationService : LocationsService,
 		private accntService : AccountsDataProviderService,
-		private encryptDecrypt : EncryptDecrypt
+		private encryptDecrypt : EncryptDecrypt,
+		private router : Router
 	){
 		this.baseUrl = (platformLocation as any).location.origin;
 		this.options = { headers : this.headers };
@@ -44,10 +45,19 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		this.userData = this.auth.getUserData();
 
 		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
-			this.preloaderService.hide();
 			this.locations = response.data;
-			for(let i in this.locations){
-				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
+			if(this.locations.length == 0){
+				localStorage.setItem('nolocations', 'true');
+				setTimeout(() => {
+					this.router.navigate(['locations-ui/search-location']);
+				}, 300);
+			}else{
+				localStorage.removeItem('nolocations');
+				this.preloaderService.hide();
+				
+				for(let i in this.locations){
+					this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
+				}
 			}
 		});
 

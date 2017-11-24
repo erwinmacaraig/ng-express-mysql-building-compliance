@@ -10,7 +10,7 @@ declare var $: any;
   templateUrl: './view.sublocation.html',
   styleUrls: ['./view.sublocation.css']
 })
-export class ViewSublocationComponent implements OnInit, OnDestroy {
+export class ViewUISublocationComponent implements OnInit, OnDestroy {
 
 	constructor(){
 

@@ -126,7 +126,7 @@ export class LocationAccountUser extends BaseClass {
 
     public getWardensByAccountId(accountId: Number){
         return new Promise((resolve, reject) => {
-            const sql_load = `SELECT u.*, er.role_name, lau.location_id, er.em_roles_id
+            const sql_load = `SELECT u.*, er.role_name, lau.location_id, er.em_roles_id, er.is_warden_role
                   FROM users u
                   LEFT JOIN user_em_roles_relation uem ON uem.user_id = u.user_id
                   LEFT JOIN em_roles er ON uem.em_role_id = er.em_roles_id
