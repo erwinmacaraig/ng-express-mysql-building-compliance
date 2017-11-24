@@ -37,7 +37,7 @@ import { AccountValidationCriteriaComponent } from './account-validation-criteri
 import { NoemailComponent } from './noemail/noemail.component';
 
 // todo: integrate
-//Locations Template Components
+// Locations Template Components
 import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
 import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
@@ -46,16 +46,16 @@ import { ViewLocationListComponent } from './locations-ui/view.location.list/vie
 import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
 import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
-import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+import { SearchLocationComponent } from './location/search/search-location.component';
 import { SearchResultComponent } from './locations-ui/search.result/search.result';
 
 // todo: move to locations module
 import { ReactiveFormsModule } from '@angular/forms';
 import { AgmCoreModule } from '@agm/core';
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
-import { LocationListComponent } from './location/list/location.list';
+import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view.single';
-
+import { LocationComponent } from './location/location.component';
 
 @NgModule({
   declarations: [
@@ -93,7 +93,8 @@ import { ViewSingleLocation } from './location/view.single/view.single';
     // todo: move to location module
     SetupLocationComponent,
     LocationListComponent,
-    ViewSingleLocation
+    ViewSingleLocation,
+    LocationComponent
   ],
   imports: [
     BrowserModule,

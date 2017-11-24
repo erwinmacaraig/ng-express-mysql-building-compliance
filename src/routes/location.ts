@@ -2,6 +2,7 @@ import { LocationAccountRelation } from '../models/location.account.relation';
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
+import { UserRoleRelation } from '../models/user.role.relation.model';
 import { Location } from '../models/location.model';
 import { LocationAccountUser } from '../models/location.account.user';
 import { AuthRequest } from '../interfaces/auth.interface';
@@ -143,6 +144,18 @@ const md5 = require('md5');
           dbLocationData['parent_id'] = parent_id;
         } catch (er) {
           throw new Error('Unable to create main location');
+        }
+
+        // we need to check the role(s)
+        const userRoleRel = new UserRoleRelation();
+        const roles = await userRoleRel.getByUserId(req.user.user_id);
+        // what is the highest rank role
+        let r = 100;
+        console.log(roles);
+        for (let role in roles) {
+          if(r > role['role_id']) {
+            r = role['role_id'];
+          }
         }
         // create sublevels (sublocations)
         for (let i = 0; i < req.body.sublevels.length; i++) {

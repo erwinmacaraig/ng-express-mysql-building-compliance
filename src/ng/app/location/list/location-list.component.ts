@@ -11,13 +11,14 @@ import { AuthService } from '../../services/auth.service';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { isArray } from 'util';
 
 
 declare var $: any;
 @Component({
   selector: 'app-location-list',
-  templateUrl: './location.list.html',
-  styleUrls: ['./location.list.css'],
+  templateUrl: './location-list.component.html',
+  styleUrls: ['./location-list.component.css'],
   providers : [LocationsService, DashboardPreloaderService, AuthService, AccountsDataProviderService, EncryptDecrypt]
 })
 export class LocationListComponent implements OnInit, OnDestroy {
@@ -29,32 +30,38 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	private accountData = { account_name : " " };
 	public userData: Object;
 
-	constructor(
-		private platformLocation: PlatformLocation, 
-		private http: HttpClient, 
+	constructor (
+		private platformLocation: PlatformLocation,
+		private http: HttpClient,
 		private auth: AuthService,
-		private preloaderService : DashboardPreloaderService,
-		private locationService : LocationsService,
-		private accntService : AccountsDataProviderService,
-		private encryptDecrypt : EncryptDecrypt
-	){
+		private preloaderService: DashboardPreloaderService,
+		private locationService: LocationsService,
+		private accntService: AccountsDataProviderService,
+    private encryptDecrypt: EncryptDecrypt,
+    private router: Router
+	) {
 		this.baseUrl = (platformLocation as any).location.origin;
 		this.options = { headers : this.headers };
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 		this.userData = this.auth.getUserData();
 
+    this.accntService.getById(this.userData['accountId'], (response) => {
+			this.accountData = response.data;
+    });
+
 		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
 			this.preloaderService.hide();
-			this.locations = response.data;
-			for(let i in this.locations){
-				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
-			}
-		});
+      this.locations = response.data;
+      if (this.locations.length > 0) {
+        for (let i in this.locations) {
+          this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
+        }
+      } else {
+        this.router.navigate(['/location', 'search']);
+      }
+    });
 
-		this.accntService.getById(this.userData['accountId'], (response) => {
-			this.accountData = response.data;
-		});
-	}
+  }
 
 	ngOnInit(){
 		this.preloaderService.show();

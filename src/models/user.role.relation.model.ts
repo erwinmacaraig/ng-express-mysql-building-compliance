@@ -43,9 +43,9 @@ export class UserRoleRelation extends BaseClass {
         if (error) {
           return console.log(error);
         }
-        if(!results.length){
+        if (!results.length) {
           reject('No role found');
-        }else{
+        } else {
           this.dbData = results;
           resolve(this.dbData);
         }
