@@ -33,7 +33,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public numbers;
   public levelGroup: FormGroup;
   public locationName: FormControl;
-
+  public results = [];
   public showLoaderDiv = false;
 
   componentForm = {
@@ -149,7 +149,8 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
 
   clearSearch(){
     $('.search-container').removeClass('active');
-    this.searchElementRef.nativeElement.value = "";
+    this.searchElementRef.nativeElement.value = '';
+    this.results = [];
   }
 
   ngAfterViewInit(){
@@ -161,7 +162,15 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   localLocationSearch(location: Object) {
     $('.search-container').addClass('active');
     this.locationService.searchForLocation(location).subscribe((data) => {
-      this.locationService.locationDataStore(location);
+      if (data.count) {
+        this.results = data.result;
+        // this.locationService.locationDataStore(data.result);
+        // this.router.navigate(['/location', 'search-result']);
+      } else {
+        this.results = [];
+
+      }
+      console.log(data);
     });
   }
 
@@ -174,6 +183,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
       const control = new FormControl(null, Validators.required);
       (<FormArray>this.levelGroup.get('levels')).push(control);
     }
+    console.log(this.levelGroup);
 
   }
 
@@ -191,7 +201,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
       $('#modalSetLevels').modal('close');
       setTimeout(() => {
         this.router.navigate(['/location', 'list']);
-      },300);
+      }, 300);
     };
 
     console.log('test: ', this.searchResultLocation);

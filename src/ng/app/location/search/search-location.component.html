@@ -29,8 +29,9 @@
 				</form>
 			</div>
 		</div>
-	</div>
-	<div class="row row-add-info">
+  </div>
+  <!-- No Results -->
+	<div class="row row-add-info" *ngIf="!results.length">
 		<div class="col s12 m12 l12 center-align">
 			<p class="blue-text add-more-text">Add more details on this location</p>
 		</div>
@@ -51,7 +52,34 @@
 				Proceed to this location and set level labels
 			</button>
 		</div>
-	</div>
+  </div>
+  <!-- End of No Results -->
+
+  <div class="row row-list-result">
+      <!-- Location results -->
+      <div class="col l12 m12 s12" *ngFor="let component of results">
+        <div class="wrapper">
+          <div class="image-container">
+            <div class="image-background">
+              <img src="assets/images/locations/add_loc.png" *ngIf="!component.google_photo_url">
+              <img src="{{component.google_photo_url}}" *ngIf="component.google_photo_url">
+            </div>
+          </div>
+          <div class="details-container">
+            <h5 class="name">{{ component.name }}</h5>
+
+            <p class="address">
+              {{ component.formatted_address }}
+            </p>
+          </div>
+          <div class="button-container">
+            Is this your location? <button class="btn orange waves-effect waves-light">Yes</button>
+          </div>
+        </div>
+      </div><!-- end of location results -->
+    </div>
+
+
 	<div class="row">
 		<div class="col s12 m12 l12 center-align">
 			<button class="btn btn-add-multiple">

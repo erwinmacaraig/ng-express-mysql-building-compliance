@@ -73,10 +73,30 @@ const md5 = require('md5');
 	}
 
   public searchDbForLocation(req: AuthRequest, res: Response) {
-
         console.log(req.body);
-        return res.status(200).send({
-          'message': 'ok'
+        const location = new Location();
+        location.search(
+          req.body.formatted_address,
+          req.body.google_place_id
+        ).then((results) => {
+          if(results.length) {
+            return res.status(200).send({
+              message: 'Results found',
+              count: results.length,
+              result: results
+            });
+          }
+          else {
+            return res.status(200).send({
+              message: 'No results found',
+              count: 0
+            });
+          }
+
+        }).catch((e) => {
+          return res.status(400).send({
+            message: `Unable to fulfill request`
+          });
         });
       }
 
@@ -157,6 +177,7 @@ const md5 = require('md5');
             r = role['role_id'];
           }
         }
+
         // create sublevels (sublocations)
         for (let i = 0; i < req.body.sublevels.length; i++) {
           try {

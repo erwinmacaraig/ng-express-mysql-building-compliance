@@ -275,6 +275,48 @@ export class Location extends BaseClass {
 			}
 			resolve(this.write());
 		});
-	}
+  }
+
+  public search(address: string, place_id: string ): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      const arrResults = [];
+      const sql_search = `SELECT
+                          parent_id,
+                          location_id,
+                          name,
+                          unit,
+                          formatted_address,
+                          google_photo_url
+                      FROM
+                          locations
+                      WHERE
+                          parent_id = -1
+                      AND
+                          formatted_address LIKE '${address}%'
+                      OR
+                          google_place_id = ?
+                      LIMIT 5`;
+
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_search, [place_id], (err, results, fields) => {
+        if (err) {
+          reject('There was problem processing SQL');
+          console.log(sql_search);
+          throw new Error('Internal Error. Unable to execute query.');
+        }
+        for (let ref of results) {
+          // console.log(ref);
+          if (ref['parent_id'] === -1) {
+            arrResults.push(ref);
+          }
+        }
+        console.log(arrResults);
+        resolve(arrResults);
+      });
+
+      connection.end();
+    });
+
+  }
 
 }

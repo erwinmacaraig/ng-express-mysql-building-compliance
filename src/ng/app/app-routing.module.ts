@@ -35,7 +35,6 @@ import { ViewLocationSingleComponent } from './locations-ui/view.location.single
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
 import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
 import { SearchLocationComponent } from './location/search/search-location.component';
-import { SearchResultComponent } from './locations-ui/search.result/search.result';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 import { LocationListComponent } from './location/list/location-list.component';
@@ -68,7 +67,7 @@ const appRoutes: Routes = [
   { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
-  { path: 'validation-criteria', canActivate: [AuthGuard], component: AccountValidationCriteriaComponent },
+  { path: 'validation-criteria', canActivate: [AuthGuard], component: AccountValidationCriteriaComponent },
   /*{ path: '**', redirectTo: '/dashboard'},*/
   { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
@@ -84,8 +83,7 @@ const appRoutes: Routes = [
       { path : 'view-location-single', component : ViewLocationSingleComponent },
       { path : 'view-location-multiple', component : ViewLocationMultipleComponent },
       { path : 'view-sublocation', component : ViewSublocationComponent },
-      { path : 'search-location', component : SearchLocationComponent },
-      { path : 'search-result', component : SearchResultComponent }
+      { path : 'search-location', component : SearchLocationComponent }
     ]
   },
 
