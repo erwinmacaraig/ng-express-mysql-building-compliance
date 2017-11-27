@@ -377,25 +377,32 @@ const md5 = require('md5');
 		return locations;
 	}
 
-	public getId(req: Request, res: Response, next: NextFunction){
-		let locationId = req.params.location_id,
-			response = { status : false, message : '', data : [] },
-			fetchingProgress = {
-				location : false, wardens : false, frptrp : false, accountsLocations : false
-			},
-			fetchedDatas = {
-				locations : <any>[], wardens:<any>[], frptrp:<any>[], accountLocations:<any>[]
-			},
-			user = req['user'],
-			location = new Location(),
-			locationSingle = new Location(locationId),
-			wardensModel = new LocationAccountUser(),
-			frpTrpModel = new LocationAccountUser(),
-			callWait = (callBack) => {
+  public getId(req: Request, res: Response, next: NextFunction){
+    let locationId = req.params.location_id,
+      response = { status : false, message : '', data : [] },
+      fetchingProgress = {
+        location: false,
+        wardens: false,
+        frptrp: false,
+        accountsLocations: false
+      },
+      fetchedDatas = {
+        locations: <any>[],
+        wardens:<any>[],
+        frptrp:<any>[],
+        accountLocations:<any>[]
+      },
+      user = req['user'],
+      location = new Location(),
+      locationSingle = new Location(locationId),
+      wardensModel = new LocationAccountUser(),
+      frpTrpModel = new LocationAccountUser(),
+
+      callWait = (callBack) => {
 				setTimeout(() => {
-					if(fetchingProgress.location && fetchingProgress.wardens && fetchingProgress.frptrp && fetchingProgress.accountsLocations){
+					if (fetchingProgress.location && fetchingProgress.wardens && fetchingProgress.frptrp && fetchingProgress.accountsLocations){
 						callBack();
-					}else{
+					} else {
 						callWait(callBack);
 					}
 
