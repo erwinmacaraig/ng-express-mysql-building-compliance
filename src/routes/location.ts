@@ -41,23 +41,23 @@ const md5 = require('md5');
 
 	   	router.get('/location/get-parent-locations-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	   		new LocationRoute().getParentLocationsByAccount(req, res, next);
-       });
+	   	});
 
-       router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        new LocationRoute().createLocation(req, res).then((data) => {
-            return res.status(200).send({
-              message: 'Create location successful'
-            });
-        }).catch((e) => {
-            return res.status(400).send({
-              message: 'Bad Request'
-            });
-        });
-      });
+       	router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	        new LocationRoute().createLocation(req, res).then((data) => {
+	            return res.status(200).send({
+	              message: 'Create location successful'
+	            });
+	        }).catch((e) => {
+	            return res.status(400).send({
+	              message: 'Bad Request'
+	            });
+	        });
+      	});
 
-      router.post('/location/search-db-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        new LocationRoute().searchDbForLocation(req, res);
-      });
+		router.post('/location/search-db-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new LocationRoute().searchDbForLocation(req, res);
+		});
 
    	}
 
@@ -71,100 +71,97 @@ const md5 = require('md5');
 		super();
 	}
 
-  public searchDbForLocation(req: AuthRequest, res: Response) {
-
+  	public searchDbForLocation(req: AuthRequest, res: Response) {
         console.log(req.body);
         return res.status(200).send({
           'message': 'ok'
         });
-      }
+    }
 
+  	public async createLocation(req: AuthRequest, res: Response) {
+  		let parent_id = -1;
+  		const dbLocationData = {};
+  		dbLocationData['parent_id'] = parent_id;
+  		Object.keys(req.body).forEach((key) => {
+  			switch (key) {
+  				case 'location_name':
+  				dbLocationData['name'] = req.body.location_name;
+  				break;
+  				case 'unit':
+  				dbLocationData['unit'] = req.body.unit;
+  				break;
+  				case 'street_number':
+  				dbLocationData['street'] = req.body.street_number + ' ';
+  				break;
+  				case 'street':
+  				dbLocationData['street'] += req.body.street;
+  				break;
+  				case 'city':
+  				dbLocationData['city'] = req.body.city;
+  				break;
+  				case 'state':
+  				dbLocationData['state'] = req.body.state;
+  				break;
+  				case 'postal_code':
+  				dbLocationData['postal_code'] = req.body.postal_code;
+  				break;
+  				case 'country':
+  				dbLocationData['country'] = req.body.country;
+  				break;
+  				case 'formatted_address':
+  				dbLocationData['formatted_address'] = req.body.formatted_address;
+  				break;
+  				case 'latitude':
+  				dbLocationData['lat'] = req.body.latitude;
+  				break;
+  				case 'longitude':
+  				dbLocationData['lng'] = req.body.longitude;
+  				break;
+  				case 'photoUrl':
+  				dbLocationData['google_photo_url'] = req.body.photoUrl;
+  				break;
+  				case 'google_place_id':
+  				dbLocationData['google_place_id'] = req.body.google_place_id;
+  				break;
+  			}
+  		});
+  		console.log(dbLocationData);
+  		const location = new Location();
+  		let locationAccnt;
+  		// create main location
+  		try {
+  			await location.create(dbLocationData);
+  			parent_id = location.ID();
+  			locationAccnt = new LocationAccountRelation();
+  			await locationAccnt.create({
+  				'location_id': parent_id,
+  				'account_id': req.user.account_id
+  			});
+  			dbLocationData['parent_id'] = parent_id;
+  		} catch (er) {
+  			throw new Error('Unable to create main location');
+  		}
+  		// create sublevels (sublocations)
+  		for (let i = 0; i < req.body.sublevels.length; i++) {
+  			try {
+  				const subLevel = new Location();
+  				locationAccnt = new LocationAccountRelation();
 
-  public async createLocation(req: AuthRequest, res: Response) {
+  				dbLocationData['name'] = req.body.sublevels[i];
+  				await subLevel.create(dbLocationData);
+  				await locationAccnt.create({
+  					'location_id': subLevel.ID(),
+  					'account_id': req.user.account_id
+  				});
 
-        let parent_id = -1;
-        const dbLocationData = {};
-        dbLocationData['parent_id'] = parent_id;
-        Object.keys(req.body).forEach((key) => {
-          switch (key) {
-            case 'location_name':
-              dbLocationData['name'] = req.body.location_name;
-            break;
-            case 'unit':
-              dbLocationData['unit'] = req.body.unit;
-            break;
-            case 'street_number':
-              dbLocationData['street'] = req.body.street_number + ' ';
-            break;
-            case 'street':
-              dbLocationData['street'] += req.body.street;
-            break;
-            case 'city':
-              dbLocationData['city'] = req.body.city;
-            break;
-            case 'state':
-              dbLocationData['state'] = req.body.state;
-            break;
-            case 'postal_code':
-              dbLocationData['postal_code'] = req.body.postal_code;
-            break;
-            case 'country':
-              dbLocationData['country'] = req.body.country;
-            break;
-            case 'formatted_address':
-              dbLocationData['formatted_address'] = req.body.formatted_address;
-            break;
-            case 'latitude':
-              dbLocationData['lat'] = req.body.latitude;
-            break;
-            case 'longitude':
-              dbLocationData['lng'] = req.body.longitude;
-            break;
-            case 'photoUrl':
-              dbLocationData['google_photo_url'] = req.body.photoUrl;
-            break;
-            case 'google_place_id':
-              dbLocationData['google_place_id'] = req.body.google_place_id;
-            break;
-          }
-        });
-        console.log(dbLocationData);
-        const location = new Location();
-        let locationAccnt;
-        // create main location
-        try {
-          await location.create(dbLocationData);
-          parent_id = location.ID();
-          locationAccnt = new LocationAccountRelation();
-          await locationAccnt.create({
-            'location_id': parent_id,
-            'account_id': req.user.account_id
-          });
-          dbLocationData['parent_id'] = parent_id;
-        } catch (er) {
-          throw new Error('Unable to create main location');
-        }
-        // create sublevels (sublocations)
-        for (let i = 0; i < req.body.sublevels.length; i++) {
-          try {
-            const subLevel = new Location();
-            locationAccnt = new LocationAccountRelation();
-
-            dbLocationData['name'] = req.body.sublevels[i];
-            await subLevel.create(dbLocationData);
-            await locationAccnt.create({
-              'location_id': subLevel.ID(),
-              'account_id': req.user.account_id
-            });
-
-          } catch (e) {
-            throw new Error('Unable to process sub levels');
-          }
-        }
-        return {
-          status: 'Success'
-        };
-      }
+  			} catch (e) {
+  				throw new Error('Unable to process sub levels');
+  			}
+  		}
+  		return {
+  			status: 'Success'
+  		};
+    }
 
 	private mergeObjects(obj1,obj2){
 	    var obj3 = {};
