@@ -3,20 +3,18 @@ import * as CryptoJS from 'crypto-js';
 
 @Injectable()
 export class EncryptDecrypt {
+  private password = 'NifLed';
+  constructor() {
+  }
 
-	private password = "NifLed";
+  public encrypt(string) {
+    return CryptoJS.AES.encrypt(''  + string + '', this.password);
+  }
 
-	constructor() {	
-	}
-
-	public encrypt(string){
-		return CryptoJS.AES.encrypt(''+string+'', this.password);
-	}
-
-	public decrypt(ecrypted){
-		let decrypted = CryptoJS.AES.decrypt(ecrypted, this.password);
-		return decrypted.toString(CryptoJS.enc.Utf8);
-	}
+  public decrypt(ecrypted) {
+    const decrypted = CryptoJS.AES.decrypt(ecrypted, this.password);
+    return decrypted.toString(CryptoJS.enc.Utf8);
+  }
 
 
 }

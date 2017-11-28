@@ -1,3 +1,4 @@
+import { Account } from '../models/account.model';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
@@ -28,8 +29,15 @@ const md5 = require('md5');
 	public static create(router: Router) {
 	   	// add route
 
-	   	router.get('/location/get/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	   		new LocationRoute().getId(req, res, next);
+	   	router.get('/location/get/:location_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        /*
+        new LocationRoute().getId(req, res).then((data) => {
+
+         }).catch((e) => {
+
+         });
+         */
+	   		 new LocationRoute().getId(req, res);
 	   	});
 
 	   	router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
@@ -40,8 +48,15 @@ const md5 = require('md5');
 	   		new LocationRoute().getByUserIdAndAccountId(req, res, next);
 	   	});
 
-	   	router.get('/location/get-parent-locations-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	   		new LocationRoute().getParentLocationsByAccount(req, res, next);
+       router.get('/location/get-parent-locations-by-account-id/:account_id',
+         new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new LocationRoute().getParentLocationsByAccount(req, res).then((data) => {
+              return res.status(200).send(data);
+            }).catch((err) => {
+              return res.status(400).send({
+                message: 'Error getting locations'
+              });
+            });
        });
 
        router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -377,7 +392,7 @@ const md5 = require('md5');
 		return locations;
 	}
 
-  public getId(req: Request, res: Response, next: NextFunction){
+  public getId(req: AuthRequest, res: Response) {
     let locationId = req.params.location_id,
       response = { status : false, message : '', data : [] },
       fetchingProgress = {
@@ -392,8 +407,8 @@ const md5 = require('md5');
         frptrp:<any>[],
         accountLocations:<any>[]
       },
-      user = req['user'],
-      location = new Location(),
+      user = req['user'];
+      const location = new Location(),
       locationSingle = new Location(locationId),
       wardensModel = new LocationAccountUser(),
       frpTrpModel = new LocationAccountUser(),
@@ -480,7 +495,8 @@ const md5 = require('md5');
 			(e) => {
 				fetchingProgress.accountsLocations = true;
 			}
-		);
+    );
+
 	}
 
 	public getByAccountId(req: Request, res: Response, next: NextFunction){
@@ -536,7 +552,24 @@ const md5 = require('md5');
 		);
 	}
 
-	public getParentLocationsByAccount(req: Request, res: Response, next: NextFunction){
+	public async getParentLocationsByAccount(req: AuthRequest, res: Response) {
+
+    const accountId = req.user.account_id;
+    const account = new Account(accountId);
+    let locationsOnAccount = [];
+    let location;
+    locationsOnAccount = await account.getLocationsOnAccount();
+    for (let loc of locationsOnAccount) {
+      location = new Location(loc.location_id);
+      loc['sublocations'] = await location.getSublocations();
+    }
+    return locationsOnAccount;
+
+
+
+
+
+    /*
 		let  response = { status : false, message : '', data : [] },
 			fetchingProgress = {
 				location : false, wardens : false, frptrp : false, accountsLocations : false
@@ -627,7 +660,8 @@ const md5 = require('md5');
 			(e) => {
 				fetchingProgress.accountsLocations = true;
 			}
-		);
+    );
+    */
 	}
 
 }

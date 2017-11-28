@@ -316,7 +316,37 @@ export class Location extends BaseClass {
 
       connection.end();
     });
-
   }
+
+  public getSublocations() {
+    return new Promise((resolve, reject) => {
+      const sublocations = {};
+      const sql_get_subloc = `SELECT
+                                parent_id,
+                                name
+                              FROM
+                                locations
+                              WHERE
+                                parent_id = ?`;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
+        if (err) {
+          console.log(sql_get_subloc);
+          throw new Error('Internal error. There was a problem processing your query');
+        }
+        if (results.length) {
+          sublocations['sublocations'] = results;
+          sublocations['total'] = results.length;
+          resolve(sublocations);
+        } else {
+          reject(`No sublocation for this parent location ${this.ID()}`);
+        }
+      });
+
+      connection.end();
+    });
+  }
+
+
 
 }

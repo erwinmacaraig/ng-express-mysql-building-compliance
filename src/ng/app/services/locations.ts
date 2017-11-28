@@ -13,29 +13,29 @@ export class LocationsService {
   private baseUrl: String;
   public dataStore: Object;
 
-	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
-		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-    	this.options = { headers : this.headers };
-		this.baseUrl = (platformLocation as any).location.origin;
-	}
+  constructor(private http: HttpClient, platformLocation: PlatformLocation) {
+    this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
+    this.options = { headers : this.headers };
+    this.baseUrl = (platformLocation as any).location.origin;
+  }
 
-	getById(id, callBack){
-		this.http.get(this.baseUrl+"/location/get/"+id, this.options)
-	      .subscribe(res => {
-	        callBack(res);
-	      }, err => {
-	        callBack( JSON.parse(err.error) );
-	      });
-	}
+  getById(id, callBack) {
+    this.http.get(this.baseUrl + '/location/get/' + id, this.options)
+      .subscribe(res => {
+        callBack(res);
+      }, err => {
+        callBack( JSON.parse(err.error) );
+      });
+  }
 
-	getByAccountId(accountid, callBack){
-		this.http.get(this.baseUrl+"/location/get-by-account/"+accountid, this.options)
-	      .subscribe(res => {
-	        callBack(res);
-	      }, err => {
-	        callBack( JSON.parse(err.error) );
-	      });
-	}
+  getByAccountId(accountid, callBack) {
+    this.http.get(this.baseUrl + '/location/get-by-account/' + accountid, this.options)
+      .subscribe(res => {
+        callBack(res);
+      }, err => {
+        callBack( JSON.parse(err.error) );
+      });
+  }
 
 	getUsersLocationByIdAndAccountId(opt, callBack){
 		this.http.get(this.baseUrl+"/location/get-by-userid-accountid/"+opt.user_id+'/'+opt.account_id, this.options)
@@ -72,7 +72,7 @@ export class LocationsService {
 
 
 	getParentLocationsForListing(accountid, callBack){
-		this.http.get(this.baseUrl+"/location/get-parent-locations-by-account-id/"+accountid, this.options)
+		this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/' + accountid, this.options)
 	      .subscribe(res => {
 	        callBack(res);
 	      }, err => {
