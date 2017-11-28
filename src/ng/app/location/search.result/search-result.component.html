@@ -34,8 +34,8 @@
 			<div class="wrapper">
 				<div class="image-container">
 					<div class="image-background">
-            <img src="assets/images/locations/add_loc.png" *ngIf="!component.google_photo_url">
-            <img src="{{component.google_photo_url}}" *ngIf="component.google_photo_url">
+			            <img src="assets/images/locations/add_loc.png" *ngIf="!component.google_photo_url">
+			            <img src="{{component.google_photo_url}}" *ngIf="component.google_photo_url">
 					</div>
 				</div>
 				<div class="details-container">
@@ -44,9 +44,14 @@
 					<p class="address">
 						{{ component.formatted_address }}
 					</p>
+					<p class="address">
+						Tenancy Managed By: Unknown
+					</p>
 				</div>
 				<div class="button-container">
-					Is this your location? <button class="btn orange waves-effect waves-light">Yes</button>
+					<p>Has details of this location correct?</p>
+					<button class="btn orange waves-effect waves-light">Yes</button>
+					<button class="btn grey waves-effect waves-light">No</button>
 				</div>
 			</div>
     </div><!-- end of location results -->

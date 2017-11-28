@@ -58,24 +58,29 @@
   <div class="row row-list-result">
       <!-- Location results -->
       <div class="col l12 m12 s12" *ngFor="let component of results">
-        <div class="wrapper">
-          <div class="image-container">
-            <div class="image-background">
-              <img src="assets/images/locations/add_loc.png" *ngIf="!component.google_photo_url">
-              <img src="{{component.google_photo_url}}" *ngIf="component.google_photo_url">
-            </div>
-          </div>
-          <div class="details-container">
-            <h5 class="name">{{ component.name }}</h5>
+      	<div class="wrapper">
+			<div class="image-container">
+				<div class="image-background">
+		            <img src="assets/images/locations/add_loc.png" *ngIf="!component.google_photo_url">
+              		<img src="{{component.google_photo_url}}" *ngIf="component.google_photo_url">
+				</div>
+			</div>
+			<div class="details-container">
+				<h5 class="name">{{ component.name }}</h5>
 
-            <p class="address">
-              {{ component.formatted_address }}
-            </p>
-          </div>
-          <div class="button-container">
-            Is this your location? <button class="btn orange waves-effect waves-light">Yes</button>
-          </div>
-        </div>
+				<p>
+					{{ component.formatted_address }}
+				</p>
+				<p>
+					Tenancy Managed By: Unknown
+				</p>
+			</div>
+			<div class="button-container">
+				<p>Has details of this location correct?</p>
+				<button class="btn orange waves-effect waves-light">Yes</button>
+				<button class="btn grey waves-effect waves-light" (click)="clearSearch()">No</button>
+			</div>
+		</div>
       </div><!-- end of location results -->
     </div>
 
