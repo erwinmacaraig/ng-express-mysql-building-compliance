@@ -160,8 +160,8 @@ table tr td a:hover{
 	width: 140px;
 	height: 140px;
 	background-color: #c9c9c9;
-	display: table-cell; 
-  text-align: center; 
+	display: table-cell;
+  text-align: center;
   vertical-align: middle;
 }
 
@@ -191,7 +191,8 @@ table tr td a:hover{
 }
 
 .image-container .image img{
-	max-width: 140px;
+  max-width: 140px;
+  max-height: 140px;
 }
 
 .outer-center {

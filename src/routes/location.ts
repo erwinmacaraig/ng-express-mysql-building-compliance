@@ -29,15 +29,23 @@ const md5 = require('md5');
 	public static create(router: Router) {
 	   	// add route
 
-	   	router.get('/location/get/:location_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        /*
-        new LocationRoute().getId(req, res).then((data) => {
+      router.get('/location/get/:location_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 
+        new LocationRoute().getLocation(req, res).then((data) => {
+          return res.status(200).send(data);
+          /*
+          {
+          'location': location.getDBData(),
+          'sublocation': sublocations
+          }
+          */
          }).catch((e) => {
-
+            return res.status(400).send({
+              message: 'No location found'
+            });
          });
-         */
-	   		 new LocationRoute().getId(req, res);
+
+	   		 // new LocationRoute().getLocation(req, res);
 	   	});
 
 	   	router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
@@ -48,7 +56,7 @@ const md5 = require('md5');
 	   		new LocationRoute().getByUserIdAndAccountId(req, res, next);
 	   	});
 
-       router.get('/location/get-parent-locations-by-account-id/:account_id',
+       router.get('/location/get-parent-locations-by-account-id',
          new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new LocationRoute().getParentLocationsByAccount(req, res).then((data) => {
               return res.status(200).send(data);
@@ -392,8 +400,18 @@ const md5 = require('md5');
 		return locations;
 	}
 
-  public getId(req: AuthRequest, res: Response) {
-    let locationId = req.params.location_id,
+  public async getLocation(req: AuthRequest, res: Response) {
+    let locationId = req.params.location_id;
+    const location = new Location(locationId);
+    let sublocations;
+    await location.load();
+    sublocations = await location.getSublocations();
+    return {
+      'location': location.getDBData(),
+      'sublocation': sublocations
+    };
+
+    /*
       response = { status : false, message : '', data : [] },
       fetchingProgress = {
         location: false,
@@ -496,8 +514,8 @@ const md5 = require('md5');
 				fetchingProgress.accountsLocations = true;
 			}
     );
-
-	}
+  */
+  }
 
 	public getByAccountId(req: Request, res: Response, next: NextFunction){
 		let  response = {

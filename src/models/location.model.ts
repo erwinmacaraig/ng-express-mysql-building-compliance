@@ -322,6 +322,7 @@ export class Location extends BaseClass {
     return new Promise((resolve, reject) => {
       const sublocations = {};
       const sql_get_subloc = `SELECT
+                                location_id,
                                 parent_id,
                                 name
                               FROM

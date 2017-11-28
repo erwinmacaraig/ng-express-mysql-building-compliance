@@ -26,36 +26,40 @@
 							<h6>No records yet</h6>
 						</td>
 					</tr>
-					<tr *ngFor="let location of locations">
+					<tr *ngFor="let location of locations; let i = index">
 						<td class="location-name">
-							<img src="assets/images/locations/single_location_icon.png"  >
-							{{location.name}}
+              <img src="assets/images/locations/single_location_icon.png">
+              <!-- <img src="{{locations[i].google_photo_url}}" width="150" height="150" *ngIf="locations[i].google_photo_url"> -->
+							{{locations[i].name}}
 						</td>
 						<td>
-							{{location.no_locations}}
+							1
 						</td>
 						<td>
-							{{location.level_occupied}}
+							{{location['sublocations']['total']}}
 						</td>
 						<td>
+                <span>Unknown</span>
+              <!--
 							<span *ngIf="location.frp.length == 0">Unknown</span>
-							<span *ngFor="let frp of location.frp"> {{frp.first_name}} {{frp.last_name}} </span>
+              <span *ngFor="let frp of location.frp"> {{frp.first_name}} {{frp.last_name}} </span>
+              -->
 						</td>
 						<td class="compliance">
 							<div class="percent">0%</div>
 							<div class="bar"></div>
 						</td>
 						<td>
-							{{location.overall_warden_count}}
+							0
 						</td>
 						<td>
-							{{location.overall_impaired}}
+							0
 						</td>
 						<td>
 							<a href="javascript:void(0)">View History</a>
 						</td>
 						<td>
-							<a [routerLink]="['/view-location/', location.location_id ]">Details</a>
+							<a [routerLink]="['/location', 'view', location['location_id']]">Details</a>
 						</td>
 					</tr>
 				</tbody>

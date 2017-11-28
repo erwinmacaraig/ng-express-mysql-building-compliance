@@ -38,7 +38,7 @@ import { SearchLocationComponent } from './location/search/search-location.compo
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 import { LocationListComponent } from './location/list/location-list.component';
-import { ViewSingleLocation } from './location/view.single/view.single';
+import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
 
 
@@ -71,7 +71,8 @@ const appRoutes: Routes = [
   /*{ path: '**', redirectTo: '/dashboard'},*/
   { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
-    { path: 'search', component: SearchLocationComponent }
+    { path: 'search', component: SearchLocationComponent },
+    { path: 'view/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation }
   ]},
   {
     path: 'locations-ui', component : LocationsUiComponent,
@@ -85,10 +86,6 @@ const appRoutes: Routes = [
       { path : 'view-sublocation', component : ViewSublocationComponent },
       { path : 'search-location', component : SearchLocationComponent }
     ]
-  },
-
-  {
-    path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
   }
 ];
 

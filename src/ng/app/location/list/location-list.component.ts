@@ -49,11 +49,12 @@ export class LocationListComponent implements OnInit, OnDestroy {
 			this.accountData = response.data;
     });
 
-		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
-			this.preloaderService.hide();
-      this.locations = response.data;
+    this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
+      this.preloaderService.hide();
+      this.locations = response;
+      console.log(this.locations);
       if (this.locations.length > 0) {
-        for (let i in this.locations) {
+          for (let i = 0; i < this.locations.length; i++) {
           this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
         }
       } else {

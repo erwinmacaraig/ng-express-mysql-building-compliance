@@ -14,8 +14,8 @@ import { Countries } from '../../models/country.model';
 declare var $: any;
 @Component({
   selector: 'app-view-locations-single',
-  templateUrl: './view.single.html',
-  styleUrls: ['./view.single.css'],
+  templateUrl: './view-single.component.html',
+  styleUrls: ['./view-single.component.css'],
   providers: [DashboardPreloaderService, EncryptDecrypt, LocationsService, DonutService]
 })
 export class ViewSingleLocation implements OnInit, OnDestroy {
@@ -24,21 +24,23 @@ export class ViewSingleLocation implements OnInit, OnDestroy {
 	userData: Object;
 	encryptedID;
 	locationID = 0;
-	locationData = { 
-		name : '', 
+	locationData = {
+		name : '',
 		frp : [],
 		unit : '',
 		street : '',
 		city : '',
-		country : '',
+    country : '',
+    google_photo_url: '',
+    formatted_address: '',
 		sublocations : []
 	};
 
 	constructor(
 		private auth: AuthService,
-		private preloaderService : DashboardPreloaderService,
-		private locationService : LocationsService,
-		private encryptDecrypt : EncryptDecrypt,
+		private preloaderService: DashboardPreloaderService,
+		private locationService: LocationsService,
+		private encryptDecrypt: EncryptDecrypt,
 		private route: ActivatedRoute,
 		private donut: DonutService
 	){
@@ -47,17 +49,35 @@ export class ViewSingleLocation implements OnInit, OnDestroy {
 
 	ngOnInit(){
 		$('select').material_select();
-		
+
 		this.route.params.subscribe((params) => {
 			this.encryptedID = params['encrypted'];
 			this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
 			this.locationService.getById(this.locationID, (response) => {
-				this.locationData = response.data;
+        /*
+          {
+          'location': location.getDBData(),
+          'sublocation': sublocations
+          }
+          */
+        // this.locationData = response;
+
+        this.locationData.name = response.location.name;
+        this.locationData.formatted_address = response.location.formatted_address;
+        this.locationData.sublocations = response.sublocation.sublocations;
+        this.locationData.google_photo_url = response.location.google_photo_url || undefined;
+
+        /*
 				for(let i in this.locationData['sublocations']){
-					this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
-				}
-			});
-		});
+          this.locationData['sublocations'][i]['location_id'] =
+          this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+        }
+        */
+        for (let i = 0; i < this.locationData['sublocations'].length; i++) {
+          this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+        }
+      });
+    });
 
 		// DONUT update
 		// this.donut.updateDonutChart('#specificChart', 30, true);
@@ -81,6 +101,6 @@ export class ViewSingleLocation implements OnInit, OnDestroy {
 
 	ngOnDestroy(){}
 
-	
+
 
 }

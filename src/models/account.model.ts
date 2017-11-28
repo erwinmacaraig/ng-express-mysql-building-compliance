@@ -226,7 +226,8 @@ export class Account extends BaseClass {
       const sql_get_locations = `SELECT
         locations.parent_id,
         locations.name,
-        locations.location_id
+        locations.location_id,
+        locations.google_photo_url
       FROM
         locations
       INNER JOIN

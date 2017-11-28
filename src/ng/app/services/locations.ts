@@ -72,7 +72,7 @@ export class LocationsService {
 
 
 	getParentLocationsForListing(accountid, callBack){
-		this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/' + accountid, this.options)
+		this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/', this.options)
 	      .subscribe(res => {
 	        callBack(res);
 	      }, err => {
