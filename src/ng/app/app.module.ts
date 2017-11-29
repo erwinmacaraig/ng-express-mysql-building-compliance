@@ -46,7 +46,7 @@ import { ViewLocationListComponent } from './locations-ui/view.location.list/vie
 import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
 
-import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+// import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
 import { SearchLocationComponent } from './location/search/search-location.component';
 
 

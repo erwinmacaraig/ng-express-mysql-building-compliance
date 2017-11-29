@@ -47,7 +47,7 @@ import { ViewUISublocationComponent } from './locations-ui/view.sublocation/view
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 // import { LocationListComponent } from './location/list/location.list';
 // import { ViewSingleLocation } from './location/view.single/view.single';
-import { ViewSublocationComponent } from './location/view.sublocation/view.sublocation';
+// import { ViewSublocationComponent } from './location/view.sublocation/view.sublocation';
 
 
 const appRoutes: Routes = [
@@ -91,7 +91,7 @@ const appRoutes: Routes = [
       { path : 'view-location-list', component : ViewLocationListComponent },
       { path : 'view-location-single', component : ViewLocationSingleComponent },
       { path : 'view-location-multiple', component : ViewLocationMultipleComponent },
-      { path : 'view-sublocation', component : ViewSublocationComponent },
+      // { path : 'view-sublocation', component : ViewSublocationComponent },
      // { path : 'search-location', component : SearchLocationComponent }
     // ],
       { path : 'view-sublocation', component : ViewUISublocationComponent } // ,
@@ -105,10 +105,8 @@ const appRoutes: Routes = [
   },*/
   {
     path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
-  },
-  {
-    path : 'view-sublocation/:encrypted', canActivate: [AuthGuard], component : ViewSublocationComponent
   }
+
 ];
 
 @NgModule({
