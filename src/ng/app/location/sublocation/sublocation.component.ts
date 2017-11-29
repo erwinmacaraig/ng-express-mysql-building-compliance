@@ -7,10 +7,10 @@ import { Router } from '@angular/router';
 declare var $: any;
 @Component({
   selector: 'app-view-locations-sub',
-  templateUrl: './view.sublocation.html',
-  styleUrls: ['./view.sublocation.css']
+  templateUrl: './sublocation.component.html',
+  styleUrls: ['./sublocation.component.css']
 })
-export class ViewUISublocationComponent implements OnInit, OnDestroy {
+export class SublocationComponent implements OnInit, OnDestroy {
 
 	constructor(){
 

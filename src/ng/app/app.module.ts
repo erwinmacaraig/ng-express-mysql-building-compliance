@@ -50,7 +50,7 @@ import { ViewLocationMultipleComponent } from './locations-ui/view.location.mult
 import { SearchLocationComponent } from './location/search/search-location.component';
 
 
-import { ViewUISublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+import { SublocationComponent } from './location/sublocation/sublocation.component';
 // import { SearchLocationComponent } from './locations-ui/search.location/search.location';
 // import { SearchResultComponent } from './locations-ui/search.result/search.result';
 
@@ -91,7 +91,7 @@ import { LocationComponent } from './location/location.component';
     ViewLocationListComponent,
     ViewLocationSingleComponent,
     ViewLocationMultipleComponent,
-    ViewUISublocationComponent,
+    SublocationComponent,
     SearchLocationComponent,
     // todo: move to location module
     SetupLocationComponent,

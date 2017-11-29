@@ -143,7 +143,7 @@ const md5 = require('md5');
         Object.keys(req.body).forEach((key) => {
           switch (key) {
             case 'location_name':
-              dbLocationData['name'] = req.body.location_name;
+              dbLocationData['name'] = req.body.location_name ? req.body.location_name: '';
             break;
             case 'unit':
               dbLocationData['unit'] = req.body.unit;

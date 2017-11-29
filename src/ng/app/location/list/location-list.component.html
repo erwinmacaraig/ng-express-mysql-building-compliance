@@ -30,7 +30,8 @@
 						<td class="location-name">
               <img src="assets/images/locations/single_location_icon.png">
               <!-- <img src="{{locations[i].google_photo_url}}" width="150" height="150" *ngIf="locations[i].google_photo_url"> -->
-							{{locations[i].name}}
+              <span *ngIf="locations[i].name.length > 0"> {{locations[i].name}}</span>
+              <span *ngIf="locations[i].name.length == 0"> {{locations[i].formatted_address}} </span>
 						</td>
 						<td>
 							1
