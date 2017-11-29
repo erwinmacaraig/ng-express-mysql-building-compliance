@@ -58,6 +58,10 @@
 	color: #39a1ff !important;
 }
 
+input::-ms-clear {
+    display: none;
+}
+
 .select-field{
 	position: relative;
 	margin-top: 15px;

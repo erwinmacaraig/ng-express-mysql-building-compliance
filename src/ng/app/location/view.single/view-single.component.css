@@ -1,3 +1,88 @@
+.location-navigation{
+  border-bottom: 1px solid #ddd;
+}
+
+.location-navigation ul{
+  margin: 0px;
+}
+
+.location-navigation ul li{
+  display: inline-block;
+  padding: 20px;
+  cursor: pointer;
+  height: 70px;
+  margin-right: -4px;
+}
+
+.location-navigation ul li img{
+  vertical-align: middle;
+  display: none;
+}
+
+.location-navigation ul li img.default{
+  display: inline-block;
+}
+
+.location-navigation ul li:hover img.default{
+  display: none;
+}
+
+.location-navigation ul li:hover img.hover,
+.location-navigation ul li.active img.hover{
+  display: inline-block;
+}
+
+.location-navigation ul li.active img.default{
+  display: none;
+}
+
+.location-navigation ul li.green-theme:hover,
+.location-navigation ul li.green-theme.active{
+  background-color: #36bb9b;
+}
+
+.location-navigation ul li.green-theme.active a,
+.location-navigation ul li.green-theme:hover a{
+  color: #fff;
+}
+
+.location-navigation ul li.green-theme{
+  border-bottom: 1px solid #36bb9b;
+}
+
+.location-navigation ul li.green-theme:hover{
+  border-bottom: 2px solid #36bb9b;
+}
+
+.location-navigation ul li.pink-theme:hover,
+.location-navigation ul li.pink-theme.active{
+  background-color: #dc4453;
+}
+
+.location-navigation ul li.pink-theme.active a,
+.location-navigation ul li.pink-theme:hover a{
+  color: #fff;
+}
+
+.location-navigation ul li.pink-theme:hover{
+  border-bottom: 2px solid #dc4453;
+}
+
+.location-navigation ul li.active.pink-theme,
+.location-navigation ul li.active.pink-theme a{
+  background-color: #dc4453;
+  color: #fff;
+}
+
+.location-navigation ul li.pink-theme{
+  border-bottom: 1px solid #dc4453;
+}
+
+.location-navigation a{
+  color: #545454;
+  font-size: 16px;
+}
+
 thead th{
 	border-radius: 0px;
 	font-weight: normal;
@@ -28,7 +113,7 @@ table tr td a:hover{
 
 .right-top-container .btn{
 	font-size: 14px !important;
-	line-height: 13px !important;
+	line-height: 44px !important;
 }
 
 .right-top-container .btn.grey{
@@ -75,8 +160,8 @@ table tr td a:hover{
 	width: 140px;
 	height: 140px;
 	background-color: #c9c9c9;
-	display: table-cell; 
-  text-align: center; 
+	display: table-cell;
+  text-align: center;
   vertical-align: middle;
 }
 
@@ -106,7 +191,8 @@ table tr td a:hover{
 }
 
 .image-container .image img{
-	max-width: 140px;
+  max-width: 140px;
+  max-height: 140px;
 }
 
 .outer-center {
@@ -215,17 +301,16 @@ table.no-borders td{
   border-radius: 50%;
   color: #c91e2f;
   font-size: 0.25em;
-  line-height: 2.6em;
+  line-height: 2.9em;
   text-align: center;
   cursor: default;
   z-index: 2;
 }
 
 .pie-wrapper .smaller {
-  padding-bottom: 20px;
   color: #c91e2f;
   font-size: .45em;
-  vertical-align: super;
+  vertical-align: top;
 }
 
 .pie-wrapper .shadow {

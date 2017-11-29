@@ -35,6 +35,10 @@ import * as Promise from 'promise';
 	   		new AccountRoute().getAccountByUserId(req, res);
 	   	});
 
+	   	router.get('/accounts/get/:id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().getAccountById(req, res);
+	   	});
+
 	   	router.post('/accounts/create/setup', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 	   		new AccountRoute().setupNewAccount(req, res);
 	   	});
@@ -79,6 +83,33 @@ import * as Promise from 'promise';
 		res.statusCode = 400;
 
 		account.getByUserId(req.params['user_id']).then(
+			(accountData) => {
+				response.status = true;
+				res.statusCode = 200;
+				response.data = accountData;
+				res.send(response);
+			},
+			(e) => {
+				response.status = true;
+				res.statusCode = 200;
+				response.message = 'no accounts found';
+				res.send(response);
+			}
+		);
+	}
+
+	public getAccountById(req: AuthRequest, res: Response){
+		let  response = {
+				status : false,
+				message : '',
+				data : {}
+			},
+			account = new Account(req.params['id']);
+
+		// Default status code
+		res.statusCode = 400;
+
+		account.load().then(
 			(accountData) => {
 				response.status = true;
 				res.statusCode = 200;
@@ -429,6 +460,10 @@ import * as Promise from 'promise';
 			if(validator.isEmpty(data.location_id)){
 				error++;
 			}
+			if(data.location_id < 1){
+				error++;
+				response.message = 'Location is required';
+			}
 		}
 
 		if( ('sublocations' in data) === false ){
@@ -441,6 +476,12 @@ import * as Promise from 'promise';
 			data.user_role_id = ''+data.user_role_id+''.trim();
 			if(validator.isEmpty(data.user_role_id)){
 				error++;
+			}
+			if(data.user_role_id == 3){
+				if(Object.keys(data.sublocations).length == 0){
+					error++;
+					response.message = 'Specific location is required';
+				}
 			}
 		}
 
@@ -493,91 +534,119 @@ import * as Promise from 'promise';
 				status : false,
 				data: {},
 				message : ''
-			};
+			},
+			validSubloc = false;
 
 		res.statusCode = 400;
 
 		if(validateResponse.status){
+			if( reqBody.user_role_id == 2 || reqBody.user_role_id == 3 ){
+				if(Object.keys(reqBody.sublocations).length > 0){
+					validSubloc = true;
+				}
+			}else{
+				validSubloc = true;
+			}
 
-			creatorModel.setID(reqBody.creator_id);
-			creatorModel.load().then(
-				(creatorData) => {
-					userEmail.getByEmail(reqBody.email).then(
-						() => {
-							response['emailtaken'] = true;
-							response.message = 'Email is already taken';
-							res.send(response);
-						},
-						() => {
+			if(validSubloc){
+				creatorModel.setID(reqBody.creator_id);
+				creatorModel.load().then(
+					(creatorData) => {
+						userEmail.getByEmail(reqBody.email).then(
+							() => {
+								response['emailtaken'] = true;
+								response.message = 'Email is already taken';
+								res.send(response);
+							},
+							() => {
 
-							const blacklistedEmails = new BlacklistedEmails();
-							if(!blacklistedEmails.isEmailBlacklisted(reqBody.email)){
-								let invitationCode = this.generateRandomChars(25),
-									inviModel = new InvitationCode(),
-									inviData = {
-										'code' : invitationCode,
-										'first_name' : reqBody.first_name,
-										'last_name' : reqBody.last_name,
-										'email' : reqBody.email,
-										'location_id' : reqBody.location_id,
-										'account_id' : reqBody.account_id,
-										'role_id' : reqBody.user_role_id,
-										'was_used' : 0
-									};
+								const blacklistedEmails = new BlacklistedEmails();
+								if(!blacklistedEmails.isEmailBlacklisted(reqBody.email)){
+									let invitationCode = this.generateRandomChars(25),
+										inviModel = new InvitationCode(),
+										inviData = {
+											'code' : invitationCode,
+											'first_name' : reqBody.first_name,
+											'last_name' : reqBody.last_name,
+											'email' : reqBody.email,
+											'location_id' : reqBody.location_id,
+											'account_id' : reqBody.account_id,
+											'role_id' : reqBody.user_role_id,
+											'was_used' : 0
+										};
 
-								// SPECIFY THE LOCATION ID
-								if(reqBody.user_role_id == 2 || reqBody.user_role_id == 3){
-									if( Object.keys( reqBody.sublocations ).length > 0 ){
+									// SPECIFY THE LOCATION ID
+									if( reqBody.user_role_id == 2 || reqBody.user_role_id == 3){
 										inviData.location_id = reqBody.sublocations[0]['location_id'];
 									}
-								}
 
-								for(let i in inviData){
-									inviModel.set(i, inviData[i]);
-								}
-
-								inviModel.dbInsert().then(
-									() => {
-										let inviDataResponse = inviModel.getDBData();
-										inviData = Object.assign(inviDataResponse, inviData);
-
-										this.sendUserInvitationEmail(
-											req,
-											inviData,
-											creatorData,
-											() => {
-												res.statusCode = 200;
-												response.status = true;
-												response.message = 'Success';
-												res.send(response);
-											},
-											(msg) => {
-												response.message = 'Error on sending email';
-												res.send(response);
-											}
-										);
-									},
-									() => {
-										response.message = 'Error on saving invitation code';
-										res.send(response);
+									for(let i in inviData){
+										inviModel.set(i, inviData[i]);
 									}
-								);
-							}else{
-								response.status = false;
-								response['domain_blacklisted'] = true;
-								response.message = "Email's domain must be non-commercial";
-								res.send(response);
+
+									inviModel.dbInsert().then(
+										() => {
+											let inviDataResponse = inviModel.getDBData();
+											inviData = Object.assign(inviDataResponse, inviData);
+
+											if( Object.keys(reqBody.sublocations).length > 1 ){
+												for(let x in reqBody.sublocations){
+													if(parseInt(x) > 0){
+														let inviModelSub = new InvitationCode();
+														for(let i in inviData){
+															if(i == 'location_id'){
+																inviModelSub.set(i, reqBody.sublocations[x]['location_id']);
+															}else{
+																inviModelSub.set(i, inviData[i]);
+															}
+														}
+														inviModelSub.dbInsert();
+													}
+												}
+											}
+
+											this.sendUserInvitationEmail(
+												req,
+												inviData,
+												creatorData,
+												() => {
+													res.statusCode = 200;
+													response.status = true;
+													response.message = 'Success';
+													res.send(response);
+												},
+												(msg) => {
+													response.message = 'Error on sending email';
+													res.send(response);
+												}
+											);
+										},
+										() => {
+											response.message = 'Error on saving invitation code';
+											res.send(response);
+										}
+									);
+								}else{
+									response.status = false;
+									response['domain_blacklisted'] = true;
+									response.message = "Email's domain must be non-commercial";
+									res.send(response);
+								}
+
+
 							}
+						);
+					},
+					() => {
+						response.message = 'Invalid creator';
+						res.send(response);
+					}
+				);
+			}else{
+				response.message = 'Select specific location';
+				res.send(response);
+			}
 
-
-						}
-					);
-				},
-				() => {
-					response.message = 'Invalid creator';
-					res.send(response);
-				}
-			);
 
 		}else{
 			response.message = validateResponse.message;

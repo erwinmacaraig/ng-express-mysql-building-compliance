@@ -2,8 +2,8 @@
 <div class="location-navigation">
 	<ul>
 
-		<li class="add-location pink-theme  " [routerLink]="['/locations-ui/search-location']">
-			<a href="javascript:void(0)">
+		<li class="add-location pink-theme  ">
+			<a href="javascript:void(0)" [routerLink]="['/location', 'search']">
 				<img src="assets/images/locations/add_location.png" class="default">
 				<img src="assets/images/locations/add_location_hover.png" class="hover">
 				<span>
@@ -11,9 +11,9 @@
 				</span>
 			</a>
 		</li>
-		
-		<li class="view-location green-theme" [routerLink]="['/list-locations']">
-			<a href="javascript:void(0)">
+
+		<li class="view-location green-theme">
+			<a href="javascript:void(0)" [routerLink]="['/location', 'list']">
 				<img src="assets/images/locations/view_all_location.png" class="default">
 				<img src="assets/images/locations/view_all_locations_hover.png" class="hover">
 				<span>

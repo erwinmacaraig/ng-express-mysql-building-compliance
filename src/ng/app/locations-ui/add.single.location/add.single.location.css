@@ -60,15 +60,15 @@
 }
 
 .form-search-container .input-container input:-moz-placeholder { /* Firefox 18- */
-    color: #262626 !important;  
+    color: #262626 !important;
 }
 
 .form-search-container .input-container input::-moz-placeholder {  /* Firefox 19+ */
-    color: #262626 !important;  
+    color: #262626 !important;
 }
 
-.form-search-container .input-container input:-ms-input-placeholder {  
-    color: #262626 !important;  
+.form-search-container .input-container input:-ms-input-placeholder {
+    color: #262626 !important;
 }
 
 .input-container {
@@ -94,15 +94,15 @@
 }
 
 .input-container input:-moz-placeholder { /* Firefox 18- */
-	color: #262626 !important;  
+	color: #262626 !important;
 }
 
 .input-container input::-moz-placeholder {  /* Firefox 19+ */
-	color: #262626 !important;  
+	color: #262626 !important;
 }
 
-.input-container input:-ms-input-placeholder {  
-	color: #262626 !important;  
+.input-container input:-ms-input-placeholder {
+	color: #262626 !important;
 }
 
 .btn-cancel{
@@ -121,6 +121,11 @@
 
 .searched-message{
     font-size: 16px;
+}
+.required {
+  color: #D8000C;
+  font-weight: bold;
+  font-size: smaller;
 }
 
 .horizontal-line{

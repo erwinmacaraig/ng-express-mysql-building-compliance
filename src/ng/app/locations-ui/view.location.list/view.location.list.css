@@ -40,6 +40,11 @@ table tr td .circle-initial{
     margin-right: 8px;
 }
 
+table tr td.location-name img{
+	vertical-align: middle;
+    margin-right: 5px;
+}
+
 .compliance .percent,
 .compliance .bar {
 	display: inline-block;
