@@ -1,4 +1,3 @@
-import { EncryptDecrypt } from './../ng/app/services/encrypt.decrypt';
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');

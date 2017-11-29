@@ -5,7 +5,7 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LocationsService } from '../../services/locations';
 import { AccountsDataProviderService } from '../../services/accounts';
-import { EncryptDecrypt } from '../../services/encrypt.decrypt';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { AuthService } from '../../services/auth.service';
 import { Observable } from 'rxjs/Rx';
@@ -19,7 +19,7 @@ declare var $: any;
   selector: 'app-location-list',
   templateUrl: './location-list.component.html',
   styleUrls: ['./location-list.component.css'],
-  providers : [LocationsService, DashboardPreloaderService, AuthService, AccountsDataProviderService, EncryptDecrypt]
+  providers : [LocationsService, DashboardPreloaderService, AuthService, AccountsDataProviderService, EncryptDecryptService]
 })
 export class LocationListComponent implements OnInit, OnDestroy {
 
@@ -37,7 +37,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		private preloaderService: DashboardPreloaderService,
 		private locationService: LocationsService,
 		private accntService: AccountsDataProviderService,
-    private encryptDecrypt: EncryptDecrypt,
+    private encryptDecrypt: EncryptDecryptService,
     private router: Router
 	) {
 		this.baseUrl = (platformLocation as any).location.origin;

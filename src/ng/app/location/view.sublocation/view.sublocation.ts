@@ -5,7 +5,7 @@ import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
-import { EncryptDecrypt } from '../../services/encrypt.decrypt';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { Countries } from '../../models/country.model';
@@ -15,7 +15,7 @@ declare var $: any;
   selector: 'app-view-locations-sub',
   templateUrl: './view.sublocation.html',
   styleUrls: ['./view.sublocation.css'],
-  providers: [DashboardPreloaderService, EncryptDecrypt, LocationsService]
+  providers: [DashboardPreloaderService, EncryptDecryptService, LocationsService]
 })
 export class ViewSublocationComponent implements OnInit, OnDestroy {
 
@@ -47,7 +47,7 @@ export class ViewSublocationComponent implements OnInit, OnDestroy {
 		private auth: AuthService,
 		private preloaderService : DashboardPreloaderService,
 		private locationService : LocationsService,
-		private encryptDecrypt : EncryptDecrypt,
+		private encryptDecrypt : EncryptDecryptService,
 		private route: ActivatedRoute
 	){
 		this.userData = this.auth.getUserData();
