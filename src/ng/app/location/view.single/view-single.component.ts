@@ -5,7 +5,7 @@ import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
-import { EncryptDecrypt } from '../../services/encrypt.decrypt';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { DonutService } from '../../services/donut';
@@ -16,7 +16,7 @@ declare var $: any;
   selector: 'app-view-locations-single',
   templateUrl: './view-single.component.html',
   styleUrls: ['./view-single.component.css'],
-  providers: [DashboardPreloaderService, EncryptDecrypt, LocationsService, DonutService]
+  providers: [DashboardPreloaderService, EncryptDecryptService, LocationsService, DonutService]
 })
 export class ViewSingleLocation implements OnInit, OnDestroy {
 
@@ -40,7 +40,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy {
 		private auth: AuthService,
 		private preloaderService: DashboardPreloaderService,
 		private locationService: LocationsService,
-		private encryptDecrypt: EncryptDecrypt,
+		private encryptDecrypt: EncryptDecryptService,
 		private route: ActivatedRoute,
 		private donut: DonutService
 	){
