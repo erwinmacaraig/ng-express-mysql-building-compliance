@@ -8,10 +8,10 @@ import 'rxjs/add/operator/catch';
 @Injectable()
 export class LocationsService {
 
-  private headers: Object;
-  private options: Object;
-  private baseUrl: String;
-  public dataStore: Object;
+	private headers: Object;
+	private options: Object;
+	private baseUrl: String;
+	public dataStore: Object;
 
   constructor(private http: HttpClient, platformLocation: PlatformLocation) {
     this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
@@ -37,18 +37,18 @@ export class LocationsService {
       });
   }
 
-	getUsersLocationByIdAndAccountId(opt, callBack){
+	getLocationsByUserIdAndAccountId(opt, callBack){
 		this.http.get(this.baseUrl+"/location/get-by-userid-accountid/"+opt.user_id+'/'+opt.account_id, this.options)
-	      .subscribe(res => {
-	        callBack(res);
-	      }, err => {
-	        callBack( JSON.parse(err.error) );
-	      });
-  }
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
 
-  searchForLocation(location: Object): Observable<any> {
-    return this.http.post<any>(this.baseUrl + '/location/search-db-location/', location);
-  }
+	searchForLocation(location: Object): Observable<any> {
+		return this.http.post<any>(this.baseUrl + '/location/search-db-location/', location);
+	}
 
   locationDataStore(location) {
     this.dataStore = location;
@@ -66,9 +66,9 @@ export class LocationsService {
     return '';
   }
 
-  createSingleLocation(location: Object): Observable<any> {
-    return this.http.post<any>(this.baseUrl + '/location/create/', location);
-  }
+	createSingleLocation(location: Object): Observable<any> {
+		return this.http.post<any>(this.baseUrl + '/location/create/', location);
+	}
 
 
 	getParentLocationsForListing(accountid, callBack){

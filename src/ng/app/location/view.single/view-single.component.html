@@ -115,7 +115,8 @@
 									{{sub.overall_impaired}}
 								</td>
 								<td>
-									<a [routerLink]="['/view-sublocation/', sub.location_id]">Details</a>
+									<a *ngIf="sub.sublocations.length == 0" [routerLink]="['/view-sublocation/', sub.location_id]">Details</a>
+									<a *ngIf="sub.sublocations.length > 0" [routerLink]="['/view-location/', sub.location_id]">Details</a>
 								</td>
 							</tr>
 						</tbody>

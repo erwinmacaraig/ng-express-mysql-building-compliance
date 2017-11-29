@@ -79,9 +79,21 @@ const md5 = require('md5');
         });
       });
 
-      router.post('/location/search-db-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        new LocationRoute().searchDbForLocation(req, res);
-      });
+       	router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	        new LocationRoute().createLocation(req, res).then((data) => {
+	            return res.status(200).send({
+	              message: 'Create location successful'
+	            });
+	        }).catch((e) => {
+	            return res.status(400).send({
+	              message: 'Bad Request'
+	            });
+	        });
+      	});
+
+		router.post('/location/search-db-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new LocationRoute().searchDbForLocation(req, res);
+		});
 
    	}
 
@@ -96,7 +108,6 @@ const md5 = require('md5');
 	}
 
   public searchDbForLocation(req: AuthRequest, res: Response) {
-        console.log(req.body);
         const location = new Location();
         location.search(
           req.body.formatted_address,
@@ -234,12 +245,12 @@ const md5 = require('md5');
 
 		for(let p in data){
 			let parent = data[p];
+			if(parent.sublocations === undefined){
+				parent['sublocations'] = [];
+			}
 			for(let c in data){
 				let child = data[c];
 				if(child.parent_id == parent.location_id){
-					if(parent.sublocations === undefined){
-						parent['sublocations'] = [];
-					}
 					parent.sublocations.push(child);
 				}
 			}
@@ -325,7 +336,9 @@ const md5 = require('md5');
 			addToWarden = (oData) => {
 				for(let w in oData.wardens){
 					if(wardens[ oData.wardens[w]['user_id'] ] === undefined){
-						wardens[ oData.wardens[w]['user_id'] ] = oData.wardens[w];
+						if(oData.wardens[w]['is_warden_role'] == 1){
+							wardens[ oData.wardens[w]['user_id'] ] = oData.wardens[w];
+						}
 					}
 				}
 			},
@@ -434,6 +447,49 @@ const md5 = require('md5');
       callWait = (callBack) => {
 				setTimeout(() => {
 					if (fetchingProgress.location && fetchingProgress.wardens && fetchingProgress.frptrp && fetchingProgress.accountsLocations){
+	private pullSpecificParent = (parentId, data) => {
+		let
+		parentData = [],
+		searchChild = (children) => {
+			for(let i in children){
+				if(children[i]['sublocations'] !== undefined){
+					if( Object.keys(children[i]['sublocations']).length > 0 ){
+						searchChild(children[i]['sublocations']);
+					}
+				}
+				if(children[i]['location_id'] == parentId){
+					parentData.push(children[i]);
+				}
+			}
+		};
+
+		for(let i in data){
+			searchChild(data[i]['sublocations']);
+			if(data[i]['location_id'] == parentId){
+				parentData.push(data[i]);
+			}
+		}
+
+		return parentData;
+	}
+
+	public getId(req: Request, res: Response, next: NextFunction){
+		let locationId = req.params.location_id,
+			response = { status : false, message : '', data :<any>[] },
+			fetchingProgress = {
+				location : false, wardens : false, frptrp : false, accountsLocations : false
+			},
+			fetchedDatas = {
+				locations : <any>[], wardens:<any>[], frptrp:<any>[], accountLocations:<any>[]
+			},
+			user = req['user'],
+			location = new Location(),
+			locationSingle = new Location(locationId),
+			wardensModel = new LocationAccountUser(),
+			frpTrpModel = new LocationAccountUser(),
+			callWait = (callBack) => {
+				setTimeout(() => {
+					if(fetchingProgress.location && fetchingProgress.wardens && fetchingProgress.frptrp){
 						callBack();
 					} else {
 						callWait(callBack);
@@ -442,7 +498,6 @@ const md5 = require('md5');
 				}, 100);
 			},
 			responseSend = () => {
-				response.data;
 				res.statusCode = 200;
 				res.send(response);
 			};
@@ -454,22 +509,24 @@ const md5 = require('md5');
 
 			let toMergedData = Object.create(fetchedDatas.locations),
 				mergedData = this.mergeToParent(toMergedData),
-				finalData = [];
+				finalData = <any>{},
+				parentData = <any>{};
 
 			this.addWardenCounts(mergedData);
 
-			for(let i in fetchedDatas.accountLocations){
-				for(let n in mergedData){
-					if(fetchedDatas.accountLocations[i]['location_id'] == mergedData[n]['location_id']){
-						mergedData[n]['no_locations'] = 0;
-						mergedData[n]['level_occupied'] = mergedData[n]['sublocations'].length;
-						finalData.push(mergedData[n]);
-					}
-				}
+			finalData = this.pullSpecificParent(locationId, mergedData);
+			parentData = this.pullSpecificParent(finalData[0].parent_id, mergedData);
+
+			if(finalData.length > 0){
+				finalData[0]['no_locations'] = (finalData[0].parent_id == -1) ? 1 : 0;
+				finalData[0]['level_occupied'] = (finalData[0].sublocations.length > 0) ? finalData[0].sublocations.length : 0;
+				finalData = finalData[0];
 			}
 
-			response.data = finalData[0];
-
+			response.data = {
+				location : finalData,
+				parent : (parentData.length > 0) ? parentData[0] : []
+			};
 			responseSend();
 
 		});
@@ -498,6 +555,12 @@ const md5 = require('md5');
 			(results) => {
 				fetchedDatas.locations = results;
 				fetchingProgress.location = true;
+				fetchedDatas.accountLocations = [];
+				for(let i in results){
+					if(results[i]['location_id'] == locationId){
+						fetchedDatas.accountLocations.push(results[i]);
+					}
+				}
 			},
 			() => {
 				responseSend();
@@ -609,7 +672,6 @@ const md5 = require('md5');
 				}, 100);
 			},
 			responseSend = () => {
-				response.data;
 				res.statusCode = 200;
 				res.send(response);
 			};
@@ -628,7 +690,7 @@ const md5 = require('md5');
 			for(let i in fetchedDatas.accountLocations){
 				for(let n in mergedData){
 					if(fetchedDatas.accountLocations[i]['location_id'] == mergedData[n]['location_id']){
-						mergedData[n]['no_locations'] = 0;
+						mergedData[n]['no_locations'] = 1;
 						mergedData[n]['level_occupied'] = mergedData[n]['sublocations'].length;
 						finalData.push(mergedData[n]);
 					}

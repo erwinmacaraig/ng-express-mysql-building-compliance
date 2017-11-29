@@ -157,6 +157,13 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     $('.modal').modal({
       dismissible : false
     });
+
+    if(localStorage.getItem('nolocations') === 'true'){
+      $('.location-navigation .view-location').hide();
+    }
+
+    $('.nav-list-locations').addClass('active');
+    $('.location-navigation .add-location').addClass('active');
   }
 
   localLocationSearch(location: Object) {

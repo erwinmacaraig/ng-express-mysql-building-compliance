@@ -75,7 +75,7 @@ export class Location extends BaseClass {
 			const param = [accountId];
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, param, (error, results, fields) => {
-        if (error) {
+				if (error) {
 					return console.log(error);
 				}
 				if(!results.length){

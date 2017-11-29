@@ -45,9 +45,14 @@ import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.ne
 import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
 import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
+
 import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
 import { SearchLocationComponent } from './location/search/search-location.component';
 
+
+import { ViewUISublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+// import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+// import { SearchResultComponent } from './locations-ui/search.result/search.result';
 
 // todo: move to locations module
 import { ReactiveFormsModule } from '@angular/forms';
@@ -86,13 +91,14 @@ import { LocationComponent } from './location/location.component';
     ViewLocationListComponent,
     ViewLocationSingleComponent,
     ViewLocationMultipleComponent,
-    ViewSublocationComponent,
+    ViewUISublocationComponent,
     SearchLocationComponent,
     // todo: move to location module
     SetupLocationComponent,
     LocationListComponent,
     ViewSingleLocation,
     LocationComponent
+    // ViewSublocationComponent
   ],
   imports: [
     BrowserModule,

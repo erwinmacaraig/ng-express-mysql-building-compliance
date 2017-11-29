@@ -33,13 +33,21 @@ import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.ne
 import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
 import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
-import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+// import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
 import { SearchLocationComponent } from './location/search/search-location.component';
 
-import { SetupLocationComponent } from './location/setup-location/setup-location.component';
+// import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
+import { ViewUISublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+// import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+// import { SearchResultComponent } from './locations-ui/search.result/search.result';
+
+import { SetupLocationComponent } from './location/setup-location/setup-location.component';
+// import { LocationListComponent } from './location/list/location.list';
+// import { ViewSingleLocation } from './location/view.single/view.single';
+import { ViewSublocationComponent } from './location/view.sublocation/view.sublocation';
 
 
 const appRoutes: Routes = [
@@ -84,8 +92,22 @@ const appRoutes: Routes = [
       { path : 'view-location-single', component : ViewLocationSingleComponent },
       { path : 'view-location-multiple', component : ViewLocationMultipleComponent },
       { path : 'view-sublocation', component : ViewSublocationComponent },
-      { path : 'search-location', component : SearchLocationComponent }
+     // { path : 'search-location', component : SearchLocationComponent }
+    // ],
+      { path : 'view-sublocation', component : ViewUISublocationComponent } // ,
+      // { path : 'search-location', component : SearchLocationComponent },
+      // { path : 'search-result', component : SearchResultComponent }
     ]
+  },
+  /*
+  {
+    path : 'list-locations', canActivate: [AuthGuard], component : LocationListComponent
+  },*/
+  {
+    path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
+  },
+  {
+    path : 'view-sublocation/:encrypted', canActivate: [AuthGuard], component : ViewSublocationComponent
   }
 ];
 
