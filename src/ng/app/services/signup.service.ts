@@ -18,7 +18,7 @@ export class SignupService {
 
 	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-    	this.options = { headers : this.headers };
+    this.options = { headers : this.headers };
 		this.baseUrl = (platformLocation as any).location.origin;
 	}
 
@@ -67,6 +67,15 @@ export class SignupService {
         }, err => {
           callBack( JSON.parse(err.error) );
         });
+  }
+
+  resendEmailVerification(userID, callBack){
+    this.http.post(this.baseUrl+"/register/resend-email-verification", { user_id : userID })
+    .subscribe(res => {
+      callBack(res);
+    }, err => {
+      callBack( JSON.parse(err.error) );
+    });
   }
 
 }

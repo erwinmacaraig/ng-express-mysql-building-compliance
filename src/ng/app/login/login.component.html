@@ -12,6 +12,7 @@
 
 						<input type="text" name="username" placeholder="Username or Email" id="username" ngModel /><br>
 						<input type="password" name="password" placeholder="Password" id="password" ngModel /><br>
+						<p *ngIf="showVerification" class="error-message">Please verify your account</p>
 						<p *ngIf="showInvalid" class="error-message">Invalid username/email or password</p>
 						<p *ngIf="showErrorOccured" class="error-message">{{errorOccuredMessage}}</p>
 						<p *ngIf="showSuccess" class="success-message"> Success! </p>

@@ -19,13 +19,32 @@ export class UserService {
 	}
 
 	uploadProfilePicture(formData, callBack){
-
 		this.http.post(this.baseUrl+"/users/upload-profile-picture", formData)
 		.subscribe(res => {
 			callBack(res);
 		}, err => {
-			callBack( err );
+			callBack( JSON.parse(err.error) );
 		});
 	}
+
+	checkUserVerified(userId, callBack){
+		this.http.post(this.baseUrl+"/users/check-is-verified", { user_id : userId })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	getRoles(userId, callBack){
+		this.http.get(this.baseUrl+"/users/get-roles/"+userId)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+
 
 }

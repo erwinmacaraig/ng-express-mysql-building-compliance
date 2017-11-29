@@ -8,6 +8,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 declare var $: any;
 import { SignupService } from '../services/signup.service';
+import { UserService } from '../services/users';
 import { AccountsDataProviderService } from '../services/accounts';
 import { AuthService } from '../services/auth.service';
 import { Countries } from '../models/country.model';
@@ -19,13 +20,14 @@ import { Timezone } from '../models/timezone';
   selector: 'app-setup.company',
   templateUrl: './setup.company.component.html',
   styleUrls: ['./setup.company.component.css'],
-  providers: [SignupService, AccountsDataProviderService]
+  providers: [SignupService, AccountsDataProviderService, UserService]
 })
 export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 	private headers: Object;
 	private options: Object;
 	private baseUrl: String;
+	public userData: Object;
 
 	modalLoader = {
 	    showLoader : true,
@@ -52,6 +54,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	selectedAccountData = {};
 	companyIsSelected = false;
 	selectedAccountId = 0;
+	showCreateButton = true;
 
 	defaultCountry = 'AU';
 	defaultTimeZone = 'AEST';
@@ -63,32 +66,28 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		private signupService:SignupService,
 		private auth: AuthService,
 		private accounts : AccountsDataProviderService,
-		public zone: NgZone
+		public zone: NgZone,
+		private userService: UserService
 	) {
+		this.userData = this.auth.getUserData();
 		this.headers = new Headers({ 'Content-type' : 'application/json' });
 		this.options = { headers : this.headers };
 		this.baseUrl = (platformLocation as any).location.origin;
-		this.subscribeAndCheckUserHasAccountToSetup(router);
+		if(this.userData['accountId'] > 0){
+			router.navigate(['/dashboard']);
+		}
+
+		let hasFrpTrp = false;
+		for(let i in this.userData['roles']){
+			if(this.userData['roles'][i]['role_id'] == 1 || this.userData['roles'][i]['role_id'] == 2){
+				hasFrpTrp = true;
+			}
+		}
+		if(!hasFrpTrp){
+			this.showCreateButton = false;
+		}
 	}
 
-	subscribeAndCheckUserHasAccountToSetup(router) {
-		router.events.subscribe((val) => {
-			if(val instanceof NavigationEnd) {
-				let userData = this.auth.getUserData();
-				if( userData ){
-					if( userData.roleId == '1' || userData.roleId == '2' ) {
-						if(userData.accountId > 0){
-							router.navigate(['/']);
-						}
-					}else{
-						router.navigate(['/']);
-					}
-				}else{
-					router.navigate(['/']);
-				}
-			}
-	    });
-	}
 
 	ngOnInit() {
 
@@ -100,7 +99,6 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 		this.selCountry = this.defaultCountry;
 		this.selTimezone = this.defaultTimeZone;
-
 
 		this.inputCompanyName = Rx.Observable.fromEvent(document.querySelector('input[name="company_name"]'), 'input');
 
@@ -124,6 +122,14 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 			});
 
 		$('input[name="company_name"]').focus();
+
+		this.userService.checkUserVerified( this.userData['userId'] , (response) => {
+			if(response.status === false && response.message == 'not verified'){
+				localStorage.setItem('showemailverification', 'true');
+			}else{
+				// this.showCreateButton = true;
+			}
+		});
 	}
 
 	ngAfterViewInit(){
@@ -150,21 +156,20 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.modalLoader.showLoader = false;
 		this.modalLoader.showMessage = true;
 		if(res.status) {
-			this.modalLoader.message = 'Success! Redirecting to your dashboard';
+			/*this.modalLoader.message = 'Success!';
 			this.modalLoader.iconColor = 'green';
-			this.modalLoader.icon = 'check';
+			this.modalLoader.icon = 'check';*/
+			this.elems['modalLoader'].modal('close');
 
 			let userdata = this.auth.getUserData();
 			userdata.accountId = res.data.account.account_id;
-      this.auth.setUserData(userdata);
-      //
-      setTimeout(() => {
-       // location.replace(location.origin + '/dashboard/company-information'); }, 500);
-         this.elems['modalLoader'].modal('close');
-         this.router.navigate(['/dashboard/company-information']);
-        }, 2000);
+      		this.auth.setUserData(userdata);
+	      	setTimeout(() => {
+	       	// location.replace(location.origin + '/dashboard/company-information'); }, 500);
+	        	this.router.navigate(['/dashboard/company-information']);
+	        }, 100);
 
-      } else {
+      	} else {
 			this.modalLoader.iconColor = 'red';
 			this.modalLoader.icon = 'clear';
 			for(let i in res.data){
@@ -289,16 +294,28 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.searchedAccounts = [];
 		this.searchElem['searchContainer'].removeClass('active');
 		$('[readonly]').removeAttr('readonly');
-		$('[for="company_name"]').html('Company Name Here');
+		$('[for="company_name"] .text').html('Company Name Here');
 		f.reset();
 		this.newCompany = true;
 		this.companyIsSelected = true;
-  }
+  	}
 
-  public refreshMarkers() {
-    event.preventDefault();
-    this.companyIsSelected = false;
-    this.newCompany = false;
-  }
+  	cancelClick(f: NgForm){
+  		if(this.newCompany || this.companyIsSelected){
+  			this.companyIsSelected = false;
+			this.newCompany = false;
+  			$('[readonly]').attr('readonly', true);
+  			$('[for="company_name"] .text').html('Search Company Name Here');
+  			f.reset();
+  		}else{
+  			this.router.navigate(['login']);
+  		}
+  	}
+
+	public refreshMarkers() {
+		event.preventDefault();
+		this.companyIsSelected = false;
+		this.newCompany = false;
+	}
 
 }

@@ -1,0 +1,84 @@
+.location-tabs{
+	border-bottom: 1px solid #ddd;
+}
+
+.location-tabs ul{
+	margin: 0px;
+}
+
+.location-tabs ul li{
+	display: inline-block;
+    margin-right: 45px;
+    height: 50px;
+    line-height: 50px;
+}
+
+.location-tabs ul li a{
+	font-size: 16px;
+	color: #262626;
+}
+
+.location-tabs ul li.active a,
+.location-tabs ul li:hover a{
+	color: #2196F3;
+}
+
+.location-tabs ul li.active{
+	border-bottom: 1px solid #2196F3;
+}
+
+.search-container {
+    margin: 20px 0px 0px 0px;
+    background-color: #f4f4f4;
+    padding: 20px;
+    position: relative;
+    height: 75px;
+    border-radius: 10px;
+}
+
+.input-container {
+    position: absolute;
+    top: 15%;
+    left: 1%;
+    width: 83%;
+}
+
+.button-container {
+    position: absolute;
+    top: 20%;
+    right: 2%;
+}
+
+.input-container input{
+	border-bottom: 0px;
+	margin-bottom: 0px;
+}
+
+.input-container input::-webkit-input-placeholder {
+	color: #262626 !important;
+}
+
+.input-container input:-moz-placeholder { /* Firefox 18- */
+	color: #262626 !important;
+}
+
+.input-container input::-moz-placeholder {  /* Firefox 19+ */
+	color: #262626 !important;
+}
+
+.input-container input:-ms-input-placeholder {
+	color: #262626 !important;
+}
+
+.btn-cancel{
+	margin-right: 10px;
+}
+
+.submit-button-container{
+	margin-top: 40px;
+}
+
+.title{
+    font-size: 28px;
+    color: #39a1ff;
+}

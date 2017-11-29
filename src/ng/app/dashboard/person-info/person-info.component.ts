@@ -10,6 +10,9 @@ import { PlatformLocation } from '@angular/common';
 import { AccountTypes } from '../../models/account.types';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
+import { MessageService } from '../../services/messaging.service';
+import { AuthService } from '../../services/auth.service';
+
 declare var $: any;
 
 @Component({
@@ -30,7 +33,9 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
   constructor(private route: ActivatedRoute,
               private http: HttpClient,
               private platformLocation: PlatformLocation,
-              private preloaderService : DashboardPreloaderService) {
+              private preloaderService: DashboardPreloaderService,
+              private messageService: MessageService,
+              private authService: AuthService) {
 
     this.baseUrl = (platformLocation as any).location.origin;
     this.preloaderService.show();
@@ -76,19 +81,29 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
       this.person.email = f.value.email;
       this.person.phone_number = f.value.phone_number;
       this.person.occupation = f.value.occupation;
+      this.messageService.sendMessage({
+        'person_first_name': f.value.first_name,
+        'person_last_name': f.value.last_name
+      });
+
+      // update local storage
+      const userData = this.authService.getUserData();
+      userData['name'] = f.value.first_name + ' ' + f.value.last_name;
+      this.authService.setUserData(userData);
+
       this.onResetForm();
-      alert('Update Successful');
+      
       }, (err: HttpErrorResponse) => {
           const parsedErrorMessage = JSON.parse(err.error);
           if (err.error instanceof Error) {
-            alert('There was a problem with the udpate query.');
+            // alert('There was a problem with the udpate query.');
           } else {
               if(parsedErrorMessage.message == 'Email taken'){
                 this.emailTaken = true;
               }else if(parsedErrorMessage.message == 'Domain blacklisted'){
                 this.emailBlackListed = true;
               }else{
-                alert(`Backend returned code ${err.status}, body was: ${err.error}`);
+                // alert(`Backend returned code ${err.status}, body was: ${err.error}`);
                 console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
               }
           }
@@ -99,7 +114,7 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
   onResetForm() {
     this.editCtrl = false;
     this.personInfoForm.resetForm(this.person);
-
+    this.emailBlackListed = false;
   }
 
   ngAfterViewInit() {

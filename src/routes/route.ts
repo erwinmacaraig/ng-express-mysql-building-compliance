@@ -34,8 +34,14 @@ import { NextFunction, Request, Response } from 'express';
        res.render(view, options);
    }
 
-   public capitalizeFirstLetter(string) {
-       return string.charAt(0).toUpperCase() + string.slice(1);
+   public capitalizeFirstLetter(string: String) {
+     let result = '',
+       splitted = string.split(' ');
+
+       splitted.forEach( function(s){ 
+         result += s.charAt(0).toUpperCase() + s.slice(1) + ' ';
+       } );
+      return result;
    }
 
     /**

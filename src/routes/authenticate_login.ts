@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
+import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { Files } from '../models/files.model';
 import Validator from 'better-validator';
 import * as md5 from 'md5';
@@ -43,53 +44,88 @@ public validate(req: Request, res: Response, next: NextFunction) {
     const user = new User();
     user.loadByCredentials(req.body.username, req.body.password).then(
         () => {
-            const token = jwt.sign(
-            {
-                user_db_token: user.get('token'),
-                user: user.get('user_id')
-            }, 
-            process.env.KEY, { expiresIn: signedInExpiry }
-            );
 
-            let response = {
-                status: 'Authentication Success',
-                message: 'Successfully logged in',
-                token: token,
-                data: {
-                    userId: user.get('user_id'),
-                    name: user.get('first_name')+' '+user.get('last_name'),
-                    email: user.get('email'),
-                    accountId: user.get('account_id'),
-                    roleId : 3,
-                    profilePic : ''
+            if(user.get('verified') == 1){
+                const token = jwt.sign(
+                {
+                    user_db_token: user.get('token'),
+                    user: user.get('user_id')
+                }, 
+                process.env.KEY, { expiresIn: signedInExpiry }
+                );
+
+                let response = {
+                    status: 'Authentication Success',
+                    message: 'Successfully logged in',
+                    token: token,
+                    data: {
+                        userId: user.get('user_id'),
+                        name: user.get('first_name')+' '+user.get('last_name'),
+                        email: user.get('email'),
+                        accountId: user.get('account_id'),
+                        roles : {},
+                        profilePic : ''
+                    }
+                },
+
+                getWardenRoles = (callBack) =>{
+                    new UserEmRoleRelation().getEmRolesByUserId(user.get('user_id')).then(
+                        (userRoles) => {
+                            for(let i in userRoles){
+                                response.data['roles'][ Object.keys( response.data['roles'] ).length ] = {
+                                    role_id : userRoles[i]['em_roles_id'],
+                                    role_name : userRoles[i]['role_name'],
+                                    is_warden_role : userRoles[i]['is_warden_role']
+                                };
+                            }
+                            callBack();
+                        },
+                        (a) => {
+                            callBack();
+                        }
+                    );
+                },
+
+                fileCB = (fileData) => {
+                    if(fileData !== false){
+                        response.data.profilePic = fileData[0].url;
+                    }
+
+                    new UserRoleRelation().getByUserId(user.get('user_id')).then(
+                        (userRoles) => {
+                            getWardenRoles(() => {
+                                for(let i in userRoles){
+                                    response.data['roles'][ Object.keys( response.data['roles'] ).length ] = userRoles[i];
+                                }
+                                res.status(200).send(response);
+                            });
+                        },
+                        (m) => {
+                            getWardenRoles(() => {
+                                res.status(200).send(response);
+                            });
+                        }
+                    );
                 }
-            },
 
-            fileCB = (fileData) => {
-                if(fileData !== false){
-                    response.data.profilePic = fileData[0].url;
-                }
-
-                new UserRoleRelation().getByUserId(user.get('user_id')).then(
-                    (userRole) => {
-                        response.data.roleId = userRole['role_id'];
-                        return res.status(200).send(response);
+                let fileModel = new Files();
+                fileModel.getByUserIdAndType(user.get('user_id'), 'profile').then(
+                    (fileData) => {
+                        fileCB(fileData);
                     },
-                    (m) => {
-                        return res.status(200).send(response);
+                    () => {
+                        fileCB(false);
                     }
                 );
+            }else{
+                res.status(401).send({
+                    verified : false,
+                    status: 'Authentication Failed',
+                    message: 'Please verify your account',
+                    data: ['username', 'password']
+                });
             }
 
-            let fileModel = new Files();
-            fileModel.getByUserIdAndType(user.get('user_id'), 'profile').then(
-                (fileData) => {
-                    fileCB(fileData);
-                },
-                () => {
-                    fileCB(false);
-                }
-            );
         }, (e) => {
             res.status(401).send({
                 status: 'Authentication Failed',

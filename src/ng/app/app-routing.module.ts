@@ -25,6 +25,20 @@ import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
 
+//Locations Template Components
+import { LocationsUiComponent } from './locations-ui/locations.ui';
+import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
+import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
+import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.next.location/add.multiple.next.location';
+import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
+import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
+import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
+import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+
+import { SetupLocationComponent } from './location/setup-location/setup-location.component';
+import { LocationListComponent } from './location/list/location.list';
+
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -38,7 +52,7 @@ const appRoutes: Routes = [
   { path: 'no-email', component: NoemailComponent },
   { path: 'success-valiadation', component: EmailSuccessVerficiationComponent },
   { path: 'forgot-password', component: ForgotpasswordComponent},
-  { path: 'change-user-password/:user_id/:token', component: ChangepasswordComponent},
+  { path: 'change-user-password/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
   { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent, children: [
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
@@ -46,11 +60,29 @@ const appRoutes: Routes = [
       { path : 'send-invite', component : SendInviteComponent }
     ]
   },
-  { path : 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
+  //
+  { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },
+  { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
   { path: 'validation-criteria', canActivate: [AuthGuard], component: AccountValidationCriteriaComponent },
-  { path: '**', redirectTo: '/dashboard'}
+  /*{ path: '**', redirectTo: '/dashboard'},*/
+  { 
+    path: 'locations-ui', component : LocationsUiComponent,
+    children : [
+      { path : 'add-single-location', component : AddSingleLocationComponent },
+      { path : 'add-multiple-location', component : AddMultipleLocationComponent },
+      { path : 'add-multiple-next-location', component : AddMultipleNextLocationComponent },
+      { path : 'view-location-list', component : ViewLocationListComponent },
+      { path : 'view-location-single', component : ViewLocationSingleComponent },
+      { path : 'view-location-multiple', component : ViewLocationMultipleComponent },
+      { path : 'view-sublocation', component : ViewSublocationComponent },
+      { path : 'search-location', component : SearchLocationComponent }
+    ]
+  },
+  {
+    path : 'list-locations', canActivate: [AuthGuard], component : LocationListComponent
+  }
 ];
 
 @NgModule({

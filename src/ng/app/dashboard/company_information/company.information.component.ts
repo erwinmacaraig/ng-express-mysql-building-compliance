@@ -5,6 +5,7 @@ import { ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { AccountsDataProviderService } from '../../services/accounts';
+import { UserService } from '../../services/users';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { Router, NavigationEnd  } from '@angular/router';
@@ -13,6 +14,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
 import { AccountTypes } from '../../models/account.types';
+import { Countries } from '../../models/country.model';
 
 declare var $: any;
 
@@ -20,24 +22,27 @@ declare var $: any;
 	selector: 'app-company-information',
 	templateUrl: './company.information.component.html',
 	styleUrls: ['./company.information.component.css'],
-	providers: [AccountsDataProviderService, AuthService, LocationsService, DashboardPreloaderService]
+	providers: [AccountsDataProviderService, AuthService, LocationsService, DashboardPreloaderService, UserService]
 })
 
 export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	@ViewChild('formWardenInvitationCode') formWardenInvitationCode: NgForm; 
 	private UserType = new AccountTypes().getTypes();
+	private countries = new Countries().getCountries();
 	private baseUrl: String;
 	private options;
 	private headers;
 
-	public userRoleID: Number = 0;
 	public userData: Object;
 
 	private accountData: Object;
 	private locationData: Object;
 
 	companyName: String = "";
+	companyAddress: String = "";
+	companyRoles: String = "";
 	locations = [];
+	userRoles = [];
 
 	arrUserType = Object.keys(this.UserType).map((key) => { return this.UserType[key]; });
 
@@ -52,7 +57,8 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 		private accountDataProviderService: AccountsDataProviderService,
 		private locationsService: LocationsService,
 		private preloaderService : DashboardPreloaderService,
-		private router : Router
+		private router : Router,
+		private userService: UserService
 	) {
 		this.baseUrl = (platformLocation as any).location.origin;
 		this.options = { headers : this.headers };
@@ -62,7 +68,6 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 	}
 
 	ngOnInit() {
-		this.userRoleID = this.userData['roleId'];
 		this.getAccountInfoAndDisplay();
 	}
 
@@ -109,8 +114,34 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 			if(Object.keys(resAccount.data).length > 0){
 				this.companyName = resAccount.data['account_name'];
 				this.accountData = resAccount.data;
-				this.selectAccount = resAccount.data['account_id'];
 
+				this.companyAddress = resAccount.data['building_number'];
+				this.companyAddress += ' '+resAccount.data['billing_unit'];
+				this.companyAddress += ' '+resAccount.data['billing_street'];
+				this.companyAddress += ' '+resAccount.data['billing_city'];
+				this.companyAddress += ', '+resAccount.data['billing_state'];
+				for(let i in this.countries){
+					if(this.countries[i]['abbr'] == resAccount.data['billing_country']){
+						this.companyAddress += ', '+this.countries[i]['name'];
+					}
+				}
+				
+
+				this.userService.getRoles(this.userData['userId'], (responseRoles) => {
+					for(let i in responseRoles.data){
+						this.userRoles.push( responseRoles.data[i]['role_name'] );
+					}
+
+					this.companyRoles = this.userRoles.join(', ');
+
+					this.preloaderService.hide();
+					$('select').material_select();
+					this.startEvents();
+				});
+				
+
+				/*
+				this.selectAccount = resAccount.data['account_id'];
 				this.locationsService.getUsersLocationByIdAndAccountId(
 					{
 						account_id : resAccount.data['account_id'],
@@ -141,25 +172,19 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 				this.accountDataProviderService.getRelatedAccounts(resAccount.data['account_id'], (responseAccounts) => {
 					this.selectAccounts = responseAccounts.data;
 				});
+				*/
 
 			}else{
-				if(this.userData['roleId'] == 1 || this.userData['roleId'] == 2){
+				/*if(this.userData['roleId'] == 1 || this.userData['roleId'] == 2){
 					this.router.navigate(['/setup-company']);
-				}
+				}*/
 				this.preloaderService.hide();
 			}
 		});
 	}
 
 	startEvents(){
-		if(Object.keys(this.accountData).length > 0){
-			$('#inpCompanyName').val( this.accountData['account_name'] ).trigger('focusin');
-			for(let i in this.arrUserType){
-				if(this.userRoleID == this.arrUserType[i]['role_id']){
-					$('#inpRoleName').val(this.arrUserType[i]['description']).trigger('focusin');
-				}
-			}
-		}
+		$('input').trigger('focusin');
 	}
 
 }
