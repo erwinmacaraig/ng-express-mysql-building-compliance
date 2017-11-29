@@ -418,11 +418,29 @@ const md5 = require('md5');
     const location = new Location(locationId);
     let sublocations;
     await location.load();
-    sublocations = await location.getSublocations();
-    return {
-      'location': location.getDBData(),
-      'sublocation': sublocations
-    };
+
+    // determine if this location is a parent location
+    let parentId = <number>location.get('parent_id');
+    console.log(`parent id is ${parentId}`);
+    if (parentId === -1) {
+      sublocations = await location.getSublocations();
+      console.log(sublocations);
+      return {
+        'locationType': 'parent',
+        'location': location.getDBData(),
+        'sublocation': sublocations
+      };
+    } else {
+      const parentLocation = new Location(parentId);
+      await parentLocation.load();
+      sublocations = await parentLocation.getSublocations();
+      return {
+        'locationType': 'sublocation',
+        'location': location.getDBData(),
+        'parent': parentLocation.getDBData(),
+        'othersub': sublocations
+      }
+    }
 
     /*
       response = { status : false, message : '', data : [] },

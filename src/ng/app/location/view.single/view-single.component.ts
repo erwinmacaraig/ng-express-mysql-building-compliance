@@ -16,7 +16,7 @@ declare var $: any;
   selector: 'app-view-locations-single',
   templateUrl: './view-single.component.html',
   styleUrls: ['./view-single.component.css'],
-  providers: [DashboardPreloaderService, EncryptDecryptService, LocationsService, DonutService]
+  providers: [DashboardPreloaderService, EncryptDecryptService, DonutService]
 })
 export class ViewSingleLocation implements OnInit, OnDestroy {
 
@@ -54,6 +54,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy {
 			this.encryptedID = params['encrypted'];
 			this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
 			this.locationService.getById(this.locationID, (response) => {
+        console.log(response);
         /*
           {
           'location': location.getDBData(),

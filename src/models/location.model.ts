@@ -328,7 +328,9 @@ export class Location extends BaseClass {
                               FROM
                                 locations
                               WHERE
-                                parent_id = ?`;
+                                parent_id = ?
+                              AND
+                                parent_id <> -1`;
       const connection = db.createConnection(dbconfig);
       connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
         if (err) {
@@ -338,10 +340,11 @@ export class Location extends BaseClass {
         if (results.length) {
           sublocations['sublocations'] = results;
           sublocations['total'] = results.length;
-          resolve(sublocations);
         } else {
-          reject(`No sublocation for this parent location ${this.ID()}`);
+          sublocations['sublocations'] = {};
+          sublocations['total'] = 0;
         }
+        resolve(sublocations);
       });
 
       connection.end();

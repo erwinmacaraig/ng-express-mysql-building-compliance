@@ -80,8 +80,8 @@ const appRoutes: Routes = [
   { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
     { path: 'search', component: SearchLocationComponent },
-    { path: 'view/:encrypted', component : ViewSingleLocation },
-    { path: 'view-sublocation/:encrypted'}
+    { path: 'view/:encrypted', component: ViewSingleLocation },
+    { path: 'view-sublocation/:encrypted', component: SublocationComponent }
 
   ]},
   {
@@ -96,7 +96,7 @@ const appRoutes: Routes = [
       // { path : 'view-sublocation', component : ViewSublocationComponent },
      // { path : 'search-location', component : SearchLocationComponent }
     // ],
-      { path : 'view-sublocation', component : ViewUISublocationComponent } // ,
+     // { path : 'view-sublocation', component : ViewUISublocationComponent } // ,
       // { path : 'search-location', component : SearchLocationComponent },
       // { path : 'search-result', component : SearchResultComponent }
     ]
