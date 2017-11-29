@@ -1,3 +1,4 @@
+import { EncryptDecrypt } from './../ng/app/services/encrypt.decrypt';
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
@@ -219,5 +220,44 @@ export class Account extends BaseClass {
             resolve(this.write());
         });
     }
+
+  public getLocationsOnAccount(): Promise<Object[]> {
+    return new Promise((resolve, reject) => {
+      const sql_get_locations = `SELECT
+        locations.parent_id,
+        locations.name,
+        locations.location_id,
+        locations.google_photo_url
+      FROM
+        locations
+      INNER JOIN
+        location_account_relation LCR
+      ON
+        locations.location_id = LCR.location_id
+      WHERE
+        locations.parent_id = -1
+      AND
+        LCR.account_id = ?
+      ORDER BY
+        locations.location_id`;
+
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_get_locations, [this.ID()], (err, results, fields) => {
+        if (err) {
+          console.log(err);
+          console.log(sql_get_locations);
+          throw new Error('Internal problem. There was a problem processing your query');
+        }
+        if (results.length) {
+          resolve(results);
+        } else {
+          reject(`No location found for this account ${this.ID()}`);
+        }
+      });
+      connection.end();
+    });
+  }
+
+
 
 }
