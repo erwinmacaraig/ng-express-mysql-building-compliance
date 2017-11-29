@@ -15,9 +15,12 @@ declare var $: any;
   providers: [EncryptDecryptService]
 })
 export class SublocationComponent implements OnInit, OnDestroy {
-  public encryptedID;
-  public locationID;
-  public parentLocation;
+  userData: Object;
+  encryptedID;
+  locationID = 0;
+  locationData = {};
+  public parentData = {};
+
   constructor(private locationService: LocationsService,
     private encryptDecrypt: EncryptDecryptService,
     private route: ActivatedRoute) {}
@@ -30,8 +33,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
       this.locationService.getById(this.locationID, (response) => {
         console.log(response);
         if (response.locationType === 'sublocation') {
-          this.parentLocation = response.parent;
-
+          this.parentData = response.parent;
+          this.locationData = response.location;
         }
 
       });
