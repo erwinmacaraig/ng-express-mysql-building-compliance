@@ -318,7 +318,7 @@ export class Location extends BaseClass {
     });
   }
 
-  public getSublocations() {
+  public getSublocations(user_id?: number, role_id?: number) {
     return new Promise((resolve, reject) => {
       const sublocations = {};
       const sql_get_subloc = `SELECT

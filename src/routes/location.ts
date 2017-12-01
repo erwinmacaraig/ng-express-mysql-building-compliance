@@ -79,18 +79,6 @@ const md5 = require('md5');
         });
       });
 
-       	router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-	        new LocationRoute().createLocation(req, res).then((data) => {
-	            return res.status(200).send({
-	              message: 'Create location successful'
-	            });
-	        }).catch((e) => {
-	            return res.status(400).send({
-	              message: 'Bad Request'
-	            });
-	        });
-      	});
-
 		router.post('/location/search-db-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 			new LocationRoute().searchDbForLocation(req, res);
 		});
@@ -185,7 +173,21 @@ const md5 = require('md5');
         });
         console.log(dbLocationData);
         const location = new Location();
+        let locationAccntUser;
         let locationAccnt;
+         // we need to check the role(s)
+         const userRoleRel = new UserRoleRelation();
+         const roles = await userRoleRel.getByUserId(req.user.user_id);
+
+        // what is the highest rank role
+        let r = 100;
+        for (let i = 0; i < roles.length; i++) {
+          if(r > parseInt(roles[i]['role_id'], 10)) {
+            r = roles[i]['role_id'];
+          }
+        }
+
+        const roles_text = ['', 'Manager', 'Tenant'];
         // create main location
         try {
           await location.create(dbLocationData);
@@ -193,23 +195,19 @@ const md5 = require('md5');
           locationAccnt = new LocationAccountRelation();
           await locationAccnt.create({
             'location_id': parent_id,
-            'account_id': req.user.account_id
+            'account_id': req.user.account_id,
+            'responsibility': roles_text[r]
           });
           dbLocationData['parent_id'] = parent_id;
+          locationAccntUser = new LocationAccountUser();
+          await locationAccntUser.create({
+            location_id: parent_id,
+            account_id: req.user.account_id,
+            user_id: req.user.user_id,
+            role_id: r
+          });
         } catch (er) {
           throw new Error('Unable to create main location');
-        }
-
-        // we need to check the role(s)
-        const userRoleRel = new UserRoleRelation();
-        const roles = await userRoleRel.getByUserId(req.user.user_id);
-        // what is the highest rank role
-        let r = 100;
-        console.log(roles);
-        for (let role in roles) {
-          if(r > role['role_id']) {
-            r = role['role_id'];
-          }
         }
 
         // create sublevels (sublocations)
@@ -220,9 +218,18 @@ const md5 = require('md5');
 
             dbLocationData['name'] = req.body.sublevels[i];
             await subLevel.create(dbLocationData);
+
             await locationAccnt.create({
               'location_id': subLevel.ID(),
-              'account_id': req.user.account_id
+              'account_id': req.user.account_id,
+              'responsibility': roles_text[r]
+            });
+            locationAccntUser = new LocationAccountUser();
+            await locationAccntUser.create({
+              location_id:  subLevel.ID(),
+              account_id: req.user.account_id,
+              user_id: req.user.user_id,
+              role_id: 2
             });
 
           } catch (e) {
@@ -234,7 +241,7 @@ const md5 = require('md5');
         };
       }
 
-	private mergeObjects(obj1,obj2){
+  private mergeObjects(obj1,obj2){
 	    var obj3 = {};
 	    for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
 	    for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
@@ -667,7 +674,22 @@ const md5 = require('md5');
     const account = new Account(accountId);
     let locationsOnAccount = [];
     let location;
-    locationsOnAccount = await account.getLocationsOnAccount();
+
+    // we need to check the role(s)
+    const userRoleRel = new UserRoleRelation();
+    const roles = await userRoleRel.getByUserId(req.user.user_id);
+
+    // what is the highest rank role
+    let r = 100;
+    console.log(roles);
+
+    for (let i = 0; i < roles.length; i++) {
+      if(r > parseInt(roles[i]['role_id'], 10)) {
+        r = roles[i]['role_id'];
+      }
+    }
+
+    locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id);
     for (let loc of locationsOnAccount) {
       location = new Location(loc.location_id);
       loc['sublocations'] = await location.getSublocations();

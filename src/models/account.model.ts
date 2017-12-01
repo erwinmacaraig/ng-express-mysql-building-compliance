@@ -220,9 +220,18 @@ export class Account extends BaseClass {
         });
     }
 
-  public getLocationsOnAccount(): Promise<Object[]> {
+  public getLocationsOnAccount(user_id?: number, role_id?: number): Promise<Object[]> {
     return new Promise((resolve, reject) => {
-      const sql_get_locations = `SELECT
+      let user_filter = '';
+      let role_filter = '';
+      if (role_id) {
+        role_filter = `AND LAU.role_id = ${role_id}`;
+      }
+      if (user_id) {
+        user_filter = `AND LAU.user_id = ${user_id}`;
+      }
+      // portfolio
+      let sql_get_locations = `SELECT
         locations.parent_id,
         locations.name,
         locations.formatted_address,
@@ -241,8 +250,32 @@ export class Account extends BaseClass {
       ORDER BY
         locations.location_id`;
 
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_get_locations, [this.ID()], (err, results, fields) => {
+
+     sql_get_locations = `SELECT
+      locations.parent_id,
+      locations.name,
+      locations.formatted_address,
+      locations.location_id,
+      locations.google_photo_url
+    FROM
+      locations
+    INNER JOIN
+      location_account_user LAU
+    ON
+      locations.location_id = LAU.location_id
+    WHERE
+      locations.parent_id = -1
+    AND
+      LAU.account_id = ?
+    ${user_filter} ${role_filter}
+    ORDER BY
+      locations.location_id;`
+      ;
+
+    console.log(sql_get_locations);
+    const val = [this.ID()];
+    const connection = db.createConnection(dbconfig);
+    connection.query(sql_get_locations, val, (err, results, fields) => {
         if (err) {
           console.log(err);
           console.log(sql_get_locations);
