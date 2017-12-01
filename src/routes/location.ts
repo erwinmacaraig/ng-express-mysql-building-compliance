@@ -414,9 +414,10 @@ const md5 = require('md5');
 	}
 
   public async getLocation(req: AuthRequest, res: Response) {
-    let locationId = req.params.location_id;
+    let locationId = <number>req.params.location_id;
     const location = new Location(locationId);
     let sublocations;
+    let othersub = [];
     await location.load();
 
     // determine if this location is a parent location
@@ -434,11 +435,20 @@ const md5 = require('md5');
       const parentLocation = new Location(parentId);
       await parentLocation.load();
       sublocations = await parentLocation.getSublocations();
+      for(let i = 0; i < sublocations['sublocations'].length; i++) {
+        console.log(sublocations['sublocations'][i].location_id + ' === ' + locationId);
+        let index_loc_id = <number>sublocations['sublocations'][i].location_id;
+        console.log(index_loc_id == locationId);
+        if ( index_loc_id != locationId) {
+          othersub.push(sublocations['sublocations'][i]);
+        }
+      }
       return {
         'locationType': 'sublocation',
         'location': location.getDBData(),
         'parent': parentLocation.getDBData(),
-        'othersub': sublocations
+        'othersub': othersub,
+        'fullsub': sublocations
       }
     }
 
