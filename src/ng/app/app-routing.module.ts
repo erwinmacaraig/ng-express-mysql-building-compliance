@@ -25,7 +25,7 @@ import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
 
-//Locations Template Components
+// Locations Template Components
 import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
 import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
@@ -33,11 +33,21 @@ import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.ne
 import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
 import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
-import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
-import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+// import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+import { SearchLocationComponent } from './location/search/search-location.component';
+
+// import { SetupLocationComponent } from './location/setup-location/setup-location.component';
+import { LocationListComponent } from './location/list/location-list.component';
+import { ViewSingleLocation } from './location/view.single/view-single.component';
+import { LocationComponent } from './location/location.component';
+import { SublocationComponent } from './location/sublocation/sublocation.component';
+// import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+// import { SearchResultComponent } from './locations-ui/search.result/search.result';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
-import { LocationListComponent } from './location/list/location.list';
+// import { LocationListComponent } from './location/list/location.list';
+// import { ViewSingleLocation } from './location/view.single/view.single';
+// import { ViewSublocationComponent } from './location/view.sublocation/view.sublocation';
 
 
 const appRoutes: Routes = [
@@ -65,9 +75,16 @@ const appRoutes: Routes = [
   { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
-  { path: 'validation-criteria', canActivate: [AuthGuard], component: AccountValidationCriteriaComponent },
+  { path: 'validation-criteria', canActivate: [AuthGuard], component: AccountValidationCriteriaComponent },
   /*{ path: '**', redirectTo: '/dashboard'},*/
-  { 
+  { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
+    { path: 'list', component: LocationListComponent },
+    { path: 'search', component: SearchLocationComponent },
+    { path: 'view/:encrypted', component: ViewSingleLocation },
+    { path: 'view-sublocation/:encrypted', component: SublocationComponent }
+
+  ]},
+  {
     path: 'locations-ui', component : LocationsUiComponent,
     children : [
       { path : 'add-single-location', component : AddSingleLocationComponent },
@@ -76,13 +93,22 @@ const appRoutes: Routes = [
       { path : 'view-location-list', component : ViewLocationListComponent },
       { path : 'view-location-single', component : ViewLocationSingleComponent },
       { path : 'view-location-multiple', component : ViewLocationMultipleComponent },
-      { path : 'view-sublocation', component : ViewSublocationComponent },
-      { path : 'search-location', component : SearchLocationComponent }
+      // { path : 'view-sublocation', component : ViewSublocationComponent },
+     // { path : 'search-location', component : SearchLocationComponent }
+    // ],
+     // { path : 'view-sublocation', component : ViewUISublocationComponent } // ,
+      // { path : 'search-location', component : SearchLocationComponent },
+      // { path : 'search-result', component : SearchResultComponent }
     ]
   },
+  /*
   {
     path : 'list-locations', canActivate: [AuthGuard], component : LocationListComponent
+  },*/
+  {
+    path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
   }
+
 ];
 
 @NgModule({

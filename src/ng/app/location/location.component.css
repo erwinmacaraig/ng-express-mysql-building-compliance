@@ -1,0 +1,76 @@
+.location-navigation{
+	border-bottom: 1px solid #ddd;
+}
+
+.location-navigation ul{
+	margin: 0px;
+}
+
+.location-navigation ul li{
+	display: inline-block;
+	padding: 20px;
+	cursor: pointer;
+	height: 70px;
+	margin-right: -4px;
+}
+
+.location-navigation ul li img{
+	vertical-align: middle;
+	display: none;
+}
+
+.location-navigation ul li img.default{
+	display: inline-block;
+}
+
+.location-navigation ul li:hover img.default{
+	display: none;
+}
+
+.location-navigation ul li:hover img.hover,
+.location-navigation ul li.active img.hover{
+	display: inline-block;
+}
+
+.location-navigation ul li.active img.default{
+	display: none;
+}
+
+.location-navigation ul li.green-theme:hover,
+.location-navigation ul li.green-theme:hover a{
+	background-color: #36bb9b;
+	color: #fff;
+}
+
+.location-navigation ul li.green-theme{
+	border-bottom: 1px solid #36bb9b;
+}
+
+.location-navigation ul li.green-theme:hover{
+	border-bottom: 2px solid #36bb9b;
+}
+
+.location-navigation ul li.pink-theme:hover,
+.location-navigation ul li.pink-theme:hover a{
+	background-color: #dc4453;
+	color: #fff;
+}
+
+.location-navigation ul li.pink-theme:hover{
+	border-bottom: 2px solid #dc4453;
+}
+
+.location-navigation ul li.active.pink-theme,
+.location-navigation ul li.active.pink-theme a{
+	background-color: #dc4453;
+	color: #fff;
+}
+
+.location-navigation ul li.pink-theme{
+	border-bottom: 1px solid #dc4453;
+}
+
+.location-navigation a{
+	color: #545454;
+	font-size: 16px;
+}

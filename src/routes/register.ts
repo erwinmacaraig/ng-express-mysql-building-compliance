@@ -389,7 +389,7 @@ const md5 = require('md5');
 		let tokenModel = new Token(),
 			userModel = user,
 			userData = user.getDBData(),
-			locationAccountUser = new LocationAccountUser(),
+			locationAccountUser,
 			userEMrole = new UserEmRoleRelation(),
 			responseData = {
 				status : true,
@@ -440,6 +440,7 @@ const md5 = require('md5');
 		let updateInviCode = (code, success, error) => {
 			code.load().then(
 				() => {
+					locationAccountUser = new LocationAccountUser();
 					locationAccountUser.create({
 						'location_id' : code.get('location_id'),
 						'account_id': code.get('account_id'),
@@ -452,12 +453,7 @@ const md5 = require('md5');
 									success();
 								},
 								() => {
-									res.status(400).send({
-										message: 'Internal Server Error. Cannot Update token code status',
-										data: {
-											code: code.get('code')
-										}
-									});
+									error();
 								}
 							);
 						},
@@ -492,43 +488,66 @@ const md5 = require('md5');
 		};
 
 		if(reqBody.role_id == 1 || reqBody.role_id == 2){
+
 			userRole.create({
 				'user_id' : user.ID(),
 				'role_id' : reqBody.role_id
 			}).then(
 				() => {
 					if('invi_code_id' in reqBody) {
-						// update invitation code to be used
 						const code = new InvitationCode(reqBody.invi_code_id);
-						userTokenAndLoginCall((resp) => {
-							responseData.status = true;
-							responseData.data.token = resp.token;
-							responseData.data.user = resp.data;
-							responseData.message = 'Successfully created user';
-							
-							updateInviCode(
-								code,
-								() => {
-									res.statusCode = 200;
-									responseData.data['code'] = code.get('code');
-									res.send(responseData);
-								},
-								() => {
-									responseData.message = 'Location-Account-User saved unsuccessfully';
-									res.send(responseData);
-								}
-							);
-						});
+						code.load().then(
+							() => {
+								let c = code.getDBData();
+								let multipleCodes = new InvitationCode();
+								multipleCodes.getManyInvitationByCode( c['code'] ).then(
+									(codes) => {
+										for(let i in codes){
+											const codeUpdate = new InvitationCode(codes[i].invitation_code_id);
+											let updateSuccess;
+
+											if( parseInt(i) == (Object.keys(codes).length - 1) ){
+												updateSuccess = () => {
+													userTokenAndLoginCall((resp) => {
+														responseData.data.token = resp.token;
+														responseData.data.user = resp.data;
+														responseData.message = 'Successfully created user';
+														res.statusCode = 200;
+														responseData.data['code'] = code.get('code');
+														res.send(responseData);
+													});
+												}
+											}
+
+											updateInviCode(
+												codeUpdate,
+												() => {
+													if(typeof updateSuccess == 'function'){
+														updateSuccess();
+													}
+												},
+												() => {
+													responseData.message = 'Location-Account-User saved unsuccessfully';
+													res.send(responseData);
+												}
+											);
+
+
+										}
+									}
+								);
+							}
+						);
 					}else if('email' in reqBody){
 						emailCallAndUserTokenLogin();
 					}
-					
 				},
 				() => {
 					res.statusCode = 500;
 					res.send('Unable to save user role');
 				}
 			);
+
 		}else{
 			userEMrole.create({
 				user_id : user.ID(), em_role_id : 9

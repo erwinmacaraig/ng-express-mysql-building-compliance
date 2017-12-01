@@ -31,6 +31,10 @@ table tr td a:hover{
 	line-height: 13px !important;
 }
 
+.right-top-container .btn.grey{
+  margin-right: 10px;
+}
+
 .right-top-container a.text-grey{
 	color: #333;
 	padding: 0px 10px;
@@ -42,23 +46,25 @@ table tr td a:hover{
 }
 
 .details-container {
-	margin-bottom: 40px;
+	margin-bottom: 70px;
 	position: relative;
 	height: 130px;
 }
 
 .details-container .image-wrapper{
 	position: absolute;
-    left: 0px;
+  left: 0px;
 }
 
 .details-container .details{
 	position: absolute;
-    left: 160px;
+  left: 160px;
 }
 
 .details-container .details h5{
-	color: #2196F3 !important;
+	color: #39a1ff !important;
+  margin-top: 0px;
+  font-size: 24px;
 }
 
 .details-container .inline-block{
@@ -70,12 +76,33 @@ table tr td a:hover{
 	height: 140px;
 	background-color: #c9c9c9;
 	display: table-cell; 
-    text-align: center; 
-    vertical-align: middle;
+  text-align: center; 
+  vertical-align: middle;
 }
 
 .details-container .image{
 	overflow: hidden;
+}
+
+.details .archived {
+  margin: 20px 0px;
+  font-size: 14px;
+}
+
+.details .archived img{
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.details .archived a,
+.details .edit-details a{
+  color: #3d3d3d;
+}
+
+.details .archived a:hover,
+.details .edit-details a:hover{
+  color: #039be5;
+  text-decoration: underline;
 }
 
 .image-container .image img{

@@ -1,0 +1,71 @@
+  <div class="row">
+		<div class="col m12">
+			<h5 class="text">{{accountData.account_name}}</h5>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col m12 s12">
+
+			<table class="highlight striped bordered">
+				<thead>
+					<tr class="grey darken-4 white-text">
+						<th>Location Name</th>
+						<th>No. of Locations</th>
+						<th>Level Occupied</th>
+						<th>FRP</th>
+						<th>Compliance</th>
+						<th>Wardens from Tenancy</th>
+						<th>Mobility Impaired</th>
+						<th>Activity</th>
+						<th>Manage</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngIf="locations.length == 0">
+						<td colspan="9" class="center-align">
+							<h6>No records yet</h6>
+						</td>
+					</tr>
+					<tr *ngFor="let location of locations; let i = index">
+						<td class="location-name">
+              <img src="assets/images/locations/single_location_icon.png">
+              <!-- <img src="{{locations[i].google_photo_url}}" width="150" height="150" *ngIf="locations[i].google_photo_url"> -->
+              <span *ngIf="locations[i].name.length > 0"> {{locations[i].name}}</span>
+              <span *ngIf="locations[i].name.length == 0"> {{locations[i].formatted_address}} </span>
+						</td>
+						<td>
+							1
+						</td>
+						<td>
+							{{location['sublocations']['total']}}
+						</td>
+						<td>
+                <span>Unknown</span>
+              <!--
+							<span *ngIf="location.frp.length == 0">Unknown</span>
+              <span *ngFor="let frp of location.frp"> {{frp.first_name}} {{frp.last_name}} </span>
+              -->
+						</td>
+						<td class="compliance">
+							<div class="percent">0%</div>
+							<div class="bar"></div>
+						</td>
+						<td>
+							0
+						</td>
+						<td>
+							0
+						</td>
+						<td>
+							<a href="javascript:void(0)">View History</a>
+						</td>
+						<td>
+							<a [routerLink]="['/location', 'view', location['location_id']]">Details</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+    </div>
+	</div>
+<div preloader></div>
+

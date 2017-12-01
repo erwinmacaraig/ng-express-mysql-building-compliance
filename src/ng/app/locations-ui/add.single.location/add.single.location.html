@@ -10,13 +10,22 @@
 </div>
 
 <div class="location-form-container">
-	
+
 	<div class="row">
 		<div class="col s12 m12">
 			<div class="form-search-container">
 				<form>
-					<div class="input-container input-field">
-						<input type="text" placeholder="e.g Street Name, City Name">
+					<div class="input-container">
+						<div class="input-field">
+							<input
+							placeholder="e.g Street Name, City Name"
+							autocorrect="off"
+							autocapitalize="off"
+							spellcheck="off"
+							type="text"
+							#search
+							[formControl]="searchControl">
+						</div>
 					</div>
 					<div class="search-icon-container">
 						<img src="assets/images/locations/search_icon.png" alt="">
@@ -30,43 +39,47 @@
 	</div>
 
 	<div class="row row-form">
-		
+
 		<form>
-			
+
 			<div class="col l5 m5 s12">
-				
+
 				<div class="row">
 					<div class="col l12 m12 s12">
 						<h4 class="title">Address</h4>
 					</div>
 					<div class="col l6 m12 s12">
 						<div class="input-field">
-							<input id="inpBuildingNumber" type="text" placeholder="Building number here">
-							<label for="inpBuildingNumber"> Building Number </label>
+							<input id="streetNumber" type="text" [formControl]="street_number" readonly>
+							<label for="streetNumber" [ngClass]="{'active': street_number.value}">Street Number</label>
 						</div>
 						<div class="input-field">
-							<input id="inpCity" type="text" placeholder="City here">
-							<label for="inpCity"> City </label>
+							<input id="city" type="text" [formControl]="city" readonly>
+							<label for="city" [ngClass]="{'active': city.value}">City</label>
 						</div>
 						<div class="input-field">
-							<input id="inpStreetNumber" type="text" placeholder="Street number here">
-							<label for="inpStreetNumber"> Street Number </label>
+							<input id="country" type="text" [formControl]="country" readonly>
+							<label for="country" [ngClass]="{'active': country.value}">Country</label>
 						</div>
 					</div>
 					<div class="col l6 m12 s12">
 						<div class="input-field">
-							<input id="inpStreetName" type="text" placeholder="Street name here">
-							<label for="inpStreetName"> Street Name </label>
+							<input id="streetName" type="text" [formControl]="street_name" readonly>
+							<label for="streetName" [ngClass]="{'active':street_name.value}">Street Name</label>
 						</div>
 						<div class="input-field">
-							<input id="inpState" type="text" placeholder="State here">
-							<label for="inpState"> State </label>
+							<input id="state" type="text" [formControl]="state" readonly>
+							<label for="state" [ngClass]="{'active':state.value}">State</label>
+						</div>
+						<div class="input-field">
+							<input id="zipCode" type="text" [formControl]="postal_code" readonly>
+							<label for="zipCode" [ngClass]="{'active': postal_code.value}">Zip Code</label>
 						</div>
 					</div>
 				</div>
 
 			</div>
-			
+
 			<div class="col l1 m1 hide-on-small-only ">
 				<div class="horizontal-line"></div>
 			</div>
@@ -78,20 +91,18 @@
 					</div>
 					<div class="col l12 m12 s12">
 						<div class="input-field">
-							<input id="inpLocationName" type="text" placeholder="Location name here">
-							<label for="inpLocationName"> Location Name </label>
+							<input id="inpLocationName" type="text" placeholder="Location name here" [formControl]="locationName">
+							<label for="inpLocationName" class="active"> Location Name  <span class="required" *ngIf="locationName.invalid"> *Required field.</span></label>
 						</div>
 						<div class="input-field">
-							<input id="inpLevels" type="number" placeholder="Number of levels here" min="1" value="1">
-							<label for="inpLevels"> How many levels are you occupying? </label>
+							<input id="inpLevels" type="number" placeholder="Number of levels here" min="1" value="1" [formControl]="numLevels">
+							<label for="inpLevels" class="active"> How many levels are you occupying? </label>
 						</div>
-						<div class="input-field">
-							<input id="inpStreetNumber" type="text" placeholder="Street number here">
-							<label for="inpStreetNumber"> Street Number </label>
-						</div>
+
 					</div>
 					<div class="col l12 m12 s12 submit-button-container">
-						<button class="btn waves-effect waves-light orange btn-submit modal-trigger" href="#modalSetLevels">Submit</button>
+						<button class="btn waves-effect waves-light orange btn-submit modal-trigger" href="#modalSetLevels"
+						[disabled]="locationName.invalid" (click)="updateLevels()">Submit</button>
 					</div>
 				</div>
 			</div>
@@ -100,23 +111,36 @@
 
 	</div>
 
-	
+
 
 
 </div>
 
 <!-- Modal Structure -->
 <div id="modalSetLevels" class="modal">
-	<div class="modal-content">
-		<h4 class="header">Building Name</h4>
-		<p class="tagline">Please set 1 level name</p>
-		<div class="input-field">
-			<input type="text" placeholder="e.q Level 1">
-		</div>
+	<form [formGroup]="levelGroup">
+		<div class="modal-content" formArrayName="levels">
+			<h4 class="header">{{ locationName.value }}</h4>
+			<p class="tagline">Please set the level names</p>
 
-		<div class="buttons-field">
-			<button class="btn waves-effect waves-light lighten-1 grey btn-cancel modal-close">Cancel</button>
-			<button class="btn waves-effect waves-light orange btn-submit">Submit</button>
+			<!--
+			<div class="input-field" *ngFor="let number of numbers">
+			<input type="text" placeholder="e.q Level {{number + 1}}" [formControlName]="number">
+			</div>
+			-->
+
+			<div *ngFor="let levelControl of levelGroup.get('levels').controls; let i = index">
+				<span class="required" *ngIf="!levelGroup.get('levels').controls[i].valid"> *Required field.</span>
+				<div class="input-field" >
+					<input type="text" placeholder="e.q Level {{i + 1}}" [formControlName]="i" required>
+				</div>
+			</div>
+
+
+			<div class="buttons-field">
+				<button class="btn waves-effect waves-light lighten-1 grey btn-cancel modal-close">Cancel</button>
+				<button class="btn waves-effect waves-light orange btn-submit" [disabled]="levelGroup.invalid" (click)="createLocation()">Submit</button>
+			</div>
 		</div>
-	</div>
+	</form>
 </div>

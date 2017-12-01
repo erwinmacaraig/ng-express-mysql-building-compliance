@@ -9,35 +9,70 @@ import 'rxjs/add/operator/catch';
 export class LocationsService {
 
 	private headers: Object;
-  	private options: Object;
+	private options: Object;
 	private baseUrl: String;
+	public dataStore: Object;
 
-	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
-		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-    	this.options = { headers : this.headers };
-		this.baseUrl = (platformLocation as any).location.origin;
-	}
+  constructor(private http: HttpClient, platformLocation: PlatformLocation) {
+    this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
+    this.options = { headers : this.headers };
+    this.baseUrl = (platformLocation as any).location.origin;
+  }
 
-	getByAccountId(accountid, callBack){
-		this.http.get(this.baseUrl+"/location/get-by-account/"+accountid, this.options)
-	      .subscribe(res => {
-	        callBack(res);
-	      }, err => {
-	        callBack( JSON.parse(err.error) );
-	      });
-	}
+  getById(id, callBack) {
+    this.http.get(this.baseUrl + '/location/get/' + id, this.options)
+      .subscribe(res => {
+        callBack(res);
+      }, err => {
+        callBack( JSON.parse(err.error) );
+      });
+  }
 
-	getUsersLocationByIdAndAccountId(opt, callBack){
+  getByAccountId(accountid, callBack) {
+    this.http.get(this.baseUrl + '/location/get-by-account/' + accountid, this.options)
+      .subscribe(res => {
+        callBack(res);
+      }, err => {
+        callBack( JSON.parse(err.error) );
+      });
+  }
+
+	getLocationsByUserIdAndAccountId(opt, callBack){
 		this.http.get(this.baseUrl+"/location/get-by-userid-accountid/"+opt.user_id+'/'+opt.account_id, this.options)
-	      .subscribe(res => {
-	        callBack(res);
-	      }, err => {
-	        callBack( JSON.parse(err.error) );
-	      });
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
 	}
 
-	getLocationsForListing(accountid, callBack){
-		this.http.get(this.baseUrl+"/location/get-for-listing/"+accountid, this.options)
+	searchForLocation(location: Object): Observable<any> {
+		return this.http.post<any>(this.baseUrl + '/location/search-db-location/', location);
+	}
+
+  locationDataStore(location) {
+    this.dataStore = location;
+  }
+  getDataStore(key?: string) {
+    console.log(this.dataStore);
+    console.log(typeof this.dataStore);
+    if (this.dataStore instanceof Array) {
+      console.log(typeof this.dataStore);
+      return this.dataStore;
+    }
+    if ( this.dataStore && (key in this.dataStore)) {
+      return this.dataStore[key];
+    }
+    return '';
+  }
+
+	createSingleLocation(location: Object): Observable<any> {
+		return this.http.post<any>(this.baseUrl + '/location/create/', location);
+	}
+
+
+	getParentLocationsForListing(accountid, callBack){
+		this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/', this.options)
 	      .subscribe(res => {
 	        callBack(res);
 	      }, err => {

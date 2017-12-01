@@ -12,6 +12,7 @@ import { AuthService } from './services/auth.service';
 import { AuthGuard } from './services/auth-guard.service';
 import { SignupService } from './services/signup.service';
 import { MessageService } from './services/messaging.service';
+import { LocationsService } from './services/locations';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
@@ -35,8 +36,8 @@ import { CustomHttpDataProviderComponent } from './custom-http-data-provider/cus
 import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
-// todo: integrate 
-//Locations Template Components
+// todo: integrate
+// Locations Template Components
 import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
 import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
@@ -44,15 +45,22 @@ import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.ne
 import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
 import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
-import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
-import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+
+// import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+import { SearchLocationComponent } from './location/search/search-location.component';
+
+
+import { SublocationComponent } from './location/sublocation/sublocation.component';
+// import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+// import { SearchResultComponent } from './locations-ui/search.result/search.result';
 
 // todo: move to locations module
 import { ReactiveFormsModule } from '@angular/forms';
 import { AgmCoreModule } from '@agm/core';
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
-import { LocationListComponent } from './location/list/location.list';
-
+import { LocationListComponent } from './location/list/location-list.component';
+import { ViewSingleLocation } from './location/view.single/view-single.component';
+import { LocationComponent } from './location/location.component';
 
 @NgModule({
   declarations: [
@@ -83,12 +91,14 @@ import { LocationListComponent } from './location/list/location.list';
     ViewLocationListComponent,
     ViewLocationSingleComponent,
     ViewLocationMultipleComponent,
-    ViewSublocationComponent,
+    SublocationComponent,
     SearchLocationComponent,
-
     // todo: move to location module
     SetupLocationComponent,
-    LocationListComponent
+    LocationListComponent,
+    ViewSingleLocation,
+    LocationComponent
+    // ViewSublocationComponent
   ],
   imports: [
     BrowserModule,
@@ -105,6 +115,7 @@ import { LocationListComponent } from './location/list/location.list';
   providers: [
     AuthService,
     AuthGuard,
+    LocationsService,
     MessageService,
     SignupService,
     {

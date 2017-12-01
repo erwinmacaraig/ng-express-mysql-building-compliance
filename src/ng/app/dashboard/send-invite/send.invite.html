@@ -1,5 +1,5 @@
 <div class="row">
-	<div class="col s12 m8 l4" *ngIf="showSendInvite">
+	<div class="col s12 m8 l4" *ngIf="showSendInvitationField">
 		<h5 class="title">Send Invite</h5>
 		<br>
 		<form class="invitation-form"  #formIniviteUser="ngForm" (ngSubmit)="submitInviteUsers(formIniviteUser, $event)" >
@@ -27,8 +27,13 @@
 				</label>
 			</div>
 
+			<div class="input-field">
+				<input id="inpAccountName" type="text" name="account_name" readonly ngModel value="{{accountData.account_name}}" >
+				<label for="inpAccountName" > Account </label>
+			</div>
+
 			<div class="select-field">
-				<select id="accountType" [(ngModel)]="selectAccountType" required  name="user_role_id">
+				<select id="selectUserRole" required ngModel  name="user_role_id">
 					<option value="0" disabled selected>User role</option>
 					<option *ngFor="let utype of selectUserType" value="{{ utype.role_id }}">{{ utype.description }}</option>
 				</select>
@@ -37,46 +42,38 @@
 
 			<div div-from *ngIf=" (formToShow == 'frp-to-frp') ">
 				<div class="select-field">
-					<select name="account" required [(ngModel)]="selectAccount">
-						<option *ngFor="let account of selectAccounts" [selected]="parentLocations.length == 1"  value="{{ account.account_id }}" >{{ account.account_name }}</option>
-					</select>
-					<label class="select-label">Select Account </label>
-				</div>
-
-				<div class="select-field">
 					<select required  name="location" ngModel [(ngModel)]="selectLocation">
+						<option value="0" selected disabled>Select location...</option>
 						<option *ngFor="let location of parentLocations" value="{{ location.location_id }}">{{ location.name }}</option>
 					</select>
 					<label class="select-label">Select Location </label>
 				</div>
-
+				
 				<div class="input-field ">
-					<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
 					<button  class="btn grey lighten-1 waves-effect waves-light" (click)="cancelForm()" >Cancel</button>
+					<button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;">Invite User</button>
 				</div>
 			</div>
 
 			<div div-from *ngIf=" (formToShow == 'frp-to-trp') ">
 				<div class="select-field">
-					<select name="account" required [(ngModel)]="selectAccount">
-						<option *ngFor="let account of selectAccounts" value="{{ account.account_id }}" >{{ account.account_name }}</option>
-					</select>
-					<label class="select-label">Select Account </label>
-				</div>
-
-				<div class="select-field">
-					<select required  name="location" ngModel [(ngModel)]="selectLocation">
-						<option *ngFor="let location of parentLocations" value="{{ location.location_id }}"> {{ location.name }} </option>
+					<select required  name="location" ngModel [(ngModel)]="selectLocation"  >
+						<option value="0" selected disabled>Select location...</option>
+						<option *ngFor="let location of parentLocations" value="{{ location.location_id }}">{{ location.name }}</option>
 					</select>
 					<label class="select-label">Select Location </label>
 				</div>
 
-				<div class="checkbox-field" *ngIf="showSpecificLevel">
+				<div class="checkbox-field" *ngIf="childLocations.length > 0">
 					<label class="select-label">Select Specific Level(s) </label>
 					<p *ngFor="let location of childLocations">
 				      <input  type="checkbox" ngModel  class="filled-in grey" name="sublocation-{{ location.location_id }}" value="{{ location.location_id }}" id="filled-in-box-{{ location.location_id }}" />
 				      <label for="filled-in-box-{{ location.location_id }}">{{ location.name }}</label>
 				    </p>
+				</div>
+
+				<div *ngIf="childLocations.length == 0" style="height: 50px;">
+					<h6 class="red-text">No specific level for the selected location</h6>
 				</div>
 
 				<div class="input-field ">
@@ -87,20 +84,18 @@
 
 			<div div-from *ngIf=" (formToShow == 'frp-to-warden') ">
 				<div class="select-field">
-					<select name="account" [(ngModel)]="selectAccount" required>
-						<option *ngFor="let account of selectAccounts" value="{{ account.account_id }}" >{{ account.account_name }}</option>
-					</select>
-					<label class="select-label">Select Account </label>
-				</div>
-
-				<div class="select-field">
 					<select required  name="location" ngModel [(ngModel)]="selectLocation">
+						<option value="0" selected disabled>Select location...</option>
 						<option *ngFor="let location of parentLocations" value="{{ location.location_id }}">{{ location.name }}</option>
 					</select>
 					<label class="select-label">Select Location </label>
 				</div>
 
-				<div class="select-field" *ngIf="showSpecificLevel" >
+				<div *ngIf="childLocations.length == 0" style="height: 50px;">
+					<h6 class="red-text">No specific level for the selected location</h6>
+				</div>
+
+				<div class="select-field" *ngIf="childLocations.length > 0" >
 					<select required name="sublocation" [(ngModel)]="selectSubLocation">
 						<option *ngFor="let location of childLocations" value="{{ location.location_id }}">{{ location.name }}</option>
 					</select>
@@ -113,15 +108,21 @@
 				</div>
 			</div>
 
+
 			<div div-from *ngIf=" (formToShow == 'trp-to-trp') ">
 				<div class="select-field">
 					<select required name="location" ngModel [(ngModel)]="selectLocation">
+						<option value="0" selected disabled>Select location...</option>
 						<option *ngFor="let location of parentLocations" value="{{ location.location_id }}">{{ location.name }}</option>
 					</select>
 					<label class="select-label">Select Location </label>
 				</div>
 
-				<div class="checkbox-field" *ngIf="showSpecificLevel">
+				<div *ngIf="childLocations.length == 0" style="height: 50px;">
+					<h6 class="red-text">No specific level for the selected location</h6>
+				</div>
+
+				<div class="checkbox-field" *ngIf="childLocations.length > 0">
 					<label class="select-label">Select Specific Level(s) </label>
 					<p *ngFor="let location of childLocations">
 				      <input  type="checkbox" ngModel  class="filled-in grey" name="sublocation-{{ location.location_id }}" value="{{ location.location_id }}" id="filled-in-box-{{ location.location_id }}" />
@@ -138,12 +139,17 @@
 			<div div-from *ngIf=" (formToShow == 'trp-to-warden') ">
 				<div class="select-field">
 					<select required name="location" ngModel [(ngModel)]="selectLocation">
+						<option value="0" selected disabled>Select location...</option>
 						<option *ngFor="let location of parentLocations" value="{{ location.location_id }}">{{ location.name }}</option>
 					</select>
 					<label class="select-label">Select Location </label>
 				</div>
 
-				<div class="select-field" *ngIf="showSpecificLevel" >
+				<div *ngIf="childLocations.length == 0" style="height: 50px;">
+					<h6 class="red-text">No specific level for the selected location</h6>
+				</div>
+
+				<div class="select-field" *ngIf="childLocations.length > 0" >
 					<select required  name="sublocation" [(ngModel)]="selectSubLocation">
 						<option *ngFor="let location of childLocations" value="{{ location.location_id }}">{{ location.name }}</option>
 					</select>
