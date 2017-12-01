@@ -225,6 +225,7 @@ export class Account extends BaseClass {
       const sql_get_locations = `SELECT
         locations.parent_id,
         locations.name,
+        locations.formatted_address,
         locations.location_id,
         locations.google_photo_url
       FROM

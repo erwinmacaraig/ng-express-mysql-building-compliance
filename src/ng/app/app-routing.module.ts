@@ -40,7 +40,7 @@ import { SearchLocationComponent } from './location/search/search-location.compo
 import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
-import { ViewUISublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+import { SublocationComponent } from './location/sublocation/sublocation.component';
 // import { SearchLocationComponent } from './locations-ui/search.location/search.location';
 // import { SearchResultComponent } from './locations-ui/search.result/search.result';
 
@@ -80,7 +80,9 @@ const appRoutes: Routes = [
   { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
     { path: 'search', component: SearchLocationComponent },
-    { path: 'view/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation }
+    { path: 'view/:encrypted', component: ViewSingleLocation },
+    { path: 'view-sublocation/:encrypted', component: SublocationComponent }
+
   ]},
   {
     path: 'locations-ui', component : LocationsUiComponent,
@@ -94,7 +96,7 @@ const appRoutes: Routes = [
       // { path : 'view-sublocation', component : ViewSublocationComponent },
      // { path : 'search-location', component : SearchLocationComponent }
     // ],
-      { path : 'view-sublocation', component : ViewUISublocationComponent } // ,
+     // { path : 'view-sublocation', component : ViewUISublocationComponent } // ,
       // { path : 'search-location', component : SearchLocationComponent },
       // { path : 'search-result', component : SearchResultComponent }
     ]

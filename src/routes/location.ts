@@ -143,7 +143,7 @@ const md5 = require('md5');
         Object.keys(req.body).forEach((key) => {
           switch (key) {
             case 'location_name':
-              dbLocationData['name'] = req.body.location_name;
+              dbLocationData['name'] = req.body.location_name ? req.body.location_name: '';
             break;
             case 'unit':
               dbLocationData['unit'] = req.body.unit;
@@ -414,15 +414,43 @@ const md5 = require('md5');
 	}
 
   public async getLocation(req: AuthRequest, res: Response) {
-    let locationId = req.params.location_id;
+    let locationId = <number>req.params.location_id;
     const location = new Location(locationId);
     let sublocations;
+    let othersub = [];
     await location.load();
-    sublocations = await location.getSublocations();
-    return {
-      'location': location.getDBData(),
-      'sublocation': sublocations
-    };
+
+    // determine if this location is a parent location
+    let parentId = <number>location.get('parent_id');
+    console.log(`parent id is ${parentId}`);
+    if (parentId === -1) {
+      sublocations = await location.getSublocations();
+      console.log(sublocations);
+      return {
+        'locationType': 'parent',
+        'location': location.getDBData(),
+        'sublocation': sublocations
+      };
+    } else {
+      const parentLocation = new Location(parentId);
+      await parentLocation.load();
+      sublocations = await parentLocation.getSublocations();
+      for(let i = 0; i < sublocations['sublocations'].length; i++) {
+        console.log(sublocations['sublocations'][i].location_id + ' === ' + locationId);
+        let index_loc_id = <number>sublocations['sublocations'][i].location_id;
+        console.log(index_loc_id == locationId);
+        if ( index_loc_id != locationId) {
+          othersub.push(sublocations['sublocations'][i]);
+        }
+      }
+      return {
+        'locationType': 'sublocation',
+        'location': location.getDBData(),
+        'parent': parentLocation.getDBData(),
+        'othersub': othersub,
+        'fullsub': sublocations
+      }
+    }
 
     /*
       response = { status : false, message : '', data : [] },

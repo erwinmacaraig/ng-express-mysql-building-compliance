@@ -16,7 +16,7 @@ declare var $: any;
   selector: 'app-view-locations-single',
   templateUrl: './view-single.component.html',
   styleUrls: ['./view-single.component.css'],
-  providers: [DashboardPreloaderService, EncryptDecryptService, LocationsService, DonutService]
+  providers: [DashboardPreloaderService, EncryptDecryptService, DonutService]
 })
 export class ViewSingleLocation implements OnInit, OnDestroy {
 
@@ -54,25 +54,11 @@ export class ViewSingleLocation implements OnInit, OnDestroy {
 			this.encryptedID = params['encrypted'];
 			this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
 			this.locationService.getById(this.locationID, (response) => {
-        /*
-          {
-          'location': location.getDBData(),
-          'sublocation': sublocations
-          }
-          */
-        // this.locationData = response;
-
+        console.log(response);
         this.locationData.name = response.location.name;
         this.locationData.formatted_address = response.location.formatted_address;
         this.locationData.sublocations = response.sublocation.sublocations;
         this.locationData.google_photo_url = response.location.google_photo_url || undefined;
-
-        /*
-				for(let i in this.locationData['sublocations']){
-          this.locationData['sublocations'][i]['location_id'] =
-          this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
-        }
-        */
         for (let i = 0; i < this.locationData['sublocations'].length; i++) {
           this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
         }
