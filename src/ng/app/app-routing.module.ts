@@ -36,18 +36,14 @@ import { ViewLocationMultipleComponent } from './locations-ui/view.location.mult
 // import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
 import { SearchLocationComponent } from './location/search/search-location.component';
 
-// import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
 import { SublocationComponent } from './location/sublocation/sublocation.component';
-// import { SearchLocationComponent } from './locations-ui/search.location/search.location';
-// import { SearchResultComponent } from './locations-ui/search.result/search.result';
+import { VerificationComponent } from './location/verification/verification.component';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
-// import { LocationListComponent } from './location/list/location.list';
-// import { ViewSingleLocation } from './location/view.single/view.single';
-// import { ViewSublocationComponent } from './location/view.sublocation/view.sublocation';
+
 
 
 const appRoutes: Routes = [
@@ -81,7 +77,8 @@ const appRoutes: Routes = [
     { path: 'list', component: LocationListComponent },
     { path: 'search', component: SearchLocationComponent },
     { path: 'view/:encrypted', component: ViewSingleLocation },
-    { path: 'view-sublocation/:encrypted', component: SublocationComponent }
+    { path: 'view-sublocation/:encrypted', component: SublocationComponent },
+    { path: 'verify-access', component: VerificationComponent }
 
   ]},
   {
@@ -92,19 +89,9 @@ const appRoutes: Routes = [
       { path : 'add-multiple-next-location', component : AddMultipleNextLocationComponent },
       { path : 'view-location-list', component : ViewLocationListComponent },
       { path : 'view-location-single', component : ViewLocationSingleComponent },
-      { path : 'view-location-multiple', component : ViewLocationMultipleComponent },
-      // { path : 'view-sublocation', component : ViewSublocationComponent },
-     // { path : 'search-location', component : SearchLocationComponent }
-    // ],
-     // { path : 'view-sublocation', component : ViewUISublocationComponent } // ,
-      // { path : 'search-location', component : SearchLocationComponent },
-      // { path : 'search-result', component : SearchResultComponent }
+      { path : 'view-location-multiple', component : ViewLocationMultipleComponent }
     ]
   },
-  /*
-  {
-    path : 'list-locations', canActivate: [AuthGuard], component : LocationListComponent
-  },*/
   {
     path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
   }

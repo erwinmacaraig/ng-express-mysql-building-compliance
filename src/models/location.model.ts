@@ -318,7 +318,7 @@ export class Location extends BaseClass {
     });
   }
 
-  public getSublocations() {
+  public getSublocations(user_id?: number, role_id?: number) {
     return new Promise((resolve, reject) => {
       const sublocations = {};
       const sql_get_subloc = `SELECT
@@ -328,9 +328,7 @@ export class Location extends BaseClass {
                               FROM
                                 locations
                               WHERE
-                                parent_id = ?
-                              AND
-                                parent_id <> -1`;
+                                parent_id = ?`;
       const connection = db.createConnection(dbconfig);
       connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
         if (err) {

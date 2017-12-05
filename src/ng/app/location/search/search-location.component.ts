@@ -1,3 +1,4 @@
+import { AuthService } from '../../services/auth.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { ElementRef, NgZone, ViewChild } from '@angular/core';
@@ -6,11 +7,14 @@ import { } from 'googlemaps';
 import { MapsAPILoader } from '@agm/core';
 import { LocationsService } from '../../services/locations';
 import { Router } from '@angular/router';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+
 declare var $: any;
 @Component({
   selector: 'app-search-location',
   templateUrl: './search-location.component.html',
-  styleUrls: ['./search-location.component.css']
+  styleUrls: ['./search-location.component.css'],
+  providers: [EncryptDecryptService]
 })
 export class SearchLocationComponent implements OnInit, OnDestroy {
   public latitude: number;
@@ -25,6 +29,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public photoUrl;
   public searchResultLocation = {};
   public formattedAddress: string;
+  public accountId;
 
   public readonlyCtrl = false;
 
@@ -54,7 +59,9 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   constructor(private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
     private locationService: LocationsService,
-    private router: Router) {
+    private router: Router,
+    private authService: AuthService,
+    public encryptDecrypt: EncryptDecryptService) {
 
     this.street_number = new FormControl();
     this.street_name = new FormControl();
@@ -67,6 +74,8 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     this.numLevels.setValue(1);
     this.numbers = Array(1).fill(0).map((x, i) => i);
     this.levels = new FormArray([]);
+
+    this.accountId = this.encryptDecrypt.encrypt(this.authService.userDataItem('accountId')).toString();
  }
 
   ngOnInit() {
@@ -158,7 +167,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
       dismissible : false
     });
 
-    if(localStorage.getItem('nolocations') === 'true'){
+    if (localStorage.getItem('nolocations') === 'true') {
       $('.location-navigation .view-location').hide();
     }
 
@@ -170,6 +179,10 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     $('.search-container').addClass('active');
     this.locationService.searchForLocation(location).subscribe((data) => {
       if (data.count) {
+        for (let i = 0; i < data.result.length; i++) {
+          data.result[i]['location_id'] = this.encryptDecrypt.encrypt(data.result[i]['location_id']).toString();
+          console.log(data.result[i]['location_id']);
+        }
         this.results = data.result;
         // this.locationService.locationDataStore(data.result);
         // this.router.navigate(['/location', 'search-result']);

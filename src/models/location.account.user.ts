@@ -155,7 +155,7 @@ export class LocationAccountUser extends BaseClass {
                 FROM location_account_user lau
                   INNER JOIN users u
                     ON lau.user_id = u.user_id
-                  INNER JOIN user_role_relation ur 
+                  INNER JOIN user_role_relation ur
                     ON ur.user_id = u.user_id
                   WHERE lau.account_id = ? AND u.archived = 0 GROUP BY u.user_id`;
             const param = [accountId];
@@ -198,13 +198,14 @@ export class LocationAccountUser extends BaseClass {
 
     public dbUpdate() {
         return new Promise((resolve, reject) => {
-          const sql_update = `UPDATE location_account_user SET 
-                location_id = ?, account_id = ?, user_id = ?
+          const sql_update = `UPDATE location_account_user SET
+                location_id = ?, account_id = ?, user_id = ?, role_id = ?
                 WHERE location_account_user_id = ? `;
           const param = [
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
+            ('role_id' in this.dbData) ? this.dbData['role_id'] : 0,
             this.ID() ? this.ID() : 0
           ];
           const connection = db.createConnection(dbconfig);
@@ -224,13 +225,15 @@ export class LocationAccountUser extends BaseClass {
           const sql_insert = `INSERT INTO location_account_user (
             location_id,
             account_id,
-            user_id
-          ) VALUES (?,?,?)
+            user_id,
+            role_id
+          ) VALUES (?,?,?,?)
           `;
           const param = [
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
-            ('user_id' in this.dbData) ? this.dbData['user_id'] : 0
+            ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
+            ('role_id' in this.dbData) ? this.dbData['role_id'] : 0
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_insert, param, (err, results, fields) => {

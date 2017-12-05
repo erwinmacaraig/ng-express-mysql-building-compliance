@@ -34,7 +34,7 @@ export class UserRoleRelation extends BaseClass {
     });
   }
 
-  public getByUserId(user_id) {
+  public getByUserId(user_id): Promise<any> {
     return new Promise((resolve, reject) => {
       const sql_load = 'SELECT * FROM user_role_relation WHERE user_id = ?';
       const param = [user_id];
@@ -46,8 +46,8 @@ export class UserRoleRelation extends BaseClass {
         if (!results.length) {
           reject('No role found');
         } else {
-          this.dbData = results;
-          resolve(this.dbData);
+          // this.dbData = results;
+          resolve(results);
         }
       });
       connection.end();

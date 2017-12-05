@@ -52,9 +52,11 @@ export class User extends BaseClass {
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, uid, (error, results, fields) => {
                 if (error) {
+                    console.log(`${error} and sql is ${sql_load}`);
                     throw error;
                 }
                 if (!results.length) {
+                    console.log('User not found');
                     reject('No user found');
                 } else {
                     this.dbData = results[0];

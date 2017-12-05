@@ -58,7 +58,7 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
     this.location = this.route.snapshot.queryParams['location_id'] || 0;
     this.account = this.route.snapshot.queryParams['account_id'] || 0;
 
-    this.frpListSubscription = this.dataProvider.listAllFRP(this.account).subscribe((data) => {
+    this.frpListSubscription = this.dataProvider.listAllFRP(this.location, this.account).subscribe((data) => {
       this.frpList = data['data'];
     }, (err: HttpErrorResponse) => {
       if (err.error instanceof Error) {

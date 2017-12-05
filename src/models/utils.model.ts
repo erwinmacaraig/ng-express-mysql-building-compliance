@@ -6,7 +6,7 @@ const dbconfig = require('../config/db');
 export class Utils {
     constructor() {}
 
-    public listAllFRP(account?: number) {
+    public listAllFRP(account?: number, user_id: number = 0) {
       return new Promise((resolve, reject) => {
         let sql_get_frp = `SELECT
                               users.user_id,
@@ -24,8 +24,10 @@ export class Utils {
                             AND
                               users.token <> ''
                             AND
-                              users.token IS NOT NULL`;
+                              users.token IS NOT NULL
+                            AND users.user_id <> ?`;
         const val = [];
+        val.push(user_id);
         if (account) {
           sql_get_frp = sql_get_frp + ' AND users.account_id = ?';
           val.push(account);
@@ -45,7 +47,7 @@ export class Utils {
       }); // end Promise
     }
 
-    public listAllTRP(location: number, account?: number) {
+    public listAllTRP(location: number, account?: number, user_id: number = 0) {
       return new Promise((resolve, reject) => {
         let sql_get_trp = `SELECT
                                 users.user_id,
@@ -71,9 +73,10 @@ export class Utils {
                                 users.token IS NOT NULL
                             AND
                               location_account_relation.location_id = ?
+                            AND users.user_id <> ?
                             `;
 
-        const val = [location];
+        const val = [location, user_id];
         if (account) {
           sql_get_trp = sql_get_trp + ' AND  users.account_id = ?';
           val.push(account);
