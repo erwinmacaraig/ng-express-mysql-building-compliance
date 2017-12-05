@@ -51,8 +51,7 @@ import { SearchLocationComponent } from './location/search/search-location.compo
 
 
 import { SublocationComponent } from './location/sublocation/sublocation.component';
-// import { SearchLocationComponent } from './locations-ui/search.location/search.location';
-// import { SearchResultComponent } from './locations-ui/search.result/search.result';
+
 
 // todo: move to locations module
 import { ReactiveFormsModule } from '@angular/forms';
@@ -61,6 +60,7 @@ import { SetupLocationComponent } from './location/setup-location/setup-location
 import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
+import { VerificationComponent } from './location/verification/verification.component';
 
 @NgModule({
   declarations: [
@@ -97,7 +97,8 @@ import { LocationComponent } from './location/location.component';
     SetupLocationComponent,
     LocationListComponent,
     ViewSingleLocation,
-    LocationComponent
+    LocationComponent,
+    VerificationComponent
     // ViewSublocationComponent
   ],
   imports: [
