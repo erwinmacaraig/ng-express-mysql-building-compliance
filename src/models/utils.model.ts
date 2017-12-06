@@ -72,7 +72,7 @@ export class Utils {
                             AND
                                 users.token IS NOT NULL
                             AND
-                              location_account_relation.location_id = ?
+                              location_account_relation.location_id IN (?)
                             AND users.user_id <> ?
                             `;
 

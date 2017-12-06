@@ -8,6 +8,9 @@ import { MapsAPILoader } from '@agm/core';
 import { LocationsService } from '../../services/locations';
 import { Router } from '@angular/router';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { Observable } from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 declare var $: any;
 @Component({
@@ -40,8 +43,6 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public locationName: FormControl;
   public results = [];
   public showLoaderDiv = false;
-  public selectedLocation = {};
-  public selectedLocationId = 0;
 
   componentForm = {
    street_number: 'short_name',
@@ -57,6 +58,17 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public zoom: number;
   @ViewChild('search')
   public searchElementRef: ElementRef;
+
+
+  public selectedLocation = {};
+  public selectedLocationIds = [];
+  public selectedLocationSubLocations = [];
+  public arrFlatSelectedLocations = [];
+  public arrSelectedLocationsCopy = [];
+  public showLoaderModalSubLocation = false;
+  
+  private waitTyping = {};
+  private typingLevelModal = false;
 
   constructor(private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
@@ -255,8 +267,110 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     } */
   }
 
-  clickSelectLocation(location_id){
+  mergeToParent(locationsParam, parentId){
+    let locations = JSON.parse( JSON.stringify(locationsParam) );
+    for(let i in locations){
+      locations[i]['sublocations'] = [];
+    };
+
+    for(let i in locations){
+      for(let x in locations){
+        if(locations[i]['parent_id'] == locations[x]['location_id']){
+          locations[x]['sublocations'].push(locations[i]);
+        }
+      };
+    };
+
+    let result = [];
+    for(let i in locations){
+      if(locations[i]['parent_id'] == parentId){
+        result.push(locations[i]);
+      }
+    }
+
+    return result;
+  }
+
+  onClickSelectLocationFromModal(event, location){
+    let index = this.selectedLocationIds.indexOf(location.location_id);
+    if(event.currentTarget.checked){
+      if(index == -1){
+        this.selectedLocationIds.push(location.location_id);
+      }
+    }else{
+      if(index > -1){
+        this.selectedLocationIds.splice(index, 1);
+      }
+    }
     
+    console.log(this.selectedLocationIds);
+  }
+
+  clickSelectLocation(location){
+    let locId = this.encryptDecrypt.decrypt(location.location_id);
+    this.showLoaderModalSubLocation = true;
+    this.selectedLocation = location;
+    $('#modalSublocations').modal('open');
+    this.locationService.getDeepLocationsById(locId, (response) => {
+      if(response.data.length > 0){
+        this.arrFlatSelectedLocations = response.data;
+        for(let i in this.arrFlatSelectedLocations){
+          this.arrFlatSelectedLocations[i]['sublocations'] = [];
+        };
+        this.selectedLocationSubLocations = this.mergeToParent(response.data, locId);
+        this.arrSelectedLocationsCopy = JSON.parse( JSON.stringify(this.selectedLocationSubLocations) );
+        this.showLoaderModalSubLocation = false;
+      }else{
+        this.router.navigate(['/location/verify-access', { 'location_id' : locId, 'account_id' : this.accountId  }]);
+      }
+    });
+  }
+
+  onChangeDropDown(event){
+    if(event.currentTarget.checked){
+      $( $(event.currentTarget).parents('.list-division')[0] ).addClass('show-drop-down');
+    }else{
+      $( $(event.currentTarget).parents('.list-division')[0] ).removeClass('show-drop-down');
+    }
+  }
+
+  onKeyUpSearchLevelModal(value: String){
+    let trimmed = value.trim(),
+      trimmedLow = trimmed.toLowerCase(),
+      results = [];
+      if(trimmed.length == 0){
+        this.selectedLocationSubLocations = JSON.parse( JSON.stringify( this.arrSelectedLocationsCopy ) );
+      }else{
+        let searchChild = (children) => {
+          for(let i in children){
+            if(children[i]['sublocations'].length > 0){
+              searchChild(children[i]['sublocations']);
+            }
+            let name = children[i]['name'],
+              low = name.toLowerCase();
+
+            if(low.indexOf(trimmedLow) > -1){
+              results.push( JSON.parse(JSON.stringify(children[i])) );
+            }
+          }
+        };
+
+        searchChild(this.arrSelectedLocationsCopy);
+        this.selectedLocationSubLocations = results;
+      }
+  }
+
+  submitSelectedLocations(){
+    if(this.selectedLocationIds.length > 0){
+      $('#modalSublocations').modal('close');
+      let enc = this.encryptDecrypt.encrypt( JSON.stringify(this.selectedLocationIds) );
+      let queryParams = {
+        'account_id' : this.accountId,
+        'location_id' : enc
+      };
+
+      this.router.navigate(['/location/verify-access', queryParams]);
+    }
   }
 
 }

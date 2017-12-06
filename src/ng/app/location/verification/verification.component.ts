@@ -46,11 +46,12 @@ export class VerificationComponent implements OnInit, OnDestroy {
     this.emailDomain = this.authService.getUserData()['email'];
     this.emailDomain =  this.emailDomain.substr(this.emailDomain.indexOf('@') + 1, this.emailDomain.length);
 
-    this.location = this.route.snapshot.queryParams['location_id'] || 0;
-    this.account = this.route.snapshot.queryParams['account_id'] || 0;
+    this.location = this.route.snapshot['params']['location_id'] || [];
+    this.account = this.route.snapshot['params']['account_id'] || 0;
 
 
-     this.location = this.encryptDecrypt.decrypt(this.location).toString();
+     this.location = JSON.parse(this.encryptDecrypt.decrypt(this.location).toString());
+     console.log(this.location);
      this.account = this.encryptDecrypt.decrypt(this.account).toString();
   }
 

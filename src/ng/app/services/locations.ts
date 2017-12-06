@@ -28,6 +28,15 @@ export class LocationsService {
       });
   }
 
+  getDeepLocationsById(id, callBack) {
+    this.http.get(this.baseUrl + '/location/get-deep-by-id/' + id, this.options)
+      .subscribe(res => {
+        callBack(res);
+      }, err => {
+        callBack( JSON.parse(err.error) );
+      });
+  }
+
   getByAccountId(accountid, callBack) {
     this.http.get(this.baseUrl + '/location/get-by-account/' + accountid, this.options)
       .subscribe(res => {
