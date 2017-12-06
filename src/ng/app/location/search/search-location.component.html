@@ -77,7 +77,8 @@
 			</div>
 			<div class="button-container">
 				<p>Has details of this location correct?</p>
-				<a [routerLink]="['/location', 'verify-access']" [queryParams]="{location_id: component.location_id, account_id: accountId}" class="btn orange waves-effect waves-light">Yes</a>
+				<!-- <a [routerLink]="['/location', 'verify-access']" [queryParams]="{location_id: component.location_id, account_id: accountId}" class="btn orange waves-effect waves-light">Yes</a> -->
+				<button class="btn orange waves-effect waves-light" (click)="clickSelectLocation(component.location_id)">Yes</button>
 				<button class="btn grey waves-effect waves-light" (click)="clearSearch()">No</button>
 			</div>
 		</div>
@@ -142,4 +143,11 @@
 			</div>
 		</div>
 	</form>
+</div>
+
+
+<div class="modal modal-sublocations">
+	<div class="modal-content">
+		
+	</div>
 </div>

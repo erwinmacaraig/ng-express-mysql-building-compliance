@@ -1,56 +1,89 @@
 
 <form [formGroup]="verificationForm" (ngSubmit)="onSubmit()">
-    <div class="container">
-        <div class="row">
-          <div class="col m12 center-align">
-            <h4 class="title">Verification</h4>
-            <p></p>
-          </div>
+    
+    <div class="row">
+        <div class="col l4 m6 s12">
+            <h4 class="title blue-text">Verification</h4>
         </div>
-      </div>
-
-      <div class="input-field col m12">
-          <input type="text" formControlName="domain" readonly>
-          <label for="domain" class="active"> Your E-mail domain </label>
-      </div>
-    <p>
-        <input type="radio" formControlName="criteria" id="criteriaTRP" name="criteria" value="trp_enable" (change)="toggleCriteria()">
-        <label for="criteriaTRP">Validate your identity using other TRP</label>
-    </p>
-
-    <div class="input-field col s12" [hidden]="!toggleTRP">
-      <div *ngIf="initialTRP; else noTRP">
-          <select formControlName="trp" id="trp">
-              <option value="0"> --Select a TRP-- </option>
-              <option *ngFor="let t of trpList" [value]="t.user_id"> {{t.first_name}} {{t.last_name}} </option>
-            </select>
-            <label>Get verified by another TRP of this location of your account</label>
-      </div>
-      <ng-template #noTRP>
-          <h6>No TRP Found!</h6>
-      </ng-template>
     </div>
 
-    <p>
-      <input type="radio" formControlName="criteria" value="frp_enable" id="criteriaFRP" name="criteria" (change)="toggleCriteria()">
-    <label for="criteriaFRP">Choose this option to validate your identity by FRP of your location/building</label>
-    </p>
-
-    <div class="input-field col s12" [hidden]="!toggleFRP">
-      <div *ngIf="initialFRP; else noFRP">
-          <select formControlName="frp" id="frp">
-              <option value="0"> --Select a FRP-- </option>
-          </select>
-          <label>Get verified by another FRP of this location of your account</label>
-      </div>
-      <ng-template #noFRP>
-          <h6>No FRP Found!</h6>
-      </ng-template>
+    <div class="row">
+        <div class="col l4 m6 s12">
+            <div class="input-field">
+                <input type="text" formControlName="domain" readonly>
+                <label for="domain" class="active"> Your E-mail domain </label>
+            </div>
+        </div>
     </div>
-
-    <div class="input-field col m6">
-        <button type="submit" class="btn block waves-effect waves-light btn-submit" [disabled]="!verificationForm.valid">Submit</button>
+    <div class="row">
+        <div class="col l4 m6 s12">
+            <p>
+                <input type="radio" formControlName="criteria" id="criteriaTRP" name="criteria" value="trp_enable" (change)="toggleCriteria()">
+                <label for="criteriaTRP">Validate your identity using other TRP</label>
+            </p>
+        </div>
     </div>
-    <div style="clear:both"></div>
+    <div class="row">
+        <div class="col l4 m6 s12">
+            <div class="input-field" [hidden]="!toggleTRP">
+                <div *ngIf="initialTRP; else noTRP">
+                    <select formControlName="trp" id="trp">
+                        <option value="0"> --Select a TRP-- </option>
+                        <option *ngFor="let t of trpList" [value]="t.user_id"> {{t.first_name}} {{t.last_name}} </option>
+                    </select>
+                    <label>Get verified by another TRP of this location of your account</label>
+                </div>
+                <ng-template #noTRP>
+                    <h6>No TRP Found!</h6>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col l4 m6 s12">
+            <p>
+                <input type="radio" formControlName="criteria" value="frp_enable" id="criteriaFRP" name="criteria" (change)="toggleCriteria()">
+                <label for="criteriaFRP">Choose this option to validate your identity by FRP of your location/building</label>
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col l4 m6 s12">
+            <div class="input-field" [hidden]="!toggleFRP">
+                <div *ngIf="initialFRP; else noFRP">
+                    <select formControlName="frp" id="frp">
+                        <option value="0"> --Select a FRP-- </option>
+                        <option *ngFor="let f of frpList" [value]="f.user_id"> {{f.first_name}} {{f.last_name}} </option>
+                    </select>
+                    <label>Get verified by another FRP of this location of your account</label>
+                </div>
+                <ng-template #noFRP>
+                    <h6>No FRP Found!</h6>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col l4 m6 s12">
+            <div class="input-field">
+                <button type="submit" *ngIf="!isSubmitting" class="btn orange waves-effect waves-light btn-submit" [disabled]="!verificationForm.valid">Submit</button>
+                <button class="btn disabled" *ngIf="isSubmitting">
+                    <h5 class="material-icons green-text" *ngIf="submitSuccess">check</h5>
+                    <div class="preloader-wrapper small active" style="width: 20px; height: 20px; vertical-align: middle;" *ngIf="!submitSuccess">
+                        <div class="spinner-layer spinner-green-only">
+                          <div class="circle-clipper left">
+                            <div class="circle"></div>
+                          </div><div class="gap-patch">
+                            <div class="circle"></div>
+                          </div><div class="circle-clipper right">
+                            <div class="circle"></div>
+                          </div>
+                        </div>
+                    </div>
+                    <p style="display: inline-block; margin: 0px 20px 0px 10px;" *ngIf="!submitSuccess">Sending...</p>
+                </button>
+            </div>
+        </div>
+    </div>
 
 </form>

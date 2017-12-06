@@ -204,7 +204,6 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
       (<FormArray>this.levelGroup.get('levels')).push(control);
     }
     console.log(this.levelGroup);
-
   }
 
   createLocation() {
@@ -252,7 +251,10 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         redirectToList();
       });
     } */
+  }
 
+  clickSelectLocation(location_id){
+    
   }
 
 }

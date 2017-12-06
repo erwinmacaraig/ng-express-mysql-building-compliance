@@ -29,6 +29,8 @@ export class VerificationComponent implements OnInit, OnDestroy {
   public initialFRP = true;
   public initialTRP = true;
   private baseUrl: String;
+  public isSubmitting = false;
+  public submitSuccess = false;
 
   verificationForm: FormGroup;
 
@@ -123,7 +125,9 @@ export class VerificationComponent implements OnInit, OnDestroy {
 
 
     console.log(body);
+    this.isSubmitting = true;
     this.http.post<any>(this.baseUrl + '/verify-location-user', body).subscribe((data) => {
+      this.submitSuccess = true;
       this.router.navigate(['/location', 'search']);
     },
     (err: HttpErrorResponse) => {
