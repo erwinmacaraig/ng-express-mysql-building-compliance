@@ -324,8 +324,8 @@ export class Location extends BaseClass {
        const location: {[key: number]: Array<Object>} = {};
        let parentId = 0;
        let tempArr = [];
-       let ObjHolderArr = [];
-      // const location = {};
+       let parents = [];
+      
       let sql_get_subloc = `SELECT
                                 location_id,
                                 parent_id,
@@ -353,41 +353,27 @@ export class Location extends BaseClass {
           for (let i = 0; i < results.length; i++) {
             // initialize
             results[i]['children'] = [];
-            console.log('processing parentId = ' + parentId + ' and results[i][parent_id] = ' + results[i]['parent_id'] + ' with location_id = ' + results[i]['location_id'] + "\n");
             if (parentId !== results[i]['parent_id']) {
               tempArr = [];
-              ObjHolderArr = [];
-// /*
-              console.log(location);
-              if (location[parentId]) {
-                // perform check
-                console.log(results[i]['location_id']);
-                for (let x = 0; x < location[parentId].length; x++) {
-                  console.log('old id = ' + parentId + ' new Id = ' + results[i]['parent_id']);
-                  if (location[parentId][x]['location_id'] === results[i]['parent_id']) {
-                    // console.log('I was here at old id = ' + parentId + ' new Id = ' + results[i]['parent_id']);
-                    console.log('pushing at ' + parentId + ' with index ' + x + ' id = ' + results[i]['parent_id']);
-                    location[parentId][x]['children'].push(results[i]);
-                  }
-                }
-              } // */
               parentId = results[i]['parent_id'];
-            } else {
-              location[results[i]['parent_id']] = tempArr;
-              if (location[parentId]) {
-                for (let x = 0; x < location[parentId].length; x++) {
-                  console.log('here at parent id = ' + parentId + ' results[i][location_id] = ' + results[i]['location_id'] + '');
-                  if (location[parentId][x]['location_id'] === results[i]['parent_id']) {
-                    location[parentId][x]['children'].push(results[i]);
-                  }
-                }
-              }
-            }
+            } 
             tempArr.push(results[i]);
-            // location[results[i]['parent_id']] = tempArr;
-
+            location[results[i]['parent_id']] = tempArr;
 
           }
+          parents = Object.keys(location);
+            for ( let i = 0; i < parents.length - 1; i++) {
+                for ( let a = 0; a < location[parents[i]].length; a++) {                
+                    for( let b = 0; b < parents.length;b++) {
+                        for (let c = 0; c < location[parents[b]].length; c++ ) {
+                            if (location[parents[i]][a]['location_id'] === location[parents[b]][c]['parent_id']) {
+                                location[parents[i]][a]['children'].push(location[parents[b]][c]);
+                            }
+                        }
+                    } 
+                    
+                }
+            }
           // sublocations['sublocations'] = results;
           // sublocations['total'] = results.length;
 
@@ -395,8 +381,10 @@ export class Location extends BaseClass {
           // sublocations['sublocations'] = {};
           // sublocations['total'] = 0;
         }
-        // resolve(sublocations);
-        resolve(location);
+        
+        // console.log(parents);
+        // resolve(sublocations[]);
+        resolve(location[this.ID()]);
 
       });
 
