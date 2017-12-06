@@ -320,8 +320,13 @@ export class Location extends BaseClass {
 
   public getSublocations(user_id?: number, role_id?: number) {
     return new Promise((resolve, reject) => {
-      const sublocations = {};
-      const sql_get_subloc = `SELECT
+      // const sublocations: {};
+       const location: {[key: number]: Array<Object>} = {};
+       let parentId = 0;
+       let tempArr = [];
+       let ObjHolderArr = [];
+      // const location = {};
+      let sql_get_subloc = `SELECT
                                 location_id,
                                 parent_id,
                                 name
@@ -329,6 +334,15 @@ export class Location extends BaseClass {
                                 locations
                               WHERE
                                 parent_id = ?`;
+
+      sql_get_subloc = `SELECT
+                          location_id,
+                          name,
+                          parent_id
+                        FROM (SELECT * FROM locations ORDER BY parent_id, location_id DESC) sublocations,
+                        (SELECT @pv := ?) initialisation
+                        WHERE find_in_set(parent_id, @pv) > 0
+                        AND @pv := concat(@pv, ',', location_id);`;
       const connection = db.createConnection(dbconfig);
       connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
         if (err) {
@@ -336,19 +350,57 @@ export class Location extends BaseClass {
           throw new Error('Internal error. There was a problem processing your query');
         }
         if (results.length) {
-          sublocations['sublocations'] = results;
-          sublocations['total'] = results.length;
+          for (let i = 0; i < results.length; i++) {
+            // initialize
+            results[i]['children'] = [];
+            console.log('processing parentId = ' + parentId + ' and results[i][parent_id] = ' + results[i]['parent_id'] + ' with location_id = ' + results[i]['location_id'] + "\n");
+            if (parentId !== results[i]['parent_id']) {
+              tempArr = [];
+              ObjHolderArr = [];
+// /*
+              console.log(location);
+              if (location[parentId]) {
+                // perform check
+                console.log(results[i]['location_id']);
+                for (let x = 0; x < location[parentId].length; x++) {
+                  console.log('old id = ' + parentId + ' new Id = ' + results[i]['parent_id']);
+                  if (location[parentId][x]['location_id'] === results[i]['parent_id']) {
+                    // console.log('I was here at old id = ' + parentId + ' new Id = ' + results[i]['parent_id']);
+                    console.log('pushing at ' + parentId + ' with index ' + x + ' id = ' + results[i]['parent_id']);
+                    location[parentId][x]['children'].push(results[i]);
+                  }
+                }
+              } // */
+              parentId = results[i]['parent_id'];
+            } else {
+              location[results[i]['parent_id']] = tempArr;
+              if (location[parentId]) {
+                for (let x = 0; x < location[parentId].length; x++) {
+                  console.log('here at parent id = ' + parentId + ' results[i][location_id] = ' + results[i]['location_id'] + '');
+                  if (location[parentId][x]['location_id'] === results[i]['parent_id']) {
+                    location[parentId][x]['children'].push(results[i]);
+                  }
+                }
+              }
+            }
+            tempArr.push(results[i]);
+            // location[results[i]['parent_id']] = tempArr;
+
+
+          }
+          // sublocations['sublocations'] = results;
+          // sublocations['total'] = results.length;
+
         } else {
-          sublocations['sublocations'] = {};
-          sublocations['total'] = 0;
+          // sublocations['sublocations'] = {};
+          // sublocations['total'] = 0;
         }
-        resolve(sublocations);
+        // resolve(sublocations);
+        resolve(location);
+
       });
 
       connection.end();
     });
   }
-
-
-
 }

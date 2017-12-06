@@ -432,16 +432,17 @@ const md5 = require('md5');
     console.log(`parent id is ${parentId}`);
     if (parentId === -1) {
       sublocations = await location.getSublocations();
-      console.log(sublocations);
+      // console.log(sublocations);
       return {
-        'locationType': 'parent',
-        'location': location.getDBData(),
+        // 'locationType': 'parent',
+        // 'location': location.getDBData(),
         'sublocation': sublocations
       };
     } else {
       const parentLocation = new Location(parentId);
       await parentLocation.load();
       sublocations = await parentLocation.getSublocations();
+      /*
       for(let i = 0; i < sublocations['sublocations'].length; i++) {
         console.log(sublocations['sublocations'][i].location_id + ' === ' + locationId);
         let index_loc_id = <number>sublocations['sublocations'][i].location_id;
@@ -450,12 +451,17 @@ const md5 = require('md5');
           othersub.push(sublocations['sublocations'][i]);
         }
       }
+
       return {
         'locationType': 'sublocation',
         'location': location.getDBData(),
         'parent': parentLocation.getDBData(),
         'othersub': othersub,
         'fullsub': sublocations
+      }
+      */
+      return {
+        'sublocation': sublocations
       }
     }
 
