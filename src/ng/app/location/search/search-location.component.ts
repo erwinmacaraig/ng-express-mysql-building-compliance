@@ -40,6 +40,8 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public locationName: FormControl;
   public results = [];
   public showLoaderDiv = false;
+  public selectedLocation = {};
+  public selectedLocationId = 0;
 
   componentForm = {
    street_number: 'short_name',

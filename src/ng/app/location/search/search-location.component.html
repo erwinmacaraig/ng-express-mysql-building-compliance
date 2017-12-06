@@ -148,6 +148,49 @@
 
 <div class="modal modal-sublocations">
 	<div class="modal-content">
-		
+		<div class="title-container">
+			<h5> {{selectedLocation.name}}</h5>
+			<p>{{selectedLocation.formatted_address}}</p>
+		</div>
+
+		<div class="search-container">
+			<div class="input-container">
+				<input type="text" placeholder="Search Level" #inputSearchLevelModal >
+			</div>
+			<div class="icon-container">
+				<img src="assets/images/locations/search_icon.png" alt="">
+			</div>
+		</div>
+
+		<div class="list-region">
+			<h6 class="blue-text">Select  Level</h6>
+			<div>
+				<ul>
+					<ng-template #recursiveList let-selectedLocationSubLocations>
+						<li *ngFor="let location of selectedLocationSubLocations" class="list-division" [id]="location.location_id">
+							<div class="name-radio-plus">
+								<div class="input">
+									<input type="radio" [value]="location.location_id" [(ngModel)]="selectedLocationId">
+								</div>
+								<div class="plus-minus" *ngIf="location.sublocations.length > 0">
+									<input type="checkbox" (change)="onChangeDropDown($event)">
+									<span class="sign"></span>
+								</div>
+								<div class="name">{{location.name}}</div>
+							</div>
+							<ul *ngIf="location.sublocations.length > 0">
+						        <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: location.sublocations }"></ng-container>
+							</ul>
+						</li>
+					</ng-template>
+					<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: selectedLocationSubLocations }"></ng-container>
+				</ul>
+			</div>
+		</div>
+
+		<div class="button-container center-align">
+			<button class="btn grey waves-effect waves-light lighten-1 modal-action modal-close"> Cancel </button>
+			<button class="btn orange waves-effect waves-light " (click)="onClickSubmitSelectRegion()"> Submit </button>
+		</div>
 	</div>
 </div>
