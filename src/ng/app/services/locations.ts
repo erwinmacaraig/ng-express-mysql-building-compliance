@@ -19,6 +19,15 @@ export class LocationsService {
     this.baseUrl = (platformLocation as any).location.origin;
   }
 
+  getByInIds(ids, callBack) {
+    this.http.post(this.baseUrl + '/location/get-by-ids', { 'ids' : ids.join(',') }, this.options)
+      .subscribe(res => {
+        callBack(res);
+      }, err => {
+        callBack( JSON.parse(err.error) );
+      });
+  }
+
   getById(id, callBack) {
     this.http.get(this.baseUrl + '/location/get/' + id, this.options)
       .subscribe(res => {
@@ -78,7 +87,6 @@ export class LocationsService {
 	createSingleLocation(location: Object): Observable<any> {
 		return this.http.post<any>(this.baseUrl + '/location/create/', location);
 	}
-
 
 	getParentLocationsForListing(accountid, callBack){
 		this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/', this.options)

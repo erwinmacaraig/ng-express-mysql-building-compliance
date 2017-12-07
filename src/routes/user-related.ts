@@ -268,6 +268,7 @@ export class UserRelatedRoute extends BaseRoute {
     if ('account_id' in req.query) {
       account_id = req.query.account_id;
     }
+    console.log(location_id, account_id, req.user.user_id);
     utils.listAllTRP(location_id, account_id, req.user.user_id).then((list) => {
       return res.status(200).send({
         status: 'Success',

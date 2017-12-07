@@ -8,6 +8,8 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { PersonDataProviderService } from '../../services/person-data-provider.service';
 import { PlatformLocation } from '@angular/common';
+import { LocationsService } from '../../services/locations';
+
 
 declare var $: any;
 @Component({
@@ -31,6 +33,7 @@ export class VerificationComponent implements OnInit, OnDestroy {
   private baseUrl: String;
   public isSubmitting = false;
   public submitSuccess = false;
+  public locationList = [];
 
   verificationForm: FormGroup;
 
@@ -40,7 +43,8 @@ export class VerificationComponent implements OnInit, OnDestroy {
               private encryptDecrypt: EncryptDecryptService,
               private authService:  AuthService,
               private http: HttpClient,
-              private platformLocation: PlatformLocation) {
+              private platformLocation: PlatformLocation,
+              private locService : LocationsService) {
 
     this.baseUrl = (platformLocation as any).location.origin;
     this.emailDomain = this.authService.getUserData()['email'];
@@ -85,6 +89,10 @@ export class VerificationComponent implements OnInit, OnDestroy {
       } else {
         console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
       }
+    });
+
+    this.locService.getByInIds(this.location, (response) => {
+      this.locationList = response.data;
     });
 
   }

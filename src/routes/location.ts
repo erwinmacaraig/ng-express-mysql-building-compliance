@@ -56,28 +56,27 @@ const md5 = require('md5');
 	   		new LocationRoute().getByUserIdAndAccountId(req, res, next);
 	   	});
 
-       router.get('/location/get-parent-locations-by-account-id',
-         new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+       	router.get('/location/get-parent-locations-by-account-id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new LocationRoute().getParentLocationsByAccount(req, res).then((data) => {
               return res.status(200).send(data);
             }).catch((err) => {
               return res.status(400).send({
                 message: 'Error getting locations'
-              });
-            });
-       });
+            	});
+       		});
+       	});
 
-       router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        new LocationRoute().createLocation(req, res).then((data) => {
-            return res.status(200).send({
-              message: 'Create location successful'
-            });
-        }).catch((e) => {
-            return res.status(400).send({
-              message: 'Bad Request'
-            });
-        });
-      });
+       	router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new LocationRoute().createLocation(req, res).then((data) => {
+	            return res.status(200).send({
+	              message: 'Create location successful'
+	            });
+	        }).catch((e) => {
+	            return res.status(400).send({
+	              message: 'Bad Request'
+	            });
+	        });
+      	});
 
 		router.post('/location/search-db-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 			new LocationRoute().searchDbForLocation(req, res);
@@ -86,7 +85,11 @@ const md5 = require('md5');
 		router.get('/location/get-deep-by-id/:location_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 			new LocationRoute().getDeepLocationsById(req, res);
 		});
-   	}
+
+		router.post('/location/get-by-ids', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new LocationRoute().getLocationsByMultipleId(req, res);
+		});
+   	} 
 
 	/**
 	* Constructor
@@ -98,7 +101,7 @@ const md5 = require('md5');
 		super();
 	}
 
-  public searchDbForLocation(req: AuthRequest, res: Response) {
+  	public searchDbForLocation(req: AuthRequest, res: Response) {
         const location = new Location();
         location.search(
           req.body.formatted_address,
@@ -123,10 +126,10 @@ const md5 = require('md5');
             message: `Unable to fulfill request`
           });
         });
-      }
+    }
 
 
-  public async createLocation(req: AuthRequest, res: Response) {
+  	public async createLocation(req: AuthRequest, res: Response) {
 
         let parent_id = -1;
         const dbLocationData = {};
@@ -242,9 +245,9 @@ const md5 = require('md5');
         return {
           status: 'Success'
         };
-      }
+    }
 
-  private mergeObjects(obj1,obj2){
+  	private mergeObjects(obj1,obj2){
 	    var obj3 = {};
 	    for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
 	    for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
@@ -805,6 +808,30 @@ const md5 = require('md5');
 		res.statusCode = 200;
 
 		locations.getDeepLocationsByParentId(req.params.location_id).then(
+			(results) => {
+				res.statusCode = 200;
+				response.data = results;
+				res.send(response);
+			},
+			(e) => {
+				response.message = e;
+				res.send(response);
+			}
+		);
+	}
+
+	public getLocationsByMultipleId(req: AuthRequest, res: Response){
+		let  response = {
+			status : false,
+			message : '',
+			data : {}
+		},
+		locations = new Location();
+
+		// Default status code
+		res.statusCode = 200;
+
+		locations.getByInIds(req.body.ids).then(
 			(results) => {
 				res.statusCode = 200;
 				response.data = results;

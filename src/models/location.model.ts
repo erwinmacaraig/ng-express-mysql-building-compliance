@@ -137,6 +137,20 @@ export class Location extends BaseClass {
 		});
 	}
 
+	public getByInIds(ids){
+		return new Promise((resolve) => {
+			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) `;
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_load, (error, results, fields) => {
+				if (error) {
+					return console.log(error);
+				}
+				resolve(results);
+			});
+			connection.end();
+		});
+	}
+
 	public getByUserId(userId: Number) {
 		return new Promise((resolve, reject) => {
 			const sql_load = `
