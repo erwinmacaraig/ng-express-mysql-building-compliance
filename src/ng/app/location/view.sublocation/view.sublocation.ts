@@ -22,9 +22,9 @@ export class ViewSublocationComponent implements OnInit, OnDestroy {
 	userData: Object;
 	encryptedID;
 	locationID = 0;
-	locationData = { 
+	locationData = {
 		location_id : 0,
-		name : '', 
+		name : '',
 		frp : [],
 		unit : '',
 		street : '',
@@ -34,7 +34,7 @@ export class ViewSublocationComponent implements OnInit, OnDestroy {
 	};
 	parentData = {
 		location_id : 0,
-		name : '', 
+		name : '',
 		frp : [],
 		unit : '',
 		street : '',
@@ -64,15 +64,16 @@ export class ViewSublocationComponent implements OnInit, OnDestroy {
 		this.route.params.subscribe((params) => {
 			this.encryptedID = params['encrypted'];
 			this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
-			this.locationService.getById(this.locationID, (response) => {
-				this.locationData = response.data.location;
-				this.parentData = response.data.parent;
-				if(Object.keys(this.parentData).length > 0){
-					this.parentData.location_id = this.encryptDecrypt.encrypt(this.parentData.location_id).toString();
-					for(let i in this.parentData['sublocations']){
-						this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.parentData['sublocations'][i].location_id).toString();
-					}
-				}
+      this.locationService.getById(this.locationID, (response) => {
+        this.locationData = response.location;
+        this.parentData = response.parent;
+        this.parentData['sublocations'] = response.siblings;
+        this.parentData.location_id = this.encryptDecrypt.encrypt(this.parentData.location_id).toString();
+        if (response.siblings.length) {
+          for (let i = 0; i < response.siblings.length; i++) {
+            this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(response.siblings[i].location_id).toString();
+          }
+        }
 				for(let i in this.locationData['sublocations']){
 					this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
 				}

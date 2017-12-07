@@ -426,39 +426,26 @@ const md5 = require('md5');
     let sublocations;
     let othersub = [];
     await location.load();
+    sublocations = await location.getSublocations();
 
-    // determine if this location is a parent location
-    let parentId = <number>location.get('parent_id');
-    console.log(`parent id is ${parentId}`);
-    if (parentId === -1) {
-      sublocations = await location.getSublocations();
-      console.log(sublocations);
+    if (sublocations.length) {
       return {
-        'locationType': 'parent',
         'location': location.getDBData(),
-        'sublocation': sublocations
+        'sublocations': sublocations
       };
-    } else {
-      const parentLocation = new Location(parentId);
-      await parentLocation.load();
-      sublocations = await parentLocation.getSublocations();
-      for(let i = 0; i < sublocations['sublocations'].length; i++) {
-        console.log(sublocations['sublocations'][i].location_id + ' === ' + locationId);
-        let index_loc_id = <number>sublocations['sublocations'][i].location_id;
-        console.log(index_loc_id == locationId);
-        if ( index_loc_id != locationId) {
-          othersub.push(sublocations['sublocations'][i]);
-        }
-      }
-      return {
-        'locationType': 'sublocation',
-        'location': location.getDBData(),
-        'parent': parentLocation.getDBData(),
-        'othersub': othersub,
-        'fullsub': sublocations
-      }
     }
+    // get immediate parent
+    const parentId = <number>location.get('parent_id');
+    let siblings;
+    const parentLocation = new Location(parentId);
+    await parentLocation.load();
+    siblings = await parentLocation.getSublocations();
 
+    return {
+      'location': location.getDBData(),
+      'parent': parentLocation.getDBData(),
+      'siblings': siblings
+    }
     /*
       response = { status : false, message : '', data : [] },
       fetchingProgress = {
