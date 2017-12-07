@@ -89,6 +89,10 @@ const md5 = require('md5');
 		router.post('/location/get-by-ids', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 			new LocationRoute().getLocationsByMultipleId(req, res);
 		});
+
+		router.post('/location/check-user-verified', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new LocationRoute().checkUserVerifiedInLocation(req, res);
+		});
    	} 
 
 	/**
@@ -843,6 +847,48 @@ const md5 = require('md5');
 			}
 		);
 
+	}
+
+	public checkUserVerifiedInLocation(req: AuthRequest, res: Response){
+		let  response = {
+			status : false,
+			message : '',
+			data : {
+				verified : false
+			}
+		},
+		locationSublocations = new Location(),
+		locationAccountUser = new LocationAccountUser();
+
+		res.statusCode = 400;
+
+		locationSublocations.getDeepLocationsByParentId(req.body.parent_id).then(
+			(sublocations) => {
+				if(Object.keys(sublocations).length > 0){
+					let ids = [];
+					for(let i in sublocations){
+						ids.push(sublocations[i]['location_id']);
+					}
+
+					locationAccountUser.getByLocationIdAndUserId( ids.join(',') , req.user.user_id ).then(
+						(results) => {
+							if(Object.keys(results).length > 0){
+								response.data.verified = true;
+							}
+
+							res.statusCode = 200;
+							res.send(response);
+						},
+						(e) => {
+							response.message = e;
+							res.send(response);
+						}
+					);
+				}else{
+					res.send(response);
+				}
+			}
+		);
 	}
 
 }

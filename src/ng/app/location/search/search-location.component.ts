@@ -66,6 +66,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public arrFlatSelectedLocations = [];
   public arrSelectedLocationsCopy = [];
   public showLoaderModalSubLocation = false;
+  public showModalAlreadyVerified = false;
   
   private waitTyping = {};
   private typingLevelModal = false;
@@ -362,14 +363,29 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
 
   submitSelectedLocations(){
     if(this.selectedLocationIds.length > 0){
-      $('#modalSublocations').modal('close');
-      let enc = this.encryptDecrypt.encrypt( JSON.stringify(this.selectedLocationIds) );
-      let queryParams = {
-        'account_id' : this.accountId,
-        'location_id' : enc
-      };
+      this.showLoaderModalSubLocation = true;
+      this.showModalAlreadyVerified = false;
+      const parentId = this.encryptDecrypt.decrypt(this.selectedLocation['location_id']);
+      this.locationService.checkUserVerified({ parent_id : parentId }, (response) => {
+        if(response.data.verified){
+          this.showLoaderModalSubLocation = false;
+          this.showModalAlreadyVerified = true;
 
-      this.router.navigate(['/location/verify-access', queryParams]);
+          setTimeout(() => {
+            this.showModalAlreadyVerified = false;
+          }, 3000);
+
+        }else{
+          $('#modalSublocations').modal('close');
+          let enc = this.encryptDecrypt.encrypt( JSON.stringify(this.selectedLocationIds) );
+          let queryParams = {
+            'account_id' : this.accountId,
+            'location_id' : enc
+          };
+
+          this.router.navigate(['/location/verify-access', queryParams]);
+        }
+      });
     }
   }
 

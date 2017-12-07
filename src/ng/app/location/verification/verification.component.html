@@ -23,21 +23,26 @@
             </p>
         </div>
     </div>
-    <div class="row">
-        <div class="col l4 m6 s12">
-            <div class="input-field" [hidden]="!toggleTRP">
-                <div *ngIf="initialTRP; else noTRP">
-                    <select formControlName="trp" id="trp">
-                        <option value="0"> --Select a TRP-- </option>
-                        <option *ngFor="let t of trpList" [value]="t.user_id"> {{t.first_name}} {{t.last_name}} </option>
-                    </select>
-                    <label>Get verified by another TRP of this location of your account</label>
+    <div class="row" [hidden]="!toggleTRP">
+        <div class="col l4 m6 s12" *ngIf="initialTRP; else noTRP">
+            <div class="row" *ngFor="let location of locationList" >
+                <div class="col l12 m12 s12">
+                    <div class="input-field" *ngIf="location.trps.length > 0">
+                        <select formControlName="trp-{{location.location_id}}"  class="select-trp {{location.location_id}}" >
+                            <option value="0" selected> --Select a TRP-- </option>
+                            <option *ngFor="let t of location.trps" [value]="t.user_id"> {{t.first_name}} {{t.last_name}} </option>
+                        </select>
+                        <label>Get verified by another TRP of this '{{location.name}}' location of your account</label>
+                    </div>
+                    <h6 *ngIf="location.trps.length == 0">
+                        There's no trp on this '{{location.name}}' location.
+                    </h6>
                 </div>
-                <ng-template #noTRP>
-                    <h6>No TRP Found!</h6>
-                </ng-template>
             </div>
         </div>
+        <ng-template #noTRP>
+            <h6>No TRP Found!</h6>
+        </ng-template>
     </div>
     <div class="row">
         <div class="col l4 m6 s12">
@@ -52,7 +57,7 @@
             <div class="input-field" [hidden]="!toggleFRP">
                 <div *ngIf="initialFRP; else noFRP">
                     <select formControlName="frp" id="frp">
-                        <option value="0"> --Select a FRP-- </option>
+                        <option value="0" selected> --Select a FRP-- </option>
                         <option *ngFor="let f of frpList" [value]="f.user_id"> {{f.first_name}} {{f.last_name}} </option>
                     </select>
                     <label>Get verified by another FRP of this location of your account</label>

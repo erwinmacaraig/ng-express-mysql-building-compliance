@@ -69,9 +69,27 @@ export class VerificationComponent implements OnInit, OnDestroy {
       criteria: new FormControl(null, Validators.required)
     });
 
+
+
     this.trpListSubscription = this.dataProvider.listAllTRP(this.location, this.account).subscribe((data) => {
       this.trpList = data['data'];
-      console.log(data['data']);
+      
+      this.locService.getByInIds(this.location, (response) => {
+        this.locationList = response.data;
+        this.locationList.forEach((loc) => {
+          this.verificationForm.addControl('trp-'+loc.location_id, new FormControl());
+
+          for(let i in this.trpList){
+            if(this.trpList[i]['location_id'] == loc.location_id){
+              if('trps' in loc === false){
+                loc['trps'] = [];
+              }
+              loc.trps.push(this.trpList[i]);
+            }
+          }
+        });
+      });
+
     }, (err: HttpErrorResponse) => {
       if (err.error instanceof Error) {
         this.initialTRP = false;
@@ -90,11 +108,6 @@ export class VerificationComponent implements OnInit, OnDestroy {
         console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
       }
     });
-
-    this.locService.getByInIds(this.location, (response) => {
-      this.locationList = response.data;
-    });
-
   }
 
   ngOnDestroy() {
@@ -105,7 +118,8 @@ export class VerificationComponent implements OnInit, OnDestroy {
   toggleCriteria() {
 
     if (this.verificationForm.get('criteria').value === 'trp_enable') {
-      $('#trp').material_select();
+      $('.select-trp').material_select('destroy');
+      $('.select-trp').material_select();
       this.toggleTRP = true;
       this.toggleFRP = false;
     }
@@ -117,12 +131,20 @@ export class VerificationComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    let approvalFrom;
+    let approvalFrom,
+      lastLocationId = 0;
 
     if ( this.verificationForm.get('criteria').value === 'frp_enable') {
       approvalFrom = $('#frp').val();
     } else if (this.verificationForm.get('criteria').value === 'trp_enable') {
-      approvalFrom = $('#trp').val();
+      let listTRPapprovers = {};
+      for(let i in this.locationList){
+        listTRPapprovers[ Object.keys(listTRPapprovers).length ] = {
+          approver : $('select.select-trp.'+this.locationList[i]['location_id'])[0].value,
+          location : this.locationList[i]['location_id']
+        };
+      }
+      approvalFrom = listTRPapprovers;
     }
     const body = {
       location_id: this.location,

@@ -97,4 +97,13 @@ export class LocationsService {
 	      });
 	}
 
+  checkUserVerified(param, callBack){
+    this.http.post(this.baseUrl + '/location/check-user-verified', param, this.options)
+      .subscribe(res => {
+        callBack(res);
+      }, err => {
+        callBack( JSON.parse(err.error) );
+      });
+  }
+
 }
