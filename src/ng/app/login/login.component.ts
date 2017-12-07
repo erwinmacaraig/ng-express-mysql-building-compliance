@@ -21,9 +21,14 @@ export class LoginComponent implements OnInit, OnDestroy {
   showErrorOccured = false;
   showSuccess = false;
   showVerification = false;
+  showExpiredContainer = false;
+  showVerificationExpiredMessage = false;
+  showSendingVerification = false;
+  showSendingSuccessVerification = false;
   errorOccuredMessage = '';
   private subscription;
   private baseUrl: String;
+  private userId = 0;
   constructor(public http: HttpClient,
     private auth: AuthService,
     private signupService: SignupService,
@@ -42,6 +47,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.showErrorOccured = false;
     this.showSuccess = false;
     this.showVerification = false;
+    this.showExpiredContainer = false;
+    this.showVerificationExpiredMessage = false;
+    this.showSendingVerification = false;
+    this.showSendingSuccessVerification = false;
     this.errorOccuredMessage = '';
 
     interface UserLoginResponse {
@@ -79,7 +88,13 @@ export class LoginComponent implements OnInit, OnDestroy {
       } else {
         let errJSON = JSON.parse(err.error);
         if(errJSON.verified === false){
-          this.showVerification = true;
+          if(errJSON.token_expired === true){
+            this.showExpiredContainer = true;
+            this.showVerificationExpiredMessage = true;
+            this.userId = errJSON.data[2];
+          }else{
+            this.showVerification = true;
+          }
         }else{
           this.showInvalid = true;
         }
@@ -89,6 +104,21 @@ export class LoginComponent implements OnInit, OnDestroy {
         console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
         this.showErrorOccured = false;
       }
+    });
+
+  }
+
+  resendVerification(){
+    this.showVerificationExpiredMessage = false;
+    this.showSendingVerification = true;
+    this.showSendingSuccessVerification = false;
+
+    this.signupService.resendEmailVerification(this.userId, (response) => {
+      this.showSendingSuccessVerification = true;
+      this.showSendingVerification = false;
+      setTimeout(() => {
+        this.showSendingSuccessVerification = false;
+      }, 3000);
     });
 
   }
