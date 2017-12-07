@@ -46,7 +46,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		this.userData = this.auth.getUserData();
 
     this.accntService.getById(this.userData['accountId'], (response) => {
-      /*
+    /*
 		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
 			this.locations = response.data;
 			if(this.locations.length == 0){
@@ -64,7 +64,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		});
 
 		this.accntService.getById(this.userData['accountId'], (response) => {
-      */
+    */
       this.accountData = response.data;
     });
 

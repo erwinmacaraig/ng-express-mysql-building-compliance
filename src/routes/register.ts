@@ -894,7 +894,7 @@ const md5 = require('md5');
 					link = req.protocol + '://' + req.get('host') +'/token/'+token;
 
 				bodyEmail += '<h3 style="text-transform:capitalize;">Hi '+userData['first_name']+' '+userData['last_name']+'</h3> <br/>';
-				bodyEmail += '<h4>Your Requested Email Verification From EvacConnect Compliance Management System </h4> <br/>';
+				bodyEmail += '<h4>You Requested Email Verification From EvacConnect Compliance Management System </h4> <br/>';
 				bodyEmail += '<h5>Please verify your account by clicking the link below</h5> <br/>';
 				bodyEmail += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
 

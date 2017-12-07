@@ -332,37 +332,6 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getSublocations(user_id?: number, role_id?: number) {
-		return new Promise((resolve, reject) => {
-		  const sublocations = {};
-		  const sql_get_subloc = `SELECT
-		                            location_id,
-		                            parent_id,
-		                            name
-		                          FROM
-		                            locations
-		                          WHERE
-		                            parent_id = ?`;
-		  const connection = db.createConnection(dbconfig);
-		  connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
-		    if (err) {
-		      console.log(sql_get_subloc);
-		      throw new Error('Internal error. There was a problem processing your query');
-		    }
-		    if (results.length) {
-		      sublocations['sublocations'] = results;
-		      sublocations['total'] = results.length;
-		    } else {
-		      sublocations['sublocations'] = {};
-		      sublocations['total'] = 0;
-		    }
-		    resolve(sublocations);
-		  });
-
-		  connection.end();
-		});
-	}
-
 	public getDeepLocationsByParentId(parentId){
 		return new Promise((resolve) => {
 			const sql_load = `SELECT * 
@@ -379,5 +348,68 @@ export class Location extends BaseClass {
 		});
 	}
 
+  public getSublocations(user_id?: number, role_id?: number) {
+    return new Promise((resolve, reject) => {
+       const location: {[key: number]: Array<Object>} = {};
+       let parentId = 0;
+       let tempArr = [];
+       let parents = [];
+
+      let sql_get_subloc = `SELECT
+                                location_id,
+                                parent_id,
+                                name
+                              FROM
+                                locations
+                              WHERE
+                                parent_id = ?`;
+
+      sql_get_subloc = `SELECT
+                          location_id,
+                          name,
+                          parent_id
+                        FROM (SELECT * FROM locations ORDER BY parent_id, location_id DESC) sublocations,
+                        (SELECT @pv := ?) initialisation
+                        WHERE find_in_set(parent_id, @pv) > 0
+                        AND @pv := concat(@pv, ',', location_id);`;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
+        if (err) {
+          console.log(sql_get_subloc);
+          throw new Error('Internal error. There was a problem processing your query');
+        }
+        if (results.length) {
+          for (let i = 0; i < results.length; i++) {
+            // initialize
+            results[i]['children'] = [];
+            if (parentId !== results[i]['parent_id']) {
+              tempArr = [];
+              parentId = results[i]['parent_id'];
+            }
+            tempArr.push(results[i]);
+            location[results[i]['parent_id']] = tempArr;
+
+          }
+          parents = Object.keys(location);
+            for ( let i = 0; i < parents.length - 1; i++) {
+                for ( let a = 0; a < location[parents[i]].length; a++) {
+                    for ( let b = 0; b < parents.length;b++) {
+                        for (let c = 0; c < location[parents[b]].length; c++ ) {
+                            if (location[parents[i]][a]['location_id'] === location[parents[b]][c]['parent_id']) {
+                                location[parents[i]][a]['children'].push(location[parents[b]][c]);
+                            }
+                        }
+                    }
+                }
+            }
+          resolve(location[this.ID()]);
+        } else {
+          resolve([]);
+        }
+
+      });
+      connection.end();
+    });
+  }
 
 }

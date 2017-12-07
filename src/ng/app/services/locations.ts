@@ -72,10 +72,7 @@ export class LocationsService {
     this.dataStore = location;
   }
   getDataStore(key?: string) {
-    console.log(this.dataStore);
-    console.log(typeof this.dataStore);
     if (this.dataStore instanceof Array) {
-      console.log(typeof this.dataStore);
       return this.dataStore;
     }
     if ( this.dataStore && (key in this.dataStore)) {
