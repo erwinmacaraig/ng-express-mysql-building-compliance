@@ -6,6 +6,7 @@
 		</h5>
 	</div>
 	<div class="modal-footer">
-		<a [routerLink]="['/login']" class="modal-action modal-close waves-effect waves-green btn-flat">CLOSE</a>
+		<a  *ngIf="!isUserVerification" [routerLink]="['/login']" class="modal-action modal-close waves-effect waves-green btn-flat">CLOSE</a>
+		<a  *ngIf="isUserVerification" (click)="closeWindow()" class="modal-action modal-close waves-effect waves-green btn-flat">CLOSE</a>
 	</div>
 </div>

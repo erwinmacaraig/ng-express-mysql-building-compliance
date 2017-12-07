@@ -77,7 +77,8 @@
 			</div>
 			<div class="button-container">
 				<p>Has details of this location correct?</p>
-				<button class="btn orange waves-effect waves-light">Yes</button>
+				<!-- <a [routerLink]="['/location', 'verify-access']" [queryParams]="{location_id: component.location_id, account_id: accountId}" class="btn orange waves-effect waves-light">Yes</a> -->
+				<button class="btn orange waves-effect waves-light" (click)="clickSelectLocation(component)">Yes</button>
 				<button class="btn grey waves-effect waves-light" (click)="clearSearch()">No</button>
 			</div>
 		</div>
@@ -142,4 +143,73 @@
 			</div>
 		</div>
 	</form>
+</div>
+
+
+<div id="modalSublocations" class="modal modal-sublocations">
+	<div class="modal-content">
+		<div class="center-align" *ngIf="showLoaderModalSubLocation">
+			<div class="preloader-wrapper active" style="vertical-align: middle;">
+				<div class="spinner-layer spinner-blue-only">
+					<div class="circle-clipper left">
+						<div class="circle"></div>
+					</div><div class="gap-patch">
+						<div class="circle"></div>
+					</div><div class="circle-clipper right">
+						<div class="circle"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="center-align" *ngIf="showModalAlreadyVerified">
+			<h5>You are already verified on the selected location(s)</h5>
+		</div>
+
+		<div class="title-container" *ngIf="!showLoaderModalSubLocation && !showModalAlreadyVerified">
+			<h5> {{selectedLocation.name}}</h5>
+			<p>{{selectedLocation.formatted_address}}</p>
+		</div>
+
+		<div class="search-container" *ngIf="!showLoaderModalSubLocation && !showModalAlreadyVerified">
+			<div class="input-container">
+				<input type="text" placeholder="Search Level" #inputSearchLevelModal (keyup)="onKeyUpSearchLevelModal(inputSearchLevelModal.value)" >
+			</div>
+			<div class="icon-container">
+				<img src="assets/images/locations/search_icon.png" alt="">
+			</div>
+		</div>
+
+		<div class="list-region" *ngIf="!showLoaderModalSubLocation && !showModalAlreadyVerified">
+			<h6 class="blue-text">Select  Level</h6>
+			<div style="overflow-y: auto; height: 340px;">
+				<ul>
+					<ng-template #recursiveList let-selectedLocationSubLocations>
+						<li *ngFor="let location of selectedLocationSubLocations" class="list-division" [id]="location.location_id">
+							<div class="name-radio-plus">
+								<div class="input">
+									<input type="checkbox" [id]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }" (click)="onClickSelectLocationFromModal($event, location)">
+									<label [for]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }"></label>
+									<div class="plus-minus">
+										<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" />
+										<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
+										<span>{{location.name}}</span>
+									</div>
+								</div>
+							</div>
+							<ul *ngIf="location.sublocations.length > 0">
+						        <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: location.sublocations }"></ng-container>
+							</ul>
+						</li>
+					</ng-template>
+					<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: selectedLocationSubLocations }"></ng-container>
+				</ul>
+			</div>
+		</div>
+
+		<div class="button-container center-align" *ngIf="!showLoaderModalSubLocation && !showModalAlreadyVerified">
+			<button class="btn grey waves-effect waves-light lighten-1 modal-action modal-close"> Cancel </button>
+			<button class="btn orange waves-effect waves-light " [disabled]="selectedLocationIds.length == 0"  (click)="submitSelectedLocations()"> Submit </button>
+		</div>
+	</div>
 </div>

@@ -10,7 +10,11 @@ import { Utils } from '../models/utils.model';
 import * as validator from 'validator';
 import { EmailSender } from '../models/email.sender';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
-
+import { UserRoleRelation } from '../models/user.role.relation.model';
+import { Location } from '../models/location.model';
+import { Token } from '../models/token.model';
+import { UserLocationValidation } from '../models/user-location-validation.model';
+import * as moment from 'moment';
 export class UserRelatedRoute extends BaseRoute {
   public static create(router: Router) {
     router.get('/person-info', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -33,8 +37,17 @@ export class UserRelatedRoute extends BaseRoute {
       new UserRelatedRoute().listAllTRP(req, res);
     });
 
-    router.post('/validate-info', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response)=> {
-      new UserRelatedRoute().processValidation(req, res);
+    router.post('/verify-location-user', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new UserRelatedRoute().processValidation(req, res).then((data) => {
+        return res.status(200).send({
+          message: 'Verification send successfully',
+          status: 'Success'
+        });
+      }).catch((e) => {
+        return res.status(400).send({
+          message: 'Internal Server Error. Problem sending verification request'
+        });
+      });
     });
 
     router.get('/list-validation-question', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -215,7 +228,7 @@ export class UserRelatedRoute extends BaseRoute {
           saveAction();
         }
       );
-    }else{
+    } else {
       return res.status(400).send({
         status: false,
         message: 'Domain blacklisted'
@@ -231,7 +244,7 @@ export class UserRelatedRoute extends BaseRoute {
       account_id = req.query.account_id;
     }
     console.log(req.query);
-    utils.listAllFRP(account_id).then((list) => {
+    utils.listAllFRP(account_id, req.user.user_id).then((list) => {
       return res.status(200).send({
         status: 'Success',
         data: list
@@ -245,7 +258,6 @@ export class UserRelatedRoute extends BaseRoute {
 
   public listAllTRP(req: AuthRequest, res: Response) {
     const utils = new Utils();
-    console.log('TRP', req.query);
     if (!('location_id' in req.query)) {
       return res.status(400).send({
         message: 'Bad Request. Invalid parameters.'
@@ -256,7 +268,8 @@ export class UserRelatedRoute extends BaseRoute {
     if ('account_id' in req.query) {
       account_id = req.query.account_id;
     }
-    utils.listAllTRP(location_id, account_id).then((list) => {
+    console.log(location_id, account_id, req.user.user_id);
+    utils.listAllTRP(location_id, account_id, req.user.user_id).then((list) => {
       return res.status(200).send({
         status: 'Success',
         data: list
@@ -268,84 +281,119 @@ export class UserRelatedRoute extends BaseRoute {
     });
   }
 
-  public processValidation(req: AuthRequest, res: Response) {
+  public async processValidation(req: AuthRequest, res: Response) {
+    
+    // we need to check the role(s)
+    const userRoleRel = new UserRoleRelation();
+    const roles = await userRoleRel.getByUserId(req.user.user_id);
+    // what is the highest rank role
+    let r = 100;
+    for (let i = 0; i < roles.length; i++) {
+      if (r > parseInt(roles[i]['role_id'], 10)) {
+        r = roles[i]['role_id'];
+      }
+    }
+    const roles_text = ['', 'Manager', 'Tenant'];
+
     const user = req.user;
-    const role_id = req.body.role_id;
+    // const role_id = req.body.role_id;
     const location_id = req.body.location_id;
     const account_id = req.body.account_id;
     const userDomain =  user['email'].substr( user['email'].indexOf('@') + 1,  user['email'].length);
-    const approver = new User(req.body.approvalFrom);
+
     const criteria = req.body.criteria;
-    console.log(req.body);
-    // get all user details
-    // console.log(user);
-    console.log(req.body);
-    const utils = new Utils();
-    // save request validation
-
-
-    const requestValidationData = {
-      'user_id': user['user_id'],
-      'approvalFrom': parseInt(req.body.approvalFrom, 10)
-    };
-    approver.load().then(() => {
-      utils.getAccountLocationRelationInfo(location_id, account_id).then((r) => {
-        utils.storeRequestValidation(requestValidationData).then((data) => {
-          r['role_text'] = (role_id == 1) ? 'Building Manager' : 'Tenant';
-
-          const emailOpts = {
-            'from': 'allantaw2@gmail.com',
-            'fromName': 'EvacConnect Compliance Management System',
-            'to': [approver.get('email')],
-            'subject': 'User Validation',
-            'body': `
-            Hi <strong>${approver.get('first_name')} ${approver.get('last_name')}</strong>,
-            <br /> <br />
-            This person is trying to register as a <strong>${r['role_text']}</strong> to <strong>${r['account_name']}</strong>.
-            <br /><br />Please refer to the information below:<br />
-            Name: <strong>${user['first_name']}</strong><br />
-            Last Name: <strong>${user['last_name']}</strong> <br />
-            Email: <strong> ${user['email']}</strong> <br />
-            Submitted TRP Code: <strong>${req.body.trp_code}</strong><br />
-            Domain Name Submitted: <strong> ${userDomain}</strong> <br />
-            Location:
-            <strong>${r['name']} ${r['unit']} ${r['street']} ${r['city']} ${r['state']} ${r['postal_code']}</strong>
-            <br /><br />
-            Please click on the link below to verify this user or just ignore this message. <br />
-            <a href="${req.protocol}://${req.get('host')}/user-account-validation/${data}/${req.body.approvalFrom}/${user['user_id']}/${account_id}/${location_id}"
-            target="_blank" style="text-decoration:none; color:#0277bd;">
-            ${req.protocol}://${req.get('host')}/user-account-validation/${data}/${req.body.approvalFrom}/${user['user_id']}/${account_id}/${location_id}
-            </a>
-            <br /><br />
-            Thank you.
-            `,
-          };
-          const email = new EmailSender(emailOpts);
-          email.send((d) => console.log(d),
-          (err) => console.log(err));
-
-          return res.status(200).send({
-            status: 'OK',
-            data: data
-          });
-        }).catch((e) => {
-          console.log(e);
-          return res.status(400).send({
-            status: 'Bad request storeRequestValidation',
-            data: e
-          });
-        });// request validation
-
-      }); // get UserAccountRoleLocationInfo
-    }).catch((e) => {
-      return res.status(400).send({
-        status: 'Bad request approver',
-        data: e
+    
+    let approvers = [],
+      lastApproverId = 0;
+    if(criteria == 'trp_enable'){
+      for(let i in req.body.approver){
+        approvers.push({
+          approver_id : req.body.approver[i]['approver'],
+          location_id : req.body.approver[i]['location']
+        });
+      }
+    }else if(criteria == 'frp_enable'){
+      approvers.push({
+        approver_id : req.body.approver,
+        location_id : location_id
       });
-    }); // load
-   // get info to be validated
+    }
 
+    lastApproverId = approvers[ approvers.length - 1 ]['approver_id'];
 
+    for(let i in approvers){
 
+      let 
+        token_string = this.generateRandomChars(5),
+        approver = new User(parseInt(approvers[i]['approver_id'])),
+        utils = new Utils(),
+        location = new Location(parseInt(approvers[i]['location_id'])),
+        token = new Token(),
+        locationValidation = new UserLocationValidation(),
+        expDate = moment(),
+        expDateFormat = '';
+      
+      expDate.add(24, 'hours');
+      expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
+
+      await location.load();
+      await approver.load();
+
+      await token.create({
+        user_id: req.user.user_id,
+        token: token_string,
+        action: 'location access',
+        verified: 0,
+        expiration_date: expDateFormat
+      });
+
+      await locationValidation.create({
+        user_id: req.user.user_id,
+        approver_id: approvers[i]['approver_id'],
+        role_id: r,
+        location_id: approvers[i]['location_id'],
+        token_id: token.ID()
+      });
+
+      const emailOpts = {
+        'from':       'allantaw2@gmail.com',
+        'fromName':   'EvacConnect Compliance Management System',
+        'to':          [approver.get('email')],
+        'subject':     'User Verification',
+        'body': `
+          Hi <strong>${approver.get('first_name')} ${approver.get('last_name')}</strong>,
+          <br /> <br />
+          This person is trying to register as a <strong>${roles_text[r]}</strong> to <strong>${location.get('formatted_address')}</strong>.
+          <br /><br />Please refer to the information below:<br />
+          Name: <strong>${user['first_name']}</strong><br />
+          Last Name: <strong>${user['last_name']}</strong> <br />
+          Email: <strong> ${user['email']}</strong> <br />
+          Email Domain Name Submitted: <strong> ${userDomain}</strong> <br />
+          Please click on the link below to verify this user or just ignore this message. <br />
+          <a href="${req.protocol}://${req.get('host')}/user-location-verification/${token_string}"
+          target="_blank" style="text-decoration:none; color:#0277bd;">
+          ${req.protocol}://${req.get('host')}/user-location-verification/${token_string}
+          </a>
+          <br /><br />
+          Thank you.
+        `,
+      };
+
+      const email = new EmailSender(emailOpts);
+      email.send(
+        (d) => () => {
+          if(lastApproverId == approver.get('user_id')){
+            return {
+              message: 'Success'
+            };
+          }
+        },
+        (err) => {
+          console.log(err)
+          throw new Error('There was problem sending the email verification');
+        }
+      );
+
+    }
   }
 }

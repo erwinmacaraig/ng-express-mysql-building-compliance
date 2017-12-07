@@ -20,10 +20,16 @@ export class FRPListResolver implements Resolve<any> {
 
   resolve(route: ActivatedRouteSnapshot): Observable<any> {
     let account = 0;
+    let location = 0;
+
+    account = route.queryParams['account'];
+    location = route.queryParams['account'];
+    /*
     if (route.queryParams['account']) {
       account = route.queryParams['account'];
     }
-    return this.personDataProviderService.listAllFRP(account);
+    */
+    return this.personDataProviderService.listAllFRP(location, account);
   }
 }
 
@@ -34,12 +40,16 @@ export class TRPListResolver implements Resolve<any> {
   resolve(route: ActivatedRouteSnapshot): Observable<any> {
     let account = 0;
     let location = 0;
+    account = route.queryParams['account'];
+    location = route.queryParams['location'];
+    /*
     if (route.queryParams['account']) {
       account = route.queryParams['account'];
     }
     if (route.queryParams['location']) {
       location = route.queryParams['location'];
     }
+    */
     return this.personDataProviderService.listAllTRP(location, account);
   }
 }

@@ -12,6 +12,7 @@ import { SecurityQuestions } from '../models/security-questions.model';
 import { SecurityAnswers } from '../models/security-answers.model';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { Utils } from '../models/utils.model';
+import { UserLocationValidation } from '../models/user-location-validation.model';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -60,6 +61,16 @@ const md5 = require('md5');
         new RegisterRoute().validateUserAgainstAccount(req, res, next);
       });
 
+      router.get('/user-location-verification/:token', (req: Request, res: Response, next: NextFunction) => {
+        new RegisterRoute().verifyUserLocation(req, res, next).then((data) => {
+          res.status(200);
+          return res.redirect('/success-valiadation/?user-location-verification=true');
+        }).catch((e) => {
+          res.status(400);
+          return res.redirect('/success-valiadation/?user-location-verification=false');
+        });
+      });
+
       router.post('/register/resend-email-verification', (req: Request, res: Response, next: NextFunction) => {
         new RegisterRoute().resendEmailVerification(req, res, next);
       });
@@ -75,6 +86,48 @@ const md5 = require('md5');
 	constructor() {
 		super();
 	}
+
+  public async verifyUserLocation(req: Request, res: Response, next: NextFunction) {
+
+    const token = new Token();
+    const tokenData = await token.getByToken(req.params.token);
+    console.log(tokenData);
+    if (!tokenData) {
+      throw new Error('Invalid token');
+    }
+    const expirationDateMoment = moment(tokenData['expiration_date']);
+    const currentDateMoment = moment();
+
+
+    if(!currentDateMoment.isBefore(expirationDateMoment)) {
+      throw new Error('Token already expired');
+    }
+    if (tokenData['action'] !== 'location access' && tokenData['verified'] === 1) {
+      throw new Error('Invalid token');
+    }
+
+    const locationAccntUser = new LocationAccountUser();
+    const user = new User(tokenData['user_id']);
+    await user.load();
+    const verifyInstance = new UserLocationValidation();
+    const verificationInfo = await verifyInstance.getByToken(req.params.token);
+
+    await locationAccntUser.create({
+      location_id: verificationInfo['location_id'],
+      account_id: user.get('account_id'),
+      user_id: tokenData['user_id'],
+      role_id: verificationInfo['role_id']
+    });
+
+    verificationInfo['status'] = 'VERIFIED';
+    await verifyInstance.create(verificationInfo);
+    await token.delete();
+
+    return {
+      message: 'User location verification successful'
+    };
+
+  }
 
 	public validateUserAgainstAccount(req: Request, res: Response, next: NextFunction) {
 	  // get parameters
@@ -399,7 +452,7 @@ const md5 = require('md5');
 				},
 				message : ''
 			}
-		
+
 		let newUsersToken = (callBack) => {
 			this.userVerificationNewUsersToken(
 				tokenModel,
@@ -555,7 +608,7 @@ const md5 = require('md5');
 				if('email' in reqBody){
 					emailCallAndUserTokenLogin();
 				}
-			});	
+			});
 		}
 	}
 
@@ -680,7 +733,7 @@ const md5 = require('md5');
                         callBack(reponse);
                     }
                 );
-	          	
+
 	        }
         );
 	}
@@ -841,7 +894,7 @@ const md5 = require('md5');
 					link = req.protocol + '://' + req.get('host') +'/token/'+token;
 
 				bodyEmail += '<h3 style="text-transform:capitalize;">Hi '+userData['first_name']+' '+userData['last_name']+'</h3> <br/>';
-				bodyEmail += '<h4>Your Requested Email Verification From EvacConnect Compliance Management System </h4> <br/>';
+				bodyEmail += '<h4>You Requested Email Verification From EvacConnect Compliance Management System </h4> <br/>';
 				bodyEmail += '<h5>Please verify your account by clicking the link below</h5> <br/>';
 				bodyEmail += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
 

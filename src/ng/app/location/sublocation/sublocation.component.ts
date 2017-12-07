@@ -31,18 +31,17 @@ export class SublocationComponent implements OnInit, OnDestroy {
       this.encryptedID = params['encrypted'];
       this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
       this.locationService.getById(this.locationID, (response) => {
-        console.log(response);
-        if (response.locationType === 'sublocation') {
-          this.parentData = response.parent;
-          this.locationData = response.location;
-          this.parentData['location_id'] = this.encryptDecrypt.encrypt(this.parentData['location_id']).toString();
-          this.parentData['sublocations'] = response.fullsub.sublocations;
 
-          for (let i = 0; i < this.parentData['sublocations'].length; i++ ) {
-            this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.parentData['sublocations'][i].location_id).toString();
-          }
-          console.log(this.parentData);
+        this.parentData = response.parent;
+        this.locationData = response.location;
+        this.parentData['location_id'] = this.encryptDecrypt.encrypt(this.parentData['location_id']).toString();
+        this.parentData['sublocations'] = response.siblings;
+
+        for (let i = 0; i < this.parentData['sublocations'].length; i++ ) {
+          this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.parentData['sublocations'][i].location_id).toString();
         }
+        console.log(this.parentData);
+
 
       });
     });
