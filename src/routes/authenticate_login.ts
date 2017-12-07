@@ -118,11 +118,20 @@ public validate(req: Request, res: Response, next: NextFunction) {
                     }
                 );
             }else{
+                let now = moment(),
+                    expiration = moment(user.get('expiration_date'), ['YYYY-MM-DD HH-mm-ss']),
+                    expired = false;
+
+                if(expiration.isBefore(now)){
+                    expired = true;
+                }
+
                 res.status(401).send({
                     verified : false,
+                    token_expired : expired,
                     status: 'Authentication Failed',
                     message: 'Please verify your account',
-                    data: ['username', 'password']
+                    data: ['username', 'password', user.get('user_id')]
                 });
             }
 

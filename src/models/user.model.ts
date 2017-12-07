@@ -121,10 +121,10 @@ export class User extends BaseClass {
             } else {
                 whereClause = 'WHERE user_name = ?';
             }
-            const sql_user = `SELECT users.*, token.verified FROM users
+            const sql_user = `SELECT users.*, token.verified, token.expiration_date FROM users
                               INNER JOIN token ON users.user_id = token.user_id `
                               + whereClause + ` AND password = ?
-                              AND users.token <> '' AND users.token IS NOT NULL`;
+                              AND users.token <> '' AND users.token IS NOT NULL ORDER BY token.token_id DESC`;
             const newPasswd = md5('Ideation' + passwd + 'Max');
             const credential = [username, newPasswd];
             const connection = db.createConnection(dbconfig);
