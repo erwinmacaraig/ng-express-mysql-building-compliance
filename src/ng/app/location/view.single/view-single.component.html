@@ -70,10 +70,12 @@
 					</div>
 				</div>
 				<div class="col l4 m4 s12 right-align right-top-container">
-					<a class="btn grey waves-effect waves-light" [routerLink]="['/list-locations']">
+
+					<a class="btn grey waves-effect waves-light" [routerLink]="['/location', 'view', locationData['parent_id']]">
 						Back to location
-					</a>
-					<button class="btn blue waves-effect waves-light">
+          </a>
+
+          <button class="btn blue waves-effect waves-light">
 						Add new sublocation
 					</button>
 				</div>
@@ -114,8 +116,8 @@
 									{{sub.overall_impaired}}
 								</td>
 								<td>
-									<a *ngIf="locationData.sublocations.length == 0" [routerLink]="['/location', 'view', locationData.location_id]" >Details </a>
-									<a *ngIf="locationData.sublocations.length > 0" [routerLink]="['/location', 'view-sublocation', sub.location_id]">Details</a>
+									<a *ngIf="sub.children.length > 0" [routerLink]="['/location', 'view', sub.location_id]" >Details </a>
+									<a *ngIf="sub.children.length == 0" [routerLink]="['/location', 'view-sublocation', sub.location_id]">Details</a>
 								</td>
 							</tr>
 						</tbody>
@@ -124,6 +126,7 @@
 			</div>
 
 		</div>
-	</div>
+  </div>
+  <div preloader></div>
 
 

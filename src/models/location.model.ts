@@ -320,12 +320,11 @@ export class Location extends BaseClass {
 
   public getSublocations(user_id?: number, role_id?: number) {
     return new Promise((resolve, reject) => {
-      // const sublocations: {};
        const location: {[key: number]: Array<Object>} = {};
        let parentId = 0;
        let tempArr = [];
        let parents = [];
-      
+
       let sql_get_subloc = `SELECT
                                 location_id,
                                 parent_id,
@@ -356,38 +355,29 @@ export class Location extends BaseClass {
             if (parentId !== results[i]['parent_id']) {
               tempArr = [];
               parentId = results[i]['parent_id'];
-            } 
+            }
             tempArr.push(results[i]);
             location[results[i]['parent_id']] = tempArr;
 
           }
           parents = Object.keys(location);
             for ( let i = 0; i < parents.length - 1; i++) {
-                for ( let a = 0; a < location[parents[i]].length; a++) {                
-                    for( let b = 0; b < parents.length;b++) {
+                for ( let a = 0; a < location[parents[i]].length; a++) {
+                    for ( let b = 0; b < parents.length;b++) {
                         for (let c = 0; c < location[parents[b]].length; c++ ) {
                             if (location[parents[i]][a]['location_id'] === location[parents[b]][c]['parent_id']) {
                                 location[parents[i]][a]['children'].push(location[parents[b]][c]);
                             }
                         }
-                    } 
-                    
+                    }
                 }
             }
-          // sublocations['sublocations'] = results;
-          // sublocations['total'] = results.length;
-
+          resolve(location[this.ID()]);
         } else {
-          // sublocations['sublocations'] = {};
-          // sublocations['total'] = 0;
+          resolve([]);
         }
-        
-        // console.log(parents);
-        // resolve(sublocations[]);
-        resolve(location[this.ID()]);
 
       });
-
       connection.end();
     });
   }
