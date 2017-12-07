@@ -49,40 +49,48 @@ export class Utils {
 
     public listAllTRP(location: number, account?: number, user_id: number = 0) {
       return new Promise((resolve, reject) => {
-        let sql_get_trp = `SELECT
-                                users.user_id,
-                                first_name,
-                                last_name,
-                                email,
-                                location_id
-                              FROM
-                                users
-                              INNER JOIN
-                                user_role_relation
-                              ON
-                                users.user_id = user_role_relation.user_id
-                            INNER JOIN
-                              location_account_relation
-                            ON
-                              location_account_relation.account_id = users.account_id
-                            WHERE
-                              user_role_relation.role_id = 2
-                            AND
-                                users.token <> ''
-                            AND
-                                users.token IS NOT NULL
-                            AND
-                              location_account_relation.location_id = ?
-                            AND users.user_id <> ?
-                            `;
-
-        const val = [location, user_id];
+        let accountSql = '';
         if (account) {
-          sql_get_trp = sql_get_trp + ' AND  users.account_id = ?';
-          val.push(account);
+          accountSql = 'AND u.account_id = '+account;
         }
+
+        let sql_get_trp = `
+          SELECT
+            lau.user_id,
+            lau.location_id,
+            u.user_id,
+            u.first_name,
+            u.last_name,
+            u.email,
+            lau.account_id,
+            lau.role_id AS role_id_location,
+            urr.role_id AS role_id_account
+          FROM
+            location_account_user lau
+            INNER JOIN users u ON u.user_id = lau.user_id
+            RIGHT JOIN user_role_relation urr ON u.user_id = urr.user_id
+          WHERE
+            lau.location_id IN (`+location+`) AND
+            lau.account_id = 1 AND
+            lau.role_id = 2 AND
+            u.token IS NOT NULL AND
+            u.user_id <> `+user_id+` AND
+            u.token <> '' 
+            `+accountSql+`
+            OR
+            lau.location_id IN (`+location+`) AND
+            lau.account_id = 1 AND
+            urr.role_id = 2 AND
+            u.token IS NOT NULL AND
+            u.user_id <> `+user_id+` AND
+            u.token <> ''
+            `+accountSql+`
+          GROUP BY
+            lau.user_id
+        `;
+
         const connection = db.createConnection(dbconfig);
-        connection.query(sql_get_trp, val, (error, results, fields) => {
+        connection.query(sql_get_trp, (error, results, fields) => {
           if (error) {
             return console.log(error);
           }

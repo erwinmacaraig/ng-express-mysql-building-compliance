@@ -137,6 +137,20 @@ export class Location extends BaseClass {
 		});
 	}
 
+	public getByInIds(ids){
+		return new Promise((resolve) => {
+			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) `;
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_load, (error, results, fields) => {
+				if (error) {
+					return console.log(error);
+				}
+				resolve(results);
+			});
+			connection.end();
+		});
+	}
+
 	public getByUserId(userId: Number) {
 		return new Promise((resolve, reject) => {
 			const sql_load = `
@@ -275,48 +289,64 @@ export class Location extends BaseClass {
 			}
 			resolve(this.write());
 		});
-  }
+  	}
 
-  public search(address: string, place_id: string ): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-      const arrResults = [];
-      const sql_search = `SELECT
-                          parent_id,
-                          location_id,
-                          name,
-                          unit,
-                          formatted_address,
-                          google_photo_url
-                      FROM
-                          locations
-                      WHERE
-                          parent_id = -1
-                      AND
-                          formatted_address LIKE '${address}%'
-                      OR
-                          google_place_id = ?
-                      LIMIT 5`;
+	public search(address: string, place_id: string ): Promise<string[]> {
+		return new Promise((resolve, reject) => {
+		  const arrResults = [];
+		  const sql_search = `SELECT
+		                      parent_id,
+		                      location_id,
+		                      name,
+		                      unit,
+		                      formatted_address,
+		                      google_photo_url
+		                  FROM
+		                      locations
+		                  WHERE
+		                      parent_id = -1
+		                  AND
+		                      formatted_address LIKE '${address}%'
+		                  OR
+		                      google_place_id = ?
+		                  LIMIT 5`;
 
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_search, [place_id], (err, results, fields) => {
-        if (err) {
-          reject('There was problem processing SQL');
-          console.log(sql_search);
-          throw new Error('Internal Error. Unable to execute query.');
-        }
-        for (let ref of results) {
-          // console.log(ref);
-          if (ref['parent_id'] === -1) {
-            arrResults.push(ref);
-          }
-        }
-        console.log(arrResults);
-        resolve(arrResults);
-      });
+		  const connection = db.createConnection(dbconfig);
+		  connection.query(sql_search, [place_id], (err, results, fields) => {
+		    if (err) {
+		      reject('There was problem processing SQL');
+		      console.log(sql_search);
+		      throw new Error('Internal Error. Unable to execute query.');
+		    }
+		    for (let ref of results) {
+		      // console.log(ref);
+		      if (ref['parent_id'] === -1) {
+		        arrResults.push(ref);
+		      }
+		    }
+		    console.log(arrResults);
+		    resolve(arrResults);
+		  });
 
-      connection.end();
-    });
-  }
+		  connection.end();
+		});
+	}
+
+	public getDeepLocationsByParentId(parentId){
+		return new Promise((resolve) => {
+			const sql_load = `SELECT * 
+				FROM (SELECT * FROM locations ORDER BY parent_id, location_id) sublocations, 
+					(SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_load, (error, results, fields) => {
+				if (error) {
+					return console.log(error);
+				}
+				resolve(results);
+			});
+			connection.end();
+		});
+	}
 
   public getSublocations(user_id?: number, role_id?: number) {
     return new Promise((resolve, reject) => {
@@ -381,4 +411,5 @@ export class Location extends BaseClass {
       connection.end();
     });
   }
+
 }

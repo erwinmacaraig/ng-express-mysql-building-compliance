@@ -63,11 +63,11 @@ const md5 = require('md5');
 
       router.get('/user-location-verification/:token', (req: Request, res: Response, next: NextFunction) => {
         new RegisterRoute().verifyUserLocation(req, res, next).then((data) => {
-          res.status(200).send(data);
+          res.status(200);
+          return res.redirect('/success-valiadation/?user-location-verification=true');
         }).catch((e) => {
-          res.status(400).send({
-            message: e
-          });
+          res.status(400);
+          return res.redirect('/success-valiadation/?user-location-verification=false');
         });
       });
 

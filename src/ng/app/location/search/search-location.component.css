@@ -326,5 +326,213 @@
     font-size: 13px !important;
     padding: 0px 20px;
     height: 32px !important;
-    line-height: 13px;
+    line-height: 30px;
+}
+
+.modal{
+    border-radius: 10px;
+    width: 30%;
+    overflow-y: initial;
+}
+
+.modal .modal-content{
+    padding: 35px;
+}
+
+.modal-content .title-container{
+    margin: 25px 0px 0px 0px;
+}
+
+.modal-content .title-container h5{
+    font-size: 20px;
+    color: #0089ec;
+}
+
+.modal-content .title-container p{
+    margin: 0px;
+    font-size: 16px;
+}
+
+.modal-content .list-container{
+    margin: 30px 0px;
+    max-height: 375px;
+    overflow-y: auto;
+}
+
+.modal-content .list-container ul li{
+    border: 1px solid #bdbdbd;
+    border-radius: 10px;
+    padding: 5px 15px;
+    margin: 15px 0px;
+    position: relative;
+}
+
+.modal-content .list-container ul li.error{
+    border: 1px solid #f44336;
+}
+
+.modal-content .list-container ul li .input-field,
+.modal-content .list-container ul li .add-field{
+    display: inline-block;
+}
+
+.modal-content .list-container ul li .input-field{
+    width: 74%;
+    margin: 0px;
+}
+
+.modal-content .list-container ul li .add-field{
+    width: 25%;
+}
+
+.modal-content .list-container ul li .input-field input{
+    border-bottom: 0px;
+    margin: 0px !important;
+    font-size: 14px;
+}
+
+.modal-content .list-container ul li .input-field input:focus{
+    border-bottom: 0px !important;
+}
+
+.modal-content .list-container ul li .add-field a{
+    font-size: 16px;
+    width: 100%;
+    padding: 0px;
+    line-height: 42px;
+    font-size: 14px !important;
+}
+
+.modal-content .list-container ul li .add-field a:hover{
+    background-color: #ff9800;
+    color: #fff !important;
+}
+
+.modal-content .list-container ul li .remove-field{
+    position: absolute;
+    top: -10px;
+    right: 0px;
+    border-radius: 20px;
+    width: 25px;
+    height: 25px;
+    text-align: center;
+    background-color: #ee6e73;
+    -webkit-transition: all 0.4s;
+    transition: all 0.1s;
+}
+
+.modal-content .list-container ul li .remove-field:hover{
+    filter:drop-shadow(0px 0px 2px #777);
+    cursor: pointer;
+}
+
+.modal-content .list-container ul li .remove-field a{
+    color: #fff;
+    font-size: 15px;
+}
+
+.button-container .modal-close{
+    margin-right: 10px;
+}
+
+.modal-content .add-another-container{
+    margin: 10px 0px;
+}
+
+.modal-content .add-another-container .add-another-sub{
+    font-size: 16px;
+}
+
+.modal.modal-sublocations .search-container{
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 10px;
+    width: 100% !important;
+}
+
+.modal.modal-sublocations .search-container .input-container{
+    display: inline-block;
+    vertical-align: middle;
+    width: 94%;
+}
+
+.modal.modal-sublocations .search-container .input-container input{
+    margin-bottom: 0px;
+    border-bottom: 0px !important;
+}
+
+.modal.modal-sublocations .search-container .input-container input:focus{
+    border-bottom: 0px !important;
+    box-shadow: none !important;
+}
+
+.modal.modal-sublocations .search-container .icon-container{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.modal.modal-sublocations .list-region ul li{
+    font-size: 16px;
+}
+
+.modal.modal-sublocations .list-region ul:not(:first-child){
+    padding-left: 25px;
+}
+
+.modal.modal-sublocations .list-region ul li:not(.show-drop-down) > ul{
+    display: none;
+}
+
+.modal.modal-sublocations .list-region ul li.show-drop-down > ul{
+    display: block;
+}
+
+.modal.modal-sublocations .name-radio-plus .input,
+.modal.modal-sublocations .name-radio-plus .plus-minus,
+.modal.modal-sublocations .name-radio-plus .name{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus{
+    vertical-align: super;
+    position: relative;
+    text-align: center;
+}
+
+.modal.modal-sublocations .name-radio-plus .minus{
+    display: none;
+}
+
+.modal.modal-sublocations .name-radio-plus input[type="radio"]{
+    position: static;
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]{
+    pointer-events: all;
+    width: 100%;
+    position: absolute;
+    top: 7px;
+    opacity: 0;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]+.sign:after{
+    content: '+';
+    font-size: 18px;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]:checked+.sign:after{
+    content: '-';
+    font-size: 18px;
+}
+
+.modal.modal-sublocations [type="checkbox"]+label{
+    height: 22px;
+    padding-left: 20px;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]+.sign{
+    padding: 0px 5px;
 }

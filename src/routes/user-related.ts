@@ -268,6 +268,7 @@ export class UserRelatedRoute extends BaseRoute {
     if ('account_id' in req.query) {
       account_id = req.query.account_id;
     }
+    console.log(location_id, account_id, req.user.user_id);
     utils.listAllTRP(location_id, account_id, req.user.user_id).then((list) => {
       return res.status(200).send({
         status: 'Success',
@@ -281,95 +282,118 @@ export class UserRelatedRoute extends BaseRoute {
   }
 
   public async processValidation(req: AuthRequest, res: Response) {
-
-    const token_string = this.generateRandomChars(5);
-
+    
     // we need to check the role(s)
     const userRoleRel = new UserRoleRelation();
     const roles = await userRoleRel.getByUserId(req.user.user_id);
-   // what is the highest rank role
-   let r = 100;
-   for (let i = 0; i < roles.length; i++) {
-     if (r > parseInt(roles[i]['role_id'], 10)) {
-       r = roles[i]['role_id'];
-     }
-   }
-   const roles_text = ['', 'Manager', 'Tenant'];
+    // what is the highest rank role
+    let r = 100;
+    for (let i = 0; i < roles.length; i++) {
+      if (r > parseInt(roles[i]['role_id'], 10)) {
+        r = roles[i]['role_id'];
+      }
+    }
+    const roles_text = ['', 'Manager', 'Tenant'];
 
     const user = req.user;
     // const role_id = req.body.role_id;
     const location_id = req.body.location_id;
     const account_id = req.body.account_id;
     const userDomain =  user['email'].substr( user['email'].indexOf('@') + 1,  user['email'].length);
-    const approver = new User(parseInt(req.body.approver, 10));
+
     const criteria = req.body.criteria;
-    console.log(req.body);
-    const utils = new Utils();
-    const location = new Location(location_id);
-    const token = new Token();
-    const locationValidation = new UserLocationValidation();
+    
+    let approvers = [],
+      lastApproverId = 0;
+    if(criteria == 'trp_enable'){
+      for(let i in req.body.approver){
+        approvers.push({
+          approver_id : req.body.approver[i]['approver'],
+          location_id : req.body.approver[i]['location']
+        });
+      }
+    }else if(criteria == 'frp_enable'){
+      approvers.push({
+        approver_id : req.body.approver,
+        location_id : location_id
+      });
+    }
 
-    const expDate = moment();
-    let expDateFormat = '';
-    expDate.add(24, 'hours');
-    expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
-    console.log('debug point 1');
-    await location.load();
-    await approver.load();
+    lastApproverId = approvers[ approvers.length - 1 ]['approver_id'];
 
-    await token.create({
-      user_id: req.user.user_id,
-      token: token_string,
-      action: 'location access',
-      verified: 0,
-      expiration_date: expDateFormat
-    });
+    for(let i in approvers){
 
-    await locationValidation.create({
-      user_id: req.user.user_id,
-      approver_id: req.body.approver,
-      role_id: r,
-      location_id: location_id,
-      token_id: token.ID()
-    });
+      let 
+        token_string = this.generateRandomChars(5),
+        approver = new User(parseInt(approvers[i]['approver_id'])),
+        utils = new Utils(),
+        location = new Location(parseInt(approvers[i]['location_id'])),
+        token = new Token(),
+        locationValidation = new UserLocationValidation(),
+        expDate = moment(),
+        expDateFormat = '';
+      
+      expDate.add(24, 'hours');
+      expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
 
-    const emailOpts = {
-      'from':       'allantaw2@gmail.com',
-      'fromName':   'EvacConnect Compliance Management System',
-      'to':          [approver.get('email')],
-      'subject':     'User Verification',
-      'body': `
-        Hi <strong>${approver.get('first_name')} ${approver.get('last_name')}</strong>,
-        <br /> <br />
-        This person is trying to register as a <strong>${roles_text[r]}</strong> to <strong>${location.get('formatted_address')}</strong>.
-        <br /><br />Please refer to the information below:<br />
-        Name: <strong>${user['first_name']}</strong><br />
-        Last Name: <strong>${user['last_name']}</strong> <br />
-        Email: <strong> ${user['email']}</strong> <br />
-        Email Domain Name Submitted: <strong> ${userDomain}</strong> <br />
-        Please click on the link below to verify this user or just ignore this message. <br />
-        <a href="${req.protocol}://${req.get('host')}/user-location-verification/${token_string}"
-        target="_blank" style="text-decoration:none; color:#0277bd;">
-        ${req.protocol}://${req.get('host')}/user-location-verification/${token_string}
-        </a>
-        <br /><br />
-        Thank you.
-      `,
-    };
+      await location.load();
+      await approver.load();
 
-    const email = new EmailSender(emailOpts);
-    email.send((d) => console.log(d),
-    (err) => {
-      console.log(err)
-      throw new Error('There was problem sending the email verification');
-    });
+      await token.create({
+        user_id: req.user.user_id,
+        token: token_string,
+        action: 'location access',
+        verified: 0,
+        expiration_date: expDateFormat
+      });
 
-    return {
-      message: 'Success'
-    };
+      await locationValidation.create({
+        user_id: req.user.user_id,
+        approver_id: approvers[i]['approver_id'],
+        role_id: r,
+        location_id: approvers[i]['location_id'],
+        token_id: token.ID()
+      });
 
+      const emailOpts = {
+        'from':       'allantaw2@gmail.com',
+        'fromName':   'EvacConnect Compliance Management System',
+        'to':          [approver.get('email')],
+        'subject':     'User Verification',
+        'body': `
+          Hi <strong>${approver.get('first_name')} ${approver.get('last_name')}</strong>,
+          <br /> <br />
+          This person is trying to register as a <strong>${roles_text[r]}</strong> to <strong>${location.get('formatted_address')}</strong>.
+          <br /><br />Please refer to the information below:<br />
+          Name: <strong>${user['first_name']}</strong><br />
+          Last Name: <strong>${user['last_name']}</strong> <br />
+          Email: <strong> ${user['email']}</strong> <br />
+          Email Domain Name Submitted: <strong> ${userDomain}</strong> <br />
+          Please click on the link below to verify this user or just ignore this message. <br />
+          <a href="${req.protocol}://${req.get('host')}/user-location-verification/${token_string}"
+          target="_blank" style="text-decoration:none; color:#0277bd;">
+          ${req.protocol}://${req.get('host')}/user-location-verification/${token_string}
+          </a>
+          <br /><br />
+          Thank you.
+        `,
+      };
 
+      const email = new EmailSender(emailOpts);
+      email.send(
+        (d) => () => {
+          if(lastApproverId == approver.get('user_id')){
+            return {
+              message: 'Success'
+            };
+          }
+        },
+        (err) => {
+          console.log(err)
+          throw new Error('There was problem sending the email verification');
+        }
+      );
 
-
+    }
   }
 }
