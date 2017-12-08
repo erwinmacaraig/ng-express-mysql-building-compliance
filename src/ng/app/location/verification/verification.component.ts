@@ -80,10 +80,10 @@ export class VerificationComponent implements OnInit, OnDestroy {
           this.verificationForm.addControl('trp-'+loc.location_id, new FormControl());
 
           for(let i in this.trpList){
+            if('trps' in loc === false){
+              loc['trps'] = [];
+            }
             if(this.trpList[i]['location_id'] == loc.location_id){
-              if('trps' in loc === false){
-                loc['trps'] = [];
-              }
               loc.trps.push(this.trpList[i]);
             }
           }
