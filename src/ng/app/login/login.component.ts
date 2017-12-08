@@ -21,8 +21,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   showErrorOccured = false;
   showSuccess = false;
   showVerification = false;
-  showExpiredContainer = false;
-  showVerificationExpiredMessage = false;
+  showVerificationContainer = false;
   showSendingVerification = false;
   showSendingSuccessVerification = false;
   errorOccuredMessage = '';
@@ -47,8 +46,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.showErrorOccured = false;
     this.showSuccess = false;
     this.showVerification = false;
-    this.showExpiredContainer = false;
-    this.showVerificationExpiredMessage = false;
+    this.showVerificationContainer = false;
     this.showSendingVerification = false;
     this.showSendingSuccessVerification = false;
     this.errorOccuredMessage = '';
@@ -88,13 +86,9 @@ export class LoginComponent implements OnInit, OnDestroy {
       } else {
         let errJSON = JSON.parse(err.error);
         if(errJSON.verified === false){
-          if(errJSON.token_expired === true){
-            this.showExpiredContainer = true;
-            this.showVerificationExpiredMessage = true;
-            this.userId = errJSON.data[2];
-          }else{
-            this.showVerification = true;
-          }
+          this.showVerificationContainer = true;
+          this.showVerification = true;
+          this.userId = errJSON.data[2];
         }else{
           this.showInvalid = true;
         }
@@ -109,9 +103,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   resendVerification(){
-    this.showVerificationExpiredMessage = false;
     this.showSendingVerification = true;
     this.showSendingSuccessVerification = false;
+    this.showVerification = false;
 
     this.signupService.resendEmailVerification(this.userId, (response) => {
       this.showSendingSuccessVerification = true;

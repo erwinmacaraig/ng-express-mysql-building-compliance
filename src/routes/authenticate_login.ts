@@ -118,7 +118,8 @@ public validate(req: Request, res: Response, next: NextFunction) {
                     }
                 );
             }else{
-                let now = moment(),
+                let action = user.get('action'),
+                    now = moment(),
                     expiration = moment(user.get('expiration_date'), ['YYYY-MM-DD HH-mm-ss']),
                     expired = false;
 
@@ -133,6 +134,8 @@ public validate(req: Request, res: Response, next: NextFunction) {
                     message: 'Please verify your account',
                     data: ['username', 'password', user.get('user_id')]
                 });
+
+                
             }
 
         }, (e) => {
