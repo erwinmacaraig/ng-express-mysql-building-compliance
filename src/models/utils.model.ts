@@ -74,7 +74,7 @@ export class Utils {
             lau.role_id = 2 AND
             u.token IS NOT NULL AND
             u.user_id <> `+user_id+` AND
-            u.token <> '' 
+            u.token <> ''
             `+accountSql+`
             OR
             lau.location_id IN (`+location+`) AND
@@ -83,8 +83,6 @@ export class Utils {
             u.user_id <> `+user_id+` AND
             u.token <> ''
             `+accountSql+`
-          GROUP BY
-            lau.user_id
         `;
 
         const connection = db.createConnection(dbconfig);
