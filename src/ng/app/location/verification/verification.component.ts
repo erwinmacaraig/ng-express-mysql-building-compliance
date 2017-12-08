@@ -91,8 +91,8 @@ export class VerificationComponent implements OnInit, OnDestroy {
       });
 
     }, (err: HttpErrorResponse) => {
+      this.initialTRP = false;
       if (err.error instanceof Error) {
-        this.initialTRP = false;
         console.log('An error occurred:', err.error.message);
       } else {
         console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
