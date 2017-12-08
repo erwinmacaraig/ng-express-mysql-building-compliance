@@ -12,15 +12,14 @@
 
 						<input type="text" name="username" placeholder="Username or Email" id="username" ngModel /><br>
 						<input type="password" name="password" placeholder="Password" id="password" ngModel /><br>
-						<p *ngIf="showExpiredContainer" class="error-message">
+						<p *ngIf="showVerificationContainer" class="error-message">
 							<span *ngIf="showSendingVerification">Sending...</span>
 							<span *ngIf="showSendingSuccessVerification" class="white-text">We just sen't you an email for verifcation. <br> Please check it </span>
-							<span *ngIf="showVerificationExpiredMessage">
-								Verification has expired <br>
+							<span *ngIf="showVerification">
+								Please verify your account <br>
     							<a href="javascript:void(0)" class="blue-text" style="text-decoration: underline; line-height: 20px;" (click)="resendVerification()">Click here to send verification</a>
 							</span>
     					</p>
-						<p *ngIf="showVerification" class="error-message">Please verify your account</p>
 						<p *ngIf="showInvalid" class="error-message">Invalid username/email or password</p>
 						<p *ngIf="showErrorOccured" class="error-message">{{errorOccuredMessage}}</p>
 						<p *ngIf="showSuccess" class="success-message"> Success! </p>
