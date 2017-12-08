@@ -71,7 +71,6 @@ export class Utils {
             RIGHT JOIN user_role_relation urr ON u.user_id = urr.user_id
           WHERE
             lau.location_id IN (`+location+`) AND
-            lau.account_id = 1 AND
             lau.role_id = 2 AND
             u.token IS NOT NULL AND
             u.user_id <> `+user_id+` AND
@@ -79,7 +78,6 @@ export class Utils {
             `+accountSql+`
             OR
             lau.location_id IN (`+location+`) AND
-            lau.account_id = 1 AND
             urr.role_id = 2 AND
             u.token IS NOT NULL AND
             u.user_id <> `+user_id+` AND
