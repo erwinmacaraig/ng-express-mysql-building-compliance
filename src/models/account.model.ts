@@ -226,6 +226,11 @@ export class Account extends BaseClass {
       let role_filter = '';
       if (role_id) {
         role_filter = `AND LAU.role_id = ${role_id}`;
+        if (role_id === 1) {
+          role_filter = `${role_filter} AND locations.parent_id = -1`;
+        } else if (role_id === 2) {
+          role_filter = `${role_filter} AND locations.parent_id <> -1`;
+        }
       }
       if (user_id) {
         user_filter = `AND LAU.user_id = ${user_id}`;
@@ -264,9 +269,7 @@ export class Account extends BaseClass {
     ON
       locations.location_id = LAU.location_id
     WHERE
-      locations.parent_id = -1
-    AND
-      LAU.account_id = ?
+    LAU.account_id = ?
     ${user_filter} ${role_filter}
     ORDER BY
       locations.location_id;`
@@ -287,7 +290,7 @@ export class Account extends BaseClass {
           reject(`No location found for this account ${this.ID()}`);
         }
       });
-      connection.end();
+    connection.end();
     });
   }
 
