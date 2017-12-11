@@ -334,8 +334,8 @@ export class Location extends BaseClass {
 
 	public getDeepLocationsByParentId(parentId){
 		return new Promise((resolve) => {
-			const sql_load = `SELECT * 
-				FROM (SELECT * FROM locations ORDER BY parent_id, location_id) sublocations, 
+			const sql_load = `SELECT *
+				FROM (SELECT * FROM locations ORDER BY parent_id, location_id) sublocations,
 					(SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
@@ -354,24 +354,29 @@ export class Location extends BaseClass {
        let parentId = 0;
        let tempArr = [];
        let parents = [];
+       let sublocationQuery;
+      if (user_id) {
+        sublocationQuery = `SELECT locations.* FROM locations INNER JOIN location_account_user ON location_account_user.location_id
+        = locations.location_id AND location_account_user.user_id = ${user_id} `;
 
-      let sql_get_subloc = `SELECT
-                                location_id,
-                                parent_id,
-                                name
-                              FROM
-                                locations
-                              WHERE
-                                parent_id = ?`;
+        if (role_id) {
+          sublocationQuery = sublocationQuery + `AND location_account_user.role_id = ${role_id}`;
+        }
 
-      sql_get_subloc = `SELECT
+      }
+      else {
+        sublocationQuery = `SELECT * FROM locations ORDER BY parent_id, location_id DESC`;
+      }
+
+      const sql_get_subloc = `SELECT
                           location_id,
                           name,
                           parent_id
-                        FROM (SELECT * FROM locations ORDER BY parent_id, location_id DESC) sublocations,
+                        FROM (${sublocationQuery}) sublocations,
                         (SELECT @pv := ?) initialisation
                         WHERE find_in_set(parent_id, @pv) > 0
-                        AND @pv := concat(@pv, ',', location_id);`;
+                        AND @pv := concat(@pv, ',', location_id)
+                        ORDER BY parent_id;`;
       const connection = db.createConnection(dbconfig);
       connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
         if (err) {
