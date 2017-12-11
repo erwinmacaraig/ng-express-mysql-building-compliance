@@ -45,7 +45,7 @@
 				</div>
 				<div class="col l6 m6 s12 right-align">
 					<div class="archived">
-						<a href="javascript:void(0)">
+						<a href="javascript:void(0)" (click)="onClickArchiveLocation(locationData)">
 							<img src="assets/images/locations/archived_icon.png"> [ Archive Sub Location ]
 						</a>
 					</div>
@@ -69,5 +69,38 @@
 
 
 		</div>
+	</div>
+</div>
+
+
+<div id="modalArchive" class="modal">
+	<div class="modal-content">
+		<div class="center-align" *ngIf="showLoaderModalSublocation">
+			<div class="preloader-wrapper active" >
+				<div class="spinner-layer spinner-red-only">
+					<div class="circle-clipper left">
+						<div class="circle"></div>
+					</div><div class="gap-patch">
+						<div class="circle"></div>
+					</div><div class="circle-clipper right">
+						<div class="circle"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="center" *ngIf="errorMessageModalSublocation.length > 0 && !showLoaderModalSublocation">
+			<h4>{{errorMessageModalSublocation}}</h4>
+		</div>
+
+		<div class="center-align" *ngIf="errorMessageModalSublocation.length == 0 && !showLoaderModalSublocation">
+			<h5>Are you sure you want to archive this '{{selectedLocationToArchive.name}}'</h5>
+		</div>
+
+		<div class="button-container center-align" *ngIf="!showLoaderModalSublocation">
+			<a href="javascript:void(0)" class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
+    		<button class="waves-effect waves-light btn orange btn-flat" (click)="onClickYesArchive()">Yes</button>
+		</div>
+
 	</div>
 </div>

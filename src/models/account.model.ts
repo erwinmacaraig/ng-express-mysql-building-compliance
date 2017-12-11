@@ -249,6 +249,7 @@ export class Account extends BaseClass {
       locations.location_id = LAU.location_id
     WHERE
     LAU.account_id = ?
+    AND locations.archived = 0
     ${user_filter} ${role_filter}
     ORDER BY
       locations.location_id;`

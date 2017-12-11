@@ -37,52 +37,51 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		private preloaderService: DashboardPreloaderService,
 		private locationService: LocationsService,
 		private accntService: AccountsDataProviderService,
-    private encryptDecrypt: EncryptDecryptService,
-    private router: Router
+	    private encryptDecrypt: EncryptDecryptService,
+	    private router: Router
 	) {
 		this.baseUrl = (platformLocation as any).location.origin;
 		this.options = { headers : this.headers };
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 		this.userData = this.auth.getUserData();
 
-    this.accntService.getById(this.userData['accountId'], (response) => {
-    /*
-		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
-			this.locations = response.data;
-			if(this.locations.length == 0){
-				localStorage.setItem('nolocations', 'true');
-				setTimeout(() => {
-					this.router.navigate(['locations-ui/search-location']);
-				}, 300);
-			}else{
-				localStorage.removeItem('nolocations');
-				this.preloaderService.hide();
-				for(let i in this.locations){
-					this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
-				}
-			}
-		});
+    	this.accntService.getById(this.userData['accountId'], (response) => {
+		    /*
+				this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
+					this.locations = response.data;
+					if(this.locations.length == 0){
+						localStorage.setItem('nolocations', 'true');
+						setTimeout(() => {
+							this.router.navigate(['locations-ui/search-location']);
+						}, 300);
+					}else{
+						localStorage.removeItem('nolocations');
+						this.preloaderService.hide();
+						for(let i in this.locations){
+							this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
+						}
+					}
+				});
 
-		this.accntService.getById(this.userData['accountId'], (response) => {
-    */
-      this.accountData = response.data;
-    });
+				this.accntService.getById(this.userData['accountId'], (response) => {
+		    */
+	      	this.accountData = response.data;
+    	});
 
-    this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
-      this.preloaderService.hide();
-      this.locations = response.locations;
-      console.log(response);
+    	this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
+    		this.preloaderService.hide();
+    		this.locations = response.locations;
+    		console.log(response);
 
-      if (this.locations.length > 0) {
-        for (let i = 0; i < this.locations.length; i++) {
-          this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
-        }
-      } else {
-        this.router.navigate(['/location', 'search']);
-      }
-    });
-
-  }
+    		if (this.locations.length > 0) {
+    			for (let i = 0; i < this.locations.length; i++) {
+    				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
+    			}
+    		} else {
+    			this.router.navigate(['/location', 'search']);
+    		}
+    	});
+  	}
 
 	ngOnInit(){
 		this.preloaderService.show();
@@ -91,6 +90,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 	ngAfterViewInit(){
 		$('.nav-list-locations').addClass('active');
+		$('.location-navigation .active').removeClass('active');
 		$('.location-navigation .view-location').addClass('active');
 	}
 
