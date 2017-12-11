@@ -122,7 +122,7 @@ export class Location extends BaseClass {
 									this.dbData = results;
 									resolve(this.dbData);
 								}
-							);
+								);
 						}else{
 							this.dbData = results;
 							resolve(this.dbData);
@@ -139,7 +139,7 @@ export class Location extends BaseClass {
 
 	public getByInIds(ids){
 		return new Promise((resolve) => {
-			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) `;
+			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = 0`;
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
 				if (error) {
@@ -182,12 +182,13 @@ export class Location extends BaseClass {
 
 	public dbUpdate() {
 		return new Promise((resolve, reject) => {
+
 			const sql_update = `UPDATE locations SET
 			parent_id = ?, name = ?, unit = ?, street = ?, city = ?, state = ?,
-      postal_code = ?, country = ?, formatted_address = ?,
-      lat = ?, lng = ?,time_zone = ?, \`order\` = ?,
-      is_building = ?, location_directory_name = ?, archived = ?,
-      google_place_id = ? google_photo_url = ?
+			postal_code = ?, country = ?, formatted_address = ?,
+			lat = ?, lng = ?,time_zone = ?, \`order\` = ?,
+			is_building = ?, location_directory_name = ?, archived = ?,
+			google_place_id = ?, google_photo_url = ?
 			WHERE location_id = ?`;
 			const param = [
 			('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
@@ -210,6 +211,7 @@ export class Location extends BaseClass {
 			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null,
 			this.ID() ? this.ID() : 0
 			];
+			
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_update, param, (err, results, fields) => {
 				if (err) {
@@ -289,54 +291,56 @@ export class Location extends BaseClass {
 			}
 			resolve(this.write());
 		});
-  	}
+	}
 
 	public search(address: string, place_id: string ): Promise<string[]> {
 		return new Promise((resolve, reject) => {
-		  const arrResults = [];
-		  const sql_search = `SELECT
-		                      parent_id,
-		                      location_id,
-		                      name,
-		                      unit,
-		                      formatted_address,
-		                      google_photo_url
-		                  FROM
-		                      locations
-		                  WHERE
-		                      parent_id = -1
-		                  AND
-		                      formatted_address LIKE '${address}%'
-		                  OR
-		                      google_place_id = ?
-		                  LIMIT 5`;
+			const arrResults = [];
+			const sql_search = `SELECT
+			parent_id,
+			location_id,
+			name,
+			unit,
+			formatted_address,
+			google_photo_url
+			FROM
+			locations
+			WHERE
+			parent_id = -1
+			AND
+			formatted_address LIKE '${address}%'
+			AND archived = 0
+			OR
+			google_place_id = ?
+			AND archived = 0
+			LIMIT 5`;
 
-		  const connection = db.createConnection(dbconfig);
-		  connection.query(sql_search, [place_id], (err, results, fields) => {
-		    if (err) {
-		      reject('There was problem processing SQL');
-		      console.log(sql_search);
-		      throw new Error('Internal Error. Unable to execute query.');
-		    }
-		    for (let ref of results) {
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_search, [place_id], (err, results, fields) => {
+				if (err) {
+					reject('There was problem processing SQL');
+					console.log(sql_search);
+					throw new Error('Internal Error. Unable to execute query.');
+				}
+				for (let ref of results) {
 		      // console.log(ref);
 		      if (ref['parent_id'] === -1) {
-		        arrResults.push(ref);
+		      	arrResults.push(ref);
 		      }
-		    }
-		    console.log(arrResults);
-		    resolve(arrResults);
-		  });
+		  }
+		  console.log(arrResults);
+		  resolve(arrResults);
+		});
 
-		  connection.end();
+			connection.end();
 		});
 	}
 
 	public getDeepLocationsByParentId(parentId){
 		return new Promise((resolve) => {
 			const sql_load = `SELECT * 
-				FROM (SELECT * FROM locations ORDER BY parent_id, location_id) sublocations, 
-					(SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
+			FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations, 
+			(SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
 				if (error) {
@@ -348,68 +352,69 @@ export class Location extends BaseClass {
 		});
 	}
 
-  public getSublocations(user_id?: number, role_id?: number) {
-    return new Promise((resolve, reject) => {
-       const location: {[key: number]: Array<Object>} = {};
-       let parentId = 0;
-       let tempArr = [];
-       let parents = [];
+	public getSublocations(user_id?: number, role_id?: number) {
+		return new Promise((resolve, reject) => {
+			const location: {[key: number]: Array<Object>} = {};
+			let parentId = 0;
+			let tempArr = [];
+			let parents = [];
 
-      let sql_get_subloc = `SELECT
-                                location_id,
-                                parent_id,
-                                name
-                              FROM
-                                locations
-                              WHERE
-                                parent_id = ?`;
+			let sql_get_subloc = `SELECT
+			location_id,
+			parent_id,
+			name
+			FROM
+			locations
+			WHERE
+			parent_id = ?
+			AND archived = 0`;
 
-      sql_get_subloc = `SELECT
-                          location_id,
-                          name,
-                          parent_id
-                        FROM (SELECT * FROM locations ORDER BY parent_id, location_id DESC) sublocations,
-                        (SELECT @pv := ?) initialisation
-                        WHERE find_in_set(parent_id, @pv) > 0
-                        AND @pv := concat(@pv, ',', location_id);`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
-        if (err) {
-          console.log(sql_get_subloc);
-          throw new Error('Internal error. There was a problem processing your query');
-        }
-        if (results.length) {
-          for (let i = 0; i < results.length; i++) {
-            // initialize
-            results[i]['children'] = [];
-            if (parentId !== results[i]['parent_id']) {
-              tempArr = [];
-              parentId = results[i]['parent_id'];
-            }
-            tempArr.push(results[i]);
-            location[results[i]['parent_id']] = tempArr;
+			sql_get_subloc = `SELECT
+			location_id,
+			name,
+			parent_id
+			FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id DESC) sublocations,
+			(SELECT @pv := ?) initialisation
+			WHERE find_in_set(parent_id, @pv) > 0
+			AND @pv := concat(@pv, ',', location_id)
+			ORDER BY parent_id;`;
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
+				if (err) {
+					console.log(sql_get_subloc);
+					throw new Error('Internal error. There was a problem processing your query');
+				}
+				if (results.length) {
+					for (let i = 0; i < results.length; i++) {
+						results[i]['children'] = [];
+						if (parentId !== results[i]['parent_id']) {
+							tempArr = [];
+							parentId = results[i]['parent_id'];
+						}
+						tempArr.push(results[i]);
+						location[results[i]['parent_id']] = tempArr;
 
-          }
-          parents = Object.keys(location);
-            for ( let i = 0; i < parents.length - 1; i++) {
-                for ( let a = 0; a < location[parents[i]].length; a++) {
-                    for ( let b = 0; b < parents.length;b++) {
-                        for (let c = 0; c < location[parents[b]].length; c++ ) {
-                            if (location[parents[i]][a]['location_id'] === location[parents[b]][c]['parent_id']) {
-                                location[parents[i]][a]['children'].push(location[parents[b]][c]);
-                            }
-                        }
-                    }
-                }
-            }
-          resolve(location[this.ID()]);
-        } else {
-          resolve([]);
-        }
+					}
+					parents = Object.keys(location);
+					for ( let i = 0; i < parents.length - 1; i++) {
+						for ( let a = 0; a < location[parents[i]].length; a++) {
+							for ( let b = 0; b < parents.length;b++) {
+								for (let c = 0; c < location[parents[b]].length; c++ ) {
+									if (location[parents[i]][a]['location_id'] === location[parents[b]][c]['parent_id']) {
+										location[parents[i]][a]['children'].push(location[parents[b]][c]);
+									}
+								}
+							}
+						}
+					}
+					resolve(location[this.ID()]);
+				} else {
+					resolve([]);
+				}
 
-      });
-      connection.end();
-    });
-  }
+			});
+			connection.end();
+		});
+	}
 
 }

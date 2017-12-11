@@ -78,6 +78,19 @@ const md5 = require('md5');
 	        });
       	});
 
+      	router.post('/sublocation/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new LocationRoute().createSublocation(req, res).then((sublocationData) => {
+	            return res.status(200).send({
+	            	data : sublocationData,
+	           		message: 'Create sublocation successful'
+	            });
+	        }).catch((e) => {
+	            return res.status(400).send({
+	            	message: e
+	            });
+	        });
+      	});
+
 		router.post('/location/search-db-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 			new LocationRoute().searchDbForLocation(req, res);
 		});
@@ -93,6 +106,18 @@ const md5 = require('md5');
 		router.post('/location/check-user-verified', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 			new LocationRoute().checkUserVerifiedInLocation(req, res);
 		});
+
+		router.post('/location/archive', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new LocationRoute().archiveLocation(req, res).then((data) => {
+	            return res.status(200).send({
+	           		message: 'Successful'
+	            });
+	        }).catch((e) => {
+	            return res.status(400).send({
+	            	message: e
+	            });
+	        });
+      	});
    	} 
 
 	/**
@@ -185,9 +210,9 @@ const md5 = require('md5');
         const location = new Location();
         let locationAccntUser;
         let locationAccnt;
-         // we need to check the role(s)
-         const userRoleRel = new UserRoleRelation();
-         const roles = await userRoleRel.getByUserId(req.user.user_id);
+        // we need to check the role(s)
+        const userRoleRel = new UserRoleRelation();
+        const roles = await userRoleRel.getByUserId(req.user.user_id);
 
         // what is the highest rank role
         let r = 100;
@@ -249,6 +274,109 @@ const md5 = require('md5');
         return {
           status: 'Success'
         };
+    }
+
+    public async createSublocation(req: AuthRequest, res: Response){
+    	let parentId = req.body.parent_id,
+    		sublocation_name = req.body.name,
+    		locationParent = new Location(),
+    		locationSub = new Location(),
+    		userRoleRel = new UserRoleRelation();
+
+    	let locations = await locationParent.getByInIds(parentId),
+    		locationAccntUser = new LocationAccountUser(),
+    		locationAccnt = new LocationAccountRelation(),
+    		subData = {},
+    		roles = await userRoleRel.getByUserId(req.user.user_id);
+
+    	// what is the highest rank role
+    	let r = 100;
+    	for (let i = 0; i < roles.length; i++) {
+    		if(r > parseInt(roles[i]['role_id'], 10)) {
+    			r = roles[i]['role_id'];
+    		}
+    	}
+
+        const roles_text = ['', 'Manager', 'Tenant'];
+
+    	if(Object.keys(locations).length > 0){
+    		for(let i in locations[0]){
+				if(i !== 'location_id'){
+					subData[i] = locations[0][i];
+				}
+			}
+
+			subData['name'] = sublocation_name;
+			subData['parent_id'] = parentId;
+			subData['order'] = null;
+
+			try{
+				await locationSub.create(subData);
+				subData['location_id'] = locationSub.ID();
+ 
+				await locationAccnt.create({
+					'location_id': subData['location_id'],
+					'account_id': req.user.account_id,
+					'responsibility': roles_text[r]
+				});
+
+				await locationAccntUser.create({
+					'location_id' : subData['location_id'],
+					'account_id' : req.user.account_id,
+					'user_id' : req.user.user_id,
+					'role_id' : r
+				});
+
+				return subData;
+			}catch (e){
+				throw new Error('Unable to save sublocation');
+			}
+
+    	}else{
+    		throw new Error('No parent found');
+    	}
+    }
+
+    public async archiveLocation(req: AuthRequest, res: Response){
+    	let locationId = req.body.location_id,
+    		locationModel = new Location(),
+    		locationSubModel = new Location(),
+    		locations;
+
+    	locations = await locationModel.getByInIds(locationId);
+    	if(Object.keys(locations).length > 0){
+    		let location = locations[0];
+
+    		for(let i in location){
+    			locationModel.set(i, location[i]);
+    		}
+
+    		locationModel.setID(locationId);
+    		locationModel.set('archived', 1);
+
+    		try{
+    			await locationModel.dbUpdate();
+
+	    		let sublocations = await locationSubModel.getDeepLocationsByParentId(locationId);
+	    		for(let i in sublocations){
+	    			let archiveModel = new Location();
+
+	    			for(let x in sublocations[i]){
+	    				archiveModel.set(x, sublocations[i][x]);
+	    			}
+	    			archiveModel.setID(sublocations[i]['location_id']);
+	    			archiveModel.set('archived', 1);
+
+	    			await archiveModel.dbUpdate();
+	    		}
+
+    		}catch(e){
+    			throw new Error('Unable to archive location');
+    		}
+
+    	}else{
+    		throw new Error('No location found');
+    	}
     }
 
   	private mergeObjects(obj1,obj2){

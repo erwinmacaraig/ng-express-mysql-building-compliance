@@ -9,44 +9,79 @@ import { LocationsService } from '../../services/locations';
 
 declare var $: any;
 @Component({
-  selector: 'app-view-locations-sub',
-  templateUrl: './sublocation.component.html',
-  styleUrls: ['./sublocation.component.css'],
-  providers: [EncryptDecryptService]
+    selector: 'app-view-locations-sub',
+    templateUrl: './sublocation.component.html',
+    styleUrls: ['./sublocation.component.css'],
+    providers: [EncryptDecryptService]
 })
 export class SublocationComponent implements OnInit, OnDestroy {
-  userData: Object;
-  encryptedID;
-  locationID = 0;
-  locationData = {};
-  public parentData = {};
+    userData: Object;
+    encryptedID;
+    locationID = 0;
+    locationData = {};
+    public parentData = {};
 
-  constructor(private locationService: LocationsService,
-    private encryptDecrypt: EncryptDecryptService,
-    private route: ActivatedRoute) {}
+    errorMessageModalSublocation = '';
+    showLoaderModalSublocation = false;
+    selectedLocationToArchive = {};
 
-  ngOnInit() {
-    $('select').material_select();
-    this.route.params.subscribe((params) => {
-      this.encryptedID = params['encrypted'];
-      this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
-      this.locationService.getById(this.locationID, (response) => {
+    constructor(private locationService: LocationsService,
+        private encryptDecrypt: EncryptDecryptService,
+        private route: ActivatedRoute,
+        private router: Router
+    ) {}
 
-        this.parentData = response.parent;
-        this.locationData = response.location;
-        this.parentData['location_id'] = this.encryptDecrypt.encrypt(this.parentData['location_id']).toString();
-        this.parentData['sublocations'] = response.siblings;
+    ngOnInit() {
+        $('select').material_select();
+        $('.modal').modal({ dismissible: false });
+        this.route.params.subscribe((params) => {
+            this.encryptedID = params['encrypted'];
+            this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
+            this.locationService.getById(this.locationID, (response) => {
 
-        for (let i = 0; i < this.parentData['sublocations'].length; i++ ) {
-          this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.parentData['sublocations'][i].location_id).toString();
-        }
-        console.log(this.parentData);
+                this.parentData = response.parent;
+                this.locationData = response.location;
+                this.parentData['location_id'] = this.encryptDecrypt.encrypt(this.parentData['location_id']).toString();
+                this.parentData['sublocations'] = response.siblings;
+
+                for (let i = 0; i < this.parentData['sublocations'].length; i++ ) {
+                    this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.parentData['sublocations'][i].location_id).toString();
+                }
+                console.log(this.parentData);
 
 
-      });
-    });
-  }
+            });
+        });
+    }
 
-  ngOnDestroy() {}
+    onClickArchiveLocation(locationData){
+        this.selectedLocationToArchive = locationData;
+        $('#modalArchive').modal('open');
+    }
+
+    onClickYesArchive(){
+        this.errorMessageModalSublocation = '';
+        this.showLoaderModalSublocation = true;
+        this.locationService.archiveLocation({
+            location_id : this.locationID
+        }).subscribe(
+            (response) => {
+                this.showLoaderModalSublocation = false;
+                this.errorMessageModalSublocation = '';
+                $('#modalArchive').modal('close');
+
+                this.router.navigate(['/location/view', this.encryptDecrypt.encrypt(this.locationData['parent_id']).toString() ]);
+            },
+            (msg) => {
+                this.showLoaderModalSublocation = false;
+                this.errorMessageModalSublocation = msg;
+                setTimeout(() => {
+                    this.errorMessageModalSublocation = '';
+                }, 2000);
+            }
+        );
+    }
+
+    ngOnDestroy() {}
 
 }
