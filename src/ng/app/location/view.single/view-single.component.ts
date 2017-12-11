@@ -72,6 +72,10 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
             } else {
                 this.preloaderService.show();
                 this.loc_sub = this.locationService.getById(this.locationID, (response) => {
+                    if('location' in response === false){
+                        this.router.navigate(['/location', 'list']);
+                    }
+
                     setTimeout(() => {
                         this.preloaderService.hide();
                     }, 250);
@@ -162,9 +166,10 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     }
 
 	ngAfterViewInit(){
-		$('.nav-list-locations').addClass('active');
-		$('.location-navigation .view-location').addClass('active');
-	}
+        $('.nav-list-locations').addClass('active');
+        $('.location-navigation .active').removeClass('active');
+        $('.location-navigation .view-location').addClass('active');
+    }
 
 	getCountryName(abbr){
 		let name = '';

@@ -11,6 +11,7 @@ import { LocationsService } from '../../services/locations';
 import { Countries } from '../../models/country.model';
 
 declare var $: any;
+declare var Materialize: any;
 @Component({
 	selector: 'app-view-locations-sub',
 	templateUrl: './view.sublocation.html',
@@ -61,6 +62,7 @@ export class ViewSublocationComponent implements OnInit, OnDestroy {
 	ngAfterViewInit(){
 		$('.nav-list-locations').addClass('active');
 		$('.location-navigation .view-location').addClass('active');
+		Materialize.updateTextFields();
 	}
 
 	ngOnInit(){

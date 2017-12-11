@@ -115,6 +115,12 @@ export class VerificationComponent implements OnInit, OnDestroy {
     this.trpListSubscription.unsubscribe();
   }
 
+  ngAfterViewInit(){
+    $('.nav-list-locations').addClass('active');
+    $('.location-navigation .active').removeClass('active');
+    $('.location-navigation .add-location').addClass('active');
+  }
+
   toggleCriteria() {
 
     if (this.verificationForm.get('criteria').value === 'trp_enable') {

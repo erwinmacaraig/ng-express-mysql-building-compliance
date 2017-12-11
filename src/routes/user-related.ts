@@ -313,10 +313,12 @@ export class UserRelatedRoute extends BaseRoute {
         });
       }
     }else if(criteria == 'frp_enable'){
-      approvers.push({
-        approver_id : req.body.approver,
-        location_id : location_id
-      });
+      for(let i in location_id){
+        approvers.push({
+          approver_id : req.body.approver,
+          location_id : location_id[i]
+        });
+      }
     }
 
     lastApproverId = approvers[ approvers.length - 1 ]['approver_id'];

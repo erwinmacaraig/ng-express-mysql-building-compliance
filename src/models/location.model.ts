@@ -359,25 +359,22 @@ export class Location extends BaseClass {
 			let tempArr = [];
 			let parents = [];
 
-			let sql_get_subloc = `SELECT
-			location_id,
-			parent_id,
-			name
-			FROM
-			locations
-			WHERE
-			parent_id = ?
-			AND archived = 0`;
+			let sublocationQuery; 
+			if (user_id) { 
+				sublocationQuery = `
+					SELECT locations.* FROM locations 
+					INNER JOIN location_account_user ON location_account_user.location_id = locations.location_id 
+					AND location_account_user.user_id = ${user_id} AND locations.archived = 0 `; 
+				if (role_id) { 
+					sublocationQuery = sublocationQuery + `AND location_account_user.role_id = ${role_id}`; 
+				} 
+			} else { 
+				sublocationQuery = `SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id  DESC`; 
+			} 
+			const sql_get_subloc = `
+			SELECT location_id, name, parent_id FROM (${sublocationQuery}) sublocations, (SELECT @pv := ?) 
+			initialisation WHERE find_in_set(parent_id, @pv) > 0 AND @pv := concat(@pv, ',', location_id) ORDER BY parent_id;`;
 
-			sql_get_subloc = `SELECT
-			location_id,
-			name,
-			parent_id
-			FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id DESC) sublocations,
-			(SELECT @pv := ?) initialisation
-			WHERE find_in_set(parent_id, @pv) > 0
-			AND @pv := concat(@pv, ',', location_id)
-			ORDER BY parent_id;`;
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
 				if (err) {

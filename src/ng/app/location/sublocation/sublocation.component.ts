@@ -8,6 +8,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { LocationsService } from '../../services/locations';
 
 declare var $: any;
+declare var Materialize: any;
 @Component({
     selector: 'app-view-locations-sub',
     templateUrl: './sublocation.component.html',
@@ -34,6 +35,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
     ngOnInit() {
         $('select').material_select();
         $('.modal').modal({ dismissible: false });
+        Materialize.updateTextFields();
         this.route.params.subscribe((params) => {
             this.encryptedID = params['encrypted'];
             this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
@@ -52,6 +54,12 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
             });
         });
+    }
+
+    ngAfterViewInit(){
+        $('.nav-list-locations').addClass('active');
+        $('.location-navigation .active').removeClass('active');
+        $('.location-navigation .view-location').addClass('active');
     }
 
     onClickArchiveLocation(locationData){
