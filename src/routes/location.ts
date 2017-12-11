@@ -434,9 +434,22 @@ const md5 = require('md5');
 	    let locationId = <number>req.params.location_id;
 	    const location = new Location(locationId);
 	    let sublocations;
-	    let othersub = [];
+      let othersub = [];
+
+      // we need to check the role(s)
+      const userRoleRel = new UserRoleRelation();
+      const roles = await userRoleRel.getByUserId(req.user.user_id);
+
+      // what is the highest rank role
+      let r = 100;
+      for (let i = 0; i < roles.length; i++) {
+        if(r > parseInt(roles[i]['role_id'], 10)) {
+          r = roles[i]['role_id'];
+        }
+      }
+
 	    await location.load();
-	    sublocations = await location.getSublocations();
+	    sublocations = await location.getSublocations(req.user.user_id, r);
 
 	    if (sublocations.length) {
 	      return {
@@ -449,7 +462,7 @@ const md5 = require('md5');
 	    let siblings;
 	    const parentLocation = new Location(parentId);
 	    await parentLocation.load();
-	    siblings = await parentLocation.getSublocations();
+	    siblings = await parentLocation.getSublocations(req.user.user_id, r);
 
 	    return {
 	      'location': location.getDBData(),
@@ -662,65 +675,81 @@ const md5 = require('md5');
 	}
 
 	public async getParentLocationsByAccount(req: AuthRequest, res: Response) {
-
-
 	    const accountId = req.user.account_id;
 	    const account = new Account(accountId);
 	    let locationsOnAccount = [];
 	    let location;
-
+      let data;
 	    // we need to check the role(s)
 	    const userRoleRel = new UserRoleRelation();
 	    const roles = await userRoleRel.getByUserId(req.user.user_id);
 
 	    // what is the highest rank role
 	    let r = 100;
-	    console.log(roles);
-
 	    for (let i = 0; i < roles.length; i++) {
 	      if(r > parseInt(roles[i]['role_id'], 10)) {
 	        r = roles[i]['role_id'];
 	      }
       }
-
-
+      // locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id);
+      // console.log(locationsOnAccount);
       locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r);
+
       switch(r) {
         case 1:
         for (let loc of locationsOnAccount) {
           location = new Location(loc.location_id);
           loc['sublocations'] = await location.getSublocations();
-
         }
-        break;
+        // break;
+        return locationsOnAccount;
         case 2:
           // get the parent or parents of these sublocation
           let results;
           // let objectOfSubs:{[key: number]: Array<Object>} = {};
-          let objectOfSubs:{[key: number]: any} = {};
+          let objectOfSubs:{[key: number]: any[]} = {};
           let seenParents = []; // these are the parent ids
           let rootParents = [];
           let pId = 0;
           for (let loc of locationsOnAccount) {
-            objectOfSubs[loc.location_id].push(loc);
+            objectOfSubs[loc.parent_id] = [];
+          }
+          for (let loc of locationsOnAccount) {
+            objectOfSubs[loc.parent_id].push(loc);
 
-            if (seenParents.indexOf(loc.parent_id) === -1) {
+            if ((seenParents.indexOf(loc.parent_id)*1)  === -1) {
+
               seenParents.push(loc.parent_id);
-              // get root parent
               let parentId = loc.parent_id;
               while (parentId !== -1) {
                 location = new Location(parentId);
                 await location.load();
                 parentId = location.get('parent_id');
               }
+
               rootParents.push(location.getDBData());
+              location.set('desc', loc.parent_id);
+              /*
+              objectOfSubs[loc.parent_id].push({
+                'root': location.getDBData(),
+
+              });
+              */
+              location = undefined;
             }
           }
-          console.log(objectOfSubs);
-
-        break;
+          for (let r of rootParents) {
+            r['sublocations'] = [];
+            r['sublocations'] = objectOfSubs[r['desc']];
+            r['sublocations']['total'] = 0;
+            r['total_subs'] = objectOfSubs[r['desc']].length;
+          }
+        return {
+          'locations':  rootParents
+        };
       }
       return locationsOnAccount;
+
 
 
 

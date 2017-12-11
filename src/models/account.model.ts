@@ -235,28 +235,7 @@ export class Account extends BaseClass {
       if (user_id) {
         user_filter = `AND LAU.user_id = ${user_id}`;
       }
-      // portfolio
-      let sql_get_locations = `SELECT
-        locations.parent_id,
-        locations.name,
-        locations.formatted_address,
-        locations.location_id,
-        locations.google_photo_url
-      FROM
-        locations
-      INNER JOIN
-        location_account_relation LCR
-      ON
-        locations.location_id = LCR.location_id
-      WHERE
-        locations.parent_id = -1
-      AND
-        LCR.account_id = ?
-      ORDER BY
-        locations.location_id`;
-
-
-     sql_get_locations = `SELECT
+      const sql_get_locations = `SELECT
       locations.parent_id,
       locations.name,
       locations.formatted_address,
@@ -275,7 +254,7 @@ export class Account extends BaseClass {
       locations.location_id;`
       ;
 
-    console.log(sql_get_locations);
+    // console.log(sql_get_locations);
     const val = [this.ID()];
     const connection = db.createConnection(dbconfig);
     connection.query(sql_get_locations, val, (err, results, fields) => {
