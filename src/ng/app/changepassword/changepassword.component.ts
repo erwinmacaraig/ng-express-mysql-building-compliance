@@ -38,7 +38,8 @@ export class ChangepasswordComponent implements OnInit, AfterViewInit {
 		private platformLocation: PlatformLocation,
 		private http: HttpClient,
 		private fpService : ForgotPasswordService,
-		private route : ActivatedRoute
+    private route : ActivatedRoute,
+    private router: Router
 	) {
 		this.baseUrl = (platformLocation as any).location.origin;
 		this.options = { headers : this.headers };
@@ -65,7 +66,7 @@ export class ChangepasswordComponent implements OnInit, AfterViewInit {
 	ngAfterViewInit(){
 		this.modalMsg = $('#modalMsg').modal({
 			dismissible: false,
-			startingTop: '0%', 
+			startingTop: '0%',
 			endingTop: '5%'
 		});
 	}
@@ -94,15 +95,18 @@ export class ChangepasswordComponent implements OnInit, AfterViewInit {
 							this.modalshowCheckIcon = true;
 							this.modalshowCloseIcon = false;
 							this.modalMessage = 'Success! Please go back to login page with your account using your new password.';
-							f.form.reset();
+              f.form.reset();
+
 						}else{
 							this.modalshowCheckIcon = false;
 							this.modalshowCloseIcon = true;
 							this.modalMessage = response.message;
 						}
 						setTimeout(() => {
-							this.modalMsg.modal('close');
-						}, 2000);
+              this.modalMsg.modal('close');
+              this.router.navigate(['/login']);
+            }, 2000);
+
 					}
 				)
 
