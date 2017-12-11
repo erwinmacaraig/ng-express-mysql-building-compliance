@@ -187,6 +187,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     }
 
     $('.nav-list-locations').addClass('active');
+    $('.location-navigation .active').removeClass('active');
     $('.location-navigation .add-location').addClass('active');
   }
 
@@ -311,9 +312,10 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     let locId = this.encryptDecrypt.decrypt(location.location_id);
     this.showLoaderModalSubLocation = true;
     this.selectedLocation = location;
-    $('#modalSublocations').modal('open');
+    
     this.locationService.getDeepLocationsById(locId, (response) => {
       if(response.data.length > 0){
+        $('#modalSublocations').modal('open');
         this.arrFlatSelectedLocations = response.data;
         for(let i in this.arrFlatSelectedLocations){
           this.arrFlatSelectedLocations[i]['sublocations'] = [];
@@ -322,7 +324,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         this.arrSelectedLocationsCopy = JSON.parse( JSON.stringify(this.selectedLocationSubLocations) );
         this.showLoaderModalSubLocation = false;
       }else{
-        this.router.navigate(['/location/verify-access', { 'location_id' : locId, 'account_id' : this.accountId  }]);
+        this.router.navigate(['/location/verify-access', { 'location_id' : this.encryptDecrypt.encrypt(locId).toString(), 'account_id' : this.accountId  }]);
       }
     });
   }

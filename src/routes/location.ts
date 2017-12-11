@@ -61,7 +61,8 @@ const md5 = require('md5');
               return res.status(200).send(data);
             }).catch((err) => {
               return res.status(400).send({
-                message: 'Error getting locations'
+	              	locations : [],
+	                message: 'Error getting locations'
             	});
        		});
        	});
@@ -74,6 +75,19 @@ const md5 = require('md5');
 	        }).catch((e) => {
 	            return res.status(400).send({
 	              message: 'Bad Request'
+	            });
+	        });
+      	});
+
+      	router.post('/sublocation/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new LocationRoute().createSublocation(req, res).then((sublocationData) => {
+	            return res.status(200).send({
+	            	data : sublocationData,
+	           		message: 'Create sublocation successful'
+	            });
+	        }).catch((e) => {
+	            return res.status(400).send({
+	            	message: e
 	            });
 	        });
       	});
@@ -93,6 +107,18 @@ const md5 = require('md5');
 		router.post('/location/check-user-verified', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 			new LocationRoute().checkUserVerifiedInLocation(req, res);
 		});
+
+		router.post('/location/archive', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new LocationRoute().archiveLocation(req, res).then((data) => {
+	            return res.status(200).send({
+	           		message: 'Successful'
+	            });
+	        }).catch((e) => {
+	            return res.status(400).send({
+	            	message: e
+	            });
+	        });
+      	});
    	} 
 
 	/**
@@ -185,9 +211,9 @@ const md5 = require('md5');
         const location = new Location();
         let locationAccntUser;
         let locationAccnt;
-         // we need to check the role(s)
-         const userRoleRel = new UserRoleRelation();
-         const roles = await userRoleRel.getByUserId(req.user.user_id);
+        // we need to check the role(s)
+        const userRoleRel = new UserRoleRelation();
+        const roles = await userRoleRel.getByUserId(req.user.user_id);
 
         // what is the highest rank role
         let r = 100;
@@ -249,6 +275,109 @@ const md5 = require('md5');
         return {
           status: 'Success'
         };
+    }
+
+    public async createSublocation(req: AuthRequest, res: Response){
+    	let parentId = req.body.parent_id,
+    		sublocation_name = req.body.name,
+    		locationParent = new Location(),
+    		locationSub = new Location(),
+    		userRoleRel = new UserRoleRelation();
+
+    	let locations = await locationParent.getByInIds(parentId),
+    		locationAccntUser = new LocationAccountUser(),
+    		locationAccnt = new LocationAccountRelation(),
+    		subData = {},
+    		roles = await userRoleRel.getByUserId(req.user.user_id);
+
+    	// what is the highest rank role
+    	let r = 100;
+    	for (let i = 0; i < roles.length; i++) {
+    		if(r > parseInt(roles[i]['role_id'], 10)) {
+    			r = roles[i]['role_id'];
+    		}
+    	}
+
+        const roles_text = ['', 'Manager', 'Tenant'];
+
+    	if(Object.keys(locations).length > 0){
+    		for(let i in locations[0]){
+				if(i !== 'location_id'){
+					subData[i] = locations[0][i];
+				}
+			}
+
+			subData['name'] = sublocation_name;
+			subData['parent_id'] = parentId;
+			subData['order'] = null;
+
+			try{
+				await locationSub.create(subData);
+				subData['location_id'] = locationSub.ID();
+ 
+				await locationAccnt.create({
+					'location_id': subData['location_id'],
+					'account_id': req.user.account_id,
+					'responsibility': roles_text[r]
+				});
+
+				await locationAccntUser.create({
+					'location_id' : subData['location_id'],
+					'account_id' : req.user.account_id,
+					'user_id' : req.user.user_id,
+					'role_id' : r
+				});
+
+				return subData;
+			}catch (e){
+				throw new Error('Unable to save sublocation');
+			}
+
+    	}else{
+    		throw new Error('No parent found');
+    	}
+    }
+
+    public async archiveLocation(req: AuthRequest, res: Response){
+    	let locationId = req.body.location_id,
+    		locationModel = new Location(),
+    		locationSubModel = new Location(),
+    		locations;
+
+    	locations = await locationModel.getByInIds(locationId);
+    	if(Object.keys(locations).length > 0){
+    		let location = locations[0];
+
+    		for(let i in location){
+    			locationModel.set(i, location[i]);
+    		}
+
+    		locationModel.setID(locationId);
+    		locationModel.set('archived', 1);
+
+    		try{
+    			await locationModel.dbUpdate();
+
+	    		let sublocations = await locationSubModel.getDeepLocationsByParentId(locationId);
+	    		for(let i in sublocations){
+	    			let archiveModel = new Location();
+
+	    			for(let x in sublocations[i]){
+	    				archiveModel.set(x, sublocations[i][x]);
+	    			}
+	    			archiveModel.setID(sublocations[i]['location_id']);
+	    			archiveModel.set('archived', 1);
+
+	    			await archiveModel.dbUpdate();
+	    		}
+
+    		}catch(e){
+    			throw new Error('Unable to archive location');
+    		}
+
+    	}else{
+    		throw new Error('No location found');
+    	}
     }
 
   	private mergeObjects(obj1,obj2){
@@ -431,12 +560,25 @@ const md5 = require('md5');
 	}
 
   	public async getLocation(req: AuthRequest, res: Response) {
-	    let locationId = <number>req.params.location_id;
-	    const location = new Location(locationId);
-	    let sublocations;
-	    let othersub = [];
+  		let locationId = <number>req.params.location_id;
+  		const location = new Location(locationId);
+  		let sublocations;
+  		let othersub = [];
+
+      	// we need to check the role(s)
+		const userRoleRel = new UserRoleRelation();
+		const roles = await userRoleRel.getByUserId(req.user.user_id);
+
+      	// what is the highest rank role
+		let r = 100;
+		for (let i = 0; i < roles.length; i++) {
+			if(r > parseInt(roles[i]['role_id'], 10)) {
+				r = roles[i]['role_id'];
+			}
+		}
+
 	    await location.load();
-	    sublocations = await location.getSublocations();
+	    sublocations = await location.getSublocations(req.user.user_id, r);
 
 	    if (sublocations.length) {
 	      return {
@@ -449,12 +591,13 @@ const md5 = require('md5');
 	    let siblings;
 	    const parentLocation = new Location(parentId);
 	    await parentLocation.load();
-	    siblings = await parentLocation.getSublocations();
+	    siblings = await parentLocation.getSublocations(req.user.user_id, r);
 
 	    return {
 	      'location': location.getDBData(),
 	      'parent': parentLocation.getDBData(),
-	      'siblings': siblings
+	      'siblings': siblings,
+	      'sublocations' : []
 	    }
 	    /*
 	      response = { status : false, message : '', data : [] },
@@ -662,125 +805,81 @@ const md5 = require('md5');
 	}
 
 	public async getParentLocationsByAccount(req: AuthRequest, res: Response) {
-
 	    const accountId = req.user.account_id;
 	    const account = new Account(accountId);
 	    let locationsOnAccount = [];
 	    let location;
-
+      	let data;
 	    // we need to check the role(s)
 	    const userRoleRel = new UserRoleRelation();
 	    const roles = await userRoleRel.getByUserId(req.user.user_id);
 
 	    // what is the highest rank role
 	    let r = 100;
-	    console.log(roles);
-
 	    for (let i = 0; i < roles.length; i++) {
-	      if(r > parseInt(roles[i]['role_id'], 10)) {
-	        r = roles[i]['role_id'];
-	      }
+	    	if(r > parseInt(roles[i]['role_id'], 10)) {
+	    		r = roles[i]['role_id'];
+	    	}
 	    }
+		// locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id);
+		// console.log(locationsOnAccount);
+		locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r);
 
-	    locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id);
-	    for (let loc of locationsOnAccount) {
-	      location = new Location(loc.location_id);
-	      loc['sublocations'] = await location.getSublocations();
-	    }
-	    return locationsOnAccount;
+		switch(r) {
+			case 1:
+				for (let loc of locationsOnAccount) {
+					location = new Location(loc.location_id);
+					loc['sublocations'] = await location.getSublocations();
+				}
+				// break;
+				return locationsOnAccount;
+			case 2:
+				// get the parent or parents of these sublocation
+				let results;
+				// let objectOfSubs:{[key: number]: Array<Object>} = {};
+				let objectOfSubs:{[key: number]: any[]} = {};
+				let seenParents = []; // these are the parent ids
+				let rootParents = [];
+				let pId = 0;
+				for (let loc of locationsOnAccount) {
+					objectOfSubs[loc.parent_id] = [];
+				}
+				for (let loc of locationsOnAccount) {
+					objectOfSubs[loc.parent_id].push(loc);
 
-	    /*
-			let  response = { status : false, message : '', data : [] },
-				fetchingProgress = {
-					location : false, wardens : false, frptrp : false, accountsLocations : false
-				},
-				fetchedDatas = {
-					locations : <any>[], wardens:<any>[], frptrp:<any>[], accountLocations:<any>[]
-				},
-				location = new Location(),
-				wardensModel = new LocationAccountUser(),
-				frpTrpModel = new LocationAccountUser(),
-				callWait = (callBack) => {
-					setTimeout(() => {
-						if(fetchingProgress.location && fetchingProgress.wardens && fetchingProgress.frptrp && fetchingProgress.accountsLocations){
-							callBack();
-						}else{
-							callWait(callBack);
+					if ((seenParents.indexOf(loc.parent_id)*1)  === -1) {
+
+						seenParents.push(loc.parent_id);
+						let parentId = loc.parent_id;
+						while (parentId !== -1) {
+							location = new Location(parentId);
+							await location.load();
+							parentId = location.get('parent_id');
 						}
 
-					}, 100);
-				},
-				responseSend = () => {
-					res.statusCode = 200;
-					res.send(response);
-				};
+						rootParents.push(location.getDBData());
+						location.set('desc', loc.parent_id);
+						/*
+						objectOfSubs[loc.parent_id].push({
+						'root': location.getDBData(),
 
-			callWait(() => {
-
-				fetchedDatas.locations = this.addWardenToLocations(fetchedDatas.locations, fetchedDatas.wardens);
-				fetchedDatas.locations = this.addFrpTrpToLocations(fetchedDatas.locations, fetchedDatas.frptrp);
-
-				let toMergedData = Object.create(fetchedDatas.locations),
-					mergedData = this.mergeToParent(toMergedData),
-					finalData = [];
-
-				this.addWardenCounts(mergedData);
-
-				for(let i in fetchedDatas.accountLocations){
-					for(let n in mergedData){
-						if(fetchedDatas.accountLocations[i]['location_id'] == mergedData[n]['location_id']){
-							mergedData[n]['no_locations'] = 1;
-							mergedData[n]['level_occupied'] = mergedData[n]['sublocations'].length;
-							finalData.push(mergedData[n]);
-						}
+						});
+						*/
+						location = undefined;
 					}
 				}
-
-				response.data = finalData;
-				responseSend();
-
-			});
-
-			wardensModel.getWardensByAccountId(req.params['account_id']).then(
-				(wardens) => {
-					fetchedDatas.wardens = wardens;
-					fetchingProgress.wardens = true;
-				},
-				() => {
-					fetchingProgress.wardens = true;
+				for (let r of rootParents) {
+					r['sublocations'] = [];
+					r['sublocations'] = objectOfSubs[r['desc']];
+					r['sublocations']['total'] = 0;
+					r['total_subs'] = objectOfSubs[r['desc']].length;
 				}
-			);
+				return {
+					'locations':  rootParents
+				};
+		}
+		return locationsOnAccount;
 
-			frpTrpModel.getFrpTrpByAccountId(req.params['account_id']).then(
-				(frptrps) => {
-					fetchedDatas.frptrp = frptrps;
-					fetchingProgress.frptrp = true;
-				},
-				() => {
-					fetchingProgress.frptrp = true;
-				}
-			);
-
-			location.getAllLocations().then(
-				(results) => {
-					fetchedDatas.locations = results;
-					fetchingProgress.location = true;
-				},
-				() => {
-					responseSend();
-				}
-			);
-
-			location.getParentLocationByAccountId(req.params['account_id']).then(
-				(results) => {
-					fetchedDatas.accountLocations = results;
-					fetchingProgress.accountsLocations = true;
-				},
-				(e) => {
-					fetchingProgress.accountsLocations = true;
-				}
-	    );
-	    */
 	}
 
 	public getDeepLocationsById(req: AuthRequest, res: Response){

@@ -226,32 +226,16 @@ export class Account extends BaseClass {
       let role_filter = '';
       if (role_id) {
         role_filter = `AND LAU.role_id = ${role_id}`;
+        if (role_id === 1) {
+          role_filter = `${role_filter} AND locations.parent_id = -1`;
+        } else if (role_id === 2) {
+          role_filter = `${role_filter} AND locations.parent_id <> -1`;
+        }
       }
       if (user_id) {
         user_filter = `AND LAU.user_id = ${user_id}`;
       }
-      // portfolio
-      let sql_get_locations = `SELECT
-        locations.parent_id,
-        locations.name,
-        locations.formatted_address,
-        locations.location_id,
-        locations.google_photo_url
-      FROM
-        locations
-      INNER JOIN
-        location_account_relation LCR
-      ON
-        locations.location_id = LCR.location_id
-      WHERE
-        locations.parent_id = -1
-      AND
-        LCR.account_id = ?
-      ORDER BY
-        locations.location_id`;
-
-
-     sql_get_locations = `SELECT
+      const sql_get_locations = `SELECT
       locations.parent_id,
       locations.name,
       locations.formatted_address,
@@ -264,15 +248,14 @@ export class Account extends BaseClass {
     ON
       locations.location_id = LAU.location_id
     WHERE
-      locations.parent_id = -1
-    AND
-      LAU.account_id = ?
+    LAU.account_id = ?
+    AND locations.archived = 0
     ${user_filter} ${role_filter}
     ORDER BY
       locations.location_id;`
       ;
 
-    console.log(sql_get_locations);
+    // console.log(sql_get_locations);
     const val = [this.ID()];
     const connection = db.createConnection(dbconfig);
     connection.query(sql_get_locations, val, (err, results, fields) => {
@@ -287,7 +270,7 @@ export class Account extends BaseClass {
           reject(`No location found for this account ${this.ID()}`);
         }
       });
-      connection.end();
+    connection.end();
     });
   }
 

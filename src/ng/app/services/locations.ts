@@ -85,6 +85,14 @@ export class LocationsService {
 		return this.http.post<any>(this.baseUrl + '/location/create/', location);
 	}
 
+  createSubLocation(sublocation: Object): Observable<any>{
+    return this.http.post<any>(this.baseUrl + '/sublocation/create', sublocation);
+  }
+
+  archiveLocation(oParam: Object): Observable<any>{
+    return this.http.post<any>(this.baseUrl + '/location/archive', oParam);
+  }
+
 	getParentLocationsForListing(accountid, callBack){
 		this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/', this.options)
 	      .subscribe(res => {

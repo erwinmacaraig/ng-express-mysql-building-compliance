@@ -319,3 +319,42 @@ table.no-borders td{
   border: 0.1em solid #e0e5e8;
   border-radius: 50%;
 }
+
+#modalAddSublocation,
+#modalArchive{
+  width: 30%;
+}
+
+#modalAddSublocation form{
+  margin-top: 35px;
+}
+
+#modalAddSublocation .button-container,
+#modalArchive .button-container{
+  margin: 20px 0px;
+}
+
+#modalAddSublocation .button-container .btn,
+#modalArchive .button-container .btn{
+  font-size: 14px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+}
+
+@media only screen
+and (max-width: 768px){
+    
+    #modalAddSublocation,
+    #modalArchive{
+      width: 60% !important;
+    }
+
+}
+
+@media only screen
+and (max-width: 500px){
+    #modalAddSublocation,
+    #modalArchive{
+        width: 95% !important;
+    }
+}

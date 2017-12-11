@@ -50,6 +50,12 @@
 	border-bottom: 2px solid #36bb9b;
 }
 
+.location-navigation ul li.active.green-theme,
+.location-navigation ul li.active.green-theme a{
+	background-color: #36bb9b;
+	color: #fff;
+}
+
 .location-navigation ul li.pink-theme:hover,
 .location-navigation ul li.pink-theme:hover a{
 	background-color: #dc4453;
