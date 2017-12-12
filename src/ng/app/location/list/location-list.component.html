@@ -10,7 +10,7 @@
 				<thead>
 					<tr class="grey darken-4 white-text">
 						<th>Location Name</th>
-						<th>No. of Locations</th>
+						<!-- <th>No. of Locations</th> -->
 						<th>Level Occupied</th>
 						<th>FRP</th>
 						<th>Compliance</th>
@@ -33,9 +33,7 @@
               <span *ngIf="locations[i].name.length > 0"> {{locations[i].name}}</span>
               <span *ngIf="locations[i].name.length == 0"> {{locations[i].formatted_address}} </span>
 						</td>
-						<td>
-							1
-						</td>
+						<!-- <td> 1 </td> -->
 						<td>
 							{{location['total_subs']}}
 						</td>
