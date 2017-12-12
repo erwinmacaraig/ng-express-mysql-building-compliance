@@ -17,14 +17,12 @@ import { SignupUserInfoComponent } from './signup/user.info/user.info.component'
 import { NoemailComponent } from './noemail/noemail.component';
 
 import { AuthGuard } from './services/auth-guard.service';
-import { PersonInfoResolver, TRPListResolver, FRPListResolver } from './services/person-info.resolver';
+import { PersonInfoResolver} from './services/person-info.resolver';
 import { PersonDataProviderService } from './services/person-data-provider.service';
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
-import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
-
 // Locations Template Components
 import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
@@ -71,7 +69,6 @@ const appRoutes: Routes = [
   { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
-  { path: 'validation-criteria', canActivate: [AuthGuard], component: AccountValidationCriteriaComponent },
   /*{ path: '**', redirectTo: '/dashboard'},*/
   { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },

@@ -103,9 +103,15 @@ import * as Promise from 'promise';
 				status : false,
 				message : '',
 				data : {}
-			},
-			account = new Account(req.params['id']);
+      },
+      accntId = 0;
+      if (req.params['id'] === 'undefined') {
+        accntId = req.user.account_id;
+      } else {
+        accntId = req.params['id'] * 1;
+      }
 
+			const account = new Account(accntId);
 		// Default status code
 		res.statusCode = 400;
 
@@ -158,7 +164,7 @@ import * as Promise from 'promise';
 		data.state = this.capitalizeFirstLetter(data.state.toLowerCase());
 		data.key_contact = this.capitalizeFirstLetter(data.key_contact.toLowerCase());
 		data.unit_no = validator.isEmpty( ''+data['unit_no']+'' ) ? ' ' : data['unit_no'];
-		
+
 		return data;
 	}
 

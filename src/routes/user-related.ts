@@ -240,9 +240,7 @@ export class UserRelatedRoute extends BaseRoute {
     const utils = new Utils();
     // const queryParamUser = req.query.userId;
     let account_id = 0;
-    if ('account_id' in req.query) {
-      account_id = req.query.account_id;
-    }
+    account_id = req.user.account_id;
     console.log(req.query);
     utils.listAllFRP(account_id, req.user.user_id).then((list) => {
       return res.status(200).send({
@@ -265,10 +263,8 @@ export class UserRelatedRoute extends BaseRoute {
     }
     const location_id = req.query.location_id;
     let account_id = 0;
-    if ('account_id' in req.query) {
-      account_id = req.query.account_id;
-    }
-    console.log(location_id, account_id, req.user.user_id);
+    account_id = req.user.account_id;
+
     utils.listAllTRP(location_id, account_id, req.user.user_id).then((list) => {
       return res.status(200).send({
         status: 'Success',
@@ -282,7 +278,7 @@ export class UserRelatedRoute extends BaseRoute {
   }
 
   public async processValidation(req: AuthRequest, res: Response) {
-    
+
     // we need to check the role(s)
     const userRoleRel = new UserRoleRelation();
     const roles = await userRoleRel.getByUserId(req.user.user_id);
@@ -302,7 +298,7 @@ export class UserRelatedRoute extends BaseRoute {
     const userDomain =  user['email'].substr( user['email'].indexOf('@') + 1,  user['email'].length);
 
     const criteria = req.body.criteria;
-    
+
     let approvers = [],
       lastApproverId = 0;
     if(criteria == 'trp_enable'){
@@ -325,7 +321,7 @@ export class UserRelatedRoute extends BaseRoute {
 
     for(let i in approvers){
 
-      let 
+      let
         token_string = this.generateRandomChars(5),
         approver = new User(parseInt(approvers[i]['approver_id'])),
         utils = new Utils(),
@@ -334,7 +330,7 @@ export class UserRelatedRoute extends BaseRoute {
         locationValidation = new UserLocationValidation(),
         expDate = moment(),
         expDateFormat = '';
-      
+
       expDate.add(24, 'hours');
       expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
 

@@ -29,29 +29,33 @@ export class PersonDataProviderService {
       this.baseUrl + '/person-info', { params: new HttpParams().set('userId', userId) });
   }
 
-  public listAllFRP(location: number, account: number): Observable<any> {
+  public listAllFRP(location: number): Observable<any> {
     this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers };
 
-
+    /*
     this.options['params'] = new HttpParams()
                                 .set('account_id', account.toString())
                                 .set('location_id', location.toString());
 
+    */
+    this.options['params'] = new HttpParams().set('location_id', location.toString());
     return this.http.get<any>(this.baseUrl + '/listAllFRP', this.options);
   }
 
-  public listAllTRP(location: number, account: number): Observable<any> {
+  public listAllTRP(location: number): Observable<any> {
     /*
     let http_params = new HttpParams().set('location_id', location.toString());
     if (account) {
       http_params = http_params.set('account_id', account.toString());
     }
-    */
+
     const http_params = new HttpParams()
                           .set('account_id',  account.toString())
                           .set('location_id', location.toString());
+    */
 
+    const http_params = new HttpParams().set('location_id', location.toString());
     this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers, params: http_params };
     return this.http.get<any>(this.baseUrl + '/listAllTRP', this.options);
