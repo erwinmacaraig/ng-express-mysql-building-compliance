@@ -12,7 +12,7 @@
 			</a>
 		</li>
 
-		<li class="view-location green-theme">
+		<li class="view-location green-theme" *ngIf="!showEmailVerification">
 			<a href="javascript:void(0)" [routerLink]="['/location', 'list']">
 				<img src="assets/images/locations/view_all_location.png" class="default">
 				<img src="assets/images/locations/view_all_locations_hover.png" class="hover">
@@ -25,5 +25,11 @@
 	</ul
 ></div>
 <div class="workspace container">
+    <div class="red alert-email-verification darken-3 align-center" *ngIf="showEmailVerification"  style="margin-bottom: -58px;">
+      <div *ngIf="showResponse">{{responseMessage}}</div>
+      <div *ngIf="!showResponse">
+        Please validate your account by opening your email. <a href="javascript:void(0)" id="aClickResend" (click)="resendEmailVerification()"> Click here to resend </a>
+      </div>
+    </div>
 	<router-outlet></router-outlet>
 </div>

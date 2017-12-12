@@ -131,7 +131,7 @@
 
 <div id="modalAddSublocation" class="modal">
 	<div class="modal-content">
-		
+
 		<div class="center-align" *ngIf="showLoaderModalSublocation">
 			<div class="preloader-wrapper active" >
 				<div class="spinner-layer spinner-red-only">
@@ -150,7 +150,7 @@
 			<h5>Add New Sublocation</h5>
 
 			<div class="center" *ngIf="errorMessageModalSublocation.length > 0">
-				<h4>{{errorMessageModalSublocation}}</h4>
+				<h5>{{errorMessageModalSublocation}}</h5>
 			</div>
 
 			<form #form="ngForm" (submit)="addNewSubLocationSubmit(form, $event)" *ngIf="errorMessageModalSublocation.length == 0">
@@ -165,7 +165,7 @@
 			</form>
 		</div>
 
-		
+
 	</div>
 </div>
 

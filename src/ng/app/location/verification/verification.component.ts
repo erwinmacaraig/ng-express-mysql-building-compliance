@@ -71,7 +71,7 @@ export class VerificationComponent implements OnInit, OnDestroy {
 
 
 
-    this.trpListSubscription = this.dataProvider.listAllTRP(this.location, this.account).subscribe((data) => {
+    this.trpListSubscription = this.dataProvider.listAllTRP(this.location).subscribe((data) => {
       this.trpList = data['data'];
 
       this.locService.getByInIds(this.location, (response) => {
@@ -98,7 +98,7 @@ export class VerificationComponent implements OnInit, OnDestroy {
         console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
       }
     });
-    this.frpListSubscription = this.dataProvider.listAllFRP(this.location, this.account).subscribe((data) => {
+    this.frpListSubscription = this.dataProvider.listAllFRP(this.location).subscribe((data) => {
       this.frpList = data['data'];
     }, (err: HttpErrorResponse) => {
       this.initialFRP = false;

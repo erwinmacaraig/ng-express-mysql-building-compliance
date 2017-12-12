@@ -29,7 +29,7 @@ export class UsersRoute extends BaseRoute {
 	* @class RegisterRoute
 	* @constructor
 	*/
-	constructor() {	
+	constructor() {
 		super();
 	}
 
@@ -101,7 +101,7 @@ export class UsersRoute extends BaseRoute {
 		});
 	}
 
-	public checkVerifiedUser(req: Request, res: Response, next: NextFunction){
+	public checkVerifiedUser(req: Request, res: Response, next: NextFunction) {
 		let response = {
 			status : false,
 			data : {},

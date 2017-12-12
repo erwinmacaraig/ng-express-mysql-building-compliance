@@ -72,12 +72,11 @@
 					{{ component.formatted_address }}
 				</p>
 				<p>
-					Tenancy Managed By: Unknown
+					<!-- Tenancy Managed By: Unknown -->
 				</p>
 			</div>
-			<div class="button-container">
+			<div class="button-container" *ngIf="emailVerified">
 				<p>Has details of this location correct?</p>
-				<!-- <a [routerLink]="['/location', 'verify-access']" [queryParams]="{location_id: component.location_id, account_id: accountId}" class="btn orange waves-effect waves-light">Yes</a> -->
 				<button class="btn orange waves-effect waves-light" (click)="clickSelectLocation(component)">Yes</button>
 				<button class="btn grey waves-effect waves-light" (click)="clearSearch()">No</button>
 			</div>
@@ -86,7 +85,7 @@
     </div>
 
 
-	<div class="row">
+	<div class="row" *ngIf="emailVerified">
 		<div class="col s12 m12 l12 center-align">
 			<button class="btn btn-add-multiple">
 				<img class="image" src="assets/images/locations/multiple_locations.png" >
@@ -203,7 +202,8 @@
 						</li>
 					</ng-template>
 					<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: selectedLocationSubLocations }"></ng-container>
-				</ul>
+        </ul>
+        <h6 class="blue-text">Not in the list?</h6><a href="javascript:void(0);" (click)="onNewLevel($event)">Click here to add a new sub location</a>
 			</div>
 		</div>
 
@@ -213,3 +213,46 @@
 		</div>
 	</div>
 </div>
+<!-- -->
+<div id="modalAddSublocation" class="modal">
+	<div class="modal-content">
+
+		<div class="center-align" *ngIf="showLoaderModalAddSublocation">
+			<div class="preloader-wrapper active" >
+				<div class="spinner-layer spinner-red-only">
+					<div class="circle-clipper left">
+						<div class="circle"></div>
+					</div><div class="gap-patch">
+						<div class="circle"></div>
+					</div><div class="circle-clipper right">
+						<div class="circle"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div *ngIf="!showLoaderModalAddSublocation">
+			<h5>Add New Sublocation</h5>
+
+			<div class="center" *ngIf="errorMessageModalSublocation.length > 0">
+				<h5>{{errorMessageModalSublocation}}</h5>
+			</div>
+
+			<form #form="ngForm" (submit)="addNewSubLocationSubmit(form, $event)" *ngIf="errorMessageModalSublocation.length == 0">
+				<div class="input-field">
+					<input id="inpSublocationName" #inpSublocationName="ngModel" type="text" ngModel name="name" [ngClass]="{ invalid : !inpSublocationName.valid && inpSublocationName.dirty }" required>
+					<label for="inpSublocationName">Sublocation name</label>
+				</div>
+				<div class="button-container right-align">
+					<a href="javascript:void(0)" class="btn grey lighten-1 waves-effect waves-light modal-action modal-close">Cancel</a>
+					<button type="submit" class="btn orange waves-effect waves-light">Submit</button>
+				</div>
+			</form>
+		</div>
+
+
+	</div>
+</div>
+
+
+
