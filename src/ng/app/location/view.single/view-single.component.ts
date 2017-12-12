@@ -113,7 +113,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                     this.showLoaderModalSublocation = false;
                     this.errorMessageModalSublocation = '';
 
-                    if('sublocations' in this.locationData == false){
+                    if ('sublocations' in this.locationData == false){
                         this.locationData['sublocations'] = [];
                     }
 
@@ -125,8 +125,12 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
 
                 },
                 (msg) => {
+                    console.log(msg);
+                    console.log(msg.error.message);
+                    console.log(msg.error);
+                    console.log(typeof msg.error);
                     this.showLoaderModalSublocation = false;
-                    this.errorMessageModalSublocation = msg;
+                    this.errorMessageModalSublocation = msg.error;
                     setTimeout(() => {
                         this.errorMessageModalSublocation = '';
                     }, 2000);

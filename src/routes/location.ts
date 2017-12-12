@@ -86,9 +86,8 @@ const md5 = require('md5');
 	           		message: 'Create sublocation successful'
 	            });
 	        }).catch((e) => {
-	            return res.status(400).send({
-	            	message: e
-	            });
+              console.log( (<Error>e).message);
+	            return res.status(400).send((<Error>e).message);
 	        });
       	});
 
@@ -119,7 +118,7 @@ const md5 = require('md5');
 	            });
 	        });
       	});
-   	} 
+   	}
 
 	/**
 	* Constructor
@@ -280,9 +279,12 @@ const md5 = require('md5');
     public async createSublocation(req: AuthRequest, res: Response){
     	let parentId = req.body.parent_id,
     		sublocation_name = req.body.name,
-    		locationParent = new Location(),
+    		locationParent = new Location(parentId),
     		locationSub = new Location(),
     		userRoleRel = new UserRoleRelation();
+
+      let subs;
+
 
     	let locations = await locationParent.getByInIds(parentId),
     		locationAccntUser = new LocationAccountUser(),
@@ -300,6 +302,15 @@ const md5 = require('md5');
 
         const roles_text = ['', 'Manager', 'Tenant'];
 
+      // checks for location name if same name exists
+      subs = await locationParent.getSublocations(req.user.user_id, r);
+      for (let s of subs) {
+        console.log(s['name'].toUpperCase() + ' compared with ' + sublocation_name.toUpperCase());
+        if (s['name'].toUpperCase() === sublocation_name.toUpperCase()) {
+          throw new Error('Sub location with the name provided already exists');
+        }
+      }
+
     	if(Object.keys(locations).length > 0){
     		for(let i in locations[0]){
 				if(i !== 'location_id'){
@@ -314,7 +325,7 @@ const md5 = require('md5');
 			try{
 				await locationSub.create(subData);
 				subData['location_id'] = locationSub.ID();
- 
+
 				await locationAccnt.create({
 					'location_id': subData['location_id'],
 					'account_id': req.user.account_id,
