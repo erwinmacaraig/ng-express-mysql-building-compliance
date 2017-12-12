@@ -1,3 +1,4 @@
+
 import { AuthService } from '../../services/auth.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
@@ -6,6 +7,7 @@ import { FormControl, FormArray, FormGroup, Validators } from '@angular/forms';
 import { } from 'googlemaps';
 import { MapsAPILoader } from '@agm/core';
 import { LocationsService } from '../../services/locations';
+import { UserService } from './../../services/users';
 import { Router } from '@angular/router';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { Observable } from 'rxjs/Rx';
@@ -17,7 +19,7 @@ declare var $: any;
   selector: 'app-search-location',
   templateUrl: './search-location.component.html',
   styleUrls: ['./search-location.component.css'],
-  providers: [EncryptDecryptService]
+  providers: [EncryptDecryptService, UserService]
 })
 export class SearchLocationComponent implements OnInit, OnDestroy {
   public latitude: number;
@@ -33,7 +35,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public searchResultLocation = {};
   public formattedAddress: string;
   public accountId;
-
+  public userData;
   public readonlyCtrl = false;
 
   public numLevels: FormControl;
@@ -67,7 +69,8 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public arrSelectedLocationsCopy = [];
   public showLoaderModalSubLocation = false;
   public showModalAlreadyVerified = false;
-  
+  public emailVerified = false;
+
   private waitTyping = {};
   private typingLevelModal = false;
 
@@ -76,7 +79,8 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     private locationService: LocationsService,
     private router: Router,
     private authService: AuthService,
-    public encryptDecrypt: EncryptDecryptService) {
+    public encryptDecrypt: EncryptDecryptService,
+    public userService: UserService) {
 
     this.street_number = new FormControl();
     this.street_name = new FormControl();
@@ -103,6 +107,17 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     this.country = new FormControl();
     // create search FormControl
     this.searchControl = new FormControl();
+
+    this.userData = this.authService.getUserData();
+    // check if user email is verified
+    this.userService.checkUserVerified(this.userData['userId'] , (response) => {
+      if (response.status === false && response.message === 'not verified') {
+        this.emailVerified = false;
+      } else {
+        this.emailVerified = true;
+      }
+		});
+
     // load places autocomplete
     this.mapsAPILoader.load().then(() => {
       const autocomplete = new google.maps.places.Autocomplete(this.searchElementRef.nativeElement, {
@@ -304,7 +319,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         this.selectedLocationIds.splice(index, 1);
       }
     }
-    
+
     console.log(this.selectedLocationIds);
   }
 
@@ -312,7 +327,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     let locId = this.encryptDecrypt.decrypt(location.location_id);
     this.showLoaderModalSubLocation = true;
     this.selectedLocation = location;
-    
+
     this.locationService.getDeepLocationsById(locId, (response) => {
       if(response.data.length > 0){
         $('#modalSublocations').modal('open');
