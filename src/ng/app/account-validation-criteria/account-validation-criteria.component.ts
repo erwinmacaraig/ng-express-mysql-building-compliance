@@ -58,7 +58,7 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
     this.location = this.route.snapshot.queryParams['location_id'] || 0;
     this.account = this.route.snapshot.queryParams['account_id'] || 0;
 
-    this.frpListSubscription = this.dataProvider.listAllFRP(this.location, this.account).subscribe((data) => {
+    this.frpListSubscription =  this.dataProvider.listAllFRP(this.location).subscribe((data) => {
       this.frpList = data['data'];
     }, (err: HttpErrorResponse) => {
       if (err.error instanceof Error) {
@@ -68,7 +68,7 @@ export class AccountValidationCriteriaComponent implements OnInit, OnDestroy, Af
       }
     });
 
-    this.trpListSubscription = this.dataProvider.listAllTRP(this.location, this.account).subscribe((data) => {
+    this.trpListSubscription =  this.dataProvider.listAllTRP(this.location).subscribe((data) => {
       this.trpList = data['data'];
     }, (err: HttpErrorResponse) => {
       if (err.error instanceof Error) {

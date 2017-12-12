@@ -33,19 +33,12 @@ const md5 = require('md5');
 
         new LocationRoute().getLocation(req, res).then((data) => {
           return res.status(200).send(data);
-          /*
-          {
-          'location': location.getDBData(),
-          'sublocation': sublocations
-          }
-          */
          }).catch((e) => {
+            console.log(e);
             return res.status(400).send({
               message: 'No location found'
             });
          });
-
-	   		 // new LocationRoute().getLocation(req, res);
 	   	});
 
 	   	router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
@@ -86,9 +79,8 @@ const md5 = require('md5');
 	           		message: 'Create sublocation successful'
 	            });
 	        }).catch((e) => {
-	            return res.status(400).send({
-	            	message: e
-	            });
+              console.log( (<Error>e).message);
+	            return res.status(400).send((<Error>e).message);
 	        });
       	});
 
@@ -119,7 +111,7 @@ const md5 = require('md5');
 	            });
 	        });
       	});
-   	} 
+   	}
 
 	/**
 	* Constructor
@@ -280,9 +272,12 @@ const md5 = require('md5');
     public async createSublocation(req: AuthRequest, res: Response){
     	let parentId = req.body.parent_id,
     		sublocation_name = req.body.name,
-    		locationParent = new Location(),
+    		locationParent = new Location(parentId),
     		locationSub = new Location(),
     		userRoleRel = new UserRoleRelation();
+
+      let subs;
+
 
     	let locations = await locationParent.getByInIds(parentId),
     		locationAccntUser = new LocationAccountUser(),
@@ -300,6 +295,15 @@ const md5 = require('md5');
 
         const roles_text = ['', 'Manager', 'Tenant'];
 
+      // checks for location name if same name exists
+      subs = await locationParent.getSublocations(req.user.user_id, r);
+      for (let s of subs) {
+        console.log(s['name'].toUpperCase() + ' compared with ' + sublocation_name.toUpperCase());
+        if (s['name'].toUpperCase() === sublocation_name.toUpperCase()) {
+          throw new Error('Sub location with the name provided already exists');
+        }
+      }
+
     	if(Object.keys(locations).length > 0){
     		for(let i in locations[0]){
 				if(i !== 'location_id'){
@@ -314,7 +318,7 @@ const md5 = require('md5');
 			try{
 				await locationSub.create(subData);
 				subData['location_id'] = locationSub.ID();
- 
+
 				await locationAccnt.create({
 					'location_id': subData['location_id'],
 					'account_id': req.user.account_id,
@@ -587,168 +591,23 @@ const md5 = require('md5');
 	      };
 	    }
 	    // get immediate parent
-	    const parentId = <number>location.get('parent_id');
+      const parentId = <number>location.get('parent_id');
+      if (parentId === -1 ) {
+        return {
+          'location': location.getDBData()
+        }
+      }
 	    let siblings;
 	    const parentLocation = new Location(parentId);
 	    await parentLocation.load();
 	    siblings = await parentLocation.getSublocations(req.user.user_id, r);
-
 	    return {
 	      'location': location.getDBData(),
 	      'parent': parentLocation.getDBData(),
 	      'siblings': siblings,
 	      'sublocations' : []
 	    }
-	    /*
-	      response = { status : false, message : '', data : [] },
-	      fetchingProgress = {
-	        location: false,
-	        wardens: false,
-	        frptrp: false,
-	        accountsLocations: false
-	      },
-	      fetchedDatas = {
-	        locations: <any>[],
-	        wardens:<any>[],
-	        frptrp:<any>[],
-	        accountLocations:<any>[]
-	      },
-	      user = req['user'];
-	      const location = new Location(),
-	      locationSingle = new Location(locationId),
-	      wardensModel = new LocationAccountUser(),
-	      frpTrpModel = new LocationAccountUser(),
 
-	      callWait = (callBack) => {
-					setTimeout(() => {
-						if (fetchingProgress.location && fetchingProgress.wardens && fetchingProgress.frptrp && fetchingProgress.accountsLocations){
-		private pullSpecificParent = (parentId, data) => {
-			let
-			parentData = [],
-			searchChild = (children) => {
-				for(let i in children){
-					if(children[i]['sublocations'] !== undefined){
-						if( Object.keys(children[i]['sublocations']).length > 0 ){
-							searchChild(children[i]['sublocations']);
-						}
-					}
-				};
-
-				for(let i in data){
-					searchChild(data[i]['sublocations']);
-					if(data[i]['location_id'] == parentId){
-						parentData.push(data[i]);
-					}
-				}
-
-				return parentData;
-			}
-
-		public getId(req: Request, res: Response, next: NextFunction){
-			let locationId = req.params.location_id,
-				response = { status : false, message : '', data :<any>[] },
-				fetchingProgress = {
-					location : false, wardens : false, frptrp : false, accountsLocations : false
-				},
-				fetchedDatas = {
-					locations : <any>[], wardens:<any>[], frptrp:<any>[], accountLocations:<any>[]
-				},
-				user = req['user'],
-				location = new Location(),
-				locationSingle = new Location(locationId),
-				wardensModel = new LocationAccountUser(),
-				frpTrpModel = new LocationAccountUser(),
-				callWait = (callBack) => {
-					setTimeout(() => {
-						if(fetchingProgress.location && fetchingProgress.wardens && fetchingProgress.frptrp){
-							callBack();
-						} else {
-							callWait(callBack);
-						}
-
-					}, 100);
-				},
-				responseSend = () => {
-					res.statusCode = 200;
-					res.send(response);
-				};
-
-			callWait(() => {
-
-				fetchedDatas.locations = this.addWardenToLocations(fetchedDatas.locations, fetchedDatas.wardens);
-				fetchedDatas.locations = this.addFrpTrpToLocations(fetchedDatas.locations, fetchedDatas.frptrp);
-
-				let toMergedData = Object.create(fetchedDatas.locations),
-					mergedData = this.mergeToParent(toMergedData),
-					finalData = <any>{},
-					parentData = <any>{};
-
-				this.addWardenCounts(mergedData);
-
-				finalData = this.pullSpecificParent(locationId, mergedData);
-				parentData = this.pullSpecificParent(finalData[0].parent_id, mergedData);
-
-				if(finalData.length > 0){
-					finalData[0]['no_locations'] = (finalData[0].parent_id == -1) ? 1 : 0;
-					finalData[0]['level_occupied'] = (finalData[0].sublocations.length > 0) ? finalData[0].sublocations.length : 0;
-					finalData = finalData[0];
-				}
-
-				response.data = {
-					location : finalData,
-					parent : (parentData.length > 0) ? parentData[0] : []
-				};
-				responseSend();
-
-			});
-
-			wardensModel.getWardensByAccountId(user['account_id']).then(
-				(wardens) => {
-					fetchedDatas.wardens = wardens;
-					fetchingProgress.wardens = true;
-				},
-				() => {
-					fetchingProgress.wardens = true;
-				}
-			);
-
-			frpTrpModel.getFrpTrpByAccountId(user['account_id']).then(
-				(frptrps) => {
-					fetchedDatas.frptrp = frptrps;
-					fetchingProgress.frptrp = true;
-				},
-				() => {
-					fetchingProgress.frptrp = true;
-				}
-			);
-
-			location.getAllLocations().then(
-				(results) => {
-					fetchedDatas.locations = results;
-					fetchingProgress.location = true;
-					fetchedDatas.accountLocations = [];
-					for(let i in results){
-						if(results[i]['location_id'] == locationId){
-							fetchedDatas.accountLocations.push(results[i]);
-						}
-					}
-				},
-				() => {
-					responseSend();
-				}
-			);
-
-			locationSingle.load().then(
-				(locationData) => {
-					fetchedDatas.accountLocations = [];
-					fetchedDatas.accountLocations.push(locationData);
-					fetchingProgress.accountsLocations = true;
-				},
-				(e) => {
-					fetchingProgress.accountsLocations = true;
-				}
-	    );
-	  	*/
   	}
 
 	public getByAccountId(req: Request, res: Response, next: NextFunction){

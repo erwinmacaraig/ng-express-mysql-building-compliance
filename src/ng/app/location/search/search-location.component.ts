@@ -1,3 +1,4 @@
+
 import { AuthService } from '../../services/auth.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
@@ -6,6 +7,7 @@ import { FormControl, FormArray, FormGroup, Validators } from '@angular/forms';
 import { } from 'googlemaps';
 import { MapsAPILoader } from '@agm/core';
 import { LocationsService } from '../../services/locations';
+import { UserService } from './../../services/users';
 import { Router } from '@angular/router';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { Observable } from 'rxjs/Rx';
@@ -17,7 +19,7 @@ declare var $: any;
   selector: 'app-search-location',
   templateUrl: './search-location.component.html',
   styleUrls: ['./search-location.component.css'],
-  providers: [EncryptDecryptService]
+  providers: [EncryptDecryptService, UserService]
 })
 export class SearchLocationComponent implements OnInit, OnDestroy {
   public latitude: number;
@@ -33,7 +35,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public searchResultLocation = {};
   public formattedAddress: string;
   public accountId;
-
+  public userData;
   public readonlyCtrl = false;
 
   public numLevels: FormControl;
@@ -43,6 +45,9 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public locationName: FormControl;
   public results = [];
   public showLoaderDiv = false;
+
+  showLoaderModalAddSublocation = false;
+  errorMessageModalSublocation = '';
 
   componentForm = {
    street_number: 'short_name',
@@ -67,7 +72,8 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public arrSelectedLocationsCopy = [];
   public showLoaderModalSubLocation = false;
   public showModalAlreadyVerified = false;
-  
+  public emailVerified = false;
+
   private waitTyping = {};
   private typingLevelModal = false;
 
@@ -76,7 +82,8 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     private locationService: LocationsService,
     private router: Router,
     private authService: AuthService,
-    public encryptDecrypt: EncryptDecryptService) {
+    public encryptDecrypt: EncryptDecryptService,
+    public userService: UserService) {
 
     this.street_number = new FormControl();
     this.street_name = new FormControl();
@@ -103,6 +110,17 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     this.country = new FormControl();
     // create search FormControl
     this.searchControl = new FormControl();
+
+    this.userData = this.authService.getUserData();
+    // check if user email is verified
+    this.userService.checkUserVerified(this.userData['userId'] , (response) => {
+      if (response.status === false && response.message === 'not verified') {
+        this.emailVerified = false;
+      } else {
+        this.emailVerified = true;
+      }
+		});
+
     // load places autocomplete
     this.mapsAPILoader.load().then(() => {
       const autocomplete = new google.maps.places.Autocomplete(this.searchElementRef.nativeElement, {
@@ -239,7 +257,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
       }, 300);
     };
 
-    console.log('test: ', this.searchResultLocation);
+
     if (this.searchResultLocation) {
       this.searchResultLocation['sublevels'] = sublevels;
       this.searchResultLocation['location_name'] = this.locationName.value;
@@ -247,26 +265,6 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         redirectToList();
       });
     }
-    /*
-    else {
-      this.locationService.createSingleLocation({
-        'street_number': this.locationService.getDataStore('street_number'),
-        'street': this.locationService.getDataStore('street'),
-        'city': this.locationService.getDataStore('city'),
-        'state': this.locationService.getDataStore('state'),
-        'country': this.locationService.getDataStore('country'),
-        'postal_code': this.locationService.getDataStore('postal_code'),
-        'formatted_address': this.locationService.getDataStore('formatted_address'),
-        'latitude': this.locationService.getDataStore('latitude'),
-        'longitude': this.locationService.getDataStore('longitude'),
-        'photoUrl': this.locationService.getDataStore('photoUrl'),
-        'google_place_id': this.locationService.getDataStore('google_place_id'),
-        'location_name': this.locationName.value,
-        'sublevels': sublevels
-      }).subscribe((data) => {
-        redirectToList();
-      });
-    } */
   }
 
   mergeToParent(locationsParam, parentId){
@@ -304,7 +302,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         this.selectedLocationIds.splice(index, 1);
       }
     }
-    
+
     console.log(this.selectedLocationIds);
   }
 
@@ -312,7 +310,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     let locId = this.encryptDecrypt.decrypt(location.location_id);
     this.showLoaderModalSubLocation = true;
     this.selectedLocation = location;
-    
+
     this.locationService.getDeepLocationsById(locId, (response) => {
       if(response.data.length > 0){
         $('#modalSublocations').modal('open');
@@ -367,6 +365,8 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     if(this.selectedLocationIds.length > 0){
       this.showLoaderModalSubLocation = true;
       this.showModalAlreadyVerified = false;
+      console.log( 'location id ' + this.encryptDecrypt.decrypt(this.selectedLocation['location_id']));
+      console.log('parent id ' + this.selectedLocation['parent_id']);
       const parentId = this.encryptDecrypt.decrypt(this.selectedLocation['location_id']);
       this.locationService.checkUserVerified({ parent_id : parentId }, (response) => {
         if(response.data.verified){
@@ -390,5 +390,41 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
       });
     }
   }
+
+  onNewLevel(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    $('#modalSublocations').modal('close');
+    $('#modalAddSublocation').modal('open');
+
+   // this.router.navigate(['/location', 'view', this.selectedLocation['location_id']]);
+  }
+  addNewSubLocationSubmit(form, e) {
+    if (form.valid) {
+        this.errorMessageModalSublocation = '';
+        this.showLoaderModalAddSublocation = true;
+        this.locationService.createSubLocation({
+            name : form.controls.name.value,
+            parent_id : this.encryptDecrypt.decrypt(this.selectedLocation['location_id'])
+        }).subscribe(
+            (response) => {
+                this.showLoaderModalAddSublocation = false;
+                this.errorMessageModalSublocation = '';
+                $('#modalAddSublocation').modal('close');
+                this.router.navigate(['/location', 'view', this.selectedLocation['location_id']]);
+            },
+            (msg) => {
+                this.showLoaderModalAddSublocation = false;
+                this.errorMessageModalSublocation = msg.error;
+                setTimeout(() => {
+                    this.errorMessageModalSublocation = '';
+                }, 2000);
+            }
+        );
+    } else {
+        form.controls.name.markAsDirty();
+    }
+}
+
 
 }

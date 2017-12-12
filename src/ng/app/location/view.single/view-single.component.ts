@@ -72,8 +72,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
             } else {
                 this.preloaderService.show();
                 this.loc_sub = this.locationService.getById(this.locationID, (response) => {
-                    if('location' in response === false){
-                        this.router.navigate(['/location', 'list']);
+                    if ('location' in response === false) {
+                        // this.router.navigate(['/location', 'list']);
                     }
 
                     setTimeout(() => {
@@ -101,7 +101,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
 		// this.donut.updateDonutChart('#specificChart', 30, true);
 	}
 
-    addNewSubLocationSubmit(form, e){
+    addNewSubLocationSubmit(form, e) {
         if(form.valid){
             this.errorMessageModalSublocation = '';
             this.showLoaderModalSublocation = true;
@@ -113,7 +113,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                     this.showLoaderModalSublocation = false;
                     this.errorMessageModalSublocation = '';
 
-                    if('sublocations' in this.locationData == false){
+                    if ('sublocations' in this.locationData == false){
                         this.locationData['sublocations'] = [];
                     }
 
@@ -126,7 +126,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 },
                 (msg) => {
                     this.showLoaderModalSublocation = false;
-                    this.errorMessageModalSublocation = msg;
+                    this.errorMessageModalSublocation = msg.error;
                     setTimeout(() => {
                         this.errorMessageModalSublocation = '';
                     }, 2000);

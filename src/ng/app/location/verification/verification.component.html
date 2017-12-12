@@ -1,6 +1,6 @@
 
 <form [formGroup]="verificationForm" (ngSubmit)="onSubmit()">
-    
+
     <div class="row">
         <div class="col l4 m6 s12">
             <h4 class="title blue-text">Verification</h4>
@@ -15,7 +15,7 @@
             </div>
         </div>
     </div>
-    <div class="row">
+    <div class="row" [hidden]="!initialTRP">
         <div class="col l4 m6 s12">
             <p>
                 <input type="radio" formControlName="criteria" id="criteriaTRP" name="criteria" value="trp_enable" (change)="toggleCriteria()">
@@ -44,7 +44,7 @@
             <h6>No TRP Found!</h6>
         </ng-template>
     </div>
-    <div class="row">
+    <div class="row" [hidden]="!initialFRP">
         <div class="col l4 m6 s12">
             <p>
                 <input type="radio" formControlName="criteria" value="frp_enable" id="criteriaFRP" name="criteria" (change)="toggleCriteria()">
