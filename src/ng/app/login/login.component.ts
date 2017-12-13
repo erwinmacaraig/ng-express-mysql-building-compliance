@@ -20,10 +20,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   showInvalidCode = false;
   showErrorOccured = false;
   showSuccess = false;
-  showVerification = false;
-  showVerificationContainer = false;
-  showSendingVerification = false;
-  showSendingSuccessVerification = false;
+  
+  verification = {
+    loader : false,
+    success : false,
+    buttons : true
+  };
+
   errorOccuredMessage = '';
   private subscription;
   private baseUrl: String;
@@ -39,16 +42,17 @@ export class LoginComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.auth.removeToken();
     $('.modal-overlay').remove();
+    $('#modalSendVerification').modal({
+      dismissible : false,
+      startingTop : '0%',
+      endingTop: '25%'
+    });
   }
 
   signInFormSubmit(f: NgForm) {
     this.showInvalid = false;
     this.showErrorOccured = false;
     this.showSuccess = false;
-    this.showVerification = false;
-    this.showVerificationContainer = false;
-    this.showSendingVerification = false;
-    this.showSendingSuccessVerification = false;
     this.errorOccuredMessage = '';
 
     interface UserLoginResponse {
@@ -86,8 +90,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       } else {
         let errJSON = JSON.parse(err.error);
         if(errJSON.verified === false){
-          this.showVerificationContainer = true;
-          this.showVerification = true;
+          $('#modalSendVerification').modal('open');
           this.userId = errJSON.data[2];
         }else{
           this.showInvalid = true;
@@ -103,15 +106,15 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   resendVerification(){
-    this.showSendingVerification = true;
-    this.showSendingSuccessVerification = false;
-    this.showVerification = false;
-
+    this.verification.loader = true;
+    this.verification.buttons = false;
     this.signupService.resendEmailVerification(this.userId, (response) => {
-      this.showSendingSuccessVerification = true;
-      this.showSendingVerification = false;
+      this.verification.loader = false;
+      this.verification.success = true;
       setTimeout(() => {
-        this.showSendingSuccessVerification = false;
+        this.verification.success = false;
+        this.verification.buttons = true;
+        $('#modalSendVerification').modal('close');
       }, 3000);
     });
 

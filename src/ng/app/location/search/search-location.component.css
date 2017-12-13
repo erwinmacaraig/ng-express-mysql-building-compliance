@@ -152,7 +152,7 @@
 }
 
 .search-container:not(.active) .title .search{
-    display: none;
+    display: block;
 }
 
 .search-container:not(.active) .title .create{

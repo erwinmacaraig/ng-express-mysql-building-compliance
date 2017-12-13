@@ -785,6 +785,11 @@ const md5 = require('md5');
 
 		tokenModel.getByToken(token).then(
 			(tokenData) => {
+
+				if(tokenData['verified'] == 1){
+					return res.redirect('/success-valiadation?account-validation-invalid-token=true');
+				}
+
 				let expDateMoment = moment(tokenData['expiration_date']),
 					currentDateMoment = moment();
 

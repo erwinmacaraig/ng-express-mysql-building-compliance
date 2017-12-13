@@ -128,10 +128,12 @@
 			</div>
 			-->
 
-			<div *ngFor="let levelControl of levelGroup.get('levels').controls; let i = index">
-				<span class="required" *ngIf="!levelGroup.get('levels').controls[i].valid"> *Required field.</span>
-				<div class="input-field" >
-					<input type="text" placeholder="e.q Level {{i + 1}}" [formControlName]="i" required>
+			<div style="max-height: 400px; overflow-y: auto;">
+				<div *ngFor="let levelControl of levelGroup.get('levels').controls; let i = index">
+					<span class="required" *ngIf="!levelGroup.get('levels').controls[i].valid"> *Required field.</span>
+					<div class="input-field" >
+						<input type="text" placeholder="e.q Level {{i + 1}}" [formControlName]="i" required>
+					</div>
 				</div>
 			</div>
 

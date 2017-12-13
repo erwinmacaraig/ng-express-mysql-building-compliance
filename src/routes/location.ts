@@ -689,7 +689,7 @@ const md5 = require('md5');
 					loc['sublocations'] = await location.getSublocations();
 				}
 				// break;
-				return locationsOnAccount;
+				return { 'locations' : locationsOnAccount };
 			case 2:
 				// get the parent or parents of these sublocation
 				let results;
@@ -725,14 +725,28 @@ const md5 = require('md5');
 						location = undefined;
 					}
 				}
+
+				let seenRoots = [];
+		        let processedRootParents = [];
 				for (let r of rootParents) {
-					r['sublocations'] = [];
-					r['sublocations'] = objectOfSubs[r['desc']];
-					r['sublocations']['total'] = 0;
-					r['total_subs'] = objectOfSubs[r['desc']].length;
-				}
+		          if(seenRoots.indexOf(r['location_id']) == -1) {
+		            r['sublocations'] = [];
+		            r['sublocations'] = objectOfSubs[r['desc']];
+		            r['sublocations']['total'] = 0;
+		            r['total_subs'] = objectOfSubs[r['desc']].length;
+		            seenRoots.push(r['location_id']);
+		            processedRootParents.push(r);
+		          }
+		        } 
+
+				// for (let r of rootParents) {
+				// 	r['sublocations'] = [];
+				// 	r['sublocations'] = objectOfSubs[r['desc']];
+				// 	r['sublocations']['total'] = 0;
+				// 	r['total_subs'] = objectOfSubs[r['desc']].length;
+				// }
 				return {
-					'locations':  rootParents
+					'locations':  processedRootParents
 				};
 		}
 		return locationsOnAccount;
