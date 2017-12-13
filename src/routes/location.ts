@@ -275,10 +275,7 @@ const md5 = require('md5');
     		locationParent = new Location(parentId),
     		locationSub = new Location(),
     		userRoleRel = new UserRoleRelation();
-
-      let subs;
-
-
+      	let subs;
     	let locations = await locationParent.getByInIds(parentId),
     		locationAccntUser = new LocationAccountUser(),
     		locationAccnt = new LocationAccountRelation(),
@@ -295,14 +292,14 @@ const md5 = require('md5');
 
         const roles_text = ['', 'Manager', 'Tenant'];
 
-      // checks for location name if same name exists
-      subs = await locationParent.getSublocations(req.user.user_id, r);
-      for (let s of subs) {
-        console.log(s['name'].toUpperCase() + ' compared with ' + sublocation_name.toUpperCase());
-        if (s['name'].toUpperCase() === sublocation_name.toUpperCase()) {
-          throw new Error('Sub location with the name provided already exists');
-        }
-      }
+		// checks for location name if same name exists
+		subs = await locationParent.getSublocations(req.user.user_id, r);
+		for (let s of subs) {
+			console.log(s['name'].toUpperCase() + ' compared with ' + sublocation_name.toUpperCase());
+			if (s['name'].toUpperCase() === sublocation_name.toUpperCase()) {
+				throw new Error('Sub location with the name provided already exists');
+			}
+		}
 
     	if(Object.keys(locations).length > 0){
     		for(let i in locations[0]){
@@ -563,52 +560,53 @@ const md5 = require('md5');
 		return locations;
 	}
 
-  	public async getLocation(req: AuthRequest, res: Response) {
-  		let locationId = <number>req.params.location_id;
-  		const location = new Location(locationId);
-  		let sublocations;
-  		let othersub = [];
+	public async getLocation(req: AuthRequest, res: Response) {
+		let locationId = <number>req.params.location_id;
+		const location = new Location(locationId);
+		let sublocations;
+		let othersub = [];
 
       	// we need to check the role(s)
-		const userRoleRel = new UserRoleRelation();
-		const roles = await userRoleRel.getByUserId(req.user.user_id);
+      	const userRoleRel = new UserRoleRelation();
+      	const roles = await userRoleRel.getByUserId(req.user.user_id);
+
+      	let response = {
+      		'location' : {},
+      		'sublocations' : [],
+      		'parent' : {},
+      		'siblings' : []
+      	};
 
       	// what is the highest rank role
-		let r = 100;
-		for (let i = 0; i < roles.length; i++) {
-			if(r > parseInt(roles[i]['role_id'], 10)) {
-				r = roles[i]['role_id'];
-			}
-		}
+      	let r = 100;
+      	for (let i = 0; i < roles.length; i++) {
+      		if(r > parseInt(roles[i]['role_id'], 10)) {
+      			r = roles[i]['role_id'];
+      		}
+      	}
 
-	    await location.load();
-	    sublocations = await location.getSublocations(req.user.user_id, r);
+      	await location.load();
 
-	    if (sublocations.length) {
-	      return {
-	        'location': location.getDBData(),
-	        'sublocations': sublocations
-	      };
-	    }
+      	response.location = location.getDBData();
+
+      	sublocations = await location.getSublocations(req.user.user_id, r);
+      	response.sublocations = sublocations;
 	    // get immediate parent
-      const parentId = <number>location.get('parent_id');
-      if (parentId === -1 ) {
-        return {
-          'location': location.getDBData()
-        }
-      }
+	    const parentId = <number>location.get('parent_id');
+
+	    if (parentId === -1 ) {
+	    	return response;
+	    }
 	    let siblings;
 	    const parentLocation = new Location(parentId);
 	    await parentLocation.load();
 	    siblings = await parentLocation.getSublocations(req.user.user_id, r);
-	    return {
-	      'location': location.getDBData(),
-	      'parent': parentLocation.getDBData(),
-	      'siblings': siblings,
-	      'sublocations' : []
-	    }
 
-  	}
+	    response.parent = parentLocation.getDBData();
+	    response.siblings = siblings;
+
+	    return response;
+	}
 
 	public getByAccountId(req: Request, res: Response, next: NextFunction){
 		let  response = {

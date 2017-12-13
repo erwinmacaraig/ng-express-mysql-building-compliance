@@ -778,7 +778,8 @@ const md5 = require('md5');
 				status : false,
 				message : '',
 				data : {}
-			};
+			},
+			allTokens;
 
 		res.statusCode = 400;
 
@@ -817,19 +818,7 @@ const md5 = require('md5');
 						};
 						responseData.message = 'Auto login user';
 						if(redirect){
-							/*let script = `
-								<strong>Success! redirecting....</strong>
-								<script type="text/javascript">
-									setTimeout(function(){
-										localStorage.setItem('currentUser', '`+loginData.token+`');
-										localStorage.setItem('userData', '`+ JSON.stringify(loginData.data) +`');
-										location.replace(location.origin);
-									}, 2000);
-								</script>
-							`;
-							res.send(script);*/
             				return res.redirect('/success-valiadation');
-							// this.render(req, res, 'success-verification.hbs');
 						}else{
 							res.send(responseData);
 						}
@@ -854,6 +843,7 @@ const md5 = require('md5');
 				res.send(responseData);
 			}
 		);
+
 	}
 
 	public getSecurityQuestions(req: Request, res: Response, next: NextFunction){
@@ -876,48 +866,59 @@ const md5 = require('md5');
 		);
   	}
 
-  	public resendEmailVerification(req: Request, res: Response, next: NextFunction){
+  	public async resendEmailVerification(req: Request, res: Response, next: NextFunction){
   		let userModel = new User(req.body.user_id),
+  			tokenModel = new Token(),
 			response = {
 				status : false,
 				message : '',
 				data : {}
-			};
+			},
+			userData = {},
+			allTokens:any = [];
 
 		res.statusCode = 400;
 
-		userModel.load().then(
-			(userData) => {
-				let bodyEmail = '',
-					tokenModel = new Token(),
-					token = userData['user_id']+''+tokenModel.generateRandomChars(50),
-					link = req.protocol + '://' + req.get('host') +'/token/'+token;
-
-				bodyEmail += '<h3 style="text-transform:capitalize;">Hi '+userData['first_name']+' '+userData['last_name']+'</h3> <br/>';
-				bodyEmail += '<h4>You Requested Email Verification From EvacConnect Compliance Management System </h4> <br/>';
-				bodyEmail += '<h5>Please verify your account by clicking the link below</h5> <br/>';
-				bodyEmail += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
-
-				this.sendEmailForRegistration(userData, req,
-					() => {
-						response.message = 'Success! email resent.';
-						response.status = true;
-						res.statusCode = 200;
-						res.send(response);
-					},
-					(err) => {
-						response.message = err;
-						res.send(response);
-					},
-					bodyEmail,
-					token
-				);
-			},
-			() => {
-				response.message = 'No user found';
-				res.send(response);
+		userData = await userModel.load();
+	
+		if(Object.keys(userData).length > 0){
+			allTokens = await tokenModel.getAllByUserId(userData['user_id'], 'verify');
+			if(allTokens.length > 0){
+				for(let i in allTokens){
+					let tokenDelete = new Token();
+					tokenDelete.setID(allTokens[i]['token_id']);
+					await tokenDelete.delete();
+				}
 			}
-		);
+
+			let bodyEmail = '',
+				token = userData['user_id']+''+tokenModel.generateRandomChars(50),
+				link = req.protocol + '://' + req.get('host') +'/token/'+token;
+
+			bodyEmail += '<h3 style="text-transform:capitalize;">Hi '+userData['first_name']+' '+userData['last_name']+'</h3> <br/>';
+			bodyEmail += '<h4>You Requested Email Verification From EvacConnect Compliance Management System </h4> <br/>';
+			bodyEmail += '<h5>Please verify your account by clicking the link below</h5> <br/>';
+			bodyEmail += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
+
+			this.sendEmailForRegistration(userData, req,
+				() => {
+					response.message = 'Success! email resent.';
+					response.status = true;
+					res.statusCode = 200;
+					res.send(response);
+				},
+				(err) => {
+					response.message = err;
+					res.send(response);
+				},
+				bodyEmail,
+				token
+			);
+
+		}else{
+			response.message = 'No user found';
+			res.send(response);
+		}
   	}
 
 }
