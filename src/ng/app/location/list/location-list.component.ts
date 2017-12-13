@@ -60,7 +60,10 @@ export class LocationListComponent implements OnInit, OnDestroy {
     			}
     		} else {
     			this.router.navigate(['/location', 'search']);
-    		}
+        }
+        if (localStorage.getItem('showemailverification') !== null) {
+          this.router.navigate(['/location', 'search']);
+        }
     	});
   	}
 
