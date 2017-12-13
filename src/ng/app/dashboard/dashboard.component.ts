@@ -73,7 +73,10 @@ export class DashboardComponent implements OnInit {
 				setTimeout(() => {
 					$('.alert-email-verification').removeAttr('style').css('opacity', '1');
 				},1000);
-			}
+      } else {
+        localStorage.removeItem('showemailverification');
+      }
+
 		});
 	}
 
