@@ -776,7 +776,7 @@ const md5 = require('md5');
         }
         seenRoots = [];
 				return {
-					'locations':  rootParents
+					'locations':  processedRootParents
 				};
 		}
 		return locationsOnAccount;
