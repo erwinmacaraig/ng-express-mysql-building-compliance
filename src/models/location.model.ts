@@ -366,14 +366,14 @@ export class Location extends BaseClass {
 					INNER JOIN location_account_user ON location_account_user.location_id = locations.location_id 
 					AND location_account_user.user_id = ${user_id} AND locations.archived = 0 `; 
 				if (role_id) { 
-					sublocationQuery = sublocationQuery + `AND location_account_user.role_id = ${role_id}`; 
+					// sublocationQuery = sublocationQuery + `AND location_account_user.role_id = ${role_id}`; 
 				} 
 			} else { 
 				sublocationQuery = `SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id  DESC`; 
 			} 
 			const sql_get_subloc = `
 			SELECT location_id, name, parent_id FROM (${sublocationQuery}) sublocations, (SELECT @pv := ?) 
-			initialisation WHERE find_in_set(parent_id, @pv) > 0 AND @pv := concat(@pv, ',', location_id) ORDER BY parent_id;`;
+			initialisation WHERE find_in_set(parent_id, @pv) > 0 AND @pv := concat(@pv, ',', location_id) ORDER BY location_id;`;
 
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
@@ -382,29 +382,33 @@ export class Location extends BaseClass {
 					throw new Error('Internal error. There was a problem processing your query');
 				}
 				if (results.length) {
-					for (let i = 0; i < results.length; i++) {
-						results[i]['children'] = [];
-						if (parentId !== results[i]['parent_id']) {
-							tempArr = [];
-							parentId = results[i]['parent_id'];
-						}
-						tempArr.push(results[i]);
-						location[results[i]['parent_id']] = tempArr;
+					let newResults = [],
+						unassignedResults = [];
 
+					for (let i = 0; i < results.length; i++) {
+						unassignedResults.push({
+							'location_id' : results[i]['location_id'],
+							'name' : results[i]['name'],
+							'parent_id' : results[i]['parent_id'],
+							'children' : []
+						});
 					}
-					parents = Object.keys(location);
-					for ( let i = 0; i < parents.length - 1; i++) {
-						for ( let a = 0; a < location[parents[i]].length; a++) {
-							for ( let b = 0; b < parents.length;b++) {
-								for (let c = 0; c < location[parents[b]].length; c++ ) {
-									if (location[parents[i]][a]['location_id'] === location[parents[b]][c]['parent_id']) {
-										location[parents[i]][a]['children'].push(location[parents[b]][c]);
-									}
-								}
+
+					for(let i in unassignedResults){
+						for(let x in unassignedResults){
+							if(unassignedResults[i]['parent_id'] == unassignedResults[x]['location_id']){
+								unassignedResults[x]['children'].push(unassignedResults[i]);
 							}
 						}
 					}
-					resolve(location[this.ID()]);
+
+					for(let i in unassignedResults){
+						if(unassignedResults[i]['parent_id'] == this.ID()){
+							newResults.push(unassignedResults[i]);
+						}
+					}
+
+					resolve(newResults);
 				} else {
 					resolve([]);
 				}
