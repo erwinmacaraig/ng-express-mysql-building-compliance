@@ -6,6 +6,24 @@ const dbconfig = require('../config/db');
 export class Utils {
     constructor() {}
 
+    public checkUserValidInALocation(user: number) {
+      return new Promise((resolve, reject) => {
+        const sql_check = `SELECT * FROM user_location_validation WHERE user_id = ? AND status = 'VERIFIED'`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_check, [user], (error, results, fields) => {
+          if (error) {
+            reject(`Internal error`);
+            return console.log(error);
+          }
+          console.log(`user is ${user}`);
+          console.log(results);
+          resolve(results.length);
+
+        });
+        connection.end();
+      });
+    }
+
     public listAllFRP(account?: number, user_id: number = 0) {
       return new Promise((resolve, reject) => {
         let sql_get_frp = `SELECT
