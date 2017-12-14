@@ -753,12 +753,6 @@ const md5 = require('md5');
 
 						rootParents.push(location.getDBData());
 						location.set('desc', loc.parent_id);
-						/*
-						objectOfSubs[loc.parent_id].push({
-						'root': location.getDBData(),
-
-						});
-						*/
 						location = undefined;
 					}
         }
