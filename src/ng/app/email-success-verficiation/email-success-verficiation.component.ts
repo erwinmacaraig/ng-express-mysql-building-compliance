@@ -10,6 +10,7 @@ declare var $: any;
 })
 export class EmailSuccessVerficiationComponent implements OnInit {
   public showCheckIcon = true;
+  public showClose = false;
   private modalElem;
   public message;
   public isUserVerification = false;
@@ -20,6 +21,12 @@ export class EmailSuccessVerficiationComponent implements OnInit {
       this.message = 'You have successfully validated the account.';
     }
 
+    if (this.route.snapshot.queryParams['account-validation-invalid-token']) {
+      this.message = 'Token is invalid';
+      this.showClose = true;
+      this.showCheckIcon = false;
+    }
+
     if( this.route.snapshot.queryParams['user-location-verification'] ){
       this.isUserVerification = true;
       if( this.route.snapshot.queryParams['user-location-verification'] == 'true' ){
@@ -27,6 +34,7 @@ export class EmailSuccessVerficiationComponent implements OnInit {
       }else{
         this.showCheckIcon = false;
         this.message = 'This may already verified or this request is invalid';
+        this.showClose = true;
       }
     }
 
