@@ -64,6 +64,8 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   @ViewChild('search')
   public searchElementRef: ElementRef;
 
+  @ViewChild('inpSublocationName') public inpSublocationName: ElementRef;
+
 
   public selectedLocation = {};
   public selectedLocationIds = [];
@@ -76,6 +78,9 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
 
   private waitTyping = {};
   private typingLevelModal = false;
+  public sameSublocation = [];
+  public inpSublocationNameTwoWayData = "";
+  public selectedSubLocationFromModal = {};
 
   constructor(private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
@@ -399,8 +404,15 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
 
    // this.router.navigate(['/location', 'view', this.selectedLocation['location_id']]);
   }
+
   addNewSubLocationSubmit(form, e) {
     if (form.valid) {
+      if(Object.keys(this.selectedSubLocationFromModal).length > 0){
+        $('#modalAddSublocation').modal('close');
+        this.selectedLocationIds = [];
+        this.selectedLocationIds.push(this.selectedSubLocationFromModal['location_id']);
+        this.submitSelectedLocations();
+      }else{
         this.errorMessageModalSublocation = '';
         this.showLoaderModalAddSublocation = true;
         this.locationService.createSubLocation({
@@ -421,10 +433,57 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
                 }, 2000);
             }
         );
+      }
+
     } else {
         form.controls.name.markAsDirty();
     }
-}
+  }
+
+  onKeyUpTypeSublocation(value){
+    let trimmed = value.trim(),
+      trimmedLow = trimmed.toLowerCase(),
+      results = [];
+      if(trimmed.length == 0){
+        this.sameSublocation = [];
+      }else{
+        let searchChild = (children) => {
+          for(let i in children){
+            if(children[i]['sublocations'].length > 0){
+              searchChild(children[i]['sublocations']);
+            }
+            let name = children[i]['name'],
+              low = name.toLowerCase();
+
+            if(low.indexOf(trimmedLow) > -1){
+              results.push( JSON.parse(JSON.stringify(children[i])) );
+            }
+          }
+        };
+
+        searchChild(this.arrSelectedLocationsCopy);
+        this.sameSublocation = results;
+      }
+  }
+
+  selectAddNewSubResult(sub, selectElement){
+    $('.select-sub.red-text').removeClass('red-text').addClass('blue-text').html('select');
+    if($(selectElement).hasClass('blue-text')){
+      $(selectElement).removeClass('blue-text').addClass('red-text').html('selected');
+    }else{
+      $(selectElement).removeClass('red-text').addClass('blue-text').html('select');
+    }
+    this.inpSublocationNameTwoWayData = sub.name;
+    this.selectedSubLocationFromModal = sub;
+  }
+
+  notHereCheckEvent(event){
+    if(event.currentTarget.checked){
+      this.sameSublocation = [];
+      this.inpSublocationNameTwoWayData = "";
+      this.selectedSubLocationFromModal = {};
+    }
+  }
 
 
 }
