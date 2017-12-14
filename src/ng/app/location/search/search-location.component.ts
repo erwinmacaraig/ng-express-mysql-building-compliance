@@ -46,6 +46,8 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   public results = [];
   public showLoaderDiv = false;
 
+  public skipVerification = false;
+
   showLoaderModalAddSublocation = false;
   errorMessageModalSublocation = '';
 
@@ -124,7 +126,17 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
       } else {
         this.emailVerified = true;
       }
-		});
+    });
+
+    this.locationService.checkUserVerifiedInLocation().subscribe((data) => {
+      if (data.count > 0) {
+        this.skipVerification = true;
+      } else {
+        this.skipVerification = false;
+      }
+    }, (e) => {
+      this.skipVerification = false;
+    });
 
     // load places autocomplete
     this.mapsAPILoader.load().then(() => {
@@ -307,7 +319,6 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         this.selectedLocationIds.splice(index, 1);
       }
     }
-
     console.log(this.selectedLocationIds);
   }
 
@@ -315,9 +326,9 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     let locId = this.encryptDecrypt.decrypt(location.location_id);
     this.showLoaderModalSubLocation = true;
     this.selectedLocation = location;
-
+    console.log('skip verification = ' + this.skipVerification);
     this.locationService.getDeepLocationsById(locId, (response) => {
-      if(response.data.length > 0){
+      if (response.data.length > 0) {
         $('#modalSublocations').modal('open');
         this.arrFlatSelectedLocations = response.data;
         for(let i in this.arrFlatSelectedLocations){
@@ -326,8 +337,11 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         this.selectedLocationSubLocations = this.mergeToParent(response.data, locId);
         this.arrSelectedLocationsCopy = JSON.parse( JSON.stringify(this.selectedLocationSubLocations) );
         this.showLoaderModalSubLocation = false;
-      }else{
-        this.router.navigate(['/location/verify-access', { 'location_id' : this.encryptDecrypt.encrypt(locId).toString(), 'account_id' : this.accountId  }]);
+      } else {
+          this.router.navigate(['/location/verify-access',
+          { 'location_id' : this.encryptDecrypt.encrypt(locId).toString(),
+           'account_id' : this.accountId
+          }]);
       }
     });
   }
@@ -367,17 +381,34 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
   }
 
   submitSelectedLocations(){
-    if(this.selectedLocationIds.length > 0){
+    if (this.selectedLocationIds.length > 0) {
       this.showLoaderModalSubLocation = true;
       this.showModalAlreadyVerified = false;
       console.log( 'location id ' + this.encryptDecrypt.decrypt(this.selectedLocation['location_id']));
       console.log('parent id ' + this.selectedLocation['parent_id']);
       const parentId = this.encryptDecrypt.decrypt(this.selectedLocation['location_id']);
+      if (this.skipVerification) {
+        // save the locations under this user
+        this.locationService.assignSublocations(this.selectedLocationIds).subscribe((data) => {
+          console.log(data);
+          $('#modalSublocations').modal('close');
+          this.router.navigate(['/location', 'list']);
+        });
+      } else {
+        $('#modalSublocations').modal('close');
+        const enc = this.encryptDecrypt.encrypt( JSON.stringify(this.selectedLocationIds) );
+        const queryParams = {
+          'account_id' : this.accountId,
+          'location_id' : enc
+        };
+        this.router.navigate(['/location/verify-access', queryParams]);
+      }
+
+      /*
       this.locationService.checkUserVerified({ parent_id : parentId }, (response) => {
-        if(response.data.verified){
+        if (response.data.verified) {
           this.showLoaderModalSubLocation = false;
           this.showModalAlreadyVerified = true;
-
           setTimeout(() => {
             this.showModalAlreadyVerified = false;
           }, 3000);
@@ -389,10 +420,10 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
             'account_id' : this.accountId,
             'location_id' : enc
           };
-
           this.router.navigate(['/location/verify-access', queryParams]);
         }
       });
+      */
     }
   }
 
