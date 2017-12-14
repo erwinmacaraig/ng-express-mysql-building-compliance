@@ -716,18 +716,12 @@ const md5 = require('md5');
 
 						rootParents.push(location.getDBData());
 						location.set('desc', loc.parent_id);
-						/*
-						objectOfSubs[loc.parent_id].push({
-						'root': location.getDBData(),
-
-						});
-						*/
 						location = undefined;
 					}
 				}
 
 				let seenRoots = [];
-		        let processedRootParents = [];
+		    let processedRootParents = [];
 				for (let r of rootParents) {
 		          if(seenRoots.indexOf(r['location_id']) == -1) {
 		            r['sublocations'] = [];
@@ -737,14 +731,7 @@ const md5 = require('md5');
 		            seenRoots.push(r['location_id']);
 		            processedRootParents.push(r);
 		          }
-		        } 
-
-				// for (let r of rootParents) {
-				// 	r['sublocations'] = [];
-				// 	r['sublocations'] = objectOfSubs[r['desc']];
-				// 	r['sublocations']['total'] = 0;
-				// 	r['total_subs'] = objectOfSubs[r['desc']].length;
-				// }
+		        }
 				return {
 					'locations':  processedRootParents
 				};
