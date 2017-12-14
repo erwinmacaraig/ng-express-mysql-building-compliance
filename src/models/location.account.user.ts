@@ -91,9 +91,9 @@ export class LocationAccountUser extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              if(!results.length){
+              if (!results.length) {
                 reject('Record not found');
-              }else{
+              } else {
                 this.dbData = results[0];
                 this.setID(results[0]['location_account_user_id']);
                 resolve(this.dbData);
@@ -133,8 +133,14 @@ export class LocationAccountUser extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              this.dbData = results;
-              resolve(this.dbData);
+              //
+              if (!results.length) {
+                reject('No record found');
+              } else {
+                this.dbData = results;
+                resolve(this.dbData);
+              }
+              //
             });
             connection.end();
         });

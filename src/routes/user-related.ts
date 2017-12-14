@@ -53,8 +53,24 @@ export class UserRelatedRoute extends BaseRoute {
     router.get('/list-validation-question', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new UserRelatedRoute().generateValidationQuestions(req, res);
     });
+
+    router.get('/location/user-verification', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new UserRelatedRoute().checkUserVerifiedInLocation(req, res);
+    } );
   }
 
+
+  public checkUserVerifiedInLocation(req: AuthRequest, res: Response) {
+    const utils = new Utils();
+    utils.checkUserValidInALocation(req.user.user_id).then((data) => {
+      res.status(200).send({
+        count: data
+      });
+    }).catch((e) => {
+      res.status(400).send((<Error>e).message);
+    });
+
+  }
   public generateValidationQuestions(req: AuthRequest, res: Response) {
     let role_id = 0;
     let account_id = 0;

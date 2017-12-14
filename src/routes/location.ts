@@ -41,6 +41,15 @@ const md5 = require('md5');
          });
 	   	});
 
+      router.post('/location/assign-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new LocationRoute().assignSubLocation(req, res).then((data) => {
+            return res.status(200).send({
+              message: data
+            });
+        }).catch((e) => {
+          return res.status(400).send((<Error>e).message);
+        });
+      });
 	   	router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
 	   		new LocationRoute().getByAccountId(req, res, next);
 	   	});
@@ -337,6 +346,32 @@ const md5 = require('md5');
     	}else{
     		throw new Error('No parent found');
     	}
+    }
+
+    public async assignSubLocation(req: AuthRequest, res: Response) {
+      let locIds = JSON.parse(req.body.locIds);
+      const parentId = req.body.parentId;
+      // Get the necessary role account relation
+      const userRoleRel = new UserRoleRelation();
+      let locationAccntUser;
+      const role = await userRoleRel.getByUserId(req.user.user_id, true);
+      console.log(`role is ${role}`);
+      for (let i = 0; i < locIds.length; i++) {
+          console.log(`Iterate: ${locIds[i]}`);
+          locationAccntUser = new LocationAccountUser();
+          try {
+            let temp = await locationAccntUser.getByLocationIdAndUserId(locIds[i], req.user.user_id);
+          } catch(err) {
+            await locationAccntUser.create({
+              'location_id': locIds[i],
+              'account_id': req.user.account_id,
+              'user_id': req.user.user_id,
+              'role_id': role
+            });
+          }
+      }
+      return 'Success';
+
     }
 
     public async archiveLocation(req: AuthRequest, res: Response){
