@@ -42,6 +42,9 @@ import { VerificationComponent } from './location/verification/verification.comp
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 
+import { TeamsComponent } from './teams/teams';
+import { TeamsAddWardenComponent } from './teams/add.wardens/add.wardens';
+
 
 
 const appRoutes: Routes = [
@@ -91,6 +94,12 @@ const appRoutes: Routes = [
   },
   {
     path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
+  },
+  {
+    path : 'teams', component : TeamsComponent,
+    children : [
+      { path : 'add-wardens', component : TeamsAddWardenComponent }
+    ]
   }
 
 ];

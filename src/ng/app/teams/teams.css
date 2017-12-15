@@ -1,0 +1,130 @@
+.teams-navigation{
+	border-bottom: 1px solid #ddd;
+}
+
+.teams-navigation ul{
+	margin: 0px;
+}
+
+.teams-navigation ul li{
+	display: inline-block;
+	padding: 20px;
+	cursor: pointer;
+	height: 70px;
+	margin-right: -4px;
+}
+
+.teams-navigation ul li .default,
+.teams-navigation ul li .hover{
+	vertical-align: middle;
+	display: none;
+}
+
+.teams-navigation ul li .default{
+	display: inline-block;
+}
+
+.teams-navigation ul li:hover .default{
+	display: none;
+}
+
+.teams-navigation ul li:hover .hover,
+.teams-navigation ul li.active .hover{
+	display: inline-block;
+}
+
+.teams-navigation ul li.active .default{
+	display: none;
+}
+
+.teams-navigation ul li.green-theme:hover,
+.teams-navigation ul li.green-theme:hover a{
+	background-color: #36bb9b;
+	color: #fff;
+}
+
+.teams-navigation ul li.green-theme{
+	border-bottom: 1px solid #36bb9b;
+}
+
+.teams-navigation ul li.green-theme:hover{
+	border-bottom: 2px solid #36bb9b;
+}
+
+.teams-navigation ul li.pink-theme:hover,
+.teams-navigation ul li.pink-theme:hover a{
+	background-color: #dc4453;
+	color: #fff;
+}
+
+.teams-navigation ul li.pink-theme:hover{
+	border-bottom: 2px solid #dc4453;
+}
+
+.teams-navigation ul li.active.pink-theme,
+.teams-navigation ul li.active.pink-theme a{
+	background-color: #dc4453;
+	color: #fff;
+}
+
+.teams-navigation ul li.pink-theme{
+	border-bottom: 1px solid #dc4453;
+}
+
+.teams-navigation ul li.purple-theme:hover,
+.teams-navigation ul li.purple-theme:hover a{
+	background-color: #cda4e6;
+	color: #fff;
+}
+
+.teams-navigation ul li.purple-theme:hover{
+	border-bottom: 2px solid #cda4e6;
+}
+
+.teams-navigation ul li.active.purple-theme,
+.teams-navigation ul li.active.purple-theme a{
+	background-color: #cda4e6;
+	color: #fff;
+}
+
+.teams-navigation ul li.purple-theme{
+	border-bottom: 1px solid #cda4e6;
+}
+
+.teams-navigation a{
+	color: #545454;
+	font-size: 16px;
+}
+
+.teams-navigation .default,
+.teams-navigation .hover{
+	-moz-box-sizing: border-box;
+    box-sizing: border-box;
+    background: url('/assets/images/team_icons.png') no-repeat;
+    width: 38px;
+    height: 38px;
+}
+
+.teams-navigation .wardens .default{
+	background-position: 6% 71%;
+}
+
+.teams-navigation .wardens .hover{
+	background-position: 6% 53%;
+}
+
+.teams-navigation .mobility .default{
+	background-position: 18.4% 71%;
+}
+
+.teams-navigation .mobility .hover{
+	background-position: 18.4% 53%;
+}
+
+.teams-navigation .all-users .default{
+	background-position: 30.4% 71%;
+}
+
+.teams-navigation .all-users .hover{
+	background-position: 29% 53.3%;
+}

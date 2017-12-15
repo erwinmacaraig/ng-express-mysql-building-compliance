@@ -61,6 +61,9 @@ import { ViewSingleLocation } from './location/view.single/view-single.component
 import { LocationComponent } from './location/location.component';
 import { VerificationComponent } from './location/verification/verification.component';
 
+import { TeamsComponent } from './teams/teams';
+import { TeamsAddWardenComponent } from './teams/add.wardens/add.wardens';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -96,8 +99,11 @@ import { VerificationComponent } from './location/verification/verification.comp
     LocationListComponent,
     ViewSingleLocation,
     LocationComponent,
-    VerificationComponent
+    VerificationComponent,
     // ViewSublocationComponent
+    
+    TeamsComponent,
+    TeamsAddWardenComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,39 @@
+<app-navbar></app-navbar>
+<div class="teams-navigation">
+	<ul>
+
+		<li class="wardens pink-theme  " [routerLink]="['/teams/add-wardens']">
+			<a href="javascript:void(0)">
+				<div class="default"> </div>
+				<div class="hover"> </div>
+				<span>
+					Wardens
+				</span>
+			</a>
+		</li>
+		
+		<li class="mobility purple-theme" [routerLink]="['/teams/mobility']">
+			<a href="javascript:void(0)">
+				<div class="default"> </div>
+				<div class="hover"> </div>
+				<span>
+					Mobility Impaired
+				</span>
+			</a>
+		</li>
+
+		<li class="all-users green-theme" [routerLink]="['/teams/users']">
+			<a href="javascript:void(0)">
+				<div class="default"> </div>
+				<div class="hover"> </div>
+				<span>
+					All Users
+				</span>
+			</a>
+		</li>
+
+	</ul
+></div>
+<div class="workspace container">
+	<router-outlet></router-outlet>
+</div>
