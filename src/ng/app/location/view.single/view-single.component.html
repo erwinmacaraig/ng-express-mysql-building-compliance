@@ -147,7 +147,7 @@
 		</div>
 
 		<div *ngIf="!showLoaderModalSublocation">
-			<h5>Add New Sublocation</h5>
+			<h5 *ngIf="errorMessageModalSublocation.length == 0">Add New Sublocation</h5>
 
 			<div class="center" *ngIf="errorMessageModalSublocation.length > 0">
 				<h5>{{errorMessageModalSublocation}}</h5>
@@ -155,8 +155,18 @@
 
 			<form #form="ngForm" (submit)="addNewSubLocationSubmit(form, $event)" *ngIf="errorMessageModalSublocation.length == 0">
 				<div class="input-field">
-					<input id="inpSublocationName" #inpSublocationName="ngModel" type="text" ngModel name="name" [ngClass]="{ invalid : !inpSublocationName.valid && inpSublocationName.dirty }" required>
+					<input autocomplete="off" id="inpSublocationName" #inputSublocation #inpSublocationName="ngModel" type="text" [(ngModel)]="inpSublocationNameTwoWayData" ngModel name="name" (keyup)="onKeyUpTypeSublocation(inpSublocationName.value)" [ngClass]="{ invalid : !inpSublocationName.valid && inpSublocationName.dirty }" required>
 					<label for="inpSublocationName">Sublocation name</label>
+				</div>
+				<div class="search-result" style="padding: 20px 0px;" *ngIf="sameSublocation.length > 0">
+				    <h6>Sublocation found in this location <p class="right" style="margin: 15px 0px;"> </p></h6>
+				    
+				   	<ul style="margin: 0px; max-height: 275px; overflow-y: auto;">
+					    <li style="border-bottom: 1px solid #ddd;font-size: 16px;padding: 10px 0px;" *ngFor="let sub of sameSublocation">
+						    <span>{{sub.name}}</span>
+						    <a href="javascript:void(0)" class="right select-sub blue-text" #selectElement (click)="selectAddNewSubResult(sub, selectElement)" style="margin-right: 10px;">select</a>
+						</li>
+					</ul>
 				</div>
 				<div class="button-container right-align">
 					<a href="javascript:void(0)" class="btn grey lighten-1 waves-effect waves-light modal-action modal-close">Cancel</a>

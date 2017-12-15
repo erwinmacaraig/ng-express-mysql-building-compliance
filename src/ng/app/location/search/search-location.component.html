@@ -242,7 +242,7 @@
 
 			<form #form="ngForm" (submit)="addNewSubLocationSubmit(form, $event)" *ngIf="errorMessageModalSublocation.length == 0">
 				<div class="input-field">
-					<input id="inpSublocationName" #inpSublocationName="ngModel" type="text" [(ngModel)]="inpSublocationNameTwoWayData" name="name" [ngClass]="{ invalid : !inpSublocationName.valid && inpSublocationName.dirty }" (keyup)="onKeyUpTypeSublocation(inpSublocationName.value)" required>
+					<input autocomplete="off" id="inpSublocationName" #inpSublocationName="ngModel" type="text" [(ngModel)]="inpSublocationNameTwoWayData" name="name" [ngClass]="{ invalid : !inpSublocationName.valid && inpSublocationName.dirty }" (keyup)="onKeyUpTypeSublocation(inpSublocationName.value)" required>
 					<label for="inpSublocationName">Sublocation name</label>
 				</div>
 				<div class="search-result" style="padding: 20px 0px;" *ngIf="sameSublocation.length > 0">
