@@ -106,25 +106,25 @@
 }
 
 .teams-navigation .wardens .default{
-	background-position: 10% 71%;
+	background-position: 6% 71%;
 }
 
 .teams-navigation .wardens .hover{
-	background-position: 10% 53%;
+	background-position: 6% 53%;
 }
 
 .teams-navigation .mobility .default{
-	background-position: 22.4% 71%;
+	background-position: 18.4% 71%;
 }
 
 .teams-navigation .mobility .hover{
-	background-position: 22.4% 53%;
+	background-position: 18.4% 53%;
 }
 
 .teams-navigation .all-users .default{
-	background-position: 35.4% 71%;
+	background-position: 30.4% 71%;
 }
 
 .teams-navigation .all-users .hover{
-	background-position: 35.4% 53%;
+	background-position: 29% 53.3%;
 }

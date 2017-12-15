@@ -2,7 +2,6 @@
 	margin: 35px 0px 20px 0px;
 }
 
-
 .top-title-button .btn{
 	background-color: transparent !important;
     font-size: 14px !important;
@@ -16,7 +15,8 @@
     padding: 10px;
 }
 
-.top-title-button .btn .image{
+.top-title-button .btn .image,
+.modal .header-container .image{
     display: inline-block;
     vertical-align: middle;
     margin-right: 5px;
@@ -28,14 +28,28 @@
 }
 
 .top-title-button .btn .csv-wardens{
-	background-position: 88.5% 35%;
+	background-position: 79.5% 35%;
+}
+
+.modal .header-container .csv-wardens{
+    background-position: 95.5% 12%;
+}
+
+.modal .header-container .invite-wardens{
+    background-position: 63.5% 12%;
+}
+
+.modal .header-container .image{
+    width: 60px;
+    height: 60px;
 }
 
 .top-title-button .btn .invite-wardens{
-	background-position: 74.5% 35%;
+	background-position: 66.5% 35%;
 }
 
-.top-title-button .btn .text{
+.top-title-button .btn .text,
+.modal .header-container .text{
     display: inline-block;
     width: 150px;
     color: #414141;
@@ -43,6 +57,13 @@
     text-align: left;
     vertical-align: middle;
     transition: all 0.5s;
+}
+
+.modal .header-container .text{
+    width: 60%;
+    font-size: 24px;
+    color: #0089ec;
+    line-height: 28px;
 }
 
 .top-title-button .btn:hover{
@@ -54,6 +75,72 @@
 .top-title-button .title{
 	margin: 1% 0%;
 }
+
+.switch{
+    width: 110px;
+    position: relative;
+    margin: 0 auto;
+    height: 36px;
+}
+
+.switch input[type="checkbox"]{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    pointer-events: visible;
+    z-index: 4;
+}
+
+.switch .background{
+    background-color: #505050;
+    border-radius: 5px;
+    padding: 5px;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+.switch .yes,
+.switch .no{
+    font-size: 14px;
+    color: #fff;
+    z-index: 3;
+    position: absolute;
+}
+
+.switch .yes{
+    top: 18%;
+    left: 16%;
+}
+
+.switch .no{
+    top: 16%;
+    right: 16%;
+}
+
+.switch .highlight{
+    position: absolute;
+    top: 14%;
+    padding: 5px;
+    border-radius: 3px;
+    background-color: #39a1ff;
+    z-index: 2;
+    height: 72%;
+    width: 35%;
+    transition: all 0.4s;
+}
+
+.switch input[type="checkbox"]:not(:checked) + .yes + .no + .highlight{
+    right: 8%;
+}
+
+.switch input[type="checkbox"]:checked + .yes + .no + .highlight{
+    right: 56%;
+}
+
 
 table thead tr th{
 	background-color: #2f2f2f;
@@ -77,6 +164,122 @@ table tfoot td button{
 	width: 100%;
     border-radius: 0px !important;
     font-size: 14px !important;
-    height: 35px !important;
+    height: 45px !important;
     line-height: 35px;
+}
+
+table select{
+    display: block;
+    background-color: inherit;
+    font-size: 14px;
+}
+
+table select:focus{
+    outline: 0px;
+}
+
+table tbody td input{
+    margin: 0px;
+    border: 0px;
+    font-size: 14px;
+}
+
+table tbody td input:focus{
+    border-bottom: 0px;
+    box-shadow: 0 1px 0 0 #0089ec;
+}
+
+table tbody td a{
+    font-size: 14px;
+}
+
+.button-container{
+    margin: 20px 0px;
+}
+
+.button-container .btn{
+    font-size: 14px !important;
+}
+
+#modaCsvUpload,
+#modalInvite{
+    width: 22%;
+    max-height: 100%;
+}
+
+#modaCsvUpload .modal-header{
+    margin: 20px 0px;
+}
+
+.modal-content .csv-icon{
+    display: inline-block;
+    width: 35px;
+    height: 26px;
+    background: url(/assets/images/team_icons.png) no-repeat;
+    background-position: 82% 70%;
+    vertical-align: middle;
+}
+
+.modal-content .upload-container{
+    border-radius: 5px;
+    background-color: #ebebeb;
+}
+
+.modal-content .upload-container .text{
+    margin: 10px 0px;
+    font-size: 16px;
+}
+
+.modal-content .upload-container .btn{
+    font-size: 14px !important;
+}
+
+.modal-content .upload-container{
+    padding: 20px;
+}
+
+#modalInvite textarea{
+    min-height: 165px;
+    font-size: 14px;
+    padding: 10px;
+    background-color: #ededed;
+    border: 0px;
+}
+
+@media only screen
+  and (max-width: 1024px) {
+    #modaCsvUpload,
+    #modalInvite{
+        width: 40%;
+    }
+}
+
+@media only screen
+  and (max-width: 768px) {
+    #modaCsvUpload,
+    #modalInvite{
+        width: 60%;
+    }
+
+    .top-title-button h4{
+        display: block;
+        width: 100%;
+    }
+
+    .top-title-button .btn{
+        display: block;
+        float: left !important;
+    }
+
+    .top-title-button .btn:first-child{
+        margin-right: 10px;
+    }
+}
+
+@media only screen
+  and (max-width: 500px) {
+    #modaCsvUpload,
+    #modalInvite{
+        width: 90%;
+    }
 }
