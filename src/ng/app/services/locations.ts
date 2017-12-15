@@ -111,4 +111,20 @@ export class LocationsService {
       });
   }
 
+  checkUserVerifiedInLocation() {
+    return this.http.get<any>(this.baseUrl + '/location/user-verification', this.options);
+  }
+
+  assignSublocations(sublocations: number[]) {
+    const subs = JSON.stringify(sublocations);
+    return this.http.post<any>(this.baseUrl + '/location/assign-location', {
+      'locIds': subs
+    }, this.options);
+  }
+
+  getSublocationsOfParent(parentId){
+    return this.http.get<any>(this.baseUrl + '/location/get-sublocations-of-parent/'+parentId, this.options);
+  }
+
+
 }

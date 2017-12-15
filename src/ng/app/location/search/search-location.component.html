@@ -128,10 +128,12 @@
 			</div>
 			-->
 
-			<div *ngFor="let levelControl of levelGroup.get('levels').controls; let i = index">
-				<span class="required" *ngIf="!levelGroup.get('levels').controls[i].valid"> *Required field.</span>
-				<div class="input-field" >
-					<input type="text" placeholder="e.q Level {{i + 1}}" [formControlName]="i" required>
+			<div style="max-height: 400px; overflow-y: auto;">
+				<div *ngFor="let levelControl of levelGroup.get('levels').controls; let i = index">
+					<span class="required" *ngIf="!levelGroup.get('levels').controls[i].valid"> *Required field.</span>
+					<div class="input-field" >
+						<input type="text" placeholder="e.q Level {{i + 1}}" [formControlName]="i" required>
+					</div>
 				</div>
 			</div>
 
@@ -179,9 +181,9 @@
 			</div>
 		</div>
 
-		<div class="list-region" *ngIf="!showLoaderModalSubLocation && !showModalAlreadyVerified">
+		<div class="list-region" *ngIf="!showLoaderModalSubLocation && !showModalAlreadyVerified" style="overflow-y: auto; height: 340px;">
 			<h6 class="blue-text">Select  Level</h6>
-			<div style="overflow-y: auto; height: 340px;">
+			<div>
 				<ul>
 					<ng-template #recursiveList let-selectedLocationSubLocations>
 						<li *ngFor="let location of selectedLocationSubLocations" class="list-division" [id]="location.location_id">
@@ -202,8 +204,8 @@
 						</li>
 					</ng-template>
 					<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: selectedLocationSubLocations }"></ng-container>
-        </ul>
-        <h6 class="blue-text">Not in the list?</h6><a href="javascript:void(0);" (click)="onNewLevel($event)">Click here to add a new sub location</a>
+        		</ul>
+        		<h6 class="blue-text">Not in the list?</h6><a href="javascript:void(0);" (click)="onNewLevel($event)">Click here to add a new sub location</a>
 			</div>
 		</div>
 
@@ -240,8 +242,24 @@
 
 			<form #form="ngForm" (submit)="addNewSubLocationSubmit(form, $event)" *ngIf="errorMessageModalSublocation.length == 0">
 				<div class="input-field">
-					<input id="inpSublocationName" #inpSublocationName="ngModel" type="text" ngModel name="name" [ngClass]="{ invalid : !inpSublocationName.valid && inpSublocationName.dirty }" required>
+					<input autocomplete="off" id="inpSublocationName" #inpSublocationName="ngModel" type="text" [(ngModel)]="inpSublocationNameTwoWayData" name="name" [ngClass]="{ invalid : !inpSublocationName.valid && inpSublocationName.dirty }" (keyup)="onKeyUpTypeSublocation(inpSublocationName.value)" required>
 					<label for="inpSublocationName">Sublocation name</label>
+				</div>
+				<div class="search-result" style="padding: 20px 0px;" *ngIf="sameSublocation.length > 0">
+				    <div>
+				        <div style="margin-bottom: 20px;">
+				        	<input type="checkbox" id="notHereCheck" (click)="notHereCheckEvent($event)">
+				        	<label for="notHereCheck" style="padding-left: 24px;">its not here, create new</label>
+				    	</div>
+				    	<h6>Same sublocation name found <p class="right" style="margin: 15px 0px;"> </p></h6>
+				    </div>
+				    
+				   	<ul style="margin: 0px; max-height: 275px; overflow-y: auto;">
+					    <li style="border-bottom: 1px solid #ddd;font-size: 16px;padding: 10px 0px;" *ngFor="let sub of sameSublocation">
+						    <span>{{sub.name}}</span>
+						    <a href="javascript:void(0)" class="right select-sub blue-text" #selectElement (click)="selectAddNewSubResult(sub, selectElement)" style="margin-right: 10px;">select</a>
+						</li>
+					</ul>
 				</div>
 				<div class="button-container right-align">
 					<a href="javascript:void(0)" class="btn grey lighten-1 waves-effect waves-light modal-action modal-close">Cancel</a>

@@ -335,6 +335,26 @@ h1,h2{
   color: #4caf50;
 }
 
+#modalSendVerification{
+  width: 30%;
+}
+
+#modalSendVerification .modal-content h4{
+  font-size: 27px;
+  margin-top: 5%;
+}
+
+#modalSendVerification .modal-close{
+  font-size: 12px !important;
+  height: 40px !important;
+  padding: 5px 15px;
+  line-height: 30px;
+}
+
+.button-container{
+  margin-top: 15%;
+}
+
 
 /* Phones */
 @media only screen
@@ -360,6 +380,10 @@ h1,h2{
 
   .right-column{
     width: 100%;
+  }
+
+  #modalSendVerification{
+    width: 45%;
   }
 
 }
@@ -393,6 +417,9 @@ h1,h2{
     display: none;
   }
 
+  #modalSendVerification{
+    width: 60%;
+  }
 
 }
 
@@ -415,6 +442,14 @@ h1,h2{
     .invitation_code input, button{
       width: 100% !important;
       margin-bottom: 20px !important;
+    }
+
+    #modalSendVerification{
+      width: 90%;
+    }
+
+    #modalSendVerification .modal-content h4{
+      font-size: 22px;
     }
 
   }

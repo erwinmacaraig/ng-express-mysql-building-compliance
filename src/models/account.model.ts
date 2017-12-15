@@ -220,59 +220,61 @@ export class Account extends BaseClass {
         });
     }
 
-  public getLocationsOnAccount(user_id?: number, role_id?: number): Promise<Object[]> {
-    return new Promise((resolve, reject) => {
-      let user_filter = '';
-      let role_filter = '';
-      if (role_id) {
-        role_filter = `AND LAU.role_id = ${role_id}`;
-        if (role_id === 1) {
-          role_filter = `${role_filter} AND locations.parent_id = -1`;
-        } else if (role_id === 2) {
-          role_filter = `${role_filter} AND locations.parent_id <> -1`;
-        }
-      }
-      if (user_id) {
-        user_filter = `AND LAU.user_id = ${user_id}`;
-      }
-      const sql_get_locations = `SELECT
-      locations.parent_id,
-      locations.name,
-      locations.formatted_address,
-      locations.location_id,
-      locations.google_photo_url
-    FROM
-      locations
-    INNER JOIN
-      location_account_user LAU
-    ON
-      locations.location_id = LAU.location_id
-    WHERE
-    LAU.account_id = ?
-    AND locations.archived = 0
-    ${user_filter} ${role_filter}
-    ORDER BY
-      locations.location_id;`
-      ;
+    public getLocationsOnAccount(user_id?: number, role_id?: number): Promise<Object[]> {
+        return new Promise((resolve, reject) => {
+            let user_filter = '';
+            let role_filter = '';
+            if (role_id) {
+                role_filter = `AND LAU.role_id = ${role_id}`;
+                if (role_id === 1) {
+                    role_filter = `${role_filter} AND locations.parent_id = -1`;
+                } else if (role_id === 2) {
+                    role_filter = `${role_filter} AND locations.parent_id <> -1`;
+                }
+            }
+            if (user_id) {
+                user_filter = `AND LAU.user_id = ${user_id}`;
+            }
+            const sql_get_locations = `SELECT
+            locations.parent_id,
+            locations.name,
+            locations.formatted_address,
+            locations.location_id,
+            locations.google_photo_url
+            FROM
+            locations
+            INNER JOIN
+            location_account_user LAU
+            ON
+            locations.location_id = LAU.location_id
+            WHERE
+            LAU.account_id = ?
+            AND locations.archived = 0
+            ${user_filter} ${role_filter}
+            GROUP BY locations.location_id
+            ORDER BY
+            locations.location_id;
+            `
+            ;
 
-    // console.log(sql_get_locations);
-    const val = [this.ID()];
-    const connection = db.createConnection(dbconfig);
-    connection.query(sql_get_locations, val, (err, results, fields) => {
-        if (err) {
-          console.log(err);
-          console.log(sql_get_locations);
-          throw new Error('Internal problem. There was a problem processing your query');
-        }
-        if (results.length) {
-          resolve(results);
-        } else {
-          reject(`No location found for this account ${this.ID()}`);
-        }
-      });
-    connection.end();
-    });
-  }
+            // console.log(sql_get_locations);
+            const val = [this.ID()];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_get_locations, val, (err, results, fields) => {
+                if (err) {
+                    console.log(err);
+                    console.log(sql_get_locations);
+                    throw new Error('Internal problem. There was a problem processing your query');
+                }
+                if (results.length) {
+                    resolve(results);
+                } else {
+                    reject(`No location found for this account ${this.ID()}`);
+                }
+            });
+            connection.end();
+        });
+    }
 
 
 
