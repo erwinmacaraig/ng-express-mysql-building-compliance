@@ -63,6 +63,7 @@ import { VerificationComponent } from './location/verification/verification.comp
 
 import { TeamsComponent } from './teams/teams';
 import { TeamsAddWardenComponent } from './teams/add.wardens/add.wardens';
+import { MobilityImpairedComponent } from './teams/mobility.impaired/mobility.impaired.component';
 
 @NgModule({
   declarations: [
@@ -103,7 +104,8 @@ import { TeamsAddWardenComponent } from './teams/add.wardens/add.wardens';
     // ViewSublocationComponent
     
     TeamsComponent,
-    TeamsAddWardenComponent
+    TeamsAddWardenComponent,
+    MobilityImpairedComponent
   ],
   imports: [
     BrowserModule,
