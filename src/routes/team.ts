@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
-import { Sample } from '../models/sample';
 import { User } from '../models/user.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import * as fs from 'fs';
@@ -8,13 +7,14 @@ import * as path from 'path';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 
 import { FileUploader } from '../models/upload-file';
+import { Utils } from './../models/utils.model';
 
 /**
  * / route
  *
  * @class User
  */
-export class IndexRoute extends BaseRoute {
+export class TeamRoute extends BaseRoute {
 
   /**
    * Create the routes.
@@ -26,20 +26,21 @@ export class IndexRoute extends BaseRoute {
   public static create(router: Router) {
     // add home page route
     router.get('/test', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-      new IndexRoute().index(req, res);
+      new TeamRoute().index(req, res);
     });
 
-    router.post('/test/sample/upload', (req: Request, res: Response, next: NextFunction) => {
-      new IndexRoute().uploadUserPhoto(req, res, next);
+    router.post('/team/add-bulk-warden', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new TeamRoute().addBulkWarden(req, res);
     });
 
-    router.get('/test/upload/form', (req: Request, res: Response, next: NextFunction) => {
-      new IndexRoute().displayUploadForm(req, res, next);
+    router.get('/team/eco-role-list', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new TeamRoute().getECOList(req, res).then((roles) => {
+        return res.status(200).send(roles);
+      }).catch((e) => {
+        return res.status(400).send('Error generating list');
+      });
     });
 
-    router.get('/test/location', (req: Request, res: Response, next: NextFunction) => {
-    	new IndexRoute().displaySearchLocation(req, res, next);
-    });
   }
 
   /**
@@ -75,25 +76,19 @@ export class IndexRoute extends BaseRoute {
     this.render(req, res, 'index.hbs', options);
   }
 
+  public addBulkWarden(req: AuthRequest, res: Response) {
 
-  displaySearchLocation(req: Request, res: Response, next: NextFunction) {
-  	this.render(req, res, 'locationService.hbs');
   }
 
-  displayUploadForm(req: Request, res: Response, next: NextFunction) {
-    this.render(req, res, 'upload.hbs');
+  public async getECOList(req: AuthRequest, res: Response) {
+    const utils = new Utils();
+    try {
+      const roles = utils.buildECORoleList();
+      return roles;
+    } catch (e) {
+      throw new Error('There was a problem generating the list');
+    }
   }
 
 
-
-  uploadUserPhoto(req: Request, res: Response, next: NextFunction) {
-     const fu = new FileUploader(req, res, next);
-     const link = fu.uploadFile().then(
-       (url) => {
-         return res.send('<img src="' + fu.getUploadedFileLocation() + '" />');
-       }
-     ).catch((e) => {
-       return res.end('Error uploading file');
-     });
-  }
 }

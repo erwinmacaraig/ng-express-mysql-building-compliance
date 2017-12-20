@@ -122,5 +122,9 @@ export class LocationsService {
     }, this.options);
   }
 
+  getSublocationsOfParent(parentId){
+    return this.http.get<any>(this.baseUrl + '/location/get-sublocations-of-parent/'+parentId, this.options);
+  }
+
 
 }

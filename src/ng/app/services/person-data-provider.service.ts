@@ -74,4 +74,8 @@ export class PersonDataProviderService {
     return this.http.get<any>(this.baseUrl + '/list-validation-question', this.options);
 
   }
+
+  public buildECORole() {
+    return this.http.get<any>(this.baseUrl + '/team/eco-role-list', this.options);
+  }
 }

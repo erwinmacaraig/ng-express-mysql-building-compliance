@@ -7,8 +7,8 @@ import { Router } from '@angular/router';
 declare var $: any;
 @Component({
   selector: 'app-teams',
-  templateUrl: './teams.html',
-  styleUrls: ['./teams.css']
+  templateUrl: './teams.component.html',
+  styleUrls: ['./teams.component.css']
 })
 export class TeamsComponent implements OnInit, OnDestroy {
 

@@ -61,8 +61,8 @@ import { ViewSingleLocation } from './location/view.single/view-single.component
 import { LocationComponent } from './location/location.component';
 import { VerificationComponent } from './location/verification/verification.component';
 
-import { TeamsComponent } from './teams/teams';
-import { TeamsAddWardenComponent } from './teams/add.wardens/add.wardens';
+import { TeamsComponent } from './teams/teams.component';
+import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
 import { MobilityImpairedComponent } from './teams/mobility.impaired/mobility.impaired.component';
 import { AddMobilityImpairedComponent } from './teams/add.mobility.impaired/add.mobility.impaired';
 import { ListWardensComponent } from './teams/list.wardens/list.wardens';

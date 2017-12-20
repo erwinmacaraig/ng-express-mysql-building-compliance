@@ -1,3 +1,4 @@
+import { TeamRoute } from './routes/team';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
@@ -132,8 +133,11 @@ export class Server {
       // Users
       UsersRoute.create(router);
 
-      //TokenRoute
+      // TokenRoute
       TokenRoute.create(router);
+
+      // TeamRoute
+      TeamRoute.create(router);
 
       this.app.use('/api/v1', router);
 

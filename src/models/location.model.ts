@@ -418,4 +418,22 @@ export class Location extends BaseClass {
 		});
 	}
 
+	public getParentsChildren(parentId){
+		return new Promise((resolve) => {
+
+			let sql = `SELECT * FROM locations WHERE parent_id = ${parentId} AND archived = 0 ORDER BY location_id`;
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql, (err, results, fields) => {
+				if (err) {
+					console.log(sql);
+					throw new Error('Internal error. There was a problem processing your query');
+				}
+
+				resolve(results);
+
+			});
+			connection.end();
+		});
+	}
+
 }
