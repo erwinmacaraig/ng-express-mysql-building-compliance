@@ -46,6 +46,8 @@ import { TeamsComponent } from './teams/teams';
 import { TeamsAddWardenComponent } from './teams/add.wardens/add.wardens';
 import { MobilityImpairedComponent } from './teams/mobility.impaired/mobility.impaired.component';
 import { AddMobilityImpairedComponent } from './teams/add.mobility.impaired/add.mobility.impaired';
+import { ListWardensComponent } from './teams/list.wardens/list.wardens';
+
 
 
 const appRoutes: Routes = [
@@ -101,7 +103,8 @@ const appRoutes: Routes = [
     children : [
       { path : 'add-wardens', component : TeamsAddWardenComponent },
       { path : 'mobility-impaired', component : MobilityImpairedComponent },
-      { path : 'add-mobility-impaired', component : AddMobilityImpairedComponent }
+      { path : 'add-mobility-impaired', component : AddMobilityImpairedComponent },
+      { path : 'list-wardens', component : ListWardensComponent }
     ]
   }
 
