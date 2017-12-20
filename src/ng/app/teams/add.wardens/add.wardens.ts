@@ -50,5 +50,15 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 		this.addedUsers.push( prop );
 	}
 
+	removeAddedUser(index){
+		let newList = [];
+		for(let i=0; i<=this.addedUsers.length; i++){
+			if(i !== index && this.addedUsers[i] !== undefined){
+				newList.push(this.addedUsers[i]);
+			}
+		}
+		this.addedUsers = newList;
+	}
+
 	ngOnDestroy(){}
 }

@@ -36,7 +36,7 @@
 						<h6 class="center">Add new user</h6>
 					</td>
 				</tr>
-				<tr *ngFor="let user of addedUsers">
+				<tr *ngFor="let user of addedUsers; let i = index;">
 					<td >
 						<input type="text" [(ngModel)]="user.first_name" placeholder="Firt name">
 					</td>
@@ -57,8 +57,9 @@
 						</select>
 					</td>
 					<td > <a href="javascript:void(0)" class="blue-text"> {{user.location_name}} </a> </td>
-					<td >
+					<td class="with-remove">
 						<input type="text" [(ngModel)]="user.mobile_number" placeholder="Mobile number">
+						<a href="javascript:void(0)" class="remove" (click)="removeAddedUser(i)">X</a>
 					</td>
 				</tr>
 			</tbody>
