@@ -17,65 +17,65 @@
 
 <div class="row">
 	<div class="col l12 m12 s12">
-    <form #f="ngForm">
-      <table class="table striped">
-        <thead>
-          <tr>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Email or Username</th>
-            <th>Account Role</th>
-            <th>ECO Role</th>
-            <th>Location</th>
-            <th>Mobile</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="addedUsers.length == 0">
-            <td colspan="7">
-              <h6 class="center">Add new user</h6>
-            </td>
-          </tr>
-          <tr *ngFor="let user of addedUsers; let i = index">
-            <td >
-              <input type="text" [(ngModel)]="user.first_name" placeholder="Firt name" name="first_name{{i}}" required>
-            </td>
-            <td >
-              <input type="text" [(ngModel)]="user.last_name" placeholder="Last name" name="last_name{{i}}" required>
-            </td>
-            <td >
-              <input type="text" [(ngModel)]="user.email_or_username" placeholder="Email/Username" name="uemail{{i}}" required>
-            </td>
-            <td >
-              <select [(ngModel)]="user.account_role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">
-                <option value="0" selected>Select Account Role</option>
-                <option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
-              </select>
-            </td>
-            <td >
-              <select [(ngModel)]="user.eco_role_id" name="ecorole{{i}}">
-                <option value="0" selected>Select ECO Role</option>
-                <option *ngFor="let e of ecoDisplayRoles[i]" [value]="e.em_roles_id">{{ e.role_name }}</option>
-              </select>
-            </td>
-            <td > <a href="javascript:void(0)" class="blue-text"> {{user.location_name}} </a> </td>
-            <td >
-              <input type="text" [(ngModel)]="user.mobile_number" placeholder="Mobile number" name="mobile{{i}}">
-            </td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="7">
-              <button class="btn blue" (click)="addMoreRow()">
-                + Add more row
-              </button>
-            </td>
-          </tr>
-        </tfoot>
-      </table>
-    </form>
-	</div>
+
+		<form #f="ngForm">
+			<table class="table striped">
+				<thead>
+					<tr>
+						<th>First Name</th>
+						<th>Last Name</th>
+						<th>Email or Username</th>
+						<th>Account Role</th>
+						<th>ECO Role</th>
+						<th>Location</th>
+						<th>Mobile</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngIf="addedUsers.length == 0">
+						<td colspan="7">
+							<h6 class="center">Add new user</h6>
+						</td>
+					</tr>
+					<tr *ngFor="let user of addedUsers; let i = index">
+						<td >
+							<input type="text" [(ngModel)]="user.first_name" placeholder="Firt name" name="first_name{{i}}" required>
+						</td>
+						<td >
+							<input type="text" [(ngModel)]="user.last_name" placeholder="Last name" name="last_name{{i}}" required>
+						</td>
+						<td >
+							<input type="text" [(ngModel)]="user.email_or_username" placeholder="Email/Username" name="uemail{{i}}" required>
+						</td>
+						<td >
+							<select [(ngModel)]="user.account_role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">
+								<option value="0" selected>Select Account Role</option>
+								<option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
+							</select>
+						</td>
+						<td >
+							<select [(ngModel)]="user.eco_role_id" name="ecorole{{i}}">
+								<option value="0" selected>Select ECO Role</option>
+								<option *ngFor="let e of ecoDisplayRoles[i]" [value]="e.em_roles_id">{{ e.role_name }}</option>
+							</select>
+						</td>
+						<td > <a href="javascript:void(0)" class="blue-text"> {{user.location_name}} </a> </td>
+						<td >
+							<input type="text" [(ngModel)]="user.mobile_number" placeholder="Mobile number" name="mobile{{i}}">
+						</td>
+					</tr>
+				</tbody>
+				<tfoot>
+					<tr>
+						<td colspan="7">
+							<button class="btn blue" (click)="addMoreRow()">
+								+ Add more row
+							</button>
+						</td>
+					</tr>
+				</tfoot>
+			</table>
+		</form>
 
 	<div class="col l12 m12 s12 button-container right-align">
 		<button class="btn grey lighten-1 waves-effect waves-light cancel"> Cancel </button>

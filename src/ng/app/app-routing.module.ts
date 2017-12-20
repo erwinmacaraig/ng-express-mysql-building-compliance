@@ -44,6 +44,9 @@ import { SetupLocationComponent } from './location/setup-location/setup-location
 
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
+import { MobilityImpairedComponent } from './teams/mobility.impaired/mobility.impaired.component';
+import { AddMobilityImpairedComponent } from './teams/add.mobility.impaired/add.mobility.impaired';
+import { ListWardensComponent } from './teams/list.wardens/list.wardens';
 
 
 
@@ -98,7 +101,10 @@ const appRoutes: Routes = [
   {
     path : 'teams', component : TeamsComponent,
     children : [
-      { path : 'add-wardens', component : TeamsAddWardenComponent }
+      { path : 'add-wardens', component : TeamsAddWardenComponent },
+      { path : 'mobility-impaired', component : MobilityImpairedComponent },
+      { path : 'add-mobility-impaired', component : AddMobilityImpairedComponent },
+      { path : 'list-wardens', component : ListWardensComponent }
     ]
   }
 
