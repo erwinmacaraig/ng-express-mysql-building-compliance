@@ -64,6 +64,7 @@ import { VerificationComponent } from './location/verification/verification.comp
 import { TeamsComponent } from './teams/teams';
 import { TeamsAddWardenComponent } from './teams/add.wardens/add.wardens';
 import { MobilityImpairedComponent } from './teams/mobility.impaired/mobility.impaired.component';
+import { AddMobilityImpairedComponent } from './teams/add.mobility.impaired/add.mobility.impaired';
 
 @NgModule({
   declarations: [
@@ -105,7 +106,8 @@ import { MobilityImpairedComponent } from './teams/mobility.impaired/mobility.im
     
     TeamsComponent,
     TeamsAddWardenComponent,
-    MobilityImpairedComponent
+    MobilityImpairedComponent,
+    AddMobilityImpairedComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,63 @@
+.btn{
+	font-size: 14px !important;
+    margin-right: 5px;
+}
+
+table thead tr th{
+	background-color: #2f2f2f;
+    color: #fff;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: 1px solid #2f2f2f;
+    border-radius: 0px;
+}
+
+table tbody td{
+	border: 1px solid #ddd;
+}
+
+table tfoot td{
+	padding: 0px;
+}
+
+table tfoot td button{
+	width: 100%;
+    border-radius: 0px !important;
+    font-size: 14px !important;
+    height: 45px !important;
+    line-height: 35px;
+}
+
+table select{
+    display: block;
+    background-color: inherit;
+    font-size: 14px;
+}
+
+table select:focus{
+    outline: 0px;
+}
+
+table tbody td input{
+    margin: 0px;
+    border: 0px;
+    font-size: 14px;
+}
+
+table tbody td input:focus{
+    border-bottom: 0px;
+    box-shadow: 0 1px 0 0 #0089ec;
+}
+
+table tbody td a{
+    font-size: 14px;
+}
+
+.button-container{
+    margin: 20px 0px;
+}
+
+.button-container .btn{
+    font-size: 14px !important;
+}
