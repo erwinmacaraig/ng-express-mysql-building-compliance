@@ -94,12 +94,12 @@ input::-ms-clear {
 }
 
 [type="checkbox"].filled-in.red:checked+label:after {
-    border: 2px solid #f44336;
+    border: 1px solid #f44336;
     background-color: #f44336;
 }
 
 [type="checkbox"].filled-in.grey:checked+label:after {
-    border: 2px solid #757575;
+    border: 1px solid #757575;
     background-color: #757575;
 }
 
@@ -131,4 +131,8 @@ input::-ms-clear {
 	.row .col {
 	    padding: 0 1.75rem !important;
 	}
+}
+
+.filter-list-wardens .select-dropdown{
+	margin-bottom: 0px !important;
 }

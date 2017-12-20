@@ -44,6 +44,7 @@ import { SetupLocationComponent } from './location/setup-location/setup-location
 
 import { TeamsComponent } from './teams/teams';
 import { TeamsAddWardenComponent } from './teams/add.wardens/add.wardens';
+import { ListWardensComponent } from './teams/list.wardens/list.wardens';
 
 
 
@@ -98,7 +99,8 @@ const appRoutes: Routes = [
   {
     path : 'teams', component : TeamsComponent,
     children : [
-      { path : 'add-wardens', component : TeamsAddWardenComponent }
+      { path : 'add-wardens', component : TeamsAddWardenComponent },
+      { path : 'list-wardens', component : ListWardensComponent }
     ]
   }
 
