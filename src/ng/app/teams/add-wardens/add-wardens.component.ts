@@ -105,10 +105,16 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 
     }
     console.log(this.ecoDisplayRoles);
+  }
 
-
-
-
+  removeAddedUser(index){
+    let newList = [];
+    for(let i=0; i<=this.addedUsers.length; i++){
+      if(i !== index && this.addedUsers[i] !== undefined){
+        newList.push(this.addedUsers[i]);
+      }
+    }
+    this.addedUsers = newList;
   }
 
   ngOnDestroy(){}
