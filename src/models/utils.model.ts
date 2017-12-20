@@ -227,6 +227,26 @@ export class Utils {
 
     }
 
+    public buildECORoleList(isWardenRole?: number) {
+      return new Promise((resolve, reject) => {
+        let whereClause = '';
+        if (isWardenRole) {
+          whereClause = `WHERE is_warden_role = ${isWardenRole}`;
+        }
+        const sql_em_roles = `SELECT * FROM em_roles ${whereClause}`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_em_roles, [], (error, results, fields) => {
+          if (error) {
+            console.log(error);
+            reject(error);
+          } else {
+            resolve(results);
+          }
+        });
+        connection.end();
+      });
+    }
+
     public deployQuestions(account_id: number,
           location_id: number,
           user_id: number,

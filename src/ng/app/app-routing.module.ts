@@ -42,8 +42,8 @@ import { VerificationComponent } from './location/verification/verification.comp
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 
-import { TeamsComponent } from './teams/teams';
-import { TeamsAddWardenComponent } from './teams/add.wardens/add.wardens';
+import { TeamsComponent } from './teams/teams.component';
+import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
 
 
 
