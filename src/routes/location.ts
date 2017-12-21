@@ -69,6 +69,17 @@ const md5 = require('md5');
      		});
      	});
 
+      router.get('/location/get-locations-hierarchy-by-account-id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          new LocationRoute().getLocationsHierarchyByAccount(req, res).then((data) => {
+            return res.status(200).send(data);
+          }).catch((err) => {
+            return res.status(400).send({
+                locations : [],
+                message: 'Error getting locations'
+            });
+         });
+      });
+
       router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 			    new LocationRoute().createLocation(req, res).then((data) => {
 	            return res.status(200).send({
@@ -438,9 +449,16 @@ const md5 = require('md5');
 			}
 			for(let c in data){
 				let child = data[c];
-				if(child.parent_id == parent.location_id){
-					parent.sublocations.push(child);
-				}
+
+        if('is_here' in child){
+          if(child.parent_id == parent.location_id && child.is_here === true){
+            parent.sublocations.push(child);
+          }
+        }else{
+  				if(child.parent_id == parent.location_id){
+  					parent.sublocations.push(child);
+  				}
+        }
 			}
 		}
 
@@ -764,21 +782,136 @@ const md5 = require('md5');
   				let seenRoots = [];
   		    let processedRootParents = [];
   				for (let r of rootParents) {
-  		          if(seenRoots.indexOf(r['location_id']) == -1) {
-  		            r['sublocations'] = [];
-  		            r['sublocations'] = objectOfSubs[r['desc']];
-  		            r['sublocations']['total'] = 0;
-  		            r['total_subs'] = objectOfSubs[r['desc']].length;
-  		            seenRoots.push(r['location_id']);
-  		            processedRootParents.push(r);
-  		          }
-  		        }
+	          if(seenRoots.indexOf(r['location_id']) == -1) {
+	            r['sublocations'] = [];
+	            r['sublocations'] = objectOfSubs[r['desc']];
+	            r['sublocations']['total'] = 0;
+	            r['total_subs'] = objectOfSubs[r['desc']].length;
+	            seenRoots.push(r['location_id']);
+	            processedRootParents.push(r);
+	          }
+	        }
   				return {
   					'locations':  processedRootParents
   				};
   		}
   		return locationsOnAccount;
 	}
+
+  public async getLocationsHierarchyByAccount(req: AuthRequest, res: Response){
+    const accountId = req.user.account_id;
+    const account = new Account(accountId);
+    let locationsOnAccount = [];
+    let location;
+      let data;
+    // we need to check the role(s)
+    const userRoleRel = new UserRoleRelation();
+    const roles = await userRoleRel.getByUserId(req.user.user_id);
+
+    // what is the highest rank role
+    let r = 100;
+    for (let i = 0; i < roles.length; i++) {
+      if(r > parseInt(roles[i]['role_id'], 10)) {
+        r = roles[i]['role_id'];
+      }
+    }
+    locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r);
+
+    let response = {};
+    switch(r) {
+      case 1:
+        for (let loc of locationsOnAccount) {
+          location = new Location(loc.location_id);
+          loc['sublocations'] = await location.getSublocations();
+        }
+        response = { 'locations' : JSON.parse(JSON.stringify(locationsOnAccount)) };
+        break;
+      case 2:
+        let results;
+        let objectOfSubs:{[key: number]: any[]} = {};
+        let seenParents = [];
+        let rootParents = [];
+        let pId = 0;
+        for (let loc of locationsOnAccount) {
+          objectOfSubs[loc.parent_id] = [];
+        }
+        for (let loc of locationsOnAccount) {
+          objectOfSubs[loc.parent_id].push(loc);
+
+          if ((seenParents.indexOf(loc.parent_id)*1)  === -1) {
+
+            seenParents.push(loc.parent_id);
+            let parentId = loc.parent_id;
+            while (parentId !== -1) {
+              location = new Location(parentId);
+              await location.load();
+              parentId = location.get('parent_id');
+            }
+
+            rootParents.push(location.getDBData());
+            location.set('desc', loc.parent_id);
+            location = undefined;
+          }
+        }
+
+        let seenRoots = [];
+        let processedRootParents = [];
+        for (let r of rootParents) {
+          if(seenRoots.indexOf(r['location_id']) == -1) {
+            r['sublocations'] = [];
+            r['sublocations'] = objectOfSubs[r['desc']];
+            r['sublocations']['total'] = 0;
+            r['total_subs'] = objectOfSubs[r['desc']].length;
+            seenRoots.push(r['location_id']);
+            processedRootParents.push(r);
+          }
+        }
+        response =  { 'locations':  processedRootParents };
+        break;
+    }
+
+    let locations = response['locations'];
+    let responseLocations = [];
+
+    for(let i in locations){
+      if(locations[i]['parent_id'] == -1){
+        let locModel = new Location();
+        let deepLocations = await locModel.getDeepLocationsByParentId(locations[i]['location_id']);
+        for(let x in deepLocations){
+          deepLocations[x] = {
+            location_id : deepLocations[x]['location_id'],
+            parent_id : deepLocations[x]['parent_id'],
+            name : deepLocations[x]['name'],
+            formatted_address : deepLocations[x]['formatted_address'],
+            google_photo_url : deepLocations[x]['google_photo_url']
+          };
+          if(r == 2){
+            deepLocations[x]['is_here'] = false;
+            for(let n in locationsOnAccount){
+              if(locationsOnAccount[n]['location_id'] == deepLocations[x]['location_id']){
+                deepLocations[x]['is_here'] = true;
+              }
+            }
+          }
+        }
+
+        let p = {
+          location_id : locations[i]['location_id'],
+          parent_id : locations[i]['parent_id'],
+          name : locations[i]['name'],
+          formatted_address : locations[i]['formatted_address'],
+          google_photo_url : locations[i]['google_photo_url']
+        };
+        let temp = []; 
+        temp.push(p); 
+        temp = temp.concat(deepLocations);
+        let merged = this.mergeToParent(temp);
+        responseLocations.push(merged[0]);
+      }
+    }
+
+    return { 'locations' : responseLocations };
+  }
 
 	public getDeepLocationsById(req: AuthRequest, res: Response){
 		let  response = {

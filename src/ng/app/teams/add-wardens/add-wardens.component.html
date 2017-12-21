@@ -39,7 +39,7 @@
 					</tr>
 					<tr *ngFor="let user of addedUsers; let i = index">
 						<td >
-							<input type="text" [(ngModel)]="user.first_name" placeholder="Firt name" name="first_name{{i}}" required>
+							<input type="text" [(ngModel)]="user.first_name" placeholder="First name" name="first_name{{i}}" required>
 						</td>
 						<td >
 							<input type="text" [(ngModel)]="user.last_name" placeholder="Last name" name="last_name{{i}}" required>
@@ -48,7 +48,7 @@
 							<input type="text" [(ngModel)]="user.email_or_username" placeholder="Email/Username" name="uemail{{i}}" required>
 						</td>
 						<td >
-							<select [(ngModel)]="user.account_role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">
+							<select required [(ngModel)]="user.account_role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">
 								<option value="0" selected>Select Account Role</option>
 								<option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
 							</select>
@@ -59,7 +59,9 @@
 								<option *ngFor="let e of ecoDisplayRoles[i]" [value]="e.em_roles_id">{{ e.role_name }}</option>
 							</select>
 						</td>
-						<td > <a href="javascript:void(0)" class="blue-text"> {{user.location_name}} </a> </td>
+						<td > 
+							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0 && user.account_role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a> 
+						</td>
 						<td class="with-remove">
 							<input type="text" [(ngModel)]="user.mobile_number" placeholder="Mobile number" name="mobile{{i}}">
 							<a href="javascript:void(0)" class="remove" (click)="removeAddedUser(i)">X</a>
@@ -147,6 +149,59 @@
 			<button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
 			<button class="btn orange waves-effect waves-light"> Submit </button>
 		</div>
+
+	</div>
+</div>
+
+
+<div id="modalLocations" class="modal modal-sublocations">
+	
+	
+
+	<div class="modal-content">
+		<h5>Select Location</h5>
+		
+		<div class="search-container" >
+			<div class="input-container">
+				<input type="text" placeholder="Search Level" >
+			</div>
+			<div class="icon-container">
+				<img src="assets/images/locations/search_icon.png" alt="">
+			</div>
+		</div>
+		
+		<form #formLoc="ngForm" (submit)="submitSelectLocationModal(formLoc, $event)">
+
+		<div class="list-region" style="overflow-y: auto; height: 340px;">
+			<ul>
+				<ng-template #recursiveList let-locations>
+					<li *ngFor="let location of locations" class="list-division" [id]="location.location_id">
+						<div class="name-radio-plus">
+							<div class="input">
+								<input ngModel required type="radio" name="selectLocation" [value]="location.location_id" [id]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }" >
+								<label [for]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }"></label>
+								<div class="plus-minus">
+									<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" />
+									<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
+									<span>{{location.name}}</span>
+								</div>
+							</div>
+						</div>
+						<ul *ngIf="location.sublocations.length > 0">
+					        <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: location.sublocations }"></ng-container>
+						</ul>
+					</li>
+				</ng-template>
+				<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: locations }"></ng-container>
+    		</ul>
+		</div>
+
+		<div class="button-container center">
+			<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
+			<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLoc.valid"> Submit </button>
+		</div>
+
+		</form>
 
 	</div>
 </div>
