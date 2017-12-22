@@ -44,9 +44,9 @@ import { SetupLocationComponent } from './location/setup-location/setup-location
 
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
-import { MobilityImpairedComponent } from './teams/mobility.impaired/mobility.impaired.component';
+import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.impaired.component';
 import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.mobility.impaired.component';
-import { ListWardensComponent } from './teams/list.wardens/list.wardens.component';
+import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
 import { AllUsersComponent } from './teams/all-users/all.users.component';
 import { AddUserComponent } from './teams/add-user/add.user.component';
 
