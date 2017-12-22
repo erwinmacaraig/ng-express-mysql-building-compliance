@@ -225,14 +225,6 @@ table tbody td a{
     font-size: 14px;
 }
 
-table .checkbox{
-	margin:0px !important;
-}
-
-table .checkbox [type="checkbox"]+label:before, [type="checkbox"]:not(.filled-in)+label:after{
-	top: 2px;
-}
-
 table th .checkbox [type="checkbox"]+label,
 table td .checkbox [type="checkbox"]+label{
 	padding-left: 35px;
@@ -244,20 +236,21 @@ table td .checkbox [type="checkbox"]+label{
 }
 
 table thead tr th .checkbox label{
-	margin-left: 10px;
 	color: #fff;
 }
 
 table .checkbox [type="checkbox"].filled-in:not(:checked)+label:after{
 	background-color: #ffffff;
 	border: 1px solid #ddd;
-	height: 22px;
-	width: 22px;
 }
 
-table .checkbox [type="checkbox"].filled-in:checked+label:after{
-	width: 22px;
-    height: 22px;
+table tr td .checkbox{
+    margin: 0px 10px;
+}
+
+table thead tr th .checkbox {
+    margin: 0px 10px;
+    display: inline-block;
 }
 
 @media only screen 
