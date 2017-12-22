@@ -64,8 +64,11 @@ import { VerificationComponent } from './location/verification/verification.comp
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
 import { MobilityImpairedComponent } from './teams/mobility.impaired/mobility.impaired.component';
-import { AddMobilityImpairedComponent } from './teams/add.mobility.impaired/add.mobility.impaired';
-import { ListWardensComponent } from './teams/list.wardens/list.wardens';
+import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.mobility.impaired.component';
+import { ListWardensComponent } from './teams/list.wardens/list.wardens.component';
+import { AllUsersComponent } from './teams/all-users/all.users.component';
+import { AddUserComponent } from './teams/add-user/add.user.component';
+
 
 
 @NgModule({
@@ -110,7 +113,9 @@ import { ListWardensComponent } from './teams/list.wardens/list.wardens';
     TeamsAddWardenComponent,
     MobilityImpairedComponent,
     AddMobilityImpairedComponent,
-    ListWardensComponent
+    ListWardensComponent,
+    AllUsersComponent,
+    AddUserComponent
   ],
   imports: [
     BrowserModule,

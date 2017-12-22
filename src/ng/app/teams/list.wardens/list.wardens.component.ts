@@ -7,8 +7,8 @@ import { Router } from '@angular/router';
 declare var $: any;
 @Component({
   selector: 'app-teams-list-warden',
-  templateUrl: './list.wardens.html',
-  styleUrls: ['./list.wardens.css']
+  templateUrl: './list.wardens.component.html',
+  styleUrls: ['./list.wardens.component.css']
 })
 export class ListWardensComponent implements OnInit, OnDestroy {
 
