@@ -132,21 +132,22 @@
 
 
 <div id="modalInvite" class="modal">
-	<div class="modal-content">
-		<div class="header-container center">
-			<div class="image invite-wardens"></div>
-			<div class="text" style="width: 50%;">Invite Wardens by Email</div>
-		</div>
+  <form #invitefrm="ngForm">
+    <div class="modal-content">
+      <div class="header-container center">
+        <div class="image invite-wardens"></div>
+        <div class="text" style="width: 50%;">Invite Wardens by Email</div>
+      </div>
 
-		<div class="center">
-			<p style="font-size: 16px;">Add email address separated by ","</p>
-			<textarea placeholder="Emails here"></textarea>
-		</div>
+      <div class="center">
+        <p style="font-size: 16px;">Add email address separated by ","</p>
+        <textarea placeholder="Emails here" [(ngModel)]="bulkEmailInvite" name="inviteTxtArea"></textarea>
+      </div>
 
-		<div class="button-container center">
-			<button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
-			<button class="btn orange waves-effect waves-light"> Submit </button>
-		</div>
-
-	</div>
+      <div class="button-container center">
+        <button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
+        <button class="btn orange waves-effect waves-light" (click)="sendInviteOnClick()"> Submit </button>
+      </div>
+    </div>
+  </form>
 </div>

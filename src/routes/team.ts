@@ -1,3 +1,4 @@
+import { InvitationCode } from './../models/invitation.code.model';
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
@@ -5,9 +6,10 @@ import { AuthRequest } from '../interfaces/auth.interface';
 import * as fs from 'fs';
 import * as path from 'path';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
-
+import { Token } from '../models/token.model';
 import { FileUploader } from '../models/upload-file';
 import { Utils } from './../models/utils.model';
+import {EmailSender} from './../models/email.sender';
 
 /**
  * / route
@@ -30,7 +32,12 @@ export class TeamRoute extends BaseRoute {
     });
 
     router.post('/team/add-bulk-warden', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-      new TeamRoute().addBulkWarden(req, res);
+      new TeamRoute().addBulkWarden(req, res).then((data) => {
+        return res.status(200).send(data);
+
+      }).catch((e) => {
+
+      });
     });
 
     router.get('/team/eco-role-list', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -76,8 +83,54 @@ export class TeamRoute extends BaseRoute {
     this.render(req, res, 'index.hbs', options);
   }
 
-  public addBulkWarden(req: AuthRequest, res: Response) {
+  public async addBulkWarden(req: AuthRequest, res: Response) {
+    const emailsSubmitted = req.body.wardensEmail;
+    console.log(typeof emailsSubmitted);
+    const objEmail = JSON.parse(emailsSubmitted);
 
+    console.log(objEmail);
+    // email notification here
+    const opts = {
+      from : 'allantaw2@gmail.com',
+      fromName : 'EvacConnect',
+      to : [],
+      cc: [],
+      body : '',
+      attachments: [],
+      subject : 'EvacConnect Warden Invitation'
+    };
+    const email = new EmailSender(opts);
+    // add these emails to the database table
+
+    for (let i = 0; i < objEmail.length; i++) {
+      const inviCode = new InvitationCode();
+      const tokenModel = new Token();
+      const token = tokenModel.generateRandomChars(8);
+
+      let link = req.protocol + '://' + req.get('host') + '/token/invitation/' + token;
+      await inviCode.create({
+        'invited_by_user': req.user.user_id,
+        'email': objEmail[i],
+        'code': token
+      });
+      let emailBody = email.getEmailHTMLHeader();
+      emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+      <h4>You are invited to be a Warden.</h4> <br/>
+      <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
+      <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+      emailBody += email.getEmailHTMLFooter();
+
+    email.assignOptions({
+      body : emailBody,
+      to: [objEmail[i]],
+      cc: ['erwin.macaraig@gmail.com']
+    });
+      email.send((data) => console.log(data),
+                 (err) => console.log(err)
+                );
+    }
+    return emailsSubmitted;
   }
 
   public async getECOList(req: AuthRequest, res: Response) {

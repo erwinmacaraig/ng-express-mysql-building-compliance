@@ -88,7 +88,7 @@ export class InvitationCode extends BaseClass {
               sql_load = sql_load + ' AND role_id = ?';
               param.push(roleId);
             }
-            
+
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
               if (error) {
@@ -111,7 +111,7 @@ export class InvitationCode extends BaseClass {
             let sql_load = 'SELECT * FROM invitation_codes ';
             let whereString = '';
             const param = [];
-            
+
             let count = 0;
             for(let i in where){
 
@@ -161,18 +161,20 @@ export class InvitationCode extends BaseClass {
                     location_id = ?,
                     account_id = ?,
                     role_id = ?,
+                    invited_by_user = ?,
                     was_used = ?
                 WHERE
                     invitation_code_id = ?
             `;
             const values = [
-                ('code' in this.dbData) ? this.dbData['code'] : '',
-                ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
-                ('last_name' in this.dbData) ? this.dbData['last_name'] : '',
-                ('email' in this.dbData) ? this.dbData['email'] : '',
+                ('code' in this.dbData) ? this.dbData['code'] : null,
+                ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
+                ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
+                ('email' in this.dbData) ? this.dbData['email'] : null,
                 ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
                 ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
                 ('role_id' in this.dbData) ? this.dbData['role_id'] : 0,
+                ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
                 ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
                 this.ID() ? this.ID() : 0
             ];
@@ -200,8 +202,10 @@ export class InvitationCode extends BaseClass {
                 location_id,
                 account_id,
                 role_id,
+                invited_by_user,
                 was_used
             ) VALUES (
+                ?,
                 ?,
                 ?,
                 ?,
@@ -219,6 +223,7 @@ export class InvitationCode extends BaseClass {
                 ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
                 ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
                 ('role_id' in this.dbData) ? this.dbData['role_id'] : 0,
+                ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
                 ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
             ];
             const connection = db.createConnection(dbconfig);
