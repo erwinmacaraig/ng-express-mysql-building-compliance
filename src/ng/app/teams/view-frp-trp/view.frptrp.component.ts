@@ -26,11 +26,8 @@ export class ViewFrpTrpComponent implements OnInit, OnDestroy {
 
 		$('select').material_select();
 
-		$('.workspace.container').css({
-			'padding' : '0px'
-		});
-
 		this.gridEvent();
+		this.renderGrid();
 	}
 
 	public gridEvent(){
