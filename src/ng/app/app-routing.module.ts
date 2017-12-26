@@ -49,6 +49,7 @@ import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.
 import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
 import { AllUsersComponent } from './teams/all-users/all.users.component';
 import { AddUserComponent } from './teams/add-user/add.user.component';
+import { ViewFrpTrpComponent } from './teams/view-frp-trp/view.frptrp.component';
 
 
 
@@ -108,7 +109,8 @@ const appRoutes: Routes = [
       { path : 'add-mobility-impaired', component : AddMobilityImpairedComponent },
       { path : 'list-wardens', component : ListWardensComponent },
       { path : 'all-users', component : AllUsersComponent },
-      { path : 'add-user', component : AddUserComponent }
+      { path : 'add-user', component : AddUserComponent },
+      { path : 'view-frp-trp', component : ViewFrpTrpComponent }
     ]
   }
 

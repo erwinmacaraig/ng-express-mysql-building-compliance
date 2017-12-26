@@ -68,6 +68,7 @@ import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.
 import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
 import { AllUsersComponent } from './teams/all-users/all.users.component';
 import { AddUserComponent } from './teams/add-user/add.user.component';
+import { ViewFrpTrpComponent } from './teams/view-frp-trp/view.frptrp.component';
 
 
 
@@ -115,7 +116,8 @@ import { AddUserComponent } from './teams/add-user/add.user.component';
     AddMobilityImpairedComponent,
     ListWardensComponent,
     AllUsersComponent,
-    AddUserComponent
+    AddUserComponent,
+    ViewFrpTrpComponent
   ],
   imports: [
     BrowserModule,
