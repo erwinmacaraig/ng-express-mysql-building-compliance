@@ -16,6 +16,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 
 	public thisRouteUrl = '';
 	public oUserData = {};
+	public showTeamNav = true;
 
 	constructor(
 		private router: Router,
@@ -36,10 +37,9 @@ export class TeamsComponent implements OnInit, OnDestroy {
 	}
 
 	ngAfterViewInit(){
-		if(this.thisRouteUrl.indexOf('teams') > -1){
-			let removeWorkspacePadding = false,
-				showTeamNav = true;
-
+		let teamRoute = this.thisRouteUrl.split("/");
+		if(teamRoute[1] == 'teams'){
+			let removeWorkspacePadding = false;
 			if(
 				this.thisRouteUrl.indexOf('view-frp-trp') > -1
 				){
@@ -51,7 +51,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 				this.thisRouteUrl.indexOf('view-gen-occupant') > -1 ||
 				this.thisRouteUrl.indexOf('view-chief-warden') > -1
 				){
-				showTeamNav = false;
+				this.showTeamNav = false;
 				removeWorkspacePadding = true;
 			}
 
@@ -65,12 +65,6 @@ export class TeamsComponent implements OnInit, OnDestroy {
 				});
 			}
 
-			if(showTeamNav){
-				$('.teams-navigation').show();
-			}else{
-				$('.teams-navigation').hide();
-			}
-
 			$('li.nav-list-team').addClass('active');
 
 			if('roles' in this.oUserData){
@@ -79,35 +73,49 @@ export class TeamsComponent implements OnInit, OnDestroy {
 					trp = false,
 					warden = false,
 					genOcc = false,
-					chiefWarden = false,
-					otherWarden = false;
+					chiefWarden = false;
 
-				for(let i in roles){
-					if(roles[i]['role_id'] == 1){
-						frp = true;
-					}else if(roles[i]['role_id'] == 2){
-						trp = true;
-					}else if(roles[i]['role_id'] == 8){
-						genOcc = true;
-					}else if(roles[i]['role_id'] == 9){
-						warden = true;
-					}else if(roles[i]['role_id'] == 11){
-						chiefWarden = true;
-					}else{
-						otherWarden = true;
+				if(roles.length > 0){
+					for(let i in roles){
+						if(roles[i]['role_id'] == 1){
+							frp = true;
+						}else if(roles[i]['role_id'] == 2){
+							trp = true;
+						}else if(roles[i]['role_id'] == 8){
+							genOcc = true;
+						}else if(roles[i]['role_id'] == 9){
+							warden = true;
+						}else if(roles[i]['role_id'] == 11){
+							chiefWarden = true;
+						}
 					}
+
+
+					if(teamRoute.length == 2){
+						if(frp || trp){
+							this.router.navigate(["/teams/all-users"]);
+						}else if(genOcc){
+							this.router.navigate(["/teams/view-gen-occupant"]);
+						}else if(warden){
+							this.router.navigate(["/teams/view-warden"]);
+						}else if(chiefWarden){
+							this.router.navigate(["/teams/view-chief-warden"]);
+						}
+					}
+				}else{
+					$('.teams-navigation').hide();
+					$('router-outlet').html('');
 				}
 
-				if(frp || trp){
-					this.router.navigate(["/teams/all-users"]);
-				}else if(genOcc){
-					this.router.navigate(["/teams/view-gen-occupant"]);
-				}else if(warden){
-					this.router.navigate(["/teams/view-warden"]);
-				}else if(chiefWarden){
-					this.router.navigate(["/teams/view-chief-warden"]);
-				}
+			}
 
+			$('.teams-navigation .active').removeClass('active');
+			if(teamRoute[2] == 'add-wardens' || teamRoute[2] == 'list-wardens'){
+				$('.teams-navigation .wardens').addClass('active');
+			}else if(teamRoute[2] == 'mobility-impaired' || teamRoute[2] == 'add-mobility-impaired'){
+				$('.teams-navigation .mobility').addClass('active');
+			}else if(teamRoute[2] == 'all-users' || teamRoute[2] == 'add-user'){
+				$('.teams-navigation .all-users').addClass('active');
 			}
 		}
 
