@@ -60,7 +60,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 	}
 
 	ngOnInit() {
-    this.username = this.userData['name'];
+    	this.username = this.userData['name'];
 		this.usersInitial = this.getInitials(this.username);
 		this.userRoles = this.userData['roles'];
 		this.showEvent();
@@ -84,15 +84,16 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 			}
 		});
 
+		this.showLinks = {
+			locations : true,
+			training : true,
+			team : true,
+			report : true
+		}
+
 		for(let i in this.userRoles){
 			if(this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2){
 				this.showSendInviteLink = true;
-				this.showLinks = {
-					locations : true,
-					training : true,
-					team : true,
-					report : true
-				}
 			}
 		}
 
