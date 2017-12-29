@@ -9,6 +9,7 @@ export class EmailSender {
         from : '',
         fromName : '',
         to : [],
+        cc: [],
         body : '',
         attachments: [],
         subject : ''
@@ -82,22 +83,47 @@ export class EmailSender {
     }
 
     public send(success, error){
-        var 
+        var
         email = this.buildEmail(),
         params = {
-            RawMessage: { Data: new Buffer(email) },
-            Destinations: this.options['to'],
-            Source: "'EvacConnect' <" + this.getOptionToIntoString() + ">'"
+            // RawMessage: { Data: new Buffer(email) },
+            Destination: {
+              ToAddresses: this.options['to'],
+              CcAddresses: this.options['cc']
+            },
+            Source: "'EvacConnect' <" + this.getOptionToIntoString() + ">'",
+            Message: {
+              Subject: {
+                Charset: 'UTF-8',
+                Data: this.options['subject']
+              },
+              Body: {
+                Html: {
+                  Charset: 'UTF-8',
+                  Data: this.options['body']
+                }
+              }
+            }
         };
 
+        /*
         this.ses.sendRawEmail(params, function(err, data) {
             if(err) {
                 error(err);
-            } 
+            }
             else {
                 success(data);
-            }           
+            }
         });
+        */
+        this.ses.sendEmail(params, function(err, data) {
+          if(err) {
+              error(err);
+          }
+          else {
+              success(data);
+          }
+      });
     }
 
     public getEmailHTMLHeader(){

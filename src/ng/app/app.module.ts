@@ -27,6 +27,7 @@ import { CompanyInformationComponent } from './dashboard/company_information/com
 import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
+import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
 
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
@@ -84,6 +85,7 @@ import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen
     ChangepasswordComponent,
     NavbarComponent,
     DashboardComponent,
+    WardenInvitationFormComponent,
     SignoutComponent,
     CompanyInformationComponent,
     SetupCompanyComponent,
@@ -112,7 +114,7 @@ import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen
     LocationComponent,
     VerificationComponent,
     // ViewSublocationComponent
-    
+
     TeamsComponent,
     TeamsAddWardenComponent,
     MobilityImpairedComponent,

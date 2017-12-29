@@ -78,4 +78,11 @@ export class SignupService {
     });
   }
 
+  retrieveWardenInvitationInfo(token: string) {
+    return this.http.get(this.baseUrl + '/team/invitation-filled-form/' + token, this.options);
+  }
+
+  signWardenUp(wardenProfile: object) {
+    return this.http.post<any>(this.baseUrl + '/team/process-warden-invitation', wardenProfile);
+  }
 }

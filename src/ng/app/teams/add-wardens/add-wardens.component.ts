@@ -17,6 +17,7 @@ declare var $: any;
 })
 export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     @ViewChild('f') addWardenForm: NgForm;
+    @ViewChild('invitefrm') emailInviteForm: NgForm;
     public addedUsers = [];
     public userProperty = {
         first_name : '',
@@ -37,8 +38,9 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     public locations = [];
     public userData = {};
     public selectedUser = {};
+    public bulkEmailInvite;
     constructor(
-        private authService: AuthService, 
+        private authService: AuthService,
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService
         ) {
@@ -204,14 +206,14 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
                 case 1:
                     this.selectedUser['account_location_id'] = lastParent.location_id;
                     break;
-                
+
                 case 2:
                     if(parent.parent_id == -1){
                         this.selectedUser['account_location_id'] = selectedLocationId;
                     }else{
                         this.selectedUser['account_location_id'] = parent.location_id;
                     }
-                    
+
                     break;
 
                 default:
@@ -240,5 +242,28 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     addBulkWarden() {
         console.log(this.addedUsers);
     }
+
+  sendInviteOnClick() {
+
+    this.bulkEmailInvite = (this.emailInviteForm.controls.inviteTxtArea.value).split(',');
+    const validEmails = [];
+    const email_regex =
+    /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
+    for (let x = 0; x < this.bulkEmailInvite.length; x++) {
+      if (email_regex.test(this.bulkEmailInvite[x].trim())) {
+        validEmails.push(this.bulkEmailInvite[x].trim());
+      }
+    }
+    this.dataProvider.sendWardenInvitation(validEmails).subscribe((data) => {
+      console.log(data);
+      $('#modalInvite').modal('close');
+    }, (e) => {
+      console.log(e);
+    }
+  );
+    this.emailInviteForm.controls.inviteTxtArea.reset();
+  }
+
+
 
 }

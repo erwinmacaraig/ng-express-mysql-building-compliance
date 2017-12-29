@@ -78,4 +78,9 @@ export class PersonDataProviderService {
   public buildECORole() {
     return this.http.get<any>(this.baseUrl + '/team/eco-role-list', this.options);
   }
+
+  public sendWardenInvitation(emails: string[]) {
+    const emailStr = JSON.stringify(emails);
+    return this.http.post<any>(this.baseUrl + '/team/add-bulk-warden', {'wardensEmail': emailStr});
+  }
 }
