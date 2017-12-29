@@ -13,6 +13,9 @@ import { Utils } from '../models/utils.model';
 import { FileUploader } from '../models/upload-file';
 import { FileUser } from '../models/file.user.model';
 import { Files } from '../models/files.model';
+import { LocationAccountUser } from '../models/location.account.user';
+import { Location } from '../models/location.model';
+
 
 import * as moment from 'moment';
 import * as validator from 'validator';
@@ -46,6 +49,10 @@ export class UsersRoute extends BaseRoute {
 	    router.get('/users/get-roles/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getUserRole(req, res, next);
 	    })
+
+	    router.get('/users/get-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getUsersByAccountId(req, res, next);
+	    });
 	}
 
 
@@ -177,6 +184,37 @@ export class UsersRoute extends BaseRoute {
 				});
 			}
 		);
+	}
+
+	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction){
+		let accountId = req.params.account_id,
+			locationAccountUser = new LocationAccountUser(),
+			response = {
+				data : <any>[],
+				status : false,
+				message : ''
+			};
+
+		let arrWhere = [];
+			arrWhere.push( ["account_id", "=", accountId ] );
+		let locations = await locationAccountUser.getMany(arrWhere);
+		for(let l in locations){
+			let userModel = new User(locations[l]['user_id']);
+			let locModel = new Location(locations[l]['location_id']);
+
+			locations[l]['user_info'] = await userModel.load();
+			await locModel.load().then(()=>{
+				locations[l]['location_info'] = locModel.getDBData();
+			},()=>{
+				locations[l]['location_info'] = {};
+			});
+		}
+
+		response.data = locations;
+		response.status = true;
+		res.statusCode = 200;
+		res.send(response);
+
 	}
 
 }

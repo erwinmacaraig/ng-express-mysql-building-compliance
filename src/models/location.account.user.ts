@@ -57,8 +57,12 @@ export class LocationAccountUser extends BaseClass {
                 sqlWhere += arrWhere[i][0]+' ';
               }
 
-              if( typeof arrWhere[i][2] !== undefined  ){
-                sqlWhere += arrWhere[i][1]+' ? ';
+              if( arrWhere[i][1] ){
+                sqlWhere += arrWhere[i][1]+' ';
+              }
+
+              if( arrWhere[i][2] ){
+                sqlWhere += ' ? ';
                 param.push(arrWhere[i][2]);
               }
               count++;
@@ -71,12 +75,8 @@ export class LocationAccountUser extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              if(!results.length){
-                reject('Record not found');
-              }else{
-                this.dbData = results;
-                resolve(this.dbData);
-              }
+              this.dbData = results;
+              resolve(this.dbData);
             });
             connection.end();
         });

@@ -45,6 +45,15 @@ export class UserService {
 		});
 	}
 
+	getUsersByAccountId(accountId, callBack){
+		this.http.get(this.baseUrl+"/users/get-users-by-account-id/"+accountId)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 
 
 }

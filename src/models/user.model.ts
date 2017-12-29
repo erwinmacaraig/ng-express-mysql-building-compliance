@@ -300,4 +300,20 @@ export class User extends BaseClass {
         });
     }
 
+    public getByAccountId(accountId) {
+        return new Promise((resolve, reject) => {
+            const sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = 0';
+            const param = [accountId];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
 }

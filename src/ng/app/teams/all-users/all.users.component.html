@@ -3,7 +3,7 @@
 		<h4>All Users</h4>
 		<a href="#" class="archived">
 			<span class="image"></span>
-			Archive
+			View Archive
 		</a>
 	</div>
 </div>
@@ -37,6 +37,7 @@
 	<div class="col l2 m6 s12">
 		<select>
 			<option value="0" selected>Manage Action</option>
+			<option value="1" >Archive selected</option>
 		</select>
 	</div>
 	
@@ -65,28 +66,39 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
+				<tr *ngIf="listData.length == 0">
+					<td colspan="7" class="center-align">
+						<h6>No records found</h6>
+					</td>
+				</tr>
+				<tr *ngFor="let list of listData">
 					<td>
 						<p class="checkbox">
-							<input id="name" class="filled-in" type="checkbox">
-							<label for="name">Location Name</label>
+							<input id="location-{{list.location_id}}"  class="filled-in" type="checkbox">
+							<label for="location-{{list.location_id}}" > {{list.location_info.name}} </label>
 						</p>
 					</td>
 					<td>
-						<div class="image-container blue lighten-3">
+						<div class="image-container lighten-3" [ngClass]="list.bg_class">
 							<div class="image">
 								<!-- <img src="assets/images/locations/default_profile_location.png"  > -->
 							</div>
 						</div>
-						<div class="text">Name here</div>
+						<div class="text">{{list.user_info.first_name}} {{list.user_info.last_name}}</div>
+					</td>
+					<td>{{list.user_info.email}}</td>
+					<td>{{list.user_info.mobile_number}}</td>
+					<td>
+						<span *ngIf="list.role_id == 1">FRP</span>
+						<span *ngIf="list.role_id == 2">TRP</span>
+						<span *ngIf="list.role_id != 1 && list.role_id != 2">User</span>
 					</td>
 					<td>
+						<span class="red-text">0/0</span>
 					</td>
-					<td> </td>
-					<td> </td>
-					<td> </td>
 					<td>
-						<a href="javascipt:void(0)">Manage</a>
+						<a href="javascipt:void(0)" [routerLink]="['/teams/view-frp-trp']" *ngIf="list.role_id == 1 || list.role_id == 2" >Manage</a>
+						<a href="javascipt:void(0)" *ngIf="list.role_id != 1 && list.role_id != 2" >Manage</a>
 					</td>
 				</tr>
 			</tbody>
