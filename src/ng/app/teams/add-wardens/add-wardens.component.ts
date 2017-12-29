@@ -139,6 +139,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     }
     this.dataProvider.sendWardenInvitation(validEmails).subscribe((data) => {
       console.log(data);
+      $('#modalInvite').modal('close');
     }, (e) => {
       console.log(e);
     }

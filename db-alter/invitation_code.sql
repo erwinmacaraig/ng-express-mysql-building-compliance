@@ -8,6 +8,7 @@ CREATE TABLE `invitation_codes` (
   `location_id` int(11) NOT NULL DEFAULT 0,
   `account_id` int(11) NOT NULL DEFAULT 0,
   `role_id` int(11) NOT NULL DEFAULT 0,
+  `contact_number` varchar(11) DEFAULT NULL,
   `invited_by_user` int(11) NOT NULL DEFAULT '0',
   `was_used` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`invitation_code_id`)

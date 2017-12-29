@@ -14,6 +14,7 @@ import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
+import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
 import { AuthGuard } from './services/auth-guard.service';
@@ -56,7 +57,8 @@ const appRoutes: Routes = [
       children : [
         { path : '', component : SignupSelectRoleComponent  },
         { path : 'user', component : SignupUserInfoComponent  },
-        { path: 'warden-signup', component: WardenSignupComponent }
+        { path: 'warden-signup', component: WardenSignupComponent },
+        { path: 'warden-profile-completion/:token', component: WardenInvitationFormComponent }
       ]
   },
   { path: 'no-email', component: NoemailComponent },
