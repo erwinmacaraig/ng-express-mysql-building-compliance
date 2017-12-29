@@ -17,6 +17,7 @@ declare var $: any;
 })
 export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     @ViewChild('f') addWardenForm: NgForm;
+    @ViewChild('invitefrm') emailInviteForm: NgForm;
     public addedUsers = [];
     public userProperty = {
         first_name : '',
@@ -37,6 +38,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     public locations = [];
     public userData = {};
     public selectedUser = {};
+    public bulkEmailInvite;
     constructor(
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
