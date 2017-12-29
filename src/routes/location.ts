@@ -1005,7 +1005,7 @@ const md5 = require('md5');
 	}
 
   public getSublocationsOfParent(req: AuthRequest, res: Response){
-    let  
+    let
     parentId = req.params.parent_id,
     response = {
       status : false,
