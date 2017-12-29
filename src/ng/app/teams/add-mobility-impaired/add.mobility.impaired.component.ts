@@ -8,15 +8,14 @@ import { Router } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { ViewChild } from '@angular/core';
 
-
 declare var $: any;
 @Component({
-    selector: 'app-teams-add-warden',
-    templateUrl: './add-wardens.component.html',
-    styleUrls: ['./add-wardens.component.css']
+  selector: 'app-add-mobility-impaired',
+  templateUrl: './add.mobility.impaired.component.html',
+  styleUrls: ['./add.mobility.impaired.component.css']
 })
-export class TeamsAddWardenComponent implements OnInit, OnDestroy {
-    @ViewChild('f') addWardenForm: NgForm;
+export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
+	@ViewChild('f') addWardenForm: NgForm;
     public addedUsers = [];
     public userProperty = {
         first_name : '',
@@ -38,7 +37,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     public userData = {};
     public selectedUser = {};
     constructor(
-        private authService: AuthService,
+        private authService: AuthService, 
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService
         ) {
@@ -46,7 +45,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         this.userData = this.authService.getUserData();
     }
 
-    ngOnInit() {
+	ngOnInit() {
         this.accountRoles = [{
             role_id: 3,
             role_name: 'User'
@@ -80,27 +79,21 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         });
     }
 
-    ngAfterViewInit(){
-        $('.modal').modal({
-            dismissible: false
-        });
-    }
+	ngAfterViewInit(){
+		$('.modal').modal({
+			dismissible: false
+		});
 
-    showModalCSV(){
-        $('#modaCsvUpload').modal('open');
-    }
+		$('select').material_select();
+	}
 
-    showModalInvite(){
-        $('#modalInvite').modal('open');
-    }
-
-    addMoreRow(){
+	addMoreRow(){
 		//a copy
 		let prop = JSON.parse(JSON.stringify(this.userProperty));
 		this.addedUsers.push( prop );
-    }
+	}
 
-    onSelectedAccountRole(srcId: number) {
+	onSelectedAccountRole(srcId: number) {
         console.log(this.addWardenForm.controls['accountRole' + srcId].value);
         let r = this.addWardenForm.controls['accountRole' + srcId].value * 1;
         this.ecoDisplayRoles[srcId] = [];
@@ -204,14 +197,14 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
                 case 1:
                     this.selectedUser['account_location_id'] = lastParent.location_id;
                     break;
-
+                
                 case 2:
                     if(parent.parent_id == -1){
                         this.selectedUser['account_location_id'] = selectedLocationId;
                     }else{
                         this.selectedUser['account_location_id'] = parent.location_id;
                     }
-
+                    
                     break;
 
                 default:
@@ -235,33 +228,5 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         this.selectedUser = {};
     }
 
-    ngOnDestroy(){}
-
-    addBulkWarden() {
-        console.log(this.addedUsers);
-    }
-
-  sendInviteOnClick() {
-
-    this.bulkEmailInvite = (this.emailInviteForm.controls.inviteTxtArea.value).split(',');
-    const validEmails = [];
-    const email_regex =
-    /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
-    for (let x = 0; x < this.bulkEmailInvite.length; x++) {
-      if (email_regex.test(this.bulkEmailInvite[x].trim())) {
-        validEmails.push(this.bulkEmailInvite[x].trim());
-      }
-    }
-    this.dataProvider.sendWardenInvitation(validEmails).subscribe((data) => {
-      console.log(data);
-      $('#modalInvite').modal('close');
-    }, (e) => {
-      console.log(e);
-    }
-  );
-    this.emailInviteForm.controls.inviteTxtArea.reset();
-  }
-
-
-
+	ngOnDestroy(){}
 }

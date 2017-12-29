@@ -4,16 +4,17 @@ import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 
+
 declare var $: any;
 @Component({
-  selector: 'app-teams-list-warden',
-  templateUrl: './list.wardens.html',
-  styleUrls: ['./list.wardens.css']
+  selector: 'app-view-gen-occupant-component',
+  templateUrl: './view.gen.occupant.component.html',
+  styleUrls: ['./view.gen.occupant.component.css']
 })
-export class ListWardensComponent implements OnInit, OnDestroy {
+export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 
 	constructor(){
-
+		console.log( );
 	}
 
 	ngOnInit(){}

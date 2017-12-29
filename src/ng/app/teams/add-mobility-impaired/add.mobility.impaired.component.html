@@ -1,23 +1,12 @@
-<div class="row">
-	<div class="col m12 l12 s12 top-title-button">
-		<h4 class="title left">
-			Nominate Warden
-		</h4>
-
-		<button class="btn btn-flat right" (click)="showModalCSV()">
-			<div class="image csv-wardens"></div>
-			<div class="text">Nominate Wardens by CSV Upload</div>
-		</button>
-		<button class="btn btn-flat right" (click)="showModalInvite()" style="margin-right: 20px;">
-			<div class="image invite-wardens"></div>
-			<div class="text">Invite Wardens by Email</div>
-		</button>
+<div class="row row-add-mobility-impaired-form">
+	<div class="col l12 m12 s12">
+		<h4>Add Mobility Impaired</h4>
 	</div>
 </div>
 
 <div class="row">
 	<div class="col l12 m12 s12">
-
+		
 		<form #f="ngForm">
 			<table class="table striped">
 				<thead>
@@ -80,80 +69,13 @@
 			</table>
 		</form>
 
+	</div>
+
 	<div class="col l12 m12 s12 button-container right-align">
-		<button class="btn grey lighten-1 waves-effect waves-light cancel" [routerLink]="['/teams/add-wardens']"> Cancel </button>
-		<button class="btn orange waves-effect waves-light cancel" (click)="addBulkWarden()" [disabled]="f.invalid"> Submit </button>
+		<button class="btn grey lighten-1 waves-effect waves-light cancel" [routerLink]="['/teams/mobility-impaired']"  > Cancel </button>
+		<button class="btn orange waves-effect waves-light cancel"> Submit </button>
 	</div>
 </div>
-
-<div id="modaCsvUpload" class="modal">
-	<div class="modal-content">
-		<div class="header-container center">
-			<div class="image csv-wardens"></div>
-			<div class="text">Nominate Wardens by CSV Upload</div>
-		</div>
-
-		<div class="center">
-			<p style="font-size: 16px;">If you have a large number of contracts, you can upload them using a CSV file.</p>
-			<h6 class="blue-text" style="margin: 30px 0px;">
-				Step 1 - Download CSV Template
-			</h6>
-			<p style="margin: 30px 0px;">
-				<button class="btn orange lighten-1 waves-effect waves-light">
-					<div class="csv-icon"></div>
-					<span>Download CSV Template</span>
-				</button>
-			</p>
-			<h6 class="blue-text" style="margin: 30px 0px;">
-				Step 2 - Upload CSV File
-			</h6>
-			<div class="upload-container">
-				<p class="text">Drag & Drop CSV File</p>
-				<p class="text">or</p>
-				<button class="btn blue waves-effect waves-light">Select CSV File</button>
-			</div>
-			<h6 class="blue-text" style="margin: 30px 0px;">
-				Step 3 - Will this upload overwrite your existing wardens uploaded in the system?
-			</h6>
-			<div class="switch">
-				<input type="checkbox">
-				<div class="yes">Yes</div>
-				<div class="no">No</div>
-				<div class="highlight"></div>
-				<div class="background"></div>
-			</div>
-		</div>
-
-		<div class="button-container center">
-			<button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
-			<button class="btn orange waves-effect waves-light"> Submit </button>
-		</div>
-
-	</div>
-</div>
-
-
-<div id="modalInvite" class="modal">
-  <form #invitefrm="ngForm">
-    <div class="modal-content">
-      <div class="header-container center">
-        <div class="image invite-wardens"></div>
-        <div class="text" style="width: 50%;">Invite Wardens by Email</div>
-      </div>
-
-      <div class="center">
-        <p style="font-size: 16px;">Add email address separated by ","</p>
-        <textarea placeholder="Emails here" [(ngModel)]="bulkEmailInvite" name="inviteTxtArea"></textarea>
-      </div>
-
-      <div class="button-container center">
-        <button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
-        <button class="btn orange waves-effect waves-light" (click)="sendInviteOnClick()"> Submit </button>
-      </div>
-    </div>
-  </form>
-</div>
-
 
 <div id="modalLocations" class="modal modal-sublocations">
 	

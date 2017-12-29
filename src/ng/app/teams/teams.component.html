@@ -1,8 +1,8 @@
 <app-navbar></app-navbar>
-<div class="teams-navigation">
+<div class="teams-navigation" *ngIf="showTeamNav">
 	<ul>
 
-		<li class="wardens pink-theme  " [routerLink]="['/teams/add-wardens']">
+		<li class="wardens pink-theme  " [routerLink]="['/teams/list-wardens']">
 			<a href="javascript:void(0)">
 				<div class="default"> </div>
 				<div class="hover"> </div>
@@ -22,7 +22,7 @@
 			</a>
 		</li>
 
-		<li class="all-users green-theme" [routerLink]="['/teams/users']">
+		<li class="all-users green-theme" [routerLink]="['/teams/all-users']">
 			<a href="javascript:void(0)">
 				<div class="default"> </div>
 				<div class="hover"> </div>

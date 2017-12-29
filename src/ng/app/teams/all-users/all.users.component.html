@@ -1,0 +1,97 @@
+<div class="row">
+	<div class="col l12 m12 s12" style="position: relative;">
+		<h4>All Users</h4>
+		<a href="#" class="archived">
+			<span class="image"></span>
+			Archive
+		</a>
+	</div>
+</div>
+
+<div class="row filter-container">
+	<div class="col l2 m3 s12 ">
+		<button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/teams/add-user']">
+			<span class="image"></span>
+			Add New User
+		</button>
+	</div>
+
+	<div class="col l4 m5 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search member name">
+			<span class="material-icons">search</span>
+		</div>
+	</div>
+
+	<div class="col l2 m4 s6">
+		<select>
+			<option value="0" selected>Filter By</option>
+		</select>
+	</div>
+
+	<div class="col l2 m6 s6">
+		<select>
+			<option value="0" selected>Sort By</option>
+		</select>
+	</div>
+	<div class="col l2 m6 s12">
+		<select>
+			<option value="0" selected>Manage Action</option>
+		</select>
+	</div>
+	
+</div>
+
+
+<div class="row">
+	<div class="col l12 m12 s12">
+		
+		<table class="table striped table-peep">
+			<thead>
+				<tr>
+					<th>
+						<p class="checkbox">
+							<input id="allSelect" class="filled-in" type="checkbox">
+							<label for="allSelect"></label>
+						</p>
+						Locations
+					</th>
+					<th>Name</th>
+					<th>Email</th>
+					<th>Mobile</th>
+					<th>Account Role</th>
+					<th>Training</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>
+						<p class="checkbox">
+							<input id="name" class="filled-in" type="checkbox">
+							<label for="name">Location Name</label>
+						</p>
+					</td>
+					<td>
+						<div class="image-container blue lighten-3">
+							<div class="image">
+								<!-- <img src="assets/images/locations/default_profile_location.png"  > -->
+							</div>
+						</div>
+						<div class="text">Name here</div>
+					</td>
+					<td>
+					</td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+					<td>
+						<a href="javascipt:void(0)">Manage</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+
+</div>

@@ -254,8 +254,7 @@ export class Account extends BaseClass {
             GROUP BY locations.location_id
             ORDER BY
             locations.location_id;
-            `
-            ;
+            `;
 
             // console.log(sql_get_locations);
             const val = [this.ID()];
@@ -267,6 +266,7 @@ export class Account extends BaseClass {
                     throw new Error('Internal problem. There was a problem processing your query');
                 }
                 if (results.length) {
+                    this.dbData = results;
                     resolve(results);
                 } else {
                     reject(`No location found for this account ${this.ID()}`);

@@ -1,5 +1,5 @@
 <app-navbar></app-navbar>
-<div class="location-navigation">
+<div class="location-navigation" *ngIf="showLocationNavigation">
 	<ul>
 
 		<li class="add-location pink-theme " [routerLink]="['/location', 'search']">

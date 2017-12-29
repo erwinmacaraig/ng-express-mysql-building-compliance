@@ -8,17 +8,15 @@ import { Router } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { ViewChild } from '@angular/core';
 
-
 declare var $: any;
 @Component({
-    selector: 'app-teams-add-warden',
-    templateUrl: './add-wardens.component.html',
-    styleUrls: ['./add-wardens.component.css']
+  selector: 'app-add-user',
+  templateUrl: './add.user.component.html',
+  styleUrls: ['./add.user.component.css']
 })
-export class TeamsAddWardenComponent implements OnInit, OnDestroy {
-    @ViewChild('f') addWardenForm: NgForm;
-    public addedUsers = [];
-    public userProperty = {
+export class AddUserComponent implements OnInit, OnDestroy {
+	@ViewChild('f') addWardenForm: NgForm;
+	public userProperty = {
         first_name : '',
         last_name : '',
         email_or_username : '',
@@ -37,8 +35,10 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     public locations = [];
     public userData = {};
     public selectedUser = {};
-    constructor(
-        private authService: AuthService,
+	public addedUsers = [];
+
+	constructor(
+        private authService: AuthService, 
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService
         ) {
@@ -46,8 +46,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         this.userData = this.authService.getUserData();
     }
 
-    ngOnInit() {
-        this.accountRoles = [{
+	ngOnInit(){
+		this.accountRoles = [{
             role_id: 3,
             role_name: 'User'
         },
@@ -78,23 +78,9 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
             this.locations = response.locations;
         });
-    }
+	}
 
-    ngAfterViewInit(){
-        $('.modal').modal({
-            dismissible: false
-        });
-    }
-
-    showModalCSV(){
-        $('#modaCsvUpload').modal('open');
-    }
-
-    showModalInvite(){
-        $('#modalInvite').modal('open');
-    }
-
-    addMoreRow(){
+	addMoreRow(){
 		//a copy
 		let prop = JSON.parse(JSON.stringify(this.userProperty));
 		this.addedUsers.push( prop );
@@ -204,14 +190,14 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
                 case 1:
                     this.selectedUser['account_location_id'] = lastParent.location_id;
                     break;
-
+                
                 case 2:
                     if(parent.parent_id == -1){
                         this.selectedUser['account_location_id'] = selectedLocationId;
                     }else{
                         this.selectedUser['account_location_id'] = parent.location_id;
                     }
-
+                    
                     break;
 
                 default:
@@ -235,33 +221,13 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         this.selectedUser = {};
     }
 
-    ngOnDestroy(){}
+	ngAfterViewInit(){
+		$('.modal').modal({
+			dismissible: false
+		});
 
-    addBulkWarden() {
-        console.log(this.addedUsers);
-    }
+		$('select').material_select();
+	}
 
-  sendInviteOnClick() {
-
-    this.bulkEmailInvite = (this.emailInviteForm.controls.inviteTxtArea.value).split(',');
-    const validEmails = [];
-    const email_regex =
-    /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
-    for (let x = 0; x < this.bulkEmailInvite.length; x++) {
-      if (email_regex.test(this.bulkEmailInvite[x].trim())) {
-        validEmails.push(this.bulkEmailInvite[x].trim());
-      }
-    }
-    this.dataProvider.sendWardenInvitation(validEmails).subscribe((data) => {
-      console.log(data);
-      $('#modalInvite').modal('close');
-    }, (e) => {
-      console.log(e);
-    }
-  );
-    this.emailInviteForm.controls.inviteTxtArea.reset();
-  }
-
-
-
+	ngOnDestroy(){}
 }
