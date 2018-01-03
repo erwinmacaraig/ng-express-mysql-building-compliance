@@ -20,10 +20,11 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	userData = {};
 	listData = [];
 	selectedToArchive = {
-		first_name : '', last_name : ''
+		first_name : '', last_name : '', parent_data : {}, user_info : {}
 	};
 	showModalLoader = false;
 	copyOfList = [];
+	selectedFromList = [];
 
 	constructor(
 		private userService : UserService,
@@ -35,21 +36,23 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		this.userData = this.authService.getUserData();
 	}
 
-	getListData(){
+	getListData(callBack?){
 		this.userService.getUsersByAccountId(this.userData['accountId'], (response) => {
 			this.listData = response.data;
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
 				this.listData[i]['user_id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']).toString();
 			}
-			this.dashboardService.hide();
 			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
+			if(callBack){
+				callBack();
+			}
 		});
 	}
 
 	ngOnInit(){
 
-		this.getListData();
+		this.getListData(() => { this.dashboardService.hide(); });
 
 	}
 
@@ -64,6 +67,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 		this.filterByEvent();
 		this.sortByEvent();
+		this.bulkManageActionEvent();
 	}
 
 	filterByEvent(){
@@ -164,17 +168,18 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		}else{
 			event.target.value = "0";
 			this.showModalLoader = false;
-			this.selectedToArchive = list.user_info;
+			this.selectedToArchive = list;
 			$('#modalArchive').modal('open');
 		}
 	}
 
 	archiveClick(){
 		this.showModalLoader = true;
-		this.userService.archiveUser(this.selectedToArchive['user_id'], (response) => {
-			this.dashboardService.show();
+		this.userService.archiveLocationUser([this.selectedToArchive['location_account_user_id']], (response) => {
+			this.showModalLoader = false;
 			$('#modalArchive').modal('close');
-			this.getListData();
+			this.dashboardService.show();
+			this.getListData(() => { this.dashboardService.hide(); });
 		});
 	}
 
@@ -184,5 +189,50 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		}else{
 			$('input[type="checkbox"]').prop('checked', false);
 		}
+	}
+
+	singleCheckboxChangeEvent(list, event){
+		let copy = JSON.parse(JSON.stringify(this.selectedFromList));
+		if(event.target.checked){
+			this.selectedFromList.push(list);
+		}else{
+			let temp = [];
+			for(let i in this.selectedFromList){
+				if(this.selectedFromList[i]['location_account_user_id'] != list['location_account_user_id']){
+					temp.push( this.selectedFromList[i] );
+				}
+			}
+			this.selectedFromList = temp;
+		}
+	}
+
+	bulkManageActionEvent(){
+		$('select.bulk-manage').on('change', () => {
+			let sel = $('select.bulk-manage').val();
+
+			if(sel == 'archive'){
+				$('select.bulk-manage').val("0").material_select();
+				if(this.selectedFromList.length > 0){
+					$('#modalArchiveBulk').modal('open');
+				}
+			}
+
+		});
+	}
+
+	bulkArchiveClick(){
+		this.showModalLoader = true;
+		let arrIds = [];
+
+		for(let i in this.selectedFromList){
+			arrIds.push(this.selectedFromList[i]['location_account_user_id']);
+		}
+
+		this.userService.archiveLocationUser(arrIds, (response) => {
+			this.showModalLoader = false;
+			$('#modalArchiveBulk').modal('close');
+			this.dashboardService.show();
+			this.getListData(() => { this.dashboardService.hide(); });
+		});
 	}
 }

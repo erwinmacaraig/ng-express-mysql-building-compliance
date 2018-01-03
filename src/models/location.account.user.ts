@@ -40,7 +40,7 @@ export class LocationAccountUser extends BaseClass {
               count = 0,
               param = [];
 
-            sql_load = ` SELECT l.*, lau.user_id, lau.account_id, lau.role_id 
+            sql_load = ` SELECT l.*, lau.user_id, lau.account_id, lau.role_id, lau.location_account_user_id
               FROM locations l 
               LEFT JOIN location_account_user lau ON l.location_id = lau.location_id
               LEFT JOIN users u ON lau.user_id = u.user_id  `;
@@ -54,11 +54,11 @@ export class LocationAccountUser extends BaseClass {
 
               sqlWhere += 'lau.'+arrWhere[i][0]+' ';
 
-              if( arrWhere[i][1] ){
+              if( typeof arrWhere[i][1] !== undefined ){
                 sqlWhere += arrWhere[i][1]+' ';
               }
 
-              if( arrWhere[i][2] ){
+              if( typeof arrWhere[i][2] !== undefined ){
                 sqlWhere += ' ? ';
                 param.push(arrWhere[i][2]);
               }
@@ -225,16 +225,18 @@ export class LocationAccountUser extends BaseClass {
     public dbUpdate() {
         return new Promise((resolve, reject) => {
           const sql_update = `UPDATE location_account_user SET
-                location_id = ?, account_id = ?, user_id = ?, role_id = ?
+                location_id = ?, account_id = ?, user_id = ?, role_id = ?, archived = ?
                 WHERE location_account_user_id = ? `;
           const param = [
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
             ('role_id' in this.dbData) ? this.dbData['role_id'] : 0,
+            ('archived' in this.dbData) ? this.dbData['archived'] : 0,
             this.ID() ? this.ID() : 0
           ];
           const connection = db.createConnection(dbconfig);
+
           connection.query(sql_update, param, (err, results, fields) => {
             if (err) {
               throw new Error(err);

@@ -63,8 +63,8 @@ export class UserService {
 		});
 	}
 
-	archiveUser(userId, callBack){
-		this.http.post(this.baseUrl+"/users/set-to-archive", { user_id : userId })
+	archiveLocationUser(locAccntUserId, callBack){
+		this.http.post(this.baseUrl+"/users/archive-location-account-user", { location_account_user_id : locAccntUserId })
 		.subscribe(res => {
 			callBack(res);
 		}, err => {

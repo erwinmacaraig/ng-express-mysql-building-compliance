@@ -58,8 +58,8 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().getUserForFrpTrpView(req, res, next);
 	    })
 
-	    router.post('/users/set-to-archive', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().setUserToArchive(req, res, next);
+	    router.post('/users/archive-location-account-user', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().setLocationAccountUserToArchive(req, res, next);
 	    });
 	}
 
@@ -206,6 +206,7 @@ export class UsersRoute extends BaseRoute {
 
 		let arrWhere = [];
 			arrWhere.push( ["account_id", "=", accountId ] );
+			arrWhere.push( ["archived", "=", 0 ] );
 		let locations = await locationAccountUser.getMany(arrWhere);
 		for(let l in locations){
 			let userModel = new User(locations[l]['user_id']);
@@ -291,16 +292,21 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async setUserToArchive(req: Request, res: Response, next: NextFunction){
+	public async setLocationAccountUserToArchive(req: Request, res: Response, next: NextFunction){
 		let response = {
 			status : true, 
-			data : [],
+			data : <any>[],
 			message : ''
-		},
-		userModel = new User(req.body['user_id']);
-		await userModel.load();
-		userModel.set('archived', 1);
-		await userModel.dbUpdate();
+		};
+
+		for(let i in req.body['location_account_user_id']){
+			let locAccountUser = new LocationAccountUser(req.body['location_account_user_id'][i]);
+			await locAccountUser.load();
+			console.log(locAccountUser.getDBData());
+			locAccountUser.set('archived', 1);
+			await locAccountUser.dbUpdate();
+		}
+		
 		response.message = 'Success';
 		res.statusCode = 200;
 		res.send(response);

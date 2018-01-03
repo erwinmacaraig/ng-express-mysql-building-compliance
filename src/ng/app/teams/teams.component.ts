@@ -41,7 +41,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 		if(teamRoute[1] == 'teams'){
 			let removeWorkspacePadding = false;
 			if(
-				this.thisRouteUrl.indexOf('view-frp-trp') > -1
+				this.thisRouteUrl.indexOf('view-user') > -1
 				){
 				removeWorkspacePadding = true;
 			}
