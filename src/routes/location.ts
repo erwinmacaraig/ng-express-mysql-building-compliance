@@ -709,7 +709,7 @@ const md5 = require('md5');
 		arrWhere.push([ 'user_id', '=', req.params.user_id ]);
 		arrWhere.push([ 'account_id', '=', req.params.account_id ]);
 
-		locAccUser.getMany(arrWhere, true).then(
+		locAccUser.getMany(arrWhere).then(
 			(locations) => {
 				response.data = locations;
 				res.send(response);

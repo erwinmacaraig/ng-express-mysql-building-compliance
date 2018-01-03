@@ -53,6 +53,14 @@ export class UsersRoute extends BaseRoute {
 	    router.get('/users/get-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getUsersByAccountId(req, res, next);
 	    });
+
+	    router.get('/users/get-user-for-frp-trp-view/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getUserForFrpTrpView(req, res, next);
+	    })
+
+	    router.post('/users/set-to-archive', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().setUserToArchive(req, res, next);
+	    });
 	}
 
 
@@ -193,21 +201,33 @@ export class UsersRoute extends BaseRoute {
 				data : <any>[],
 				status : false,
 				message : ''
-			};
+			},
+			allParents = [];
 
 		let arrWhere = [];
 			arrWhere.push( ["account_id", "=", accountId ] );
 		let locations = await locationAccountUser.getMany(arrWhere);
 		for(let l in locations){
 			let userModel = new User(locations[l]['user_id']);
-			let locModel = new Location(locations[l]['location_id']);
+			let parentLocation = new Location(locations[l]['parent_id']);
 
-			locations[l]['user_info'] = await userModel.load();
-			await locModel.load().then(()=>{
-				locations[l]['location_info'] = locModel.getDBData();
+			if(allParents.indexOf(locations[l]['parent_id']) == -1){
+				await parentLocation.load().then(() => {
+					allParents[ locations[l]['parent_id'] ] = parentLocation.getDBData();
+					locations[l]['parent_data'] = parentLocation.getDBData();
+				}, () => {
+					locations[l]['parent_data'] = {};
+				});
+			}else{
+				locations[l]['parent_data'] = allParents[ locations[l]['parent_id'] ];
+			}
+
+			await userModel.load().then(()=>{
+				locations[l]['user_info'] = userModel.getDBData();
 			},()=>{
-				locations[l]['location_info'] = {};
+				locations[l]['user_info'] = {};
 			});
+
 		}
 
 		response.data = locations;
@@ -215,6 +235,75 @@ export class UsersRoute extends BaseRoute {
 		res.statusCode = 200;
 		res.send(response);
 
+	}
+
+	public async getUserForFrpTrpView(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : false, 
+			data : {
+				user : {},
+				locations : <any>[],
+				trainings : <any>[],
+				eco_roles : <any>[],
+			},
+			message : ''
+		},
+		userModel = new User(req.params['user_id']);
+
+		response.data['user'] = await userModel.load();
+
+		let fileModel = new Files();
+        await fileModel.getByUserIdAndType(req.params['user_id'], 'profile').then(
+            (fileData) => {
+                response.data['user']['profilePic'] = fileData[0].url;
+            },
+            () => {
+                response.data['user']['profilePic'] = '';
+            }
+        );
+
+		let locationAccountUser = new LocationAccountUser();
+		let arrWhere = [];
+			arrWhere.push( ["user_id", "=", req.params['user_id'] ] );
+		
+		response.data['locations'] = await locationAccountUser.getMany(arrWhere);
+		let allParents = [];
+		for(let l in response.data.locations){
+			let parentLocation = new Location(response.data.locations[l]['parent_id']);
+
+			if(allParents.indexOf(response.data.locations[l]['parent_id']) == -1){
+				await parentLocation.load().then(() => {
+					allParents[ response.data.locations[l]['parent_id'] ] = parentLocation.getDBData();
+					response.data.locations[l]['parent_data'] = parentLocation.getDBData();
+				}, () => {
+					response.data.locations[l]['parent_data'] = {};
+				});
+			}else{
+				response.data.locations[l]['parent_data'] = allParents[ response.data.locations[l]['parent_id'] ];
+			}
+		}
+
+		let userEmRoleRelation = new UserEmRoleRelation();
+		response.data['eco_roles'] = await userEmRoleRelation.getEmRolesByUserId( req.params['user_id'] );
+
+		response.status = true;
+		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async setUserToArchive(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : true, 
+			data : [],
+			message : ''
+		},
+		userModel = new User(req.body['user_id']);
+		await userModel.load();
+		userModel.set('archived', 1);
+		await userModel.dbUpdate();
+		response.message = 'Success';
+		res.statusCode = 200;
+		res.send(response);
 	}
 
 }

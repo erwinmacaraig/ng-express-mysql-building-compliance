@@ -50,7 +50,7 @@ import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.
 import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
 import { AllUsersComponent } from './teams/all-users/all.users.component';
 import { AddUserComponent } from './teams/add-user/add.user.component';
-import { ViewFrpTrpComponent } from './teams/view-frp-trp/view.frptrp.component';
+import { ViewUserComponent } from './teams/view-user/view.user.component';
 import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
 import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
@@ -115,7 +115,7 @@ const appRoutes: Routes = [
       { path : 'list-wardens', component : ListWardensComponent },
       { path : 'all-users', component : AllUsersComponent },
       { path : 'add-user', component : AddUserComponent },
-      { path : 'view-frp-trp', component : ViewFrpTrpComponent },
+      { path : 'view-user/:encrypted', component : ViewUserComponent },
       { path : 'view-warden', component : ViewWardenComponent },
       { path : 'view-gen-occupant', component : ViewGeneralOccupantComponent },
       { path : 'view-chief-warden', component : ViewChiefWardenComponent }

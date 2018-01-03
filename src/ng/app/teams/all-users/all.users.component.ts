@@ -19,18 +19,23 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 	userData = {};
 	listData = [];
+	selectedToArchive = {
+		first_name : '', last_name : ''
+	};
+	showModalLoader = false;
+	copyOfList = [];
 
 	constructor(
 		private userService : UserService,
 		private authService : AuthService,
 		private dashboardService : DashboardPreloaderService,
-		private encDecrService : EncryptDecryptService
+		private encDecrService : EncryptDecryptService,
+		private router : Router
 		){
 		this.userData = this.authService.getUserData();
 	}
 
-	ngOnInit(){
-
+	getListData(){
 		this.userService.getUsersByAccountId(this.userData['accountId'], (response) => {
 			this.listData = response.data;
 			for(let i in this.listData){
@@ -38,7 +43,13 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 				this.listData[i]['user_id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']).toString();
 			}
 			this.dashboardService.hide();
+			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
 		});
+	}
+
+	ngOnInit(){
+
+		this.getListData();
 
 	}
 
@@ -47,9 +58,96 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			dismissible: false
 		});
 
-		$('select').material_select();
+		$('.row.filter-container select').material_select();
 
 		this.dashboardService.show();
+
+		this.filterByEvent();
+		this.sortByEvent();
+	}
+
+	filterByEvent(){
+
+		$('select.filter-by').on('change', () => {
+			let selected = $('select.filter-by').val();
+			let temp = [];
+			if(selected == 'frp'){
+				for(let i in this.copyOfList){
+					if(this.copyOfList[i]['role_id'] == 1){
+						temp.push(this.copyOfList[i]);
+					}
+				}
+				this.listData = temp;
+			}else if(selected == 'trp'){
+				for(let i in this.copyOfList){
+					if(this.copyOfList[i]['role_id'] == 2){
+						temp.push(this.copyOfList[i]);
+					}
+				}
+				this.listData = temp;
+			}else if(selected == 'user'){
+				for(let i in this.copyOfList){
+					if(this.copyOfList[i]['role_id'] != 1 && this.copyOfList[i]['role_id'] != 2){
+						temp.push(this.copyOfList[i]);
+					}
+				}
+				this.listData = temp;
+			}else{
+				this.listData = this.copyOfList;
+			}
+		});
+		
+	}
+
+	sortByEvent(){
+		$('select.sort-by').on('change', () => {
+			let selected = $('select.sort-by').val();
+			
+			if(selected == 'loc-name-asc'){
+				this.listData.sort((a, b) => {
+					if(a.name < b.name) return -1;
+				    if(a.name > b.name) return 1;
+				    return 0;
+				});
+			}else if(selected == 'loc-name-desc'){
+				this.listData.sort((a, b) => {
+					if(a.name > b.name) return -1;
+				    if(a.name < b.name) return 1;
+				    return 0;
+				});
+			}else if(selected == 'user-name-asc'){
+				this.listData.sort((a, b) => {
+					if(a.user_info.first_name < b.user_info.first_name) return -1;
+				    if(a.user_info.first_name > b.user_info.first_name) return 1;
+				    return 0;
+				});
+			}else if(selected == 'user-name-desc'){
+				this.listData.sort((a, b) => {
+					if(a.user_info.first_name > b.user_info.first_name) return -1;
+				    if(a.user_info.first_name < b.user_info.first_name) return 1;
+				    return 0;
+				});
+			}else{
+				this.listData = this.copyOfList;
+			}
+		});
+	}
+
+	searchMemberEvent(event){
+		let key = event.target.value,
+			temp = [];
+
+		if(key.length == 0){
+			this.listData = this.copyOfList;
+		}else{
+			for(let i in this.copyOfList){
+				let name = (this.copyOfList[i]['user_info']['first_name']+' '+this.copyOfList[i]['user_info']['last_name']).toLowerCase();
+				if(name.indexOf(key) > -1){
+					temp.push( this.copyOfList[i] );
+				}
+			}
+			this.listData = temp;
+		}
 	}
 
 	ngOnDestroy(){}
@@ -57,5 +155,34 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	generateRandomBGClass(){
 		let colors = ["red", "blue", "yellow", "orange", "green", "purple", "pink"];
 		return colors[ Math.floor( Math.random() * colors.length) ];
+	}
+
+	onSelectFromTable(event, list){
+		let selected = event.target.value;
+		if(selected == 'view'){
+			this.router.navigate(["/teams/view-user/", list.user_id_encrypted]);
+		}else{
+			event.target.value = "0";
+			this.showModalLoader = false;
+			this.selectedToArchive = list.user_info;
+			$('#modalArchive').modal('open');
+		}
+	}
+
+	archiveClick(){
+		this.showModalLoader = true;
+		this.userService.archiveUser(this.selectedToArchive['user_id'], (response) => {
+			this.dashboardService.show();
+			$('#modalArchive').modal('close');
+			this.getListData();
+		});
+	}
+
+	selectAllCheckboxEvent(event){
+		if(event.target.checked){
+			$('input[type="checkbox"]').prop('checked', true);
+		}else{
+			$('input[type="checkbox"]').prop('checked', false);
+		}
 	}
 }

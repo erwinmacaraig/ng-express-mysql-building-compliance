@@ -54,6 +54,22 @@ export class UserService {
 		});
 	}
 
+	getUserForViewFrpTrp(userId, callBack){
+		this.http.get(this.baseUrl+"/users/get-user-for-frp-trp-view/"+userId)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
 
+	archiveUser(userId, callBack){
+		this.http.post(this.baseUrl+"/users/set-to-archive", { user_id : userId })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
 
 }

@@ -259,6 +259,9 @@ export class Account extends BaseClass {
             // console.log(sql_get_locations);
             const val = [this.ID()];
             const connection = db.createConnection(dbconfig);
+
+            console.log(sql_get_locations, val);
+
             connection.query(sql_get_locations, val, (err, results, fields) => {
                 if (err) {
                     console.log(err);

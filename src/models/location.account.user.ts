@@ -33,16 +33,17 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public getMany(arrWhere: Object, showLocations: Boolean = false){
+    public getMany(arrWhere){
       return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM location_account_user ',
+            let sql_load = '',
               sqlWhere = '',
               count = 0,
               param = [];
 
-            if(showLocations){
-              sql_load = ' SELECT l.* FROM locations l LEFT JOIN location_account_user lau ON l.location_id = lau.location_id  ';
-            }
+            sql_load = ` SELECT l.*, lau.user_id, lau.account_id, lau.role_id 
+              FROM locations l 
+              LEFT JOIN location_account_user lau ON l.location_id = lau.location_id
+              LEFT JOIN users u ON lau.user_id = u.user_id  `;
 
             for(let i in arrWhere){
               if(count == 0){
@@ -51,11 +52,7 @@ export class LocationAccountUser extends BaseClass {
                 sqlWhere += ' AND ';
               }
 
-              if(showLocations){
-                sqlWhere += 'lau.'+arrWhere[i][0]+' ';
-              }else{
-                sqlWhere += arrWhere[i][0]+' ';
-              }
+              sqlWhere += 'lau.'+arrWhere[i][0]+' ';
 
               if( arrWhere[i][1] ){
                 sqlWhere += arrWhere[i][1]+' ';
@@ -68,11 +65,18 @@ export class LocationAccountUser extends BaseClass {
               count++;
             }
 
+            if(arrWhere.length > 0){
+              sqlWhere += ' AND l.archived = 0 AND u.archived = 0 ';
+            }else{
+              sqlWhere += ' WHERE l.archived = 0 AND u.archived = 0 ';
+            }
+
             sql_load += sqlWhere;
 
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
               if (error) {
+                reject(error);
                 return console.log(error);
               }
               this.dbData = results;

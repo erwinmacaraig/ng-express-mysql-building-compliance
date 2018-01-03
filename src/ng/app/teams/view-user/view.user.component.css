@@ -70,6 +70,7 @@
 	margin: 0px;
     vertical-align: middle;
     color: #8f8e8e;
+    max-width: 130px;
 }
 
 .left-panel .bottom-buttons{
@@ -111,6 +112,28 @@
 
 .left-panel .bottom-buttons .btn.presonal-emergency .image{
 	background-position: 73% 70%;
+}
+
+.col-user-profile{
+    position: relative;
+}
+
+.col-user-profile .badge-warden{
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    top: 115px;
+    left: 60px;
+    box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+}
+
+.col-user-profile .badge-warden.warden{
+    background-position: 42% 70.5%;
+}
+
+.col-user-profile .badge-warden.chief-warden{
+    background-position: 53% 70.5%;
 }
 
 .grid {
@@ -210,6 +233,14 @@
 
 .grid-item .yellow-image{
 	background-position: 45.5% 11% !important;
+}
+
+ul.list{
+    padding-left: 15px;
+}
+
+ul.list li{
+    list-style-type: initial;
 }
 
 @media only screen and (max-width: 600px) {
