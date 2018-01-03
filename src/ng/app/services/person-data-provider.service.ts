@@ -83,4 +83,8 @@ export class PersonDataProviderService {
     const emailStr = JSON.stringify(emails);
     return this.http.post<any>(this.baseUrl + '/team/add-bulk-warden', {'wardensEmail': emailStr});
   }
+
+  public addBulkWarden(wardens: string) {
+    return this.http.post<any>(this.baseUrl + '/team/form/add-bulk-warden', {'wardens': wardens});
+  }
 }

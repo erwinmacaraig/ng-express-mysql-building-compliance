@@ -46,6 +46,18 @@ export class TeamRoute extends BaseRoute {
       });
     });
 
+    router.post('/team/form/add-bulk-warden', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new TeamRoute().addBulkWardenByForm(req, res).then(() => {
+        return res.status(200).send({
+          status: 'Success'
+        });
+      }).catch((e) => {
+        return res.status(400).send({
+          status: 'Fail'
+        });
+      });
+    });
+
     router.get('/team/eco-role-list', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new TeamRoute().getECOList(req, res).then((roles) => {
         return res.status(200).send(roles);
@@ -55,14 +67,14 @@ export class TeamRoute extends BaseRoute {
     });
 
     router.post('/team/process-warden-invitation', (req: Request, res: Response, next: NextFunction) => {
-      new TeamRoute().processWardenInviation(req, res, next).then((data) => {
+      new TeamRoute().processWardenInvitation(req, res, next).then((data) => {
         res.status(200).send({status: 'Success'});
       }).catch((e) => {
         res.status(400).send({status: 'Fail'});
       });
     });
 
-    router.get('/team/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
+    router.get('/team/invitation-filled-form/:token/bulk', (req: Request, res: Response, next: NextFunction) => {
       new TeamRoute().retrieveWardenInvationInfo(req, res, next).then((data) => {
         return res.status(200).send(data);
       }).catch((err) => {
@@ -105,6 +117,58 @@ export class TeamRoute extends BaseRoute {
     this.render(req, res, 'index.hbs', options);
   }
 
+  public async addBulkWardenByForm(req: AuthRequest, res: Response) {
+    console.log(req.body);
+    console.log(typeof req.body.wardens);
+    const wardens = JSON.parse(req.body.wardens);
+    const userRoleRel = new UserRoleRelation();
+
+    const role = await userRoleRel.getByUserId(req.user.user_id, true);
+
+    for (let warden of wardens) {
+      let inviCode = new InvitationCode();
+      const tokenModel = new Token();
+      const token = tokenModel.generateRandomChars(8);
+      warden['code'] = token;
+      warden['invited_by_user'] = req.user.user_id;
+      // if (role !== 1) {
+        warden['account_id'] = req.user.account_id;
+      // }
+      console.log(warden);
+      await inviCode.create(warden);
+
+
+      // generate and send email here
+      const opts = {
+        from : 'allantaw2@gmail.com',
+        fromName : 'EvacConnect',
+        to : [],
+        cc: [],
+        body : '',
+        attachments: [],
+        subject : 'EvacConnect Warden Nomination'
+      };
+      const email = new EmailSender(opts);
+      const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
+      let emailBody = email.getEmailHTMLHeader();
+      emailBody += `<h3 style="text-transform:capitalize;">Hi ${warden['first_name']} ${warden['last_name']},</h3> <br/>
+      <h4>You are nominated to be a Warden.</h4> <br/>
+      <h5>Click on the link below to setup your password.</h5> <br/>
+      <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+      emailBody += email.getEmailHTMLFooter();
+
+      email.assignOptions({
+        body : emailBody,
+        to: [warden['email']],
+        cc: ['erwin.macaraig@gmail.com']
+      });
+      email.send((data) => console.log(data),
+                 (err) => console.log(err)
+                );
+      }
+    return;
+  }
   public async retrieveWardenInvationInfo(req: Request, res: Response, next: NextFunction) {
     const inviCode = new InvitationCode();
     let locationsOnAccount = [];
@@ -113,7 +177,9 @@ export class TeamRoute extends BaseRoute {
     if (req.params.token) {
       token = req.params.token;
     }
+
     const dbData = await inviCode.getInvitationByCode(token);
+    console.log('dbData is ', dbData);
     const userRoleRel = new UserRoleRelation();
 
     // what is the highest rank role of the user who invited this warden
@@ -125,77 +191,91 @@ export class TeamRoute extends BaseRoute {
     locationsOnAccount = await account.getLocationsOnAccount(dbData['invited_by_user'], role);
     await account.load();
     dbData['account'] = account.get('account_name');
-    switch (role) {
-      case 1:
-        for (let loc of locationsOnAccount) {
-          location = new Location(loc.location_id);
-          loc['sublocations'] = await location.getSublocations();
-        }
-        // break;
-        // return { 'locations' : locationsOnAccount };
-        dbData['locations'] = locationsOnAccount;
-        break;
-      case 2:
-        // get the parent or parents of these sublocation
-        let results;
-        // let objectOfSubs:{[key: number]: Array<Object>} = {};
-        let objectOfSubs:{[key: number]: any[]} = {};
-        let seenParents = []; // these are the parent ids
-        let rootParents = [];
-        let pId = 0;
-        for (let loc of locationsOnAccount) {
-          objectOfSubs[loc.parent_id] = [];
-        }
-        for (let loc of locationsOnAccount) {
-          objectOfSubs[loc.parent_id].push(loc);
-
-          if ((seenParents.indexOf(loc.parent_id) * 1)  === -1) {
-
-            seenParents.push(loc.parent_id);
-            let parentId = loc.parent_id;
-            while (parentId !== -1) {
-              location = new Location(parentId);
-              await location.load();
-              parentId = location.get('parent_id');
-            }
-
-            rootParents.push(location.getDBData());
-            location.set('desc', loc.parent_id);
-            location = undefined;
+    if (!dbData['location_id']) {
+      switch (role) {
+        case 1:
+          for (let loc of locationsOnAccount) {
+            location = new Location(loc.location_id);
+            loc['sublocations'] = await location.getSublocations();
           }
-        }
+          // break;
+          // return { 'locations' : locationsOnAccount };
+          dbData['locations'] = locationsOnAccount;
+          break;
+        case 2:
+          // get the parent or parents of these sublocation
+          let results;
+          // let objectOfSubs:{[key: number]: Array<Object>} = {};
+          let objectOfSubs:{[key: number]: any[]} = {};
+          let seenParents = []; // these are the parent ids
+          let rootParents = [];
+          let pId = 0;
+          for (let loc of locationsOnAccount) {
+            objectOfSubs[loc.parent_id] = [];
+          }
+          for (let loc of locationsOnAccount) {
+            objectOfSubs[loc.parent_id].push(loc);
 
-        let seenRoots = [];
-        let processedRootParents = [];
-        for (let r of rootParents) {
-              if(seenRoots.indexOf(r['location_id']) == -1) {
-                r['sublocations'] = [];
-                r['sublocations'] = objectOfSubs[r['desc']];
-                r['sublocations']['total'] = 0;
-                r['total_subs'] = objectOfSubs[r['desc']].length;
-                seenRoots.push(r['location_id']);
-                processedRootParents.push(r);
+            if ((seenParents.indexOf(loc.parent_id) * 1)  === -1) {
+
+              seenParents.push(loc.parent_id);
+              let parentId = loc.parent_id;
+              while (parentId !== -1) {
+                location = new Location(parentId);
+                await location.load();
+                parentId = location.get('parent_id');
               }
+
+              rootParents.push(location.getDBData());
+              location.set('desc', loc.parent_id);
+              location = undefined;
             }
-        dbData['locations'] = processedRootParents;
-        break;
-        /*
-        return {
-          'locations':  processedRootParents
-        };
-        */
+          }
+
+          let seenRoots = [];
+          let processedRootParents = [];
+          for (let r of rootParents) {
+                if(seenRoots.indexOf(r['location_id']) == -1) {
+                  r['sublocations'] = [];
+                  r['sublocations'] = objectOfSubs[r['desc']];
+                  r['sublocations']['total'] = 0;
+                  r['total_subs'] = objectOfSubs[r['desc']].length;
+                  seenRoots.push(r['location_id']);
+                  processedRootParents.push(r);
+                }
+              }
+          dbData['locations'] = processedRootParents;
+          break;
+
+      }
+    } else {
+      // get parent location details given a location id
+       let locationInstance = new Location(dbData['location_id']);
+       await locationInstance.load();
+       dbData['location_name'] = locationInstance.get('name');
+       let pId = <number>locationInstance.get('parent_id');
+       console.log(dbData);
+
+      while (pId !== -1) {
+        locationInstance = new Location(pId);
+        await locationInstance.load();
+        pId = <number>locationInstance.get('parent_id');
+      }
+      dbData['parent_location_name'] = locationInstance.get('name') ? locationInstance.get('name') : locationInstance.get('formatted_address');
+      dbData['parent_location_id'] = locationInstance.ID();
+
     }
     return dbData;
 
 
   }
-  public async processWardenInviation(req: Request, res: Response, next: NextFunction) {
-    console.log(req.body);
+  public async processWardenInvitation(req: Request, res: Response, next: NextFunction) {
+
     if (req.body.password !== req.body.confirmPassword) {
       throw new Error('Passwords do not match');
     }
     const encryptedPassword = md5('Ideation' + req.body.password + 'Max');
-    console.log(encryptedPassword);
+
 
     // create user
     const user  = new User();
@@ -264,7 +344,7 @@ export class TeamRoute extends BaseRoute {
       const tokenModel = new Token();
       const token = tokenModel.generateRandomChars(8);
 
-      const link = req.protocol + '://' + req.get('host') + '/team/invitation-filled-form/' + token + '/bulk';
+      const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
       await inviCode.create({
         'invited_by_user': req.user.user_id,
         'email': objEmail[i],
