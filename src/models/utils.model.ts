@@ -24,7 +24,7 @@ export class Utils {
       });
     }
 
-    public listAllFRP(account?: number, user_id: number = 0) {
+    public listAllFRP(parent_location: number = 0, user_id: number = 0, account?: number) {
       return new Promise((resolve, reject) => {
         let sql_get_frp = `SELECT
                               users.user_id,
@@ -37,14 +37,20 @@ export class Utils {
                               user_role_relation
                             ON
                               users.user_id = user_role_relation.user_id
+                            INNER JOIN
+                              location_account_user
+                            ON
+                              users.user_id = location_account_user.user_id
                             WHERE
                               user_role_relation.role_id = 1
+                            AND
+                              location_account_user.location_id = ?
                             AND
                               users.token <> ''
                             AND
                               users.token IS NOT NULL
                             AND users.user_id <> ?`;
-        const val = [];
+        const val = [parent_location];
         val.push(user_id);
         if (account) {
           sql_get_frp = sql_get_frp + ' AND users.account_id = ?';

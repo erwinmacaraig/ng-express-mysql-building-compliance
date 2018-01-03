@@ -19,15 +19,15 @@
                   <div class="input-container">
 
                     <div class="input-field col m12">
-                      <input id="first_name" type="text" name="first_name" required ngModel #first_name="ngModel">
-                      <label for="first_name">First Name
+                      <input id="first_name" type="text" name="first_name" placeholder="Your first name" required ngModel #first_name="ngModel">
+                      <label for="first_name" [ngClass]="{'active': parentLocations.length }">First Name
                         <small *ngIf=" !first_name.valid && first_name.touched "> *Required </small>
                       </label>
                     </div>
 
                     <div class="input-field col m12">
-                      <input id="last_name" type="text" name="last_name"  [(ngModel)]="lastname" #last_name="ngModel" required>
-                      <label for="last_name">Last Name
+                      <input id="last_name" type="text" name="last_name" placeholder="Your last name"  [(ngModel)]="lastname" #last_name="ngModel" required>
+                      <label for="last_name" [ngClass]="{'active': parentLocations.length }">Last Name
                         <small *ngIf="!last_name.valid && last_name.touched"> *Required </small>
                       </label>
                     </div>
@@ -44,22 +44,36 @@
 								      </label>
                      </div>
 
-                      <div class="select-field col m12 s12">
+                      <div class="select-field col m12 s12" *ngIf="parentLocations.length; else mainBuildingTemplate">
                         <select id="mainBuilding" [ngModel]="parent" name="parent">
                           <option value="-1" disabled>Select Main Building</option>
                           <option *ngFor="let loc of parentLocations; let i = index" [value]="i">{{loc.name || loc.formatted_address}}</option>
                         </select>
                       </div>
 
-                      <div class="select-field col m12 s12">
+                      <ng-template #mainBuildingTemplate>
+                        <div class="input-field col m12">
+                          <input id="mainBuilding" type="text" name="parent"  [ngModel]="parent" placeholder="Main Building/Location" readonly>
+                          <label for="mainBuilding" class="active">Main Building</label>
+                        </div>
+                      </ng-template>
+
+                      <div class="select-field col m12 s12" *ngIf="parentLocations.length; else sublocationTemplate">
                           <select id="sublocation" name="sublocation" [ngModel]="sublocation">
                             <option value="-1" disabled>Select Sublocation</option>
                             <option *ngFor="let sub of sublocations" [value]="sub.location_id">{{sub.name}}</option>
                           </select>
                       </div>
 
+                      <ng-template #sublocationTemplate>
+                        <div class="input-field col m12">
+                          <input id="sublocation" type="text" placeholder="Sub-location" name="sublocation"  [ngModel]="sublocation" readonly>
+                          <label for="sublocation" class="active">Sublocation</label>
+                        </div>
+                      </ng-template>
+
                       <div class="input-field col m12">
-                        <input id="account" type="text" name="account" #account="ngModel" (ngModel)="account">
+                        <input id="account" type="text" name="account" #account="ngModel" (ngModel)="account" readonly placeholder="Account">
                         <label for="account" class="active">Account
                           <!-- <small *ngIf=" !inputLastName.valid && inputLastName.dirty "> *Required </small> -->
                         </label>

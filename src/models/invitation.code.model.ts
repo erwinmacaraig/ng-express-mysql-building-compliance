@@ -163,6 +163,8 @@ export class InvitationCode extends BaseClass {
                     location_id = ?,
                     account_id = ?,
                     role_id = ?,
+                    eco_role_id = ?,
+                    contact_number = ?,
                     invited_by_user = ?,
                     was_used = ?
                 WHERE
@@ -176,6 +178,8 @@ export class InvitationCode extends BaseClass {
                 ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
                 ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
                 ('role_id' in this.dbData) ? this.dbData['role_id'] : 0,
+                ('eco_role_id' in this.dbData) ? this.dbData['eco_role_id'] : 0,
+                ('contact_number' in this.dbData) ? this.dbData['contact_number'] : '',
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
                 ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
                 this.ID() ? this.ID() : 0
@@ -204,9 +208,13 @@ export class InvitationCode extends BaseClass {
                 location_id,
                 account_id,
                 role_id,
+                eco_role_id,
+                contact_number,
                 invited_by_user,
                 was_used
             ) VALUES (
+                ?,
+                ?,
                 ?,
                 ?,
                 ?,
@@ -225,12 +233,15 @@ export class InvitationCode extends BaseClass {
                 ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
                 ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
                 ('role_id' in this.dbData) ? this.dbData['role_id'] : 0,
+                ('eco_role_id' in this.dbData) ? this.dbData['eco_role_id'] : 0,
+                ('contact_number' in this.dbData) ? this.dbData['contact_number'] : '',
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
                 ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
             ];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_insert, values, (err, results, fields) => {
               if (err) {
+                console.log(sql_insert);
                 throw new Error(err);
               }
               this.id = results.insertId;

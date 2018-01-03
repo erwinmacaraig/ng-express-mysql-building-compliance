@@ -103,7 +103,7 @@ export class LocationsService {
 	}
 
   getLocationsHierarchyByAccountId(accountid, callBack){
-    this.http.get(this.baseUrl + '/location/get-locations-hierarchy-by-account-id/', this.options)
+    this.http.get(this.baseUrl + '/location/get-locations-hierarchy-by-account-id', this.options)
         .subscribe(res => {
           callBack(res);
         }, err => {

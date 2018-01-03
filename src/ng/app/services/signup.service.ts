@@ -79,7 +79,7 @@ export class SignupService {
   }
 
   retrieveWardenInvitationInfo(token: string) {
-    return this.http.get(this.baseUrl + '/team/invitation-filled-form/' + token, this.options);
+    return this.http.get(this.baseUrl + '/team/invitation-filled-form/' + token + '/bulk', this.options);
   }
 
   signWardenUp(wardenProfile: object) {

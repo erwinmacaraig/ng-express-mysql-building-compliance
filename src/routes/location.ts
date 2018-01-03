@@ -1,3 +1,4 @@
+
 import { Account } from '../models/account.model';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { NextFunction, Request, Response, Router } from 'express';
@@ -371,6 +372,7 @@ const md5 = require('md5');
       // Get the necessary role account relation
       const userRoleRel = new UserRoleRelation();
       let locationAccntUser;
+      let locationAccntRel;
       const role = await userRoleRel.getByUserId(req.user.user_id, true);
       console.log(`role is ${role}`);
       for (let i = 0; i < locIds.length; i++) {
@@ -385,6 +387,21 @@ const md5 = require('md5');
               'user_id': req.user.user_id,
               'role_id': role
             });
+            locationAccntRel = new LocationAccountRelation();
+            const responsibilityText = ['Owner', 'Manager', 'Tenant'];
+            try {
+               let tmp = await locationAccntRel.getLocationAccountRelation({
+                 'location_id': locIds[i],
+                 'account_id': req.user.account_id,
+                 'responsibility': responsibilityText[role]
+               });
+            } catch(err) {
+              await locationAccntRel.create({
+                'location_id': locIds[i],
+                'account_id': req.user.account_id,
+                'responsibility': responsibilityText[role]
+              });
+            }
           }
       }
       return 'Success';
@@ -902,8 +919,8 @@ const md5 = require('md5');
           formatted_address : locations[i]['formatted_address'],
           google_photo_url : locations[i]['google_photo_url']
         };
-        let temp = []; 
-        temp.push(p); 
+        let temp = [];
+        temp.push(p);
         temp = temp.concat(deepLocations);
         let merged = this.mergeToParent(temp);
         responseLocations.push(merged[0]);

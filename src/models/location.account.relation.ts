@@ -21,7 +21,7 @@ export class LocationAccountRelation extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              if(!results.length){
+              if(!results.length) {
                 reject('Record not found');
               }else{
                 this.dbData = results[0];
@@ -75,9 +75,41 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
+    public getLocationAccountRelation(filter: object) {
+      return new Promise((resolve, reject) => {
+        const val = [];
+        let whereClause = '';
+        if ('location_id' in filter) {
+          whereClause += `AND location_id = ? `;
+          val.push(filter['location_id']);
+        }
+        if ('account_id' in filter) {
+          whereClause += `AND account_id = ? `;
+          val.push(filter['account_id']);
+        }
+        if ('responsibility' in filter) {
+          whereClause += `AND responsibility = ?`;
+          val.push(filter['responsibility']);
+        }
+        const sql = `SELECT * FROM location_account_relation WHERE 1=1 ${whereClause}`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, val, (error, results, fields) => {
+          if (error) {
+            return console.log(error);
+          }
+          if (!results.length) {
+            reject('Record not found');
+          } else {
+            resolve(results);
+          }
+        });
+        connection.end();
+      });
+    }
+
     public dbUpdate() {
         return new Promise((resolve, reject) => {
-          const sql_update = `UPDATE location_account_relation SET 
+          const sql_update = `UPDATE location_account_relation SET
                 location_id = ?, account_id = ?, responsibility = ?
                 WHERE location_account_relation_id = ? `;
           const param = [
