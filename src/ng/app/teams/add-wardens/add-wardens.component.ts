@@ -22,14 +22,13 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     public userProperty = {
         first_name : '',
         last_name : '',
-        email_or_username : '',
-        account_role_id : 0,
+        email : '',
+        role_id : 0,
         account_location_id : 0,
         eco_role_id : 0,
-        eco_location_id : 0,
         location_name : 'Select Location',
         location_id : 0,
-        mobile_number : ''
+        contact_number : ''
     };
     private userRole;
     public accountRoles;
@@ -42,7 +41,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     constructor(
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
-        private locationService : LocationsService
+        private locationService: LocationsService
         ) {
 
         this.userData = this.authService.getUserData();
@@ -202,7 +201,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
                 parent = selected;
             }
 
-            switch (parseInt(this.selectedUser['account_role_id']) ) {
+            switch (parseInt(this.selectedUser['role_id']) ) {
                 case 1:
                     this.selectedUser['account_location_id'] = lastParent.location_id;
                     break;
@@ -222,7 +221,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
             }
 
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
-                this.selectedUser['eco_location_id'] = selectedLocationId;
+                this.selectedUser['location_id'] = selectedLocationId;
             }
 
             this.selectedUser['location_name'] = selected['name'];
@@ -240,6 +239,13 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     ngOnDestroy(){}
 
     addBulkWarden() {
+        const strWardens = JSON.stringify(this.addedUsers);
+        this.dataProvider.addBulkWarden(strWardens).subscribe(() => {
+          this.addedUsers = [];
+        },
+      () => {
+        console.log('there was an error');
+      });
         console.log(this.addedUsers);
     }
 

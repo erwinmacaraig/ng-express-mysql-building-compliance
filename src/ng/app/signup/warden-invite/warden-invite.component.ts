@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpResponse, HttpErrorResponse } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PlatformLocation } from '@angular/common';
@@ -22,12 +22,15 @@ export class WardenInvitationFormComponent implements OnInit, OnDestroy, AfterVi
   public token;
   public account;
   private account_id;
-  public parentLocations;
+  public parentLocations = [];
   public sublocations;
   public parent;
   public sublocation;
   public signupSubscription;
   public em_role_id;
+
+  public parent_id;
+  public sublocation_id;
 
   @ViewChild('formWardenProfile') formWardenProfile: NgForm;
   ngOnInit() {
@@ -35,19 +38,43 @@ export class WardenInvitationFormComponent implements OnInit, OnDestroy, AfterVi
     this.modalSignUp = $('#modalSignup');
     this.signupSubscription =  this.signupService.retrieveWardenInvitationInfo(this.token).subscribe(
       (data) => {
-        this.em_role_id = data['role_id'];
+       this.em_role_id = data['eco_role_id'];
        this.account_id = data['account_id'];
        this.formWardenProfile.controls['email'].setValue(data['email']);
        this.formWardenProfile.controls['account'].setValue(data['account']);
-       this.parentLocations = data['locations'];
-       console.log(this.parentLocations);
-       console.log(data);
-       setTimeout(() => {
-        $('select').material_select();
-        this.onSelectedMainBuilding();
-       }, 300);
+       if (data['first_name']) {
+        this.formWardenProfile.controls['first_name'].setValue(data['first_name']);
+       }
+       if (data['last_name']) {
+        this.formWardenProfile.controls['last_name'].setValue(data['last_name']);
+       }
+       if (data['parent_location_name']) {
+        this.formWardenProfile.controls['parent'].setValue(data['parent_location_name']);
+       }
+       if (data['location_name']) {
+        this.formWardenProfile.controls['sublocation'].setValue(data['location_name']);
+       }
+       if (data['locations']) {
+        this.parentLocations = data['locations'];
+        console.log(this.parentLocations);
+        console.log(data);
+        setTimeout(() => {
+         $('select').material_select();
+           this.onSelectedMainBuilding();
+          }, 300);
+        } else {
+          this.parent_id = data['parent_location_id'];
+          this.sublocation_id = data['location_id'];
+        }
       },
-      (err) => { console.log(err); }
+      (err: HttpErrorResponse) => {
+        if (err.error instanceof Error) {
+          console.log(err.error);
+          this.router.navigate(['/login']);
+        } else {
+          this.router.navigate(['/login']);
+        }
+      }
     );
   }
 
@@ -83,15 +110,19 @@ export class WardenInvitationFormComponent implements OnInit, OnDestroy, AfterVi
       'first_name': f.controls.first_name.value,
       'last_name': f.controls.last_name.value,
       'email': f.controls.email.value,
-      'parent_location': this.parentLocations[$('#mainBuilding').val()].location_id,
-      'sublocation': $('#sublocation').val(),
       'account_id': this.account_id,
       'token': this.token,
       'password': f.controls.password.value,
       'confirmPassword': f.controls.confirmPassword.value,
       'em_role': this.em_role_id
-
     };
+    if (this.parentLocations.length) {
+      formData['parent_location'] = this.parentLocations[$('#mainBuilding').val()].location_id;
+      formData['sublocation'] =  $('#sublocation').val();
+    } else {
+      formData['parent_location'] = this.parent_id;
+      formData['sublocation'] = this.sublocation_id;
+    }
     this.signupService.signWardenUp(formData).subscribe(() => {
 
       this.modalSignUp.modal('close');

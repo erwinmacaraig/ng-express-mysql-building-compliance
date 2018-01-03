@@ -24,7 +24,7 @@
 					<tr>
 						<th>First Name</th>
 						<th>Last Name</th>
-						<th>Email or Username</th>
+						<th>Email</th>
 						<th>Account Role</th>
 						<th>ECO Role</th>
 						<th>Location</th>
@@ -45,10 +45,10 @@
 							<input type="text" [(ngModel)]="user.last_name" placeholder="Last name" name="last_name{{i}}" required>
 						</td>
 						<td >
-							<input type="text" [(ngModel)]="user.email_or_username" placeholder="Email/Username" name="uemail{{i}}" required>
+							<input type="text" [(ngModel)]="user.email" placeholder="Email" name="uemail{{i}}" required>
 						</td>
 						<td >
-							<select required [(ngModel)]="user.account_role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">
+							<select required [(ngModel)]="user.role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">
 								<option value="0" selected>Select Account Role</option>
 								<option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
 							</select>
@@ -59,11 +59,11 @@
 								<option *ngFor="let e of ecoDisplayRoles[i]" [value]="e.em_roles_id">{{ e.role_name }}</option>
 							</select>
 						</td>
-						<td > 
-							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0 && user.account_role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a> 
+						<td >
+							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0 && user.account_role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
 						</td>
 						<td class="with-remove">
-							<input type="text" [(ngModel)]="user.mobile_number" placeholder="Mobile number" name="mobile{{i}}">
+							<input type="text" [(ngModel)]="user.contact_number" placeholder="Mobile number" name="mobile{{i}}">
 							<a href="javascript:void(0)" class="remove" (click)="removeAddedUser(i)">X</a>
 						</td>
 					</tr>
@@ -156,12 +156,12 @@
 
 
 <div id="modalLocations" class="modal modal-sublocations">
-	
-	
+
+
 
 	<div class="modal-content">
 		<h5>Select Location</h5>
-		
+
 		<div class="search-container" >
 			<div class="input-container">
 				<input type="text" placeholder="Search Level" >
@@ -170,7 +170,7 @@
 				<img src="assets/images/locations/search_icon.png" alt="">
 			</div>
 		</div>
-		
+
 		<form #formLoc="ngForm" (submit)="submitSelectLocationModal(formLoc, $event)">
 
 		<div class="list-region" style="overflow-y: auto; height: 340px;">
