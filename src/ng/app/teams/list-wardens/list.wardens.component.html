@@ -82,27 +82,27 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
+				<tr *ngFor="let warden of wardenArr; let i = index">
 					<td>
 						<p class="checkbox">
 							<input id="location" class="filled-in" type="checkbox">
-							<label for="location">Location's name</label>
+							<label for="location">{{warden['parent_name']}} - {{warden['name']}}</label>
 						</p>
 					</td>
 					<td>
-						John Snow
+						{{ warden['first_name'] }} {{warden['last_name']}}
 					</td>
 					<td>
 						<div class="eco-role">
 							<div class="image"></div>
-							Warden Type
+							{{warden['role_name']}}
 						</div>
 					</td>
 					<td>
 						<span class="over red-text">0/0</span>
 					</td>
 					<td>
-						0 Day
+						{{warden['days']}} Day(s)
 					</td>
 					<td>
 						<a href="javascript:void(0)">Manage</a>

@@ -106,12 +106,24 @@ public validate(req: Request, res: Response, next: NextFunction) {
                                    // response.data['roles'][ Object.keys( response.data['roles'] ).length ] = userRoles[i];
                                   (response.data['roles']).push(userRoles[i]);
                               }
-                                res.status(200).send(response);
+
+                                const now = moment().format('YYYY-MM-DD HH-mm-ss');
+                                user.create({
+                                  'last_login': now
+                                }).then(() => {
+                                  res.status(200).send(response);
+                                });
+
                             });
                         },
                         (m) => {
                             getWardenRoles(() => {
+                              const now = moment().format('YYYY-MM-DD HH-mm-ss');
+                              user.create({
+                                'last_login': now
+                              }).then(() => {
                                 res.status(200).send(response);
+                              });
                             });
                         }
                     );

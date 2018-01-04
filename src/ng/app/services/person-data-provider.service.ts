@@ -87,4 +87,8 @@ export class PersonDataProviderService {
   public addBulkWarden(wardens: string) {
     return this.http.post<any>(this.baseUrl + '/team/form/add-bulk-warden', {'wardens': wardens});
   }
+
+  public buildWardenList() {
+    return this.http.get(this.baseUrl + '/team/list/wardens', this.options);
+  }
 }

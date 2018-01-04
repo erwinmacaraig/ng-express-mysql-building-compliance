@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse }
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
+import { LocationsService } from './../../services/locations';
+import { PersonDataProviderService } from './../../services/person-data-provider.service';
 
 declare var $: any;
 @Component({
@@ -11,12 +13,20 @@ declare var $: any;
   styleUrls: ['./list.wardens.component.css']
 })
 export class ListWardensComponent implements OnInit, OnDestroy {
-
-	constructor(){
+  public wardenArr;
+  constructor(private dataProvider: PersonDataProviderService,
+    private locationService: LocationsService) {
 
 	}
 
-	ngOnInit(){}
+	ngOnInit(){
+    this.dataProvider.buildWardenList().subscribe((data) => {
+      this.wardenArr = data;
+      console.log(this.wardenArr);
+    }, (err: HttpErrorResponse) => {
+      console.log(err);
+    });
+  }
 
 	ngAfterViewInit(){
 		$('.modal').modal({
