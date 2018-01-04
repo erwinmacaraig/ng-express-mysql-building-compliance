@@ -1,22 +1,11 @@
 <div class="row">
 	<div class="col l12 m12 s12" style="position: relative;">
-		<h4>All Users</h4>
-		<a href="#" class="archived" [routerLink]="['/teams/all-archived-users']">
-			<span class="image"></span>
-			View Archive
-		</a>
+		<h4>All Archived Users</h4>
 	</div>
 </div>
 
 <div class="row filter-container">
-	<div class="col l2 m3 s12 ">
-		<button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/teams/add-user']">
-			<span class="image"></span>
-			Add New User
-		</button>
-	</div>
-
-	<div class="col l4 m5 s12">
+	<div class="col l6 m5 s12">
 		<div class="search-field">
 			<input type="text" placeholder="Search member name" (keyup)="searchMemberEvent($event)">
 			<span class="material-icons">search</span>
@@ -44,7 +33,7 @@
 	<div class="col l2 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected>Manage Action</option>
-			<option value="archive" >Archive selected</option>
+			<option value="restore" >Restore selected</option>
 		</select>
 	</div>
 	
@@ -110,7 +99,7 @@
 						<select (change)="onSelectFromTable($event, list)">
 							<option value="0" class="blue-text" selected>Manage</option>
 							<option value="view" class="blue-text">View</option>
-							<option value="archive" class="blue-text" [hidden]="list.user_id == userData.userId">Archive</option>
+							<option value="restore" class="blue-text">Restore</option>
 						</select>
 					</td>
 				</tr>
@@ -138,7 +127,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want archive 
+			Are you sure you want to restore 
 			<span *ngIf="selectedToArchive.parent_data.name">
 				{{ selectedToArchive.parent_data.name }}, 
 			</span> 
@@ -148,7 +137,7 @@
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
 		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
 	</div>
 </div>
 
@@ -170,7 +159,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want archive the following items?
+			Are you sure you want restore the following items?
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
@@ -182,6 +171,6 @@
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
 		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
 	</div>
 </div>

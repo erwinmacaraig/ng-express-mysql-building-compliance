@@ -50,7 +50,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			this.encryptedID = params['encrypted'];
 			this.decryptedID = this.encryptDecrypt.decrypt(params['encrypted']);
 
-			this.userService.getUserForViewFrpTrp(this.decryptedID, (response) => {
+			this.userService.getUserLocationTrainingsEcoRoles(this.decryptedID, (response) => {
 				this.viewData.user = response.data.user;
 				this.viewData.eco_roles = response.data.eco_roles;
 				this.viewData.locations = response.data.locations;

@@ -15,6 +15,8 @@ import { FileUser } from '../models/file.user.model';
 import { Files } from '../models/files.model';
 import { LocationAccountUser } from '../models/location.account.user';
 import { Location } from '../models/location.model';
+import { BlacklistedEmails } from '../models/blacklisted-emails';
+import { EmailSender } from './../models/email.sender';
 
 
 import * as moment from 'moment';
@@ -54,12 +56,24 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().getUsersByAccountId(req, res, next);
 	    });
 
-	    router.get('/users/get-user-for-frp-trp-view/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().getUserForFrpTrpView(req, res, next);
+	    router.get('/users/get-user-locations-trainings-ecoroles/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getUserLocationsTrainingsEcoRoles(req, res, next);
 	    })
 
 	    router.post('/users/archive-location-account-user', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().setLocationAccountUserToArchive(req, res, next);
+	    });
+
+	    router.get('/users/get-archived-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getArchivedUsersByAccountId(req, res, next);
+	    });
+
+	    router.post('/users/unarchive-location-account-user', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().setLocationAccountUserToUnArchive(req, res, next);
+	    });
+
+	    router.post('/users/create-bulk-users', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().createBulkUsers(req, res, next);
 	    });
 	}
 
@@ -235,10 +249,9 @@ export class UsersRoute extends BaseRoute {
 		response.status = true;
 		res.statusCode = 200;
 		res.send(response);
-
 	}
 
-	public async getUserForFrpTrpView(req: Request, res: Response, next: NextFunction){
+	public async getUserLocationsTrainingsEcoRoles(req: Request, res: Response, next: NextFunction){
 		let response = {
 			status : false, 
 			data : {
@@ -285,7 +298,14 @@ export class UsersRoute extends BaseRoute {
 		}
 
 		let userEmRoleRelation = new UserEmRoleRelation();
-		response.data['eco_roles'] = await userEmRoleRelation.getEmRolesByUserId( req.params['user_id'] );
+		await userEmRoleRelation.getEmRolesByUserId( req.params['user_id'] ).then(
+			() => {
+				response.data['eco_roles'] = userEmRoleRelation.getDBData();
+			},
+			() => {
+				response.data['eco_roles'] = [];
+			}
+		);
 
 		response.status = true;
 		res.statusCode = 200;
@@ -309,6 +329,162 @@ export class UsersRoute extends BaseRoute {
 		
 		response.message = 'Success';
 		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async setLocationAccountUserToUnArchive(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : true, 
+			data : <any>[],
+			message : ''
+		};
+
+		for(let i in req.body['location_account_user_id']){
+			let locAccountUser = new LocationAccountUser(req.body['location_account_user_id'][i]);
+			await locAccountUser.load();
+			console.log(locAccountUser.getDBData());
+			locAccountUser.set('archived', 0);
+			await locAccountUser.dbUpdate();
+		}
+		
+		response.message = 'Success';
+		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async getArchivedUsersByAccountId(req: Request, res: Response, next: NextFunction){
+		let accountId = req.params.account_id,
+			locationAccountUser = new LocationAccountUser(),
+			response = {
+				data : <any>[],
+				status : false,
+				message : ''
+			},
+			allParents = [];
+
+		let arrWhere = [];
+			arrWhere.push( ["account_id", "=", accountId ] );
+			arrWhere.push( ["archived", "=", 1 ] );
+		let locations = await locationAccountUser.getMany(arrWhere);
+		for(let l in locations){
+			let userModel = new User(locations[l]['user_id']);
+			let parentLocation = new Location(locations[l]['parent_id']);
+
+			if(allParents.indexOf(locations[l]['parent_id']) == -1){
+				await parentLocation.load().then(() => {
+					allParents[ locations[l]['parent_id'] ] = parentLocation.getDBData();
+					locations[l]['parent_data'] = parentLocation.getDBData();
+				}, () => {
+					locations[l]['parent_data'] = {};
+				});
+			}else{
+				locations[l]['parent_data'] = allParents[ locations[l]['parent_id'] ];
+			}
+
+			await userModel.load().then(()=>{
+				locations[l]['user_info'] = userModel.getDBData();
+			},()=>{
+				locations[l]['user_info'] = {};
+			});
+
+		}
+
+		response.data = locations;
+		response.status = true;
+		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async createBulkUsers(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : false, data : [], message: ''
+		},
+		users = JSON.parse(req.body.users),
+		returnUsers = [];
+
+		for(let i in users){
+			let userModel = new User(),
+				userRoleRelation = new UserRoleRelation(),
+				userEmRole = new UserEmRoleRelation(),
+				isEmailValid = this.isEmailValid(users[i]['email']),
+				isBlackListedEmail = false,
+				hasError = false;
+
+			users[i]['errors'] = {};
+
+			if(isEmailValid){
+				isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
+				if(!isBlackListedEmail){
+					await userModel.getByEmail(users[i]['email']).then(
+						() => {
+							console.log(userModel.getDBData());
+							hasError = true;
+							users[i]['errors']['email_taken'] = true;
+						},
+						() => {}
+					);
+				}else{
+					users[i]['errors']['blacklisted'] = true;
+					hasError = true;
+				}
+			}
+			
+			if(!hasError){
+				let 
+				token = this.generateRandomChars(30),
+				saveData = {
+					'code' : token,
+					'first_name' : users[i]['first_name'],
+					'last_name' : users[i]['last_name'],
+					'email' : users[i]['email'],
+					'contact_number' : users[i]['mobile_number'],
+					'location_id' : users[i]['account_location_id'],
+					'account_id' : req['user']['account_id'],
+					'role_id' : (req['user']['account_role_id'] == 1 || req['user']['account_role_id'] == 2) ? req['user']['account_role_id'] : 0,
+					'eco_role_id' : (req['user']['account_role_id'] != 1 || req['user']['account_role_id'] != 2) ? 9 : 0,
+					'invited_by_user' : req['user']['user_id']
+				};
+				
+				let inviCode = new InvitationCode();
+				await inviCode.create(saveData);
+
+				const opts = {
+					from : 'allantaw2@gmail.com',
+					fromName : 'EvacConnect',
+					to : [],
+					cc: [],
+					body : '',
+					attachments: [],
+					subject : 'EvacConnect Notification'
+				};
+				const email = new EmailSender(opts);
+				const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
+				let emailBody = email.getEmailHTMLHeader();
+				emailBody += `<h3 style="text-transform:capitalize;">Hi ${saveData['first_name']} ${saveData['last_name']},</h3> <br/>
+				<h4>You were added to EvacConnect Compliance Management System.</h4> <br/>
+				<h5>Click on the link below to setup your password.</h5> <br/>
+				<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+				emailBody += email.getEmailHTMLFooter();
+
+				email.assignOptions({
+					body : emailBody,
+					to: [saveData['email']],
+					cc: ['erwin.macaraig@gmail.com']
+				});
+				email.send(
+					(data) => console.log(data),
+					(err) => console.log(err)
+				);
+			}else{
+				returnUsers.push( users[i] );
+			}
+
+		}
+
+		res.statusCode = 200;
+		response.status = true;
+		response.data = returnUsers;
 		res.send(response);
 	}
 

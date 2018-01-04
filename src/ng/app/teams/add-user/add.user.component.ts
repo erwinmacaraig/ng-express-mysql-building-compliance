@@ -7,40 +7,49 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { ViewChild } from '@angular/core';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { UserService } from '../../services/users';
 
 declare var $: any;
 @Component({
   selector: 'app-add-user',
   templateUrl: './add.user.component.html',
-  styleUrls: ['./add.user.component.css']
+  styleUrls: ['./add.user.component.css'],
+  providers : [DashboardPreloaderService, UserService]
 })
 export class AddUserComponent implements OnInit, OnDestroy {
 	@ViewChild('f') addWardenForm: NgForm;
 	public userProperty = {
         first_name : '',
         last_name : '',
-        email_or_username : '',
+        email : '',
         account_role_id : 0,
         account_location_id : 0,
         eco_role_id : 0,
         eco_location_id : 0,
         location_name : 'Select Location',
         location_id : 0,
-        mobile_number : ''
+        mobile_number : '',
+        errors : {
+        }
     };
     private userRole;
     public accountRoles;
     public ecoRoles;
     public ecoDisplayRoles = [];
     public locations = [];
+    public locationsCopy = [];
     public userData = {};
     public selectedUser = {};
 	public addedUsers = [];
+    showLoadingButton = false;
 
 	constructor(
         private authService: AuthService, 
         private dataProvider: PersonDataProviderService,
-        private locationService : LocationsService
+        private locationService : LocationsService,
+        private dashboardPreloaderService : DashboardPreloaderService,
+        private userService : UserService
         ) {
 
         this.userData = this.authService.getUserData();
@@ -75,8 +84,11 @@ export class AddUserComponent implements OnInit, OnDestroy {
             }
         );
 
+        this.dashboardPreloaderService.show();
         this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
             this.locations = response.locations;
+            this.locationsCopy = JSON.parse( JSON.stringify(this.locations) );
+            this.dashboardPreloaderService.hide();
         });
 	}
 
@@ -126,6 +138,18 @@ export class AddUserComponent implements OnInit, OnDestroy {
     }
 
     showLocationSelection(user){
+        if(user.account_role_id == 1){
+            let temp = [];
+            for(let i in this.locations){
+                let innerTemp = JSON.parse(JSON.stringify(this.locations[i]));
+                innerTemp.sublocations = [];
+                temp.push(innerTemp);
+            }
+            this.locations = temp;
+        }else{
+            this.locations = this.locationsCopy;
+        }
+
         $('#modalLocations').modal('open');
         this.selectedUser = user;
     }
@@ -230,4 +254,14 @@ export class AddUserComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(){}
+
+    submitUsers(f){
+        if(this.addedUsers.length > 0 && f.valid){
+            this.showLoadingButton = true;
+            this.userService.createBulkUsers(this.addedUsers, (response) => {
+                this.addedUsers = response.data;
+                this.showLoadingButton = false;
+            });
+        }
+    }
 }

@@ -54,8 +54,8 @@ export class UserService {
 		});
 	}
 
-	getUserForViewFrpTrp(userId, callBack){
-		this.http.get(this.baseUrl+"/users/get-user-for-frp-trp-view/"+userId)
+	getUserLocationTrainingsEcoRoles(userId, callBack){
+		this.http.get(this.baseUrl+"/users/get-user-locations-trainings-ecoroles/"+userId)
 		.subscribe(res => {
 			callBack(res);
 		}, err => {
@@ -65,6 +65,33 @@ export class UserService {
 
 	archiveLocationUser(locAccntUserId, callBack){
 		this.http.post(this.baseUrl+"/users/archive-location-account-user", { location_account_user_id : locAccntUserId })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	getArchivedUsersByAccountId(accountId, callBack){
+		this.http.get(this.baseUrl+"/users/get-archived-users-by-account-id/"+accountId)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	unArchiveLocationUser(locAccntUserId, callBack){
+		this.http.post(this.baseUrl+"/users/unarchive-location-account-user", { location_account_user_id : locAccntUserId })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	createBulkUsers(arrUsers, callBack){
+		this.http.post(this.baseUrl+"/users/create-bulk-users", { users : JSON.stringify(arrUsers) })
 		.subscribe(res => {
 			callBack(res);
 		}, err => {
