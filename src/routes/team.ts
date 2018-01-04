@@ -82,6 +82,16 @@ export class TeamRoute extends BaseRoute {
       });
     });
 
+    router.get('/team/list/wardens', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new TeamRoute().buildWardenList(req, res).then((data) => {
+        return res.status(200).send(data);
+      }).catch((err) => {
+        return res.status(400).send({
+          message: 'Cannot build list'
+        });
+      });
+    });
+
   }
 
   /**
@@ -179,7 +189,6 @@ export class TeamRoute extends BaseRoute {
     }
 
     const dbData = await inviCode.getInvitationByCode(token);
-    console.log('dbData is ', dbData);
     const userRoleRel = new UserRoleRelation();
 
     // what is the highest rank role of the user who invited this warden
@@ -380,6 +389,35 @@ export class TeamRoute extends BaseRoute {
     } catch (e) {
       throw new Error('There was a problem generating the list');
     }
+  }
+
+  public async buildWardenList(req: AuthRequest, res: Response) {
+
+    // get all parent locations associated with this account
+    const accountId = req.user.account_id;
+    const account = new Account(accountId);
+    const userRoleRel = new UserRoleRelation();
+    const role = await userRoleRel.getByUserId(req.user.user_id, true);
+    // what is the highest rank role of the user who invited this warden
+    // const locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id);
+
+    const result = await account.buildWardenList(req.user.user_id);
+    const temp = JSON.stringify(result);
+    const wardens = JSON.parse(temp);
+
+    // get parent location details given a location id
+     for (let warden of wardens) {
+      let locationInstance = new Location(warden['parent_id']);
+       await locationInstance.load();
+      let pId = <number>locationInstance.get('parent_id');
+      while (pId !== -1) {
+        locationInstance = new Location(pId);
+        await locationInstance.load();
+        pId = <number>locationInstance.get('parent_id');
+      }
+      warden['parent_name'] = locationInstance.get('name') ? locationInstance.get('name') : locationInstance.get('formatted_address');
+    }
+    return wardens;
   }
 
 
