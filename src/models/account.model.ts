@@ -276,6 +276,62 @@ export class Account extends BaseClass {
         });
     }
 
+    public buildWardenList(user_id: number) {
+      return new Promise((resolve, reject) => {
+        const sql_warden_list = `
+        SELECT
+			    users.first_name,
+          users.last_name,
+          users.last_login,
+          DATEDIFF(NOW(), last_login) AS days,
+          em_roles.role_name,
+          locations.parent_id,
+          locations.name,
+          locations.formatted_address,
+          locations.location_id,
+          locations.google_photo_url
+        FROM
+          locations
+        INNER JOIN
+          location_account_user LAU
+        ON
+          locations.location_id = LAU.location_id
+        INNER JOIN
+          user_em_roles_relation
+        ON
+          user_em_roles_relation.location_id = locations.location_id
+        INNER JOIN
+          users
+        ON
+          user_em_roles_relation.user_id = users.user_id
+        INNER JOIN
+          em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
+        WHERE
+          LAU.account_id = ?
+        AND
+          locations.archived = 0
+        AND
+          LAU.user_id = ?
+        GROUP BY
+          locations.location_id
+        ORDER BY
+          locations.location_id;`;
+
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_warden_list, [this.ID(), user_id], (err, results, fields) => {
+          if (err) {
+            console.log(err);
+            throw new Error('Internal problem. There was a problem processing your query');
+          }
+          if (!results.length) {
+            reject('There are no warden(s) found');
+          } else {
+            resolve(results);
+          }
+        });
+        connection.end();
+      });
+    }
 
 
 }
