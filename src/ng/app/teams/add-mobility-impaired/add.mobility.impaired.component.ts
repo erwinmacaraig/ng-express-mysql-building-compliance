@@ -15,19 +15,20 @@ declare var $: any;
   styleUrls: ['./add.mobility.impaired.component.css']
 })
 export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
-	@ViewChild('f') addWardenForm: NgForm;
+	@ViewChild('addMobilityImpairedForm') addMobilityImpairedForm: NgForm;
     public addedUsers = [];
     public userProperty = {
         first_name : '',
         last_name : '',
-        email_or_username : '',
-        account_role_id : 0,
+        email: '',
+        role_id : 0,
         account_location_id : 0,
         eco_role_id : 0,
         eco_location_id : 0,
         location_name : 'Select Location',
         location_id : 0,
-        mobile_number : ''
+        contact_number : '',
+        mobility_impaired: 1,
     };
     private userRole;
     public accountRoles;
@@ -37,7 +38,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     public userData = {};
     public selectedUser = {};
     constructor(
-        private authService: AuthService, 
+        private authService: AuthService,
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService
         ) {
@@ -55,7 +56,6 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
             role_name: 'Tenant'
         }
         ];
-        console.log('Highest rank role is ' + this.authService.getHighestRankRole());
         this.userRole = this.authService.getHighestRankRole();
         if (this.userRole == 1) {
             this.accountRoles.push({
@@ -63,17 +63,13 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
                 role_name: 'Building Manager'
             });
         }
-        console.log(this.accountRoles);
-
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
                 this.ecoRoles = roles;
-                console.log(this.ecoRoles);
             }, (err) => {
                 console.log('Server Error. Unable to get the list');
             }
         );
-
         this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
             this.locations = response.locations;
         });
@@ -94,8 +90,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 	}
 
 	onSelectedAccountRole(srcId: number) {
-        console.log(this.addWardenForm.controls['accountRole' + srcId].value);
-        let r = this.addWardenForm.controls['accountRole' + srcId].value * 1;
+        let r = this.addMobilityImpairedForm.controls['accountRole' + srcId].value * 1;
         this.ecoDisplayRoles[srcId] = [];
         switch(r) {
             case 1:
@@ -111,7 +106,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
             break;
 
         }
-        console.log(this.ecoDisplayRoles);
+
     }
 
     onChangeDropDown(event){
@@ -193,18 +188,18 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
                 parent = selected;
             }
 
-            switch (parseInt(this.selectedUser['account_role_id']) ) {
+            switch (parseInt(this.selectedUser['role_id']) ) {
                 case 1:
                     this.selectedUser['account_location_id'] = lastParent.location_id;
                     break;
-                
+
                 case 2:
                     if(parent.parent_id == -1){
                         this.selectedUser['account_location_id'] = selectedLocationId;
                     }else{
                         this.selectedUser['account_location_id'] = parent.location_id;
                     }
-                    
+
                     break;
 
                 default:
@@ -218,7 +213,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 
             this.selectedUser['location_name'] = selected['name'];
 
-            console.log(this.addedUsers);
+
             this.cancelLocationModal();
         }
     }
@@ -226,6 +221,16 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     cancelLocationModal(){
         $('#modalLocations').modal('close');
         this.selectedUser = {};
+    }
+
+    public submitPEEP() {
+      const strPEEP = JSON.stringify(this.addedUsers);
+      this.dataProvider.addPEEP(strPEEP).subscribe((data) => {
+        console.log(data);
+        this.addedUsers = [];
+      }, (error: HttpErrorResponse) => {
+        console.log(error);
+      });
     }
 
 	ngOnDestroy(){}

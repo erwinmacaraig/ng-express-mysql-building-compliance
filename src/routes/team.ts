@@ -12,10 +12,13 @@ import { Utils } from './../models/utils.model';
 import {EmailSender} from './../models/email.sender';
 const validator = require('validator');
 import { UserRoleRelation } from '../models/user.role.relation.model';
+import { LocationAccountUser } from '../models/location.account.user';
 import { Account } from '../models/account.model';
 import { Location } from '../models/location.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
+import { LocationAccountRelation } from '../models/location.account.relation';
 const md5 = require('md5');
+const defs = require('../config/defs');
 import * as moment from 'moment';
 
 /**
@@ -92,6 +95,26 @@ export class TeamRoute extends BaseRoute {
       });
     });
 
+    router.post('/team/form/add-bulk-peep', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new TeamRoute().addMobilityImpairedPersons(req, res).then((data) => {
+        return res.status(200).send(data);
+      }).catch((e) => {
+        return res.status(400).send({
+          message: 'Internal Error. Cannot add mobility impaired person(s)'
+        });
+      });
+    });
+
+    router.get('/team/list/peep', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new TeamRoute().buildPEEPList(req, res).then((peep) => {
+        return res.status(200).send(peep);
+      }).catch(() => {
+        return res.status(400).send({
+          message: 'Internal Error. Cannot build peep list'
+        });
+      });
+    });
+
   }
 
   /**
@@ -127,57 +150,88 @@ export class TeamRoute extends BaseRoute {
     this.render(req, res, 'index.hbs', options);
   }
 
+  public async addMobilityImpairedPersons(req: AuthRequest, res: Response) {
+    console.log(JSON.parse(req.body.peep));
+    const peep = JSON.parse(req.body.peep);
+    const invalidPeep = [];
+    for (const p of peep) {
+      const inviCode = new InvitationCode();
+      const tokenModel = new Token();
+      const code = tokenModel.generateRandomChars(8);
+      const user = new User();
+      try {
+        const dbData = await user.getByEmail(p['email']);
+        invalidPeep.push(p['email']);
+      } catch (e) {
+        if (validator.isEmail(p['email'])) {
+          p['code'] = code;
+          p['invited_by_user'] = req.user.user_id;
+          p['account_id'] = req.user.account_id;
+          await inviCode.create(p);
+        } else {
+          invalidPeep.push(p['email']);
+        }
+      }
+    }
+
+    return invalidPeep;
+  }
+
   public async addBulkWardenByForm(req: AuthRequest, res: Response) {
-    console.log(req.body);
-    console.log(typeof req.body.wardens);
     const wardens = JSON.parse(req.body.wardens);
     const userRoleRel = new UserRoleRelation();
-
+    const invalidWarden = [];
     const role = await userRoleRel.getByUserId(req.user.user_id, true);
 
-    for (let warden of wardens) {
-      let inviCode = new InvitationCode();
-      const tokenModel = new Token();
-      const token = tokenModel.generateRandomChars(8);
-      warden['code'] = token;
-      warden['invited_by_user'] = req.user.user_id;
-      // if (role !== 1) {
-        warden['account_id'] = req.user.account_id;
-      // }
-      console.log(warden);
-      await inviCode.create(warden);
+    for (const warden of wardens) {
+      const user = new User();
+      try {
+        const dbData = await user.getByEmail(warden['email']);
+        invalidWarden.push(warden['email']);
+      } catch (e) {
+        if (validator.isEmail()) {
+          const inviCode = new InvitationCode();
+          const tokenModel = new Token();
+          const token = tokenModel.generateRandomChars(8);
+          warden['code'] = token;
+          warden['invited_by_user'] = req.user.user_id;
+          warden['account_id'] = req.user.account_id;
+          console.log(warden);
+          // to do email validation
+          await inviCode.create(warden);
 
+          const opts = {
+            from : 'allantaw2@gmail.com',
+            fromName : 'EvacConnect',
+            to : [],
+            cc: [],
+            body : '',
+            attachments: [],
+            subject : 'EvacConnect Warden Nomination'
+          };
+          const email = new EmailSender(opts);
+          const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
+          let emailBody = email.getEmailHTMLHeader();
+          emailBody += `<h3 style="text-transform:capitalize;">Hi ${warden['first_name']} ${warden['last_name']},</h3> <br/>
+          <h4>You are nominated to be a Warden.</h4> <br/>
+          <h5>Click on the link below to setup your password.</h5> <br/>
+          <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
 
-      // generate and send email here
-      const opts = {
-        from : 'allantaw2@gmail.com',
-        fromName : 'EvacConnect',
-        to : [],
-        cc: [],
-        body : '',
-        attachments: [],
-        subject : 'EvacConnect Warden Nomination'
-      };
-      const email = new EmailSender(opts);
-      const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
-      let emailBody = email.getEmailHTMLHeader();
-      emailBody += `<h3 style="text-transform:capitalize;">Hi ${warden['first_name']} ${warden['last_name']},</h3> <br/>
-      <h4>You are nominated to be a Warden.</h4> <br/>
-      <h5>Click on the link below to setup your password.</h5> <br/>
-      <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
-
-      emailBody += email.getEmailHTMLFooter();
-
-      email.assignOptions({
-        body : emailBody,
-        to: [warden['email']],
-        cc: ['erwin.macaraig@gmail.com']
-      });
-      email.send((data) => console.log(data),
-                 (err) => console.log(err)
-                );
+          emailBody += email.getEmailHTMLFooter();
+          email.assignOptions({
+            body : emailBody,
+            to: [warden['email']],
+            cc: ['erwin.macaraig@gmail.com']
+          });
+          email.send((data) => console.log(data),
+                     (err) => console.log(err)
+                    );
+        } else {
+          invalidWarden.push(warden['email']);
+        }
       }
-    return;
+    }
+    return invalidWarden;
   }
   public async retrieveWardenInvationInfo(req: Request, res: Response, next: NextFunction) {
     const inviCode = new InvitationCode();
@@ -279,13 +333,10 @@ export class TeamRoute extends BaseRoute {
 
   }
   public async processWardenInvitation(req: Request, res: Response, next: NextFunction) {
-
     if (req.body.password !== req.body.confirmPassword) {
       throw new Error('Passwords do not match');
     }
     const encryptedPassword = md5('Ideation' + req.body.password + 'Max');
-
-
     // create user
     const user  = new User();
     await user.create({
@@ -318,9 +369,66 @@ export class TeamRoute extends BaseRoute {
       'location_id': req.body.sublocation
     });
 
+    // create a record in location_account_user
+    let locationAcctUser = new LocationAccountUser();
+    await locationAcctUser.create({
+      'location_id': req.body.sublocation,
+      'account_id': req.body.account_id,
+      'user_id': user.ID(),
+      'role_id': req.body.em_role
+    });
+
+    if (req.body.role_id) {
+      let theLocation = req.body.sublocation;
+      if (req.body.role_id == defs['Manager']) {
+        // get the root parent not the immediate parent - just to be sure
+        let locationInstance = new Location(req.body.parent_location);
+        await locationInstance.load();
+        let pId = <number>locationInstance.get('parent_id');
+        while (pId !== -1) {
+          locationInstance = new Location(pId);
+          await locationInstance.load();
+          pId = <number>locationInstance.get('parent_id');
+        }
+        theLocation = locationInstance.ID();
+      }
+      locationAcctUser = new LocationAccountUser();
+
+
+      await locationAcctUser.create({
+        'location_id': theLocation,
+        'account_id': req.body.account_id,
+        'user_id': user.ID(),
+        'role_id': req.body.role_id
+      });
+
+      const userRoleRel = new UserRoleRelation();
+      await userRoleRel.create({
+        'user_id': user.ID(),
+        'role_id': req.body.role_id
+      });
+
+      const locationAccntRel = new LocationAccountRelation();
+
+      try {
+        const tmp = await locationAccntRel.getLocationAccountRelation({
+          'location_id': theLocation,
+          'account_id': req.body.account_id,
+          'responsibility': defs['role_text'][req.body.role_id]
+        });
+     } catch (err) {
+       await locationAccntRel.create({
+        'location_id': theLocation,
+        'account_id': req.body.account_id,
+        'responsibility': defs['role_text'][req.body.role_id]
+       });
+     }
+    }
+
+
     // delete entry in db once you accessed the token
     const inviCode = new InvitationCode();
-    inviCode.delete(req.body.token);
+    // inviCode.delete(req.body.token);
     return;
 
   }
@@ -418,6 +526,25 @@ export class TeamRoute extends BaseRoute {
       warden['parent_name'] = locationInstance.get('name') ? locationInstance.get('name') : locationInstance.get('formatted_address');
     }
     return wardens;
+  }
+
+  public async buildPEEPList(req: AuthRequest, res: Response) {
+    const account = new Account(req.user.account_id);
+    const result = await account.buildPEEPList(req.user.user_id);
+    const temp = JSON.stringify(result);
+    const peeps = JSON.parse(temp);
+    for (const peep of peeps) {
+      let locationInstance = new Location(peep['location_id']);
+      await locationInstance.load();
+      let pId = <number>locationInstance.get('parent_id');
+      while (pId !== -1) {
+        locationInstance = new Location(pId);
+        await locationInstance.load();
+        pId = <number>locationInstance.get('parent_id');
+      }
+      peep['parent_name'] = locationInstance.get('name') ? locationInstance.get('name') : locationInstance.get('formatted_address');
+    }
+    return peeps;
   }
 
 

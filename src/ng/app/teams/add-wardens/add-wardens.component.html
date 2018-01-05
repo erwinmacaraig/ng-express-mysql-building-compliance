@@ -60,7 +60,7 @@
 							</select>
 						</td>
 						<td >
-							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0 && user.account_role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
+							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0 && user.role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
 						</td>
 						<td class="with-remove">
 							<input type="text" [(ngModel)]="user.contact_number" placeholder="Mobile number" name="mobile{{i}}">

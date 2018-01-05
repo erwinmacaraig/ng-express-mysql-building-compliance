@@ -13,7 +13,7 @@ export class InvitationCode extends BaseClass {
     }
     public load() {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM invitation_codes WHERE invitation_code_id = ?';
+            const sql_load = 'SELECT * FROM user_invitations WHERE user_invitations_id = ?';
             const uid = [this.id];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, uid, (error, results, fields) => {
@@ -24,7 +24,7 @@ export class InvitationCode extends BaseClass {
                 reject('Invitation code not found');
               } else {
                 this.dbData = results[0];
-                this.setID(results[0]['invitation_code_id']);
+                this.setID(results[0]['user_invitations_id']);
                 resolve(this.dbData);
               }
             });
@@ -34,7 +34,7 @@ export class InvitationCode extends BaseClass {
 
     public getInvitationByCode(code: string, used?: boolean) {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM invitation_codes WHERE code = ?';
+            let sql_load = 'SELECT * FROM user_invitations WHERE code = ?';
             const param = [code];
             if (!used) {
               sql_load = sql_load + ' AND was_used = 0';
@@ -50,7 +50,7 @@ export class InvitationCode extends BaseClass {
                 reject('Invitation code not found');
               } else {
                 this.dbData = results[0];
-                this.setID(results[0]['invitation_code_id']);
+                this.setID(results[0]['user_invitations_id']);
                 resolve(this.dbData);
               }
             });
@@ -60,7 +60,7 @@ export class InvitationCode extends BaseClass {
 
     public getManyInvitationByCode(code: string, used?: boolean) {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM invitation_codes WHERE code = ?';
+            let sql_load = 'SELECT * FROM user_invitations WHERE code = ?';
             const param = [code];
             if (!used) {
               sql_load = sql_load + ' AND was_used = 0';
@@ -83,7 +83,7 @@ export class InvitationCode extends BaseClass {
 
     public getInvitationByAccountId(accountId:Number, roleId?: Number) {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM invitation_codes WHERE account_id = ?';
+            let sql_load = 'SELECT * FROM user_invitations WHERE account_id = ?';
             const param = [];
             param.push(accountId);
             if (roleId) {
@@ -100,7 +100,7 @@ export class InvitationCode extends BaseClass {
                 reject('Invitation code not found');
               } else {
                 this.dbData = results[0];
-                this.setID(results[0]['invitation_code_id']);
+                this.setID(results[0]['user_invitations_id']);
                 resolve(this.dbData);
               }
             });
@@ -110,7 +110,7 @@ export class InvitationCode extends BaseClass {
 
     public getWhere(where:Object){
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM invitation_codes ';
+            let sql_load = 'SELECT * FROM user_invitations ';
             let whereString = '';
             const param = [];
 
@@ -154,7 +154,7 @@ export class InvitationCode extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_update = `
                 UPDATE
-                    invitation_codes
+                  user_invitations
                 SET
                     code = ?,
                     first_name = ?,
@@ -164,11 +164,12 @@ export class InvitationCode extends BaseClass {
                     account_id = ?,
                     role_id = ?,
                     eco_role_id = ?,
+                    mobility_impaired = ?
                     contact_number = ?,
                     invited_by_user = ?,
                     was_used = ?
                 WHERE
-                    invitation_code_id = ?
+                    user_invitations_id = ?
             `;
             const values = [
                 ('code' in this.dbData) ? this.dbData['code'] : null,
@@ -179,6 +180,7 @@ export class InvitationCode extends BaseClass {
                 ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
                 ('role_id' in this.dbData) ? this.dbData['role_id'] : 0,
                 ('eco_role_id' in this.dbData) ? this.dbData['eco_role_id'] : 0,
+                ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : 0,
                 ('contact_number' in this.dbData) ? this.dbData['contact_number'] : '',
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
                 ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
@@ -190,7 +192,7 @@ export class InvitationCode extends BaseClass {
                 throw new Error(err);
               }
               this.id = results.insertId;
-              this.dbData['invitation_code_id'] = this.id;
+              this.dbData['user_invitations_id'] = this.id;
               resolve(true);
             });
             connection.end();
@@ -200,7 +202,7 @@ export class InvitationCode extends BaseClass {
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
-            const sql_insert = `INSERT INTO invitation_codes (
+            const sql_insert = `INSERT INTO user_invitations (
                 code,
                 first_name,
                 last_name,
@@ -209,10 +211,12 @@ export class InvitationCode extends BaseClass {
                 account_id,
                 role_id,
                 eco_role_id,
+                mobility_impaired,
                 contact_number,
                 invited_by_user,
                 was_used
             ) VALUES (
+                ?,
                 ?,
                 ?,
                 ?,
@@ -234,6 +238,7 @@ export class InvitationCode extends BaseClass {
                 ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
                 ('role_id' in this.dbData) ? this.dbData['role_id'] : 0,
                 ('eco_role_id' in this.dbData) ? this.dbData['eco_role_id'] : 0,
+                ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : 0,
                 ('contact_number' in this.dbData) ? this.dbData['contact_number'] : '',
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
                 ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
@@ -245,7 +250,7 @@ export class InvitationCode extends BaseClass {
                 throw new Error(err);
               }
               this.id = results.insertId;
-              this.dbData['invitation_code_id'] = this.id;
+              this.dbData['user_invitations_id'] = this.id;
               resolve(true);
             });
             connection.end();
@@ -258,8 +263,8 @@ export class InvitationCode extends BaseClass {
             for (let key in createData ) {
               this.dbData[key] = createData[key];
             }
-            if ('invitation_code_id' in createData) {
-              this.id = createData.invitation_code_id;
+            if ('user_invitations_id' in createData) {
+              this.id = createData.user_invitations_id;
             }
             resolve(this.write());
         });
@@ -267,7 +272,7 @@ export class InvitationCode extends BaseClass {
 
     public delete(token: string) {
       return new Promise((resolve, reject) => {
-        const sql_delete = `DELETE FROM invitation_codes WHERE code = ?`;
+        const sql_delete = `DELETE FROM user_invitations WHERE code = ?`;
         const connection = db.createConnection(dbconfig);
         connection.query(sql_delete, [token], (err, results, fields) => {
           if (err) {
