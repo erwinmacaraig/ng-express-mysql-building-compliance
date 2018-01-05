@@ -6,7 +6,7 @@ import { Token } from '../models/token.model';
 import { Account } from '../models/account.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
-import { InvitationCode  } from '../models/invitation.code.model';
+import { UserInvitation } from './../models/user.invitation.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { Utils } from '../models/utils.model';
@@ -240,7 +240,7 @@ export class UsersRoute extends BaseRoute {
 
 	public async getUserForFrpTrpView(req: Request, res: Response, next: NextFunction){
 		let response = {
-			status : false, 
+			status : false,
 			data : {
 				user : {},
 				locations : <any>[],
@@ -266,7 +266,7 @@ export class UsersRoute extends BaseRoute {
 		let locationAccountUser = new LocationAccountUser();
 		let arrWhere = [];
 			arrWhere.push( ["user_id", "=", req.params['user_id'] ] );
-		
+
 		response.data['locations'] = await locationAccountUser.getMany(arrWhere);
 		let allParents = [];
 		for(let l in response.data.locations){
@@ -294,7 +294,7 @@ export class UsersRoute extends BaseRoute {
 
 	public async setLocationAccountUserToArchive(req: Request, res: Response, next: NextFunction){
 		let response = {
-			status : true, 
+			status : true,
 			data : <any>[],
 			message : ''
 		};
@@ -306,7 +306,7 @@ export class UsersRoute extends BaseRoute {
 			locAccountUser.set('archived', 1);
 			await locAccountUser.dbUpdate();
 		}
-		
+
 		response.message = 'Success';
 		res.statusCode = 200;
 		res.send(response);

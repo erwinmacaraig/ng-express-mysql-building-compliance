@@ -1,4 +1,4 @@
-import { InvitationCode } from './../models/invitation.code.model';
+import { UserInvitation } from './../models/user.invitation.model';
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
@@ -155,19 +155,27 @@ export class TeamRoute extends BaseRoute {
     const peep = JSON.parse(req.body.peep);
     const invalidPeep = [];
     for (const p of peep) {
-      const inviCode = new InvitationCode();
+      const userInvitation = new UserInvitation();
       const tokenModel = new Token();
-      const code = tokenModel.generateRandomChars(8);
+      const tokenStr = tokenModel.generateRandomChars(10);
       const user = new User();
       try {
         const dbData = await user.getByEmail(p['email']);
         invalidPeep.push(p['email']);
       } catch (e) {
         if (validator.isEmail(p['email'])) {
-          p['code'] = code;
           p['invited_by_user'] = req.user.user_id;
           p['account_id'] = req.user.account_id;
-          await inviCode.create(p);
+          const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+          await userInvitation.create(p);
+          await tokenModel.create({
+            'token': tokenStr,
+            'action': 'invitation',
+            'verified': 0,
+            'expiration_date': expDate,
+            'id': userInvitation.ID(),
+            'id_type': 'user_invitations_id'
+          });
         } else {
           invalidPeep.push(p['email']);
         }
@@ -189,16 +197,23 @@ export class TeamRoute extends BaseRoute {
         const dbData = await user.getByEmail(warden['email']);
         invalidWarden.push(warden['email']);
       } catch (e) {
-        if (validator.isEmail()) {
-          const inviCode = new InvitationCode();
+        if (validator.isEmail(warden['email'])) {
+          const userInvitation = new UserInvitation();
           const tokenModel = new Token();
-          const token = tokenModel.generateRandomChars(8);
-          warden['code'] = token;
+          const tokenStr = tokenModel.generateRandomChars(10);
           warden['invited_by_user'] = req.user.user_id;
           warden['account_id'] = req.user.account_id;
           console.log(warden);
-          // to do email validation
-          await inviCode.create(warden);
+          const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+          await userInvitation.create(warden);
+          await tokenModel.create({
+            'token': tokenStr,
+            'action': 'invitation',
+            'verified': 0,
+            'expiration_date': expDate,
+            'id': userInvitation.ID(),
+            'id_type': 'user_invitations_id'
+          });
 
           const opts = {
             from : 'allantaw2@gmail.com',
@@ -210,7 +225,7 @@ export class TeamRoute extends BaseRoute {
             subject : 'EvacConnect Warden Nomination'
           };
           const email = new EmailSender(opts);
-          const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
+          const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
           let emailBody = email.getEmailHTMLHeader();
           emailBody += `<h3 style="text-transform:capitalize;">Hi ${warden['first_name']} ${warden['last_name']},</h3> <br/>
           <h4>You are nominated to be a Warden.</h4> <br/>
@@ -234,15 +249,24 @@ export class TeamRoute extends BaseRoute {
     return invalidWarden;
   }
   public async retrieveWardenInvationInfo(req: Request, res: Response, next: NextFunction) {
-    const inviCode = new InvitationCode();
+
     let locationsOnAccount = [];
     let location;
+    let userInvitation;
     let token = '';
+    let dbData;
     if (req.params.token) {
       token = req.params.token;
     }
-
-    const dbData = await inviCode.getInvitationByCode(token);
+    const tokenModel = new Token();
+    const tokenDbData = await tokenModel.getByToken(token);
+    console.log('token is ', tokenDbData);
+    if (tokenDbData['id_type'] === 'users_invitation_id') {
+      userInvitation = new UserInvitation(tokenDbData['id']);
+      dbData = await userInvitation.load();
+    } else {
+      throw new Error('Invalid token');
+    }
     const userRoleRel = new UserRoleRelation();
 
     // what is the highest rank role of the user who invited this warden
@@ -427,7 +451,7 @@ export class TeamRoute extends BaseRoute {
 
 
     // delete entry in db once you accessed the token
-    const inviCode = new InvitationCode();
+    const inviCode = new UserInvitation();
     // inviCode.delete(req.body.token);
     return;
 
@@ -457,7 +481,7 @@ export class TeamRoute extends BaseRoute {
     // add these emails to the database table
 
     for (let i = 0; i < objEmail.length; i++) {
-      const inviCode = new InvitationCode();
+      const inviCode = new UserInvitation();
       const tokenModel = new Token();
       const token = tokenModel.generateRandomChars(8);
 

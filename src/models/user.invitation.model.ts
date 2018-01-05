@@ -4,7 +4,7 @@ const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
 
-export class InvitationCode extends BaseClass {
+export class UserInvitation extends BaseClass {
     constructor(id?: number) {
         super();
         if (id) {
@@ -156,7 +156,6 @@ export class InvitationCode extends BaseClass {
                 UPDATE
                   user_invitations
                 SET
-                    code = ?,
                     first_name = ?,
                     last_name = ?,
                     email = ?,
@@ -172,7 +171,6 @@ export class InvitationCode extends BaseClass {
                     user_invitations_id = ?
             `;
             const values = [
-                ('code' in this.dbData) ? this.dbData['code'] : null,
                 ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
                 ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
                 ('email' in this.dbData) ? this.dbData['email'] : null,
@@ -203,7 +201,6 @@ export class InvitationCode extends BaseClass {
     public dbInsert() {
         return new Promise((resolve, reject) => {
             const sql_insert = `INSERT INTO user_invitations (
-                code,
                 first_name,
                 last_name,
                 email,
@@ -226,11 +223,9 @@ export class InvitationCode extends BaseClass {
                 ?,
                 ?,
                 ?,
-                ?,
                 ?
             )`;
             const values = [
-                ('code' in this.dbData) ? this.dbData['code'] : '',
                 ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
                 ('last_name' in this.dbData) ? this.dbData['last_name'] : '',
                 ('email' in this.dbData) ? this.dbData['email'] : '',

@@ -6,7 +6,8 @@ import { Location } from '../models/location.model';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { UserRoleRelation } from '../models/user.role.relation.model';
 import { LocationAccountUser } from '../models/location.account.user';
-import { InvitationCode } from '../models/invitation.code.model';
+import { UserInvitation } from './../models/user.invitation.model';
+
 import { EmailSender } from '../models/email.sender';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
 
@@ -257,7 +258,7 @@ import * as Promise from 'promise';
 
 	public saveAccountCode(req: AuthRequest, res: Response){
 		let accountModel = new Account(),
-			inviCodeModel = new InvitationCode(),
+			inviCodeModel = new UserInvitation(),
 			reqBody = req.body,
 			response = {
 				status: false,
@@ -309,7 +310,7 @@ import * as Promise from 'promise';
 								inviCodeModel.getWhere(Where).then(
 									(inviCodeData) => {
 
-										let updateInvi = new InvitationCode();
+										let updateInvi = new UserInvitation();
 										updateInvi.set('code', reqBody.code);
 										updateInvi.set('invitation_code_id', inviCodeData[0]['invitation_code_id']);
 										updateInvi.set('account_id', inviCodeData[0]['account_id']);
@@ -569,7 +570,7 @@ import * as Promise from 'promise';
 								const blacklistedEmails = new BlacklistedEmails();
 								if(!blacklistedEmails.isEmailBlacklisted(reqBody.email)){
 									let invitationCode = this.generateRandomChars(25),
-										inviModel = new InvitationCode(),
+										inviModel = new UserInvitation(),
 										inviData = {
 											'code' : invitationCode,
 											'first_name' : reqBody.first_name,
@@ -598,7 +599,7 @@ import * as Promise from 'promise';
 											if( Object.keys(reqBody.sublocations).length > 1 ){
 												for(let x in reqBody.sublocations){
 													if(parseInt(x) > 0){
-														let inviModelSub = new InvitationCode();
+														let inviModelSub = new UserInvitation();
 														for(let i in inviData){
 															if(i == 'location_id'){
 																inviModelSub.set(i, reqBody.sublocations[x]['location_id']);

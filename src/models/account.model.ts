@@ -348,19 +348,19 @@ export class Account extends BaseClass {
           SELECT
             first_name,
             last_name,
-            invitation_codes.location_id,
+            user_invitations.location_id,
             locations.name as location_name
           FROM
-            invitation_codes
+            user_invitations
           INNER JOIN
             locations
           ON
-            invitation_codes.location_id = locations.location_id
+            user_invitations.location_id = locations.location_id
           WHERE
             mobility_impaired = 1
           AND
             invited_by_user = ?
-         )`;
+         `;
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_peep, [user_id], (err, results, fields) => {
           if (err) {
