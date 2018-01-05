@@ -138,7 +138,7 @@ export class Token extends BaseClass {
                               WHERE
                                 token_id = ? `;
           const token = [
-            ('id' in this.dbData) ? this.dbData['user_id'] : 0,
+            ('id' in this.dbData) ? this.dbData['id'] : 0,
             ('id_type' in this.dbData) ? this.dbData['id_type'] : null,
             ('token' in this.dbData) ? this.dbData['token'] : 0,
             ('action' in this.dbData) ? this.dbData['action'] : "",
@@ -167,7 +167,7 @@ export class Token extends BaseClass {
             action,
             verified,
             expiration_date
-          ) VALUES (?, ?, ?, ?, ?)
+          ) VALUES (?, ?, ?, ?, ?, ?)
           `;
           const token = [
             ('id' in this.dbData) ? this.dbData['id'] : 0,

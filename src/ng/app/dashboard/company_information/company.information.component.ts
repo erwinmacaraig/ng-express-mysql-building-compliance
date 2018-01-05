@@ -40,7 +40,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 
 	companyName: String = "";
 	companyAddress: String = "";
-	companyRoles: String = "";
+	companyRoles: String = "User";
 	locations = [];
 	userRoles = [];
 
@@ -128,11 +128,13 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 				
 
 				this.userService.getRoles(this.userData['userId'], (responseRoles) => {
-					for(let i in responseRoles.data){
-						this.userRoles.push( responseRoles.data[i]['role_name'] );
-					}
+					if( Object.keys(responseRoles.data).length > 0 ){
+						for(let i in responseRoles.data){
+							this.userRoles.push( responseRoles.data[i]['role_name'] );
+						}
 
-					this.companyRoles = this.userRoles.join(', ');
+						this.companyRoles = this.userRoles.join(', ');
+					}
 
 					this.preloaderService.hide();
 					$('select').material_select();

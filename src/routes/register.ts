@@ -421,7 +421,8 @@ const md5 = require('md5');
 
 		tokenModel.create({
 			'token':token,
-			'user_id': userData.user_id,
+			'id' : userData.user_id,
+			'id_type': 'user_id',
 			'action': 'verify',
 			'verified': 0,
 			'expiration_date' : expDateFormat
@@ -602,13 +603,17 @@ const md5 = require('md5');
 			);
 
 		}else{
-			userEMrole.create({
+			if('email' in reqBody){
+				emailCallAndUserTokenLogin();
+			}
+
+			/*userEMrole.create({
 				user_id : user.ID(), em_role_id : 9
 			}).then(() => {
 				if('email' in reqBody){
 					emailCallAndUserTokenLogin();
 				}
-			});
+			});*/
 		}
 	}
 
@@ -793,7 +798,7 @@ const md5 = require('md5');
 				let expDateMoment = moment(tokenData['expiration_date']),
 					currentDateMoment = moment();
 
-				userId = tokenData['user_id'];
+				userId = tokenData['id'];
 				userModel.setID(userId);
 
 				if(currentDateMoment.isBefore(expDateMoment)){
@@ -848,7 +853,6 @@ const md5 = require('md5');
 				res.send(responseData);
 			}
 		);
-
 	}
 
 	public getSecurityQuestions(req: Request, res: Response, next: NextFunction){
@@ -880,14 +884,19 @@ const md5 = require('md5');
 				data : {}
 			},
 			userData = {},
-			allTokens:any = [];
+			allTokens = <any>[];
 
 		res.statusCode = 400;
 
-		userData = await userModel.load();
-	
-		if(Object.keys(userData).length > 0){
-			allTokens = await tokenModel.getAllByUserId(userData['user_id'], 'verify');
+		try{
+			userData = await userModel.load();
+
+			try{
+				allTokens = await tokenModel.getAllByUserId(userData['user_id'], 'verify');
+			}catch(e){
+				allTokens = [];
+			}
+
 			if(allTokens.length > 0){
 				for(let i in allTokens){
 					let tokenDelete = new Token();
@@ -919,8 +928,7 @@ const md5 = require('md5');
 				bodyEmail,
 				token
 			);
-
-		}else{
+		}catch(e){
 			response.message = 'No user found';
 			res.send(response);
 		}
