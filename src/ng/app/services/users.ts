@@ -54,8 +54,8 @@ export class UserService {
 		});
 	}
 
-	getUserLocationTrainingsEcoRoles(userId, callBack){
-		this.http.get(this.baseUrl+"/users/get-user-locations-trainings-ecoroles/"+userId)
+	getUserLocationTrainingsEcoRoles(locationAcoountUserId, callBack){
+		this.http.get(this.baseUrl+"/users/get-user-locations-trainings-ecoroles/"+locationAcoountUserId)
 		.subscribe(res => {
 			callBack(res);
 		}, err => {

@@ -28,8 +28,11 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			profilePic : '',
 			last_login : ''
 		},
+		eco_role : '',
 		eco_roles : [],
-		locations : [],
+		location : {
+			parent_data : {}
+		},
 		trainings : [],
 		badge_class : ''
 	};
@@ -52,23 +55,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 			this.userService.getUserLocationTrainingsEcoRoles(this.decryptedID, (response) => {
 				this.viewData.user = response.data.user;
-				this.viewData.eco_roles = response.data.eco_roles;
-				this.viewData.locations = response.data.locations;
+				this.viewData.eco_role = response.data.eco_role;
+				this.viewData.location = response.data.location;
 				this.viewData.trainings = response.data.trainings;
 
-				let chief = false,
-					warden = false;
-				for(let i in this.viewData.eco_roles){
-					if(this.viewData.eco_roles[i]['em_roles_id'] == 9){
-						warden = true;
-					}else if(this.viewData.eco_roles[i]['em_roles_id'] == 11){
-						chief = true;
-					}
-				}
-
-				if(chief){
+				if(this.viewData.eco_role.toLowerCase().indexOf('chief warden') > 0){
 					this.viewData.badge_class = 'chief-warden';
-				}else if(warden){
+				}else{
 					this.viewData.badge_class = 'warden';
 				}
 
@@ -127,6 +120,15 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 				}
 			}
 		}, 100);
+	}
+
+	public getInitials(fullName){
+		if(fullName){
+			let initials = fullName.match(/\b\w/g) || [];
+			initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+			return initials;
+		}
+		return 'AA';
 	}
 
 	ngOnDestroy(){}

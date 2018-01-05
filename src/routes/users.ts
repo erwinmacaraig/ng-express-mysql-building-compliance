@@ -56,7 +56,7 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().getUsersByAccountId(req, res, next);
 	    });
 
-	    router.get('/users/get-user-locations-trainings-ecoroles/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    router.get('/users/get-user-locations-trainings-ecoroles/:loc_acc_user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getUserLocationsTrainingsEcoRoles(req, res, next);
 	    })
 
@@ -256,18 +256,57 @@ export class UsersRoute extends BaseRoute {
 			status : false, 
 			data : {
 				user : {},
-				locations : <any>[],
+				location : {},
 				trainings : <any>[],
 				eco_roles : <any>[],
+				eco_role : '',
 			},
 			message : ''
 		},
-		userModel = new User(req.params['user_id']);
+		locationAccountUser = new LocationAccountUser(req.params['loc_acc_user_id']);
+
+		await locationAccountUser.load();
+
+		let loc_acc_user = locationAccountUser.getDBData(),
+			userModel = new User(loc_acc_user['user_id']),
+			locationModel = new Location(loc_acc_user['location_id']);
 
 		response.data['user'] = await userModel.load();
+		response.data['location'] = await locationModel.load();
+		response.data['loc_acc_user'] = loc_acc_user;
+
+		if( Object.keys( locationModel.getDBData() ).length > 0 ){
+			let parentLocation = new Location(response.data['location']['parent_id']);
+			await parentLocation.load();
+			response.data['location']['parent_data'] = ( Object.keys(parentLocation.getDBData()).length > 0 ) ? parentLocation.getDBData() : {};
+		}else{
+			response.data['location']['parent_data'] = {};
+		}
+		
+		if(loc_acc_user['role_id'] == 1){
+			response.data['eco_role'] == 'Building Manager';
+		}else if(loc_acc_user['role_id'] == 2){
+			response.data['eco_role'] == 'Tenant';
+		}else{
+			let userEmRoleRelation = new UserEmRoleRelation();
+			await userEmRoleRelation.getEmRolesByUserId( req.params['user_id'] ).then(
+				() => {
+					let eco_roles = userEmRoleRelation.getDBData();
+					response.data['eco_roles'] = eco_roles;
+					for(let i in eco_roles){
+						if(eco_roles[i]['location_id'] == loc_acc_user['location_id']){
+							response.data['eco_role'] == eco_roles[i]['role_name'];
+						}
+					}
+				},
+				() => {
+					response.data['eco_role'] = 'Warden';
+				}
+			);
+		}
 
 		let fileModel = new Files();
-        await fileModel.getByUserIdAndType(req.params['user_id'], 'profile').then(
+        await fileModel.getByUserIdAndType(loc_acc_user['user_id'], 'profile').then(
             (fileData) => {
                 response.data['user']['profilePic'] = fileData[0].url;
             },
@@ -275,37 +314,6 @@ export class UsersRoute extends BaseRoute {
                 response.data['user']['profilePic'] = '';
             }
         );
-
-		let locationAccountUser = new LocationAccountUser();
-		let arrWhere = [];
-			arrWhere.push( ["user_id", "=", req.params['user_id'] ] );
-		
-		response.data['locations'] = await locationAccountUser.getMany(arrWhere);
-		let allParents = [];
-		for(let l in response.data.locations){
-			let parentLocation = new Location(response.data.locations[l]['parent_id']);
-
-			if(allParents.indexOf(response.data.locations[l]['parent_id']) == -1){
-				await parentLocation.load().then(() => {
-					allParents[ response.data.locations[l]['parent_id'] ] = parentLocation.getDBData();
-					response.data.locations[l]['parent_data'] = parentLocation.getDBData();
-				}, () => {
-					response.data.locations[l]['parent_data'] = {};
-				});
-			}else{
-				response.data.locations[l]['parent_data'] = allParents[ response.data.locations[l]['parent_id'] ];
-			}
-		}
-
-		let userEmRoleRelation = new UserEmRoleRelation();
-		await userEmRoleRelation.getEmRolesByUserId( req.params['user_id'] ).then(
-			() => {
-				response.data['eco_roles'] = userEmRoleRelation.getDBData();
-			},
-			() => {
-				response.data['eco_roles'] = [];
-			}
-		);
 
 		response.status = true;
 		res.statusCode = 200;

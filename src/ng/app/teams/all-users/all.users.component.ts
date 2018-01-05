@@ -42,6 +42,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
 				this.listData[i]['user_id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']).toString();
+				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['location_account_user_id']).toString();
 			}
 			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
 			if(callBack){
@@ -164,7 +165,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	onSelectFromTable(event, list){
 		let selected = event.target.value;
 		if(selected == 'view'){
-			this.router.navigate(["/teams/view-user/", list.user_id_encrypted]);
+			this.router.navigate(["/teams/view-user/", list.id_encrypted]);
 		}else{
 			event.target.value = "0";
 			this.showModalLoader = false;
