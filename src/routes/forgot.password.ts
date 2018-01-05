@@ -89,17 +89,27 @@ const md5 = require('md5');
 		}else{
 			const userEmailCheck = new User();
 			userEmailCheck.getByEmail(reqBody.email).then(
-				(userdata) => {
+				async (userdata) => {
 					let currentDate = moment(),
 						expirationDate = currentDate.add(1, 'day'),
 						expDateFormat = expirationDate.format('YYYY-MM-DD HH:mm:ss'),
 						saveData = {
-							user_id : userdata['user_id'],
+							id : userdata['user_id'],
+							id_type : 'user_id',
 							token : userdata['user_id']+''+this.generateRandomChars(50),
 							action : 'forgot-password',
 							expiration_date : expDateFormat
 						},
-						tokenModel = new Token();
+						tokenModel = new Token(),
+						multiTokenModel = new Token();
+
+					let tokens = await multiTokenModel.getAllByUserId(userdata['user_id']);
+					for(let t in tokens){
+						if(tokens[t]['action'] == 'forgot-password'){
+							let tokenDelete = new Token(tokens[t]['token_id']);
+							await tokenDelete.delete();
+						}
+					}
 
 					userdata['token'] = saveData['token'];
 
@@ -168,6 +178,7 @@ const md5 = require('md5');
 			token = req.params.token,
 			user = new User(),
 			tokenModel = new Token(),
+			multiTokenModel = new Token(),
 			response = {
 				status : false,
 				message : '',
@@ -179,7 +190,8 @@ const md5 = require('md5');
 
 		tokenModel.getByToken(token).then(
 			(tokenData) => {
-				userId = tokenData['user_id'];
+				userId = tokenData['id'];
+
 				if(tokenData['verified'] == 1){
 					res.send('Token is already verified');
 				}else{
@@ -277,7 +289,7 @@ const md5 = require('md5');
 		);
 	}
 
-	public changeUsersPassword(req: Request, res: Response, next: NextFunction){
+	public async changeUsersPassword(req: Request, res: Response, next: NextFunction){
 		let reqBody = req.body,
 			response = {
 				status : false,
@@ -296,13 +308,13 @@ const md5 = require('md5');
 				newPass = reqBody.new_password,
 				confirmPass = reqBody.confirm_password,
 				user = new User(userId),
-				tokenModel = new Token()
+				tokenModel = new Token();
 
 			user.load().then(
 				(userdata) => {
 					tokenModel.getByToken(token).then(
 						(tokenData) => {
-							if(tokenData['user_id'] == userId){
+							if(tokenData['id'] == userId){
 
 								let currentDate = moment(),
 									expirationDate = moment(tokenData['expiration_date'], ['YYYY-MM-DD HH:mm:ss']);
