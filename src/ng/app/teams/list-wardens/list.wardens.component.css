@@ -117,36 +117,55 @@
     display: inline-block;
 }
 
-.filter-list-wardens > .col {
-    margin-top: 10px;
+.filter-container > .col{
     height: 50px !important;
 }
 
-.filter-list-wardens .search-field{
-	background-color: #eee;
-	padding: 0px 20px;
-	position: relative;
-	margin-top: 0px !important;
-	height: 100%;
-	border-radius: 5px;
+.filter-container .add-peep .image{
+    background: url(/assets/images/team_icons.png) no-repeat;
+    width: 35px;
+    height: 35px;
+    background-position: 18% 36%;
+    vertical-align: middle;
+    display: inline-block;
+    margin-right: 5px;
 }
 
-.filter-list-wardens .search-field i{
-	position: absolute;
-	right: 10px;
-	top: 15px;
+.filter-container .btn{
+    width: 100%;
+    padding: 0px;
+    height: 50px !important;
 }
 
-.filter-list-wardens .search-field input[type="text"]{
-	width: 95%;
-	border-bottom: 0px;
-	margin-bottom: 0px;
-	height: 100%;
+.filter-container .search-field{
+    background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 5px;
+    height: 50px;
+    vertical-align: bottom;
+    position: relative;
 }
 
-.filter-list-wardens .search-field input[type="text"]:focus{
-	box-shadow: none !important;
-	border-bottom: 0px !important;
+.filter-container .search-field input{
+    margin: 3px 14px 0px 0px !important;
+    padding: 0px;
+    display: inline-block;
+    width: 90%;
+    border-bottom: 0px;
+}
+
+.filter-container .search-field input:focus{
+    border-bottom: 0px;
+    box-shadow: none;
+}
+
+.filter-container .search-field .material-icons{
+    width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    position: absolute;
+    top: 29%;
+    right: 4%;
 }
 
 .btn-add-warden{
@@ -164,7 +183,7 @@
     display: inline-block;
 }
 
-.filter-list-wardens .select-field{
+.filter-container .select-field{
 	margin-top: 0px !important;
 }
 

@@ -18,25 +18,33 @@
 
 	<div class="col l4 m5 s12">
 		<div class="search-field">
-			<input type="text" placeholder="Search member name">
+			<input type="text" placeholder="Search member name" (keyup)="searchMemberEvent($event)">
 			<span class="material-icons">search</span>
 		</div>
 	</div>
 
 	<div class="col l2 m4 s6">
-		<select>
+		<select class="filter-by">
 			<option value="0" selected>Filter By</option>
+			<option value="frp">FRP</option>
+			<option value="trp">TRP</option>
+			<option value="user">User</option>
 		</select>
 	</div>
 
 	<div class="col l2 m6 s6">
-		<select>
+		<select class="sort-by">
 			<option value="0" selected>Sort By</option>
+			<option value="loc-name-desc">Location Name Descending</option>
+			<option value="loc-name-asc">Location Name Ascending</option>
+			<option value="user-name-desc">User Name Descending</option>
+			<option value="user-name-asc">User Name Ascending</option>
 		</select>
 	</div>
 	<div class="col l2 m6 s12">
-		<select>
+		<select class="bulk-manage">
 			<option value="0" selected>Manage Action</option>
+			<option value="archive" >Archive selected</option>
 		</select>
 	</div>
 
