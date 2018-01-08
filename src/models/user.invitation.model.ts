@@ -34,7 +34,9 @@ export class UserInvitation extends BaseClass {
 
     public getInvitationByCode(code: string, used?: boolean) {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM user_invitations WHERE code = ?';
+            let sql_load = `SELECT * from user_invitations
+            INNER JOIN token ON user_invitations.user_invitations_id = token.id WHERE token = ?;
+            `;
             const param = [code];
             if (!used) {
               sql_load = sql_load + ' AND was_used = 0';
@@ -60,7 +62,8 @@ export class UserInvitation extends BaseClass {
 
     public getManyInvitationByCode(code: string, used?: boolean) {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM user_invitations WHERE code = ?';
+            let sql_load = `SELECT * from user_invitations
+            INNER JOIN token ON user_invitations.user_invitations_id = token.id WHERE token = ?`;
             const param = [code];
             if (!used) {
               sql_load = sql_load + ' AND was_used = 0';

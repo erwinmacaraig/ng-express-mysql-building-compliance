@@ -451,7 +451,6 @@ export class UsersRoute extends BaseRoute {
 				let
 				token = this.generateRandomChars(30),
 				saveData = {
-					'code' : token,
 					'first_name' : users[i]['first_name'],
 					'last_name' : users[i]['last_name'],
 					'email' : users[i]['email'],
@@ -463,8 +462,8 @@ export class UsersRoute extends BaseRoute {
 					'invited_by_user' : req['user']['user_id']
 				};
 
-				let inviCode = new InvitationCode();
-				await inviCode.create(saveData);
+				let invitation = new UserInvitation();
+				await invitation.create(saveData);
 
 				const opts = {
 					from : 'allantaw2@gmail.com',
