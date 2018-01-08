@@ -260,8 +260,8 @@ export class TeamRoute extends BaseRoute {
     }
     const tokenModel = new Token();
     const tokenDbData = await tokenModel.getByToken(token);
-    console.log('token is ', tokenDbData);
-    if (tokenDbData['id_type'] === 'users_invitation_id') {
+
+    if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
       userInvitation = new UserInvitation(tokenDbData['id']);
       dbData = await userInvitation.load();
     } else {
@@ -361,29 +361,39 @@ export class TeamRoute extends BaseRoute {
       throw new Error('Passwords do not match');
     }
     const encryptedPassword = md5('Ideation' + req.body.password + 'Max');
-    // create user
-    const user  = new User();
-    await user.create({
-      'first_name': req.body.first_name,
-      'last_name': req.body.last_name,
-      'password': encryptedPassword,
-      'email': req.body.email,
-      'token': req.body.token,
-      'account_id': req.body.account_id
-    });
-
-    // create record in token table
-    const tokenObj = new Token();
-    const expDate = moment();
-    const expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
-
-    await tokenObj.create({
-      'token': req.body.token,
-      'user_id': user.ID(),
-      'action': 'verify',
-      'verified': 1,
-      'expiration_date': expDateFormat
-    });
+    let invitation;
+    let user;
+    try {
+      // create user
+      user  = new User();
+      const tokenObj = new Token();
+      const tokenDbData = await tokenObj.getByToken(req.body.token);
+      invitation = new UserInvitation(tokenDbData['id']);
+      const userInvitation = await invitation.load();
+      await user.create({
+        'first_name': req.body.first_name,
+        'last_name': req.body.last_name,
+        'password': encryptedPassword,
+        'email': req.body.email,
+        'token': req.body.token,
+        'account_id': req.body.account_id,
+        'invited_by_user': userInvitation['invited_by_user'],
+        'can_login': 1,
+        'mobile_number': userInvitation['contact_number']
+      });
+      await tokenObj.create({
+        'action': 'verify',
+        'verified': 1,
+        'id': user.ID(),
+        'id_type': 'user_id'
+      });
+      await invitation.create({
+        'was_used': 1
+      });
+    } catch (e) {
+      console.log(e);
+      throw new Error('Internal Error');
+    }
 
     // create a record em-role-user-location
     const EMRoleUserRole = new UserEmRoleRelation();
@@ -392,7 +402,6 @@ export class TeamRoute extends BaseRoute {
       'em_role_id': req.body.em_role,
       'location_id': req.body.sublocation
     });
-
     // create a record in location_account_user
     let locationAcctUser = new LocationAccountUser();
     await locationAcctUser.create({
@@ -448,21 +457,22 @@ export class TeamRoute extends BaseRoute {
        });
      }
     }
-
-
-    // delete entry in db once you accessed the token
-    const inviCode = new UserInvitation();
-    // inviCode.delete(req.body.token);
     return;
-
   }
   public async addBulkWardenByEmail(req: AuthRequest, res: Response) {
     const emailsSubmitted = JSON.parse(req.body.wardensEmail);
     console.log(typeof emailsSubmitted);
+    const invalidWardenEmails = [];
     const objEmail = [];
+    const user = new User();
     for (let x = 0; x < emailsSubmitted.length; x++ ) {
       if (validator.isEmail(emailsSubmitted[x])) {
-        objEmail.push(emailsSubmitted[x]);
+        try {
+          const dbData = await user.getByEmail(emailsSubmitted[x]);
+          invalidWardenEmails.push(emailsSubmitted[x]);
+        } catch (e) {
+          objEmail.push(emailsSubmitted[x]);
+        }
       }
     }
 

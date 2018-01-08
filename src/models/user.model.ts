@@ -158,6 +158,7 @@ export class User extends BaseClass {
             time_zone,
             can_login,
             password,
+            invited_by_user,
             account_id,
             last_login,
             evac_role,
@@ -169,7 +170,7 @@ export class User extends BaseClass {
             archived,
             must_change_password,
             user_name
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
             const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
@@ -182,6 +183,7 @@ export class User extends BaseClass {
             ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
             ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
             ('password' in this.dbData) ? this.dbData['password'] : '',
+            ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : '0',
             ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
             ('evac_role' in this.dbData) ? this.dbData['evac_role'] : '',
@@ -221,6 +223,7 @@ export class User extends BaseClass {
             time_zone = ?,
             can_login = ?,
             password = ?,
+            invited_by_user = ?,
             account_id = ?,
             last_login = ?,
             evac_role = ?,
@@ -245,6 +248,7 @@ export class User extends BaseClass {
             ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
             ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
             ('password' in this.dbData) ? this.dbData['password'] : null,
+            ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
             ('evac_role' in this.dbData) ? this.dbData['evac_role'] : null,

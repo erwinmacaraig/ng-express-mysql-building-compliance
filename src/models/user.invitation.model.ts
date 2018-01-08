@@ -163,7 +163,7 @@ export class UserInvitation extends BaseClass {
                     account_id = ?,
                     role_id = ?,
                     eco_role_id = ?,
-                    mobility_impaired = ?
+                    mobility_impaired = ?,
                     contact_number = ?,
                     invited_by_user = ?,
                     was_used = ?
@@ -250,7 +250,7 @@ export class UserInvitation extends BaseClass {
             });
             connection.end();
 
-        }); //end Promise
+        }); // end Promise
     } // end dbInsert method
 
     public create(createData) {
@@ -265,11 +265,11 @@ export class UserInvitation extends BaseClass {
         });
     } // end create
 
-    public delete(token: string) {
+    public delete() {
       return new Promise((resolve, reject) => {
-        const sql_delete = `DELETE FROM user_invitations WHERE code = ?`;
+        const sql_delete = `DELETE FROM user_invitations WHERE user_invitations_id = ?`;
         const connection = db.createConnection(dbconfig);
-        connection.query(sql_delete, [token], (err, results, fields) => {
+        connection.query(sql_delete, [this.ID()], (err, results, fields) => {
           if (err) {
             console.log(sql_delete, err);
             throw new Error(err);

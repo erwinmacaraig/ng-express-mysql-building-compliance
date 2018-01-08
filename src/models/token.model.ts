@@ -52,7 +52,7 @@ export class Token extends BaseClass {
       });
     }
 
-    public getByToken(token:String) {
+    public getByToken(token: string) {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM token WHERE token = ?';
             const param = [token];
@@ -138,7 +138,7 @@ export class Token extends BaseClass {
                               WHERE
                                 token_id = ? `;
           const token = [
-            ('id' in this.dbData) ? this.dbData['user_id'] : 0,
+            ('id' in this.dbData) ? this.dbData['id'] : 0,
             ('id_type' in this.dbData) ? this.dbData['id_type'] : null,
             ('token' in this.dbData) ? this.dbData['token'] : 0,
             ('action' in this.dbData) ? this.dbData['action'] : "",
