@@ -52,7 +52,7 @@ export class Token extends BaseClass {
       });
     }
 
-    public getByToken(token:String) {
+    public getByToken(token: string) {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM token WHERE token = ?';
             const param = [token];
@@ -61,7 +61,7 @@ export class Token extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              if(!results.length){
+              if(!results.length) {
                 reject('Token not found');
               }else{
                 this.dbData = results[0];
