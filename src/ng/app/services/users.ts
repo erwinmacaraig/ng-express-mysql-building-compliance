@@ -108,4 +108,22 @@ export class UserService {
 		});
 	}
 
+	getMyWardenTeam(callBack){
+		this.http.get(this.baseUrl+"/users/get-my-warden-team")
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	requestAsWarden(userId, callBack){
+		this.http.post(this.baseUrl+"/users/request-as-warden", { user_id : userId })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 }

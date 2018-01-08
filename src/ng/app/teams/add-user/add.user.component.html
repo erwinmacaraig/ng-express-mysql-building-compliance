@@ -29,7 +29,7 @@
 					</tr>
 					<tr *ngFor="let user of addedUsers; let i = index">
 						<td >
-							<input type="text" [(ngModel)]="user.first_name" placeholder="First name" name="first_name{{i}}" required>
+							<input type="text" [(ngModel)]="user.first_name" class="first-name" placeholder="First name" name="first_name{{i}}" required>
 						</td>
 						<td >
 							<input type="text" [(ngModel)]="user.last_name" placeholder="Last name" name="last_name{{i}}" required>

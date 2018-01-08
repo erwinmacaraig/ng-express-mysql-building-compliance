@@ -44,6 +44,8 @@ export class AddUserComponent implements OnInit, OnDestroy {
 	public addedUsers = [];
     showLoadingButton = false;
 
+
+
 	constructor(
         private authService: AuthService, 
         private dataProvider: PersonDataProviderService,
@@ -53,6 +55,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         ) {
 
         this.userData = this.authService.getUserData();
+        
     }
 
 	ngOnInit(){
@@ -96,6 +99,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
 		//a copy
 		let prop = JSON.parse(JSON.stringify(this.userProperty));
 		this.addedUsers.push( prop );
+
+        setTimeout(() => {
+            $('form table tbody tr:last-child').find('input.first-name').focus();
+        },300);
     }
 
     onSelectedAccountRole(srcId: number) {
@@ -251,6 +258,8 @@ export class AddUserComponent implements OnInit, OnDestroy {
 		});
 
 		$('select').material_select();
+
+        this.addMoreRow();
 	}
 
 	ngOnDestroy(){}
@@ -260,6 +269,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
             this.showLoadingButton = true;
             this.userService.createBulkUsers(this.addedUsers, (response) => {
                 this.addedUsers = response.data;
+                if(this.addedUsers.length == 0){
+                    let prop = JSON.parse(JSON.stringify(this.userProperty));
+                    this.addedUsers.push( prop );
+                }
                 this.showLoadingButton = false;
             });
         }

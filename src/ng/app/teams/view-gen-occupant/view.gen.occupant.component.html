@@ -5,12 +5,16 @@
 			
 			<div class="image-container">
 				<!-- <div class="profile-warden"></div> -->
-				<p class="initials">AA</p>
-				<!-- <img src="/assets/images/signup/eco_icon.png"  > -->
+				<p class="initials" *ngIf="viewData.user.profilePic.length > 0 === false">
+					{{getInitials(viewData.user.first_name+' '+viewData.user.last_name)}}
+				</p>
+				<img *ngIf="viewData.user.profilePic.length > 0 === true" [src]="viewData.user.profilePic"  >
 			</div>
 
 			<div class="name-container ">
-				<h5 class="name blue-text">Warden</h5>
+				<h5 class="name blue-text">
+					<span *ngIf="viewData.eco_role.role_name">{{viewData.eco_role.role_name}}</span>
+				</h5>
 				<!-- <p>Last Login 0 day</p> -->
 			</div>
 		</div>	
@@ -18,12 +22,15 @@
 	<div class="row">
 		<div class="col l12 m12 s12 location-div">
 			<small>Location</small>
-			<h5>Location Name</h5>
+			<h5>
+				<span *ngIf="viewData.location.parent_data.name">{{viewData.location.parent_data.name}}</span>
+				{{viewData.location.name}}
+			</h5>
 		</div>
 	</div>
 
 	<div class="bottom-buttons">
-		<button class="btn orange waves-effect waves-light remove">
+		<button class="btn orange waves-effect waves-light remove" (click)="requestWardenClick()" *ngIf="viewData.eco_role.em_roles_id == 8">
 			<div class="image inline-block"></div>
 			<div class="text inline-block">Request to be Warden</div>
 		</button>
@@ -50,7 +57,25 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr>
+					<tr *ngIf="viewData.team.length == 0">
+						<td colspan="2" class="center">
+							<h6>No team found</h6>
+						</td>
+					</tr>
+					<tr *ngFor="let user of viewData.team">
+						<td>
+							{{user.first_name}} {{user.last_name}}
+						</td>
+						<td class="with-image">
+							<div class="image white-hat" *ngIf="user.role.em_roles_id == 11 || user.role.em_roles_id == 15"></div>
+							<div class="image yellow-hat" *ngIf="user.role.em_roles_id == 10 || user.role.em_roles_id == 10"></div>
+							<div class="image red-hat" *ngIf="user.role.em_roles_id == 9 || user.role.em_roles_id == 16 || user.role.em_roles_id == 18"></div>
+							<div class="text">
+								{{user.role.role_name}}
+							</div>
+						</td>
+					</tr>
+					<!-- <tr>
 						<td>
 							Chief Warden Lastname
 						</td>
@@ -85,10 +110,50 @@
 							<div class="image red-hat"></div>
 							<div class="text">Warden</div>
 						</td>
-					</tr>
+					</tr> -->
 				</tbody>
 			</table>
 		</div>
 	</div>
 
+</div>
+
+
+<div id="modalRequestWarden" class="modal">
+	<div class="modal-content" *ngIf="!showModalRequestWardenLoader && !showModalRequestWardenSuccess">
+		<h5>Select Approver</h5>
+		<h6 *ngIf="approvers.length == 0">
+			Sorry there's no approver for this location
+		</h6>
+
+		<div class="select-field" *ngIf="approvers.length > 0">
+			<select>
+				<option value="0">Select approver</option>
+				<option *ngFor="let approver of approvers" [value]="approver.user_id">{{approver.first_name}} {{approver.last_name}}</option>
+			</select>
+		</div>
+	</div>
+
+	<div class="modal-content center" *ngIf="showModalRequestWardenLoader && !showModalRequestWardenSuccess">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-content center" *ngIf="showModalRequestWardenSuccess && !showModalRequestWardenLoader">
+		<h5>Request sent!</h5>
+	</div>
+	
+	<div class="modal-footer" *ngIf="!showModalRequestWardenLoader && !showModalRequestWardenSuccess">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" *ngIf="approvers.length > 0" class="waves-effect waves-blue btn-flat" (click)="submitRequest()">Submit</a>
+	</div>
 </div>

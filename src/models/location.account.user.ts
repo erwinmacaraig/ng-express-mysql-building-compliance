@@ -55,8 +55,7 @@ export class LocationAccountUser extends BaseClass {
       return new Promise((resolve, reject) => {
             let sql_load = '',
               sqlWhere = '',
-              count = 0,
-              param = [];
+              count = 0;
 
             sql_load = ` SELECT l.*, lau.user_id, lau.account_id, lau.role_id, lau.location_account_user_id
               FROM locations l 
@@ -69,17 +68,7 @@ export class LocationAccountUser extends BaseClass {
               }else{
                 sqlWhere += ' AND ';
               }
-
               sqlWhere += 'lau.'+arrWhere[i][0]+' ';
-
-              if( typeof arrWhere[i][1] !== undefined ){
-                sqlWhere += arrWhere[i][1]+' ';
-              }
-
-              if( typeof arrWhere[i][2] !== undefined ){
-                sqlWhere += ' ? ';
-                param.push(arrWhere[i][2]);
-              }
               count++;
             }
 
@@ -92,7 +81,7 @@ export class LocationAccountUser extends BaseClass {
             sql_load += sqlWhere;
 
             const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
+            connection.query(sql_load, (error, results, fields) => {
               if (error) {
                 reject(error);
                 return console.log(error);
@@ -299,6 +288,23 @@ export class LocationAccountUser extends BaseClass {
               this.id = createData.location_account_user_id;
             }
             resolve(this.write());
+        });
+    }
+
+    public getManyByLocationId(locationId: Number) {
+        return new Promise((resolve, reject) => {
+            const sql_load = 'SELECT * FROM location_account_user WHERE location_id = ?';
+            const param = [locationId];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              this.dbData = results
+              resolve(this.dbData);
+              
+            });
+            connection.end();
         });
     }
 

@@ -360,6 +360,10 @@ table tbody td .text{
     -moz-column-count: 1;
     column-count: 1;
   }
+
+  #modalRequestWarden{
+    width: 85%;
+  }
 }
 @media only screen and (min-width: 601px) {
   .masonry-container {
@@ -367,11 +371,19 @@ table tbody td .text{
     -moz-column-count: 2;
     column-count: 2;
   }
+
+  #modalRequestWarden{
+    width: 45%;
+  }
 }
 @media only screen and (min-width: 993px) {
   .masonry-container {
     -webkit-column-count: 3;
     -moz-column-count: 3;
     column-count: 3;
+  }
+
+  #modalRequestWarden{
+    width: 35%;
   }
 }

@@ -15,6 +15,7 @@ import { UserRoleRelation } from '../models/user.role.relation.model';
 import { Account } from '../models/account.model';
 import { Location } from '../models/location.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
+import { LocationAccountUser  } from '../models/location.account.user';
 const md5 = require('md5');
 import * as moment from 'moment';
 
@@ -304,7 +305,8 @@ export class TeamRoute extends BaseRoute {
 
     await tokenObj.create({
       'token': req.body.token,
-      'user_id': user.ID(),
+      'id': user.ID(),
+      'id_type': 'user_id',
       'action': 'verify',
       'verified': 1,
       'expiration_date': expDateFormat
@@ -317,6 +319,15 @@ export class TeamRoute extends BaseRoute {
       'em_role_id': req.body.em_role,
       'location_id': req.body.sublocation
     });
+
+    const LocAccntModel = new LocationAccountUser();
+    await LocAccntModel.create({
+      'user_id' : user.ID(),
+      'location_id' : req.body.sublocation,
+      'account_id' : req.body.account_id,
+      'role_id' : (req.body.em_role == 1 || req.body.em_role == 2) ? req.body.em_role : 0
+    });
+
 
     // delete entry in db once you accessed the token
     const inviCode = new InvitationCode();

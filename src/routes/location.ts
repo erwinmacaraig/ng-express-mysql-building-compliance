@@ -723,8 +723,8 @@ const md5 = require('md5');
 		res.statusCode = 200;
 
 		let arrWhere = [];
-		arrWhere.push([ 'user_id', '=', req.params.user_id ]);
-		arrWhere.push([ 'account_id', '=', req.params.account_id ]);
+		arrWhere.push([ 'user_id = '+req.params.user_id ]);
+		arrWhere.push([ 'account_id = '+req.params.account_id ]);
 
 		locAccUser.getMany(arrWhere).then(
 			(locations) => {

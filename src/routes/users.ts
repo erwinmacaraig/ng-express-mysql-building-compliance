@@ -78,7 +78,15 @@ export class UsersRoute extends BaseRoute {
 
 	    router.post('/users/remove-user-as-warden', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().removeUserAsWarden(req, res, next);
-	    })
+	    });
+
+	    router.get('/users/get-my-warden-team', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getMyWardenTeam(req, res, next);
+	    });
+
+	    router.post('/users/request-as-warden', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().requestAsWarden(req, res, next);
+	    });
 	}
 
 	public uploadProfilePicture(req: Request, res: Response, next: NextFunction){
@@ -222,8 +230,8 @@ export class UsersRoute extends BaseRoute {
 			allParents = [];
 
 		let arrWhere = [];
-			arrWhere.push( ["account_id", "=", accountId ] );
-			arrWhere.push( ["archived", "=", 0 ] );
+			arrWhere.push( ["account_id = "+accountId ] );
+			arrWhere.push( ["archived = "+0] );
 		let locations = await locationAccountUser.getMany(arrWhere);
 		for(let l in locations){
 			let userModel = new User(locations[l]['user_id']);
@@ -381,8 +389,8 @@ export class UsersRoute extends BaseRoute {
 			allParents = [];
 
 		let arrWhere = [];
-			arrWhere.push( ["account_id", "=", accountId ] );
-			arrWhere.push( ["archived", "=", 1 ] );
+			arrWhere.push( ["account_id = "+accountId ] );
+			arrWhere.push( ["archived = "+1 ] );
 		let locations = await locationAccountUser.getMany(arrWhere);
 		for(let l in locations){
 			let userModel = new User(locations[l]['user_id']);
@@ -459,7 +467,7 @@ export class UsersRoute extends BaseRoute {
 					'location_id' : users[i]['account_location_id'],
 					'account_id' : req['user']['account_id'],
 					'role_id' : (req['user']['account_role_id'] == 1 || req['user']['account_role_id'] == 2) ? req['user']['account_role_id'] : 0,
-					'eco_role_id' : (req['user']['account_role_id'] != 1 || req['user']['account_role_id'] != 2) ? 9 : 0,
+					'eco_role_id' : (req['user']['account_role_id'] != 1 || req['user']['account_role_id'] != 2) ? 8 : 0,
 					'invited_by_user' : req['user']['user_id']
 				};
 				
@@ -537,6 +545,110 @@ export class UsersRoute extends BaseRoute {
 		}
 
 		response.status = true;
+		res.send(response);
+	}
+
+	public async getMyWardenTeam(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : true, data : {
+				user : {},
+				eco_role : {},
+				location : {},
+				team : <any>[]
+			}, message : ''
+		},
+		userModel = new User(req['user']['user_id']),
+		locAccUserModel = new LocationAccountUser(),
+		myEmRole = new UserEmRoleRelation();
+
+		response.data['user'] = await userModel.load();
+		response.data['user']['profilePic'] = '';
+
+		try{
+			response.data.eco_role = await myEmRole.getEmRolesByUserId(req['user']['user_id']);
+			response.data.eco_role = response.data.eco_role[0];
+		}catch(e){
+		}
+
+		let fileModel = new Files();
+        await fileModel.getByUserIdAndType(req['user']['user_id'], 'profile').then(
+            (fileData) => {
+                response.data['user']['profilePic'] = fileData[0].url;
+            },
+            () => {
+                response.data['user']['profilePic'] = '';
+            }
+        );
+
+		try{
+			let locAccUserData = await locAccUserModel.getByUserId(req['user']['user_id']),
+				locationModel = new Location(locAccUserData[0]['location_id']),
+				parentLocation = new Location();
+
+			let location = await locationModel.load();
+			parentLocation.setID(location['parent_id']);
+			try{
+				location['parent_data'] = await parentLocation.load();
+			}catch(e){
+				location['parent_data'] = {};
+			}
+
+			response.data['location'] = location;
+
+			let locAccUserModelForTeam = new LocationAccountUser();
+			await locAccUserModelForTeam.getManyByLocationId(location['location_id']);
+			let locAccUserTeam = locAccUserModelForTeam.getDBData();
+			for(let i in locAccUserTeam){
+
+				if(locAccUserTeam[i]['user_id'] !== req['user']['user_id']){
+					let user = {};
+					const userTeam = new User(locAccUserTeam[i]['user_id']);
+					
+					try{
+						let emRoleModel = new UserEmRoleRelation();
+				        
+				        try{
+				        	await userTeam.load();
+							user = userTeam.getDBData();
+							let fileModelTeam = new Files();
+					        await fileModelTeam.getByUserIdAndType(locAccUserTeam[i]['user_id'], 'profile').then(
+					            (fileData) => {
+					                user['profilePic'] = fileData[0].url;
+					            },
+					            () => {
+					                user['profilePic'] = '';
+					            }
+					        );
+
+					        await emRoleModel.getEmRolesByUserId(locAccUserTeam[i]['user_id']);
+				        	user['role'] = emRoleModel.getDBData()[0];
+
+					        response.data.team.push(user);
+
+				        }catch(e){
+				        }
+
+						
+					}catch(e){
+
+					}
+				}
+
+			}
+
+		}catch(e){
+			response.data['location'] = {};
+		}
+
+		res.send(response);
+	}
+
+	public async requestAsWarden(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : true, data : [], message : ''
+		};
+
+
 		res.send(response);
 	}
 

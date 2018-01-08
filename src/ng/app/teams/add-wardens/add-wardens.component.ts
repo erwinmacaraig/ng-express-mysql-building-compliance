@@ -85,6 +85,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         $('.modal').modal({
             dismissible: false
         });
+
+        this.addMoreRow();
     }
 
     showModalCSV(){
@@ -99,6 +101,10 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 		//a copy
 		let prop = JSON.parse(JSON.stringify(this.userProperty));
 		this.addedUsers.push( prop );
+
+        setTimeout(() => {
+            $('form table tbody tr:last-child').find('input.first-name').focus();
+        },300);
     }
 
     onSelectedAccountRole(srcId: number) {
