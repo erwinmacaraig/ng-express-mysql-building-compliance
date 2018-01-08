@@ -27,7 +27,7 @@ export class FileUploader {
 
       this.storageConfig = multer.diskStorage({
         destination: (rq, file, callback) => {
-        callback(null, '/home/ubuntu/EvacPlatform/evacconnect/uploads/');
+          callback(null, '/home/ubuntu/EvacPlatform/evacconnect/uploads/');
         },
         filename: (rq, file, callback) => {
           this.extname = this.getFileExtension(file.originalname);

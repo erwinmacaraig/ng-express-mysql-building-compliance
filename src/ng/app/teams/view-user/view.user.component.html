@@ -7,7 +7,7 @@
 				<p class="initials" *ngIf="viewData.user.profilePic.length == 0">
 					{{getInitials(viewData.user.first_name+' '+viewData.user.last_name)}}
 				</p>
-				<img *ngIf="viewData.user.profilePic.length > 0" src="/assets/images/signup/eco_icon.png"  >
+				<img *ngIf="viewData.user.profilePic.length > 0" [src]="viewData.user.profilePic"  >
 			</div>
 
 			<div class="badge-warden" [ngClass]="viewData.badge_class"></div>

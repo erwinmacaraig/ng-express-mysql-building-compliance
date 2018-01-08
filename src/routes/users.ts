@@ -240,8 +240,17 @@ export class UsersRoute extends BaseRoute {
 				locations[l]['parent_data'] = allParents[ locations[l]['parent_id'] ];
 			}
 
-			await userModel.load().then(()=>{
+			await userModel.load().then( async ()=>{
 				locations[l]['user_info'] = userModel.getDBData();
+
+				let filesModel = new Files();
+				try{
+					let profRec = await filesModel.getByUserIdAndType( userModel.get('user_id'), 'profile' );
+					locations[l]['user_info']['profile_pic'] = profRec[0]['url'];
+				}catch(e){
+					locations[l]['user_info']['profile_pic'] = '';
+				}
+
 			},()=>{
 				locations[l]['user_info'] = {};
 			});

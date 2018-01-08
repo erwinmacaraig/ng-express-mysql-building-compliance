@@ -91,7 +91,7 @@
 					<td>
 						<div class="image-container lighten-3" [ngClass]="list.bg_class">
 							<div class="image">
-								<!-- <img src="assets/images/locations/default_profile_location.png"  > -->
+								<img *ngIf="list.user_info.profile_pic.length > 0" [src]="list.user_info.profile_pic"  >
 							</div>
 						</div>
 						<div class="text">{{list.user_info.first_name}} {{list.user_info.last_name}}</div>
