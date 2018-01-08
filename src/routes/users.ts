@@ -233,39 +233,48 @@ export class UsersRoute extends BaseRoute {
 			arrWhere.push( ["account_id = "+accountId ] );
 			arrWhere.push( ["archived = "+0] );
 		let locations = await locationAccountUser.getMany(arrWhere);
+
+		let locationsToSend = [];
+
+		let allowedRoleIds = [0,1,2,8,9,10,11,12,13,14,15,16,17,18];
 		for(let l in locations){
-			let userModel = new User(locations[l]['user_id']);
-			let parentLocation = new Location(locations[l]['parent_id']);
 
-			if(allParents.indexOf(locations[l]['parent_id']) == -1){
-				await parentLocation.load().then(() => {
-					allParents[ locations[l]['parent_id'] ] = parentLocation.getDBData();
-					locations[l]['parent_data'] = parentLocation.getDBData();
-				}, () => {
-					locations[l]['parent_data'] = {};
-				});
-			}else{
-				locations[l]['parent_data'] = allParents[ locations[l]['parent_id'] ];
-			}
+			if(  allowedRoleIds.indexOf(locations[l]['role_id']) > -1 ){
+				let userModel = new User(locations[l]['user_id']);
+				let parentLocation = new Location(locations[l]['parent_id']);
 
-			await userModel.load().then( async ()=>{
-				locations[l]['user_info'] = userModel.getDBData();
-
-				let filesModel = new Files();
-				try{
-					let profRec = await filesModel.getByUserIdAndType( userModel.get('user_id'), 'profile' );
-					locations[l]['user_info']['profile_pic'] = profRec[0]['url'];
-				}catch(e){
-					locations[l]['user_info']['profile_pic'] = '';
+				if(allParents.indexOf(locations[l]['parent_id']) == -1){
+					await parentLocation.load().then(() => {
+						allParents[ locations[l]['parent_id'] ] = parentLocation.getDBData();
+						locations[l]['parent_data'] = parentLocation.getDBData();
+					}, () => {
+						locations[l]['parent_data'] = {};
+					});
+				}else{
+					locations[l]['parent_data'] = allParents[ locations[l]['parent_id'] ];
 				}
 
-			},()=>{
-				locations[l]['user_info'] = {};
-			});
+				await userModel.load().then( async ()=>{
+					locations[l]['user_info'] = userModel.getDBData();
+
+					let filesModel = new Files();
+					try{
+						let profRec = await filesModel.getByUserIdAndType( userModel.get('user_id'), 'profile' );
+						locations[l]['user_info']['profile_pic'] = profRec[0]['url'];
+					}catch(e){
+						locations[l]['user_info']['profile_pic'] = '';
+					}
+
+				},()=>{
+					locations[l]['user_info'] = {};
+				});
+
+				locationsToSend.push(locations[l]);
+			}
 
 		}
 
-		response.data = locations;
+		response.data = locationsToSend;
 		response.status = true;
 		res.statusCode = 200;
 		res.send(response);
@@ -538,8 +547,6 @@ export class UsersRoute extends BaseRoute {
 					}
 
 				}catch(e){  }
-
-
 			}
 		}
 
@@ -597,9 +604,10 @@ export class UsersRoute extends BaseRoute {
 			let locAccUserModelForTeam = new LocationAccountUser();
 			await locAccUserModelForTeam.getManyByLocationId(location['location_id']);
 			let locAccUserTeam = locAccUserModelForTeam.getDBData();
+			let allowedRoleIds = [0,1,2,8,9,10,11,12,13,14,15,16,17,18];
 			for(let i in locAccUserTeam){
 
-				if(locAccUserTeam[i]['user_id'] !== req['user']['user_id']){
+				if(locAccUserTeam[i]['user_id'] !== req['user']['user_id'] && allowedRoleIds.indexOf(locAccUserTeam[i]['role_id']) > -1){
 					let user = {};
 					const userTeam = new User(locAccUserTeam[i]['user_id']);
 					
@@ -620,6 +628,17 @@ export class UsersRoute extends BaseRoute {
 					        );
 
 					        await emRoleModel.getEmRolesByUserId(locAccUserTeam[i]['user_id']);
+					        let roles = emRoleModel.getDBData();
+					        for(let i in roles){
+					        	if(roles[i]['em_roles_id'] ){
+
+					        	}
+					        }
+
+					        if(locAccUserTeam[i]['role_id']){
+
+					        }
+
 				        	user['role'] = emRoleModel.getDBData()[0];
 
 					        response.data.team.push(user);

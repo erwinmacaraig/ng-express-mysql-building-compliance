@@ -81,12 +81,18 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 		});
 
 		$('select').material_select();
+
+        this.addMoreRow();
 	}
 
 	addMoreRow(){
 		//a copy
 		let prop = JSON.parse(JSON.stringify(this.userProperty));
 		this.addedUsers.push( prop );
+
+        setTimeout(() => {
+            $('form table tbody tr:last-child').find('input.first-name').focus();
+        },300);
 	}
 
 	onSelectedAccountRole(srcId: number) {
@@ -228,6 +234,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
       this.dataProvider.addPEEP(strPEEP).subscribe((data) => {
         console.log(data);
         this.addedUsers = [];
+        this.addMoreRow();
       }, (error: HttpErrorResponse) => {
         console.log(error);
       });

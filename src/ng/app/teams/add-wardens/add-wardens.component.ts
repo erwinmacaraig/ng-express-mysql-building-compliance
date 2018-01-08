@@ -248,6 +248,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         const strWardens = JSON.stringify(this.addedUsers);
         this.dataProvider.addBulkWarden(strWardens).subscribe(() => {
           this.addedUsers = [];
+          this.addMoreRow();
         },
       () => {
         console.log('there was an error');
