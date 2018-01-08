@@ -364,7 +364,8 @@ export class UserRelatedRoute extends BaseRoute {
       await approver.load();
 
       await token.create({
-        user_id: req.user.user_id,
+        id: req.user.user_id,
+        id_type: 'user_id',
         token: token_string,
         action: 'location access',
         verified: 0,

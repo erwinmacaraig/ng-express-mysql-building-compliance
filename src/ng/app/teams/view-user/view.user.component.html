@@ -4,43 +4,49 @@
 			<h5>User Profile</h5>
 			
 			<div class="image-container">
-				<p class="initials" *ngIf="viewData.user.profilePic.length == 0">AA</p>
-				<img *ngIf="viewData.user.profilePic.length > 0" src="/assets/images/signup/eco_icon.png"  >
+				<p class="initials" *ngIf="viewData.user.profilePic.length == 0">
+					{{getInitials(viewData.user.first_name+' '+viewData.user.last_name)}}
+				</p>
+				<img *ngIf="viewData.user.profilePic.length > 0" [src]="viewData.user.profilePic"  >
 			</div>
 
 			<div class="badge-warden" [ngClass]="viewData.badge_class"></div>
 
 			<div class="name-container ">
-				<h5 class="name blue-text">User Name</h5>
+				<h5 class="name blue-text">{{viewData.user.first_name+' '+viewData.user.last_name}}</h5>
 				<p *ngIf="viewData.user.last_login.length > 0">Last Login {{viewData.user.last_login}}</p>
 			</div>
 		</div>	
 	</div>
 	<div class="row">
 		<div class="col l12 m12 s12">
-			<h6 class="grey-text text-accent-4">ECO Roles</h6>
-			<ul class="list">
+			<!-- <h6 class="grey-text text-accent-4">ECO Roles</h6> -->
+			<!-- <ul class="list">
 				<li *ngFor="let eco_role of viewData.eco_roles">
 					{{eco_role.role_name}}
 				</li>
-			</ul>
-			<!-- <div class="input-field">
-				<input id="ecoRole" type="text" readonly>
-				<label for="ecoRole">ECO Role</label>
-			</div> -->
+			</ul> -->
+			<div class="input-field">
+				<input id="ecoRole" type="text" readonly value="{{viewData.eco_role}}">
+				<label for="ecoRole">
+					<span *ngIf="viewData.eco_role.toLowerCase().indexOf('tenant') == -1 &&  viewData.eco_role.toLowerCase().indexOf('building manager') == -1">ECO Role</span>
+					<span *ngIf="viewData.eco_role.toLowerCase().indexOf('tenant') > -1 ||  viewData.eco_role.toLowerCase().indexOf('building manager') > -1">Role</span>
+				</label>
+			</div>
 		</div>
 		<div class="col l12 m12 s12">
-			<h6 class="grey-text text-accent-4">Locations</h6>
-			<ul class="list">
+			<!-- <h6 class="grey-text text-accent-4">Locations</h6> -->
+			<!-- <ul class="list">
 				<li *ngFor="let location of viewData.locations">
 					<span *ngIf="location.parent_data.name">{{location.parent_data.name}},</span>
 					{{location.name}}
 				</li>
-			</ul>
-			<!-- <div class="input-field">
-				<input id="location" type="text" readonly>
-				<label for="location">Location</label>
-			</div> -->
+			</ul> -->
+			<div class="input-field">
+				<input  *ngIf="viewData.location.parent_data.name" id="location" type="text" value="{{viewData.location.parent_data.name}}, {{viewData.location.name}}" readonly>
+				<input  *ngIf="!viewData.location.parent_data.name" id="location" type="text" value="{{viewData.location.name}}" readonly>
+				<label for="location"> Location</label>
+			</div>
 		</div>
 		<div class="col l12 m12 s12">
 			<div class="input-field">
@@ -57,7 +63,7 @@
 	</div>
 
 	<div class="bottom-buttons">
-		<button class="btn orange waves-effect waves-light remove" *ngIf="viewData.eco_roles.length > 0">
+		<button class="btn orange waves-effect waves-light remove" *ngIf="showRemoveWardenButton" (click)="clickRemoveWarden()">
 			<div class="image inline-block"></div>
 			<div class="text inline-block">Remove this user as Warden</div>
 		</button>
@@ -144,7 +150,29 @@
 		</div>
 	</div>
 	
-	
-	
+</div>
 
+<div id="modalRemoveWarden" class="modal">
+	<div class="modal-content center" *ngIf="showModalRemoveWardenLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" *ngIf="!showModalRemoveWardenLoader">
+		<h5>Confirmation</h5>
+		<h6>Are you sure you want to remove <span class="blue-text">{{viewData.user.first_name}} {{viewData.user.last_name}}</span> as warden ?</h6>
+		<h6 class="red-text">{{errorMessageRemoveWarden}}</h6>
+	</div>
+	<div class="modal-footer" *ngIf="!showModalRemoveWardenLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="yesRemoveWarden()">Yes</a>
+	</div>
 </div>

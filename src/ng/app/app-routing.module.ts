@@ -49,6 +49,7 @@ import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.im
 import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.mobility.impaired.component';
 import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
 import { AllUsersComponent } from './teams/all-users/all.users.component';
+import { AllUsersArchivedComponent } from './teams/all-users-archived/all.users.archived.component';
 import { AddUserComponent } from './teams/add-user/add.user.component';
 import { ViewUserComponent } from './teams/view-user/view.user.component';
 import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
@@ -114,6 +115,7 @@ const appRoutes: Routes = [
       { path : 'add-mobility-impaired', component : AddMobilityImpairedComponent },
       { path : 'list-wardens', component : ListWardensComponent },
       { path : 'all-users', component : AllUsersComponent },
+      { path : 'all-archived-users', component : AllUsersArchivedComponent },
       { path : 'add-user', component : AddUserComponent },
       { path : 'view-user/:encrypted', component : ViewUserComponent },
       { path : 'view-warden', component : ViewWardenComponent },

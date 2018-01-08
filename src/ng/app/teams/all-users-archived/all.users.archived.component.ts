@@ -10,12 +10,12 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 
 declare var $: any;
 @Component({
-  selector: 'app-all-users',
-  templateUrl: './all.users.component.html',
-  styleUrls: ['./all.users.component.css'],
+  selector: 'app-all-users-archived',
+  templateUrl: './all.users.archived.component.html',
+  styleUrls: ['./all.users.archived.component.css'],
   providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService]
 })
-export class AllUsersComponent implements OnInit, OnDestroy {
+export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 
 	userData = {};
 	listData = [];
@@ -37,12 +37,11 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	getListData(callBack?){
-		this.userService.getUsersByAccountId(this.userData['accountId'], (response) => {
+		this.userService.getArchivedUsersByAccountId(this.userData['accountId'], (response) => {
 			this.listData = response.data;
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
 				this.listData[i]['user_id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']).toString();
-				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['location_account_user_id']).toString();
 			}
 			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
 			if(callBack){
@@ -165,7 +164,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	onSelectFromTable(event, list){
 		let selected = event.target.value;
 		if(selected == 'view'){
-			this.router.navigate(["/teams/view-user/", list.id_encrypted]);
+			this.router.navigate(["/teams/view-user/", list.user_id_encrypted]);
 		}else{
 			event.target.value = "0";
 			this.showModalLoader = false;
@@ -174,9 +173,9 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	archiveClick(){
+	unArchiveClick(){
 		this.showModalLoader = true;
-		this.userService.archiveLocationUser([this.selectedToArchive['location_account_user_id']], (response) => {
+		this.userService.unArchiveLocationUser([this.selectedToArchive['location_account_user_id']], (response) => {
 			this.showModalLoader = false;
 			$('#modalArchive').modal('close');
 			this.dashboardService.show();
@@ -211,7 +210,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		$('select.bulk-manage').on('change', () => {
 			let sel = $('select.bulk-manage').val();
 
-			if(sel == 'archive'){
+			if(sel == 'restore'){
 				$('select.bulk-manage').val("0").material_select();
 				if(this.selectedFromList.length > 0){
 					$('#modalArchiveBulk').modal('open');
@@ -221,7 +220,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	bulkArchiveClick(){
+	bulkUnArchiveClick(){
 		this.showModalLoader = true;
 		let arrIds = [];
 
@@ -229,7 +228,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			arrIds.push(this.selectedFromList[i]['location_account_user_id']);
 		}
 
-		this.userService.archiveLocationUser(arrIds, (response) => {
+		this.userService.unArchiveLocationUser(arrIds, (response) => {
 			this.showModalLoader = false;
 			$('#modalArchiveBulk').modal('close');
 			this.dashboardService.show();

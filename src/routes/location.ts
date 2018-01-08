@@ -65,7 +65,7 @@ const md5 = require('md5');
           }).catch((err) => {
             return res.status(400).send({
               	locations : [],
-                message: 'Error getting locations'
+                message: err
           	});
      		});
      	});
@@ -76,7 +76,7 @@ const md5 = require('md5');
           }).catch((err) => {
             return res.status(400).send({
                 locations : [],
-                message: 'Error getting locations'
+                message: err
             });
          });
       });

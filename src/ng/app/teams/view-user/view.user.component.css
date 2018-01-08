@@ -249,6 +249,9 @@ ul.list li{
     -moz-column-count: 1;
     column-count: 1;
   }
+  #modalRemoveWarden{
+    width: 85%;
+  }
 }
 @media only screen and (min-width: 601px) {
   .masonry-container {
@@ -256,11 +259,18 @@ ul.list li{
     -moz-column-count: 2;
     column-count: 2;
   }
+  #modalRemoveWarden{
+    width: 45%;
+  }
 }
 @media only screen and (min-width: 993px) {
   .masonry-container {
     -webkit-column-count: 3;
     -moz-column-count: 3;
     column-count: 3;
+  }
+
+  #modalRemoveWarden{
+    width: 35%;
   }
 }

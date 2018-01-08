@@ -68,6 +68,7 @@ import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.im
 import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.mobility.impaired.component';
 import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
 import { AllUsersComponent } from './teams/all-users/all.users.component';
+import { AllUsersArchivedComponent } from './teams/all-users-archived/all.users.archived.component';
 import { AddUserComponent } from './teams/add-user/add.user.component';
 import { ViewUserComponent } from './teams/view-user/view.user.component';
 import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
@@ -125,7 +126,8 @@ import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen
     ViewUserComponent,
     ViewWardenComponent,
     ViewGeneralOccupantComponent,
-    ViewChiefWardenComponent
+    ViewChiefWardenComponent,
+    AllUsersArchivedComponent
   ],
   imports: [
     BrowserModule,

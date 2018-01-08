@@ -15,6 +15,8 @@ import { FileUser } from '../models/file.user.model';
 import { Files } from '../models/files.model';
 import { LocationAccountUser } from '../models/location.account.user';
 import { Location } from '../models/location.model';
+import { BlacklistedEmails } from '../models/blacklisted-emails';
+import { EmailSender } from './../models/email.sender';
 
 
 import * as moment from 'moment';
@@ -54,15 +56,30 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().getUsersByAccountId(req, res, next);
 	    });
 
-	    router.get('/users/get-user-for-frp-trp-view/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().getUserForFrpTrpView(req, res, next);
+	    router.get('/users/get-user-locations-trainings-ecoroles/:loc_acc_user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getUserLocationsTrainingsEcoRoles(req, res, next);
 	    })
 
 	    router.post('/users/archive-location-account-user', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().setLocationAccountUserToArchive(req, res, next);
 	    });
-	}
 
+	    router.get('/users/get-archived-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getArchivedUsersByAccountId(req, res, next);
+	    });
+
+	    router.post('/users/unarchive-location-account-user', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().setLocationAccountUserToUnArchive(req, res, next);
+	    });
+
+	    router.post('/users/create-bulk-users', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().createBulkUsers(req, res, next);
+	    });
+
+	    router.post('/users/remove-user-as-warden', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().removeUserAsWarden(req, res, next);
+	    })
+	}
 
 	public uploadProfilePicture(req: Request, res: Response, next: NextFunction){
 		let response = {
@@ -223,8 +240,17 @@ export class UsersRoute extends BaseRoute {
 				locations[l]['parent_data'] = allParents[ locations[l]['parent_id'] ];
 			}
 
-			await userModel.load().then(()=>{
+			await userModel.load().then( async ()=>{
 				locations[l]['user_info'] = userModel.getDBData();
+
+				let filesModel = new Files();
+				try{
+					let profRec = await filesModel.getByUserIdAndType( userModel.get('user_id'), 'profile' );
+					locations[l]['user_info']['profile_pic'] = profRec[0]['url'];
+				}catch(e){
+					locations[l]['user_info']['profile_pic'] = '';
+				}
+
 			},()=>{
 				locations[l]['user_info'] = {};
 			});
@@ -235,26 +261,62 @@ export class UsersRoute extends BaseRoute {
 		response.status = true;
 		res.statusCode = 200;
 		res.send(response);
-
 	}
 
-	public async getUserForFrpTrpView(req: Request, res: Response, next: NextFunction){
+	public async getUserLocationsTrainingsEcoRoles(req: Request, res: Response, next: NextFunction){
 		let response = {
 			status : false,
 			data : {
 				user : {},
-				locations : <any>[],
+				location : {},
 				trainings : <any>[],
 				eco_roles : <any>[],
+				eco_role : '',
 			},
 			message : ''
 		},
-		userModel = new User(req.params['user_id']);
+		locationAccountUser = new LocationAccountUser(req.params['loc_acc_user_id']);
+
+		await locationAccountUser.load();
+
+		let loc_acc_user = locationAccountUser.getDBData(),
+			userModel = new User(loc_acc_user['user_id']),
+			locationModel = new Location(loc_acc_user['location_id']);
 
 		response.data['user'] = await userModel.load();
+		response.data['location'] = await locationModel.load();
+		response.data['loc_acc_user'] = loc_acc_user;
+
+		try{
+			let parentLocation = new Location(response.data['location']['parent_id']);
+			await parentLocation.load();
+			response.data['location']['parent_data'] = ( Object.keys(parentLocation.getDBData()).length > 0 ) ? parentLocation.getDBData() : {};
+		}catch(e){
+			response.data['location']['parent_data'] = {};
+		}
+
+		if(loc_acc_user['role_id'] == 1){
+			response.data['eco_role'] == 'Building Manager';
+		}else if(loc_acc_user['role_id'] == 2){
+			response.data['eco_role'] == 'Tenant';
+		}else{
+			let userEmRoleRelation = new UserEmRoleRelation();
+			await userEmRoleRelation.getEmRolesByUserId( loc_acc_user['user_id'] ).then(
+				() => {
+					let eco_roles = userEmRoleRelation.getDBData();
+					response.data['eco_roles'] = eco_roles;
+					for(let x in eco_roles){
+						response.data['eco_role'] = eco_roles[x]['role_name'];
+					}
+				},
+				() => {
+					response.data['eco_role'] = '';
+				}
+			);
+		}
 
 		let fileModel = new Files();
-        await fileModel.getByUserIdAndType(req.params['user_id'], 'profile').then(
+        await fileModel.getByUserIdAndType(loc_acc_user['user_id'], 'profile').then(
             (fileData) => {
                 response.data['user']['profilePic'] = fileData[0].url;
             },
@@ -262,30 +324,6 @@ export class UsersRoute extends BaseRoute {
                 response.data['user']['profilePic'] = '';
             }
         );
-
-		let locationAccountUser = new LocationAccountUser();
-		let arrWhere = [];
-			arrWhere.push( ["user_id", "=", req.params['user_id'] ] );
-
-		response.data['locations'] = await locationAccountUser.getMany(arrWhere);
-		let allParents = [];
-		for(let l in response.data.locations){
-			let parentLocation = new Location(response.data.locations[l]['parent_id']);
-
-			if(allParents.indexOf(response.data.locations[l]['parent_id']) == -1){
-				await parentLocation.load().then(() => {
-					allParents[ response.data.locations[l]['parent_id'] ] = parentLocation.getDBData();
-					response.data.locations[l]['parent_data'] = parentLocation.getDBData();
-				}, () => {
-					response.data.locations[l]['parent_data'] = {};
-				});
-			}else{
-				response.data.locations[l]['parent_data'] = allParents[ response.data.locations[l]['parent_id'] ];
-			}
-		}
-
-		let userEmRoleRelation = new UserEmRoleRelation();
-		response.data['eco_roles'] = await userEmRoleRelation.getEmRolesByUserId( req.params['user_id'] );
 
 		response.status = true;
 		res.statusCode = 200;
@@ -309,6 +347,196 @@ export class UsersRoute extends BaseRoute {
 
 		response.message = 'Success';
 		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async setLocationAccountUserToUnArchive(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : true,
+			data : <any>[],
+			message : ''
+		};
+
+		for(let i in req.body['location_account_user_id']){
+			let locAccountUser = new LocationAccountUser(req.body['location_account_user_id'][i]);
+			await locAccountUser.load();
+			console.log(locAccountUser.getDBData());
+			locAccountUser.set('archived', 0);
+			await locAccountUser.dbUpdate();
+		}
+
+		response.message = 'Success';
+		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async getArchivedUsersByAccountId(req: Request, res: Response, next: NextFunction){
+		let accountId = req.params.account_id,
+			locationAccountUser = new LocationAccountUser(),
+			response = {
+				data : <any>[],
+				status : false,
+				message : ''
+			},
+			allParents = [];
+
+		let arrWhere = [];
+			arrWhere.push( ["account_id", "=", accountId ] );
+			arrWhere.push( ["archived", "=", 1 ] );
+		let locations = await locationAccountUser.getMany(arrWhere);
+		for(let l in locations){
+			let userModel = new User(locations[l]['user_id']);
+			let parentLocation = new Location(locations[l]['parent_id']);
+
+			if(allParents.indexOf(locations[l]['parent_id']) == -1){
+				await parentLocation.load().then(() => {
+					allParents[ locations[l]['parent_id'] ] = parentLocation.getDBData();
+					locations[l]['parent_data'] = parentLocation.getDBData();
+				}, () => {
+					locations[l]['parent_data'] = {};
+				});
+			}else{
+				locations[l]['parent_data'] = allParents[ locations[l]['parent_id'] ];
+			}
+
+			await userModel.load().then(()=>{
+				locations[l]['user_info'] = userModel.getDBData();
+			},()=>{
+				locations[l]['user_info'] = {};
+			});
+
+		}
+
+		response.data = locations;
+		response.status = true;
+		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async createBulkUsers(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : false, data : [], message: ''
+		},
+		users = JSON.parse(req.body.users),
+		returnUsers = [];
+
+		for(let i in users){
+			let userModel = new User(),
+				userRoleRelation = new UserRoleRelation(),
+				userEmRole = new UserEmRoleRelation(),
+				isEmailValid = this.isEmailValid(users[i]['email']),
+				isBlackListedEmail = false,
+				hasError = false;
+
+			users[i]['errors'] = {};
+
+			if(isEmailValid){
+				isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
+				if(!isBlackListedEmail){
+					await userModel.getByEmail(users[i]['email']).then(
+						() => {
+							console.log(userModel.getDBData());
+							hasError = true;
+							users[i]['errors']['email_taken'] = true;
+						},
+						() => {}
+					);
+				}else{
+					users[i]['errors']['blacklisted'] = true;
+					hasError = true;
+				}
+			}
+
+			if(!hasError){
+				let
+				token = this.generateRandomChars(30),
+				saveData = {
+					'code' : token,
+					'first_name' : users[i]['first_name'],
+					'last_name' : users[i]['last_name'],
+					'email' : users[i]['email'],
+					'contact_number' : users[i]['mobile_number'],
+					'location_id' : users[i]['account_location_id'],
+					'account_id' : req['user']['account_id'],
+					'role_id' : (req['user']['account_role_id'] == 1 || req['user']['account_role_id'] == 2) ? req['user']['account_role_id'] : 0,
+					'eco_role_id' : (req['user']['account_role_id'] != 1 || req['user']['account_role_id'] != 2) ? 9 : 0,
+					'invited_by_user' : req['user']['user_id']
+				};
+
+				let inviCode = new InvitationCode();
+				await inviCode.create(saveData);
+
+				const opts = {
+					from : 'allantaw2@gmail.com',
+					fromName : 'EvacConnect',
+					to : [],
+					cc: [],
+					body : '',
+					attachments: [],
+					subject : 'EvacConnect Notification'
+				};
+				const email = new EmailSender(opts);
+				const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
+				let emailBody = email.getEmailHTMLHeader();
+				emailBody += `<h3 style="text-transform:capitalize;">Hi ${saveData['first_name']} ${saveData['last_name']},</h3> <br/>
+				<h4>You were added to EvacConnect Compliance Management System.</h4> <br/>
+				<h5>Click on the link below to setup your password.</h5> <br/>
+				<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+				emailBody += email.getEmailHTMLFooter();
+
+				email.assignOptions({
+					body : emailBody,
+					to: [saveData['email']],
+					cc: ['erwin.macaraig@gmail.com']
+				});
+				email.send(
+					(data) => console.log(data),
+					(err) => console.log(err)
+				);
+			}else{
+				returnUsers.push( users[i] );
+			}
+
+		}
+
+		res.statusCode = 200;
+		response.status = true;
+		response.data = returnUsers;
+		res.send(response);
+	}
+
+	public async removeUserAsWarden(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : false, data : [], message : ''
+		};
+		let userEmRoleModel = new UserEmRoleRelation();
+
+		let emroles = await userEmRoleModel.getEmRolesByUserId(req.body.user_id);
+		let deleteLocAccUser = new LocationAccountUser();
+		let deleteLocationsAccountUserData = await deleteLocAccUser.getByUserId(req.body.user_id);
+		for(let i in emroles){
+			if(parseInt(emroles[i]['is_warden_role']) == 1){
+				let deleteEmRoleModel = new UserEmRoleRelation(emroles[i]['user_em_roles_relation_id']);
+				let locationID = emroles[i]['location_id'];
+				try{
+					await deleteEmRoleModel.delete();
+
+					console.log(deleteLocationsAccountUserData);
+					for(let i in deleteLocationsAccountUserData){
+						if(deleteLocationsAccountUserData[i]['location_id'] == locationID){
+							let deleteLocAcc = new LocationAccountUser( deleteLocationsAccountUserData[i]['location_account_user_id'] );
+							await deleteLocAcc.delete();
+						}
+					}
+
+				}catch(e){  }
+
+
+			}
+		}
+
+		response.status = true;
 		res.send(response);
 	}
 
