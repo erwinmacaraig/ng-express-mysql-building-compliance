@@ -99,4 +99,13 @@ export class UserService {
 		});
 	}
 
+	removeUserAsWarden(userId, callBack){
+		this.http.post(this.baseUrl+"/users/remove-user-as-warden", { user_id : userId })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 }

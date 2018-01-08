@@ -33,6 +33,24 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
+    public delete() {
+        return new Promise((resolve, reject) => {
+            const sql_del = `DELETE FROM location_account_user WHERE location_account_user_id = ? LIMIT 1`;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_del, [this.ID()], (error, results, fields) => {
+                if (error) {
+                    console.log(error);
+                    reject('Error deleting record');
+
+                } else {
+                    resolve(true);
+                }
+
+            });
+            connection.end();
+        });
+    }
+
     public getMany(arrWhere){
       return new Promise((resolve, reject) => {
             let sql_load = '',
@@ -210,13 +228,8 @@ export class LocationAccountUser extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              if(!results.length){
-                reject('Record not found');
-              }else{
-                this.dbData = results[0];
-                this.setID(results[0]['location_account_user_id']);
+                this.dbData = results;
                 resolve(this.dbData);
-              }
             });
             connection.end();
         });

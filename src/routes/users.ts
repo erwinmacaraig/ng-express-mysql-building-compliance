@@ -75,8 +75,11 @@ export class UsersRoute extends BaseRoute {
 	    router.post('/users/create-bulk-users', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().createBulkUsers(req, res, next);
 	    });
-	}
 
+	    router.post('/users/remove-user-as-warden', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().removeUserAsWarden(req, res, next);
+	    })
+	}
 
 	public uploadProfilePicture(req: Request, res: Response, next: NextFunction){
 		let response = {
@@ -275,32 +278,30 @@ export class UsersRoute extends BaseRoute {
 		response.data['location'] = await locationModel.load();
 		response.data['loc_acc_user'] = loc_acc_user;
 
-		if( Object.keys( locationModel.getDBData() ).length > 0 ){
+		try{
 			let parentLocation = new Location(response.data['location']['parent_id']);
 			await parentLocation.load();
 			response.data['location']['parent_data'] = ( Object.keys(parentLocation.getDBData()).length > 0 ) ? parentLocation.getDBData() : {};
-		}else{
+		}catch(e){
 			response.data['location']['parent_data'] = {};
 		}
-		
+
 		if(loc_acc_user['role_id'] == 1){
 			response.data['eco_role'] == 'Building Manager';
 		}else if(loc_acc_user['role_id'] == 2){
 			response.data['eco_role'] == 'Tenant';
 		}else{
 			let userEmRoleRelation = new UserEmRoleRelation();
-			await userEmRoleRelation.getEmRolesByUserId( req.params['user_id'] ).then(
+			await userEmRoleRelation.getEmRolesByUserId( loc_acc_user['user_id'] ).then(
 				() => {
 					let eco_roles = userEmRoleRelation.getDBData();
 					response.data['eco_roles'] = eco_roles;
-					for(let i in eco_roles){
-						if(eco_roles[i]['location_id'] == loc_acc_user['location_id']){
-							response.data['eco_role'] == eco_roles[i]['role_name'];
-						}
+					for(let x in eco_roles){
+						response.data['eco_role'] = eco_roles[x]['role_name'];
 					}
 				},
 				() => {
-					response.data['eco_role'] = 'Warden';
+					response.data['eco_role'] = '';
 				}
 			);
 		}
@@ -493,6 +494,40 @@ export class UsersRoute extends BaseRoute {
 		res.statusCode = 200;
 		response.status = true;
 		response.data = returnUsers;
+		res.send(response);
+	}
+
+	public async removeUserAsWarden(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : false, data : [], message : ''
+		};
+		let userEmRoleModel = new UserEmRoleRelation();
+
+		let emroles = await userEmRoleModel.getEmRolesByUserId(req.body.user_id);
+		let deleteLocAccUser = new LocationAccountUser();
+		let deleteLocationsAccountUserData = await deleteLocAccUser.getByUserId(req.body.user_id);
+		for(let i in emroles){
+			if(parseInt(emroles[i]['is_warden_role']) == 1){
+				let deleteEmRoleModel = new UserEmRoleRelation(emroles[i]['user_em_roles_relation_id']);
+				let locationID = emroles[i]['location_id'];
+				try{
+					await deleteEmRoleModel.delete();
+
+					console.log(deleteLocationsAccountUserData);
+					for(let i in deleteLocationsAccountUserData){
+						if(deleteLocationsAccountUserData[i]['location_id'] == locationID){
+							let deleteLocAcc = new LocationAccountUser( deleteLocationsAccountUserData[i]['location_account_user_id'] );
+							await deleteLocAcc.delete();
+						}
+					}
+
+				}catch(e){  }
+
+
+			}
+		}
+
+		response.status = true;
 		res.send(response);
 	}
 

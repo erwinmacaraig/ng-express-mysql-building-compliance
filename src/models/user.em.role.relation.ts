@@ -37,6 +37,7 @@ export class UserEmRoleRelation extends BaseClass {
     public getEmRolesByUserId(userId) {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
+                      uer.user_em_roles_relation_id,
                       er.role_name,
                       er.is_warden_role,
                       uer.location_id,
@@ -114,6 +115,24 @@ export class UserEmRoleRelation extends BaseClass {
                 this.id = createData.user_em_roles_relation_id;
             }
             resolve(this.write());
+        });
+    }
+
+    public delete() {
+        return new Promise((resolve, reject) => {
+            const sql_del = `DELETE FROM user_em_roles_relation WHERE user_em_roles_relation_id = ? LIMIT 1`;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_del, [this.ID()], (error, results, fields) => {
+                if (error) {
+                    console.log(error);
+                    reject('Error deleting record');
+
+                } else {
+                    resolve(true);
+                }
+
+            });
+            connection.end();
         });
     }
 

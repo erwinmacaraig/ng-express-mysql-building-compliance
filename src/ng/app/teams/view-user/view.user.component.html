@@ -63,7 +63,7 @@
 	</div>
 
 	<div class="bottom-buttons">
-		<button class="btn orange waves-effect waves-light remove" *ngIf="viewData.eco_roles.length > 0">
+		<button class="btn orange waves-effect waves-light remove" *ngIf="showRemoveWardenButton" (click)="clickRemoveWarden()">
 			<div class="image inline-block"></div>
 			<div class="text inline-block">Remove this user as Warden</div>
 		</button>
@@ -150,7 +150,29 @@
 		</div>
 	</div>
 	
-	
-	
+</div>
 
+<div id="modalRemoveWarden" class="modal">
+	<div class="modal-content center" *ngIf="showModalRemoveWardenLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" *ngIf="!showModalRemoveWardenLoader">
+		<h5>Confirmation</h5>
+		<h6>Are you sure you want to remove <span class="blue-text">{{viewData.user.first_name}} {{viewData.user.last_name}}</span> as warden ?</h6>
+		<h6 class="red-text">{{errorMessageRemoveWarden}}</h6>
+	</div>
+	<div class="modal-footer" *ngIf="!showModalRemoveWardenLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="yesRemoveWarden()">Yes</a>
+	</div>
 </div>

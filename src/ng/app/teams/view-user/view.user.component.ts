@@ -36,6 +36,9 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		trainings : [],
 		badge_class : ''
 	};
+	showRemoveWardenButton = false;
+	showModalRemoveWardenLoader = false;
+	errorMessageRemoveWarden = '';
 
 	constructor(
 		private auth: AuthService,
@@ -56,13 +59,24 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			this.userService.getUserLocationTrainingsEcoRoles(this.decryptedID, (response) => {
 				this.viewData.user = response.data.user;
 				this.viewData.eco_role = response.data.eco_role;
+				this.viewData.eco_roles = response.data.eco_roles;
 				this.viewData.location = response.data.location;
 				this.viewData.trainings = response.data.trainings;
 
-				if(this.viewData.eco_role.toLowerCase().indexOf('chief warden') > 0){
-					this.viewData.badge_class = 'chief-warden';
-				}else{
-					this.viewData.badge_class = 'warden';
+				for(let i in this.viewData.eco_roles){
+					if(this.viewData.eco_roles[i]['is_warden_role'] == 1){
+						this.showRemoveWardenButton = true;
+					}
+
+					if( this.viewData.eco_roles[i]['role_name'].toLowerCase().indexOf('chief warden') > -1 ){
+						this.viewData.badge_class = 'chief-warden';
+					}else{
+
+						if( this.viewData.eco_roles[i]['role_name'].toLowerCase().indexOf('warden') > -1 && this.viewData.eco_roles[i]['is_warden_role'] == 1){
+							this.viewData.badge_class = 'warden';
+						}
+
+					}
 				}
 
 				if(this.viewData.user.last_login.length > 0 ){
@@ -129,6 +143,25 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			return initials;
 		}
 		return 'AA';
+	}
+
+	clickRemoveWarden(){
+		$('#modalRemoveWarden').modal('open');
+		this.errorMessageRemoveWarden = '';
+		this.showModalRemoveWardenLoader = false;
+	}
+
+	public yesRemoveWarden(){
+		this.showModalRemoveWardenLoader = true;
+		this.userService.removeUserAsWarden(this.viewData.user['user_id'], (response) => {
+			if(response.status){
+				$('#modalRemoveWarden').modal('close');
+				setTimeout(() => {
+					this.showModalRemoveWardenLoader = false;
+					this.router.navigate(["/teams/all-users"]);
+				}, 300);
+			}
+		})
 	}
 
 	ngOnDestroy(){}
