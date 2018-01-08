@@ -60,7 +60,7 @@
 							</select>
 						</td>
 						<td >
-							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0 && user.account_role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
+							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0 && user.role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
 						</td>
 						<td class="with-remove">
 							<input type="text" [(ngModel)]="user.contact_number" placeholder="Mobile number" name="mobile{{i}}">
@@ -99,10 +99,10 @@
 				Step 1 - Download CSV Template
 			</h6>
 			<p style="margin: 30px 0px;">
-				<button class="btn orange lighten-1 waves-effect waves-light">
+				<a href="https://s3.amazonaws.com/allan-delfin/templates/user_import.csv" class="btn orange lighten-1 waves-effect waves-light">
 					<div class="csv-icon"></div>
 					<span>Download CSV Template</span>
-				</button>
+				</a>
 			</p>
 			<h6 class="blue-text" style="margin: 30px 0px;">
 				Step 2 - Upload CSV File

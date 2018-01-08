@@ -28,6 +28,7 @@ export class WardenInvitationFormComponent implements OnInit, OnDestroy, AfterVi
   public sublocation;
   public signupSubscription;
   public em_role_id;
+  public role_id = 0;
 
   public parent_id;
   public sublocation_id;
@@ -53,6 +54,9 @@ export class WardenInvitationFormComponent implements OnInit, OnDestroy, AfterVi
        }
        if (data['location_name']) {
         this.formWardenProfile.controls['sublocation'].setValue(data['location_name']);
+       }
+       if (data['role_id']) {
+         this.role_id = data['role_id'];
        }
        if (data['locations']) {
         this.parentLocations = data['locations'];
@@ -114,7 +118,8 @@ export class WardenInvitationFormComponent implements OnInit, OnDestroy, AfterVi
       'token': this.token,
       'password': f.controls.password.value,
       'confirmPassword': f.controls.confirmPassword.value,
-      'em_role': this.em_role_id
+      'em_role': this.em_role_id,
+      'role_id': this.role_id
     };
     if (this.parentLocations.length) {
       formData['parent_location'] = this.parentLocations[$('#mainBuilding').val()].location_id;

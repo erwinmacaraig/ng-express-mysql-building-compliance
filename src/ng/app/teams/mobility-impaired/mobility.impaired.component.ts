@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse }
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
+import { PersonDataProviderService } from './../../services/person-data-provider.service';
+import { LocationsService } from './../../services/locations';
 
 declare var $: any;
 @Component({
@@ -11,11 +13,20 @@ declare var $: any;
   styleUrls: ['./mobility.impaired.component.css']
 })
 export class MobilityImpairedComponent implements OnInit, OnDestroy {
-	constructor(){
+  public peepList;
+	constructor(
+    private dataProvider: PersonDataProviderService,
+    private locationService: LocationsService
+  ) {
 
 	}
 
-	ngOnInit(){}
+	ngOnInit(){
+    this.dataProvider.buildPeepList().subscribe((peep) => {
+      this.peepList = peep;
+      console.log(peep);
+    }, (err: HttpErrorResponse) => {});
+  }
 
 	ngAfterViewInit(){
 		$('.modal').modal({

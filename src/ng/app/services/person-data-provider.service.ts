@@ -91,4 +91,12 @@ export class PersonDataProviderService {
   public buildWardenList() {
     return this.http.get(this.baseUrl + '/team/list/wardens', this.options);
   }
+
+  public addPEEP(peep: string) {
+    return this.http.post<any>(this.baseUrl + '/team/form/add-bulk-peep', {'peep': peep});
+  }
+
+  public buildPeepList() {
+    return this.http.get(this.baseUrl + '/team/list/peep', this.options);
+  }
 }

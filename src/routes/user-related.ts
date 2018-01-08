@@ -3,7 +3,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Account } from '../models/account.model';
-import { InvitationCode  } from '../models/invitation.code.model';
+import { UserInvitation } from './../models/user.invitation.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { Utils } from '../models/utils.model';
@@ -26,7 +26,7 @@ export class UserRelatedRoute extends BaseRoute {
     });
 
     router.get('/person-invi-code', (req: Request, res: Response, next: NextFunction) => {
-      new UserRelatedRoute().getUserInvitationCode(req, res, next);
+      new UserRelatedRoute().getUserUserInvitation(req, res, next);
     });
 
     router.get('/listAllFRP', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -119,9 +119,9 @@ export class UserRelatedRoute extends BaseRoute {
 
   }
 
-  public getUserInvitationCode(req: Request, res: Response, next: NextFunction) {
+  public getUserUserInvitation(req: Request, res: Response, next: NextFunction) {
     const queryParamCode = req.query.code;
-    const invitation_code = new InvitationCode();
+    const invitation_code = new UserInvitation();
 
 
     invitation_code.getInvitationByCode(queryParamCode, false).then((dbData) => {
@@ -148,7 +148,7 @@ export class UserRelatedRoute extends BaseRoute {
       });
     });
 
-  } // end getUserInvitationCode
+  } // end getUserUserInvitation
   public getUserPersonalInfo(req: AuthRequest, res: Response) {
 
     const queryParamUser = req.query.userId;

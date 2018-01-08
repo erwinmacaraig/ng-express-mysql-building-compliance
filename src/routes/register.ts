@@ -5,7 +5,7 @@ import { UserRoleRelation } from '../models/user.role.relation.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { EmailSender } from '../models/email.sender';
 import { Token } from '../models/token.model';
-import { InvitationCode  } from '../models/invitation.code.model';
+import { UserInvitation } from './../models/user.invitation.model';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { LocationAccountUser } from '../models/location.account.user';
 import { SecurityQuestions } from '../models/security-questions.model';
@@ -549,15 +549,15 @@ const md5 = require('md5');
 			}).then(
 				() => {
 					if('invi_code_id' in reqBody) {
-						const code = new InvitationCode(reqBody.invi_code_id);
+						const code = new (reqBody.invi_code_id);
 						code.load().then(
 							() => {
 								let c = code.getDBData();
-								let multipleCodes = new InvitationCode();
+								let multipleCodes = new UserInvitation();
 								multipleCodes.getManyInvitationByCode( c['code'] ).then(
 									(codes) => {
 										for(let i in codes){
-											const codeUpdate = new InvitationCode(codes[i].invitation_code_id);
+											const codeUpdate = new UserInvitation(codes[i].invitation_code_id);
 											let updateSuccess;
 
 											if( parseInt(i) == (Object.keys(codes).length - 1) ){

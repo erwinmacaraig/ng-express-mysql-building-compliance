@@ -256,14 +256,14 @@ export class Account extends BaseClass {
             locations.location_id;
             `;
 
-            // console.log(sql_get_locations);
+
             const val = [this.ID()];
             const connection = db.createConnection(dbconfig);
 
             connection.query(sql_get_locations, val, (err, results, fields) => {
                 if (err) {
                     console.log(err);
-                    console.log(sql_get_locations);
+                    // console.log(sql_get_locations);
                     throw new Error('Internal problem. There was a problem processing your query');
                 }
                 if (results.length) {
@@ -281,8 +281,9 @@ export class Account extends BaseClass {
       return new Promise((resolve, reject) => {
         const sql_warden_list = `
         SELECT
-			    users.first_name,
+    		  users.first_name,
           users.last_name,
+          users.account_id,
           users.last_login,
           DATEDIFF(NOW(), last_login) AS days,
           em_roles.role_name,
@@ -292,31 +293,36 @@ export class Account extends BaseClass {
           locations.location_id,
           locations.google_photo_url
         FROM
-          locations
-        INNER JOIN
-          location_account_user LAU
-        ON
-          locations.location_id = LAU.location_id
-        INNER JOIN
-          user_em_roles_relation
-        ON
-          user_em_roles_relation.location_id = locations.location_id
+         user_em_roles_relation
         INNER JOIN
           users
         ON
           user_em_roles_relation.user_id = users.user_id
         INNER JOIN
           em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
-        WHERE
-          LAU.account_id = ?
-        AND
-          locations.archived = 0
-        AND
-          LAU.user_id = ?
-        GROUP BY
-          locations.location_id
-        ORDER BY
-          locations.location_id;`;
+	      INNER JOIN
+          locations
+        ON
+          locations.location_id = user_em_roles_relation.location_id
+        WHERE user_em_roles_relation.location_id IN (
+		      SELECT
+            locations.location_id
+          FROM
+            locations
+          INNER JOIN
+            location_account_user LAU
+          ON
+            locations.location_id = LAU.location_id
+          WHERE
+            LAU.account_id = ?
+          AND
+            locations.archived = 0
+          AND
+            LAU.user_id = ?
+          GROUP BY
+            locations.location_id
+          ORDER BY
+            locations.location_id)`;
 
         const connection = db.createConnection(dbconfig);
         connection.query(sql_warden_list, [this.ID(), user_id], (err, results, fields) => {
@@ -332,6 +338,42 @@ export class Account extends BaseClass {
         });
         connection.end();
       });
+    }
+
+    public buildPEEPList(user_id: number) {
+      return new Promise((resolve, reject) => {
+        const sql_get_peep = `
+          SELECT
+            first_name,
+            last_name,
+            user_invitations.location_id,
+            locations.name as location_name
+          FROM
+            user_invitations
+          INNER JOIN
+            locations
+          ON
+            user_invitations.location_id = locations.location_id
+          WHERE
+            mobility_impaired = 1
+          AND
+            invited_by_user = ?
+         `;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_get_peep, [user_id], (err, results, fields) => {
+          if (err) {
+            console.log(`account.model: ${sql_get_peep}`, err);
+            throw new Error(err);
+          }
+          if (!results.length) {
+            reject('No peep record(s) found');
+          } else {
+            resolve(results);
+          }
+        });
+        connection.end();
+      });
+
     }
 
 
