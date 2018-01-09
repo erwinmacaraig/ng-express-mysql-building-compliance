@@ -117,8 +117,17 @@ export class UserService {
 		});
 	}
 
-	requestAsWarden(userId, callBack){
-		this.http.post(this.baseUrl+"/users/request-as-warden", { user_id : userId })
+	requestAsWarden(requestData, callBack){
+		this.http.post(this.baseUrl+"/users/request-as-warden", requestData)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	getWardenRequest(userId, callBack){
+		this.http.post(this.baseUrl+"/users/get-warden-request", { user_id : userId })
 		.subscribe(res => {
 			callBack(res);
 		}, err => {

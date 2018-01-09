@@ -62,6 +62,21 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
+    public getEmRoles() {
+        return new Promise((resolve, reject) => {
+            const sql_load = `SELECT * FROM em_roles`;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
     public dbInsert() {
         return new Promise((resolve, reject) => {
             const sql_insert = `INSERT INTO user_em_roles_relation (

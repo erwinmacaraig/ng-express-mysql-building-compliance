@@ -30,7 +30,12 @@
 	</div>
 
 	<div class="bottom-buttons">
-		<button class="btn orange waves-effect waves-light remove" (click)="requestWardenClick()" *ngIf="viewData.eco_role.em_roles_id == 8">
+		<button class="btn orange waves-effect waves-light remove disabled" *ngIf="hasRequest">
+			<div class="image inline-block"></div>
+			<div class="text inline-block">Warden request in process</div>
+		</button>
+
+		<button class="btn orange waves-effect waves-light remove" (click)="requestWardenClick()" *ngIf="viewData.eco_role.em_roles_id == 8 && !hasRequest">
 			<div class="image inline-block"></div>
 			<div class="text inline-block">Request to be Warden</div>
 		</button>
@@ -48,7 +53,7 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col s12 m6 l6">
+		<div class="col s12 m10 l6">
 			<table>
 				<thead>
 					<tr>
@@ -121,12 +126,15 @@
 
 <div id="modalRequestWarden" class="modal">
 	<div class="modal-content" *ngIf="!showModalRequestWardenLoader && !showModalRequestWardenSuccess">
-		<h5>Select Approver</h5>
-		<h6 *ngIf="approvers.length == 0">
+		<h5 style="margin-bottom: 7%;" [hidden]="approvers.length == 0">Select your approver</h5>
+		<h6 [hidden]="approvers.length > 0">
 			Sorry there's no approver for this location
 		</h6>
-
-		<div class="select-field" *ngIf="approvers.length > 0">
+		
+		<h6 [hidden]="approvers.length == 0">
+			You need to select a TRP to approve your request
+		</h6>
+		<div class="select-field" [hidden]="approvers.length == 0">
 			<select>
 				<option value="0">Select approver</option>
 				<option *ngFor="let approver of approvers" [value]="approver.user_id">{{approver.first_name}} {{approver.last_name}}</option>
@@ -149,7 +157,8 @@
 	</div>
 
 	<div class="modal-content center" *ngIf="showModalRequestWardenSuccess && !showModalRequestWardenLoader">
-		<h5>Request sent!</h5>
+		<h5 *ngIf="customMessageModal.status">{{customMessageModal.message}}</h5>
+		<h5 *ngIf="!customMessageModal.status">Request sent!</h5>
 	</div>
 	
 	<div class="modal-footer" *ngIf="!showModalRequestWardenLoader && !showModalRequestWardenSuccess">

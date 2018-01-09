@@ -33,6 +33,11 @@ export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 	approvers = [];
 	showModalRequestWardenSuccess = false;
 	userData = {};
+	customMessageModal = {
+		status : false,
+		message : ''
+	};
+	hasRequest = false;
 
 	constructor(
 		private auth: AuthService,
@@ -40,6 +45,14 @@ export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 		private preloaderService: DashboardPreloaderService,
 		private personService : PersonDataProviderService
 		){
+
+		this.userData = this.auth.getUserData();
+
+		this.userService.getWardenRequest(this.userData['userId'], (response) => {
+			if(response.data.length > 0){
+				this.hasRequest = true;
+			}
+		});
 		
 		this.userService.getMyWardenTeam((response) => {
 			this.viewData.user = response.data.user;
@@ -60,7 +73,7 @@ export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 			}
 		});
 
-		this.userData = this.auth.getUserData();
+		
 
 	}
 
@@ -89,14 +102,34 @@ export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 		$('#modalRequestWarden').modal('open');
 		this.showModalRequestWardenLoader = false;
 		this.showModalRequestWardenSuccess = false;
+		setTimeout(() => {
+			$('#modalRequestWarden select').material_select();
+		}, 300);
 	}
 
 	submitRequest(){
 		let approverId = $('#modalRequestWarden select').val();
 		if(approverId !== null && parseInt(approverId) > 0){
 			this.showModalRequestWardenLoader = true;
-			this.userService.requestAsWarden(this.userData['userId'], (response) => {
+			this.userService.requestAsWarden({
+				user : this.userData['userId'],
+				approver : approverId,
+				location : this.viewData.location['location_id']
+			}, (response) => {
 				this.showModalRequestWardenSuccess = true;
+				this.showModalRequestWardenLoader = false;
+				if(response.status){
+					this.hasRequest = true;
+					setTimeout(() => {
+						$('#modalRequestWarden').modal('close');
+					},1000);
+				}else{
+					this.customMessageModal.status = true;
+					this.customMessageModal.message = response.message;
+					setTimeout(() => {
+						$('#modalRequestWarden').modal('close');
+					},3000);
+				}
 			});
 		}
 	}

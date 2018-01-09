@@ -17,7 +17,7 @@ import { LocationAccountUser } from '../models/location.account.user';
 import { Location } from '../models/location.model';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { EmailSender } from './../models/email.sender';
-
+import { UserRequest } from '../models/user.request.model';
 
 import * as moment from 'moment';
 import * as validator from 'validator';
@@ -86,6 +86,10 @@ export class UsersRoute extends BaseRoute {
 
 	    router.post('/users/request-as-warden', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().requestAsWarden(req, res, next);
+	    });
+
+	    router.post('/users/get-warden-request', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getWardenRequest(req, res, next);
 	    });
 	}
 
@@ -662,10 +666,288 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async requestAsWarden(req: Request, res: Response, next: NextFunction){
-		let response = {
+		let 
+		response = <any>{
 			status : true, data : [], message : ''
-		};
+		},
+		requestModel = new UserRequest(),
+		locationModel = new Location(req.body.location),
+		userModel = new User(req.body.user),
+		approverModel = new User(req.body.approver),
+		token1Model = new Token(),
+		token2Model = new Token(),
+		token1 = this.generateRandomChars(30),
+		token2 = this.generateRandomChars(30),
+		currentDate = moment(),
+		expirationDate = currentDate.add(1, 'day'),
+		expDateFormat = expirationDate.format('YYYY-MM-DD HH:mm:ss');
 
+		try{
+			let location = await locationModel.load();
+			await userModel.load();
+			await approverModel.load();
+
+			await requestModel.create({
+				'user_id' : req.body.user,
+				'requested_role_id' : 9,
+				'location_id' : req.body.location,
+				'approver_id' : req.body.approver
+			});
+
+			await token1Model.create({
+				'token' : token1,
+				'action' : 'user-request-approve',
+				'verified' : 0,
+				'expiration_date' : expDateFormat,
+				'id' : requestModel.ID(),
+				'id_type' : 'user_requests_id'
+			});
+
+			await token2Model.create({
+				'token' : token2,
+				'action' : 'user-request-decline',
+				'verified' : 0,
+				'expiration_date' : expDateFormat,
+				'id' : requestModel.ID(),
+				'id_type' : 'user_requests_id'
+			});
+
+			let parentLocationModel = new Location( location['parent_id'] ),
+				parentLocation;
+			if(location['parent_id'] > -1){
+				parentLocation = await parentLocationModel.load();
+			}
+
+			const 
+			opts = {
+				from : 'allantaw2@gmail.com',
+				fromName : 'EvacConnect',
+				to : [ approverModel.get('email') ],
+				cc: ['erwin.macaraig@gmail.com'],
+				body : '',
+				attachments: [],
+				subject : 'EvacConnect Warden Request'
+			},
+			email = new EmailSender(opts),
+			approvelink = req.protocol + '://' + req.get('host') + '/token/' + token1,
+			declinelink = req.protocol + '://' + req.get('host') + '/token/' + token2;
+
+
+			let 
+			emailBody = email.getEmailHTMLHeader(),
+			userName = userModel.get('first_name')+' '+userModel.get('last_name'),
+			approverName = approverModel.get('first_name')+' '+approverModel.get('last_name'),
+			locationString =  '';
+
+			if(Object.keys(parentLocation).length > 0){
+				locationString += parentLocation['name']+', ';
+			}
+
+			locationString += location['name'];
+
+			emailBody += `<h3 style="text-transform:capitalize;">Hi ${approverName},</h3> <br/>
+			<h4> ${userName} requested to be a warden in location '${locationString}' </h4> <br/>
+			<h5>Click on the link below for corresponding response </h5> <br/>
+			<a href="${approvelink}" target="_blank" style="text-decoration:none; color:#0277bd;">Approve</a> | 
+			<a href="${declinelink}" target="_blank" style="text-decoration:none; color:#f44336;">Decline</a>
+			<br>`;
+			emailBody += email.getEmailHTMLFooter();
+
+			email.assignOptions({
+				body : emailBody
+			});
+
+			email.send(
+				(data) => console.log(data),
+				(err) => console.log(err)
+			);
+
+		}catch(e){
+			response.status = false;
+			response.message = e;
+		}
+		
+		res.send(response);
+	}
+
+	public async getWardenRequest(req: Request, res: Response, next: NextFunction){
+		let 
+		response = <any>{
+			status : true, data : [], message : ''
+		},
+		requestModel = new UserRequest(),
+		arrWhere = [];
+
+		arrWhere.push('user_id = '+req.body.user_id);
+		response.data = await requestModel.getWhere(arrWhere);
+
+		res.send(response);
+	}
+
+	public async userRequestHandler(req: Request, res: Response, tokenData, fromEmail:boolean){
+		let 
+		response = <any>{
+			status : true, data : [], message : ''
+		},
+		requestModel = new UserRequest(),
+		tokenModel = new Token(),
+		arrWhere = [],
+		action = 'approved',
+		status = 1,
+		currentDate = moment().format('YYYY-MM-DD HH:mm:ss');
+
+		if(tokenData['verified'] == 0){
+
+			if(tokenData['action'].indexOf('decline') > -1){
+				action = 'declined';
+				status = 2;
+			}
+
+			arrWhere.push('user_requests_id = '+tokenData['id']);
+			let requests = await requestModel.getWhere(arrWhere);
+			if(Object.keys(requests).length > 0){
+				let allToken = await tokenModel.getAllByUserId(tokenData['id'], undefined, 'user_requests_id');
+				for(let i in allToken){
+					let tokenModify = new Token(allToken[i]['token_id']);
+					await tokenModify.load();
+					tokenModify.set('verified', 1);
+					await tokenModify.dbUpdate();
+				}
+
+				let request = requests[0],
+					requestModify = new UserRequest(request['user_requests_id']);
+				await requestModify.load();
+				requestModify.set('status', status);
+				requestModify.set('date_responded', currentDate);
+				requestModify.set('viewed', 1);
+
+				let locationId = parseInt(request['location_id']),
+					userId = request['user_id'],
+					approverId = request['approver_id'],
+					roleId = parseInt(request['requested_role_id']);
+
+				let locationModel = new Location(locationId),
+					userModel = new User(userId),
+					approverModel = new User(approverId),
+					parentLocationModel = new Location(),
+					parentLoc = <any>{};
+
+				const location = await locationModel.load(),
+					user = await userModel.load(),
+					approver = await approverModel.load();
+
+				if(location['parent_id'] > -1){
+					parentLocationModel.setID(location['parent_id']);
+					parentLoc = await parentLocationModel.load();
+				}
+
+				let validRole = false,
+					isWarden = false,
+					isTRPFRP = false,
+					roleName = '';
+
+				if(roleId <= 2){
+					// await requestModify.dbUpdate();
+					//validRole = true;
+					//isTRPFRP = true;
+					// if (roleId == 1){
+					//		roleName = 'FRP'
+					// }else{
+					// 		roleName = 'TRP';
+					// }
+				}else if(roleId >= 9 && roleId <= 18){
+					validRole = true;
+					isWarden = true;
+					let emRoleModel = new UserEmRoleRelation();
+					let emroles = await emRoleModel.getEmRoles();
+					for(let i in emroles){
+						if(emroles[i]['em_roles_id'] == roleId){
+							roleName = emroles[i]['role_name'];
+						}
+					}
+				}
+
+				if(validRole){
+					await requestModify.dbUpdate();
+
+					if(status == 1){
+						let locAccUser = new LocationAccountUser(),
+							emRoleModel = new UserEmRoleRelation(),
+							userRoleModel = new UserRoleRelation();
+
+						await locAccUser.create({
+							'location_id' : locationId,
+							'account_id' : user['account_id'],
+							'user_id' : user['user_id'],
+							'role_id' : roleId
+						});
+
+						if(isWarden){
+							await emRoleModel.create({
+								'user_id' : user['user_id'],
+								'em_role_id' : roleId,
+								'location_id' : locationId
+							});
+						}
+					}
+
+					const 
+					opts = {
+						from : 'allantaw2@gmail.com',
+						fromName : 'EvacConnect',
+						// to : [ userModel.get('email') ],
+						to : [ 'adelfin@evacgroup.com.au' ],
+						cc: [],
+						body : '',
+						attachments: [],
+						subject : 'EvacConnect '+roleName+' Request '
+					},
+					email = new EmailSender(opts);
+
+					let 
+					emailBody = email.getEmailHTMLHeader(),
+					userName = userModel.get('first_name')+' '+userModel.get('last_name'),
+					approverName = approverModel.get('first_name')+' '+approverModel.get('last_name'),
+					locationString =  '';
+
+					if(Object.keys(parentLoc).length > 0){
+						locationString += parentLoc['name']+', ';
+					}
+
+					locationString += location['name'];
+
+					emailBody += `<h3 style="text-transform:capitalize;">Hi ${userName},</h3> <br/>
+					<h4> ${approverName} has ${action} your ${roleName} request in location '${locationString}' </h4> <br/>
+					<br>`;
+					emailBody += email.getEmailHTMLFooter();
+
+					email.assignOptions({
+						body : emailBody
+					});
+
+					email.send(
+						(data) => console.log(data),
+						(err) => console.log(err)
+					);
+
+					response.message = 'Success!';
+
+				}else{
+					response.message = 'Role is invalid';
+				}
+
+
+			}else{
+				response.message = 'No record found';
+			}
+
+		}else{
+			response.message = 'Sorry, this has already been used';
+		}
+
+		if(fromEmail){
+			res.send('<h2>'+response.message+'</h2> <script>  setTimeout(function(){ window.close(); }, 2000); </script>');
+		}
 
 		res.send(response);
 	}
