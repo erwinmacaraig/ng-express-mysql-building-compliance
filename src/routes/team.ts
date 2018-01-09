@@ -118,8 +118,8 @@ export class TeamRoute extends BaseRoute {
       });
     });
 
-    // router.post('/team/warden/csv-upload', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-      router.post('/team/warden/csv-upload', (req: AuthRequest, res: Response, next: NextFunction) => {
+    router.post('/team/warden/csv-upload', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+    //  router.post('/team/warden/csv-upload', (req: AuthRequest, res: Response, next: NextFunction) => {
       new TeamRoute().processCSVUpload(req, res, next).then((data) => {
         console.log('I got ', data);
         return res.status(200).send(data);
@@ -171,6 +171,7 @@ export class TeamRoute extends BaseRoute {
     const utils = new Utils();
     let data;
     data = await utils.processCSVUpload(<string>filename);
+    // data['override'] = req.body.override;
 
     for (let i = 0; i < data.length; i++) {
       const user = new User();
@@ -239,6 +240,7 @@ export class TeamRoute extends BaseRoute {
         }
       }
     }
+
     return invalidEmails;
 
 
