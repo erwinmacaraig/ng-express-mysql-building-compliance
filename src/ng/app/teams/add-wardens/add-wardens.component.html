@@ -110,8 +110,9 @@
 			<div class="upload-container">
 				<p class="text">Drag & Drop CSV File</p>
 				<p class="text">or</p>
-        <!-- <button class="btn blue waves-effect waves-light">Select CSV File</button> -->
-        <input type="file" name="file" (change)="fileChangeEvent($event)" placeholder="Select CSV File" class="btn blue waves-effect waves-light" />
+        		<button class="btn blue waves-effect waves-light" #btnSelectCSV (click)="selectCSVButtonClick(inputFileCSV)">Select CSV File</button>
+
+        		<input type="file" name="file" accept=".csv" #inputFileCSV (change)="fileChangeEvent($event, btnSelectCSV)" placeholder="Select CSV File" class="btn blue waves-effect waves-light hide" />
 			</div>
 			<h6 class="blue-text" style="margin: 30px 0px;">
 				Step 3 - Will this upload overwrite your existing wardens uploaded in the system?

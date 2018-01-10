@@ -254,45 +254,50 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         console.log(this.addedUsers);
     }
 
-  sendInviteOnClick() {
-
-    this.bulkEmailInvite = (this.emailInviteForm.controls.inviteTxtArea.value).split(',');
-    const validEmails = [];
-    const email_regex =
-    /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
-    for (let x = 0; x < this.bulkEmailInvite.length; x++) {
-      if (email_regex.test(this.bulkEmailInvite[x].trim())) {
-        validEmails.push(this.bulkEmailInvite[x].trim());
-      }
+    selectCSVButtonClick(inputFileCSV){
+        console.log(inputFileCSV);
+        inputFileCSV.click();
     }
-    this.dataProvider.sendWardenInvitation(validEmails).subscribe((data) => {
-      console.log(data);
-      $('#modalInvite').modal('close');
-    }, (e) => {
-      console.log(e);
+
+    sendInviteOnClick() {
+        this.bulkEmailInvite = (this.emailInviteForm.controls.inviteTxtArea.value).split(',');
+        const validEmails = [];
+        const email_regex =
+        /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
+        for (let x = 0; x < this.bulkEmailInvite.length; x++) {
+          if (email_regex.test(this.bulkEmailInvite[x].trim())) {
+            validEmails.push(this.bulkEmailInvite[x].trim());
+          }
+        }
+        this.dataProvider.sendWardenInvitation(validEmails).subscribe((data) => {
+          console.log(data);
+          $('#modalInvite').modal('close');
+        }, (e) => {
+          console.log(e);
+        }
+        );
+        this.emailInviteForm.controls.inviteTxtArea.reset();
     }
-  );
-    this.emailInviteForm.controls.inviteTxtArea.reset();
-  }
 
-  public fileChangeEvent(fileInput: any) {
-    this.CSVFileToUpload = <Array<File>> fileInput.target.files;
-    console.log(this.CSVFileToUpload);
-  }
-;
-  public onUploadCSVAction() {
-    let override = $('#override')[0].checked;
-    console.log(override);
-    let formData: any = new FormData();
+    public fileChangeEvent(fileInput: any, btnSelectCSV) {
+        this.CSVFileToUpload = <Array<File>> fileInput.target.files;
+        console.log(this.CSVFileToUpload);
+        btnSelectCSV.innerHTML = this.CSVFileToUpload[0]['name'];
+    };
 
-    formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
-    formData.append('override',  override);
-    this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
-      console.log(data);
-    }, (e) => {
-      console.log(e);
-    });
-  }
+    public onUploadCSVAction() {
+        let override = $('#override')[0].checked;
+        console.log(override);
+        let formData: any = new FormData();
+
+        formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
+        formData.append('override',  override);
+        this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
+          console.log(data);
+        }, (e) => {
+          console.log(e);
+        });
+    }
 
 
 }

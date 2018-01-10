@@ -168,5 +168,13 @@ export class ViewChiefWardenComponent implements OnInit, OnDestroy {
 		this.emailInviteForm.controls.inviteTxtArea.reset();
 	}
 
+	resignClicked(){
+		$('#modalResign').modal('open');
+	}
+
+	resignConfirmClicked(){
+		
+	}
+
 	ngOnDestroy(){}
 }

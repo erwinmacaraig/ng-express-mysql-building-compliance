@@ -479,6 +479,10 @@ table tbody td .text{
     background: url(/assets/images/team_icons.png) no-repeat;
 }
 
+#modalResign {
+    width: 35%;
+}
+
 @media only screen
   and (max-width: 1024px) {
     #modalInvite{
@@ -488,14 +492,16 @@ table tbody td .text{
 
 @media only screen
   and (max-width: 768px) {
-    #modalInvite{
+    #modalInvite,
+    #modalResign{
         width: 60%;
     }
 }
 
 @media only screen
   and (max-width: 500px) {
-    #modalInvite{
+    #modalInvite,
+    #modalResign{
         width: 90%;
     }
 }
