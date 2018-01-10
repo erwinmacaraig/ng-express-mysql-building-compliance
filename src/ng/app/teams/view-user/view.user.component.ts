@@ -153,7 +153,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 	public yesRemoveWarden(){
 		this.showModalRemoveWardenLoader = true;
-		this.userService.removeUserAsWarden(this.viewData.user['user_id'], (response) => {
+		this.userService.removeUserFromLocation(this.decryptedID, (response) => {
 			if(response.status){
 				$('#modalRemoveWarden').modal('close');
 				setTimeout(() => {

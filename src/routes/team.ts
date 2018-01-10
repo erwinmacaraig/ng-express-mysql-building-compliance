@@ -99,6 +99,16 @@ export class TeamRoute extends BaseRoute {
       });
     });
 
+    router.get('/team/list/archived-wardens', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new TeamRoute().buildArchivedWardenList(req, res).then((data) => {
+        return res.status(200).send(data);
+      }).catch((err) => {
+        return res.status(400).send({
+          message: 'Cannot build list'
+        });
+      });
+    });
+
     router.post('/team/form/add-bulk-peep', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new TeamRoute().addMobilityImpairedPersons(req, res).then((data) => {
         return res.status(200).send(data);
@@ -629,13 +639,15 @@ export class TeamRoute extends BaseRoute {
     }
   }
 
-  public async buildWardenList(req: AuthRequest, res: Response) {
+  public async buildWardenList(req: AuthRequest, res: Response, archived?) {
 
     // get all parent locations associated with this account
     const accountId = req.user.account_id;
     const account = new Account(accountId);
     const userRoleRel = new UserRoleRelation();
     const role = await userRoleRel.getByUserId(req.user.user_id, true);
+    const emRoleRelation = new UserEmRoleRelation();
+    let emroles = await emRoleRelation.getEmRoles();
     // what is the highest rank role of the user who invited this warden
     // const locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id);
 
@@ -655,14 +667,91 @@ export class TeamRoute extends BaseRoute {
       }
       warden['parent_name'] = locationInstance.get('name') ? locationInstance.get('name') : locationInstance.get('formatted_address');
     }
-    return wardens;
+
+    let emroleids = [0];
+    for(let i in emroles){
+      if(emroles[i]['is_warden_role'] == 1){
+        emroleids.push( emroles[i]['em_roles_id'] );
+      }
+    }
+
+    let newWardenResponse = [];
+    for(let warden of wardens){
+      let locAccUserModel = new LocationAccountUser(),
+        arrWhere = [];
+
+      arrWhere.push([ "user_id = "+warden['user_id'] ]);
+      arrWhere.push([ "location_id = "+warden['location_id'] ]);
+      arrWhere.push([ "archived = 0 " ]);
+      arrWhere.push([ "role_id IN ("+emroleids.join(",")+") " ]);
+
+      try{
+        let locAccUserRec = await locAccUserModel.getMany(arrWhere);
+
+        warden['location_account_user_id'] = locAccUserRec[0]['location_account_user_id'];
+        newWardenResponse.push(warden);
+      }catch(e){
+
+      }
+
+    }
+
+    return newWardenResponse;
+  }
+
+  public async buildArchivedWardenList(req: AuthRequest, res: Response){
+    let accountId = req.user.account_id,
+      locationAccountUser = new LocationAccountUser(),
+      response = {
+        data : <any>[],
+        status : false,
+        message : ''
+      },
+      allParents = [];
+
+    let arrWhere = [];
+      arrWhere.push( ["account_id = "+accountId ] );
+      arrWhere.push( ["archived = "+1 ] );
+      arrWhere.push( [" er.em_roles_id IS NOT NULL  " ] );
+    let wardens = await locationAccountUser.getMany(arrWhere);
+    let newWardensResult = [];
+    for(let l in wardens){
+      let userModel = new User(wardens[l]['user_id']);
+      let parentLocation = new Location(wardens[l]['parent_id']);
+
+      if(allParents.indexOf(wardens[l]['parent_id']) == -1){
+        await parentLocation.load().then(() => {
+          allParents[ wardens[l]['parent_id'] ] = parentLocation.getDBData();
+          wardens[l]['parent_name'] = parentLocation.get('name');
+        }, () => {
+          wardens[l]['parent_name'] = '';
+        });
+      }else{
+        wardens[l]['parent_name'] = allParents[ wardens[l]['parent_id'] ]['name'];
+      }
+
+      await userModel.load().then(()=>{
+        wardens[l]['first_name'] = userModel.get('first_name');
+        wardens[l]['last_name'] = userModel.get('last_name');
+      },()=>{
+        wardens[l]['first_name'] = '';
+        wardens[l]['last_name'] = '';
+      });
+
+      newWardensResult.push(wardens[l]);
+
+    }
+
+    return newWardensResult;
   }
 
   public async buildPEEPList(req: AuthRequest, res: Response) {
     const account = new Account(req.user.account_id);
-    const result = await account.buildPEEPList(req.user.user_id);
+    const result = await account.buildPEEPList(req.user.account_id);
     const temp = JSON.stringify(result);
     const peeps = JSON.parse(temp);
+    const emRoleRelation = new UserEmRoleRelation();
+    let emroles = await emRoleRelation.getEmRoles();
     for (const peep of peeps) {
       let locationInstance = new Location(peep['location_id']);
       await locationInstance.load();
@@ -674,7 +763,11 @@ export class TeamRoute extends BaseRoute {
       }
       peep['parent_name'] = locationInstance.get('name') ? locationInstance.get('name') : locationInstance.get('formatted_address');
     }
+
+     
+
     return peeps;
+     
   }
 
 

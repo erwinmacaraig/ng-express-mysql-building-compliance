@@ -1,36 +1,36 @@
 .row.top .col{
-	position: relative;
+    position: relative;
 }
 
 .row.top .right-actions{
-	position: absolute;
+    position: absolute;
     right: 0px;
     top: 17px;
 }
 
 .row.top .right-actions .switch-container,
 .row.top .right-actions .archived-container{
-	margin-right: 20px;
+    margin-right: 20px;
 }
 
 .row.top .right-actions .switch-container,
 .row.top .right-actions .archived-container,
 .row.top .right-actions .switch-container .text,
 .row.top .right-actions .switch-container .switch{
-	display: inline-block;
+    display: inline-block;
 }
 
 .row.top .right-actions .switch-container .switch,
 .row.top .right-actions .switch-container .text{
-	vertical-align: middle;
+    vertical-align: middle;
 }
 
 .row.top .right-actions .switch-container .switch{
-	margin: 0px 10px;
+    margin: 0px 10px;
 }
 
 .row.top .right-actions .switch-container .text{
-	font-size: 16px;
+    font-size: 16px;
 }
 
 
@@ -100,19 +100,19 @@
 }
 
 .row.top .right-actions .archived-container a{
-	font-size: 16px;
-	color: #333;
+    font-size: 16px;
+    color: #333;
 }
 
 .row.top .right-actions .archived-container a:hover{
-	text-decoration: underline;
+    text-decoration: underline;
 }
 
 .row.top .right-actions .archived-container a > .image{
-	background: url('/assets/images/team_icons.png') no-repeat;
-	width: 20px;
-	height: 27px;
-	background-position: 30.7% 36%;
+    background: url('/assets/images/team_icons.png') no-repeat;
+    width: 20px;
+    height: 27px;
+    background-position: 30.7% 36%;
     vertical-align: middle;
     display: inline-block;
 }
@@ -169,13 +169,13 @@
 }
 
 .btn-add-warden{
-	font-size: 14px !important;
-	width: 100%;
-	height: 100% !important;
+    font-size: 14px !important;
+    width: 100%;
+    height: 100% !important;
 }
 
 .btn-add-warden .image{
-	background: url(/assets/images/team_icons.png) no-repeat;
+    background: url(/assets/images/team_icons.png) no-repeat;
     background-position: 18% 35.6%;
     width: 35px;
     height: 36px;
@@ -184,16 +184,16 @@
 }
 
 .filter-container .select-field{
-	margin-top: 0px !important;
+    margin-top: 0px !important;
 }
 
 table{
-	margin-top: 20px;
+    margin-top: 20px;
 }
 
 
 table thead tr th{
-	background-color: #2f2f2f;
+    background-color: #2f2f2f;
     color: #fff;
     font-weight: unset;
     font-size: 14px;
@@ -203,16 +203,16 @@ table thead tr th{
 }
 
 table tbody td{
-	border: 1px solid #ddd;
-	font-size: 14px;
+    border: 1px solid #ddd;
+    font-size: 14px;
 }
 
 table tfoot td{
-	padding: 0px;
+    padding: 0px;
 }
 
 table tfoot td button{
-	width: 100%;
+    width: 100%;
     border-radius: 0px !important;
     font-size: 14px !important;
     height: 45px !important;
@@ -246,21 +246,21 @@ table tbody td a{
 
 table th .checkbox [type="checkbox"]+label,
 table td .checkbox [type="checkbox"]+label{
-	padding-left: 35px;
-	line-height: 20px;
+    padding-left: 35px;
+    line-height: 20px;
 }
 
 table td .checkbox [type="checkbox"]+label{
-	color: #333;
+    color: #333;
 }
 
 table thead tr th .checkbox label{
-	color: #fff;
+    color: #fff;
 }
 
 table .checkbox [type="checkbox"].filled-in:not(:checked)+label:after{
-	background-color: #ffffff;
-	border: 1px solid #ddd;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
 }
 
 table tr td .checkbox{
@@ -274,9 +274,9 @@ table thead tr th .checkbox {
 
 @media only screen 
   and (max-width: 768px){
-	.row.top .right-actions{
-		position: inherit;
-	}
+    .row.top .right-actions{
+        position: inherit;
+    }
 }
 
 #modalArchive{

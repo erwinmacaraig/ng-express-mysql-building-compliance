@@ -57,10 +57,15 @@ export class LocationAccountUser extends BaseClass {
               sqlWhere = '',
               count = 0;
 
-            sql_load = ` SELECT l.*, lau.user_id, lau.account_id, lau.role_id, lau.location_account_user_id
+            sql_load = ` SELECT l.formatted_address, l.name, l.location_id, l.parent_id, 
+              lau.user_id, lau.account_id, lau.role_id, lau.location_account_user_id, lau.archived,
+              er.role_name, DATEDIFF(NOW(), u.last_login) AS days
               FROM locations l 
               LEFT JOIN location_account_user lau ON l.location_id = lau.location_id
-              LEFT JOIN users u ON lau.user_id = u.user_id  `;
+              LEFT JOIN users u ON lau.user_id = u.user_id
+              LEFT JOIN user_em_roles_relation uer ON uer.user_id = lau.user_id 
+              LEFT JOIN em_roles er ON er.em_roles_id = uer.em_role_id
+              `;
 
             for(let i in arrWhere){
               if(count == 0){
@@ -68,7 +73,12 @@ export class LocationAccountUser extends BaseClass {
               }else{
                 sqlWhere += ' AND ';
               }
-              sqlWhere += 'lau.'+arrWhere[i][0]+' ';
+              if(arrWhere[i][0].indexOf('.') > 0){
+                sqlWhere += arrWhere[i][0]+' ';
+              }else{
+                sqlWhere += 'lau.'+arrWhere[i][0]+' ';
+              }
+              
               count++;
             }
 
@@ -78,7 +88,7 @@ export class LocationAccountUser extends BaseClass {
               sqlWhere += ' WHERE l.archived = 0 AND u.archived = 0 ';
             }
 
-            sql_load += sqlWhere;
+            sql_load += sqlWhere + ' GROUP BY lau.location_account_user_id ';
 
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {

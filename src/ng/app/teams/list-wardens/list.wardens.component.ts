@@ -5,28 +5,48 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LocationsService } from './../../services/locations';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
+import { AuthService } from '../../services/auth.service';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { UserService } from '../../services/users';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
 declare var $: any;
 @Component({
   selector: 'app-teams-list-warden',
   templateUrl: './list.wardens.component.html',
-  styleUrls: ['./list.wardens.component.css']
+  styleUrls: ['./list.wardens.component.css'],
+  providers : [EncryptDecryptService, UserService, DashboardPreloaderService]
 })
 export class ListWardensComponent implements OnInit, OnDestroy {
   public wardenArr;
 
   copyOfList = [];
+  userData = {};
+  showModalLoader = false;
+  selectedToArchive = {};
+  selectedFromList = [];
 
-  constructor(private dataProvider: PersonDataProviderService,
+  constructor(
+    private authService : AuthService,
+    private router : Router,
+    private userService : UserService,
+    private encDecrService : EncryptDecryptService,
+    private dataProvider: PersonDataProviderService,
+    private dashboardService : DashboardPreloaderService,
     private locationService: LocationsService) {
 
+    this.userData = this.authService.getUserData();
 	}
 
 	ngOnInit(){
     this.dataProvider.buildWardenList().subscribe((data) => {
+      for(let i in data){
+        data[i]['id_encrypted'] = this.encDecrService.encrypt(data[i]['location_account_user_id']).toString();
+      }
       this.wardenArr = data;
       this.copyOfList = JSON.parse(JSON.stringify(data));
-      console.log(this.wardenArr);
+      this.dashboardService.hide();
+
     }, (err: HttpErrorResponse) => {
       console.log(err);
     });
@@ -40,7 +60,17 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 		$('select').material_select();
     this.filterByEvent();
     this.sortByEvent();
+    this.dashboardService.show();
+    this.bulkManageActionEvent();
 	}
+
+  selectAllCheckboxEvent(event){
+    if(event.target.checked){
+      $('table input[type="checkbox"]').prop('checked', true);
+    }else{
+      $('table input[type="checkbox"]').prop('checked', false);
+    }
+  }
 
   filterByEvent(){
 
@@ -124,6 +154,73 @@ export class ListWardensComponent implements OnInit, OnDestroy {
       }
       this.wardenArr = temp;
     }
+  }
+
+  onSelectFromTable(event, warden){
+    let selected = event.target.value;
+    if(selected == 'view'){
+      this.router.navigate(["/teams/view-user/", warden.id_encrypted]);
+    }else{
+      event.target.value = "0";
+      this.showModalLoader = false;
+      this.selectedToArchive = warden;
+      $('#modalArchive').modal('open');
+    }
+  }
+
+  archiveClick(){
+    this.showModalLoader = true;
+    this.userService.archiveLocationUser([this.selectedToArchive['location_account_user_id']], (response) => {
+      this.showModalLoader = false;
+      $('#modalArchive').modal('close');
+      this.dashboardService.show();
+      this.ngOnInit();
+    });
+  }
+
+  singleCheckboxChangeEvent(list, event){
+    let copy = JSON.parse(JSON.stringify(this.selectedFromList));
+    if(event.target.checked){
+      this.selectedFromList.push(list);
+    }else{
+      let temp = [];
+      for(let i in this.selectedFromList){
+        if(this.selectedFromList[i]['location_account_user_id'] != list['location_account_user_id']){
+          temp.push( this.selectedFromList[i] );
+        }
+      }
+      this.selectedFromList = temp;
+    }
+  }
+
+  bulkManageActionEvent(){
+    $('select.bulk-manage').on('change', () => {
+      let sel = $('select.bulk-manage').val();
+
+      if(sel == 'archive'){
+        $('select.bulk-manage').val("0").material_select();
+        if(this.selectedFromList.length > 0){
+          $('#modalArchiveBulk').modal('open');
+        }
+      }
+
+    });
+  }
+
+  bulkArchiveClick(){
+    this.showModalLoader = true;
+    let arrIds = [];
+
+    for(let i in this.selectedFromList){
+      arrIds.push(this.selectedFromList[i]['location_account_user_id']);
+    }
+
+    this.userService.archiveLocationUser(arrIds, (response) => {
+      this.showModalLoader = false;
+      $('#modalArchiveBulk').modal('close');
+      this.dashboardService.show();
+      this.ngOnInit();
+    });
   }
 
 	ngOnDestroy(){}

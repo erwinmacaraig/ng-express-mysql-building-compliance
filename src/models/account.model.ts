@@ -277,10 +277,11 @@ export class Account extends BaseClass {
         });
     }
 
-    public buildWardenList(user_id: number) {
+    public buildWardenList(user_id: number, locAccUserArchived?) {
       return new Promise((resolve, reject) => {
         const sql_warden_list = `
         SELECT
+          users.user_id,
     		  users.first_name,
           users.last_name,
           users.account_id,
@@ -319,6 +320,7 @@ export class Account extends BaseClass {
             locations.archived = 0
           AND
             LAU.user_id = ?
+          AND LAU.archived = 0
           GROUP BY
             locations.location_id
           ORDER BY
@@ -340,36 +342,37 @@ export class Account extends BaseClass {
       });
     }
 
-    public buildPEEPList(user_id: number) {
+    public buildPEEPList(accntID?) {
       return new Promise((resolve, reject) => {
         const sql_get_peep = `
           SELECT
-            first_name,
-            last_name,
-            user_invitations.location_id,
-            locations.name as location_name
+            u.first_name,
+            u.last_name,
+            u.user_id,
+            u.mobility_impaired,
+            u.account_id,
+            lau.location_account_user_id,
+            lau.role_id,
+            l.parent_id,
+            l.location_id,
+            l.name as location_name,
+            l.formatted_address,
+            l.google_photo_url
           FROM
-            user_invitations
-          INNER JOIN
-            locations
-          ON
-            user_invitations.location_id = locations.location_id
+            users u
+            INNER JOIN location_account_user lau ON u.user_id = lau.user_id
+            INNER JOIN locations l ON l.location_id = lau.location_id
           WHERE
-            mobility_impaired = 1
-          AND
-            invited_by_user = ?
+            u.mobility_impaired = 1 AND
+            u.account_id = ${accntID}
          `;
         const connection = db.createConnection(dbconfig);
-        connection.query(sql_get_peep, [user_id], (err, results, fields) => {
+        connection.query(sql_get_peep,  (err, results, fields) => {
           if (err) {
             console.log(`account.model: ${sql_get_peep}`, err);
             throw new Error(err);
           }
-          if (!results.length) {
-            reject('No peep record(s) found');
-          } else {
-            resolve(results);
-          }
+          resolve(results);
         });
         connection.end();
       });

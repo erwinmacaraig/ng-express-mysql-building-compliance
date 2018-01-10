@@ -77,8 +77,8 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().createBulkUsers(req, res, next);
 	    });
 
-	    router.post('/users/remove-user-as-warden', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().removeUserAsWarden(req, res, next);
+	    router.post('/users/remove-user-from-location', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().removeUserFromLocation(req, res, next);
 	    });
 
 	    router.post('/users/get-my-warden-team', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -246,10 +246,15 @@ export class UsersRoute extends BaseRoute {
 			arrWhere.push( ["account_id = "+accountId ] );
 			arrWhere.push( ["archived = "+0] );
 		let locations = await locationAccountUser.getMany(arrWhere);
-
+		let emRolesModel = new UserEmRoleRelation();
+		let emRoles = await emRolesModel.getEmRoles();
 		let locationsToSend = [];
 
-		let allowedRoleIds = [0,1,2,8,9,10,11,12,13,14,15,16,17,18];
+		let allowedRoleIds = [0,1,2];
+		for(let i in emRoles){
+			allowedRoleIds.push(emRoles[i]['em_roles_id']);
+		}
+
 		for(let l in locations){
 
 			if(  allowedRoleIds.indexOf(locations[l]['role_id']) > -1 ){
@@ -413,6 +418,7 @@ export class UsersRoute extends BaseRoute {
 		let arrWhere = [];
 			arrWhere.push( ["account_id = "+accountId ] );
 			arrWhere.push( ["archived = "+1 ] );
+			
 		let locations = await locationAccountUser.getMany(arrWhere);
 		for(let l in locations){
 			let userModel = new User(locations[l]['user_id']);
@@ -535,34 +541,59 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async removeUserAsWarden(req: Request, res: Response, next: NextFunction){
+	public async removeUserFromLocation(req: Request, res: Response, next: NextFunction){
 		let response = {
-			status : false, data : [], message : ''
-		};
-		let userEmRoleModel = new UserEmRoleRelation();
+			status : false, data : <any>[], message : ''
+		},
+		id = req.body['location_account_user_id'],
+		locAccUserModel = new LocationAccountUser(id),
+		locAccUser = await locAccUserModel.load(),
+		emRoleModel = new UserEmRoleRelation();
 
-		let emroles = await userEmRoleModel.getEmRolesByUserId(req.body.user_id);
-		let deleteLocAccUser = new LocationAccountUser();
-		let deleteLocationsAccountUserData = await deleteLocAccUser.getByUserId(req.body.user_id);
-		for(let i in emroles){
-			if(parseInt(emroles[i]['is_warden_role']) == 1){
-				let deleteEmRoleModel = new UserEmRoleRelation(emroles[i]['user_em_roles_relation_id']);
-				let locationID = emroles[i]['location_id'];
-				try{
-					await deleteEmRoleModel.delete();
+		await locAccUserModel.delete();
 
-					console.log(deleteLocationsAccountUserData);
-					for(let i in deleteLocationsAccountUserData){
-						if(deleteLocationsAccountUserData[i]['location_id'] == locationID){
-							let deleteLocAcc = new LocationAccountUser( deleteLocationsAccountUserData[i]['location_account_user_id'] );
-							await deleteLocAcc.delete();
-						}
-					}
+		/*let emRolesRec = await emRoleModel.getEmRolesByUserId(locAccUser['user_id']),
+			hasGenOcc = false,
+			hasOtherWarden = false;
 
-				}catch(e){  }
+		for(let i in emRolesRec){
+			emRolesRec[i]['deleted'] = false;
+			if(emRolesRec[i]['location_id'] == locAccUser['location_id']){
+				const deleteEmRoleModel = new UserEmRoleRelation( emRolesRec[i]['user_em_roles_relation_id'] );
+				await deleteEmRoleModel.delete();
+				emRolesRec[i]['deleted'] = true;
+			}
+
+			if(
+				(emRolesRec[i]['is_warden_role'] == 1) && 
+				(emRolesRec[i]['location_id'] != locAccUser['location_id']) &&
+				!emRolesRec[i]['deleted']
+				){
+				hasOtherWarden = true;
+			}
+
+			if(emRolesRec[i]['em_roles_id'] == 8){
+				hasGenOcc = true;
 			}
 		}
 
+		if(!hasOtherWarden && !hasGenOcc){
+			let createEmRole = new UserEmRoleRelation();
+			await createEmRole.create({
+				'user_id' : locAccUser['user_id'],
+				'location_id' : locAccUser['location_id'],
+				'em_role_id' : 8
+			});
+
+			let createLoctionRelation = new LocationAccountUser();
+			await createLoctionRelation.create({
+				'user_id' : locAccUser['user_id'],
+				'account_id' : locAccUser['account_id'],
+				'location_id' : locAccUser['location_id'],
+				'role_id' : 8
+			});
+		}*/
+		
 		response.status = true;
 		res.send(response);
 	}

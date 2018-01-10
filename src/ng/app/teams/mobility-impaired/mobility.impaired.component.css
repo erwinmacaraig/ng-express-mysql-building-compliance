@@ -178,3 +178,29 @@ table tr td .image img{
   max-width: 50px;
   max-height: 50px;
 }
+
+#modalArchive{
+    width: 30%;
+}
+
+@media only screen 
+  and (max-width: 1440px){
+    #modalArchive{
+        width: 40%;
+    }
+}
+
+@media only screen 
+  and (max-width: 768px){
+    #modalArchive{
+        width: 80%;
+    }
+}
+
+
+@media only screen 
+  and (max-width: 500px){
+    #modalArchive{
+        width: 90%;
+    }
+}

@@ -99,8 +99,8 @@ export class UserService {
 		});
 	}
 
-	removeUserAsWarden(userId, callBack){
-		this.http.post(this.baseUrl+"/users/remove-user-as-warden", { user_id : userId })
+	removeUserFromLocation(locAccUserId, callBack){
+		this.http.post(this.baseUrl+"/users/remove-user-from-location", { location_account_user_id : locAccUserId })
 		.subscribe(res => {
 			callBack(res);
 		}, err => {

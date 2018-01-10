@@ -26,9 +26,6 @@
 	<div class="col l2 m4 s6">
 		<select class="filter-by">
 			<option value="0" selected>Filter By</option>
-			<option value="frp">FRP</option>
-			<option value="trp">TRP</option>
-			<option value="user">User</option>
 		</select>
 	</div>
 
@@ -59,10 +56,9 @@
 				<tr>
 					<th>
 						<p class="checkbox">
-							<input id="allSelect" class="filled-in" type="checkbox">
-							<label for="allSelect"></label>
+							<input id="allLocations" (change)="selectAllCheckboxEvent($event)" class="filled-in" type="checkbox">
+							<label for="allLocations">Locations</label>
 						</p>
-						Locations
 					</th>
 					<th>Name</th>
 					<th>PEEP Completion</th>
@@ -75,8 +71,10 @@
 				<tr *ngFor="let peep of peepList">
 					<td>
 						<p class="checkbox">
-							<input id="name" class="filled-in" type="checkbox">
-							<label for="name">{{peep['parent_name']}}, {{ peep['location_name'] }}</label>
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)">
+							<label for="location-{{i}}" > 
+								{{peep['parent_name']}} - {{peep['location_name']}}
+							</label>
 						</p>
 					</td>
 					<td>
@@ -94,7 +92,11 @@
 					<td>00/00/0000</td>
 					<td>00/00/0000 00:00AM</td>
 					<td>
-						<a href="javascipt:void(0)">Manage</a>
+						<select (change)="onSelectFromTable($event, peep)">
+							<option value="0" class="blue-text" selected>Manage</option>
+							<option value="view" class="blue-text">View</option>
+							<option value="archive" class="blue-text" [hidden]="peep.user_id == userData.userId">Archive</option>
+						</select>
 					</td>
 				</tr>
 			</tbody>
