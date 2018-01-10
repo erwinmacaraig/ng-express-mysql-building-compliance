@@ -135,4 +135,22 @@ export class UserService {
 		});
 	}
 
+	resignAsChiefWarden(userId, callBack){
+		this.http.post(this.baseUrl+"/users/resign-as-chief-warden", { user_id : userId })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	resignAsWarden(formData, callBack){
+		this.http.post(this.baseUrl+"/users/resign-as-warden", formData)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 }

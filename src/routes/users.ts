@@ -92,6 +92,14 @@ export class UsersRoute extends BaseRoute {
 	    router.post('/users/get-warden-request', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getWardenRequest(req, res, next);
 	    });
+
+	    router.post('/users/resign-as-chief-warden', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().resignAsChiefWarden(req, res, next);
+	    });
+
+	    router.post('/users/resign-as-warden', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().resignAsWarden(req, res, next);
+	    });
 	}
 
 	public uploadProfilePicture(req: Request, res: Response, next: NextFunction){
@@ -959,6 +967,79 @@ export class UsersRoute extends BaseRoute {
 
 		if(fromEmail){
 			res.send('<h2>'+response.message+'</h2> <script>  setTimeout(function(){ window.close(); }, 2000); </script>');
+		}
+
+		res.send(response);
+	}
+
+	public async resignAsChiefWarden(req: Request, res: Response, next: NextFunction){
+		let 
+		response = <any>{
+			status : true, data : [], message : ''
+		},
+		userId = req.body.user_id,
+		emRoleRelationModel = new UserEmRoleRelation(),
+		usersEmRoles = await emRoleRelationModel.getEmRolesByUserId(userId);
+		response.data = usersEmRoles;
+
+		let hasGenOcc = false,
+			deletedEmRole = {};
+		for(let i in usersEmRoles){
+			if(usersEmRoles[i]['em_roles_id'] == 11){
+				deletedEmRole = JSON.parse(JSON.stringify(usersEmRoles[i]));
+				let deleteEmRoleModel = new UserEmRoleRelation(  usersEmRoles[i]['user_em_roles_relation_id'] );
+				await deleteEmRoleModel.delete();
+			}
+
+			if(usersEmRoles[i]['em_roles_id'] == 8){
+				hasGenOcc = true;
+			}
+		}
+
+		if(!hasGenOcc){
+			let createEmRoleGenOccModel = new UserEmRoleRelation();
+			await createEmRoleGenOccModel.create({
+				'user_id' : userId,
+				'em_role_id' : 8,
+				'location_id' : deletedEmRole['location_id']
+			});
+		}
+
+		res.send(response);
+	}
+
+	public async resignAsWarden(req: Request, res: Response, next: NextFunction){
+		let 
+		response = <any>{
+			status : true, data : [], message : ''
+		},
+		userId = req.body.user_id,
+		locationId = req.body.location_id,
+		emRoleRelationModel = new UserEmRoleRelation(),
+		usersEmRoles = await emRoleRelationModel.getEmRolesByUserId(userId);
+		response.data = usersEmRoles;
+
+		let hasGenOcc = false,
+			deletedEmRole = {};
+		for(let i in usersEmRoles){
+			if( usersEmRoles[i]['is_warden_role'] == 1 && usersEmRoles[i]['location_id'] == locationId){
+				deletedEmRole = usersEmRoles[i];
+				let deleteEmRoleModel = new UserEmRoleRelation(  usersEmRoles[i]['user_em_roles_relation_id'] );
+				await deleteEmRoleModel.delete();
+			}
+
+			if(usersEmRoles[i]['em_roles_id'] == 8){
+				hasGenOcc = true;
+			}
+		}
+
+		if(!hasGenOcc){
+			let createEmRoleGenOccModel = new UserEmRoleRelation();
+			await createEmRoleGenOccModel.create({
+				'user_id' : userId,
+				'em_role_id' : 8,
+				'location_id' : deletedEmRole['location_id']
+			});
 		}
 
 		res.send(response);

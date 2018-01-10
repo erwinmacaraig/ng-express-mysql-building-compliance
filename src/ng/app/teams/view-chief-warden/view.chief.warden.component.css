@@ -428,7 +428,7 @@ table tbody td .text{
 
 
 #modalInvite{
-    width: 30%;
+    width: 22%;
     max-height: 100%;
 }
 
@@ -480,12 +480,14 @@ table tbody td .text{
 }
 
 #modalResign {
-    width: 35%;
+    width: 24%;
 }
 
+
 @media only screen
-  and (max-width: 1024px) {
-    #modalInvite{
+  and (min-width: 769px) and (max-width: 1440px){
+    #modalInvite,
+    #modalResign{
         width: 40%;
     }
 }

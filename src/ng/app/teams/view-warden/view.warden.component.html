@@ -32,7 +32,7 @@
 	</div>
 
 	<div class="bottom-buttons">
-		<button class="btn orange waves-effect waves-light remove" >
+		<button class="btn orange waves-effect waves-light remove" (click)="resignClicked()">
 			<div class="image inline-block"></div>
 			<div class="text inline-block">Resign as Warden</div>
 		</button>
@@ -161,4 +161,30 @@
       </div>
     </div>
   </form>
+</div>
+
+<div id="modalResign" class="modal">
+	<div class="modal-content center" *ngIf="showModalResignLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-content" *ngIf="!showModalResignLoader">
+		<h5>Confirmation</h5>
+		<h6>You are about to remove yourself as a warden.</h6>
+		<h6>Are you sure you want to do this?</h6>
+	</div>
+	<div class="button-container center" *ngIf="!showModalResignLoader">
+	    <button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
+	    <button class="btn orange waves-effect waves-light" (click)="resignConfirmClicked()"> Yes </button>
+  	</div>
 </div>

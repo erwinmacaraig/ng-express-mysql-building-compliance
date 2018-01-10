@@ -53,6 +53,7 @@ export class UserEmRoleRelation extends BaseClass {
                     WHERE uer.user_id = ?`;
             const uid = [userId];
             const connection = db.createConnection(dbconfig);
+
             connection.query(sql_load, uid, (error, results, fields) => {
                 if (error) {
                     return console.log(error);

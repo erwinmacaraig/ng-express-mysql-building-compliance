@@ -370,7 +370,7 @@ table tbody td .text{
 }
 
 #modalInvite{
-    width: 30%;
+    width: 22%;
     max-height: 100%;
 }
 
@@ -421,23 +421,31 @@ table tbody td .text{
     background: url(/assets/images/team_icons.png) no-repeat;
 }
 
+#modalResign {
+    width: 24%;
+}
+
+
 @media only screen
-  and (max-width: 1024px) {
-    #modalInvite{
+  and (min-width: 769px) and (max-width: 1440px){
+    #modalInvite,
+    #modalResign{
         width: 40%;
     }
 }
 
 @media only screen
   and (max-width: 768px) {
-    #modalInvite{
+    #modalInvite,
+    #modalResign{
         width: 60%;
     }
 }
 
 @media only screen
   and (max-width: 500px) {
-    #modalInvite{
+    #modalInvite,
+    #modalResign{
         width: 90%;
     }
 }

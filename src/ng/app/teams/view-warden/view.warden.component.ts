@@ -47,11 +47,14 @@ export class ViewWardenComponent implements OnInit, OnDestroy {
 	@ViewChild('invitefrm') emailInviteForm: NgForm;
 	public bulkEmailInvite;
 
+	showModalResignLoader = false;
+
 	constructor(
 		private auth: AuthService,
 		private userService: UserService,
 		private preloaderService: DashboardPreloaderService,
-		private personService : PersonDataProviderService
+		private personService : PersonDataProviderService,
+		private router : Router
 		){
 		this.userData = this.auth.getUserData();
 
@@ -166,6 +169,30 @@ export class ViewWardenComponent implements OnInit, OnDestroy {
 		}
 		);
 		this.emailInviteForm.controls.inviteTxtArea.reset();
+	}
+
+	resignClicked(){
+		$('#modalResign').modal('open');
+	}
+
+	resignConfirmClicked(){
+		this.showModalResignLoader = true;
+		this.userService.resignAsWarden({
+			user_id : this.userData['userId'],
+			location_id : this.viewData.location['location_id']
+		}, (response) => {
+			$('#modalResign').modal('close');
+			let newRoles = [];
+			newRoles.push({
+				role_id : 8, role_name : 'General Occupant', is_warden_role : 0
+			});
+			this.userData['roles'] = newRoles;
+			this.auth.setUserData(this.userData);
+			setTimeout(() => {
+				this.router.navigate(["/teams/view-gen-occupant"]);
+			}, 300);
+			
+		});
 	}
 
 	ngOnDestroy(){}

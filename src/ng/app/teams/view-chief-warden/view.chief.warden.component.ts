@@ -44,6 +44,8 @@ export class ViewChiefWardenComponent implements OnInit, OnDestroy {
 	hasRequest = false;
 	copyTeam = [];
 
+	showModalResignLoader = false;
+
 	@ViewChild('invitefrm') emailInviteForm: NgForm;
 	public bulkEmailInvite;
 
@@ -51,7 +53,8 @@ export class ViewChiefWardenComponent implements OnInit, OnDestroy {
 		private auth: AuthService,
 		private userService: UserService,
 		private preloaderService: DashboardPreloaderService,
-		private personService : PersonDataProviderService
+		private personService : PersonDataProviderService,
+		private router: Router
 		){
 		this.userData = this.auth.getUserData();
 
@@ -173,7 +176,42 @@ export class ViewChiefWardenComponent implements OnInit, OnDestroy {
 	}
 
 	resignConfirmClicked(){
-		
+		this.showModalResignLoader = true;
+		this.userService.resignAsChiefWarden(this.userData['userId'], (response) => {
+			$('#modalResign').modal('close');
+			let newRoles = [],
+				hasGenOcc = false,
+				hasOtherWarden = false;
+			for(let i in this.userData['roles']){
+				if( this.userData['roles'][i]['role_id'] != 11 ){
+					newRoles.push(this.userData['roles'][i]);
+					if( this.userData['roles'][i]['role_id'] == 8 ){
+						hasGenOcc = true;
+					}
+				}
+
+				if( this.userData['roles'][i]['role_id'] != 11 && this.userData['roles'][i]['is_warden_role'] == 1 ){
+					hasOtherWarden = true;
+				}
+			}
+
+			if(hasOtherWarden){
+				setTimeout(() => {
+					this.router.navigate(["/teams/view-warden"]);
+				}, 300);
+			}else if(!hasGenOcc){
+				newRoles.push({
+					role_id : 8, role_name : 'General Occupant', is_warden_role : 0
+				});
+				this.userData['roles'] = newRoles;
+				this.auth.setUserData(this.userData);
+				setTimeout(() => {
+					this.router.navigate(["/teams/view-gen-occupant"]);
+				}, 300);
+			}
+
+			
+		});
 	}
 
 	ngOnDestroy(){}
