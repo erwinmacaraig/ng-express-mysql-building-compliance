@@ -25,10 +25,11 @@ export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 			profilePic : ''
 		},
 		location : {
-			parent_data : {}
+			name : '',
+			parent_location : { name : '' }
 		},
-		eco_role : {}
-	}
+		eco_role : { role_name : '' }
+	};
 	showModalRequestWardenLoader = false;
 	approvers = [];
 	showModalRequestWardenSuccess = false;
@@ -54,7 +55,9 @@ export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 			}
 		});
 		
-		this.userService.getMyWardenTeam((response) => {
+		this.userService.getMyWardenTeam({
+			role_id : 8
+		}, (response) => {
 			this.viewData.user = response.data.user;
 			this.viewData.team = response.data.team;
 			this.viewData.location = response.data.location;

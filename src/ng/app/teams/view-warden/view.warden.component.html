@@ -5,14 +5,18 @@
 			
 			<div class="image-container">
 				<!-- <div class="profile-warden"></div> -->
-				<p class="initials">AA</p>
-				<!-- <img src="/assets/images/signup/eco_icon.png"  > -->
+				<p class="initials" *ngIf="viewData.user.profilePic.length > 0 === false">
+					{{getInitials(viewData.user.first_name+' '+viewData.user.last_name)}}
+				</p>
+				<img *ngIf="viewData.user.profilePic.length > 0 === true" [src]="viewData.user.profilePic"  >
 			</div>
 
 			<div class="badge-warden"></div>
 
 			<div class="name-container ">
-				<h5 class="name blue-text">Warden</h5>
+				<h5 class="name blue-text">
+					<span *ngIf="viewData.eco_role.role_name">{{viewData.eco_role.role_name}}</span>
+				</h5>
 				<!-- <p>Last Login 0 day</p> -->
 			</div>
 		</div>	
@@ -20,12 +24,15 @@
 	<div class="row">
 		<div class="col l12 m12 s12 location-div">
 			<small>Location</small>
-			<h5>Location Name</h5>
+			<h5>
+				<span *ngIf="viewData.location.parent_location.name">{{viewData.location.parent_location.name}}, </span>
+				{{viewData.location.name}}
+			</h5>
 		</div>
 	</div>
 
 	<div class="bottom-buttons">
-		<button class="btn orange waves-effect waves-light remove">
+		<button class="btn orange waves-effect waves-light remove" >
 			<div class="image inline-block"></div>
 			<div class="text inline-block">Resign as Warden</div>
 		</button>
@@ -41,7 +48,7 @@
 		<div class="col s12 m12 l12 top-title-button">
 			<h5 class="left">My Team</h5>
 
-			<button class="btn btn-flat right">
+			<button class="btn btn-flat right" (click)="showModalInvite()">
 				<div class="image csv-wardens"></div>
 				<div class="text">Invite Wardens by Email</div>
 			</button>
@@ -58,7 +65,28 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr>
+					<tr *ngIf="viewData.team.length == 0">
+						<td colspan="3" class="center">
+							<h6>No team found</h6>
+						</td>
+					</tr>
+					<tr *ngFor="let user of viewData.team">
+						<td>
+							<span *ngIf="user.parent_location.name">{{user.parent_location.name}}, </span> {{user.location_name}}
+						</td>
+						<td>
+							{{user.first_name}} {{user.last_name}}
+						</td>
+						<td class="with-image">
+							<div class="image white-hat" *ngIf="user.em_roles_id == 11 || user.em_roles_id == 15"></div>
+							<div class="image yellow-hat" *ngIf="user.em_roles_id == 10 || user.em_roles_id == 10"></div>
+							<div class="image red-hat" *ngIf="user.em_roles_id == 9 || user.em_roles_id == 16 || user.em_roles_id == 18"></div>
+							<div class="text">
+								{{user.role_name}}
+							</div>
+						</td>
+					</tr>
+					<!-- <tr>
 						<td>
 							Level 1
 						</td>
@@ -105,10 +133,32 @@
 							<div class="image red-hat"></div>
 							<div class="text">Warden</div>
 						</td>
-					</tr>
+					</tr> -->
 				</tbody>
 			</table>
 		</div>
 	</div>
 
+</div>
+
+
+<div id="modalInvite" class="modal">
+  <form #invitefrm="ngForm">
+    <div class="modal-content">
+      <div class="header-container center">
+        <div class="image invite-wardens"></div>
+        <div class="text" style="width: 50%;">Invite Wardens by Email</div>
+      </div>
+
+      <div class="center">
+        <p style="font-size: 16px;">Add email address separated by ","</p>
+        <textarea placeholder="Emails here" [(ngModel)]="bulkEmailInvite" name="inviteTxtArea"></textarea>
+      </div>
+
+      <div class="button-container center">
+        <button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
+        <button class="btn orange waves-effect waves-light" (click)="sendInviteOnClick()"> Submit </button>
+      </div>
+    </div>
+  </form>
 </div>

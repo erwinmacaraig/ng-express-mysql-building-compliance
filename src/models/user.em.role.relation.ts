@@ -41,9 +41,15 @@ export class UserEmRoleRelation extends BaseClass {
                       er.role_name,
                       er.is_warden_role,
                       uer.location_id,
-                      er.em_roles_id
+                      er.em_roles_id,
+                      l.name as location_name,
+                      l.parent_id,
+                      l.formatted_address,
+                      l.google_place_id,
+                      l.google_photo_url
                     FROM em_roles er
                     INNER JOIN user_em_roles_relation uer ON er.em_roles_id = uer.em_role_id
+                    LEFT JOIN locations l ON l.location_id = uer.location_id
                     WHERE uer.user_id = ?`;
             const uid = [userId];
             const connection = db.createConnection(dbconfig);
@@ -57,6 +63,41 @@ export class UserEmRoleRelation extends BaseClass {
                     this.dbData = results;
                     resolve(this.dbData);
                 }
+            });
+            connection.end();
+        });
+    }
+
+    public getUserLocationByAccountIdAndLocationIds(accountId, locIds) {
+        return new Promise((resolve, reject) => {
+            const sql_load = `SELECT
+                      uer.user_em_roles_relation_id,
+                      er.role_name,
+                      er.is_warden_role,
+                      uer.location_id,
+                      er.em_roles_id,
+                      l.name as location_name,
+                      l.parent_id,
+                      l.formatted_address,
+                      l.google_place_id,
+                      l.google_photo_url,
+                      u.first_name,
+                      u.last_name,
+                      u.user_id,
+                      u.email
+                    FROM em_roles er
+                    INNER JOIN user_em_roles_relation uer ON er.em_roles_id = uer.em_role_id
+                    INNER JOIN users u ON u.user_id = uer.user_id
+                    LEFT JOIN locations l ON l.location_id = uer.location_id
+                    WHERE u.account_id = ${accountId} AND l.location_id IN (${locIds})`;
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
             });
             connection.end();
         });

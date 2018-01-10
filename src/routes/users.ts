@@ -14,6 +14,7 @@ import { FileUploader } from '../models/upload-file';
 import { FileUser } from '../models/file.user.model';
 import { Files } from '../models/files.model';
 import { LocationAccountUser } from '../models/location.account.user';
+import { LocationAccountRelation } from '../models/location.account.relation';
 import { Location } from '../models/location.model';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { EmailSender } from './../models/email.sender';
@@ -80,7 +81,7 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().removeUserAsWarden(req, res, next);
 	    });
 
-	    router.get('/users/get-my-warden-team', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    router.post('/users/get-my-warden-team', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getMyWardenTeam(req, res, next);
 	    });
 
@@ -567,18 +568,101 @@ export class UsersRoute extends BaseRoute {
 				team : <any>[]
 			}, message : ''
 		},
-		userModel = new User(req['user']['user_id']),
-		locAccUserModel = new LocationAccountUser(),
-		myEmRole = new UserEmRoleRelation();
+		roleId = req.body.role_id,
+		emRoleRelation = new UserEmRoleRelation(),
+		emRoles = await emRoleRelation.getEmRoles(),
+		myEmRoleRelation = new UserEmRoleRelation(),
+		myEmRoles = await myEmRoleRelation.getEmRolesByUserId(req['user']['user_id']),
+		locationAccountUser = new LocationAccountUser(),
+		locationModel = new Location();
 
-		response.data['user'] = await userModel.load();
-		response.data['user']['profilePic'] = '';
-
-		try{
-			response.data.eco_role = await myEmRole.getEmRolesByUserId(req['user']['user_id']);
-			response.data.eco_role = response.data.eco_role[0];
-		}catch(e){
+		for(let i in emRoles){
+			if(emRoles[i]['em_roles_id'] == roleId){
+				response.data.eco_role = emRoles[i];
+			}
 		}
+
+		const accountsLocations = await locationAccountUser.getMany([
+			[ "account_id = "+req['user']['account_id'] ]
+		]);
+
+		let myEmRoleRecord = {};
+		for(let i in myEmRoles){
+			if(myEmRoles[i]['em_roles_id'] == roleId){
+				myEmRoleRecord = myEmRoles[i];
+			}
+		}
+
+		myEmRoleRecord['related_locations'] = await locationModel.getAncestries(myEmRoleRecord['location_id']);
+
+
+		response.data.location = {
+			'location_id' : myEmRoleRecord['location_id'],
+			'parent_id' : myEmRoleRecord['parent_id'],
+			'name' : myEmRoleRecord['location_name'],
+			'formatted_address' : myEmRoleRecord['formatted_address'],
+			'google_place_id' : myEmRoleRecord['google_place_id'],
+			'google_photo_url' : myEmRoleRecord['google_photo_url'],
+			'related_locations' : myEmRoleRecord['related_locations'],
+			'parent_location' : {}
+		};
+
+		let mainParentLocationId,
+			mainParent = {};
+		for(let i in myEmRoleRecord['related_locations']){
+			if(myEmRoleRecord['related_locations'][i]['parent_id'] == -1){
+				mainParent = myEmRoleRecord['related_locations'][i];
+				mainParentLocationId = myEmRoleRecord['related_locations'][i]['location_id'];
+			}
+		}
+
+		if(myEmRoleRecord['parent_id'] == response.data.location['parent_id']){
+			response.data.location['parent_location'] = mainParent;
+		}
+
+		let deepLocation = new Location(),
+			subLocations = await deepLocation.getDeepLocationsByParentId(mainParentLocationId),
+			subLocationsIds = [];
+		for(let i in subLocations){
+			subLocationsIds.push(subLocations[i]['location_id']);
+		}
+
+		let userEmRoleRelationTeam = new UserEmRoleRelation(),
+			teamEmRoles = <any>[];
+
+		if( (roleId >= 9 && roleId <= 11) || (roleId >= 15 && roleId <= 18)){
+			//Chief Warden
+			teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], subLocationsIds.join(','));
+		}else if(roleId == 8){
+			//Gen Occupant
+			teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], myEmRoleRecord['location_id']);
+		}else{
+
+		}
+
+		let team = [];
+		for(let i in teamEmRoles){
+			if(teamEmRoles[i]['user_id'] != req['user']['user_id']){
+				teamEmRoles[i]['parent_location'] = {};
+				if(teamEmRoles[i]['parent_id'] == mainParentLocationId){
+					teamEmRoles[i]['parent_location'] = mainParent;
+				}else{
+					for(let x in subLocations){
+						if(teamEmRoles[i]['parent_id'] == subLocations[x]['location_id']){
+							teamEmRoles[i]['parent_location'] = subLocations[x];
+						}
+					}
+				}
+				team.push(teamEmRoles[i]);
+			}
+		}
+		response.data.team = team;
+		
+		/*response.data['accntlocations'] = accountsLocations;
+		response.data['emRoles'] = emRoles;
+		response.data['myEmRoles'] = myEmRoles;
+		response.data['myEmRoleRecord'] = myEmRoleRecord;*/
+		response.data.user = req['user'];
 
 		let fileModel = new Files();
         await fileModel.getByUserIdAndType(req['user']['user_id'], 'profile').then(
@@ -589,78 +673,6 @@ export class UsersRoute extends BaseRoute {
                 response.data['user']['profilePic'] = '';
             }
         );
-
-		try{
-			let locAccUserData = await locAccUserModel.getByUserId(req['user']['user_id']),
-				locationModel = new Location(locAccUserData[0]['location_id']),
-				parentLocation = new Location();
-
-			let location = await locationModel.load();
-			parentLocation.setID(location['parent_id']);
-			try{
-				location['parent_data'] = await parentLocation.load();
-			}catch(e){
-				location['parent_data'] = {};
-			}
-
-			response.data['location'] = location;
-
-			let locAccUserModelForTeam = new LocationAccountUser();
-			await locAccUserModelForTeam.getManyByLocationId(location['location_id']);
-			let locAccUserTeam = locAccUserModelForTeam.getDBData();
-			let allowedRoleIds = [0,1,2,8,9,10,11,12,13,14,15,16,17,18];
-			for(let i in locAccUserTeam){
-
-				if(locAccUserTeam[i]['user_id'] !== req['user']['user_id'] && allowedRoleIds.indexOf(locAccUserTeam[i]['role_id']) > -1){
-					let user = {};
-					const userTeam = new User(locAccUserTeam[i]['user_id']);
-					
-					try{
-						let emRoleModel = new UserEmRoleRelation();
-				        
-				        try{
-				        	await userTeam.load();
-							user = userTeam.getDBData();
-							let fileModelTeam = new Files();
-					        await fileModelTeam.getByUserIdAndType(locAccUserTeam[i]['user_id'], 'profile').then(
-					            (fileData) => {
-					                user['profilePic'] = fileData[0].url;
-					            },
-					            () => {
-					                user['profilePic'] = '';
-					            }
-					        );
-
-					        await emRoleModel.getEmRolesByUserId(locAccUserTeam[i]['user_id']);
-					        let roles = emRoleModel.getDBData();
-					        for(let i in roles){
-					        	if(roles[i]['em_roles_id'] ){
-
-					        	}
-					        }
-
-					        if(locAccUserTeam[i]['role_id']){
-
-					        }
-
-				        	user['role'] = emRoleModel.getDBData()[0];
-
-					        response.data.team.push(user);
-
-				        }catch(e){
-				        }
-
-						
-					}catch(e){
-
-					}
-				}
-
-			}
-
-		}catch(e){
-			response.data['location'] = {};
-		}
 
 		res.send(response);
 	}

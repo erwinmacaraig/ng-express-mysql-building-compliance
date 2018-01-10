@@ -63,13 +63,8 @@ export class LocationAccountRelation extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              if(!results.length){
-                reject('Record not found');
-              }else{
-                this.dbData = results[0];
-                this.setID(results[0]['location_account_relation_id']);
-                resolve(this.dbData);
-              }
+              this.dbData = results;
+              resolve(this.dbData);
             });
             connection.end();
         });

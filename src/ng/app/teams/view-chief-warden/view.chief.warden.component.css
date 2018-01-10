@@ -368,7 +368,7 @@ table tbody td .text{
     margin: 0px;
 }
 
-.filter-list-wardens .search-field{
+.filter-container .search-field{
     background-color: #eee;
     padding: 0px 20px;
     position: relative;
@@ -377,30 +377,30 @@ table tbody td .text{
     border-radius: 5px;
 }
 
-.filter-list-wardens .search-field i{
+.filter-container .search-field i{
     position: absolute;
     right: 10px;
     top: 15px;
 }
 
-.filter-list-wardens .search-field input[type="text"]{
+.filter-container .search-field input[type="text"]{
     width: 95%;
     border-bottom: 0px;
     margin-bottom: 0px;
     height: 100%;
 }
 
-.filter-list-wardens .search-field input[type="text"]:focus{
+.filter-container .search-field input[type="text"]:focus{
     box-shadow: none !important;
     border-bottom: 0px !important;
 }
 
-.filter-list-wardens > .col {
+.filter-container > .col {
     margin-top: 10px;
     height: 50px !important;
 }
 
-.filter-list-wardens .select-field{
+.filter-container .select-field{
     margin-top: 0px !important;
 }
 
@@ -424,4 +424,78 @@ table tbody td .text{
     -moz-column-count: 3;
     column-count: 3;
   }
+}
+
+
+#modalInvite{
+    width: 30%;
+    max-height: 100%;
+}
+
+#modalInvite textarea{
+    min-height: 165px;
+    font-size: 14px;
+    padding: 10px;
+    background-color: #ededed;
+    border: 0px;
+}
+
+.modal .header-container .csv-wardens{
+    background-position: 95.5% 12%;
+}
+
+.modal .header-container .invite-wardens{
+    background-position: 63.5% 12%;
+}
+
+.modal .header-container .image{
+    width: 60px;
+    height: 60px;
+}
+
+.button-container{
+    margin: 20px 0px;
+}
+
+
+.modal .header-container .invite-wardens{
+    background-position: 63.5% 12% !important;
+}
+
+.modal .header-container .text {
+    width: 60%;
+    font-size: 24px;
+    color: #0089ec;
+    line-height: 28px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.modal .header-container .image {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+    box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+}
+
+@media only screen
+  and (max-width: 1024px) {
+    #modalInvite{
+        width: 40%;
+    }
+}
+
+@media only screen
+  and (max-width: 768px) {
+    #modalInvite{
+        width: 60%;
+    }
+}
+
+@media only screen
+  and (max-width: 500px) {
+    #modalInvite{
+        width: 90%;
+    }
 }

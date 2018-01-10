@@ -23,7 +23,7 @@
 		<div class="col l12 m12 s12 location-div">
 			<small>Location</small>
 			<h5>
-				<span *ngIf="viewData.location.parent_data.name">{{viewData.location.parent_data.name}}</span>
+				<span *ngIf="viewData.location.parent_location.name">{{viewData.location.parent_location.name}}, </span>
 				{{viewData.location.name}}
 			</h5>
 		</div>
@@ -72,11 +72,11 @@
 							{{user.first_name}} {{user.last_name}}
 						</td>
 						<td class="with-image">
-							<div class="image white-hat" *ngIf="user.role.em_roles_id == 11 || user.role.em_roles_id == 15"></div>
-							<div class="image yellow-hat" *ngIf="user.role.em_roles_id == 10 || user.role.em_roles_id == 10"></div>
-							<div class="image red-hat" *ngIf="user.role.em_roles_id == 9 || user.role.em_roles_id == 16 || user.role.em_roles_id == 18"></div>
+							<div class="image white-hat" *ngIf="user.em_roles_id == 11 || user.em_roles_id == 15"></div>
+							<div class="image yellow-hat" *ngIf="user.em_roles_id == 10 || user.em_roles_id == 10"></div>
+							<div class="image red-hat" *ngIf="user.em_roles_id == 9 || user.em_roles_id == 16 || user.em_roles_id == 18"></div>
 							<div class="text">
-								{{user.role.role_name}}
+								{{user.role_name}}
 							</div>
 						</td>
 					</tr>
