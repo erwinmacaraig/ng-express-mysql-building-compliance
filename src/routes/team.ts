@@ -21,6 +21,9 @@ import { LocationAccountRelation } from '../models/location.account.relation';
 const md5 = require('md5');
 const defs = require('../config/defs');
 import * as moment from 'moment';
+import * as csv from 'fast-csv';
+
+
 
 /**
  * / route
@@ -116,6 +119,17 @@ export class TeamRoute extends BaseRoute {
       });
     });
 
+    router.post('/team/warden/csv-upload', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+    //  router.post('/team/warden/csv-upload', (req: AuthRequest, res: Response, next: NextFunction) => {
+      new TeamRoute().processCSVUpload(req, res, next).then((data) => {
+        console.log('I got ', data);
+        return res.status(200).send(data);
+      }).catch((e) => {
+        res.status(400).send({
+          message: 'Error processing CSV file.'
+        });
+      });
+    });
   }
 
   /**
@@ -151,6 +165,88 @@ export class TeamRoute extends BaseRoute {
     this.render(req, res, 'index.hbs', options);
   }
 
+  public async processCSVUpload(req: AuthRequest, res: Response, next: NextFunction) {
+    const uploader = new FileUploader(req, res, next);
+    const invalidEmails = [];
+    const filename = await uploader.uploadFileToLocalServer();
+    const utils = new Utils();
+    let data;
+    data = await utils.processCSVUpload(<string>filename);
+    // data['override'] = req.body.override;
+
+    for (let i = 0; i < data.length; i++) {
+      const user = new User();
+      try {
+        let dbData = await user.getByEmail(data[i]['email']);
+        invalidEmails.push(data[i]['email']);
+      } catch(e) {
+        if (validator.isEmail(data[i]['email'])) {
+          // email and create
+          const userInvitation = new UserInvitation();
+          const tokenModel = new Token();
+          const tokenStr = tokenModel.generateRandomChars(10);
+          await userInvitation.create({
+            'first_name': data[i]['first_name'],
+            'last_name': data[i]['last_name'],
+            'email': data[i]['email'],
+            'location_id': 0,
+            'account_id': req.user.user_id,
+            'role_id': 0,
+            'eco_role_id': 8,
+            'contact_number': data[i]['mobile_number'],
+            'phone_number': data[i]['phone_number'],
+            'invited_by_user': req.user.user_id,
+            'can_login': data[i]['can_login'],
+            'time_zone': data[i]['time_zone'],
+          });
+          const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+          await tokenModel.create({
+            'token': tokenStr,
+            'action': 'invitation',
+            'verified': 0,
+            'expiration_date': expDate,
+            'id': userInvitation.ID(),
+            'id_type': 'user_invitations_id'
+          });
+
+          const opts = {
+            from : 'allantaw2@gmail.com',
+            fromName : 'EvacConnect',
+            to : [],
+            cc: [],
+            body : '',
+            attachments: [],
+            subject : 'EvacConnect Warden Nomination'
+          };
+          const email = new EmailSender(opts);
+          const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+          let emailBody = email.getEmailHTMLHeader();
+          emailBody += `<h3 style="text-transform:capitalize;">Hi ${data[i]['first_name']} ${data[i]['last_name']},</h3> <br/>
+          <h4>You are nominated to be a Warden.</h4> <br/>
+          <h5>Click on the link below to setup your password.</h5> <br/>
+          <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+          emailBody += email.getEmailHTMLFooter();
+          email.assignOptions({
+            body : emailBody,
+            to: [data[i]['email']],
+            cc: ['erwin.macaraig@gmail.com']
+          });
+          email.send((data) => console.log(data),
+                     (err) => console.log(err)
+                    );
+
+        } else {
+          invalidEmails.push(data[i]['email']);
+        }
+      }
+    }
+
+    return invalidEmails;
+
+
+
+  }
   public async addMobilityImpairedPersons(req: AuthRequest, res: Response) {
     console.log(JSON.parse(req.body.peep));
     const peep = JSON.parse(req.body.peep);

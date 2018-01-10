@@ -168,8 +168,11 @@ export class UserInvitation extends BaseClass {
                     eco_role_id = ?,
                     mobility_impaired = ?,
                     contact_number = ?,
+                    phone_number = ?,
                     invited_by_user = ?,
-                    was_used = ?
+                    can_login = ?,
+                    was_used = ?,
+                    time_zone = ?
                 WHERE
                     user_invitations_id = ?
             `;
@@ -183,8 +186,11 @@ export class UserInvitation extends BaseClass {
                 ('eco_role_id' in this.dbData) ? this.dbData['eco_role_id'] : 0,
                 ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : 0,
                 ('contact_number' in this.dbData) ? this.dbData['contact_number'] : '',
+                ('phone_number' in this.dbData) ? this.dbData['phone_number'] : null,
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
+                ('can_login' in this.dbData) ? this.dbData['can_login'] : 0,
                 ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
+                ('time_zone' in this.dbData) ? this.dbData['time_zone'] : null,
                 this.ID() ? this.ID() : 0
             ];
             const connection = db.createConnection(dbconfig);
@@ -213,9 +219,15 @@ export class UserInvitation extends BaseClass {
                 eco_role_id,
                 mobility_impaired,
                 contact_number,
+                phone_number,
                 invited_by_user,
-                was_used
+                can_login,
+                was_used,
+                time_zone
             ) VALUES (
+                ?,
+                ?,
+                ?,
                 ?,
                 ?,
                 ?,
@@ -238,8 +250,11 @@ export class UserInvitation extends BaseClass {
                 ('eco_role_id' in this.dbData) ? this.dbData['eco_role_id'] : 0,
                 ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : 0,
                 ('contact_number' in this.dbData) ? this.dbData['contact_number'] : '',
+                ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
+                ('can_login' in this.dbData) ? this.dbData['can_login'] : 0,
                 ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
+                ('time_zone' in this.dbData) ? this.dbData['time_zone'] : null,
             ];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_insert, values, (err, results, fields) => {

@@ -38,6 +38,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     public userData = {};
     public selectedUser = {};
     public bulkEmailInvite;
+    public CSVFileToUpload;
     constructor(
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
@@ -57,7 +58,6 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
             role_name: 'Tenant'
         }
         ];
-        console.log('Highest rank role is ' + this.authService.getHighestRankRole());
         this.userRole = this.authService.getHighestRankRole();
         if (this.userRole == 1) {
             this.accountRoles.push({
@@ -65,12 +65,10 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
                 role_name: 'Building Manager'
             });
         }
-        console.log(this.accountRoles);
 
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
                 this.ecoRoles = roles;
-                console.log(this.ecoRoles);
             }, (err) => {
                 console.log('Server Error. Unable to get the list');
             }
@@ -277,6 +275,24 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     this.emailInviteForm.controls.inviteTxtArea.reset();
   }
 
+  public fileChangeEvent(fileInput: any) {
+    this.CSVFileToUpload = <Array<File>> fileInput.target.files;
+    console.log(this.CSVFileToUpload);
+  }
+;
+  public onUploadCSVAction() {
+    let override = $('#override')[0].checked;
+    console.log(override);
+    let formData: any = new FormData();
+
+    formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
+    formData.append('override',  override);
+    this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
+      console.log(data);
+    }, (e) => {
+      console.log(e);
+    });
+  }
 
 
 }

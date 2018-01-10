@@ -1,5 +1,7 @@
 import * as db from 'mysql2';
 import * as Promise from 'promise';
+import * as csv from 'fast-csv';
+import * as fs from 'fs';
 
 const dbconfig = require('../config/db');
 
@@ -342,6 +344,40 @@ export class Utils {
           });
           connection.end();
       });
+    }
+
+    public processCSVUpload(filename: string) {
+      return new Promise((resolve, reject) => {
+        let counter = 0;
+        let columnNames;
+        let fieldnames = {};
+        // filename with file path
+        const arrayOfRows = [];
+        const CSVStream =  csv.fromPath(<string>filename)
+           .on('data', (data) => {
+              if (counter > 0 ) {
+                for (let i = 0; i < columnNames.length; i++) {
+                  if (columnNames[i].toUpperCase() === 'CAN_LOGIN') {
+                    fieldnames[columnNames[i]] = data[i].toString().toUpperCase() === 'TRUE' ? 1 : 0;
+                  } else {
+                    fieldnames[columnNames[i]] = <string>data[i];
+                  }
+                }
+                arrayOfRows.push(fieldnames);
+                fieldnames = {};
+              } else {
+                columnNames = data;
+              }
+              counter = counter + 1;
+           })
+           .on('end', () => {
+             resolve(arrayOfRows);
+           })
+           .on('error', (error) => {
+             console.log(error);
+             throw new Error('There was an error reading your file');
+           })
+          });
     }
 
 }
