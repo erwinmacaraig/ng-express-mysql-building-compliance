@@ -129,6 +129,16 @@ export class TeamRoute extends BaseRoute {
       });
     });
 
+    router.get('/team/list/archived-peep', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new TeamRoute().buildPEEPList(req, res, 1).then((peep) => {
+        return res.status(200).send(peep);
+      }).catch(() => {
+        return res.status(400).send({
+          message: 'Internal Error. Cannot build peep list'
+        });
+      });
+    });
+
     router.post('/team/warden/csv-upload', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
     //  router.post('/team/warden/csv-upload', (req: AuthRequest, res: Response, next: NextFunction) => {
       new TeamRoute().processCSVUpload(req, res, next).then((data) => {
@@ -266,6 +276,10 @@ export class TeamRoute extends BaseRoute {
       const tokenModel = new Token();
       const tokenStr = tokenModel.generateRandomChars(10);
       const user = new User();
+      const locModel = new Location();
+      const parentLocModel = new Location();
+      const userEmRole = new UserEmRoleRelation();
+      const emRoles = await userEmRole.getEmRoles();
       try {
         const dbData = await user.getByEmail(p['email']);
         invalidPeep.push(p['email']);
@@ -283,6 +297,65 @@ export class TeamRoute extends BaseRoute {
             'id': userInvitation.ID(),
             'id_type': 'user_invitations_id'
           });
+
+          locModel.setID(p.location_id);
+          let location = await locModel.load();
+          let parentName = '';
+          if(location['parent_id'] > -1){
+            parentLocModel.setID(location['parent_id']);
+            await parentLocModel.load();
+            parentName = <string>parentLocModel.get('name');
+          }
+          let locText = '';
+          if(parentName.length > 0){
+            locText += parentName+', ';
+          }
+          locText += location['name'];
+
+          const opts = {
+            from : 'allantaw2@gmail.com',
+            fromName : 'EvacConnect',
+            to : [],
+            cc: [],
+            body : '',
+            attachments: [],
+            subject : 'EvacConnect Warden Nomination'
+          };
+          const email = new EmailSender(opts);
+          const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+          let emailBody = email.getEmailHTMLHeader();
+
+          let roleText = ``;
+          if(p.role_id == 1){
+            roleText += ' FRP '
+          }else if(p.role_id == 2){
+            roleText += ' TRP '
+          }
+
+          if(p.eco_role_id >= 8){
+            let emRole = '';
+            for(let i in emRoles){
+              if(emRoles[i]['em_roles_id'] == p.eco_role_id){
+                emRole = emRoles[i]['role_name'];
+              }
+            }
+            roleText += ' AND '+emRole;
+          }
+
+          emailBody += `<h3 style="text-transform:capitalize;">Hi ${p['first_name']} ${p['last_name']},</h3> <br/>
+          <h4>You are invited to be ${roleText} in ${locText}.</h4> <br/>
+          <h5>Click on the link below to setup your password.</h5> <br/>
+          <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+          emailBody += email.getEmailHTMLFooter();
+          email.assignOptions({
+            body : emailBody,
+            to: [p['email']],
+            cc: ['erwin.macaraig@gmail.com']
+          });
+          email.send((data) => console.log(data),
+                     (err) => console.log(err)
+                    );
         } else {
           invalidPeep.push(p['email']);
         }
@@ -657,6 +730,10 @@ export class TeamRoute extends BaseRoute {
 
     // get parent location details given a location id
      for (let warden of wardens) {
+      warden['profile_pic'] = '';
+      if(warden['last_login']){
+        warden['last_login'] = moment(warden['last_login'], ["YYYY-MM-DD HH:mm:ss"]).format("MMM. DD, YYYY hh:mmA");
+      }
       let locationInstance = new Location(warden['parent_id']);
        await locationInstance.load();
       let pId = <number>locationInstance.get('parent_id');
@@ -716,6 +793,10 @@ export class TeamRoute extends BaseRoute {
     let wardens = await locationAccountUser.getMany(arrWhere);
     let newWardensResult = [];
     for(let l in wardens){
+      wardens[l]['profile_pic'] = '';
+      if(wardens[l]['last_login']){
+        wardens[l]['last_login'] = moment(wardens[l]['last_login'], ["YYYY-MM-DD HH:mm:ss"]).format("MMM. DD, YYYY hh:mmA");
+      }
       let userModel = new User(wardens[l]['user_id']);
       let parentLocation = new Location(wardens[l]['parent_id']);
 
@@ -745,14 +826,18 @@ export class TeamRoute extends BaseRoute {
     return newWardensResult;
   }
 
-  public async buildPEEPList(req: AuthRequest, res: Response) {
+  public async buildPEEPList(req: AuthRequest, res: Response, archived?) {
     const account = new Account(req.user.account_id);
-    const result = await account.buildPEEPList(req.user.account_id);
+    const result = await account.buildPEEPList(req.user.account_id, archived);
     const temp = JSON.stringify(result);
     const peeps = JSON.parse(temp);
     const emRoleRelation = new UserEmRoleRelation();
     let emroles = await emRoleRelation.getEmRoles();
     for (const peep of peeps) {
+      peep['profile_pic'] = '';
+      if(peep['last_login']){
+        peep['last_login'] = moment(peep['last_login'], ["YYYY-MM-DD HH:mm:ss"]).format("MMM. DD, YYYY hh:mmA");
+      }
       let locationInstance = new Location(peep['location_id']);
       await locationInstance.load();
       let pId = <number>locationInstance.get('parent_id');
@@ -764,9 +849,27 @@ export class TeamRoute extends BaseRoute {
       peep['parent_name'] = locationInstance.get('name') ? locationInstance.get('name') : locationInstance.get('formatted_address');
     }
 
+    let emroleids = [0];
+    for(let i in emroles){
+      if(emroles[i]['is_warden_role'] == 1){
+        emroleids.push( emroles[i]['em_roles_id'] );
+      }
+    }
+
+    let newPeep = [];
+    for(let peep of peeps){
+      if(!archived && peep['location_account_user_id']){
+        newPeep.push(peep);
+      }else if(!archived && peep['user_invitations_id']){
+        newPeep.push(peep); 
+      }else if(archived && peep['location_account_user_id']){
+        newPeep.push(peep);
+      }
+    }
+
      
 
-    return peeps;
+    return newPeep;
      
   }
 

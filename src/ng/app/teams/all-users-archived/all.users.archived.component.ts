@@ -184,11 +184,22 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 	}
 
 	selectAllCheckboxEvent(event){
+		let checkboxes = $('table tbody input[type="checkbox"]');
 		if(event.target.checked){
-			$('input[type="checkbox"]').prop('checked', true);
+			checkboxes.prop('checked', true);
 		}else{
-			$('input[type="checkbox"]').prop('checked', false);
+			checkboxes.prop('checked', false);
 		}
+
+		checkboxes.each((indx, elem) => {
+			let id = $(elem).attr('id'),
+				index = id.replace('location-', '');
+			for(let i in this.listData){
+				if(i == index){
+					this.singleCheckboxChangeEvent(this.listData[i], { target : { checked : elem.checked } } );
+				}
+			}
+		});
 	}
 
 	singleCheckboxChangeEvent(list, event){

@@ -67,7 +67,7 @@
 						<h6>No records found</h6>
 					</td>
 				</tr>
-				<tr *ngFor="let list of listData; let i = index;">
+				<tr *ngFor="let list of listData; let i = index;" [attr.index]="i">
 					<td>
 						<p class="checkbox">
 							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)">

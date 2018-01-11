@@ -43,7 +43,7 @@
 				<tr>
 					<th>
 						<p class="checkbox">
-							<input id="allLocations" class="filled-in" type="checkbox">
+							<input id="allLocations" (change)="selectAllCheckboxEvent($event)" class="filled-in" type="checkbox">
 							<label for="allLocations">Locations</label>
 						</p>
 					</th>
@@ -55,15 +55,27 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr *ngFor="let warden of wardenArr; let i = index">
+				<tr *ngIf="wardenArr.length == 0">
+					<td colspan="6" class="center">
+						<h6>No record found</h6>
+					</td>
+				</tr>
+				<tr *ngFor="let warden of wardenArr; let i = index;">
 					<td>
 						<p class="checkbox">
-							<input id="location" class="filled-in" type="checkbox">
-							<label for="location">{{warden['parent_name']}} - {{warden['name']}}</label>
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)">
+							<label for="location-{{i}}" > 
+								{{warden['parent_name']}} - {{warden['name']}}
+							</label>
 						</p>
 					</td>
 					<td>
-						{{ warden['first_name'] }} {{warden['last_name']}}
+						<div class="image-container lighten-3" [ngClass]="warden.bg_class">
+							<div class="image">
+								<img *ngIf="warden.profile_pic.length > 0" [src]="warden.profile_pic"  >
+							</div>
+						</div>
+						<div class="text">{{ warden['first_name'] }} {{warden['last_name']}}</div>
 					</td>
 					<td>
 						<div class="eco-role">
@@ -75,7 +87,7 @@
 						<span class="over red-text">0/0</span>
 					</td>
 					<td>
-						{{warden['days']}} Day(s)
+						{{warden['last_login']}}
 					</td>
 					<td>
 						<select (change)="onSelectFromTable($event, warden)">
@@ -146,9 +158,11 @@
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
-				<span *ngIf="list.parent_data.name">{{ list.parent_data.name }}, </span> 
+				<span *ngIf="list.parent_name">
+					{{ list.parent_name }}, 
+				</span> 
 				<span>{{list.name}}</span> 
-				<span class="blue-text">{{list.user_info.first_name}} {{list.user_info.last_name}}</span>
+				<span class="blue-text">{{list.first_name}} {{list.last_name}}</span>
 			</li>
 		</ul>
 	</div>

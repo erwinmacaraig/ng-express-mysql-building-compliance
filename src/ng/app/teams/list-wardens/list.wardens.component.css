@@ -30,7 +30,7 @@
 }
 
 .row.top .right-actions .switch-container .text{
-	font-size: 16px;
+	font-size: 14px;
 }
 
 
@@ -100,7 +100,7 @@
 }
 
 .row.top .right-actions .archived-container a{
-	font-size: 16px;
+	font-size: 14px;
 	color: #333;
 }
 
@@ -272,6 +272,31 @@ table thead tr th .checkbox {
     display: inline-block;
 }
 
+table tr td .text{
+    display: inline-block;
+}
+
+table tr td .image-container{
+    width: 50px;
+    height: 50px;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #fff;
+    border-radius: 30px;
+    margin: 0px 10px;
+    overflow: hidden;
+}
+
+table tr td .image{
+    overflow: hidden;
+}
+
+table tr td .image img{
+  max-width: 50px;
+  max-height: 50px;
+}
+
 @media only screen 
   and (max-width: 768px){
 	.row.top .right-actions{
@@ -279,27 +304,31 @@ table thead tr th .checkbox {
 	}
 }
 
+#modalArchiveBulk,
 #modalArchive{
-    width: 30%;
+    width: 35%;
 }
 
-@media only screen 
-  and (max-width: 1440px){
+#modalArchiveBulk ul li{
+    font-size: 14px;
+}
+
+@media only screen and (max-width: 1400px) {
+    #modalArchiveBulk,
     #modalArchive{
-        width: 40%;
+        width: 50%;
     }
 }
 
-@media only screen 
-  and (max-width: 768px){
+@media only screen and (max-width: 1024px) {
+    #modalArchiveBulk,
     #modalArchive{
-        width: 80%;
+        width: 60%;
     }
 }
 
-
-@media only screen 
-  and (max-width: 500px){
+@media only screen and (max-width: 500px) {
+    #modalArchiveBulk,
     #modalArchive{
         width: 90%;
     }

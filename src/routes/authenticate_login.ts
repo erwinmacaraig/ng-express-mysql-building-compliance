@@ -108,9 +108,8 @@ public validate(req: Request, res: Response, next: NextFunction) {
                               }
 
                                 const now = moment().format('YYYY-MM-DD HH-mm-ss');
-                                user.create({
-                                  'last_login': now
-                                }).then(() => {
+                                user.set('last_login', now);
+                                user.dbUpdate().then(() => {
                                   res.status(200).send(response);
                                 });
 
@@ -119,9 +118,8 @@ public validate(req: Request, res: Response, next: NextFunction) {
                         (m) => {
                             getWardenRoles(() => {
                               const now = moment().format('YYYY-MM-DD HH-mm-ss');
-                              user.create({
-                                'last_login': now
-                              }).then(() => {
+                              user.set('last_login', now);
+                              user.dbUpdate().then(() => {
                                 res.status(200).send(response);
                               });
                             });

@@ -65,6 +65,7 @@ import { VerificationComponent } from './location/verification/verification.comp
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
 import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.impaired.component';
+import { MobilityImpairedArchivedComponent } from './teams/mobility-impaired-archived/mobility.impaired.archived.component';
 import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.mobility.impaired.component';
 import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
 import { ListArchivedWardensComponent } from './teams/list-wardens-archived/list.wardens.archived.component';
@@ -120,6 +121,7 @@ import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen
     TeamsComponent,
     TeamsAddWardenComponent,
     MobilityImpairedComponent,
+    MobilityImpairedArchivedComponent,
     AddMobilityImpairedComponent,
     ListWardensComponent,
     ListArchivedWardensComponent,
@@ -129,7 +131,7 @@ import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen
     ViewWardenComponent,
     ViewGeneralOccupantComponent,
     ViewChiefWardenComponent,
-    AllUsersArchivedComponent
+    AllUsersArchivedComponent,
   ],
   imports: [
     BrowserModule,

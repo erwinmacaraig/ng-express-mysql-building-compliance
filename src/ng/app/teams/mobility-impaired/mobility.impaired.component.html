@@ -1,7 +1,7 @@
 <div class="row">
 	<div class="col l12 m12 s12" style="position: relative;">
 		<h4>Mobility Impaired</h4>
-		<a href="#" class="archived">
+		<a href="#" class="archived" [routerLink]="['/teams/mobility-impaired-archived']">
 			<span class="image"></span>
 			View Archive
 		</a>
@@ -68,19 +68,25 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr *ngFor="let peep of peepList">
+				<tr *ngIf="peepList.length == 0">
+					<td colspan="6" class="center">
+						<h6>No record found</h6>
+					</td>
+				</tr>
+				<tr *ngFor="let peep of peepList; let i = index;">
 					<td>
-						<p class="checkbox">
+						<p class="checkbox" [hidden]="!peep.id_encrypted">
 							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)">
 							<label for="location-{{i}}" > 
 								{{peep['parent_name']}} - {{peep['location_name']}}
 							</label>
 						</p>
+						<span [hidden]="peep.id_encrypted"> {{peep['parent_name']}} - {{peep['location_name']}}  </span>
 					</td>
 					<td>
-						<div class="image-container blue lighten-3">
+						<div class="image-container lighten-3" [ngClass]="peep.bg_class">
 							<div class="image">
-								<!-- <img src="assets/images/locations/default_profile_location.png"  > -->
+								<img *ngIf="peep.profile_pic.length > 0" [src]="peep.profile_pic"  >
 							</div>
 						</div>
 						<div class="text">{{peep['first_name']}} {{peep['last_name']}}</div>
@@ -90,10 +96,13 @@
 						<div class="bar"></div>
 					</td>
 					<td>00/00/0000</td>
-					<td>00/00/0000 00:00AM</td>
 					<td>
-						<select (change)="onSelectFromTable($event, peep)">
-							<option value="0" class="blue-text" selected>Manage</option>
+						<span *ngIf="!peep.id_encrypted">processing</span>
+						<span *ngIf="peep.id_encrypted">{{peep.last_login}}</span>
+					</td>
+					<td>
+						<select (change)="onSelectFromTable($event, peep)" [disabled]="!peep.id_encrypted">
+							<option value="0" class="blue-text" selected >Manage</option>
 							<option value="view" class="blue-text">View</option>
 							<option value="archive" class="blue-text" [hidden]="peep.user_id == userData.userId">Archive</option>
 						</select>
@@ -104,4 +113,71 @@
 
 	</div>
 
+</div>
+
+
+<div id="modalArchive" class="modal">
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="showModalLoader">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			Are you sure you want archive 
+			<span *ngIf="selectedToArchive.parent_name">
+				{{ selectedToArchive.parent_name }}, 
+			</span> 
+			<span>{{selectedToArchive.name}} </span>
+			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
+		</p>
+	</div>
+	<div class="modal-footer" [hidden]="showModalLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+	</div>
+</div>
+
+<div id="modalArchiveBulk" class="modal">
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="showModalLoader">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			Are you sure you want restore the following items?
+		</p>
+		<ul>
+			<li *ngFor="let list of selectedFromList;">
+				<span *ngIf="list.parent_name">
+					{{ list.parent_name }}, 
+				</span> 
+				<span>{{list.name}}</span> 
+				<span class="blue-text">{{list.first_name}} {{list.last_name}}</span>
+			</li>
+		</ul>
+	</div>
+	<div class="modal-footer" [hidden]="showModalLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+	</div>
 </div>

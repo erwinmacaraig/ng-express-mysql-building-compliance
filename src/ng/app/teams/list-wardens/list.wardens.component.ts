@@ -18,7 +18,7 @@ declare var $: any;
   providers : [EncryptDecryptService, UserService, DashboardPreloaderService]
 })
 export class ListWardensComponent implements OnInit, OnDestroy {
-  public wardenArr;
+  public wardenArr = <any>[];
 
   copyOfList = [];
   userData = {};
@@ -41,7 +41,10 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 	ngOnInit(){
     this.dataProvider.buildWardenList().subscribe((data) => {
       for(let i in data){
-        data[i]['id_encrypted'] = this.encDecrService.encrypt(data[i]['location_account_user_id']).toString();
+        data[i]['bg_class'] = this.generateRandomBGClass();
+        if(data[i]['location_account_user_id']){
+          data[i]['id_encrypted'] = this.encDecrService.encrypt(data[i]['location_account_user_id']).toString();
+        }
       }
       this.wardenArr = data;
       this.copyOfList = JSON.parse(JSON.stringify(data));
@@ -64,12 +67,28 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     this.bulkManageActionEvent();
 	}
 
+  generateRandomBGClass(){
+    let colors = ["red", "blue", "yellow", "orange", "green", "purple", "pink"];
+    return colors[ Math.floor( Math.random() * colors.length) ];
+  }
+
   selectAllCheckboxEvent(event){
+    let checkboxes = $('table tbody input[type="checkbox"]');
     if(event.target.checked){
-      $('table input[type="checkbox"]').prop('checked', true);
+      checkboxes.prop('checked', true);
     }else{
-      $('table input[type="checkbox"]').prop('checked', false);
+      checkboxes.prop('checked', false);
     }
+
+    checkboxes.each((indx, elem) => {
+      let id = $(elem).attr('id'),
+        index = id.replace('location-', '');
+      for(let i in this.wardenArr){
+        if(i == index){
+          this.singleCheckboxChangeEvent(this.wardenArr[i], { target : { checked : elem.checked } } );
+        }
+      }
+    });
   }
 
   filterByEvent(){

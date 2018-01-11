@@ -12,12 +12,12 @@ import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
 declare var $: any;
 @Component({
-  selector: 'app-mobility-impaired',
-  templateUrl: './mobility.impaired.component.html',
-  styleUrls: ['./mobility.impaired.component.css'],
+  selector: 'app-mobility-impaired-archived',
+  templateUrl: './mobility.impaired.archived.component.html',
+  styleUrls: ['./mobility.impaired.archived.component.css'],
   providers : [EncryptDecryptService, UserService, DashboardPreloaderService]
 })
-export class MobilityImpairedComponent implements OnInit, OnDestroy {
+export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
   public peepList = <any>[];
 
   copyOfList = [];
@@ -38,7 +38,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
-    this.dataProvider.buildPeepList().subscribe((peep) => {
+    this.dataProvider.buildArchivedPeepList().subscribe((peep) => {
       
       for(let i in peep){
         peep[i]['bg_class'] = this.generateRandomBGClass();
@@ -167,9 +167,9 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     }
   }
 
-  archiveClick(){
+  unArchiveClick(){
     this.showModalLoader = true;
-    this.userService.archiveLocationUser([this.selectedToArchive['location_account_user_id']], (response) => {
+    this.userService.unArchiveLocationUser([this.selectedToArchive['location_account_user_id']], (response) => {
       this.showModalLoader = false;
       $('#modalArchive').modal('close');
       this.dashboardService.show();
@@ -217,7 +217,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     $('select.bulk-manage').on('change', () => {
       let sel = $('select.bulk-manage').val();
 
-      if(sel == 'archive'){
+      if(sel == 'restore'){
         $('select.bulk-manage').val("0").material_select();
         if(this.selectedFromList.length > 0){
           $('#modalArchiveBulk').modal('open');
@@ -227,7 +227,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     });
   }
 
-  bulkArchiveClick(){
+  bulkUnArchiveClick(){
     this.showModalLoader = true;
     let arrIds = [];
 
@@ -235,7 +235,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
       arrIds.push(this.selectedFromList[i]['location_account_user_id']);
     }
 
-    this.userService.archiveLocationUser(arrIds, (response) => {
+    this.userService.unArchiveLocationUser(arrIds, (response) => {
       this.showModalLoader = false;
       $('#modalArchiveBulk').modal('close');
       this.dashboardService.show();

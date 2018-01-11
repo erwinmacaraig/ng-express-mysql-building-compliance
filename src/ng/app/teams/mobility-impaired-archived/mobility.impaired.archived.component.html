@@ -1,35 +1,10 @@
-<div class="row top">
-	<div class="col l12 m12 s12">
-		<h4> ECO Member </h4>
-		<div class="right-actions">
-			<div class="switch-container">
-				<div class="text">Show only not compliant</div>
-				<div class="switch">
-					<input type="checkbox">
-					<div class="yes">Yes</div>
-					<div class="no">No</div>
-					<div class="highlight"></div>
-					<div class="background"></div>
-				</div>
-			</div>
-			<div class="archived-container">
-				<a href="javascript:void(0)" [routerLink]="['/teams/list-archived-wardens']">
-					<div class="image"></div>
-					View Archive
-				</a>
-			</div>
-		</div>
+<div class="row">
+	<div class="col l12 m12 s12" style="position: relative;">
+		<h4>Archived Mobility Impaired</h4>
 	</div>
 </div>
 
 <div class="row filter-container">
-	<div class="col l2 m5 s12">
-		<button class="btn orange waves-effect waves-light btn-add-warden" [routerLink]="['/teams/add-wardens']">
-			<div class="image"></div>
-			Add Warden
-		</button>
-	</div>
-
 	<div class="col l4 m5 s12">
 		<div class="search-field">
 			<input type="text" placeholder="Search member name" (keyup)="searchMemberEvent($event)">
@@ -55,15 +30,17 @@
 	<div class="col l2 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected>Manage Action</option>
-			<option value="archive" >Archive selected</option>
+			<option value="restore" >Restore selected</option>
 		</select>
 	</div>
+
 </div>
 
 
 <div class="row">
 	<div class="col l12 m12 s12">
-		<table class="table striped">
+
+		<table class="table striped table-peep">
 			<thead>
 				<tr>
 					<th>
@@ -73,52 +50,50 @@
 						</p>
 					</th>
 					<th>Name</th>
-					<th>ECO Role</th>
-					<th>Training</th>
+					<th>PEEP Completion</th>
+					<th>PEEP Review Date</th>
 					<th>Last Login</th>
 					<th>Action</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr *ngIf="wardenArr.length == 0">
+				<tr *ngIf="peepList.length == 0">
 					<td colspan="6" class="center">
 						<h6>No record found</h6>
 					</td>
 				</tr>
-				<tr *ngFor="let warden of wardenArr; let i = index">
+				<tr *ngFor="let peep of peepList; let i = index;">
 					<td>
-						<p class="checkbox">
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)">
+						<p class="checkbox" [hidden]="!peep.id_encrypted">
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)">
 							<label for="location-{{i}}" > 
-								{{warden['parent_name']}} - {{warden['name']}}
+								{{peep['parent_name']}} - {{peep['location_name']}}
 							</label>
 						</p>
+						<span [hidden]="peep.id_encrypted"> {{peep['parent_name']}} - {{peep['location_name']}}  </span>
 					</td>
 					<td>
-						<div class="image-container lighten-3" [ngClass]="warden.bg_class">
+						<div class="image-container lighten-3" [ngClass]="peep.bg_class">
 							<div class="image">
-								<img *ngIf="warden.profile_pic.length > 0" [src]="warden.profile_pic"  >
+								<img *ngIf="peep.profile_pic.length > 0" [src]="peep.profile_pic"  >
 							</div>
 						</div>
-						<div class="text">{{ warden['first_name'] }} {{warden['last_name']}}</div>
+						<div class="text">{{peep['first_name']}} {{peep['last_name']}}</div>
+					</td>
+					<td class="trainings">
+						<div class="percent">0%</div>
+						<div class="bar"></div>
+					</td>
+					<td>00/00/0000</td>
+					<td>
+						<span *ngIf="!peep.id_encrypted">processing</span>
+						<span *ngIf="peep.id_encrypted">{{peep.last_login}}</span>
 					</td>
 					<td>
-						<div class="eco-role">
-							<div class="image"></div>
-							{{warden['role_name']}}
-						</div>
-					</td>
-					<td>
-						<span class="over red-text">0/0</span>
-					</td>
-					<td>
-						{{warden['last_login']}}
-					</td>
-					<td>
-						<select (change)="onSelectFromTable($event, warden)">
-							<option value="0" class="blue-text" selected>Manage</option>
+						<select (change)="onSelectFromTable($event, peep)" [disabled]="!peep.id_encrypted">
+							<option value="0" class="blue-text" selected >Manage</option>
 							<option value="view" class="blue-text">View</option>
-							<option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId">Archive</option>
+							<option value="restore" class="blue-text" [hidden]="peep.user_id == userData.userId">Restore</option>
 						</select>
 					</td>
 				</tr>
@@ -157,7 +132,7 @@
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
 		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
 	</div>
 </div>
 
@@ -192,6 +167,6 @@
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
 		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
 	</div>
 </div>

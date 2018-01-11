@@ -342,17 +342,19 @@ export class Account extends BaseClass {
       });
     }
 
-    public buildPEEPList(accntID?) {
+    public buildPEEPList(accntID?, archived?) {
       return new Promise((resolve, reject) => {
-        const sql_get_peep = `
+        let sql_get_peep = `
           SELECT
             u.first_name,
             u.last_name,
             u.user_id,
             u.mobility_impaired,
             u.account_id,
+            u.last_login,
             lau.location_account_user_id,
             lau.role_id,
+            lau.archived,
             l.parent_id,
             l.location_id,
             l.name as location_name,
@@ -366,13 +368,59 @@ export class Account extends BaseClass {
             u.mobility_impaired = 1 AND
             u.account_id = ${accntID}
          `;
+        if(archived){
+          sql_get_peep += ' AND lau.archived = '+archived;
+        }else{
+          sql_get_peep += ' AND lau.archived = 0';
+        }
+
+        sql_get_peep += ' GROUP BY lau.location_id, lau.user_id, lau.role_id ';
+
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_peep,  (err, results, fields) => {
           if (err) {
             console.log(`account.model: ${sql_get_peep}`, err);
             throw new Error(err);
           }
-          resolve(results);
+
+          let sqlInvi = `
+            SELECT
+              ui.user_invitations_id,
+              ui.first_name,
+              ui.last_name,
+              ui.location_id,
+              ui.account_id,
+              ui.role_id,
+              ui.eco_role_id,
+              ui.email,
+              er.role_name,
+              er.em_roles_id,
+              l.parent_id,
+              l.name as location_name,
+              l.formatted_address,
+              l.google_photo_url
+            FROM
+              user_invitations ui
+              INNER JOIN em_roles er ON ui.eco_role_id = er.em_roles_id
+              INNER JOIN locations l ON ui.location_id = l.location_id
+            WHERE
+              ui.account_id = ${accntID} AND
+              ui.mobility_impaired = 1 AND
+              ui.was_used = 0`;
+
+          const connectionInvi = db.createConnection(dbconfig);
+          connectionInvi.query(sqlInvi,  (err, resultsInvi, fields) => {
+            if (err) {
+              throw new Error(err);
+            }
+
+            let newResults = results;
+            for(let i in resultsInvi){
+              newResults.push(resultsInvi[i]);
+            }
+            resolve( newResults );
+          });
+          connectionInvi.end();
         });
         connection.end();
       });

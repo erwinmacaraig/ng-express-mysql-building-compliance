@@ -17,7 +17,7 @@ declare var $: any;
   providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService]
 })
 export class ListArchivedWardensComponent implements OnInit, OnDestroy {
-
+	
 	userData = {};
 	wardenArr = <any>[];
 	selectedToArchive = {
@@ -186,11 +186,22 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 	}
 
 	selectAllCheckboxEvent(event){
-		if(event.target.checked){
-			$('input[type="checkbox"]').prop('checked', true);
-		}else{
-			$('input[type="checkbox"]').prop('checked', false);
-		}
+		let checkboxes = $('table tbody input[type="checkbox"]');
+	    if(event.target.checked){
+	      checkboxes.prop('checked', true);
+	    }else{
+	      checkboxes.prop('checked', false);
+	    }
+
+	    checkboxes.each((indx, elem) => {
+	      let id = $(elem).attr('id'),
+	        index = id.replace('location-', '');
+	      for(let i in this.wardenArr){
+	        if(i == index){
+	          this.singleCheckboxChangeEvent(this.wardenArr[i], { target : { checked : elem.checked } } );
+	        }
+	      }
+	    });
 	}
 
 	singleCheckboxChangeEvent(list, event){
