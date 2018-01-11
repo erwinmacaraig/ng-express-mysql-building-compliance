@@ -724,7 +724,13 @@ export class TeamRoute extends BaseRoute {
     // what is the highest rank role of the user who invited this warden
     // const locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id);
 
-    const result = await account.buildWardenList(req.user.user_id);
+    let result = <any>[];
+    try{
+      result = await account.buildWardenList(req.user.user_id);
+    }catch(e){
+
+    }
+
     const temp = JSON.stringify(result);
     const wardens = JSON.parse(temp);
 

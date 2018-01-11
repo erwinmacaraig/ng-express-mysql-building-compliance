@@ -94,12 +94,12 @@ export class TeamsComponent implements OnInit, OnDestroy {
 					if(teamRoute.length == 2){
 						if(frp || trp){
 							this.router.navigate(["/teams/all-users"]);
-						}else if(genOcc){
-							this.router.navigate(["/teams/view-gen-occupant"]);
-						}else if(warden){
-							this.router.navigate(["/teams/view-warden"]);
 						}else if(chiefWarden){
 							this.router.navigate(["/teams/view-chief-warden"]);
+						}else if(warden){
+							this.router.navigate(["/teams/view-warden"]);
+						}else if(genOcc){
+							this.router.navigate(["/teams/view-gen-occupant"]);
 						}
 					}
 				}else{

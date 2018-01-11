@@ -183,3 +183,15 @@ input::-ms-clear {
 .row-add-mobility-impaired-form .select-field input[type="text"].select-dropdown{
     margin: 0px;
 }
+
+[type="checkbox"]:not(:checked):disabled+label:before{
+    left: 0px !important;
+    top: -2px !important;
+    -webkit-transform: none !important;
+    transform: none !important;
+    -webkit-transform-origin: unset !important;
+    transform-origin: unset !important;
+    width: 20px !important;
+    height: 20px !important;
+    background-color: rgba(0,0,0,0.35) !important;
+}

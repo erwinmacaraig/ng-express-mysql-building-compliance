@@ -501,6 +501,14 @@ export class UsersRoute extends BaseRoute {
 				let invitation = new UserInvitation();
 				await invitation.create(saveData);
 
+				let tokenModel = new Token();
+				await tokenModel.create({
+					'token' : token,
+					'action' : 'invitation',
+					'id' : invitation.ID(),
+					'id_type' : 'user_invitations_id'
+				});
+
 				const opts = {
 					from : 'allantaw2@gmail.com',
 					fromName : 'EvacConnect',

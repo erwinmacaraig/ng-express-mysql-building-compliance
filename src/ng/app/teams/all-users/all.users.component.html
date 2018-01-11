@@ -81,10 +81,10 @@
 				<tr *ngFor="let list of listData; let i = index;">
 					<td>
 						<p class="checkbox">
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)">
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)" [disabled]="(list.role_id == 1 || list.role_id == 2)">
 							<label for="location-{{i}}" > 
 								<span *ngIf="list.parent_data.name">{{ list.parent_data.name }}, </span> 
-								{{list.name}} 
+								{{list.name}}
 							</label>
 						</p>
 					</td>
@@ -101,7 +101,9 @@
 					<td>
 						<span *ngIf="list.role_id == 1">FRP</span>
 						<span *ngIf="list.role_id == 2">TRP</span>
-						<span *ngIf="list.role_id != 1 && list.role_id != 2">User</span>
+						<span *ngIf="list.role_id != 1 && list.role_id != 2">User
+							<i *ngIf="list.role_name">( {{list.role_name}} )</i>
+						</span>
 					</td>
 					<td>
 						<span class="red-text">0/0</span>
@@ -110,7 +112,7 @@
 						<select (change)="onSelectFromTable($event, list)">
 							<option value="0" class="blue-text" selected>Manage</option>
 							<option value="view" class="blue-text">View</option>
-							<option value="archive" class="blue-text" [hidden]="list.user_id == userData.userId">Archive</option>
+							<option value="archive" class="blue-text" [hidden]="(list.user_id == userData.userId) || (list.role_id == 1 || list.role_id == 2)" >Archive</option>
 						</select>
 					</td>
 				</tr>

@@ -185,7 +185,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	selectAllCheckboxEvent(event){
-		let checkboxes = $('table tbody input[type="checkbox"]');
+		let checkboxes = $('table tbody input[type="checkbox"]:not([disabled])');
 		if(event.target.checked){
 			checkboxes.prop('checked', true);
 		}else{
