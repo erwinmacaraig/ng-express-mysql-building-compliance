@@ -179,6 +179,11 @@ table tr td .image img{
   max-height: 50px;
 }
 
+#modalMobility .btn{
+    font-size: 15px !important;
+    line-height: 43px;
+}
+
 #modalArchiveBulk,
 #modalArchive{
     width: 35%;
@@ -200,11 +205,16 @@ table tr td .image img{
     #modalArchive{
         width: 60%;
     }
+
+    #modalMobility{
+        width : 90%;
+    }
 }
 
 @media only screen and (max-width: 500px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalMobility{
         width: 90%;
     }
 }

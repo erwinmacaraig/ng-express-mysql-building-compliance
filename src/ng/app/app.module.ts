@@ -6,6 +6,7 @@ import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './auth/token.interceptor';
+import { CommonModule } from '@angular/common';
 
 // services section
 import { AuthService } from './services/auth.service';
@@ -76,8 +77,7 @@ import { ViewUserComponent } from './teams/view-user/view.user.component';
 import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
 import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
-
-
+import { NgDatepickerModule } from 'ng2-datepicker';
 
 @NgModule({
   declarations: [
@@ -143,7 +143,9 @@ import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen
       libraries: ['places']
     }),
     // todo: move to location module
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgDatepickerModule,
+    CommonModule
   ],
   providers: [
     AuthService,

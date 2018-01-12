@@ -19,6 +19,7 @@ import { Location } from '../models/location.model';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { EmailSender } from './../models/email.sender';
 import { UserRequest } from '../models/user.request.model';
+import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 
 import * as moment from 'moment';
 import * as validator from 'validator';
@@ -99,6 +100,10 @@ export class UsersRoute extends BaseRoute {
 
 	    router.post('/users/resign-as-warden', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().resignAsWarden(req, res, next);
+	    });
+
+	    router.post('/users/mobility-impaired-info', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().saveMobilityImpairedDetails(req, res, next);
 	    });
 	}
 
@@ -1080,6 +1085,29 @@ export class UsersRoute extends BaseRoute {
 				'location_id' : deletedEmRole['location_id']
 			});
 		}
+
+		res.send(response);
+	}
+
+	public async saveMobilityImpairedDetails(req: Request, res: Response, next: NextFunction){
+		let 
+		response = <any>{
+			status : true, data : [], message : ''
+		},
+		locationId = req.body.location_id,
+		userId = req.body.user_id,
+		mobilityImpairedModel = new MobilityImpairedModel();
+
+		await mobilityImpairedModel.create({
+			'user_id' : userId,
+			'location_id' : locationId,
+			'is_permanent' : req.body.is_permanent,
+			'duration_date' : req.body.duration_date,
+			'assistant_type' : req.body.assistant_type,
+			'equipment_type' : req.body.equipment_type,
+			'evacuation_procedure' : req.body.evacuation_procedure,
+			'date_created' : moment().format('YYYY-MM-DD HH:mm:00')
+		});
 
 		res.send(response);
 	}

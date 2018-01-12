@@ -153,4 +153,13 @@ export class UserService {
 		});
 	}
 
+	sendMobilityImpaireInformation(formData, callBack){
+		this.http.post(this.baseUrl+"/users/mobility-impaired-info", formData)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 }

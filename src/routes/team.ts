@@ -17,6 +17,7 @@ import { Account } from '../models/account.model';
 import { Location } from '../models/location.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { LocationAccountRelation } from '../models/location.account.relation';
+import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 
 const md5 = require('md5');
 const defs = require('../config/defs');
@@ -873,7 +874,17 @@ export class TeamRoute extends BaseRoute {
       }
     }
 
-     
+    for(let peep of newPeep){
+      peep['mobility_impaired_details'] = {};
+      if(peep['location_account_user_id']){
+        let arrWhere = [];
+        arrWhere.push( "user_id = "+peep["user_id"] );
+        arrWhere.push( "location_id = "+peep["location_id"] );
+
+        let mob = await new MobilityImpairedModel().getMany(arrWhere);
+        peep['mobility_impaired_details'] = (mob[0]) ? mob[0] : {};
+      }
+    }
 
     return newPeep;
      

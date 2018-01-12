@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -9,22 +9,42 @@ import { AuthService } from '../../services/auth.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { UserService } from '../../services/users';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { DatepickerOptions } from 'ng2-datepicker';
+import * as enLocale from 'date-fns/locale/en';
+import * as moment from 'moment';
 
 declare var $: any;
 @Component({
   selector: 'app-mobility-impaired',
   templateUrl: './mobility.impaired.component.html',
   styleUrls: ['./mobility.impaired.component.css'],
-  providers : [EncryptDecryptService, UserService, DashboardPreloaderService]
+  providers : [EncryptDecryptService, UserService, DashboardPreloaderService],
+  host: {
+    '(document:click)': 'onClick($event)'
+  }
 })
 export class MobilityImpairedComponent implements OnInit, OnDestroy {
   public peepList = <any>[];
+  @ViewChild("durationDate") durationDate: ElementRef;
 
   copyOfList = [];
   userData = {};
   showModalLoader = false;
   selectedToArchive = {};
   selectedFromList = [];
+
+  options: DatepickerOptions = {
+    locale: enLocale,
+    displayFormat: 'MMM D[,] YYYY',
+    minDate: new Date(Date.now()),
+    maxDate: new Date(Date.now())
+  };
+
+  datepickerModel : Date;
+  isShowDatepicker = false;
+  datepickerModelFormatted = '';
+  selectedPeep = {};
+
 	constructor(
     private authService : AuthService,
     private router : Router,
@@ -34,7 +54,8 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     private dashboardService : DashboardPreloaderService,
     private locationService: LocationsService
   ) {
-
+    this.datepickerModel = new Date();
+    this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 	}
 
 	ngOnInit(){
@@ -62,6 +83,15 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     this.sortByEvent();
     this.dashboardService.show();
     this.bulkManageActionEvent();
+
+    $('#modalMobility select[name="is_permanent"]').on('change', () => {
+      if($('#modalMobility select[name="is_permanent"]').val() == '1'){
+        this.isShowDatepicker = false;
+        $('#durationDate').prop('disabled', true);
+      }else{
+        $('#durationDate').prop('disabled', false);
+      }
+    });
 	}
 
   generateRandomBGClass(){
@@ -241,5 +271,56 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
       this.dashboardService.show();
       this.ngOnInit();
     });
+  }
+
+  clickCompletePeepInfo(peep){
+    $('#modalMobility').modal('open');
+    this.selectedPeep = peep;
+  }
+
+  onChangeDatePicker(event){
+    console.log(event);
+    if(!moment(this.datepickerModel).isValid()){
+      this.datepickerModel = new Date();
+      this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+    }else{
+      this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+    }
+    this.isShowDatepicker = false;
+  }
+
+  onClick(event){
+    // if(event.target == this.durationDate.nativeElement){
+    //   this.isShowDatepicker = true;
+    // }else if ( !this.durationDate.nativeElement.contains(event.target)  ) {
+    //   this.isShowDatepicker = false;
+    // }
+  }
+
+  showDatePicker(){
+    this.isShowDatepicker = true;
+  }
+
+  modalPeepFormSubmit(f, event){
+    event.preventDefault();
+
+    if(f.valid){
+      let paramData = JSON.parse(JSON.stringify(f.value));
+      paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
+      paramData['location_id'] = this.selectedPeep['location_id'];
+      paramData['user_id'] = this.selectedPeep['user_id'];
+      paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
+
+      this.showModalLoader = true;
+
+      this.userService.sendMobilityImpaireInformation(paramData, (response) => {
+        
+        this.ngOnInit();
+        f.reset();
+        $('#modalMobility').modal('close');
+        this.showModalLoader = false;
+
+      });
+    }
   }
 }
