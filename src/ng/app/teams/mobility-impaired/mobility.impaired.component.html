@@ -93,7 +93,9 @@
 					</td>
 					<td>
 						<span *ngIf="peep.mobility_impaired_details.user_id">Completed</span>
-						<a href="javascipt:void(0)" (click)="clickCompletePeepInfo(peep)" *ngIf="!peep.mobility_impaired_details.user_id" >Complete peep information</a>
+						<a href="javascipt:void(0)" (click)="clickCompletePeepInfo(peep)" 
+						*ngIf="!peep.mobility_impaired_details.user_id && peep.user_id" >Complete peep information</a>
+						<span *ngIf="!peep.user_id"> Waiting for user validation </span>
 					</td>
 					<!-- <td class="trainings">
 						<div class="percent">0%</div>
