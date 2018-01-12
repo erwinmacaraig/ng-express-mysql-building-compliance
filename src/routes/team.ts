@@ -883,6 +883,9 @@ export class TeamRoute extends BaseRoute {
 
         let mob = await new MobilityImpairedModel().getMany(arrWhere);
         peep['mobility_impaired_details'] = (mob[0]) ? mob[0] : {};
+        if(mob[0]){
+          peep['mobility_impaired_details']['date_created'] = moment(mob[0]['date_created']).format('MMM. DD, YYYY');
+        }
       }
     }
 

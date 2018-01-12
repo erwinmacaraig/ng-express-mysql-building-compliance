@@ -99,7 +99,10 @@
 						<div class="percent">0%</div>
 						<div class="bar"></div>
 					</td> -->
-					<td>00/00/0000</td>
+					<td>
+						<span *ngIf="peep.mobility_impaired_details.date_created">{{peep.mobility_impaired_details.date_created}}</span>
+						<span *ngIf="!peep.mobility_impaired_details.date_created"> - </span>
+					</td>
 					<td>
 						<span *ngIf="!peep.id_encrypted">processing</span>
 						<span *ngIf="peep.id_encrypted">{{peep.last_login}}</span>
