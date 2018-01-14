@@ -52,7 +52,7 @@ export class ChangepasswordComponent implements OnInit, AfterViewInit {
 
 			this.fpService.getTokenData(this.token, (response) => {
 				if(response.status){
-					this.userId = response.data.user_id;
+					this.userId = response.data.id;
 				}else{
 					this.modalshowCheckIcon = false;
 					this.modalshowCloseIcon = true;

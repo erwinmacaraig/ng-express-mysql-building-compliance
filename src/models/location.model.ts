@@ -109,29 +109,24 @@ export class Location extends BaseClass {
 				if (error) {
 					return console.log(error);
 				}
-				if(!results.length){
-					reject('Location not found');
-				}else{
-
-					for(let i in results){
-						results[i]['sublocations'] = [];
-						if(getChild){
-							this.getChildren(results[i]['location_id']).then(
-								(child) => {
-									results[i]['sublocations'] = child;
-									this.dbData = results;
-									resolve(this.dbData);
-								}
-								);
-						}else{
-							this.dbData = results;
-							resolve(this.dbData);
-						}
+				for(let i in results){
+					results[i]['sublocations'] = [];
+					if(getChild){
+						this.getChildren(results[i]['location_id']).then(
+							(child) => {
+								results[i]['sublocations'] = child;
+								this.dbData = results;
+								resolve(this.dbData);
+							}
+							);
+					}else{
+						this.dbData = results;
+						resolve(this.dbData);
 					}
-
-					this.dbData = results;
-					resolve(this.dbData);
 				}
+
+				this.dbData = results;
+				resolve(this.dbData);
 			});
 			connection.end();
 		});
@@ -433,6 +428,81 @@ export class Location extends BaseClass {
 
 			});
 			connection.end();
+		});
+	}
+
+	public getAncestryIds(sublocId){
+		return new Promise((resolve) => {
+			let sqlDrop = 'DROP FUNCTION IF EXISTS GetAncestry;';
+			const connDrop = db.createConnection(dbconfig);
+			connDrop.query(sqlDrop, (err, results, fields) => {
+				if (err) {
+					throw new Error(err);
+				}
+
+				let sqlFnx = `CREATE FUNCTION GetAncestry (GivenID INT) RETURNS VARCHAR(1024)
+					DETERMINISTIC
+					BEGIN
+					    DECLARE rv VARCHAR(1024);
+					    DECLARE cm CHAR(1);
+					    DECLARE ch INT;
+
+					    SET rv = '';
+					    SET cm = '';
+					    SET ch = GivenID;
+					    WHILE ch > 0 DO
+					        SELECT IFNULL(parent_id,-1) INTO ch FROM
+					        (SELECT parent_id FROM locations WHERE location_id = ch) A;
+					        IF ch > 0 THEN
+					            SET rv = CONCAT(rv,cm,ch);
+					            SET cm = ',';
+					        END IF;
+					    END WHILE;
+					    RETURN rv;
+					END;`;
+				const connFnx = db.createConnection(dbconfig);
+				connFnx.query(sqlFnx, (err, results, fields) => {
+					if (err) {
+						throw new Error(err);
+					}
+
+					let sql = `SELECT location_id, GetAncestry(${sublocId}) as ids FROM locations WHERE location_id = ${sublocId};`;
+
+					const connection = db.createConnection(dbconfig);
+					connection.query(sql, (err, results, fields) => {
+						if (err) {
+							console.log(err);
+							throw new Error(err);
+						}
+
+						resolve(results);
+
+					});
+					connection.end();
+
+				});
+				connFnx.end();
+			});
+			connDrop.end();
+		});
+	}
+
+	public getAncestries(sublocId){
+		return new Promise( (resolve) => {
+			this.getAncestryIds(sublocId).then((resultsIds) => {
+				let sql = `SELECT * FROM locations WHERE location_id IN (`+sublocId+`,`+resultsIds[0]['ids']+`)`;
+				const connection = db.createConnection(dbconfig);
+				connection.query(sql, (err, results, fields) => {
+					if (err) {
+						console.log(sql);
+						throw new Error('Internal error. There was a problem processing your query');
+					}
+
+					resolve(results);
+
+				});
+				connection.end();
+			});
 		});
 	}
 

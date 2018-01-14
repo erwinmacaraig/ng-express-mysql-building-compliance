@@ -19,6 +19,7 @@ import * as multer from 'multer';
 
 import { RegisterRoute } from './register';
 import { ForgotPasswordRequestRoute } from './forgot.password';
+import { UsersRoute } from './users';
 
 
 
@@ -59,8 +60,7 @@ export class TokenRoute extends BaseRoute {
 
 			},
 			() => {
-				response.message = 'No token found';
-				res.send(response);
+				res.send('<h2>Invalid action</h2>');
 			}
 		);
 	}
@@ -79,6 +79,12 @@ export class TokenRoute extends BaseRoute {
 				break;
 			case "forgot-password":
 				new ForgotPasswordRequestRoute().changePasswordRequest(req, res, next);
+				break;
+			case "user-request-approve":
+				new UsersRoute().userRequestHandler(req, res, tokenData, true);
+				break;
+			case "user-request-decline":
+				new UsersRoute().userRequestHandler(req, res, tokenData, true);
 				break;
 			default:
 				response.message = 'No action found';

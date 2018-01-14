@@ -3,7 +3,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Account } from '../models/account.model';
-import { InvitationCode  } from '../models/invitation.code.model';
+import { UserInvitation } from './../models/user.invitation.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { Utils } from '../models/utils.model';
@@ -26,11 +26,18 @@ export class UserRelatedRoute extends BaseRoute {
     });
 
     router.get('/person-invi-code', (req: Request, res: Response, next: NextFunction) => {
-      new UserRelatedRoute().getUserInvitationCode(req, res, next);
+      new UserRelatedRoute().getUserUserInvitation(req, res, next);
     });
 
     router.get('/listAllFRP', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-      new UserRelatedRoute().listAllFRP(req, res);
+      new UserRelatedRoute().listAllFRP(req, res).then((list) => {
+        res.status(200).send({
+          status: 'Success',
+          data: list
+        });
+      }).catch((e) => {
+        res.status(400).send();
+      });
     });
 
     router.get('/listAllTRP', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -112,9 +119,9 @@ export class UserRelatedRoute extends BaseRoute {
 
   }
 
-  public getUserInvitationCode(req: Request, res: Response, next: NextFunction) {
+  public getUserUserInvitation(req: Request, res: Response, next: NextFunction) {
     const queryParamCode = req.query.code;
-    const invitation_code = new InvitationCode();
+    const invitation_code = new UserInvitation();
 
 
     invitation_code.getInvitationByCode(queryParamCode, false).then((dbData) => {
@@ -141,7 +148,7 @@ export class UserRelatedRoute extends BaseRoute {
       });
     });
 
-  } // end getUserInvitationCode
+  } // end getUserUserInvitation
   public getUserPersonalInfo(req: AuthRequest, res: Response) {
 
     const queryParamUser = req.query.userId;
@@ -252,22 +259,25 @@ export class UserRelatedRoute extends BaseRoute {
     }
   }
 
-  public listAllFRP(req: AuthRequest, res: Response) {
+  public async listAllFRP(req: AuthRequest, res: Response) {
     const utils = new Utils();
     // const queryParamUser = req.query.userId;
     let account_id = 0;
     account_id = req.user.account_id;
+    const location_id = req.query.location_id;
     console.log(req.query);
-    utils.listAllFRP(account_id, req.user.user_id).then((list) => {
-      return res.status(200).send({
-        status: 'Success',
-        data: list
-      });
-    }).catch((e) => {
-      return res.status(400).send({
-        message: e
-      });
-    });
+    let location;
+    // get parent location
+    let parentId = location_id;
+    while (parentId !== -1) {
+      location = new Location(parentId);
+      await location.load();
+      parentId = location.get('parent_id');
+    }
+    console.log(location.get('location_id'));
+    const list = await utils.listAllFRP(location.get('location_id'), req.user.user_id);
+
+    return list;
   }
 
   public listAllTRP(req: AuthRequest, res: Response) {
@@ -354,7 +364,8 @@ export class UserRelatedRoute extends BaseRoute {
       await approver.load();
 
       await token.create({
-        user_id: req.user.user_id,
+        id: req.user.user_id,
+        id_type: 'user_id',
         token: token_string,
         action: 'location access',
         verified: 0,

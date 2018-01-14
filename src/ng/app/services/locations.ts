@@ -102,6 +102,15 @@ export class LocationsService {
 	      });
 	}
 
+  getLocationsHierarchyByAccountId(accountid, callBack){
+    this.http.get(this.baseUrl + '/location/get-locations-hierarchy-by-account-id', this.options)
+        .subscribe(res => {
+          callBack(res);
+        }, err => {
+          callBack( JSON.parse(err.error) );
+        });
+  }
+
   checkUserVerified(param, callBack){
     this.http.post(this.baseUrl + '/location/check-user-verified', param, this.options)
       .subscribe(res => {

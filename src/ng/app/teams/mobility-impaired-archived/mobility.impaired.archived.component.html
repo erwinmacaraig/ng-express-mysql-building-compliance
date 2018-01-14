@@ -1,0 +1,172 @@
+<div class="row">
+	<div class="col l12 m12 s12" style="position: relative;">
+		<h4>Archived Mobility Impaired</h4>
+	</div>
+</div>
+
+<div class="row filter-container">
+	<div class="col l4 m5 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search member name" (keyup)="searchMemberEvent($event)">
+			<span class="material-icons">search</span>
+		</div>
+	</div>
+
+	<div class="col l2 m4 s6">
+		<select class="filter-by">
+			<option value="0" selected>Filter By</option>
+		</select>
+	</div>
+
+	<div class="col l2 m6 s6">
+		<select class="sort-by">
+			<option value="0" selected>Sort By</option>
+			<option value="loc-name-desc">Location Name Descending</option>
+			<option value="loc-name-asc">Location Name Ascending</option>
+			<option value="user-name-desc">User Name Descending</option>
+			<option value="user-name-asc">User Name Ascending</option>
+		</select>
+	</div>
+	<div class="col l2 m6 s12">
+		<select class="bulk-manage">
+			<option value="0" selected>Manage Action</option>
+			<option value="restore" >Restore selected</option>
+		</select>
+	</div>
+
+</div>
+
+
+<div class="row">
+	<div class="col l12 m12 s12">
+
+		<table class="table striped table-peep">
+			<thead>
+				<tr>
+					<th>
+						<p class="checkbox">
+							<input id="allLocations" (change)="selectAllCheckboxEvent($event)" class="filled-in" type="checkbox">
+							<label for="allLocations">Locations</label>
+						</p>
+					</th>
+					<th>Name</th>
+					<th>PEEP Completion</th>
+					<th>PEEP Review Date</th>
+					<th>Last Login</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngIf="peepList.length == 0">
+					<td colspan="6" class="center">
+						<h6>No record found</h6>
+					</td>
+				</tr>
+				<tr *ngFor="let peep of peepList; let i = index;">
+					<td>
+						<p class="checkbox" [hidden]="!peep.id_encrypted">
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)">
+							<label for="location-{{i}}" > 
+								{{peep['parent_name']}} - {{peep['location_name']}}
+							</label>
+						</p>
+						<span [hidden]="peep.id_encrypted"> {{peep['parent_name']}} - {{peep['location_name']}}  </span>
+					</td>
+					<td>
+						<div class="image-container lighten-3" [ngClass]="peep.bg_class">
+							<div class="image">
+								<img *ngIf="peep.profile_pic.length > 0" [src]="peep.profile_pic"  >
+							</div>
+						</div>
+						<div class="text">{{peep['first_name']}} {{peep['last_name']}}</div>
+					</td>
+					<td class="trainings">
+						<div class="percent">0%</div>
+						<div class="bar"></div>
+					</td>
+					<td>00/00/0000</td>
+					<td>
+						<span *ngIf="!peep.id_encrypted">processing</span>
+						<span *ngIf="peep.id_encrypted">{{peep.last_login}}</span>
+					</td>
+					<td>
+						<select (change)="onSelectFromTable($event, peep)" [disabled]="!peep.id_encrypted">
+							<option value="0" class="blue-text" selected >Manage</option>
+							<option value="view" class="blue-text">View</option>
+							<option value="restore" class="blue-text" [hidden]="peep.user_id == userData.userId">Restore</option>
+						</select>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+
+</div>
+
+
+<div id="modalArchive" class="modal">
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="showModalLoader">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			Are you sure you want archive 
+			<span *ngIf="selectedToArchive.parent_name">
+				{{ selectedToArchive.parent_name }}, 
+			</span> 
+			<span>{{selectedToArchive.name}} </span>
+			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
+		</p>
+	</div>
+	<div class="modal-footer" [hidden]="showModalLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
+	</div>
+</div>
+
+<div id="modalArchiveBulk" class="modal">
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="showModalLoader">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			Are you sure you want restore the following items?
+		</p>
+		<ul>
+			<li *ngFor="let list of selectedFromList;">
+				<span *ngIf="list.parent_name">
+					{{ list.parent_name }}, 
+				</span> 
+				<span>{{list.name}}</span> 
+				<span class="blue-text">{{list.first_name}} {{list.last_name}}</span>
+			</li>
+		</ul>
+	</div>
+	<div class="modal-footer" [hidden]="showModalLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
+	</div>
+</div>
