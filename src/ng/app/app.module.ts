@@ -6,6 +6,7 @@ import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './auth/token.interceptor';
+import { CommonModule } from '@angular/common';
 
 // services section
 import { AuthService } from './services/auth.service';
@@ -27,6 +28,7 @@ import { CompanyInformationComponent } from './dashboard/company_information/com
 import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
+import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
 
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
@@ -61,6 +63,22 @@ import { ViewSingleLocation } from './location/view.single/view-single.component
 import { LocationComponent } from './location/location.component';
 import { VerificationComponent } from './location/verification/verification.component';
 
+import { TeamsComponent } from './teams/teams.component';
+import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
+import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.impaired.component';
+import { MobilityImpairedArchivedComponent } from './teams/mobility-impaired-archived/mobility.impaired.archived.component';
+import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.mobility.impaired.component';
+import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
+import { ListArchivedWardensComponent } from './teams/list-wardens-archived/list.wardens.archived.component';
+import { AllUsersComponent } from './teams/all-users/all.users.component';
+import { AllUsersArchivedComponent } from './teams/all-users-archived/all.users.archived.component';
+import { AddUserComponent } from './teams/add-user/add.user.component';
+import { ViewUserComponent } from './teams/view-user/view.user.component';
+import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
+import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
+import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
+import { NgDatepickerModule } from 'ng2-datepicker';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -70,6 +88,7 @@ import { VerificationComponent } from './location/verification/verification.comp
     ChangepasswordComponent,
     NavbarComponent,
     DashboardComponent,
+    WardenInvitationFormComponent,
     SignoutComponent,
     CompanyInformationComponent,
     SetupCompanyComponent,
@@ -96,8 +115,23 @@ import { VerificationComponent } from './location/verification/verification.comp
     LocationListComponent,
     ViewSingleLocation,
     LocationComponent,
-    VerificationComponent
+    VerificationComponent,
     // ViewSublocationComponent
+
+    TeamsComponent,
+    TeamsAddWardenComponent,
+    MobilityImpairedComponent,
+    MobilityImpairedArchivedComponent,
+    AddMobilityImpairedComponent,
+    ListWardensComponent,
+    ListArchivedWardensComponent,
+    AllUsersComponent,
+    AddUserComponent,
+    ViewUserComponent,
+    ViewWardenComponent,
+    ViewGeneralOccupantComponent,
+    ViewChiefWardenComponent,
+    AllUsersArchivedComponent,
   ],
   imports: [
     BrowserModule,
@@ -109,7 +143,9 @@ import { VerificationComponent } from './location/verification/verification.comp
       libraries: ['places']
     }),
     // todo: move to location module
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgDatepickerModule,
+    CommonModule
   ],
   providers: [
     AuthService,

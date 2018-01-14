@@ -1,5 +1,7 @@
 import * as db from 'mysql2';
 import * as Promise from 'promise';
+import * as csv from 'fast-csv';
+import * as fs from 'fs';
 
 const dbconfig = require('../config/db');
 
@@ -24,7 +26,7 @@ export class Utils {
       });
     }
 
-    public listAllFRP(account?: number, user_id: number = 0) {
+    public listAllFRP(parent_location: number = 0, user_id: number = 0, account?: number) {
       return new Promise((resolve, reject) => {
         let sql_get_frp = `SELECT
                               users.user_id,
@@ -37,14 +39,20 @@ export class Utils {
                               user_role_relation
                             ON
                               users.user_id = user_role_relation.user_id
+                            INNER JOIN
+                              location_account_user
+                            ON
+                              users.user_id = location_account_user.user_id
                             WHERE
                               user_role_relation.role_id = 1
+                            AND
+                              location_account_user.location_id = ?
                             AND
                               users.token <> ''
                             AND
                               users.token IS NOT NULL
                             AND users.user_id <> ?`;
-        const val = [];
+        const val = [parent_location];
         val.push(user_id);
         if (account) {
           sql_get_frp = sql_get_frp + ' AND users.account_id = ?';
@@ -227,6 +235,26 @@ export class Utils {
 
     }
 
+    public buildECORoleList(isWardenRole?: number) {
+      return new Promise((resolve, reject) => {
+        let whereClause = '';
+        if (isWardenRole) {
+          whereClause = `WHERE is_warden_role = ${isWardenRole}`;
+        }
+        const sql_em_roles = `SELECT * FROM em_roles ${whereClause}`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_em_roles, [], (error, results, fields) => {
+          if (error) {
+            console.log(error);
+            reject(error);
+          } else {
+            resolve(results);
+          }
+        });
+        connection.end();
+      });
+    }
+
     public deployQuestions(account_id: number,
           location_id: number,
           user_id: number,
@@ -316,6 +344,40 @@ export class Utils {
           });
           connection.end();
       });
+    }
+
+    public processCSVUpload(filename: string) {
+      return new Promise((resolve, reject) => {
+        let counter = 0;
+        let columnNames;
+        let fieldnames = {};
+        // filename with file path
+        const arrayOfRows = [];
+        const CSVStream =  csv.fromPath(<string>filename)
+           .on('data', (data) => {
+              if (counter > 0 ) {
+                for (let i = 0; i < columnNames.length; i++) {
+                  if (columnNames[i].toUpperCase() === 'CAN_LOGIN') {
+                    fieldnames[columnNames[i]] = data[i].toString().toUpperCase() === 'TRUE' ? 1 : 0;
+                  } else {
+                    fieldnames[columnNames[i]] = <string>data[i];
+                  }
+                }
+                arrayOfRows.push(fieldnames);
+                fieldnames = {};
+              } else {
+                columnNames = data;
+              }
+              counter = counter + 1;
+           })
+           .on('end', () => {
+             resolve(arrayOfRows);
+           })
+           .on('error', (error) => {
+             console.log(error);
+             throw new Error('There was an error reading your file');
+           })
+          });
     }
 
 }

@@ -31,4 +31,15 @@ export class AuthService {
     return this.getUserData()[item];
   }
 
+  public getHighestRankRole() {
+    const rolesArray = this.userDataItem('roles');
+    let r = 100;
+    for (let i = 0; i < rolesArray.length; i++) {
+      if (r > (rolesArray[i].role_id * 1) ) {
+        r = (rolesArray[i].role_id * 1);
+      }
+    }
+    return r;
+  }
+
 }

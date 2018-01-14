@@ -50,10 +50,10 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
     emailInvalidMessage = 'Invalid email';
 
     constructor(
-        private router: Router, 
-        private activatedRoute: ActivatedRoute, 
-        private http: HttpClient, 
-        platformLocation: PlatformLocation, 
+        private router: Router,
+        private activatedRoute: ActivatedRoute,
+        private http: HttpClient,
+        platformLocation: PlatformLocation,
         private signupService: SignupService,
         private auth: AuthService
     ) {

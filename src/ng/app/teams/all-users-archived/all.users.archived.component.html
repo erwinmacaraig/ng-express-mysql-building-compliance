@@ -1,0 +1,176 @@
+<div class="row">
+	<div class="col l12 m12 s12" style="position: relative;">
+		<h4>All Archived Users</h4>
+	</div>
+</div>
+
+<div class="row filter-container">
+	<div class="col l6 m5 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search member name" (keyup)="searchMemberEvent($event)">
+			<span class="material-icons">search</span>
+		</div>
+	</div>
+
+	<div class="col l2 m4 s6">
+		<select class="filter-by">
+			<option value="0" selected>Filter By</option>
+			<option value="frp">FRP</option>
+			<option value="trp">TRP</option>
+			<option value="user">User</option>
+		</select>
+	</div>
+
+	<div class="col l2 m6 s6">
+		<select class="sort-by">
+			<option value="0" selected>Sort By</option>
+			<option value="loc-name-desc">Location Name Descending</option>
+			<option value="loc-name-asc">Location Name Ascending</option>
+			<option value="user-name-desc">User Name Descending</option>
+			<option value="user-name-asc">User Name Ascending</option>
+		</select>
+	</div>
+	<div class="col l2 m6 s12">
+		<select class="bulk-manage">
+			<option value="0" selected>Manage Action</option>
+			<option value="restore" >Restore selected</option>
+		</select>
+	</div>
+	
+</div>
+
+
+<div class="row">
+	<div class="col l12 m12 s12">
+		
+		<table class="table striped table-peep">
+			<thead>
+				<tr>
+					<th>
+						<p class="checkbox">
+							<input id="allSelect" (change)="selectAllCheckboxEvent($event)" class="filled-in" type="checkbox">
+							<label for="allSelect"></label>
+						</p>
+						Locations
+					</th>
+					<th>Name</th>
+					<th>Email</th>
+					<th>Mobile</th>
+					<th>Account Role</th>
+					<th>Training</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngIf="listData.length == 0">
+					<td colspan="7" class="center-align">
+						<h6>No records found</h6>
+					</td>
+				</tr>
+				<tr *ngFor="let list of listData; let i = index;" [attr.index]="i">
+					<td>
+						<p class="checkbox">
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)">
+							<label for="location-{{i}}" > 
+								<span *ngIf="list.parent_data.name">{{ list.parent_data.name }}, </span> 
+								{{list.name}} 
+							</label>
+						</p>
+					</td>
+					<td>
+						<div class="image-container lighten-3" [ngClass]="list.bg_class">
+							<div class="image">
+								<!-- <img src="assets/images/locations/default_profile_location.png"  > -->
+							</div>
+						</div>
+						<div class="text">{{list.user_info.first_name}} {{list.user_info.last_name}}</div>
+					</td>
+					<td>{{list.user_info.email}}</td>
+					<td>{{list.user_info.mobile_number}}</td>
+					<td>
+						<span *ngIf="list.role_id == 1">FRP</span>
+						<span *ngIf="list.role_id == 2">TRP</span>
+						<span *ngIf="list.role_id != 1 && list.role_id != 2">User</span>
+					</td>
+					<td>
+						<span class="red-text">0/0</span>
+					</td>
+					<td>
+						<select (change)="onSelectFromTable($event, list)">
+							<option value="0" class="blue-text" selected>Manage</option>
+							<option value="view" class="blue-text">View</option>
+							<option value="restore" class="blue-text">Restore</option>
+						</select>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+
+</div>
+
+<div id="modalArchive" class="modal">
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="showModalLoader">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			Are you sure you want to restore 
+			<span *ngIf="selectedToArchive.parent_data.name">
+				{{ selectedToArchive.parent_data.name }}, 
+			</span> 
+			<span>{{selectedToArchive.name}} </span>
+			<span class="blue-text">{{selectedToArchive.user_info.first_name}} {{selectedToArchive.user_info.last_name}}</span>
+		</p>
+	</div>
+	<div class="modal-footer" [hidden]="showModalLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
+	</div>
+</div>
+
+
+<div id="modalArchiveBulk" class="modal">
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="showModalLoader">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			Are you sure you want restore the following items?
+		</p>
+		<ul>
+			<li *ngFor="let list of selectedFromList;">
+				<span *ngIf="list.parent_data.name">{{ list.parent_data.name }}, </span> 
+				<span>{{list.name}}</span> 
+				<span class="blue-text">{{list.user_info.first_name}} {{list.user_info.last_name}}</span>
+			</li>
+		</ul>
+	</div>
+	<div class="modal-footer" [hidden]="showModalLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
+	</div>
+</div>

@@ -14,6 +14,7 @@ import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
+import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
 import { AuthGuard } from './services/auth-guard.service';
@@ -42,6 +43,21 @@ import { VerificationComponent } from './location/verification/verification.comp
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 
+import { TeamsComponent } from './teams/teams.component';
+import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
+import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.impaired.component';
+import { MobilityImpairedArchivedComponent } from './teams/mobility-impaired-archived/mobility.impaired.archived.component';
+import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.mobility.impaired.component';
+import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
+import { ListArchivedWardensComponent } from './teams/list-wardens-archived/list.wardens.archived.component';
+import { AllUsersComponent } from './teams/all-users/all.users.component';
+import { AllUsersArchivedComponent } from './teams/all-users-archived/all.users.archived.component';
+import { AddUserComponent } from './teams/add-user/add.user.component';
+import { ViewUserComponent } from './teams/view-user/view.user.component';
+import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
+import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
+import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
+
 
 
 const appRoutes: Routes = [
@@ -50,7 +66,8 @@ const appRoutes: Routes = [
       children : [
         { path : '', component : SignupSelectRoleComponent  },
         { path : 'user', component : SignupUserInfoComponent  },
-        { path: 'warden-signup', component: WardenSignupComponent }
+        { path: 'warden-signup', component: WardenSignupComponent },
+        { path: 'warden-profile-completion/:token', component: WardenInvitationFormComponent }
       ]
   },
   { path: 'no-email', component: NoemailComponent },
@@ -91,6 +108,24 @@ const appRoutes: Routes = [
   },
   {
     path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
+  },
+  {
+    path : 'teams', component : TeamsComponent,
+    children : [
+      { path : 'add-wardens', component : TeamsAddWardenComponent },
+      { path : 'mobility-impaired', component : MobilityImpairedComponent },
+      { path : 'mobility-impaired-archived', component : MobilityImpairedArchivedComponent },
+      { path : 'add-mobility-impaired', component : AddMobilityImpairedComponent },
+      { path : 'list-wardens', component : ListWardensComponent },
+      { path : 'list-archived-wardens', component : ListArchivedWardensComponent },
+      { path : 'all-users', component : AllUsersComponent },
+      { path : 'all-archived-users', component : AllUsersArchivedComponent },
+      { path : 'add-user', component : AddUserComponent },
+      { path : 'view-user/:encrypted', component : ViewUserComponent },
+      { path : 'view-warden', component : ViewWardenComponent },
+      { path : 'view-gen-occupant', component : ViewGeneralOccupantComponent },
+      { path : 'view-chief-warden', component : ViewChiefWardenComponent }
+    ]
   }
 
 ];
