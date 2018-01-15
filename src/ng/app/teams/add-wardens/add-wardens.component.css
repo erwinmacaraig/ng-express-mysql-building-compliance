@@ -13,6 +13,7 @@
     padding: 0px;
     color: rgba(0, 0, 0, 0.8) !important;
     padding: 10px;
+    margin: 6px 0px;
 }
 
 .top-title-button .btn .image,
@@ -381,6 +382,14 @@ td.with-remove a.remove:hover{
 a.disabled{
     pointer-events: none;
     color: #ddd !important;
+}
+
+@media only screen
+  and (max-width: 1440px) {
+    #modaCsvUpload,
+    #modalInvite{
+        width: 35%;
+    }
 }
 
 @media only screen

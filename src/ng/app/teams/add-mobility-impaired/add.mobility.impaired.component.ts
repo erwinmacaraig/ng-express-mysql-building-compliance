@@ -16,6 +16,7 @@ declare var $: any;
 })
 export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 	@ViewChild('addMobilityImpairedForm') addMobilityImpairedForm: NgForm;
+    @ViewChild('invitefrm') emailInviteForm: NgForm;
     public addedUsers = [];
     public userProperty = {
         first_name : '',
@@ -37,6 +38,9 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     public locations = [];
     public userData = {};
     public selectedUser = {};
+
+    public bulkEmailInvite;
+    public CSVFileToUpload;
     constructor(
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
@@ -241,4 +245,57 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
 	ngOnDestroy(){}
+
+    showModalCSV(){
+        $('#modaCsvUpload').modal('open');
+    }
+
+    showModalInvite(){
+        $('#modalInvite').modal('open');
+    }
+
+    selectCSVButtonClick(inputFileCSV){
+        console.log(inputFileCSV);
+        inputFileCSV.click();
+    }
+
+    sendInviteOnClick() {
+        this.bulkEmailInvite = (this.emailInviteForm.controls.inviteTxtArea.value).split(',');
+        const validEmails = [];
+        const email_regex =
+        /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
+        for (let x = 0; x < this.bulkEmailInvite.length; x++) {
+          if (email_regex.test(this.bulkEmailInvite[x].trim())) {
+            validEmails.push(this.bulkEmailInvite[x].trim());
+          }
+        }
+        this.dataProvider.sendWardenInvitation(validEmails).subscribe((data) => {
+          console.log(data);
+          $('#modalInvite').modal('close');
+        }, (e) => {
+          console.log(e);
+        }
+        );
+        this.emailInviteForm.controls.inviteTxtArea.reset();
+    }
+
+    public fileChangeEvent(fileInput: any, btnSelectCSV) {
+        this.CSVFileToUpload = <Array<File>> fileInput.target.files;
+        console.log(this.CSVFileToUpload);
+        btnSelectCSV.innerHTML = this.CSVFileToUpload[0]['name'];
+    };
+
+    public onUploadCSVAction() {
+        let override = $('#override')[0].checked;
+        console.log(override);
+        let formData: any = new FormData();
+
+        formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
+        formData.append('override',  override);
+        this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
+          console.log(data);
+        }, (e) => {
+          console.log(e);
+        });
+    }
 }

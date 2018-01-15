@@ -101,7 +101,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		this.renderGrid();
 
 		this.preloaderService.show();
-		setTimeout(() => { Materialize.updateTextFields(); }, 300);
+		setTimeout(() => { Materialize.updateTextFields(); }, 1000);
 	}
 
 	public gridEvent(){

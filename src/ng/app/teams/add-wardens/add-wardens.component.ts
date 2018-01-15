@@ -39,6 +39,9 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     public selectedUser = {};
     public bulkEmailInvite;
     public CSVFileToUpload;
+
+    droppedFile;
+
     constructor(
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
@@ -85,10 +88,39 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         });
 
         this.addMoreRow();
+        this.dragDropFileEvent();
     }
 
     showModalCSV(){
         $('#modaCsvUpload').modal('open');
+    }
+
+    isAdvancedUpload() {
+      var div = document.createElement('div');
+      return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
+    };
+
+    dragDropFileEvent(){
+        let modal = $('#modaCsvUpload'),
+            uploadContainer = modal.find('.upload-container'),
+            inputFile = uploadContainer.find('input[name="file"]');
+
+        if(this.isAdvancedUpload()){
+            uploadContainer.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            })
+            .on('dragover dragenter', () =>  {
+                uploadContainer.css({ 'border' : '2px dotted #fc4148' });
+            })
+            .on('dragleave dragend drop', () => {
+                uploadContainer.css({ 'border' : '' });
+            })
+            .on('drop', (e) => {
+                this.droppedFile = e.originalEvent.dataTransfer.files;
+                uploadContainer.find('input[type="file"]')[0].files = e.originalEvent.dataTransfer.files;
+            });
+        }
     }
 
     showModalInvite(){
