@@ -23,12 +23,13 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         first_name : '',
         last_name : '',
         email : '',
-        role_id : 0,
+        role_id : 3,
         account_location_id : 0,
         eco_role_id : 0,
         location_name : 'Select Location',
         location_id : 0,
-        contact_number : ''
+        contact_number : '',
+        errors : {}
     };
     private userRole;
     public accountRoles;
@@ -72,6 +73,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
                 this.ecoRoles = roles;
+                this.addMoreRow();
             }, (err) => {
                 console.log('Server Error. Unable to get the list');
             }
@@ -86,8 +88,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         $('.modal').modal({
             dismissible: false
         });
-
-        this.addMoreRow();
+        
         this.dragDropFileEvent();
     }
 
@@ -131,6 +132,15 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 		//a copy
 		let prop = JSON.parse(JSON.stringify(this.userProperty));
 		this.addedUsers.push( prop );
+
+        for ( let r of this.ecoRoles ) {
+            if (r.is_warden_role == 1) {
+                if(!this.ecoDisplayRoles[  Object.keys(this.addedUsers).length - 1 ]){
+                    this.ecoDisplayRoles[  Object.keys(this.addedUsers).length - 1 ] =  [];
+                }
+                (this.ecoDisplayRoles[  Object.keys(this.addedUsers).length - 1 ]).push(r);
+            }
+        }
 
         setTimeout(() => {
             $('form table tbody tr:last-child').find('input.first-name').focus();
@@ -260,7 +270,11 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
                 this.selectedUser['location_id'] = selectedLocationId;
             }
 
-            this.selectedUser['location_name'] = selected['name'];
+            this.selectedUser['location_name'] = '';
+            if(Object.keys(parent).length > 0){
+                this.selectedUser['location_name'] = parent.name+', ';
+            }
+            this.selectedUser['location_name'] += selected['name'];
 
             console.log(this.addedUsers);
             this.cancelLocationModal();
@@ -276,14 +290,15 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 
     addBulkWarden() {
         const strWardens = JSON.stringify(this.addedUsers);
-        this.dataProvider.addBulkWarden(strWardens).subscribe(() => {
-          this.addedUsers = [];
-          this.addMoreRow();
+        this.dataProvider.addBulkWarden(strWardens).subscribe((data) => {
+          this.addedUsers = data;
+          if(Object.keys(this.addedUsers).length == 0){
+              this.addMoreRow();
+          }
         },
-      () => {
+      (data) => {
         console.log('there was an error');
       });
-        console.log(this.addedUsers);
     }
 
     selectCSVButtonClick(inputFileCSV){
@@ -302,6 +317,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
           }
         }
         this.dataProvider.sendWardenInvitation(validEmails).subscribe((data) => {
+          this.addedUsers = data;
           console.log(data);
           $('#modalInvite').modal('close');
         }, (e) => {

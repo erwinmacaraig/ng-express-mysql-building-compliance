@@ -22,7 +22,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         first_name : '',
         last_name : '',
         email: '',
-        role_id : 0,
+        role_id : 3,
         account_location_id : 0,
         eco_role_id : 0,
         eco_location_id : 0,
@@ -30,6 +30,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         location_id : 0,
         contact_number : '',
         mobility_impaired: 1,
+        errors : {}
     };
     private userRole;
     public accountRoles;
@@ -70,6 +71,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
                 this.ecoRoles = roles;
+                this.addMoreRow();
             }, (err) => {
                 console.log('Server Error. Unable to get the list');
             }
@@ -86,13 +88,22 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 
 		$('select').material_select();
 
-        this.addMoreRow();
+        this.dragDropFileEvent();
 	}
 
 	addMoreRow(){
 		//a copy
 		let prop = JSON.parse(JSON.stringify(this.userProperty));
 		this.addedUsers.push( prop );
+
+        for ( let r of this.ecoRoles ) {
+            if (r.is_warden_role == 1) {
+                if(!this.ecoDisplayRoles[  Object.keys(this.addedUsers).length - 1 ]){
+                    this.ecoDisplayRoles[  Object.keys(this.addedUsers).length - 1 ] =  [];
+                }
+                (this.ecoDisplayRoles[  Object.keys(this.addedUsers).length - 1 ]).push(r);
+            }
+        }
 
         setTimeout(() => {
             $('form table tbody tr:last-child').find('input.first-name').focus();
@@ -221,7 +232,11 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
                 this.selectedUser['location_id'] = selectedLocationId;
             }
 
-            this.selectedUser['location_name'] = selected['name'];
+            this.selectedUser['location_name'] = '';
+            if(Object.keys(parent).length > 0){
+                this.selectedUser['location_name'] = parent.name+', ';
+            }
+            this.selectedUser['location_name'] += selected['name'];
 
 
             this.cancelLocationModal();
@@ -236,9 +251,10 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     public submitPEEP() {
       const strPEEP = JSON.stringify(this.addedUsers);
       this.dataProvider.addPEEP(strPEEP).subscribe((data) => {
-        console.log(data);
-        this.addedUsers = [];
-        this.addMoreRow();
+        this.addedUsers = data;
+        if(Object.keys(this.addedUsers).length == 0){
+            this.addMoreRow();
+        }
       }, (error: HttpErrorResponse) => {
         console.log(error);
       });
@@ -297,5 +313,32 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         }, (e) => {
           console.log(e);
         });
+    }
+
+    isAdvancedUpload() {
+      var div = document.createElement('div');
+      return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
+    };
+
+    dragDropFileEvent(){
+        let modal = $('#modaCsvUpload'),
+            uploadContainer = modal.find('.upload-container'),
+            inputFile = uploadContainer.find('input[name="file"]');
+
+        if(this.isAdvancedUpload()){
+            uploadContainer.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            })
+            .on('dragover dragenter', () =>  {
+                uploadContainer.css({ 'border' : '2px dotted #fc4148' });
+            })
+            .on('dragleave dragend drop', () => {
+                uploadContainer.css({ 'border' : '' });
+            })
+            .on('drop', (e) => {
+                uploadContainer.find('input[type="file"]')[0].files = e.originalEvent.dataTransfer.files;
+            });
+        }
     }
 }

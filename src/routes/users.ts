@@ -486,6 +486,9 @@ export class UsersRoute extends BaseRoute {
 					users[i]['errors']['blacklisted'] = true;
 					hasError = true;
 				}
+			}else{
+				users[i]['errors']['invalid'] = true;
+				hasError = true;
 			}
 
 			if(!hasError){

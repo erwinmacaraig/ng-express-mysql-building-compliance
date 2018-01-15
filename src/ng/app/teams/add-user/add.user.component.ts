@@ -265,6 +265,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
 		$('select').material_select();
 
         this.addMoreRow();
+        this.dragDropFileEvent();
 	}
 
 	ngOnDestroy(){}
@@ -334,5 +335,32 @@ export class AddUserComponent implements OnInit, OnDestroy {
         }, (e) => {
           console.log(e);
         });
+    }
+
+    isAdvancedUpload() {
+      var div = document.createElement('div');
+      return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
+    };
+
+    dragDropFileEvent(){
+        let modal = $('#modaCsvUpload'),
+            uploadContainer = modal.find('.upload-container'),
+            inputFile = uploadContainer.find('input[name="file"]');
+
+        if(this.isAdvancedUpload()){
+            uploadContainer.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            })
+            .on('dragover dragenter', () =>  {
+                uploadContainer.css({ 'border' : '2px dotted #fc4148' });
+            })
+            .on('dragleave dragend drop', () => {
+                uploadContainer.css({ 'border' : '' });
+            })
+            .on('drop', (e) => {
+                uploadContainer.find('input[type="file"]')[0].files = e.originalEvent.dataTransfer.files;
+            });
+        }
     }
 }
