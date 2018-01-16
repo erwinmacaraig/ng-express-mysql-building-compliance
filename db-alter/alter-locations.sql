@@ -1,1 +1,0 @@
-ALTER TABLE `locations` DROP `tenant_key_contact`;

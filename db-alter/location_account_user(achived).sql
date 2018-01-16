@@ -1,1 +1,0 @@
-ALTER TABLE `location_account_user` ADD `archived` TINYINT(1) NOT NULL DEFAULT '0' AFTER `role_id`;
