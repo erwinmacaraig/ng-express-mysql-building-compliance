@@ -86,6 +86,54 @@
 	</div>
 </div>
 
+<div id="modalUploadConfirmation" class="modal">
+  <div class="modal-content">
+    <div class="header-container center">
+			<div class="image csv-wardens"></div>
+			<div class="text">Nominate Wardens by CSV Upload Confirmation</div>
+    </div>
+    <div class="container">
+      <table class="table striped">
+				<thead>
+					<tr>
+						<th>First Name</th>
+						<th>Last Name</th>
+						<th>Role</th>
+						<th>Email</th>
+						<th>Phone Number</th>
+						<th>Mobile Number</th>
+					</tr>
+				</thead>
+				<tbody>
+          <tr *ngFor="let record of csvValidRecords">
+            <td>{{record['first_name']}}</td>
+            <td>{{record['last_name']}}</td>
+            <td>{{record['eco_role'] || 'General Occupant'}}</td>
+            <td>{{record['email']}}</td>
+            <td>{{record['mobile_number']}}</td>
+            <td>{{record['phone_number']}}</td>
+          </tr>
+          <tr *ngIf="csvInvalidRecords.length">
+            <td colspan="6">Invalid record(s) found in your CSV file.</td>
+          </tr>
+          <tr *ngFor="let invalid of csvInvalidRecords">
+              <td>{{invalid['first_name']}}</td>
+              <td>{{invalid['last_name']}}</td>
+              <td>{{invalid['eco_role'] || 'General Occupant'}}</td>
+              <td>{{invalid['email']}}</td>
+              <td>{{invalid['mobile_number']}}</td>
+              <td>{{invalid['phone_number']}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="button-container center">
+          <button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
+          <button class="btn orange waves-effect waves-light" (click)="onConfirmCSVUpload()"> Confirm </button>
+      </div>
+    </div>
+
+  </div>
+</div>
 <div id="modaCsvUpload" class="modal">
 	<div class="modal-content">
 		<div class="header-container center">

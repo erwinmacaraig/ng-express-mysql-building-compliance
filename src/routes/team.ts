@@ -187,20 +187,23 @@ export class TeamRoute extends BaseRoute {
 
   public async processCSVUpload(req: AuthRequest, res: Response, next: NextFunction) {
     const uploader = new FileUploader(req, res, next);
-    const invalidEmails = [];
+    const invalidRecords = [];
     const filename = await uploader.uploadFileToLocalServer();
     const utils = new Utils();
     let data;
     data = await utils.processCSVUpload(<string>filename);
     data['override'] = req.body.override;
-
+    const validRecords = [];
     for (let i = 0; i < data.length; i++) {
       const user = new User();
       try {
         const dbData = await user.getByEmail(data[i]['email']);
-        invalidEmails.push(data[i]['email']);
+        invalidRecords.push(data[i]);
       } catch (e) {
         if (validator.isEmail(data[i]['email'])) {
+          validRecords.push(data[i]);
+
+          /*
           const em_role = (data[i]['eco_role']).toUpperCase();
           // email and create
           const userInvitation = new UserInvitation();
@@ -254,14 +257,17 @@ export class TeamRoute extends BaseRoute {
           email.send((result) => console.log(data),
                      (err) => console.log(err)
                     );
-
+          */
         } else {
-          invalidEmails.push(data[i]['email']);
+          invalidRecords.push(data[i]);
         }
       }
     }
 
-    return invalidEmails;
+    return {
+      'valid': validRecords,
+      'invalid': invalidRecords
+    };
 
 
 

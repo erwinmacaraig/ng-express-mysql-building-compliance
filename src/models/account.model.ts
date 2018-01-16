@@ -255,8 +255,6 @@ export class Account extends BaseClass {
             ORDER BY
             locations.location_id;
             `;
-            console.log(sql_get_locations);
-            console.log(this.ID());
             const val = [this.ID()];
             const connection = db.createConnection(dbconfig);
 

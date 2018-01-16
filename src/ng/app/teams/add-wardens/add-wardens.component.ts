@@ -30,6 +30,9 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         location_id : 0,
         contact_number : ''
     };
+
+    public csvValidRecords = [];
+    public csvInvalidRecords = [];
     private userRole;
     public accountRoles;
     public ecoRoles;
@@ -254,8 +257,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         console.log(this.addedUsers);
     }
 
-    selectCSVButtonClick(inputFileCSV){
-        console.log(inputFileCSV);
+    selectCSVButtonClick(inputFileCSV) {
         inputFileCSV.click();
     }
 
@@ -281,23 +283,33 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 
     public fileChangeEvent(fileInput: any, btnSelectCSV) {
         this.CSVFileToUpload = <Array<File>> fileInput.target.files;
-        console.log(this.CSVFileToUpload);
         btnSelectCSV.innerHTML = this.CSVFileToUpload[0]['name'];
-    };
+    }
 
     public onUploadCSVAction() {
         let override = $('#override')[0].checked;
-        console.log(override);
         let formData: any = new FormData();
 
         formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
         formData.append('override',  override);
         this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
           console.log(data);
+          this.csvInvalidRecords = data.invalid;
+          this.csvValidRecords = data.valid;
+          $('#modaCsvUpload').modal('close');
+          setTimeout(() => {
+            $('#modalUploadConfirmation').modal('open');
+        }, 300);
         }, (e) => {
           console.log(e);
         });
     }
 
+    public onConfirmCSVUpload() {
+      const csvRecord = JSON.stringify(this.csvValidRecords);
+
+      $('#modalUploadConfirmation').modal('close');
+
+    }
 
 }
