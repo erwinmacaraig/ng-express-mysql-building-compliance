@@ -284,6 +284,7 @@ export class Account extends BaseClass {
           users.last_name,
           users.account_id,
           users.last_login,
+          users.mobility_impaired,
           DATEDIFF(NOW(), last_login) AS days,
           em_roles.role_name,
           locations.parent_id,
