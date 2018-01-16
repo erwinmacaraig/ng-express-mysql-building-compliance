@@ -192,7 +192,7 @@ export class TeamRoute extends BaseRoute {
     const utils = new Utils();
     let data;
     data = await utils.processCSVUpload(<string>filename);
-    // data['override'] = req.body.override;
+    data['override'] = req.body.override;
 
     for (let i = 0; i < data.length; i++) {
       const user = new User();
@@ -201,7 +201,6 @@ export class TeamRoute extends BaseRoute {
         invalidEmails.push(data[i]['email']);
       } catch (e) {
         if (validator.isEmail(data[i]['email'])) {
-          console.log((data[i]['eco_role']).toUpperCase());
           const em_role = (data[i]['eco_role']).toUpperCase();
           // email and create
           const userInvitation = new UserInvitation();
