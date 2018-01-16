@@ -243,6 +243,11 @@ ul.list li{
     list-style-type: initial;
 }
 
+#modalMobility .btn{
+    font-size: 15px !important;
+    line-height: 43px;
+}
+
 @media only screen and (max-width: 600px) {
   .masonry-container {
     -webkit-column-count: 1;
@@ -273,4 +278,27 @@ ul.list li{
   #modalRemoveWarden{
     width: 35%;
   }
+}
+
+
+@media only screen and (max-width: 1400px) {
+    #modalArchiveBulk{
+        width: 50%;
+    }
+}
+
+@media only screen and (max-width: 1024px) {
+    #modalArchiveBulk{
+        width: 60%;
+    }
+
+    #modalMobility{
+        width : 90%;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    #modalMobility{
+        width: 90%;
+    }
 }

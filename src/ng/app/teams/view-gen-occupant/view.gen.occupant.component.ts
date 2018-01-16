@@ -58,26 +58,27 @@ export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 		this.userService.getMyWardenTeam({
 			role_id : 8
 		}, (response) => {
-			this.viewData.user = response.data.user;
-			this.viewData.team = response.data.team;
-			this.viewData.location = response.data.location;
-			this.viewData.eco_role = response.data.eco_role;
+			if(response.status){
+				this.viewData.user = response.data.user;
+				this.viewData.team = response.data.team;
+				this.viewData.location = response.data.location;
+				this.viewData.eco_role = response.data.eco_role;
 
-			if(Object.keys(response.data.location).length > 0){
-				this.personService.listAllTRP(response.data.location['location_id']).subscribe((response)=>{
-					this.approvers = response.data;
-					this.preloaderService.hide();
+				if(Object.keys(response.data.location).length > 0){
+					this.personService.listAllTRP(response.data.location['location_id']).subscribe((response)=>{
+						this.approvers = response.data;
+						this.preloaderService.hide();
 
-					setTimeout(() => {
-						$('select').material_select();
-					},300);
+						setTimeout(() => {
+							$('select').material_select();
+						},300);
 
-				});
+					});
+				}
+			}else{
+				this.preloaderService.hide();
 			}
 		});
-
-		
-
 	}
 
 	ngOnInit(){}

@@ -490,7 +490,10 @@ export class Location extends BaseClass {
 	public getAncestries(sublocId){
 		return new Promise( (resolve) => {
 			this.getAncestryIds(sublocId).then((resultsIds) => {
-				let sql = `SELECT * FROM locations WHERE location_id IN (`+sublocId+`,`+resultsIds[0]['ids']+`)`;
+				let sql = `SELECT * FROM locations WHERE location_id IN (` + sublocId + `)`;
+				if(resultsIds[0]){
+                    let sql = `SELECT * FROM locations WHERE location_id IN (` + sublocId + `,` + resultsIds[0]['ids'] + `)`;
+                }
 				const connection = db.createConnection(dbconfig);
 				connection.query(sql, (err, results, fields) => {
 					if (err) {

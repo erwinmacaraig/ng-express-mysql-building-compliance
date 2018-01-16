@@ -26,6 +26,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	copyOfList = [];
 	selectedFromList = [];
 
+	filters = [];
+
 	constructor(
 		private userService : UserService,
 		private authService : AuthService,
@@ -39,11 +41,45 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	getListData(callBack?){
 		this.userService.getUsersByAccountId(this.userData['accountId'], (response) => {
 			this.listData = response.data;
+
+			let filterHasFTP = false,
+				filterHasTRP = false,
+				filterHasWarden = false;
+
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
 				this.listData[i]['user_id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']).toString();
 				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['location_account_user_id']).toString();
+
+				if(parseInt(this.listData[i]['role_id']) == 1){
+					filterHasFTP = true;
+				}else if(parseInt(this.listData[i]['role_id']) == 2){
+					filterHasTRP = true;
+				}else if(parseInt(this.listData[i]['role_id']) != 1 && parseInt(this.listData[i]['role_id']) != 2){
+					filterHasWarden = true;
+				}
 			}
+
+			if(filterHasFTP){
+				this.filters.push({ name : "FRP", value : "FRP" });
+			}
+
+			if(filterHasTRP){
+				this.filters.push({ name : "TRP", value : "TRP" });
+			}
+
+			if(filterHasWarden){
+				let tempRoleName = [];
+				for(let i in this.listData){
+					if( parseInt(this.listData[i]['role_id']) != 1 && parseInt(this.listData[i]['role_id']) != 2 ){
+						if( !tempRoleName[ this.listData[i]['role_name'] ] ){
+							tempRoleName[ this.listData[i]['role_name'] ] = this.listData[i]['role_name'];
+							this.filters.push({ name : this.listData[i]['role_name'], value : this.listData[i]['role_name'] });
+						}
+					}
+				}
+			}
+
 			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
 			if(callBack){
 				callBack();
@@ -53,7 +89,12 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 	ngOnInit(){
 
-		this.getListData(() => { this.dashboardService.hide(); });
+		this.getListData(() => { 
+			this.dashboardService.hide(); 
+			setTimeout(() => {
+				$('.row.filter-container select').material_select();
+			}, 500);
+		});
 
 	}
 
@@ -75,31 +116,14 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 		$('select.filter-by').on('change', () => {
 			let selected = $('select.filter-by').val();
-			let temp = [];
-			if(selected == 'frp'){
-				for(let i in this.copyOfList){
-					if(this.copyOfList[i]['role_id'] == 1){
-						temp.push(this.copyOfList[i]);
+			$('table tbody tr').show();
+			if(parseInt(selected) != 0){
+				$('table tbody tr td.role-name').each((index, elem) => {
+					if($(elem).find('.name').text().trim() != selected){
+						$(elem).closest('tr').hide();
 					}
-				}
-				this.listData = temp;
-			}else if(selected == 'trp'){
-				for(let i in this.copyOfList){
-					if(this.copyOfList[i]['role_id'] == 2){
-						temp.push(this.copyOfList[i]);
-					}
-				}
-				this.listData = temp;
-			}else if(selected == 'user'){
-				for(let i in this.copyOfList){
-					if(this.copyOfList[i]['role_id'] != 1 && this.copyOfList[i]['role_id'] != 2){
-						temp.push(this.copyOfList[i]);
-					}
-				}
-				this.listData = temp;
-			}else{
-				this.listData = this.copyOfList;
-			}
+				});
+			} 
 		});
 		
 	}
