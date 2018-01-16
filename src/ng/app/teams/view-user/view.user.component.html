@@ -27,10 +27,9 @@
 				</li>
 			</ul> -->
 			<div class="input-field">
-				<input id="ecoRole" type="text" readonly value="{{viewData.eco_role}}">
-				<label for="ecoRole">
-					<span *ngIf="viewData.eco_role.toLowerCase().indexOf('tenant') == -1 &&  viewData.eco_role.toLowerCase().indexOf('building manager') == -1">ECO Role</span>
-					<span *ngIf="viewData.eco_role.toLowerCase().indexOf('tenant') > -1 ||  viewData.eco_role.toLowerCase().indexOf('building manager') > -1">Role</span>
+				<input id="role" type="text" readonly value="{{viewData.role_text}}">
+				<label for="role">
+					<span>Role</span>
 				</label>
 			</div>
 		</div>
@@ -68,9 +67,12 @@
 			<div class="text inline-block">Remove this user as {{viewData.eco_role}}</div>
 		</button>
 
-		<button class="btn pink waves-effect waves-light presonal-emergency">
+		<button class="btn pink waves-effect waves-light presonal-emergency" (click)="viewPEEP()" *ngIf="viewData.user.mobility_impaired == 1">
 			<div class="image inline-block"></div>
-			<div class="text inline-block">Personal Emergency Evacuation Plan</div>
+			<div class="text inline-block">
+				<span *ngIf="!viewData.user.mobility_impaired_details.user_id">Personal Emergency Evacuation Plan</span>
+				<span *ngIf="viewData.user.mobility_impaired_details.user_id">View Emergency Evacuation Plan</span>
+			</div>
 		</button>
 	</div>
 </div>
@@ -175,4 +177,68 @@
 		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
 		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="yesRemoveWarden()">Yes</a>
 	</div>
+</div>
+
+
+<div id="modalMobility" class="modal">
+
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<form #f="ngForm" (submit)="modalPeepFormSubmit(f, $event)" [hidden]="showModalLoader">
+
+	<div class="modal-content">
+		<h5>Mobility Impaired Information</h5>
+		<div class="row">
+			<div class="col s12 l6 m6">
+				<div class="select-field">
+					<span style=" font-size: 16px;">Mobility Impaired Status</span>
+					<select ngModel name="is_permanent">
+						<option value="0" selected="selected">Temporary</option>
+						<option value="1">Permanent</option>
+					</select>
+				</div>
+			</div>
+			<div class="col s12 l6 m6">
+				<div class="input-field" >
+					<span style=" font-size: 16px;">Mobility Impaired Upto</span>
+					<ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required>
+				</div>
+			</div>
+			<div class="col s12 m12 l12">
+				<h6>Assistant Type</h6>
+				<input ngModel name="assistant_type" type="text" class="grey-input" placeholder="Please describe requirements and process here." required>
+			</div>
+			<div class="col s12 m12 l12">
+				<h6>Evacuation Equipment Type / Requirement</h6>
+				<input ngModel name="equipment_type" type="text" class="grey-input" placeholder="Please inform what is the equiment and type." required>
+			</div>
+			<div class="col s12 m12 l12">
+				<h6>Evacuation / Egress Procedure</h6>
+				<input ngModel name="evacuation_procedure" type="text" class="grey-input" placeholder="" required>
+			</div>
+		</div>
+
+		<div class="row button-container">
+			<div class="col s12 m12 l12">
+				<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+				<button class="btn orange waves-light waves-effect" [disabled]="f.invalid">Submit</button>
+			</div>
+		</div>
+	</div>
+
+
+	</form>
 </div>

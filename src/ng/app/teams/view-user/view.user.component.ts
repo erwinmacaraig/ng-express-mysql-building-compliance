@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -8,6 +8,8 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { UserService } from '../../services/users';
+import { DatepickerOptions } from 'ng2-datepicker';
+import * as enLocale from 'date-fns/locale/en';
 
 declare var $: any;
 declare var Materialize: any;
@@ -19,16 +21,20 @@ declare var moment: any;
   providers: [DashboardPreloaderService, EncryptDecryptService, UserService]
 })
 export class ViewUserComponent implements OnInit, OnDestroy {
-
+	@ViewChild('f') formMobility : NgForm;
+	@ViewChild("durationDate") durationDate: ElementRef;
 	userData = {};
 	encryptedID = '';
 	decryptedID = '';
 	viewData = {
 		user : {
 			profilePic : '',
-			last_login : ''
+			last_login : '',
+			mobility_impaired_details : {}
 		},
-		eco_role : '',
+		role_text : '',
+		role_label : '',
+		role_id : 0,
 		eco_roles : [],
 		location : {
 			parent_data : {}
@@ -39,6 +45,18 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 	showRemoveWardenButton = false;
 	showModalRemoveWardenLoader = false;
 	errorMessageRemoveWarden = '';
+
+	options: DatepickerOptions = {
+	    locale: enLocale,
+	    displayFormat: 'MMM D[,] YYYY',
+	    minDate: new Date(Date.now()),
+	    maxDate: new Date(Date.now())
+	};
+
+	datepickerModel : Date;
+	isShowDatepicker = false;
+	datepickerModelFormatted = '';
+	showModalLoader = false;
 
 	constructor(
 		private auth: AuthService,
@@ -51,6 +69,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		){
 
 		this.userData = this.auth.getUserData();
+		this.datepickerModel = new Date();
+    	this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 
 		this.route.params.subscribe((params) => {
 			this.encryptedID = params['encrypted'];
@@ -58,8 +78,9 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 			this.userService.getUserLocationTrainingsEcoRoles(this.decryptedID, (response) => {
 				this.viewData.user = response.data.user;
-				this.viewData.eco_role = response.data.eco_role;
+				this.viewData.role_text = response.data.role_text;
 				this.viewData.eco_roles = response.data.eco_roles;
+				this.viewData.role_id = response.data.role_id;
 				this.viewData.location = response.data.location;
 				this.viewData.trainings = response.data.trainings;
 
@@ -83,6 +104,17 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 					this.viewData.user['last_login'] = moment(this.viewData.user['last_login'], ["YYYY-MM-DD HH:mm:ss"]).format('MMM. DD, YYYY hh:mm A');
 				}
 
+				if(this.viewData.user['mobility_impaired_details']['user_id']){
+					for(let i in this.viewData.user['mobility_impaired_details']){
+						if( this.formMobility.controls[i] ){
+							this.formMobility.controls[i].setValue(this.viewData.user['mobility_impaired_details'][i]);
+						}
+					}
+
+					this.datepickerModel = moment(this.viewData.user['mobility_impaired_details']['duration_date'], ['YYYY-MM-DD']).toDate();
+    				this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+				}
+
 				this.preloaderService.hide();
 			});
 		});
@@ -102,6 +134,15 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 		this.preloaderService.show();
 		setTimeout(() => { Materialize.updateTextFields(); }, 1000);
+
+		$('#modalMobility select[name="is_permanent"]').on('change', () => {
+			if($('#modalMobility select[name="is_permanent"]').val() == '1'){
+				this.isShowDatepicker = false;
+				$('#durationDate').prop('disabled', true);
+			}else{
+				$('#durationDate').prop('disabled', false);
+			}
+		});
 	}
 
 	public gridEvent(){
@@ -165,4 +206,45 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(){}
+
+	viewPEEP(){
+		$('#modalMobility').modal('open');
+	}
+
+	showDatePicker(){
+		this.isShowDatepicker = true;
+	}
+
+	onChangeDatePicker(event){
+		if(!moment(this.datepickerModel).isValid()){
+			this.datepickerModel = new Date();
+			this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+		}else{
+			this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+		}
+		this.isShowDatepicker = false;
+	}
+
+	modalPeepFormSubmit(f, event){
+		event.preventDefault();
+
+		if(f.valid){
+			let paramData = JSON.parse(JSON.stringify(f.value));
+			paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
+			paramData['location_id'] = this.viewData.location['location_id'];
+			paramData['user_id'] = this.viewData.user['user_id'];
+			paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
+
+			this.showModalLoader = true;
+
+			this.userService.sendMobilityImpaireInformation(paramData, (response) => {
+
+				this.viewData.user.mobility_impaired_details = paramData;
+				this.ngOnInit();
+				$('#modalMobility').modal('close');
+				this.showModalLoader = false;
+
+			});
+		}
+	}
 }

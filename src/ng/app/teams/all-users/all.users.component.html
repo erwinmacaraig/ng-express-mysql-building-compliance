@@ -25,10 +25,8 @@
 
 	<div class="col l2 m4 s6">
 		<select class="filter-by">
-			<option value="0" selected>Filter By</option>
-			<option value="frp">FRP</option>
-			<option value="trp">TRP</option>
-			<option value="user">User</option>
+			<option value="0" selected>Filter By (All)</option>
+			<option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
 		</select>
 	</div>
 
@@ -43,7 +41,7 @@
 	</div>
 	<div class="col l2 m6 s12">
 		<select class="bulk-manage">
-			<option value="0" selected>Manage Action</option>
+			<option value="0" selected disabled>Select Action</option>
 			<option value="archive" >Archive selected</option>
 		</select>
 	</div>
@@ -67,7 +65,7 @@
 					<th>Name</th>
 					<th>Email</th>
 					<th>Mobile</th>
-					<th>Account Role</th>
+					<th>Role</th>
 					<th>Training</th>
 					<th>Action</th>
 				</tr>
@@ -94,15 +92,24 @@
 								<img *ngIf="list.user_info.profile_pic.length > 0" [src]="list.user_info.profile_pic"  >
 							</div>
 						</div>
-						<div class="text">{{list.user_info.first_name}} {{list.user_info.last_name}}</div>
+						<div class="text">
+							<a [routerLink]="['/teams/view-user/', list.id_encrypted]">
+								{{list.user_info.first_name}} {{list.user_info.last_name}}
+							</a>
+						</div>
 					</td>
 					<td>{{list.user_info.email}}</td>
 					<td>{{list.user_info.mobile_number}}</td>
-					<td>
-						<span *ngIf="list.role_id == 1">FRP</span>
-						<span *ngIf="list.role_id == 2">TRP</span>
-						<span *ngIf="list.role_id != 1 && list.role_id != 2">User
-							<i *ngIf="list.role_name">( {{list.role_name}} )</i>
+					<td class="with-image role-name">
+						<div class="image frp" *ngIf="list.role_id == 1 && list.user_info.mobility_impaired == 0"></div>
+						<div class="image trp" *ngIf="list.role_id == 2 && list.user_info.mobility_impaired == 0"></div>
+						<div class="image user" *ngIf="list.role_id != 1 && list.role_id != 2 && list.user_info.mobility_impaired == 0"></div>
+						<div *ngIf="list.user_info.mobility_impaired == 1" class="impaired"></div>
+
+						<span *ngIf="list.role_id == 1" class="name">FRP</span>
+						<span *ngIf="list.role_id == 2" class="name">TRP</span>
+						<span *ngIf="list.role_id != 1 && list.role_id != 2 && list.role_name"  class="name" >
+							{{list.role_name}}
 						</span>
 					</td>
 					<td>
@@ -110,7 +117,7 @@
 					</td>
 					<td>
 						<select (change)="onSelectFromTable($event, list)">
-							<option value="0" class="blue-text" selected>Manage</option>
+							<option value="0" class="blue-text" selected disabled>Select action</option>
 							<option value="view" class="blue-text">View</option>
 							<option value="archive" class="blue-text" [hidden]="(list.user_id == userData.userId) || (list.role_id == 1 || list.role_id == 2)" >Archive</option>
 						</select>

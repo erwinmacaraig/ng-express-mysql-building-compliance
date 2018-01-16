@@ -598,19 +598,21 @@ export class TeamRoute extends BaseRoute {
       throw new Error('Internal Error');
     }
     // create a record em-role-user-location
-    const EMRoleUserRole = new UserEmRoleRelation();
-    await EMRoleUserRole.create({
-      'user_id': user.ID(),
-      'em_role_id': req.body.em_role,
-      'location_id': req.body.sublocation
-    });
+    if(parseInt(req.body.em_role) > 2){
+      const EMRoleUserRole = new UserEmRoleRelation();
+      await EMRoleUserRole.create({
+        'user_id': user.ID(),
+        'em_role_id': req.body.em_role,
+        'location_id': req.body.sublocation
+      });
+    }
     // create a record in location_account_user
     let locationAcctUser = new LocationAccountUser();
     await locationAcctUser.create({
       'location_id': req.body.sublocation,
       'account_id': req.body.account_id,
       'user_id': user.ID(),
-      'role_id': req.body.em_role
+      'role_id': (req.body.role_id == 1 || req.body.role_id == 2) ? req.body.role_id : req.body.em_role
     });
 
     if (req.body.role_id) {
@@ -629,18 +631,20 @@ export class TeamRoute extends BaseRoute {
       }
       locationAcctUser = new LocationAccountUser();
 
-      await locationAcctUser.create({
+      /*await locationAcctUser.create({
         'location_id': theLocation,
         'account_id': req.body.account_id,
         'user_id': user.ID(),
-        'role_id': req.body.role_id
-      });
+        'role_id': (req.body.role_id == 1 || req.body.role_id == 2) ? req.body.role_id : req.body.em_role
+      });*/
 
-      const userRoleRel = new UserRoleRelation();
-      await userRoleRel.create({
-        'user_id': user.ID(),
-        'role_id': req.body.role_id
-      });
+      if(parseInt(req.body.role_id) == 1 || parseInt(req.body.role_id) == 2){
+        const userRoleRel = new UserRoleRelation();
+        await userRoleRel.create({
+          'user_id': user.ID(),
+          'role_id': req.body.role_id
+        });
+      }
 
       const locationAccntRel = new LocationAccountRelation();
 
@@ -839,9 +843,12 @@ export class TeamRoute extends BaseRoute {
         wardens[l]['parent_name'] = allParents[ wardens[l]['parent_id'] ]['name'];
       }
 
+      wardens[l]['mobility_impaired'] = 0;
       await userModel.load().then(()=>{
         wardens[l]['first_name'] = userModel.get('first_name');
         wardens[l]['last_name'] = userModel.get('last_name');
+        wardens[l]['mobility_impaired'] = userModel.get('mobility_impaired');
+        wardens[l]['last_login'] = moment(userModel.get('last_login'), ["YYYY-MM-DD HH:mm:ss"]).format("MMM. DD, YYYY hh:mmA");
       },()=>{
         wardens[l]['first_name'] = '';
         wardens[l]['last_name'] = '';

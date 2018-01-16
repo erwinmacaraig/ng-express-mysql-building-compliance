@@ -26,6 +26,8 @@ export class ListWardensComponent implements OnInit, OnDestroy {
   selectedToArchive = {};
   selectedFromList = [];
 
+  filters = [];
+
   constructor(
     private authService : AuthService,
     private router : Router,
@@ -46,9 +48,24 @@ export class ListWardensComponent implements OnInit, OnDestroy {
           data[i]['id_encrypted'] = this.encDecrService.encrypt(data[i]['location_account_user_id']).toString();
         }
       }
+
+      let tempRoleName = [];
+      for(let i in data){
+          if( parseInt(data[i]['role_id']) != 1 && parseInt(data[i]['role_id']) != 2 ){
+            if( !tempRoleName[ data[i]['role_name'] ] ){
+              tempRoleName[ data[i]['role_name'] ] = data[i]['role_name'];
+              this.filters.push({ name : data[i]['role_name'], value : data[i]['role_name'] });
+            }
+          }
+      }
+
       this.wardenArr = data;
       this.copyOfList = JSON.parse(JSON.stringify(data));
       this.dashboardService.hide();
+
+      setTimeout(() => {
+        $('.row.filter-container select').material_select();
+      }, 500);
 
     }, (err: HttpErrorResponse) => {
       console.log(err);
@@ -95,31 +112,14 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
     $('select.filter-by').on('change', () => {
       let selected = $('select.filter-by').val();
-      let temp = [];
-      if(selected == 'frp'){
-        for(let i in this.copyOfList){
-          if(this.copyOfList[i]['role_id'] == 1){
-            temp.push(this.copyOfList[i]);
+      $('table tbody tr').show();
+      if(parseInt(selected) != 0){
+        $('table tbody tr td.role-name').each((index, elem) => {
+          if($(elem).find('.name').text().trim() != selected){
+            $(elem).closest('tr').hide();
           }
-        }
-        this.wardenArr = temp;
-      }else if(selected == 'trp'){
-        for(let i in this.copyOfList){
-          if(this.copyOfList[i]['role_id'] == 2){
-            temp.push(this.copyOfList[i]);
-          }
-        }
-        this.wardenArr = temp;
-      }else if(selected == 'user'){
-        for(let i in this.copyOfList){
-          if(this.copyOfList[i]['role_id'] != 1 && this.copyOfList[i]['role_id'] != 2){
-            temp.push(this.copyOfList[i]);
-          }
-        }
-        this.wardenArr = temp;
-      }else{
-        this.wardenArr = this.copyOfList;
-      }
+        });
+      } 
     });
     
   }

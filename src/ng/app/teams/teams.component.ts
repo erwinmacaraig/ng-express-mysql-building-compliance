@@ -81,11 +81,11 @@ export class TeamsComponent implements OnInit, OnDestroy {
 							frp = true;
 						}else if(roles[i]['role_id'] == 2){
 							trp = true;
-						}else if(roles[i]['role_id'] == 8){
+						}else if(roles[i]['role_id'] == 8 || roles[i]['role_id'] == 12 || roles[i]['role_id'] == 13 || roles[i]['role_id'] == 14){
 							genOcc = true;
-						}else if(roles[i]['role_id'] == 9){
+						}else if(roles[i]['role_id'] == 9 || roles[i]['role_id'] == 10){
 							warden = true;
-						}else if(roles[i]['role_id'] == 11){
+						}else if(roles[i]['role_id'] == 11 || roles[i]['role_id'] == 15 || roles[i]['role_id'] == 16 || roles[i]['role_id'] == 18){
 							chiefWarden = true;
 						}
 					}
@@ -99,6 +99,8 @@ export class TeamsComponent implements OnInit, OnDestroy {
 						}else if(warden){
 							this.router.navigate(["/teams/view-warden"]);
 						}else if(genOcc){
+							this.router.navigate(["/teams/view-gen-occupant"]);
+						}else{
 							this.router.navigate(["/teams/view-gen-occupant"]);
 						}
 					}

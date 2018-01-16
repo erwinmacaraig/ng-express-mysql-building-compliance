@@ -64,10 +64,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
     }
 
 	ngOnInit(){
-		this.accountRoles = [{
-            role_id: 3,
-            role_name: 'User'
-        },
+		this.accountRoles = [
         {
             role_id: 2,
             role_name: 'Tenant'
@@ -86,6 +83,12 @@ export class AddUserComponent implements OnInit, OnDestroy {
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
                 this.ecoRoles = roles;
+                for(let i in roles){
+                    this.accountRoles.push({
+                        role_id : roles[i]['em_roles_id'],
+                        role_name : roles[i]['role_name']
+                    });
+                }
                 console.log(this.ecoRoles);
             }, (err) => {
                 console.log('Server Error. Unable to get the list');
@@ -110,27 +113,6 @@ export class AddUserComponent implements OnInit, OnDestroy {
         },300);
     }
 
-    onSelectedAccountRole(srcId: number) {
-        console.log(this.addWardenForm.controls['accountRole' + srcId].value);
-        let r = this.addWardenForm.controls['accountRole' + srcId].value * 1;
-        this.ecoDisplayRoles[srcId] = [];
-        switch(r) {
-            case 1:
-            case 2:
-            this.ecoDisplayRoles[srcId] = this.ecoRoles;
-            break;
-            case 3:
-            for ( let r of this.ecoRoles ) {
-                if (r.is_warden_role == 1) {
-                    (this.ecoDisplayRoles[srcId]).push(r);
-                }
-            }
-            break;
-
-        }
-        console.log(this.ecoDisplayRoles);
-    }
-
     onChangeDropDown(event){
         if(event.currentTarget.checked){
             $( $(event.currentTarget).parents('.list-division')[0] ).addClass('show-drop-down');
@@ -150,7 +132,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
     }
 
     showLocationSelection(user){
-        if(user.account_role_id == 1){
+        if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
             let temp = [];
             for(let i in this.locations){
                 let innerTemp = JSON.parse(JSON.stringify(this.locations[i]));
@@ -218,7 +200,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 parent = this.findParent(this.locations, selected['parent_id']),
                 lastParent = this.getLastParent(selectedLocationId);
 
-            if(typeof parent == undefined){
+            if(typeof parent == 'undefined'){
                 parent = selected;
             }
 
@@ -245,7 +227,11 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 this.selectedUser['eco_location_id'] = selectedLocationId;
             }
 
-            this.selectedUser['location_name'] = selected['name'];
+            this.selectedUser['location_name'] = '';
+            if(typeof parent != 'undefined' && selectedLocationId != parent.location_id){
+                this.selectedUser['location_name'] += parent.name+', ';
+            }
+            this.selectedUser['location_name'] += selected['name'];
 
             console.log(this.addedUsers);
             this.cancelLocationModal();

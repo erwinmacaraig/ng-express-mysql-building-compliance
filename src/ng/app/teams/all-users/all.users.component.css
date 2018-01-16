@@ -179,6 +179,46 @@ table tr td .image img{
   max-height: 50px;
 }
 
+table tr td.with-image .image{
+    display: inline-block;
+    width: 45px;
+    height: 45px;
+    border-radius: 30px;
+    vertical-align: middle;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 45px;
+}
+
+table tr td.with-image .image.frp{
+    background-image: url(/assets/images/signup/buildingmanager_icon.png);
+}
+
+table tr td.with-image .image.trp{
+    background-image: url(/assets/images/signup/tenantmanager_icon.png);
+}
+
+table tr td.with-image .image.user{
+    background-image: url(/assets/images/signup/eco_icon.png);
+}
+
+table tr td.with-image .impaired{
+    width: 40px;
+    height: 40px;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #dc4453;
+    border-radius: 45px;
+    margin: 0px 0px;
+    overflow: hidden;
+    background-image: url(/assets/images/team_icons.png);
+    background-repeat: no-repeat;
+    background-size: 440px;
+    background-position: 73.2% 71.4%;
+
+}
+
 #modalArchiveBulk,
 #modalArchive{
     width: 35%;
@@ -186,6 +226,10 @@ table tr td .image img{
 
 #modalArchiveBulk ul li{
     font-size: 14px;
+}
+
+select option:disabled{
+    color: gray !important;
 }
 
 @media only screen and (max-width: 1400px) {
