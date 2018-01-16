@@ -201,6 +201,8 @@ export class TeamRoute extends BaseRoute {
         invalidEmails.push(data[i]['email']);
       } catch (e) {
         if (validator.isEmail(data[i]['email'])) {
+          console.log((data[i]['eco_role']).toUpperCase());
+          const em_role = (data[i]['eco_role']).toUpperCase();
           // email and create
           const userInvitation = new UserInvitation();
           const tokenModel = new Token();
@@ -212,12 +214,10 @@ export class TeamRoute extends BaseRoute {
             'location_id': 0,
             'account_id': req.user.account_id,
             'role_id': 0,
-            'eco_role_id': 8,
+            'eco_role_id': defs['em_roles'][em_role],
             'contact_number': data[i]['mobile_number'],
             'phone_number': data[i]['phone_number'],
-            'invited_by_user': req.user.user_id,
-            'can_login': data[i]['can_login'],
-            'time_zone': data[i]['time_zone'],
+            'invited_by_user': req.user.user_id
           });
           const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
           await tokenModel.create({
