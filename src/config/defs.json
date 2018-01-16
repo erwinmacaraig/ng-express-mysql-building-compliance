@@ -4,5 +4,21 @@
   "role_text": [
     "Tenant",
     "Manager"
-  ]
+  ],
+  "em_roles": {
+    "GENERAL OCCUPANT": 8,
+    "WARDEN": 9,
+    "FLOOR WARDEN": 10,
+    "AREA WARDEN": 10,
+    "CHIEF WARDEN": 11,
+    "FIRE SAFETY ADVISOR": 12,
+    "FSA": 12,
+    "EMERGENCY PLANNING COMMITTEE MEMBER": 13,
+    "EPC": 13,
+    "FIRST AID OFFICER": 14,
+    "DEPUTY CHIEF WARDEN": 15,
+    "BUILDING WARDEN": 16,
+    "DEPUTY BUILDING WARDEN": 18,
+    "": 8
+  }
 }

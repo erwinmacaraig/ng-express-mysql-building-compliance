@@ -143,7 +143,6 @@ export class TeamRoute extends BaseRoute {
     router.post('/team/warden/csv-upload', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
     //  router.post('/team/warden/csv-upload', (req: AuthRequest, res: Response, next: NextFunction) => {
       new TeamRoute().processCSVUpload(req, res, next).then((data) => {
-        console.log('I got ', data);
         return res.status(200).send(data);
       }).catch((e) => {
         res.status(400).send({
@@ -193,15 +192,16 @@ export class TeamRoute extends BaseRoute {
     const utils = new Utils();
     let data;
     data = await utils.processCSVUpload(<string>filename);
-    // data['override'] = req.body.override;
+    data['override'] = req.body.override;
 
     for (let i = 0; i < data.length; i++) {
       const user = new User();
       try {
-        let dbData = await user.getByEmail(data[i]['email']);
+        const dbData = await user.getByEmail(data[i]['email']);
         invalidEmails.push(data[i]['email']);
-      } catch(e) {
+      } catch (e) {
         if (validator.isEmail(data[i]['email'])) {
+          const em_role = (data[i]['eco_role']).toUpperCase();
           // email and create
           const userInvitation = new UserInvitation();
           const tokenModel = new Token();
@@ -211,14 +211,12 @@ export class TeamRoute extends BaseRoute {
             'last_name': data[i]['last_name'],
             'email': data[i]['email'],
             'location_id': 0,
-            'account_id': req.user.user_id,
+            'account_id': req.user.account_id,
             'role_id': 0,
-            'eco_role_id': 8,
+            'eco_role_id': defs['em_roles'][em_role],
             'contact_number': data[i]['mobile_number'],
             'phone_number': data[i]['phone_number'],
-            'invited_by_user': req.user.user_id,
-            'can_login': data[i]['can_login'],
-            'time_zone': data[i]['time_zone'],
+            'invited_by_user': req.user.user_id
           });
           const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
           await tokenModel.create({
@@ -253,7 +251,7 @@ export class TeamRoute extends BaseRoute {
             to: [data[i]['email']],
             cc: ['erwin.macaraig@gmail.com']
           });
-          email.send((data) => console.log(data),
+          email.send((result) => console.log(data),
                      (err) => console.log(err)
                     );
 
@@ -475,10 +473,15 @@ export class TeamRoute extends BaseRoute {
     const role = await userRoleRel.getByUserId(dbData['invited_by_user'], true);
     // the account of the user who invited this warden
     const account = new Account(dbData['account_id']);
+    try {
+      // locations tagged to the user who invited this warden
+      locationsOnAccount = await account.getLocationsOnAccount(dbData['invited_by_user'], role);
+    } catch (e) {
+      console.log(e);
+      throw new Error(e);
+    }
 
-    // locations tagged to the user who invited this warden
-    locationsOnAccount = await account.getLocationsOnAccount(dbData['invited_by_user'], role);
-    await account.load();
+    const accountDB = await account.load();
     dbData['account'] = account.get('account_name');
     if (!dbData['location_id']) {
       switch (role) {
@@ -487,9 +490,7 @@ export class TeamRoute extends BaseRoute {
             location = new Location(loc.location_id);
             loc['sublocations'] = await location.getSublocations();
           }
-          // break;
-          // return { 'locations' : locationsOnAccount };
-          dbData['locations'] = locationsOnAccount;
+          dbData['locations'] = locationsOnAccount; console.log('dbData = ', dbData);
           break;
         case 2:
           // get the parent or parents of these sublocation
@@ -543,8 +544,6 @@ export class TeamRoute extends BaseRoute {
        await locationInstance.load();
        dbData['location_name'] = locationInstance.get('name');
        let pId = <number>locationInstance.get('parent_id');
-       console.log(dbData);
-
       while (pId !== -1) {
         locationInstance = new Location(pId);
         await locationInstance.load();
@@ -680,8 +679,6 @@ export class TeamRoute extends BaseRoute {
         }
       }
     }
-
-    console.log(objEmail);
     // email notification here
     const opts = {
       from : 'allantaw2@gmail.com',
@@ -751,9 +748,9 @@ export class TeamRoute extends BaseRoute {
     // const locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id);
 
     let result = <any>[];
-    try{
+    try {
       result = await account.buildWardenList(req.user.user_id);
-    }catch(e){
+    }catch (e) {
 
     }
 
@@ -763,7 +760,7 @@ export class TeamRoute extends BaseRoute {
     // get parent location details given a location id
      for (let warden of wardens) {
       warden['profile_pic'] = '';
-      if(warden['last_login']){
+      if (warden['last_login']){
         warden['last_login'] = moment(warden['last_login'], ["YYYY-MM-DD HH:mm:ss"]).format("MMM. DD, YYYY hh:mmA");
       }
       let locationInstance = new Location(warden['parent_id']);
@@ -896,7 +893,7 @@ export class TeamRoute extends BaseRoute {
       if(!archived && peep['location_account_user_id']){
         newPeep.push(peep);
       }else if(!archived && peep['user_invitations_id']){
-        newPeep.push(peep); 
+        newPeep.push(peep);
       }else if(archived && peep['location_account_user_id']){
         newPeep.push(peep);
       }
@@ -918,7 +915,7 @@ export class TeamRoute extends BaseRoute {
     }
 
     return newPeep;
-     
+
   }
 
 
