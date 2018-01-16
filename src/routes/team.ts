@@ -440,10 +440,9 @@ export class TeamRoute extends BaseRoute {
     const tokenModel = new Token();
     const tokenDbData = await tokenModel.getByToken(token);
 
-    if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) { console.log(tokenDbData);
+    if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
       userInvitation = new UserInvitation(tokenDbData['id']);
       dbData = await userInvitation.load();
-      console.log(dbData);
     } else {
       throw new Error('Invalid token');
     }
@@ -453,7 +452,6 @@ export class TeamRoute extends BaseRoute {
     const role = await userRoleRel.getByUserId(dbData['invited_by_user'], true);
     // the account of the user who invited this warden
     const account = new Account(dbData['account_id']);
-    console.log(` role is ${role}`);
     try {
       // locations tagged to the user who invited this warden
       locationsOnAccount = await account.getLocationsOnAccount(dbData['invited_by_user'], role);
@@ -525,8 +523,6 @@ export class TeamRoute extends BaseRoute {
        await locationInstance.load();
        dbData['location_name'] = locationInstance.get('name');
        let pId = <number>locationInstance.get('parent_id');
-       console.log(dbData);
-
       while (pId !== -1) {
         locationInstance = new Location(pId);
         await locationInstance.load();
@@ -658,8 +654,6 @@ export class TeamRoute extends BaseRoute {
         }
       }
     }
-
-    console.log(objEmail);
     // email notification here
     const opts = {
       from : 'allantaw2@gmail.com',
@@ -729,9 +723,9 @@ export class TeamRoute extends BaseRoute {
     // const locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id);
 
     let result = <any>[];
-    try{
+    try {
       result = await account.buildWardenList(req.user.user_id);
-    }catch(e){
+    }catch (e) {
 
     }
 
@@ -741,7 +735,7 @@ export class TeamRoute extends BaseRoute {
     // get parent location details given a location id
      for (let warden of wardens) {
       warden['profile_pic'] = '';
-      if(warden['last_login']){
+      if (warden['last_login']){
         warden['last_login'] = moment(warden['last_login'], ["YYYY-MM-DD HH:mm:ss"]).format("MMM. DD, YYYY hh:mmA");
       }
       let locationInstance = new Location(warden['parent_id']);
