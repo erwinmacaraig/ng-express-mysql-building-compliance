@@ -110,7 +110,7 @@ const appRoutes: Routes = [
     path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
   },
   {
-    path : 'teams', component : TeamsComponent,
+    path : 'teams', canActivate: [AuthGuard], component : TeamsComponent,
     children : [
       { path : 'add-wardens', component : TeamsAddWardenComponent },
       { path : 'mobility-impaired', component : MobilityImpairedComponent },
