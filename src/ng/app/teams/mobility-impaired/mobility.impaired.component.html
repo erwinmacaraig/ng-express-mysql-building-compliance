@@ -25,7 +25,10 @@
 
 	<div class="col l2 m4 s6">
 		<select class="filter-by">
-			<option value="0" selected>Filter By</option>
+			<option value="0" selected>Filter By (All)</option>
+			<option value="incomplete">Needs peep completion</option>
+			<option value="completed">Peep completed</option>
+			<option value="user-validation-needed">User validation needed</option>
 		</select>
 	</div>
 
@@ -96,7 +99,7 @@
 							<span *ngIf="!peep.location_account_user_id">{{peep['first_name']}} {{peep['last_name']}}</span>
 						</div>
 					</td>
-					<td>
+					<td class="peep-completion">
 						<span *ngIf="peep.mobility_impaired_details.user_id">Completed</span>
 						<a href="javascipt:void(0)" (click)="clickCompletePeepInfo(peep)" 
 						*ngIf="!peep.mobility_impaired_details.user_id && peep.user_id" >Complete peep information</a>
