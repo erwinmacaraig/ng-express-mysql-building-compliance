@@ -170,9 +170,7 @@ export class UserInvitation extends BaseClass {
                     contact_number = ?,
                     phone_number = ?,
                     invited_by_user = ?,
-                    can_login = ?,
-                    was_used = ?,
-                    time_zone = ?
+                    was_used = ?
                 WHERE
                     user_invitations_id = ?
             `;
@@ -188,9 +186,7 @@ export class UserInvitation extends BaseClass {
                 ('contact_number' in this.dbData) ? this.dbData['contact_number'] : '',
                 ('phone_number' in this.dbData) ? this.dbData['phone_number'] : null,
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
-                ('can_login' in this.dbData) ? this.dbData['can_login'] : 0,
                 ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
-                ('time_zone' in this.dbData) ? this.dbData['time_zone'] : null,
                 this.ID() ? this.ID() : 0
             ];
             const connection = db.createConnection(dbconfig);
@@ -221,12 +217,8 @@ export class UserInvitation extends BaseClass {
                 contact_number,
                 phone_number,
                 invited_by_user,
-                can_login,
-                was_used,
-                time_zone
+                was_used
             ) VALUES (
-                ?,
-                ?,
                 ?,
                 ?,
                 ?,
@@ -252,9 +244,7 @@ export class UserInvitation extends BaseClass {
                 ('contact_number' in this.dbData) ? this.dbData['contact_number'] : '',
                 ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
-                ('can_login' in this.dbData) ? this.dbData['can_login'] : 0,
-                ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
-                ('time_zone' in this.dbData) ? this.dbData['time_zone'] : null,
+                ('was_used' in this.dbData) ? this.dbData['was_used'] : 0
             ];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_insert, values, (err, results, fields) => {

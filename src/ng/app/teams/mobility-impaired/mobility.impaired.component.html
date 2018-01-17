@@ -89,7 +89,12 @@
 								<img *ngIf="peep.profile_pic.length > 0" [src]="peep.profile_pic"  >
 							</div>
 						</div>
-						<div class="text">{{peep['first_name']}} {{peep['last_name']}}</div>
+						<div class="text">
+							<a *ngIf="peep.location_account_user_id" [routerLink]="['/teams/view-user/', peep.id_encrypted]">
+								{{peep.first_name}} {{peep.last_name}}
+							</a>
+							<span *ngIf="!peep.location_account_user_id">{{peep['first_name']}} {{peep['last_name']}}</span>
+						</div>
 					</td>
 					<td>
 						<span *ngIf="peep.mobility_impaired_details.user_id">Completed</span>

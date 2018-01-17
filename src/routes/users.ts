@@ -310,8 +310,8 @@ export class UsersRoute extends BaseRoute {
 				user : {},
 				location : {},
 				trainings : <any>[],
-				eco_roles : <any>[],
-				eco_role : '',
+				role_text : '',
+				role_id : 0
 			},
 			message : ''
 		},
@@ -336,9 +336,11 @@ export class UsersRoute extends BaseRoute {
 		}
 
 		if(loc_acc_user['role_id'] == 1){
-			response.data['eco_role'] == 'Building Manager';
+			response.data['role_text'] = 'Building Manager';
+			response.data.role_id = 1;
 		}else if(loc_acc_user['role_id'] == 2){
-			response.data['eco_role'] == 'Tenant';
+			response.data['role_text'] = 'Tenant';
+			response.data.role_id = 2;
 		}else{
 			let userEmRoleRelation = new UserEmRoleRelation();
 			await userEmRoleRelation.getEmRolesByUserId( loc_acc_user['user_id'] ).then(
@@ -346,11 +348,11 @@ export class UsersRoute extends BaseRoute {
 					let eco_roles = userEmRoleRelation.getDBData();
 					response.data['eco_roles'] = eco_roles;
 					for(let x in eco_roles){
-						response.data['eco_role'] = eco_roles[x]['role_name'];
+						response.data['role_text'] = eco_roles[x]['role_name'];
+						response.data.role_id = eco_roles[x]['em_roles_id'];
 					}
 				},
 				() => {
-					response.data['eco_role'] = '';
 				}
 			);
 		}
@@ -364,6 +366,19 @@ export class UsersRoute extends BaseRoute {
                 response.data['user']['profilePic'] = '';
             }
         );
+
+        response.data['user']['mobility_impaired_details'] = {}
+
+        if( response.data['user']['mobility_impaired'] == 1 ){
+        	let mobilityModel = new MobilityImpairedModel(),
+        		arrWhere = [];
+
+        	arrWhere.push( "user_id = " + response.data['user']['user_id'] );
+        	arrWhere.push( "location_id = " + response.data['location']['location_id'] );
+
+        	let mobilityDetails = await mobilityModel.getMany( arrWhere );
+        	response.data['user']['mobility_impaired_details'] = ( mobilityDetails[0] ) ? mobilityDetails[0] : {};
+        }
 
 		response.status = true;
 		res.statusCode = 200;
@@ -465,6 +480,7 @@ export class UsersRoute extends BaseRoute {
 			let userModel = new User(),
 				userRoleRelation = new UserRoleRelation(),
 				userEmRole = new UserEmRoleRelation(),
+				emRoles = await new UserEmRoleRelation().getEmRoles(),
 				isEmailValid = this.isEmailValid(users[i]['email']),
 				isBlackListedEmail = false,
 				hasError = false;
@@ -486,6 +502,9 @@ export class UsersRoute extends BaseRoute {
 					users[i]['errors']['blacklisted'] = true;
 					hasError = true;
 				}
+			}else{
+				users[i]['errors']['invalid'] = true;
+				hasError = true;
 			}
 
 			if(!hasError){
@@ -498,8 +517,8 @@ export class UsersRoute extends BaseRoute {
 					'contact_number' : users[i]['mobile_number'],
 					'location_id' : users[i]['account_location_id'],
 					'account_id' : req['user']['account_id'],
-					'role_id' : (req['user']['account_role_id'] == 1 || req['user']['account_role_id'] == 2) ? req['user']['account_role_id'] : 0,
-					'eco_role_id' : (req['user']['account_role_id'] != 1 || req['user']['account_role_id'] != 2) ? 8 : 0,
+					'role_id' : (users[i]['account_role_id'] == 1 || users[i]['account_role_id'] == 2) ? users[i]['account_role_id'] : 0,
+					'eco_role_id' : (users[i]['account_role_id'] != 1 && users[i]['account_role_id'] != 2) ? users[i]['account_role_id'] : 0,
 					'invited_by_user' : req['user']['user_id']
 				};
 
@@ -624,107 +643,122 @@ export class UsersRoute extends BaseRoute {
 		emRoleRelation = new UserEmRoleRelation(),
 		emRoles = await emRoleRelation.getEmRoles(),
 		myEmRoleRelation = new UserEmRoleRelation(),
-		myEmRoles = await myEmRoleRelation.getEmRolesByUserId(req['user']['user_id']),
+		myEmRoles,
 		locationAccountUser = new LocationAccountUser(),
 		locationModel = new Location();
 
-		for(let i in emRoles){
-			if(emRoles[i]['em_roles_id'] == roleId){
-				response.data.eco_role = emRoles[i];
+		try{
+			myEmRoles = await myEmRoleRelation.getEmRolesByUserId(req['user']['user_id']);
+			for(let i in emRoles){
+				if(emRoles[i]['em_roles_id'] == roleId){
+					response.data.eco_role = emRoles[i];
+				}
 			}
-		}
 
-		const accountsLocations = await locationAccountUser.getMany([
-			[ "account_id = "+req['user']['account_id'] ]
-		]);
+			response.data['myEmRoles'] = myEmRoles;
 
-		let myEmRoleRecord = {};
-		for(let i in myEmRoles){
-			if(myEmRoles[i]['em_roles_id'] == roleId){
-				myEmRoleRecord = myEmRoles[i];
+			const accountsLocations = await locationAccountUser.getMany([
+				[ "account_id = "+req['user']['account_id'] ]
+			]);
+
+			let myEmRoleRecord = {};
+			for(let i in myEmRoles){
+				if(myEmRoles[i]['em_roles_id'] == roleId){
+					myEmRoleRecord = myEmRoles[i];
+				}
 			}
-		}
 
-		myEmRoleRecord['related_locations'] = await locationModel.getAncestries(myEmRoleRecord['location_id']);
+			if(myEmRoleRecord['location_id']){
+				myEmRoleRecord['related_locations'] = await locationModel.getAncestries(myEmRoleRecord['location_id']);
+				response.data.location = {
+					'location_id' : myEmRoleRecord['location_id'],
+					'parent_id' : myEmRoleRecord['parent_id'],
+					'name' : myEmRoleRecord['location_name'],
+					'formatted_address' : myEmRoleRecord['formatted_address'],
+					'google_place_id' : myEmRoleRecord['google_place_id'],
+					'google_photo_url' : myEmRoleRecord['google_photo_url'],
+					'related_locations' : myEmRoleRecord['related_locations'],
+					'parent_location' : {}
+				};
 
-
-		response.data.location = {
-			'location_id' : myEmRoleRecord['location_id'],
-			'parent_id' : myEmRoleRecord['parent_id'],
-			'name' : myEmRoleRecord['location_name'],
-			'formatted_address' : myEmRoleRecord['formatted_address'],
-			'google_place_id' : myEmRoleRecord['google_place_id'],
-			'google_photo_url' : myEmRoleRecord['google_photo_url'],
-			'related_locations' : myEmRoleRecord['related_locations'],
-			'parent_location' : {}
-		};
-
-		let mainParentLocationId,
-			mainParent = {};
-		for(let i in myEmRoleRecord['related_locations']){
-			if(myEmRoleRecord['related_locations'][i]['parent_id'] == -1){
-				mainParent = myEmRoleRecord['related_locations'][i];
-				mainParentLocationId = myEmRoleRecord['related_locations'][i]['location_id'];
-			}
-		}
-
-		if(myEmRoleRecord['parent_id'] == response.data.location['parent_id']){
-			response.data.location['parent_location'] = mainParent;
-		}
-
-		let deepLocation = new Location(),
-			subLocations = await deepLocation.getDeepLocationsByParentId(mainParentLocationId),
-			subLocationsIds = [];
-		for(let i in subLocations){
-			subLocationsIds.push(subLocations[i]['location_id']);
-		}
-
-		let userEmRoleRelationTeam = new UserEmRoleRelation(),
-			teamEmRoles = <any>[];
-
-		if( (roleId >= 9 && roleId <= 11) || (roleId >= 15 && roleId <= 18)){
-			//Chief Warden
-			teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], subLocationsIds.join(','));
-		}else if(roleId == 8){
-			//Gen Occupant
-			teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], myEmRoleRecord['location_id']);
-		}else{
-
-		}
-
-		let team = [];
-		for(let i in teamEmRoles){
-			if(teamEmRoles[i]['user_id'] != req['user']['user_id']){
-				teamEmRoles[i]['parent_location'] = {};
-				if(teamEmRoles[i]['parent_id'] == mainParentLocationId){
-					teamEmRoles[i]['parent_location'] = mainParent;
-				}else{
-					for(let x in subLocations){
-						if(teamEmRoles[i]['parent_id'] == subLocations[x]['location_id']){
-							teamEmRoles[i]['parent_location'] = subLocations[x];
-						}
+				let mainParentLocationId,
+					mainParent = {};
+				for(let i in myEmRoleRecord['related_locations']){
+					if(myEmRoleRecord['related_locations'][i]['parent_id'] == -1){
+						mainParent = myEmRoleRecord['related_locations'][i];
+						mainParentLocationId = myEmRoleRecord['related_locations'][i]['location_id'];
 					}
 				}
-				team.push(teamEmRoles[i]);
-			}
-		}
-		response.data.team = team;
-		
-		/*response.data['accntlocations'] = accountsLocations;
-		response.data['emRoles'] = emRoles;
-		response.data['myEmRoles'] = myEmRoles;
-		response.data['myEmRoleRecord'] = myEmRoleRecord;*/
-		response.data.user = req['user'];
 
-		let fileModel = new Files();
-        await fileModel.getByUserIdAndType(req['user']['user_id'], 'profile').then(
-            (fileData) => {
-                response.data['user']['profilePic'] = fileData[0].url;
-            },
-            () => {
-                response.data['user']['profilePic'] = '';
-            }
-        );
+				if(myEmRoleRecord['parent_id'] == response.data.location['parent_id']){
+					if(response.data.location['parent_id'] > -1){
+						response.data.location['parent_location'] = mainParent;
+					}
+				}
+
+				let deepLocation = new Location(),
+					subLocations = await deepLocation.getDeepLocationsByParentId(mainParentLocationId),
+					subLocationsIds = [];
+
+				for(let i in subLocations){
+					subLocationsIds.push(subLocations[i]['location_id']);
+				}
+
+				let userEmRoleRelationTeam = new UserEmRoleRelation(),
+					teamEmRoles = <any>[];
+
+				if(  roleId == 11 || roleId == 15 || roleId == 16 || roleId == 18 ){
+					//Chief Wardens //Deputy Chief Warden //Building Warden //Deputy Building Warden
+					teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], subLocationsIds.join(','));
+				}else if(roleId == 8 || roleId == 9 ||  roleId == 10 || roleId == 12 || roleId == 13 || roleId == 14){
+					//Gen Occupant
+					teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], myEmRoleRecord['location_id']);
+				}else{
+
+				}
+
+				response.data['teamEmRoles'] = teamEmRoles;
+
+				let team = [];
+				for(let i in teamEmRoles){
+					if(teamEmRoles[i]['user_id'] != req['user']['user_id']){
+						teamEmRoles[i]['parent_location'] = {};
+						if(teamEmRoles[i]['parent_id'] == mainParentLocationId){
+							teamEmRoles[i]['parent_location'] = mainParent;
+						}else{
+							for(let x in subLocations){
+								if(teamEmRoles[i]['parent_id'] == subLocations[x]['location_id']){
+									teamEmRoles[i]['parent_location'] = subLocations[x];
+								}
+							}
+						}
+						team.push(teamEmRoles[i]);
+					}
+				}
+				response.data.team = team;
+				
+				/*response.data['accntlocations'] = accountsLocations;
+				response.data['emRoles'] = emRoles;
+				response.data['myEmRoles'] = myEmRoles;
+				response.data['myEmRoleRecord'] = myEmRoleRecord;*/
+				response.data.user = req['user'];
+
+				let fileModel = new Files();
+		        await fileModel.getByUserIdAndType(req['user']['user_id'], 'profile').then(
+		            (fileData) => {
+		                response.data['user']['profilePic'] = fileData[0].url;
+		            },
+		            () => {
+		                response.data['user']['profilePic'] = '';
+		            }
+		        );
+			}else{
+				response.status = false;
+			}
+
+		}catch(e){
+			response.status = false;
+		}
 
 		res.send(response);
 	}
@@ -1098,16 +1132,35 @@ export class UsersRoute extends BaseRoute {
 		userId = req.body.user_id,
 		mobilityImpairedModel = new MobilityImpairedModel();
 
-		await mobilityImpairedModel.create({
-			'user_id' : userId,
-			'location_id' : locationId,
-			'is_permanent' : req.body.is_permanent,
-			'duration_date' : req.body.duration_date,
-			'assistant_type' : req.body.assistant_type,
-			'equipment_type' : req.body.equipment_type,
-			'evacuation_procedure' : req.body.evacuation_procedure,
-			'date_created' : moment().format('YYYY-MM-DD HH:mm:00')
-		});
+		let arrWhere = [];
+			arrWhere.push("user_id = "+userId);
+			arrWhere.push("location_id = "+locationId);
+		let mobililtyExist = await mobilityImpairedModel.getMany( arrWhere );
+
+		if(mobililtyExist[0]){
+			let mobilityUpdate = new MobilityImpairedModel(mobililtyExist[0]['mobility_impaired_details_id']);
+			mobilityUpdate.set('user_id', userId);
+			mobilityUpdate.set('location_id', locationId);
+			mobilityUpdate.set('is_permanent', req.body.is_permanent);
+			mobilityUpdate.set('duration_date', req.body.duration_date);
+			mobilityUpdate.set('assistant_type', req.body.assistant_type);
+			mobilityUpdate.set('equipment_type', req.body.equipment_type);
+			mobilityUpdate.set('evacuation_procedure', req.body.evacuation_procedure);
+			mobilityUpdate.set('date_created', mobililtyExist[0]['date_created']);
+			mobilityUpdate.dbUpdate();
+		}else{
+			await mobilityImpairedModel.create({
+				'user_id' : userId,
+				'location_id' : locationId,
+				'is_permanent' : req.body.is_permanent,
+				'duration_date' : req.body.duration_date,
+				'assistant_type' : req.body.assistant_type,
+				'equipment_type' : req.body.equipment_type,
+				'evacuation_procedure' : req.body.evacuation_procedure,
+				'date_created' : moment().format('YYYY-MM-DD HH:mm:00')
+			});
+		}
+
 
 		res.send(response);
 	}

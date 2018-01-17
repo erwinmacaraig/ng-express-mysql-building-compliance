@@ -59,7 +59,7 @@ export class LocationAccountUser extends BaseClass {
 
             sql_load = ` SELECT l.formatted_address, l.name, l.location_id, l.parent_id, 
               lau.user_id, lau.account_id, lau.role_id, lau.location_account_user_id, lau.archived,
-              er.role_name, DATEDIFF(NOW(), u.last_login) AS days
+              er.role_name, DATEDIFF(NOW(), u.last_login) AS days, u.last_login
               FROM locations l 
               LEFT JOIN location_account_user lau ON l.location_id = lau.location_id
               LEFT JOIN users u ON lau.user_id = u.user_id

@@ -14,7 +14,8 @@
 
 	<div class="col l2 m4 s6">
 		<select class="filter-by">
-			<option value="0" selected>Filter By</option>
+			<option value="0" selected>Filter By (All)</option>
+			<option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
 		</select>
 	</div>
 
@@ -75,12 +76,19 @@
 								<img *ngIf="warden.profile_pic.length > 0" [src]="warden.profile_pic"  >
 							</div>
 						</div>
-						<div class="text">{{ warden['first_name'] }} {{warden['last_name']}}</div>
+						<div class="text">
+							<a [routerLink]="['/teams/view-user/', warden.id_encrypted]">
+								{{warden.first_name}} {{warden.last_name}}
+							</a>
+						</div>
 					</td>
-					<td>
+					<td class="with-image role-name">
 						<div class="eco-role">
-							<div class="image"></div>
-							{{warden['role_name']}}
+							<!-- <div class="image"></div> -->
+							<div *ngIf="warden.mobility_impaired == 1" class="impaired"></div>
+							<span class="name">
+								{{warden['role_name']}}
+							</span>
 						</div>
 					</td>
 					<td>
