@@ -111,4 +111,8 @@ export class PersonDataProviderService {
   public uploadCSVWardenList(formData: any) {
     return this.http.post<any>(this.baseUrl + '/team/warden/csv-upload', formData);
   }
+
+  public finalizeCSVRecord(records: string, override: string) {
+    return this.http.post<any>(this.baseUrl + '/team/finalize-csv-record', {'invitations': records, 'data_override': override});
+  }
 }

@@ -297,6 +297,23 @@ table tr td .image img{
   max-height: 50px;
 }
 
+table tr td.with-image .impaired{
+    width: 40px;
+    height: 40px;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #dc4453;
+    border-radius: 45px;
+    margin: 0px 0px;
+    overflow: hidden;
+    background-image: url(/assets/images/team_icons.png);
+    background-repeat: no-repeat;
+    background-size: 440px;
+    background-position: 73.2% 71.4%;
+
+}
+
 @media only screen 
   and (max-width: 768px){
     .row.top .right-actions{

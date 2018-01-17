@@ -58,8 +58,17 @@ export class ViewWardenComponent implements OnInit, OnDestroy {
 		){
 		this.userData = this.auth.getUserData();
 
+		let roleId = 0;
+		for(let i in this.userData['roles']){
+			if(this.userData['roles'][i]['is_warden_role']){
+				if( parseInt(this.userData['roles'][i]['role_id']) > 2 && parseInt(this.userData['roles'][i]['is_warden_role']) == 1){
+					roleId = this.userData['roles'][i]['role_id'];
+				}
+			}
+		}
+
 		this.userService.getMyWardenTeam({
-			role_id : 9
+			role_id : roleId
 		}, (response) => {
 			this.viewData.user = response.data.user;
 			this.viewData.team = response.data.team;

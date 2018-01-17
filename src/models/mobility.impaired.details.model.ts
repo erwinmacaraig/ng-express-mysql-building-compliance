@@ -63,7 +63,7 @@ export class MobilityImpairedModel extends BaseClass {
 		return new Promise((resolve, reject) => {
 
 			const sql_update = `UPDATE mobility_impaired_details SET
-			user_id = ?, is_permanent = ?, location_id = ?, duration_date = ?, assistant_type = ?, equipment_type = ?, evacuation_procedure = ? date_created = ?
+			user_id = ?, is_permanent = ?, location_id = ?, duration_date = ?, assistant_type = ?, equipment_type = ?, evacuation_procedure = ?, date_created = ?
 			WHERE mobility_impaired_details_id = ?`;
 			const param = [
 			('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
