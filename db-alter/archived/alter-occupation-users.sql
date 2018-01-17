@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN occupation VARCHAR(30) AFTER mobile_number;

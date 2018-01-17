@@ -4,6 +4,7 @@ import * as csv from 'fast-csv';
 import * as fs from 'fs';
 
 const dbconfig = require('../config/db');
+const defs = require('../config/defs.json');
 
 export class Utils {
     constructor() {}
@@ -318,63 +319,40 @@ export class Utils {
         }
       });
     }
-    public queryValidationQuestions(role_id: number, question_id?: number) {
-      return new Promise((resolve, reject) => {
-
-        let sql = `SELECT
-                        question_id,
-                        question
-                    FROM
-                        question_pool
-                    WHERE
-                        role_id = ?`;
-        const val = [role_id];
-        if (question_id) {
-          sql = sql + ` AND question_id = ?`;
-          val.push(question_id);
-        }
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, val,
-          (error, results, fields) => {
-            if (error) {
-              console.log(error);
-              reject(error);
-            }
-            resolve(results);
-          });
-          connection.end();
-      });
-    }
 
     public processCSVUpload(filename: string) {
       return new Promise((resolve, reject) => {
+
         let counter = 0;
-        let columnNames;
+        const columnNames = [];
         let fieldnames = {};
+
         // filename with file path
         const arrayOfRows = [];
         const CSVStream =  csv.fromPath(<string>filename)
-           .on('data', (data) => {
+          .on('data', (data) => {
+
               if (counter > 0 ) {
                 for (let i = 0; i < columnNames.length; i++) {
-                  if (columnNames[i].toUpperCase() === 'CAN_LOGIN') {
-                    fieldnames[columnNames[i]] = data[i].toString().toUpperCase() === 'TRUE' ? 1 : 0;
-                  } else {
-                    fieldnames[columnNames[i]] = <string>data[i];
-                  }
+                  fieldnames[columnNames[i]] = <string>data[i];
                 }
                 arrayOfRows.push(fieldnames);
                 fieldnames = {};
               } else {
-                columnNames = data;
+                for (let n = 0; n < data.length; n++) {
+                  columnNames.push(defs['table_headers'][data[n]]);
+                }
+                // columnNames = data;
               }
               counter = counter + 1;
+
            })
            .on('end', () => {
              resolve(arrayOfRows);
            })
            .on('error', (error) => {
              console.log(error);
+             reject(error);
              throw new Error('There was an error reading your file');
            })
           });
