@@ -47,6 +47,14 @@ export class TeamRoute extends BaseRoute {
       new TeamRoute().index(req, res);
     });
 
+    router.post('/team/finalize-csv-record', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new TeamRoute().addUsersFromCSV(req, res).then((data) => {
+        return res.status(200).send(data);
+      }).catch((e) => {
+        return res.status(400).send({status: 'Fail', message: e});
+      });
+    });
+
     router.post('/team/add-bulk-warden', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new TeamRoute().addBulkWardenByEmail(req, res).then((data) => {
         return res.status(200).send(data);
@@ -189,22 +197,123 @@ export class TeamRoute extends BaseRoute {
     const uploader = new FileUploader(req, res, next);
     const invalidRecords = [];
     const filename = await uploader.uploadFileToLocalServer();
+
     const utils = new Utils();
     let data;
     data = await utils.processCSVUpload(<string>filename);
-    data['override'] = req.body.override;
+
     const validRecords = [];
     for (let i = 0; i < data.length; i++) {
       const user = new User();
+      if ( ('ECO Role' in  data[i])   && ((data[i]['ECO Role']).length === 0) ) {
+        data[i]['ECO Role'] = 'General Occupant';
+      }
       try {
-        const dbData = await user.getByEmail(data[i]['email']);
+        const dbData = await user.getByEmail(data[i]['Email']);
+
         invalidRecords.push(data[i]);
       } catch (e) {
-        if (validator.isEmail(data[i]['email'])) {
+        if (validator.isEmail(data[i]['Email'])) {
           validRecords.push(data[i]);
+        } else {
+          invalidRecords.push(data[i]);
+        }
+      }
+    }
+    fs.unlink(<string>filename, () => {
+      console.log(`Successfully delete file: ${filename}`);
+    });
+    return {
+      'valid': validRecords,
+      'invalid': invalidRecords,
+      'data-override': req.body.override
+    };
+  }
 
-          /*
-          const em_role = (data[i]['eco_role']).toUpperCase();
+  public async addUsersFromCSV(req: AuthRequest, res: Response) {
+    const user_invitation_records = JSON.parse(req.body.invitations);
+    const dataOverride = req.body.data_override;
+    const utils = new Utils();
+    let em_role = '';
+    let account_role = '';
+    let name = '';
+    const allRolesObj = {};
+    for (let i = 0; i < user_invitation_records.length; i++) {
+      const userInvitation = new UserInvitation();
+      const tokenModel = new Token();
+      const tokenStr = tokenModel.generateRandomChars(10);
+      if (('ECO Role' in   user_invitation_records[i])) {
+        em_role = (user_invitation_records[i]['ECO Role']).toUpperCase();
+      }
+      if (('First Name' in user_invitation_records[i]) && ('Last Name' in user_invitation_records[i])) {
+        name = ' ' + user_invitation_records[i]['First Name'] + ' ' + user_invitation_records[i]['Last Name'];
+      }
+      if(('Role' in user_invitation_records[i])) {
+        // we still need to check if account role or eco role
+        const ecos = await utils.buildECORoleList();
+        for (let i in ecos ){
+          allRolesObj[ecos[i]['role_name'].toUpperCase()] = ecos[i]['em_roles_id'];
+        }
+        if(user_invitation_records[i]['Role'].toUpperCase() in allRolesObj){
+          em_role = user_invitation_records[i]['Role'].toUpperCase();
+        } else if(user_invitation_records[i]['Role'].toUpperCase() in defs['account_roles']) {
+          account_role = (user_invitation_records[i]['Role'].toUpperCase());
+        }
+
+      }
+      await userInvitation.create({
+        'first_name': ('First Name' in user_invitation_records[i]) ? user_invitation_records[i]['First Name'] : '',
+        'last_name': ('Last Name' in user_invitation_records[i]) ? user_invitation_records[i]['Last Name'] : '',
+        'email': user_invitation_records[i]['Email'],
+        'location_id': 0,
+        'account_id': req.user.account_id,
+        'role_id': (account_role.length > 0 ) ? defs['account_roles'][account_role] : 0,
+        'eco_role_id': (em_role.length > 0) ? defs['em_roles'][em_role] : 0,
+        'contact_number': ('Mobile Number' in  user_invitation_records[i]) ? user_invitation_records[i]['Mobile Number'] : '',
+        'phone_number': ('Phone Number' in  user_invitation_records[i]) ? user_invitation_records[i]['Phone Number'] : '',
+        'invited_by_user': req.user.user_id
+      });
+      const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+      await tokenModel.create({
+        'token': tokenStr,
+        'action': 'invitation',
+        'verified': 0,
+        'expiration_date': expDate,
+        'id': userInvitation.ID(),
+        'id_type': 'user_invitations_id'
+      });
+      em_role = '';
+      account_role = '';
+      const opts = {
+        from : 'allantaw2@gmail.com',
+        fromName : 'EvacConnect',
+        to : [],
+        cc: [],
+        body : '',
+        attachments: [],
+        subject : 'EvacConnect Warden Nomination'
+      };
+      const email = new EmailSender(opts);
+      const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+      let emailBody = email.getEmailHTMLHeader();
+      emailBody += `<h3 style="text-transform:capitalize;">Hi${name},</h3> <br/>
+      <h4>You are nominated to be a Warden.</h4> <br/>
+      <h5>Click on the link below to setup your password.</h5> <br/>
+      <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+      emailBody += email.getEmailHTMLFooter();
+      email.assignOptions({
+        body : emailBody,
+        to: [user_invitation_records[i]['Email']],
+        cc: ['erwin.macaraig@gmail.com']
+      });
+      await email.send((result) => console.log(result),
+                 (err) => console.log(err)
+                );
+    }
+    return true;
+    /*
+    const em_role = (data[i]['eco_role']).toUpperCase();
           // email and create
           const userInvitation = new UserInvitation();
           const tokenModel = new Token();
@@ -231,47 +340,9 @@ export class TeamRoute extends BaseRoute {
             'id_type': 'user_invitations_id'
           });
 
-          const opts = {
-            from : 'allantaw2@gmail.com',
-            fromName : 'EvacConnect',
-            to : [],
-            cc: [],
-            body : '',
-            attachments: [],
-            subject : 'EvacConnect Warden Nomination'
-          };
-          const email = new EmailSender(opts);
-          const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
-          let emailBody = email.getEmailHTMLHeader();
-          emailBody += `<h3 style="text-transform:capitalize;">Hi ${data[i]['first_name']} ${data[i]['last_name']},</h3> <br/>
-          <h4>You are nominated to be a Warden.</h4> <br/>
-          <h5>Click on the link below to setup your password.</h5> <br/>
-          <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
-
-          emailBody += email.getEmailHTMLFooter();
-          email.assignOptions({
-            body : emailBody,
-            to: [data[i]['email']],
-            cc: ['erwin.macaraig@gmail.com']
-          });
-          email.send((result) => console.log(data),
-                     (err) => console.log(err)
-                    );
-          */
-        } else {
-          invalidRecords.push(data[i]);
-        }
-      }
-    }
-
-    return {
-      'valid': validRecords,
-      'invalid': invalidRecords
-    };
-
-
-
+           */
   }
+
   public async addMobilityImpairedPersons(req: AuthRequest, res: Response) {
     console.log(JSON.parse(req.body.peep));
     const peep = JSON.parse(req.body.peep);
@@ -406,7 +477,7 @@ export class TeamRoute extends BaseRoute {
             const tokenStr = tokenModel.generateRandomChars(10);
             warden['invited_by_user'] = req.user.user_id;
             warden['account_id'] = req.user.account_id;
-            
+
             const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
             await userInvitation.create(warden);
             await tokenModel.create({

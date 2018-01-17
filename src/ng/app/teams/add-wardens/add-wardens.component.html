@@ -59,7 +59,7 @@
 						</td> -->
 						<td >
 							<select [(ngModel)]="user.eco_role_id" name="ecorole{{i}}">
-								<option value="0" selected>Select ECO Role</option> 
+								<option value="0" selected>Select ECO Role</option>
 								<option *ngFor="let e of ecoDisplayRoles[i]" [value]="e.em_roles_id">{{ e.role_name }}</option>
 							</select>
 						</td>
@@ -100,33 +100,25 @@
       <table class="table striped">
 				<thead>
 					<tr>
-						<th>First Name</th>
-						<th>Last Name</th>
-						<th>Role</th>
-						<th>Email</th>
-						<th>Phone Number</th>
-						<th>Mobile Number</th>
+						<th *ngFor="let i of csvHeaderNames">
+              {{i}}
+            </th>
+
 					</tr>
 				</thead>
 				<tbody>
-          <tr *ngFor="let record of csvValidRecords">
-            <td>{{record['first_name']}}</td>
-            <td>{{record['last_name']}}</td>
-            <td>{{record['eco_role'] || 'General Occupant'}}</td>
-            <td>{{record['email']}}</td>
-            <td>{{record['mobile_number']}}</td>
-            <td>{{record['phone_number']}}</td>
+          <tr *ngFor="let record of csvValidRecords;">
+            <td *ngFor="let i of csvHeaderNames">
+              {{record[i]}}
+            </td>
           </tr>
           <tr *ngIf="csvInvalidRecords.length">
             <td colspan="6">Invalid record(s) found in your CSV file.</td>
           </tr>
           <tr *ngFor="let invalid of csvInvalidRecords">
-              <td>{{invalid['first_name']}}</td>
-              <td>{{invalid['last_name']}}</td>
-              <td>{{invalid['eco_role'] || 'General Occupant'}}</td>
-              <td>{{invalid['email']}}</td>
-              <td>{{invalid['mobile_number']}}</td>
-              <td>{{invalid['phone_number']}}</td>
+            <td *ngFor="let i of csvHeaderNames">
+              {{invalid[i]}}
+            </td>
           </tr>
         </tbody>
       </table>
