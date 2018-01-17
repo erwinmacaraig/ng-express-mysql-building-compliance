@@ -20,5 +20,19 @@
     "BUILDING WARDEN": 16,
     "DEPUTY BUILDING WARDEN": 18,
     "": 8
+  },
+  "table_headers": {
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "email": "Email",
+    "phone_number": "Phone Number",
+    "mobile_number": "Mobile Number",
+    "eco_role": "ECO Role",
+    "role": "Role"
+  },
+  "account_roles": {
+    "BUILDING MANAGER": 1,
+    "MANAGER": 1,
+    "TENANT": 2
   }
 }

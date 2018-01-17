@@ -43,7 +43,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     public selectedUser = {};
     public bulkEmailInvite;
     public CSVFileToUpload;
-
+    public csvHeaderNames;
+    public recordOverride;
     droppedFile;
 
     constructor(
@@ -91,7 +92,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         $('.modal').modal({
             dismissible: false
         });
-        
+
         this.dragDropFileEvent();
     }
 
@@ -151,7 +152,6 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     }
 
     onSelectedAccountRole(srcId: number) {
-        console.log(this.addWardenForm.controls['accountRole' + srcId].value);
         let r = this.addWardenForm.controls['accountRole' + srcId].value * 1;
         this.ecoDisplayRoles[srcId] = [];
         switch(r) {
@@ -344,6 +344,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
           console.log(data);
           this.csvInvalidRecords = data.invalid;
           this.csvValidRecords = data.valid;
+          this.recordOverride = data['data-override'];
+          this.csvHeaderNames = Object.keys(data.valid[0]);
           $('#modaCsvUpload').modal('close');
           setTimeout(() => {
             $('#modalUploadConfirmation').modal('open');
@@ -355,8 +357,12 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 
     public onConfirmCSVUpload() {
       const csvRecord = JSON.stringify(this.csvValidRecords);
+      this.dataProvider.finalizeCSVRecord(csvRecord, this.recordOverride).subscribe((data) => {
+        $('#modalUploadConfirmation').modal('close');
+      }, (error: HttpErrorResponse) => {
+        alert('There was an error.');
+      });
 
-      $('#modalUploadConfirmation').modal('close');
 
     }
 
