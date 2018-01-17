@@ -239,6 +239,7 @@ export class UsersRoute extends BaseRoute {
 
 	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction){
 		let accountId = req.params.account_id,
+			userID = req['user']['user_id'],
 			locationAccountUser = new LocationAccountUser(),
 			response = {
 				data : <any>[],
@@ -248,7 +249,31 @@ export class UsersRoute extends BaseRoute {
 			allParents = [];
 
 		let arrWhere = [];
+
+		let sqlInLocation = ` (
+              SELECT
+                locations.location_id
+              FROM
+                locations
+              INNER JOIN
+                location_account_user LAU
+              ON
+                locations.location_id = LAU.location_id
+              WHERE
+                LAU.account_id = ${accountId}
+              AND
+                locations.archived = 0
+              AND
+                LAU.user_id = ${userID}
+              AND LAU.archived = 0
+              GROUP BY
+                locations.location_id
+              ORDER BY
+                locations.location_id
+            )`;
+
 			arrWhere.push( ["account_id = "+accountId ] );
+			arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
 			arrWhere.push( ["archived = "+0] );
 		let locations = await locationAccountUser.getMany(arrWhere);
 		let emRolesModel = new UserEmRoleRelation();
@@ -690,6 +715,10 @@ export class UsersRoute extends BaseRoute {
 					}
 				}
 
+				response.data['myEmRoleRecord'] = myEmRoleRecord;
+				response.data['mainParentLocationId'] = mainParentLocationId;
+				response.data['mainParent'] = mainParent;
+
 				if(myEmRoleRecord['parent_id'] == response.data.location['parent_id']){
 					if(response.data.location['parent_id'] > -1){
 						response.data.location['parent_location'] = mainParent;
@@ -700,9 +729,13 @@ export class UsersRoute extends BaseRoute {
 					subLocations = await deepLocation.getDeepLocationsByParentId(mainParentLocationId),
 					subLocationsIds = [];
 
+				response.data['subLocations'] = subLocations;
+
 				for(let i in subLocations){
 					subLocationsIds.push(subLocations[i]['location_id']);
 				}
+
+				console.log(subLocationsIds);
 
 				let userEmRoleRelationTeam = new UserEmRoleRelation(),
 					teamEmRoles = <any>[];
@@ -711,7 +744,7 @@ export class UsersRoute extends BaseRoute {
 					//Chief Wardens //Deputy Chief Warden //Building Warden //Deputy Building Warden
 					teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], subLocationsIds.join(','));
 				}else if(roleId == 8 || roleId == 9 ||  roleId == 10 || roleId == 12 || roleId == 13 || roleId == 14){
-					//Gen Occupant
+					//Gen Occupant //Warden //Fire Safety Advisor //Emergency Planning Committee Member //First Aid Officer
 					teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], myEmRoleRecord['location_id']);
 				}else{
 
