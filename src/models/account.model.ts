@@ -341,7 +341,7 @@ export class Account extends BaseClass {
       });
     }
 
-    public buildPEEPList(accntID?, archived?) {
+    public buildPEEPList(accntID?, userID?, archived?) {
       return new Promise((resolve, reject) => {
         let sql_get_peep = `
           SELECT
@@ -365,7 +365,27 @@ export class Account extends BaseClass {
             INNER JOIN locations l ON l.location_id = lau.location_id
           WHERE
             u.mobility_impaired = 1 AND
-            u.account_id = ${accntID}
+            lau.location_id IN (
+              SELECT
+                locations.location_id
+              FROM
+                locations
+              INNER JOIN
+                location_account_user LAU
+              ON
+                locations.location_id = LAU.location_id
+              WHERE
+                LAU.account_id = ${accntID}
+              AND
+                locations.archived = 0
+              AND
+                LAU.user_id = ${userID}
+              AND LAU.archived = 0
+              GROUP BY
+                locations.location_id
+              ORDER BY
+                locations.location_id
+            )
          `;
         if(archived){
           sql_get_peep += ' AND lau.archived = '+archived;

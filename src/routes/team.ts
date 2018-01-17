@@ -866,7 +866,7 @@ export class TeamRoute extends BaseRoute {
 
   public async buildPEEPList(req: AuthRequest, res: Response, archived?) {
     const account = new Account(req.user.account_id);
-    const result = await account.buildPEEPList(req.user.account_id, archived);
+    const result = await account.buildPEEPList(req.user.account_id, req.user.user_id, archived);
     const temp = JSON.stringify(result);
     const peeps = JSON.parse(temp);
     const emRoleRelation = new UserEmRoleRelation();

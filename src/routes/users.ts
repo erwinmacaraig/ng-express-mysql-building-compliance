@@ -239,6 +239,7 @@ export class UsersRoute extends BaseRoute {
 
 	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction){
 		let accountId = req.params.account_id,
+			userID = req['user']['user_id'],
 			locationAccountUser = new LocationAccountUser(),
 			response = {
 				data : <any>[],
@@ -248,7 +249,31 @@ export class UsersRoute extends BaseRoute {
 			allParents = [];
 
 		let arrWhere = [];
+
+		let sqlInLocation = ` (
+              SELECT
+                locations.location_id
+              FROM
+                locations
+              INNER JOIN
+                location_account_user LAU
+              ON
+                locations.location_id = LAU.location_id
+              WHERE
+                LAU.account_id = ${accountId}
+              AND
+                locations.archived = 0
+              AND
+                LAU.user_id = ${userID}
+              AND LAU.archived = 0
+              GROUP BY
+                locations.location_id
+              ORDER BY
+                locations.location_id
+            )`;
+
 			arrWhere.push( ["account_id = "+accountId ] );
+			arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
 			arrWhere.push( ["archived = "+0] );
 		let locations = await locationAccountUser.getMany(arrWhere);
 		let emRolesModel = new UserEmRoleRelation();

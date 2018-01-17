@@ -68,7 +68,7 @@
 						</td>
 						<td class="with-remove">
 							<input type="text" [(ngModel)]="user.contact_number" placeholder="Mobile number" name="mobile{{i}}">
-							<a href="javascript:void(0)" class="remove" (click)="removeAddedUser(i)">X</a>
+							<a href="javascript:void(0)" class="remove" (click)="removeAddedUser(i)" [hidden]="i == 0">X</a>
 						</td>
 					</tr>
 				</tbody>

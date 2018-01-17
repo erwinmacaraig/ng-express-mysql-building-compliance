@@ -234,6 +234,10 @@ td.with-remove a.remove:hover{
     margin: 20px 0px;
 }
 
+#modaCsvUpload a.btn{
+    line-height: 42px;
+}
+
 .modal-content .csv-icon{
     display: inline-block;
     width: 35px;
