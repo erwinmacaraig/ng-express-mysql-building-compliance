@@ -24,6 +24,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         email: '',
         role_id : 3,
         account_location_id : 0,
+        account_role_id : 0,
         eco_role_id : 0,
         eco_location_id : 0,
         location_name : 'Select Location',
@@ -52,10 +53,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
 	ngOnInit() {
-        this.accountRoles = [{
-            role_id: 3,
-            role_name: 'User'
-        },
+        this.accountRoles = [
         {
             role_id: 2,
             role_name: 'Tenant'
@@ -71,6 +69,12 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
                 this.ecoRoles = roles;
+                for(let i in roles){
+                    this.accountRoles.push({
+                        role_id : roles[i]['em_roles_id'],
+                        role_name : roles[i]['role_name']
+                    });
+                }
                 this.addMoreRow();
             }, (err) => {
                 console.log('Server Error. Unable to get the list');
@@ -249,15 +253,21 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
     public submitPEEP() {
-      const strPEEP = JSON.stringify(this.addedUsers);
-      this.dataProvider.addPEEP(strPEEP).subscribe((data) => {
-        this.addedUsers = data;
-        if(Object.keys(this.addedUsers).length == 0){
-            this.addMoreRow();
+
+        for(let i in this.addedUsers){
+            this.addedUsers[i]['role_id'] = (this.addedUsers[i]['account_role_id'] == 1 || this.addedUsers[i]['account_role_id'] == 2) ? this.addedUsers[i]['account_role_id'] : 0;
+            this.addedUsers[i]['eco_role_id'] = (this.addedUsers[i]['account_role_id'] != 1 || this.addedUsers[i]['account_role_id'] != 2) ? this.addedUsers[i]['account_role_id'] : 0;
         }
-      }, (error: HttpErrorResponse) => {
-        console.log(error);
-      });
+
+        const strPEEP = JSON.stringify(this.addedUsers);
+        this.dataProvider.addPEEP(strPEEP).subscribe((data) => {
+            this.addedUsers = data;
+            if(Object.keys(this.addedUsers).length == 0){
+                this.addMoreRow();
+            }
+        }, (error: HttpErrorResponse) => {
+            console.log(error);
+        });
     }
 
 	ngOnDestroy(){}

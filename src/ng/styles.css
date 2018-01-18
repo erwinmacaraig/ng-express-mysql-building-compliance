@@ -159,7 +159,7 @@ input::-ms-clear {
 
 .table-peep thead tr th .checkbox [type="checkbox"]+label {
     position: relative;
-    padding-left: 25px;
+    padding-left: 30px;
     cursor: pointer;
     display: inline-block;
     height: 15px;
