@@ -113,7 +113,11 @@ export class UserInvitation extends BaseClass {
 
     public getWhere(where:Object){
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM user_invitations ';
+            let sql_load = `
+                SELECT ui.*, l.name as location_name, lp.name as parent_name  
+                FROM user_invitations ui INNER JOIN locations l  ON ui.location_id = l.location_id
+                LEFT JOIN locations lp  ON l.parent_id = lp.location_id
+            `;
             let whereString = '';
             const param = [];
 
@@ -126,7 +130,7 @@ export class UserInvitation extends BaseClass {
                     whereString += ' AND ';
                 }
 
-                whereString += ' '+where[i][0];
+                whereString += ' ui.'+where[i][0];
 
                 if( where[i].hasOwnProperty(2) ){
                     whereString += ' '+where[i][1]+' ? ';

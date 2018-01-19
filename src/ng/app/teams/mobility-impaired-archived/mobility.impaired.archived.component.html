@@ -66,13 +66,23 @@
 				</tr>
 				<tr *ngFor="let peep of peepList; let i = index;">
 					<td>
-						<p class="checkbox" [hidden]="!peep.id_encrypted">
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)">
-							<label for="location-{{i}}" > 
-								{{peep['parent_name']}} - {{peep['location_name']}}
+						<p class="checkbox" *ngIf="peep.user_id">
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)"  >
+							<label for="location-{{i}}" >
+								<span *ngIf="peep.locations.length > 1">Multiple locations</span>
+								<span *ngIf="peep.locations.length == 1">
+									<span *ngIf="peep.locations[0].parent_name.trim().length > 0">{{ peep.locations[0].parent_name }}, </span>
+									{{peep.locations[0].name}}
+								</span>
 							</label>
 						</p>
-						<span [hidden]="peep.id_encrypted"> {{peep['parent_name']}} - {{peep['location_name']}}  </span>
+						<p *ngIf="!peep.user_id">
+							<span *ngIf="peep.locations.length > 1">Multiple locations</span>
+							<span *ngIf="peep.locations.length == 1">
+								<span *ngIf="peep.locations[0].parent_name.trim().length > 0">{{ peep.locations[0].parent_name }}, </span>
+								{{peep.locations[0].name}}
+							</span>
+						</p>
 					</td>
 					<td>
 						<div class="image-container lighten-3" [ngClass]="peep.bg_class">
@@ -81,16 +91,18 @@
 							</div>
 						</div>
 						<div class="text">
-							<a *ngIf="peep.location_account_user_id" [routerLink]="['/teams/view-user/', peep.id_encrypted]">
+							<a *ngIf="peep.user_id" [routerLink]="['/teams/view-user/', peep.id_encrypted]">
 								{{peep.first_name}} {{peep.last_name}}
 							</a>
-							<span *ngIf="!peep.location_account_user_id">{{peep['first_name']}} {{peep['last_name']}}</span>
+							<span *ngIf="!peep.user_id">{{peep['first_name']}} {{peep['last_name']}}</span>
 						</div>
 					</td>
 					<td class="peep-completion">
-						<span *ngIf="peep.mobility_impaired_details.user_id">Completed</span>
+						<span *ngIf="peep.mobility_impaired_details.length > 0 && peep.user_id">
+							<a href="javascipt:void(0)" (click)="clickShowPeepInfo(peep)">View</a>
+						</span>
 						<a href="javascipt:void(0)" (click)="clickCompletePeepInfo(peep)" 
-						*ngIf="!peep.mobility_impaired_details.user_id && peep.user_id" >Complete peep information</a>
+						*ngIf="peep.mobility_impaired_details.length == 0 && peep.user_id" >Complete peep information</a>
 						<span *ngIf="!peep.user_id"> Waiting for user validation </span>
 					</td>
 					<!-- <td class="trainings">
@@ -98,8 +110,8 @@
 						<div class="bar"></div>
 					</td> -->
 					<td>
-						<span *ngIf="peep.mobility_impaired_details.date_created">{{peep.mobility_impaired_details.date_created}}</span>
-						<span *ngIf="!peep.mobility_impaired_details.date_created"> - </span>
+						<span *ngIf="peep.mobility_impaired_details[0]">{{peep.mobility_impaired_details[0].date_created}}</span>
+						<span *ngIf="!peep.mobility_impaired_details[0]"> - </span>
 					</td>
 					<td>
 						<span *ngIf="!peep.id_encrypted">processing</span>
@@ -138,7 +150,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want archive 
+			Are you sure you want restore 
 			<span *ngIf="selectedToArchive.parent_name">
 				{{ selectedToArchive.parent_name }}, 
 			</span> 
@@ -185,4 +197,67 @@
 		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
 		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
 	</div>
+</div>
+
+<div id="modalMobility" class="modal">
+
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
+
+	<div class="modal-content">
+		<h5>Mobility Impaired Information</h5>
+		<div class="row">
+			<div class="col s12 l6 m6">
+				<div class="select-field">
+					<span style=" font-size: 16px;">Mobility Impaired Status</span>
+					<select ngModel name="is_permanent">
+						<option value="0" selected="selected">Temporary</option>
+						<option value="1">Permanent</option>
+					</select>
+				</div>
+			</div>
+			<div class="col s12 l6 m6">
+				<div class="input-field" >
+					<span style=" font-size: 16px;">Mobility Impaired Upto</span>
+					<ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required>
+				</div>
+			</div>
+			<div class="col s12 m12 l12">
+				<h6>Assistant Type</h6>
+				<input ngModel name="assistant_type" type="text" class="grey-input" placeholder="Please describe requirements and process here." required>
+			</div>
+			<div class="col s12 m12 l12">
+				<h6>Evacuation Equipment Type / Requirement</h6>
+				<input ngModel name="equipment_type" type="text" class="grey-input" placeholder="Please inform what is the equiment and type." required>
+			</div>
+			<div class="col s12 m12 l12">
+				<h6>Evacuation / Egress Procedure</h6>
+				<input ngModel name="evacuation_procedure" type="text" class="grey-input" placeholder="" required>
+			</div>
+		</div>
+
+		<div class="row button-container">
+			<div class="col s12 m12 l12">
+				<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+				<button class="btn orange waves-light waves-effect" [disabled]="formMobility.invalid">Submit</button>
+			</div>
+		</div>
+	</div>
+
+
+	</form>
 </div>

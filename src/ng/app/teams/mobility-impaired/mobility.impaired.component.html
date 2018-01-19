@@ -78,13 +78,23 @@
 				</tr>
 				<tr *ngFor="let peep of peepList; let i = index;">
 					<td>
-						<p class="checkbox" [hidden]="!peep.id_encrypted">
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)">
-							<label for="location-{{i}}" > 
-								{{peep['parent_name']}} - {{peep['location_name']}}
+						<p class="checkbox" *ngIf="peep.user_id">
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)"  >
+							<label for="location-{{i}}" >
+								<span *ngIf="peep.locations.length > 1">Multiple locations</span>
+								<span *ngIf="peep.locations.length == 1">
+									<span *ngIf="peep.locations[0].parent_name.trim().length > 0">{{ peep.locations[0].parent_name }}, </span>
+									{{peep.locations[0].name}}
+								</span>
 							</label>
 						</p>
-						<span [hidden]="peep.id_encrypted"> {{peep['parent_name']}} - {{peep['location_name']}}  </span>
+						<p *ngIf="!peep.user_id">
+							<span *ngIf="peep.locations.length > 1">Multiple locations</span>
+							<span *ngIf="peep.locations.length == 1">
+								<span *ngIf="peep.locations[0].parent_name.trim().length > 0">{{ peep.locations[0].parent_name }}, </span>
+								{{peep.locations[0].name}}
+							</span>
+						</p>
 					</td>
 					<td>
 						<div class="image-container lighten-3" [ngClass]="peep.bg_class">
@@ -93,16 +103,18 @@
 							</div>
 						</div>
 						<div class="text">
-							<a *ngIf="peep.location_account_user_id" [routerLink]="['/teams/view-user/', peep.id_encrypted]">
+							<a *ngIf="peep.user_id" [routerLink]="['/teams/view-user/', peep.id_encrypted]">
 								{{peep.first_name}} {{peep.last_name}}
 							</a>
-							<span *ngIf="!peep.location_account_user_id">{{peep['first_name']}} {{peep['last_name']}}</span>
+							<span *ngIf="!peep.user_id">{{peep['first_name']}} {{peep['last_name']}}</span>
 						</div>
 					</td>
 					<td class="peep-completion">
-						<span *ngIf="peep.mobility_impaired_details.user_id">Completed</span>
+						<span *ngIf="peep.mobility_impaired_details.length > 0 && peep.user_id">
+							<a href="javascipt:void(0)" (click)="clickShowPeepInfo(peep)">View</a>
+						</span>
 						<a href="javascipt:void(0)" (click)="clickCompletePeepInfo(peep)" 
-						*ngIf="!peep.mobility_impaired_details.user_id && peep.user_id" >Complete peep information</a>
+						*ngIf="peep.mobility_impaired_details.length == 0 && peep.user_id" >Complete peep information</a>
 						<span *ngIf="!peep.user_id"> Waiting for user validation </span>
 					</td>
 					<!-- <td class="trainings">
@@ -110,8 +122,8 @@
 						<div class="bar"></div>
 					</td> -->
 					<td>
-						<span *ngIf="peep.mobility_impaired_details.date_created">{{peep.mobility_impaired_details.date_created}}</span>
-						<span *ngIf="!peep.mobility_impaired_details.date_created"> - </span>
+						<span *ngIf="peep.mobility_impaired_details[0]">{{peep.mobility_impaired_details[0].date_created}}</span>
+						<span *ngIf="!peep.mobility_impaired_details[0]"> - </span>
 					</td>
 					<td>
 						<span *ngIf="!peep.id_encrypted">processing</span>
@@ -215,7 +227,7 @@
 		</div>
 	</div>
 	
-	<form #f="ngForm" (submit)="modalPeepFormSubmit(f, $event)" [hidden]="showModalLoader">
+	<form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
 
 	<div class="modal-content">
 		<h5>Mobility Impaired Information</h5>
@@ -253,7 +265,7 @@
 		<div class="row button-container">
 			<div class="col s12 m12 l12">
 				<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
-				<button class="btn orange waves-light waves-effect" [disabled]="f.invalid">Submit</button>
+				<button class="btn orange waves-light waves-effect" [disabled]="formMobility.invalid">Submit</button>
 			</div>
 		</div>
 	</div>

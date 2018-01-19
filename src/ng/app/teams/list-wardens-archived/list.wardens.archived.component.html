@@ -22,8 +22,6 @@
 	<div class="col l2 m6 s6">
 		<select class="sort-by">
 			<option value="0" selected>Sort By</option>
-			<option value="loc-name-desc">Location Name Descending</option>
-			<option value="loc-name-asc">Location Name Ascending</option>
 			<option value="user-name-desc">User Name Descending</option>
 			<option value="user-name-asc">User Name Ascending</option>
 		</select>
@@ -63,10 +61,21 @@
 				</tr>
 				<tr *ngFor="let warden of wardenArr; let i = index;">
 					<td>
-						<p class="checkbox">
+						<!-- <p class="checkbox">
 							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)">
 							<label for="location-{{i}}" > 
 								{{warden['parent_name']}} - {{warden['name']}}
+							</label>
+						</p> -->
+
+						<p class="checkbox" >
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
+							<label for="location-{{i}}" >
+								<span *ngIf="warden.locations.length > 1">Multiple locations</span>
+								<span *ngIf="warden.locations.length == 1">
+									<span *ngIf="warden.locations[0].parent_name.trim().length > 0">{{ warden.locations[0].parent_name }}, </span>
+									{{warden.locations[0].name}}
+								</span>
 							</label>
 						</p>
 					</td>
@@ -86,8 +95,8 @@
 						<div class="eco-role">
 							<!-- <div class="image"></div> -->
 							<div *ngIf="warden.mobility_impaired == 1" class="impaired"></div>
-							<span class="name">
-								{{warden['role_name']}}
+							<span *ngFor="let role of warden.roles; let ri = index;" class="name">
+								{{role.role_name}}<i *ngIf=" warden.roles.length - 1 != ri ">,</i> 
 							</span>
 						</div>
 					</td>
@@ -130,12 +139,12 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want to restore 
-			<span *ngIf="selectedToArchive.parent_data.name">
-				{{ selectedToArchive.parent_data.name }}, 
+			Are you sure you want archive 
+			<span *ngIf="selectedToArchive.parent_name">
+				{{ selectedToArchive.parent_name }}, 
 			</span> 
 			<span>{{selectedToArchive.name}} </span>
-			<span class="blue-text">{{selectedToArchive.user_info.first_name}} {{selectedToArchive.user_info.last_name}}</span>
+			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">

@@ -58,13 +58,16 @@ export class LocationAccountUser extends BaseClass {
             count = 0;
 
             sql_load = ` SELECT l.formatted_address, l.name, l.location_id, l.parent_id, 
-            lau.user_id, lau.account_id, lau.role_id, lau.location_account_user_id, lau.archived,
-            er.role_name, DATEDIFF(NOW(), u.last_login) AS days, u.last_login
-            FROM locations l 
-            LEFT JOIN location_account_user lau ON l.location_id = lau.location_id
-            LEFT JOIN users u ON lau.user_id = u.user_id
-            LEFT JOIN user_em_roles_relation uer ON uer.user_id = lau.user_id 
+            lau.user_id, lau.account_id, lau.role_id as location_role_id, urr.role_id, lau.location_account_user_id, lau.archived,
+            er.role_name as er_role_name, DATEDIFF(NOW(), u.last_login) AS days, 
+            u.last_login, er.em_roles_id, u.mobility_impaired, lp.name as parent_name
+            FROM location_account_user lau 
+            INNER JOIN locations l ON l.location_id = lau.location_id
+            INNER JOIN users u ON lau.user_id = u.user_id
+            LEFT JOIN user_role_relation urr ON urr.user_id = u.user_id
+            LEFT JOIN user_em_roles_relation uer ON uer.user_id = lau.user_id AND uer.location_id = lau.location_id  
             LEFT JOIN em_roles er ON er.em_roles_id = uer.em_role_id
+            LEFT JOIN locations lp ON lp.location_id = l.parent_id
             `;
 
             for(let i in arrWhere){
@@ -83,9 +86,9 @@ export class LocationAccountUser extends BaseClass {
             }
 
             if(arrWhere.length > 0){
-                sqlWhere += ' AND l.archived = 0 AND u.archived = 0 ';
+                sqlWhere += ' AND l.archived = 0 ';
             }else{
-                sqlWhere += ' WHERE l.archived = 0 AND u.archived = 0 ';
+                sqlWhere += ' WHERE l.archived = 0 ';
             }
 
             sql_load += sqlWhere + ' GROUP BY lau.location_account_user_id ';
@@ -93,6 +96,7 @@ export class LocationAccountUser extends BaseClass {
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
+                    console.log(sql_load);
                     reject(error);
                     return console.log(error);
                 }
