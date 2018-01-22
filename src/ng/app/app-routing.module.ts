@@ -58,7 +58,8 @@ import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
 import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
 
-
+import { ComplianceComponent } from './compliance/compliance.component';
+import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -87,13 +88,17 @@ const appRoutes: Routes = [
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
   /*{ path: '**', redirectTo: '/dashboard'},*/
-  { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
+  { path: 'location', component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
     { path: 'search', component: SearchLocationComponent },
     { path: 'view/:encrypted', component: ViewSingleLocation },
     { path: 'view-sublocation/:encrypted', component: SublocationComponent },
-    { path: 'verify-access', component: VerificationComponent }
-
+    { path: 'verify-access', component: VerificationComponent },
+    { path : 'compliance', component : ComplianceComponent,
+      children : [
+        { path : 'view', component : ViewComplianceComponent }
+      ]
+    }
   ]},
   {
     path: 'locations-ui', component : LocationsUiComponent,
@@ -127,7 +132,6 @@ const appRoutes: Routes = [
       { path : 'view-chief-warden', component : ViewChiefWardenComponent }
     ]
   }
-
 ];
 
 @NgModule({

@@ -1,0 +1,152 @@
+.top-gray{
+	background-color: #f6f6f6;
+	padding: 20px;
+	position: relative;
+}
+
+.top-gray .title{
+	font-size: 19px;
+}
+
+.top-gray .archived {
+    font-size: 14px;
+    position: absolute;
+    right: 30px;
+    top: 26px;
+    color: #4f4f4f;
+}
+
+.top-gray .archived .image{
+    background: url(/assets/images/team_icons.png) no-repeat;
+    width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.training-icon{
+	background: url(/assets/images/compliance/training_icon.png) no-repeat;
+}
+
+.meeting-icon{
+	background: url(/assets/images/compliance/meeting_icon.png) no-repeat;
+}
+
+.evacuation-icon{
+	background: url(/assets/images/compliance/evacuation_icon.png) no-repeat;
+}
+
+.diagram-icon{
+	background: url(/assets/images/compliance/diagram_icon.png) no-repeat;
+}
+
+.table-container{
+	padding: 20px 30px;
+}
+
+
+table tbody{
+	font-size: 14px;
+}
+
+table thead tr th {
+    background-color: #2f2f2f;
+    color: #fff;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: 1px solid #2f2f2f;
+    border-radius: 0px;
+}
+
+table tr td .image {
+    overflow: hidden;
+}
+
+table tr td.with-image .image {
+    display: inline-block;
+    width: 45px;
+    height: 45px;
+    border-radius: 30px;
+    vertical-align: middle;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-right: 5px;
+}
+
+table tbody td a {
+    font-size: 14px;
+}
+
+table tbody tr td.with-icon .image{
+	display: inline-block;
+    width: 25px;
+    height: 25px;
+    vertical-align: middle;
+    background-position: center;
+    background-size: contain;
+}
+
+.check{
+	background: url(/assets/images/check_icon.png) no-repeat;
+}
+
+.alarm{
+	background: url(/assets/images/alarm_icon.png) no-repeat;
+}
+
+.expired{
+	background: url(/assets/images/expired_icon.png) no-repeat;
+}
+
+table tbody tr td.with-icon .text{
+	display: inline-block;
+    vertical-align: middle;
+    padding-left: 15px;
+    font-size: 13px;
+}
+
+table tbody tr td.with-icon .text p{
+	margin: 0px;
+}
+
+table tbody tr td.with-bar .text{
+	color: #F44336 !important;
+	margin-right: 12px;
+}
+
+table tbody tr td.with-bar .text,
+table tbody tr td.with-bar .progress-container{
+	display: inline-block;
+	vertical-align: middle;
+}
+
+table tbody tr td.with-bar .progress-container{
+	width: 30%;
+}
+
+.progress-container p{
+	margin: 3px 0px;
+	font-size: 12px;
+}
+
+table tbody tr td .progress{
+	position: relative;
+    height: 10px;
+    display: block;
+    width: 100%;
+    background-color: #dc44534d;
+    border-radius: 2px;
+    margin: 0px;
+    overflow: hidden;
+}
+
+table tbody tr td .progress .determinate{
+	position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background-color: #cb0d20;
+    transition: width .3s linear;
+}

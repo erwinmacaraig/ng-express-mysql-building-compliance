@@ -79,6 +79,9 @@ import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.w
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
 import { NgDatepickerModule } from 'ng2-datepicker';
 
+import { ComplianceComponent } from './compliance/compliance.component';
+import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -132,6 +135,9 @@ import { NgDatepickerModule } from 'ng2-datepicker';
     ViewGeneralOccupantComponent,
     ViewChiefWardenComponent,
     AllUsersArchivedComponent,
+
+    ComplianceComponent,
+    ViewComplianceComponent
   ],
   imports: [
     BrowserModule,
