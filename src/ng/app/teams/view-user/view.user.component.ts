@@ -33,12 +33,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			mobility_impaired_details : {}
 		},
 		role_text : '',
-		role_label : '',
-		role_id : 0,
 		eco_roles : [],
-		location : {
-			parent_data : {}
-		},
+		locations : [],
 		trainings : [],
 		badge_class : ''
 	};
@@ -80,11 +76,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 				this.viewData.user = response.data.user;
 				this.viewData.role_text = response.data.role_text;
 				this.viewData.eco_roles = response.data.eco_roles;
-				this.viewData.role_id = response.data.role_id;
-				this.viewData.location = response.data.location;
+				this.viewData.locations = response.data.locations;
 				this.viewData.trainings = response.data.trainings;
 
-				for(let i in this.viewData.eco_roles){
+				/*for(let i in this.viewData.eco_roles){
 					if(this.viewData.eco_roles[i]['is_warden_role'] == 1){
 						this.showRemoveWardenButton = true;
 					}
@@ -98,13 +93,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 						}
 
 					}
-				}
+				}*/
 
 				if(this.viewData.user.last_login.length > 0 ){
 					this.viewData.user['last_login'] = moment(this.viewData.user['last_login'], ["YYYY-MM-DD HH:mm:ss"]).format('MMM. DD, YYYY hh:mm A');
 				}
 
-				if(this.viewData.user['mobility_impaired_details']['user_id']){
+				/*if(this.viewData.user['mobility_impaired_details']['user_id']){
 					for(let i in this.viewData.user['mobility_impaired_details']){
 						if( this.formMobility.controls[i] ){
 							this.formMobility.controls[i].setValue(this.viewData.user['mobility_impaired_details'][i]);
@@ -113,9 +108,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 					this.datepickerModel = moment(this.viewData.user['mobility_impaired_details']['duration_date'], ['YYYY-MM-DD']).toDate();
     				this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
-				}
+				}*/
 
 				this.preloaderService.hide();
+
+				setTimeout(() => {
+					$('select').material_select();
+				},300);
 			});
 		});
 	}
@@ -127,13 +126,12 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			dismissible: false
 		});
 
-		$('select').material_select();
 
 		this.gridEvent();
 		this.renderGrid();
 
 		this.preloaderService.show();
-		setTimeout(() => { Materialize.updateTextFields(); }, 1000);
+		
 
 		$('#modalMobility select[name="is_permanent"]').on('change', () => {
 			if($('#modalMobility select[name="is_permanent"]').val() == '1'){
@@ -142,6 +140,52 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			}else{
 				$('#durationDate').prop('disabled', false);
 			}
+		});
+
+		this.selectLocationEvent();
+		setTimeout(() => { 
+			Materialize.updateTextFields();
+		}, 1000);
+		setTimeout(() => { 
+			$('#selectLocation').trigger('change');
+		}, 100);
+		
+	}
+
+	selectLocationEvent(){
+		let selectLocation = $('#selectLocation');
+		selectLocation.on('change', () => {
+			let locId = selectLocation.val(),
+				selectedLoc = <any>{},
+				emRoles = this.viewData.eco_roles;
+
+			for(let loc of this.viewData.locations){
+				if(loc.location_id == locId){
+					selectedLoc = loc;
+				}
+			}
+
+			if(selectedLoc.location_role_id == 1){
+				this.viewData.role_text = 'Building Manager';
+			}else if(selectedLoc.location_role_id == 2){
+				this.viewData.role_text = 'Tenant';
+			}else{
+				let roleId = 8;
+				if(selectedLoc.em_roles_id !== null && selectedLoc.em_roles_id > 0){
+					roleId = selectedLoc.em_roles_id;
+				}
+
+				for(let role of emRoles){
+					if(role.em_roles_id == roleId){
+						this.viewData.role_text = role.role_name;
+					}
+				}
+			}
+
+			setTimeout(() => { 
+				Materialize.updateTextFields();
+			}, 100);
+
 		});
 	}
 
@@ -229,7 +273,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		event.preventDefault();
 
 		if(f.valid){
-			let paramData = JSON.parse(JSON.stringify(f.value));
+			/*let paramData = JSON.parse(JSON.stringify(f.value));
 			paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
 			paramData['location_id'] = this.viewData.location['location_id'];
 			paramData['user_id'] = this.viewData.user['user_id'];
@@ -244,7 +288,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 				$('#modalMobility').modal('close');
 				this.showModalLoader = false;
 
-			});
+			});*/
 		}
 	}
 }

@@ -28,7 +28,7 @@
 						<th>Email</th>
 						<th>Role</th>
 						<th>Location</th>
-						<th>Mobile</th>
+						<th>Contact Information</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -62,7 +62,7 @@
 							<a href="javascript:void(0)" [class.disabled]="user.account_role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a> 
 						</td>
 						<td class="with-remove">
-							<input type="text" [(ngModel)]="user.mobile_number" placeholder="Mobile number" name="mobile{{i}}">
+							<input type="text" [(ngModel)]="user.mobile_number" placeholder="Contact Information" name="mobile{{i}}">
 							<a href="javascript:void(0)" class="remove" (click)="removeAddedUser(i)" [hidden]="i == 0">X</a>
 						</td>
 					</tr>

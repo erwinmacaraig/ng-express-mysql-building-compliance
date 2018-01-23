@@ -58,7 +58,7 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().getUsersByAccountId(req, res, next);
 	    });
 
-	    router.get('/users/get-user-locations-trainings-ecoroles/:loc_acc_user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    router.get('/users/get-user-locations-trainings-ecoroles/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getUserLocationsTrainingsEcoRoles(req, res, next);
 	    })
 
@@ -66,8 +66,16 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().setLocationAccountUserToArchive(req, res, next);
 	    });
 
+	    router.post('/users/archive-users', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().setUsersToArchive(req, res, next);
+	    });
+
+	    router.post('/users/unarchive-users', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().removeUsersFromArchive(req, res, next);
+	    });
+
 	    router.get('/users/get-archived-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().getArchivedUsersByAccountId(req, res, next);
+	    	new  UsersRoute().getUsersByAccountId(req, res, next, 1);
 	    });
 
 	    router.post('/users/unarchive-location-account-user', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -237,7 +245,7 @@ export class UsersRoute extends BaseRoute {
 		);
 	}
 
-	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction){
+	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction, archived?){
 		let accountId = req.params.account_id,
 			userID = req['user']['user_id'],
 			locationAccountUser = new LocationAccountUser(),
@@ -246,9 +254,28 @@ export class UsersRoute extends BaseRoute {
 				status : false,
 				message : ''
 			},
-			allParents = [];
+			allParents = [],
+			allUsersModel = new User(),
+			allUsers = <any>[],
+			allUsersIds = [],
+			emRolesModel = new UserEmRoleRelation(),
+			emRoles = await emRolesModel.getEmRoles(),
+			emRolesIndexedId = {};
 
-		let arrWhere = [];
+		if(!archived){ archived = 0; }
+
+		allUsers = await allUsersModel.getByAccountId(accountId, archived);
+
+		for(let user of allUsers){
+			allUsersIds.push(user.user_id);
+			let filesModel = new Files();
+			try{
+				let profRec = await filesModel.getByUserIdAndType( user.user_id, 'profile' );
+				user['profile_pic'] = profRec[0]['url'];
+			}catch(e){
+				user['profile_pic'] = '';
+			}
+		}
 
 		let sqlInLocation = ` (
               SELECT
@@ -272,57 +299,91 @@ export class UsersRoute extends BaseRoute {
                 locations.location_id
             )`;
 
+        let arrWhere = [];
 			arrWhere.push( ["account_id = "+accountId ] );
 			arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
-			arrWhere.push( ["archived = "+0] );
+
 		let locations = await locationAccountUser.getMany(arrWhere);
-		let emRolesModel = new UserEmRoleRelation();
-		let emRoles = await emRolesModel.getEmRoles();
-		let locationsToSend = [];
+
 
 		let allowedRoleIds = [0,1,2];
 		for(let i in emRoles){
 			allowedRoleIds.push(emRoles[i]['em_roles_id']);
+			emRolesIndexedId[ emRoles[i]['em_roles_id'] ] = emRoles[i];
 		}
 
-		for(let l in locations){
+		let allowedUsersId = [];
+		for(let i in locations){
+			if( allowedUsersId.indexOf( locations[i]['user_id'] ) == -1  ){
+				allowedUsersId.push(locations[i]['user_id']);
+			}
+		}
 
-			if(  allowedRoleIds.indexOf(locations[l]['role_id']) > -1 ){
-				let userModel = new User(locations[l]['user_id']);
-				let parentLocation = new Location(locations[l]['parent_id']);
+		let toSendData = [];
+		for(let user of allUsers){
+			if( allowedUsersId.indexOf(user.user_id) > -1 ){
+				user['locations'] = <any>[];
+				for(let l in locations){
+					if( 
+						( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )  
+						&& locations[l]['user_id'] == user.user_id
+						){
+						user['locations'].push(locations[l]);
+					}
+				}
+				toSendData.push(user);
+			}
+		}
 
-				if(allParents.indexOf(locations[l]['parent_id']) == -1){
-					await parentLocation.load().then(() => {
-						allParents[ locations[l]['parent_id'] ] = parentLocation.getDBData();
-						locations[l]['parent_data'] = parentLocation.getDBData();
-					}, () => {
-						locations[l]['parent_data'] = {};
-					});
-				}else{
-					locations[l]['parent_data'] = allParents[ locations[l]['parent_id'] ];
+		for(let user of toSendData){
+			let locs = user.locations;
+			user['roles'] = [];
+			let tempUserRoles = {};
+			for(let loc of locs){
+				let roleName = 'General Occupant',
+					roleId = 8;
+
+				if( emRolesIndexedId[ loc.em_roles_id ] ){
+					roleName = emRolesIndexedId[ loc.em_roles_id ]['role_name'];
+					roleId = loc.em_roles_id;
+				}else if( emRolesIndexedId[ loc.location_role_id ] ){
+					roleName = emRolesIndexedId[ loc.location_role_id ]['role_name'];
+					roleId = loc.location_role_id;
+				}else if(loc.location_role_id == 1){
+					roleName = 'FRP';
+					roleId = 1;
+				}else if(loc.location_role_id == 2){
+					roleName = 'TRP';
+					roleId = 2;
+				}else if(loc.role_id == 1){
+					roleName = 'FRP';
+					roleId = 1;
+				}else if(loc.role_id == 2){
+					roleName = 'TRP';
+					roleId = 2;
 				}
 
-				await userModel.load().then( async ()=>{
-					locations[l]['user_info'] = userModel.getDBData();
-
-					let filesModel = new Files();
-					try{
-						let profRec = await filesModel.getByUserIdAndType( userModel.get('user_id'), 'profile' );
-						locations[l]['user_info']['profile_pic'] = profRec[0]['url'];
-					}catch(e){
-						locations[l]['user_info']['profile_pic'] = '';
-					}
-
-				},()=>{
-					locations[l]['user_info'] = {};
-				});
-
-				locationsToSend.push(locations[l]);
+				if(!tempUserRoles[roleId]){
+					tempUserRoles[roleId] = roleId;
+					user['roles'].push({
+						role_name : roleName, role_id : roleId
+					});
+				}
+				
 			}
 
+			user['training_applicable'] = true;
+            for(let role of user['roles']){
+                if(role.em_roles_id == 12 || role.em_roles_id == 13){
+                    if(user['roles'].length == 1){
+                        user['training_applicable'] = false;
+                    }
+                }
+            }
 		}
 
-		response.data = locationsToSend;
+		response.data = toSendData;
+		response['locations'] = locations;
 		response.status = true;
 		res.statusCode = 200;
 		res.send(response);
@@ -333,79 +394,82 @@ export class UsersRoute extends BaseRoute {
 			status : false,
 			data : {
 				user : {},
-				location : {},
+				locations : {},
 				trainings : <any>[],
-				role_text : '',
-				role_id : 0
+				eco_roles : <any>[]
 			},
 			message : ''
 		},
-		locationAccountUser = new LocationAccountUser(req.params['loc_acc_user_id']);
+		userId = req.params['user_id'],
+		userModel = new User(userId),
+		locationAccountUserModel = new LocationAccountUser(),
+		fileModel = new Files(),
+		user = {},
+		emRolesModel = new UserEmRoleRelation(),
+		emRoles = await emRolesModel.getEmRoles();
 
-		await locationAccountUser.load();
-
-		let loc_acc_user = locationAccountUser.getDBData(),
-			userModel = new User(loc_acc_user['user_id']),
-			locationModel = new Location(loc_acc_user['location_id']);
-
-		response.data['user'] = await userModel.load();
-		response.data['location'] = await locationModel.load();
-		response.data['loc_acc_user'] = loc_acc_user;
+		response.data.eco_roles = emRoles;
 
 		try{
-			let parentLocation = new Location(response.data['location']['parent_id']);
-			await parentLocation.load();
-			response.data['location']['parent_data'] = ( Object.keys(parentLocation.getDBData()).length > 0 ) ? parentLocation.getDBData() : {};
+			let user = await userModel.load(),
+				locations = <any>[];
+
+			if( Object.keys(user).length > 0 ){
+				user['mobility_impaired_details'] = [];
+
+				let sqlInLocation = ` (
+		              SELECT
+		                locations.location_id
+		              FROM
+		                locations
+		              INNER JOIN
+		                location_account_user LAU
+		              ON
+		                locations.location_id = LAU.location_id
+		              WHERE
+		                LAU.account_id = `+user['account_id']+`
+		              AND
+		                locations.archived = 0
+		              AND
+		                LAU.user_id = `+req['user']['user_id']+`
+		              AND LAU.archived = 0
+		              GROUP BY
+		                locations.location_id
+		              ORDER BY
+		                locations.location_id
+		            )`;
+				let arrWhere = [];
+				arrWhere.push(['user_id = '+userId]);
+				arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
+				locations = await locationAccountUserModel.getMany(arrWhere);
+				
+				if( user['mobility_impaired'] == 1 ){
+		        	let mobilityModel = new MobilityImpairedModel(),
+		        		arrWhere = [];
+
+		        	arrWhere.push( ["user_id = " + userId] );
+		        	arrWhere.push( "duration_date > NOW()" );
+		        	let mobilityDetails = await mobilityModel.getMany( arrWhere );
+		        	user['mobility_impaired_details'] = mobilityDetails;
+		        }
+
+				await fileModel.getByUserIdAndType(userId, 'profile').then(
+		            (fileData) => {
+		                user['profilePic'] = fileData[0].url;
+		            },
+		            () => {
+		                user['profilePic'] = '';
+		            }
+		        );
+			}
+
+			response.data.locations = locations;
+			response.data.user = user;
+			response.status = true;
 		}catch(e){
-			response.data['location']['parent_data'] = {};
+			response.status = false;
 		}
 
-		if(loc_acc_user['role_id'] == 1){
-			response.data['role_text'] = 'Building Manager';
-			response.data.role_id = 1;
-		}else if(loc_acc_user['role_id'] == 2){
-			response.data['role_text'] = 'Tenant';
-			response.data.role_id = 2;
-		}else{
-			let userEmRoleRelation = new UserEmRoleRelation();
-			await userEmRoleRelation.getEmRolesByUserId( loc_acc_user['user_id'] ).then(
-				() => {
-					let eco_roles = userEmRoleRelation.getDBData();
-					response.data['eco_roles'] = eco_roles;
-					for(let x in eco_roles){
-						response.data['role_text'] = eco_roles[x]['role_name'];
-						response.data.role_id = eco_roles[x]['em_roles_id'];
-					}
-				},
-				() => {
-				}
-			);
-		}
-
-		let fileModel = new Files();
-        await fileModel.getByUserIdAndType(loc_acc_user['user_id'], 'profile').then(
-            (fileData) => {
-                response.data['user']['profilePic'] = fileData[0].url;
-            },
-            () => {
-                response.data['user']['profilePic'] = '';
-            }
-        );
-
-        response.data['user']['mobility_impaired_details'] = {}
-
-        if( response.data['user']['mobility_impaired'] == 1 ){
-        	let mobilityModel = new MobilityImpairedModel(),
-        		arrWhere = [];
-
-        	arrWhere.push( "user_id = " + response.data['user']['user_id'] );
-        	arrWhere.push( "location_id = " + response.data['location']['location_id'] );
-
-        	let mobilityDetails = await mobilityModel.getMany( arrWhere );
-        	response.data['user']['mobility_impaired_details'] = ( mobilityDetails[0] ) ? mobilityDetails[0] : {};
-        }
-
-		response.status = true;
 		res.statusCode = 200;
 		res.send(response);
 	}
@@ -423,6 +487,46 @@ export class UsersRoute extends BaseRoute {
 			console.log(locAccountUser.getDBData());
 			locAccountUser.set('archived', 1);
 			await locAccountUser.dbUpdate();
+		}
+
+		response.message = 'Success';
+		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async setUsersToArchive(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : true,
+			data : <any>[],
+			message : ''
+		};
+
+		for(let i in req.body['user_ids']){
+			let userModel = new User(req.body['user_ids'][i]);
+			await userModel.load();
+			
+			userModel.set('archived', 1);
+			await userModel.dbUpdate();
+		}
+
+		response.message = 'Success';
+		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async removeUsersFromArchive(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : true,
+			data : <any>[],
+			message : ''
+		};
+
+		for(let i in req.body['user_ids']){
+			let userModel = new User(req.body['user_ids'][i]);
+			await userModel.load();
+			
+			userModel.set('archived', 0);
+			await userModel.dbUpdate();
 		}
 
 		response.message = 'Success';
@@ -1161,38 +1265,18 @@ export class UsersRoute extends BaseRoute {
 		response = <any>{
 			status : true, data : [], message : ''
 		},
-		locationId = req.body.location_id,
 		userId = req.body.user_id,
 		mobilityImpairedModel = new MobilityImpairedModel();
 
-		let arrWhere = [];
-			arrWhere.push("user_id = "+userId);
-			arrWhere.push("location_id = "+locationId);
-		let mobililtyExist = await mobilityImpairedModel.getMany( arrWhere );
-
-		if(mobililtyExist[0]){
-			let mobilityUpdate = new MobilityImpairedModel(mobililtyExist[0]['mobility_impaired_details_id']);
-			mobilityUpdate.set('user_id', userId);
-			mobilityUpdate.set('location_id', locationId);
-			mobilityUpdate.set('is_permanent', req.body.is_permanent);
-			mobilityUpdate.set('duration_date', req.body.duration_date);
-			mobilityUpdate.set('assistant_type', req.body.assistant_type);
-			mobilityUpdate.set('equipment_type', req.body.equipment_type);
-			mobilityUpdate.set('evacuation_procedure', req.body.evacuation_procedure);
-			mobilityUpdate.set('date_created', mobililtyExist[0]['date_created']);
-			mobilityUpdate.dbUpdate();
-		}else{
-			await mobilityImpairedModel.create({
-				'user_id' : userId,
-				'location_id' : locationId,
-				'is_permanent' : req.body.is_permanent,
-				'duration_date' : req.body.duration_date,
-				'assistant_type' : req.body.assistant_type,
-				'equipment_type' : req.body.equipment_type,
-				'evacuation_procedure' : req.body.evacuation_procedure,
-				'date_created' : moment().format('YYYY-MM-DD HH:mm:00')
-			});
-		}
+		await mobilityImpairedModel.create({
+			'user_id' : userId,
+			'is_permanent' : req.body.is_permanent,
+			'duration_date' : req.body.duration_date,
+			'assistant_type' : req.body.assistant_type,
+			'equipment_type' : req.body.equipment_type,
+			'evacuation_procedure' : req.body.evacuation_procedure,
+			'date_created' : moment().format('YYYY-MM-DD HH:mm:00')
+		});
 
 
 		res.send(response);

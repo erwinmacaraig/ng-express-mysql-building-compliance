@@ -20,7 +20,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	userData = {};
 	listData = [];
 	selectedToArchive = {
-		first_name : '', last_name : '', parent_data : {}, user_info : {}
+		first_name : '', last_name : '', parent_data : {}, locations : []
 	};
 	showModalLoader = false;
 	copyOfList = [];
@@ -42,39 +42,19 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		this.userService.getUsersByAccountId(this.userData['accountId'], (response) => {
 			this.listData = response.data;
 
-			let filterHasFTP = false,
-				filterHasTRP = false,
-				filterHasWarden = false;
-
+			let tempRoles = {};
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
-				this.listData[i]['user_id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']).toString();
-				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['location_account_user_id']).toString();
+				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']).toString();
 
-				if(parseInt(this.listData[i]['role_id']) == 1){
-					filterHasFTP = true;
-				}else if(parseInt(this.listData[i]['role_id']) == 2){
-					filterHasTRP = true;
-				}else if(parseInt(this.listData[i]['role_id']) != 1 && parseInt(this.listData[i]['role_id']) != 2){
-					filterHasWarden = true;
-				}
-			}
-
-			if(filterHasFTP){
-				this.filters.push({ name : "FRP", value : "FRP" });
-			}
-
-			if(filterHasTRP){
-				this.filters.push({ name : "TRP", value : "TRP" });
-			}
-
-			if(filterHasWarden){
-				let tempRoleName = [];
-				for(let i in this.listData){
-					if( parseInt(this.listData[i]['role_id']) != 1 && parseInt(this.listData[i]['role_id']) != 2 ){
-						if( !tempRoleName[ this.listData[i]['role_name'] ] ){
-							tempRoleName[ this.listData[i]['role_name'] ] = this.listData[i]['role_name'];
-							this.filters.push({ name : this.listData[i]['role_name'], value : this.listData[i]['role_name'] });
+				for(let r in this.listData[i]['roles']){
+					if( this.listData[i]['roles'][r]['role_name'] ){
+						if( !tempRoles[ this.listData[i]['roles'][r]['role_name'] ] ){
+							tempRoles[ this.listData[i]['roles'][r]['role_name'] ] = this.listData[i]['roles'][r]['role_name'];
+							this.filters.push({
+								value : this.listData[i]['roles'][r]['role_id'],
+								name : this.listData[i]['roles'][r]['role_name']
+							});
 						}
 					}
 				}
@@ -116,14 +96,25 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 		$('select.filter-by').on('change', () => {
 			let selected = $('select.filter-by').val();
-			$('table tbody tr').show();
 			if(parseInt(selected) != 0){
-				$('table tbody tr td.role-name').each((index, elem) => {
-					if($(elem).find('.name').text().trim() != selected){
-						$(elem).closest('tr').hide();
+				let temp = [],
+					addedIds = {};
+				for(let list of this.copyOfList){
+					let add = false;
+					for(let role of list.roles){
+						if( role.role_id == selected ){
+							add = true;
+						}
 					}
-				});
-			} 
+
+					if(add){
+						temp.push(list);
+					}
+				}
+				this.listData = temp;
+			}else{
+				this.listData = this.copyOfList;
+			}
 		});
 		
 	}
@@ -132,28 +123,16 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		$('select.sort-by').on('change', () => {
 			let selected = $('select.sort-by').val();
 			
-			if(selected == 'loc-name-asc'){
+			if(selected == 'user-name-asc'){
 				this.listData.sort((a, b) => {
-					if(a.name < b.name) return -1;
-				    if(a.name > b.name) return 1;
-				    return 0;
-				});
-			}else if(selected == 'loc-name-desc'){
-				this.listData.sort((a, b) => {
-					if(a.name > b.name) return -1;
-				    if(a.name < b.name) return 1;
-				    return 0;
-				});
-			}else if(selected == 'user-name-asc'){
-				this.listData.sort((a, b) => {
-					if(a.user_info.first_name < b.user_info.first_name) return -1;
-				    if(a.user_info.first_name > b.user_info.first_name) return 1;
+					if(a.first_name < b.first_name) return -1;
+				    if(a.first_name > b.first_name) return 1;
 				    return 0;
 				});
 			}else if(selected == 'user-name-desc'){
 				this.listData.sort((a, b) => {
-					if(a.user_info.first_name > b.user_info.first_name) return -1;
-				    if(a.user_info.first_name < b.user_info.first_name) return 1;
+					if(a.first_name > b.first_name) return -1;
+				    if(a.first_name < b.first_name) return 1;
 				    return 0;
 				});
 			}else{
@@ -170,7 +149,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			this.listData = this.copyOfList;
 		}else{
 			for(let i in this.copyOfList){
-				let name = (this.copyOfList[i]['user_info']['first_name']+' '+this.copyOfList[i]['user_info']['last_name']).toLowerCase();
+				let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase();
 				if(name.indexOf(key) > -1){
 					temp.push( this.copyOfList[i] );
 				}
@@ -200,10 +179,13 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 	archiveClick(){
 		this.showModalLoader = true;
-		this.userService.archiveLocationUser([this.selectedToArchive['location_account_user_id']], (response) => {
+		this.userService.archiveUsers([ this.selectedToArchive['user_id'] ], (response) => {
 			this.showModalLoader = false;
 			$('#modalArchive').modal('close');
 			this.dashboardService.show();
+			this.selectedToArchive = {
+				first_name : '', last_name : '', parent_data : {}, locations : []
+			};
 			this.getListData(() => { this.dashboardService.hide(); });
 		});
 	}
@@ -234,7 +216,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		}else{
 			let temp = [];
 			for(let i in this.selectedFromList){
-				if(this.selectedFromList[i]['location_account_user_id'] != list['location_account_user_id']){
+				if(this.selectedFromList[i]['user_id'] != list['user_id']){
 					temp.push( this.selectedFromList[i] );
 				}
 			}
@@ -261,13 +243,14 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		let arrIds = [];
 
 		for(let i in this.selectedFromList){
-			arrIds.push(this.selectedFromList[i]['location_account_user_id']);
+			arrIds.push(this.selectedFromList[i]['user_id']);
 		}
 
-		this.userService.archiveLocationUser(arrIds, (response) => {
+		this.userService.archiveUsers(arrIds, (response) => {
 			this.showModalLoader = false;
 			$('#modalArchiveBulk').modal('close');
 			this.dashboardService.show();
+			this.selectedFromList = [];
 			this.getListData(() => { this.dashboardService.hide(); });
 		});
 	}
