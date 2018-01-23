@@ -1,7 +1,36 @@
 .top-gray{
 	background-color: #f6f6f6;
 	padding: 20px;
-	position: relative;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+}
+
+.top-gray .upload-buttons{
+    position: absolute;
+    right: 15px;
+    top: 12px;
+}
+
+.top-gray .upload-buttons .btn{
+    font-size: 14px !important;
+}
+
+.top-gray .upload-buttons a.btn{
+    line-height: 42px;
+}
+
+.top-gray .upload-buttons .btn img{
+    vertical-align: middle;
+}
+
+.row-table-content{
+    margin-top: 5%;
+}
+
+.row-table-content table{
+    margin-top: 3%;
 }
 
 .top-gray .title{
@@ -25,6 +54,44 @@
     display: inline-block;
 }
 
+.row-table-content .progress-container{
+    width: 100%;
+    color: #fff;
+    position: relative;
+    height: 45px;
+}
+
+.row-table-content .progress-container .background{
+    background-color: #cb0d20;
+    height: 100%;
+    border-radius: 5px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+}
+
+.row-table-content .progress-container .loading{
+    background-color: #fdd835;
+    height: 100%;
+    border-radius: 5px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    min-width: 0.5%;
+}
+
+.row-table-content .progress-container p{
+    position: absolute;
+    margin: 0;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+}
+
+
 .training-icon{
 	background: url(/assets/images/compliance/training_icon.png) no-repeat;
 }
@@ -40,11 +107,6 @@
 .diagram-icon{
 	background: url(/assets/images/compliance/diagram_icon.png) no-repeat;
 }
-
-.table-container{
-	padding: 20px 30px;
-}
-
 
 table tbody{
 	font-size: 14px;
@@ -119,16 +181,17 @@ table tbody tr td.with-bar .text{
 table tbody tr td.with-bar .text,
 table tbody tr td.with-bar .progress-container{
 	display: inline-block;
-	vertical-align: middle;
+	vertical-align: text-top;
 }
 
 table tbody tr td.with-bar .progress-container{
 	width: 30%;
 }
 
-.progress-container p{
-	margin: 3px 0px;
+table tbody tr td .progress-container p{
+	margin: -1px 0px;
 	font-size: 12px;
+    color: #333;
 }
 
 table tbody tr td .progress{
@@ -149,4 +212,220 @@ table tbody tr td .progress .determinate{
     bottom: 0;
     background-color: #cb0d20;
     transition: width .3s linear;
+}
+
+table tbody tr{
+    background-color: #eee;
+    transition: all .4s;
+}
+
+table tbody tr:hover,
+table tbody tr.active{
+    background-color: #fff;
+}
+
+table tbody tr td:first-child{
+    padding-left: 15px;
+}
+
+table tbody tr td:last-child{
+    position: relative;
+}
+
+table tbody tr .arrow{
+    display: none;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 13px 8px;
+    border-color: transparent #2e2e2e transparent transparent;
+    line-height: 0px;
+    position: absolute;
+    top: 50%;
+    right: 6%;
+    margin-right: 0%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(0%, -50%);
+}
+
+table tbody tr.active .arrow{
+    display: block;
+}
+
+.compliance-title-container{
+    position: relative;
+    min-height: 100px;
+}
+
+.compliance-title-container .image{
+    width: 65px;
+    position: absolute;
+    background-image: url(/assets/images/compliance/epm_icon.png);
+    background-repeat: no-repeat;
+    height: 65px;
+    background-position: center;
+    border-radius: 40px;
+    top: 0px;
+    left: 0px;
+}
+
+.compliance-title-container .check-close{
+    position: absolute;
+    top: 40px;
+    left: 46px;
+    width: 30px;
+    height: 30px;
+    background-image: url(/assets/images/check_icon.png);
+    background-color: white;
+    border-radius: 40px;
+    border: 3px solid #fff;
+}
+
+.compliance-title-container .text{
+    position: absolute;
+    left: 90px;
+    top: 10px;
+}
+
+.compliance-title-container .text .title,
+.compliance-title-container .text .description{
+    margin: 0px;
+    font-size: 14px;
+}
+
+.compliance-title-container .text .title{
+    font-size: 20px;
+}
+
+.notes-container{
+    width: 50%;
+}
+
+.notes-container h5{
+    font-size: 18px;
+}
+
+.notes-container p{
+    font-size: 14px;
+}
+
+.documents-container{
+    margin-top: 5%;
+}
+
+.documents-container .document{
+    margin-bottom: 10px;
+}
+
+.documents-container .document .preview-container{
+    display: inline-block;
+    width: 160px;
+    height: 205px;
+    background-color: #dbdbdb;
+}
+
+.documents-container .document .text-container{
+    display: inline-block;
+    vertical-align: top;
+    margin: 0px 0px 0px 40px;
+}
+
+.documents-container .document .text-container .file-name{
+    margin-top: 0px;
+}
+
+.documents-container .document .text-container .dates{
+    margin: 20px 0px;
+}
+
+.documents-container .document .text-container .dates > div{
+    display: inline-block;
+    margin-right: 30px;
+}
+
+.documents-container .document .text-container .dates > div p{
+    margin: 0px;
+}
+
+.documents-container .document .btn{
+    font-size: 14px !important;
+}
+
+.documents-container .document a.btn{
+    line-height: 42px;
+}
+
+.switch-container{
+    margin: 20px 0px;
+}
+
+.switch-container p{
+    font-size: 14px;
+    margin: 0px;
+}
+
+
+.switch{
+    width: 110px;
+    position: relative;
+    height: 36px;
+}
+
+.switch input[type="checkbox"]{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    pointer-events: visible;
+    z-index: 4;
+    cursor: pointer;
+}
+
+.switch .background{
+    background-color: #505050;
+    border-radius: 5px;
+    padding: 5px;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+.switch .yes,
+.switch .no{
+    font-size: 14px;
+    color: #fff;
+    z-index: 3;
+    position: absolute;
+}
+
+.switch .yes{
+    top: 18%;
+    left: 16%;
+}
+
+.switch .no{
+    top: 16%;
+    right: 16%;
+}
+
+.switch .highlight{
+    position: absolute;
+    top: 14%;
+    padding: 5px;
+    border-radius: 3px;
+    background-color: #39a1ff;
+    z-index: 2;
+    height: 72%;
+    width: 35%;
+    transition: all 0.4s;
+}
+
+.switch input[type="checkbox"]:not(:checked) + .yes + .no + .highlight{
+    right: 8%;
+}
+
+.switch input[type="checkbox"]:checked + .yes + .no + .highlight{
+    right: 56%;
 }

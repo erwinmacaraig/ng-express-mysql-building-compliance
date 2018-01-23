@@ -1,29 +1,42 @@
-<div class="row">
-	<div class="col l12 m12 s12">
-		<div class="top-gray">
-			<h6 class="title">Location Compliance Name Here</h6>
+<div class="top-gray">
+	<h6 class="title">Location Compliance Name Here</h6>
+	
+	<div class="upload-buttons">
+		<button class="btn blue waves-effect waves-light">
+			<img src="/assets/images/upload_ico.png" alt="">
+			Upload Documents
+		</button>
 
-			<a href="" class="archived">
-				<span class="image"></span>
-				View Archived
-			</a>
-		</div>
+		<button class="btn orange waves-effect waves-light">
+			<img src="/assets/images/download_ico.png" alt="">
+			Download all Pack
+		</button>
 	</div>
+
+	<!-- <a href="" class="archived">
+		<span class="image"></span>
+		View Archived
+	</a> -->
 </div>
 
-<div class="row">
-	<div class="col l6 m12 s12 table-container">
-		<table class="striped table">
+<div class="row row-table-content">
+	<div class="col l5 m12 s12">
+		<div class="progress-container">
+			<div class="background"></div>
+			<div class="loading" [attr.percent]="1"></div>
+			<p>0%</p>
+		</div>
+
+		<table class="table">
 			<thead>
 				<tr>
 					<th>Compliance Item</th>
-					<th style="width: 56%;">Status</th>
-					<th style="width: 10%;">Action</th>
+					<th>Status</th>
 				</tr>
 			</thead>
 			<tbody>
 
-				<tr>
+				<tr class="active">
 					<td class="with-image">
 						<div class="image light-green training-icon"></div>
 						<span>EPM</span>
@@ -34,9 +47,8 @@
 							<p>Valid Till:</p>
 							<p class="green-text">0/00/0000</p>
 						</div>
-					</td>
-					<td>
-						<a href="javacsript:void(0)">Download</a>
+
+						<div class="arrow"></div>
 					</td>
 				</tr>
 				
@@ -51,9 +63,8 @@
 							<p>Valid Till:</p>
 							<p class="yellow-text">0/00/0000</p>
 						</div>
-					</td>
-					<td>
-						<a href="javacsript:void(0)">Download</a>
+
+						<div class="arrow"></div>
 					</td>
 				</tr>
 
@@ -68,9 +79,8 @@
 							<p>Expired:</p>
 							<p class="red-text">0/00/0000</p>
 						</div>
-					</td>
-					<td>
-						<a href="javacsript:void(0)">Download</a>
+
+						<div class="arrow"></div>
 					</td>
 				</tr>
 
@@ -85,9 +95,8 @@
 							<p>Valid Till:</p>
 							<p class="yellow-text">0/00/0000</p>
 						</div>
-					</td>
-					<td>
-						<a href="javacsript:void(0)">Download</a>
+
+						<div class="arrow"></div>
 					</td>
 				</tr>
 
@@ -104,9 +113,8 @@
 							</div>
 							<p>0/0</p>
 						</div>
-					</td>
-					<td>
-						<a href="javacsript:void(0)">Manage</a>
+
+						<div class="arrow"></div>
 					</td>
 				</tr>
 
@@ -123,9 +131,8 @@
 							</div>
 							<p>0/0</p>
 						</div>
-					</td>
-					<td>
-						<a href="javacsript:void(0)">Manage</a>
+
+						<div class="arrow"></div>
 					</td>
 				</tr>
 
@@ -140,9 +147,8 @@
 							<p>Expired:</p>
 							<p class="red-text">0/00/0000</p>
 						</div>
-					</td>
-					<td>
-						<a href="javacsript:void(0)">Manage</a>
+
+						<div class="arrow"></div>
 					</td>
 				</tr>
 
@@ -159,9 +165,8 @@
 							</div>
 							<p>0/0</p>
 						</div>
-					</td>
-					<td>
-						<a href="javacsript:void(0)">Manage</a>
+
+						<div class="arrow"></div>
 					</td>
 				</tr>
 
@@ -178,16 +183,77 @@
 							</div>
 							<p>0/0</p>
 						</div>
-					</td>
-					<td>
-						<a href="javacsript:void(0)">Manage</a>
+
+						<div class="arrow"></div>
 					</td>
 				</tr>
 
 			</tbody>
 		</table>
 	</div>
-	<div class="col l6 m12 s12">
+	<div class="col l7 m12 s12">
 		
+		<div class="compliance-title-container">
+			
+			<div class="image green darken-1"></div>
+			<div class="check-close"></div>
+
+			<div class="text">
+				<h6 class="title blue-text">Evacuation Procedures Manual</h6>
+				<p class="description">
+					The Emergency Procedures Manual provides specific procedures and guidelines for dealing with various types of emergency.
+				</p>
+			</div>
+
+		</div>
+
+		<div class="notes-container">
+			<h5>Notes:</h5>
+			<p>Luctus risus volutpat nam inventore blandit elit dolore nostrud ridiculus nonummy ullam voluptate fugit quas tellus mauris quod, adipiscing tempus asperiores laboris elementum praesentium. Nonummy quia wisi, mauris sociosqu doloribus.</p>
+		</div>
+
+		<div class="documents-container">
+			<div class="document">
+				
+				<div class="preview-container">
+						
+				</div>
+
+				<div class="text-container">
+					<h5 class="file-name">random-naming-example.fle</h5>
+
+					<div class="dates">
+						<div class="created">
+							<p>Creation Date:</p>
+							<p class="green-text">00/00/0000</p>
+						</div>
+
+						<div class="review">
+							<p>Last Review Date:</p>
+							<p class="green-text">00/00/0000</p>
+						</div>
+					</div>
+
+					<div class="buttons">
+						<button class="btn orange waves-effect waves-light">Download</button>
+						<button class="btn grey lighten-1 waves-effect waves-light">Previous Versions</button>
+					</div>
+				</div>
+
+
+				<div class="switch-container">
+					<p>Give access to TRP</p>
+					<div class="switch">
+						<input type="checkbox" id="override">
+						<div class="yes">Yes</div>
+						<div class="no">No</div>
+						<div class="highlight"></div>
+						<div class="background"></div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
 	</div>
 </div>

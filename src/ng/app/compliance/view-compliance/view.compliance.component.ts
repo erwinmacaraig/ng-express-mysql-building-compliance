@@ -34,7 +34,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	ngAfterViewInit(){
-		$('.workspace.container').css('padding', '0px');
+		$('.workspace.container').css('position', 'relative');
 	}
 
 	ngOnDestroy(){
