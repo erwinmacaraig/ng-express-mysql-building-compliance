@@ -307,7 +307,7 @@ export class TeamRoute extends BaseRoute {
       email.assignOptions({
         body : emailBody,
         to: [user_invitation_records[i]['Email']],
-        cc: ['erwin.macaraig@gmail.com']
+        cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
       });
       await email.send((result) => console.log(result),
                  (err) => console.log(err)
@@ -436,7 +436,7 @@ export class TeamRoute extends BaseRoute {
             email.assignOptions({
               body : emailBody,
               to: [p['email']],
-              cc: ['erwin.macaraig@gmail.com']
+              cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
             });
             email.send((data) => console.log(data),
                        (err) => console.log(err)
@@ -512,7 +512,7 @@ export class TeamRoute extends BaseRoute {
             email.assignOptions({
               body : emailBody,
               to: [warden['email']],
-              cc: ['erwin.macaraig@gmail.com']
+              cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
             });
             email.send((data) => console.log(data),
                        (err) => console.log(err)
@@ -795,7 +795,7 @@ export class TeamRoute extends BaseRoute {
     email.assignOptions({
       body : emailBody,
       to: [objEmail[i]],
-      cc: ['erwin.macaraig@gmail.com']
+      cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
     });
       email.send((data) => console.log(data),
                  (err) => console.log(err)
