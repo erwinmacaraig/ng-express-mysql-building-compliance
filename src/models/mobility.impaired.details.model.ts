@@ -14,7 +14,7 @@ export class MobilityImpairedModel extends BaseClass {
 
 	public load() {
 		return new Promise((resolve, reject) => {
-			const sql_load = 'SELECT * FROM mobility_impaired_details WHERE mobility_impaired_details_id = ?';
+			const sql_load = 'SELECT * FROM mobility_impaired_details WHERE mobility_impaired_details_id = ? ORDER BY date_created DESC';
 			const uid = [this.id];
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, uid, (error, results, fields) => {
@@ -31,7 +31,7 @@ export class MobilityImpairedModel extends BaseClass {
 
 	public getMany(arrWhere) {
 		return new Promise((resolve, reject) => {
-			let sql_load = 'SELECT * FROM mobility_impaired_details';
+			let sql_load = 'SELECT * FROM mobility_impaired_details ';
 
 			if(arrWhere.length){
 				let count = 0;
@@ -63,12 +63,11 @@ export class MobilityImpairedModel extends BaseClass {
 		return new Promise((resolve, reject) => {
 
 			const sql_update = `UPDATE mobility_impaired_details SET
-			user_id = ?, is_permanent = ?, location_id = ?, duration_date = ?, assistant_type = ?, equipment_type = ?, evacuation_procedure = ?, date_created = ?
+			user_id = ?, is_permanent = ?, duration_date = ?, assistant_type = ?, equipment_type = ?, evacuation_procedure = ?, date_created = ?
 			WHERE mobility_impaired_details_id = ?`;
 			const param = [
 			('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
 			('is_permanent' in this.dbData) ? this.dbData['is_permanent'] : 0,
-			('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
 			('duration_date' in this.dbData) ? this.dbData['duration_date'] : null,
 			('assistant_type' in this.dbData) ? this.dbData['assistant_type'] : null,
 			('equipment_type' in this.dbData) ? this.dbData['equipment_type'] : null,
@@ -92,11 +91,10 @@ export class MobilityImpairedModel extends BaseClass {
 	public dbInsert() {
 		return new Promise((resolve, reject) => {
 			const sql_insert = `INSERT INTO mobility_impaired_details 
-			(user_id, location_id, is_permanent, duration_date, assistant_type, equipment_type, evacuation_procedure, date_created) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?);`;
+			(user_id, is_permanent, duration_date, assistant_type, equipment_type, evacuation_procedure, date_created) 
+			VALUES (?, ?, ?, ?, ?, ?, ?);`;
 			const param = [
 			('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
-			('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
 			('is_permanent' in this.dbData) ? this.dbData['is_permanent'] : 0,
 			('duration_date' in this.dbData) ? this.dbData['duration_date'] : null,
 			('assistant_type' in this.dbData) ? this.dbData['assistant_type'] : null,

@@ -204,3 +204,7 @@ ng-datepicker .ngx-datepicker-input{
     border: 0px !important;
     border-bottom: 1px solid #a9a9a9 !important;
 }
+
+table thead tr th .checkbox label {
+    color: #fff;
+}

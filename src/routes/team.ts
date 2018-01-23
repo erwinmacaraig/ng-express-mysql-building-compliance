@@ -8,6 +8,8 @@ import * as path from 'path';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { Token } from '../models/token.model';
 import { FileUploader } from '../models/upload-file';
+import { FileUser } from '../models/file.user.model';
+import { Files } from '../models/files.model';
 import { Utils } from './../models/utils.model';
 import {EmailSender} from './../models/email.sender';
 const validator = require('validator');
@@ -109,7 +111,7 @@ export class TeamRoute extends BaseRoute {
     });
 
     router.get('/team/list/archived-wardens', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-      new TeamRoute().buildArchivedWardenList(req, res).then((data) => {
+      new TeamRoute().buildWardenList(req, res, 1).then((data) => {
         return res.status(200).send(data);
       }).catch((err) => {
         return res.status(400).send({
@@ -812,7 +814,140 @@ export class TeamRoute extends BaseRoute {
     }
   }
 
-  public async buildWardenList(req: AuthRequest, res: Response, archived?) {
+  public async buildWardenList(req: AuthRequest, res: Response, archived?){
+      let accountId = req['user']['account_id'],
+            userID = req['user']['user_id'],
+            locationAccountUser = new LocationAccountUser(),
+            response = {
+                data : <any>[],
+                status : false,
+                message : ''
+            },
+            allParents = [],
+            allUsersModel = new User(),
+            allUsers = <any>[],
+            allUsersIds = [],
+            emRolesModel = new UserEmRoleRelation(),
+            emRoles = await emRolesModel.getEmRoles(),
+            emRolesIndexedId = {};
+
+        if(!archived){ archived = 0; }
+
+        allUsers = await allUsersModel.getByAccountId(accountId, archived);
+
+        for(let user of allUsers){
+            allUsersIds.push(user.user_id);
+            let filesModel = new Files();
+            try{
+                let profRec = await filesModel.getByUserIdAndType( user.user_id, 'profile' );
+                user['profile_pic'] = profRec[0]['url'];
+            }catch(e){
+                user['profile_pic'] = '';
+            }
+        }
+
+        let allowedRoleIds = [0];
+        for(let i in emRoles){
+            allowedRoleIds.push(emRoles[i]['em_roles_id']);
+            emRolesIndexedId[ emRoles[i]['em_roles_id'] ] = emRoles[i];
+        }
+
+        let sqlInLocation = ` (
+              SELECT
+                locations.location_id
+              FROM
+                locations
+              INNER JOIN
+                location_account_user LAU
+              ON
+                locations.location_id = LAU.location_id
+              WHERE
+                LAU.account_id = ${accountId}
+              AND
+                locations.archived = 0
+              AND
+                LAU.user_id = ${userID}
+              AND LAU.archived = 0
+              GROUP BY
+                locations.location_id
+              ORDER BY
+                locations.location_id
+            )`;
+
+        let arrWhere = [];
+            arrWhere.push( ["account_id = "+accountId ] );
+            arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
+            arrWhere.push( ["lau.role_id IN ("+allowedRoleIds.join(',')+")" ] );
+
+        let locations = await locationAccountUser.getMany(arrWhere);
+
+        response['locations'] = locations;
+
+        let allowedUsersId = [];
+        for(let i in locations){
+            if( allowedUsersId.indexOf( locations[i]['user_id'] ) == -1  ){
+                allowedUsersId.push(locations[i]['user_id']);
+            }
+        }
+
+        let toSendData = [];
+        for(let user of allUsers){
+            if( allowedUsersId.indexOf(user.user_id) > -1 ){
+                user['locations'] = <any>[];
+                for(let l in locations){
+                    if( 
+                        ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )  
+                        && locations[l]['user_id'] == user.user_id
+                        ){
+                        user['locations'].push(locations[l]);
+                    }
+                }
+                toSendData.push(user);
+            }
+        }
+
+        for(let user of toSendData){
+            let locs = user.locations;
+            user['roles'] = [];
+            let tempUserRoles = {};
+            
+            for(let loc of locs){
+                let roleName = 'General Occupant',
+                    roleId = 8;
+
+                if( emRolesIndexedId[ loc.location_role_id ] ){
+                    roleName = emRolesIndexedId[ loc.location_role_id ]['role_name'];
+                    roleId = loc.location_role_id;
+                }else if( emRolesIndexedId[ loc.em_roles_id ] ){
+                    roleName = emRolesIndexedId[ loc.em_roles_id ]['role_name'];
+                    roleId = loc.em_roles_id;
+                }
+
+                if(!tempUserRoles[roleId]){
+                    tempUserRoles[roleId] = roleId;
+                    user['roles'].push({
+                        role_name : roleName, role_id : roleId
+                    });
+                }
+            }
+
+            user['training_applicable'] = true;
+            for(let role of user['roles']){
+                if(role.em_roles_id == 12 || role.em_roles_id == 13){
+                    if(user['roles'].length == 1){
+                        user['training_applicable'] = false;
+                    }
+                }
+            }
+        }
+
+        response.data = toSendData;
+        response.status = true;
+        res.statusCode = 200;
+        res.send(response);
+  }
+
+  /*public async buildWardenList(req: AuthRequest, res: Response, archived?) {
 
     // get all parent locations associated with this account
     const accountId = req.user.account_id;
@@ -880,61 +1015,176 @@ export class TeamRoute extends BaseRoute {
     }
 
     return newWardenResponse;
-  }
+  }*/
 
-  public async buildArchivedWardenList(req: AuthRequest, res: Response){
-    let accountId = req.user.account_id,
-      locationAccountUser = new LocationAccountUser(),
-      response = {
-        data : <any>[],
-        status : false,
-        message : ''
-      },
-      allParents = [];
+  public async buildPEEPList(req: AuthRequest, res:Response, archived?){
+      let accountId = req['user']['account_id'],
+        userID = req['user']['user_id'],
+        locationAccountUser = new LocationAccountUser(),
+        response = {
+            data : <any>[],
+            status : false,
+            message : ''
+        },
+        allParents = [],
+        allUsersModel = new User(),
+        allUsers = <any>[],
+        allUsersIds = [],
+        emRolesModel = new UserEmRoleRelation(),
+        emRoles = await emRolesModel.getEmRoles(),
+        emRolesIndexedId = {};
 
-    let arrWhere = [];
-      arrWhere.push( ["account_id = "+accountId ] );
-      arrWhere.push( ["archived = "+1 ] );
-      arrWhere.push( [" er.em_roles_id IS NOT NULL  " ] );
-    let wardens = await locationAccountUser.getMany(arrWhere);
-    let newWardensResult = [];
-    for(let l in wardens){
-      wardens[l]['profile_pic'] = '';
-      if(wardens[l]['last_login']){
-        wardens[l]['last_login'] = moment(wardens[l]['last_login'], ["YYYY-MM-DD HH:mm:ss"]).format("MMM. DD, YYYY hh:mmA");
-      }
-      let userModel = new User(wardens[l]['user_id']);
-      let parentLocation = new Location(wardens[l]['parent_id']);
+    if(!archived){ archived = 0; }
 
-      if(allParents.indexOf(wardens[l]['parent_id']) == -1){
-        await parentLocation.load().then(() => {
-          allParents[ wardens[l]['parent_id'] ] = parentLocation.getDBData();
-          wardens[l]['parent_name'] = parentLocation.get('name');
-        }, () => {
-          wardens[l]['parent_name'] = '';
-        });
-      }else{
-        wardens[l]['parent_name'] = allParents[ wardens[l]['parent_id'] ]['name'];
-      }
+    allUsers = await allUsersModel.getImpairedByAccountId(accountId, archived);
 
-      wardens[l]['mobility_impaired'] = 0;
-      await userModel.load().then(()=>{
-        wardens[l]['first_name'] = userModel.get('first_name');
-        wardens[l]['last_name'] = userModel.get('last_name');
-        wardens[l]['mobility_impaired'] = userModel.get('mobility_impaired');
-        wardens[l]['last_login'] = moment(userModel.get('last_login'), ["YYYY-MM-DD HH:mm:ss"]).format("MMM. DD, YYYY hh:mmA");
-      },()=>{
-        wardens[l]['first_name'] = '';
-        wardens[l]['last_name'] = '';
-      });
-
-      newWardensResult.push(wardens[l]);
-
+    for(let user of allUsers){
+        allUsersIds.push(user.user_id);
+        let filesModel = new Files();
+        try{
+            let profRec = await filesModel.getByUserIdAndType( user.user_id, 'profile' );
+            user['profile_pic'] = profRec[0]['url'];
+        }catch(e){
+            user['profile_pic'] = '';
+        }
     }
 
-    return newWardensResult;
+    let allowedRoleIds = [0,1,2];
+    for(let i in emRoles){
+        allowedRoleIds.push(emRoles[i]['em_roles_id']);
+        emRolesIndexedId[ emRoles[i]['em_roles_id'] ] = emRoles[i];
+    }
+
+    let sqlInLocation = ` (
+          SELECT
+            locations.location_id
+          FROM
+            locations
+          INNER JOIN
+            location_account_user LAU
+          ON
+            locations.location_id = LAU.location_id
+          WHERE
+            LAU.account_id = ${accountId}
+          AND
+            locations.archived = 0
+          AND
+            LAU.user_id = ${userID}
+          AND LAU.archived = 0
+          GROUP BY
+            locations.location_id
+          ORDER BY
+            locations.location_id
+        )`;
+
+    let arrWhere = [];
+        arrWhere.push( ["account_id = "+accountId ] );
+        arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
+        arrWhere.push( ["lau.role_id IN ("+allowedRoleIds.join(',')+")" ] );
+
+    let locations = await locationAccountUser.getMany(arrWhere);
+
+    response['locations'] = locations;
+
+    let allowedUsersId = [];
+    for(let i in locations){
+        if( allowedUsersId.indexOf( locations[i]['user_id'] ) == -1  ){
+            allowedUsersId.push(locations[i]['user_id']);
+        }
+    }
+
+    let toSendData = [];
+    for(let user of allUsers){
+        if( allowedUsersId.indexOf(user.user_id) > -1 ){
+            user['locations'] = <any>[];
+            for(let l in locations){
+                if( 
+                    ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )  
+                    && locations[l]['user_id'] == user.user_id
+                    ){
+                    user['locations'].push(locations[l]);
+                }
+            }
+            toSendData.push(user);
+        }
+    }
+
+    for(let user of toSendData){
+        let locs = user.locations,
+          tempUserRoles = {},
+          arrWhere = [];
+
+        user['roles'] = [];
+        arrWhere.push( "user_id = "+user["user_id"] );
+        arrWhere.push( "duration_date > NOW()" );
+
+        user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
+        for(let userMobil of user.mobility_impaired_details){
+          userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+        }
+
+        for(let loc of locs){
+            let roleName = 'General Occupant',
+                roleId = 8;
+
+            if( emRolesIndexedId[ loc.location_role_id ] ){
+                roleName = emRolesIndexedId[ loc.location_role_id ]['role_name'];
+                roleId = loc.location_role_id;
+            }else if( emRolesIndexedId[ loc.em_roles_id ] ){
+                roleName = emRolesIndexedId[ loc.em_roles_id ]['role_name'];
+                roleId = loc.em_roles_id;
+            }
+
+            if(!tempUserRoles[roleId]){
+                tempUserRoles[roleId] = roleId;
+                user['roles'].push({
+                    role_name : roleName, role_id : roleId
+                });
+            }
+        }
+
+        user['training_applicable'] = true;
+        for(let role of user['roles']){
+            if(role.em_roles_id == 12 || role.em_roles_id == 13){
+                if(user['roles'].length == 1){
+                    user['training_applicable'] = false;
+                }
+            }
+        }
+    }
+
+    if(!archived){
+      let userInviModel = new UserInvitation(),
+        whereInvi = [];
+
+      whereInvi.push([ 'account_id = '+accountId ]);
+      whereInvi.push([ 'mobility_impaired = 1' ]);
+      whereInvi.push([ 'was_used = 0' ]);
+
+      try{
+        let usersInvited:any = await userInviModel.getWhere(whereInvi);
+        for(let user of usersInvited){
+          user['locations'] = [];
+          user['profile_pic'] = '';
+          user['mobility_impaired_details'] = [];
+          user.locations.push({
+            location_id : user.location_id,
+            name : user.location_name,
+            parent_name : user.parent_name
+          });
+          toSendData.push(user);
+        }
+      }catch(e){}
+    }
+
+
+    response.data = toSendData;
+    response.status = true;
+    res.statusCode = 200;
+    res.send(response);
   }
 
+  /**
   public async buildPEEPList(req: AuthRequest, res: Response, archived?) {
     const account = new Account(req.user.account_id);
     const result = await account.buildPEEPList(req.user.account_id, req.user.user_id, archived);
@@ -994,6 +1244,7 @@ export class TeamRoute extends BaseRoute {
     return newPeep;
 
   }
+  */
 
 
 }

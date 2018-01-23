@@ -54,8 +54,26 @@ export class UserService {
 		});
 	}
 
-	getUserLocationTrainingsEcoRoles(locationAcoountUserId, callBack){
-		this.http.get(this.baseUrl+"/users/get-user-locations-trainings-ecoroles/"+locationAcoountUserId)
+	getUserLocationTrainingsEcoRoles(userId, callBack){
+		this.http.get(this.baseUrl+"/users/get-user-locations-trainings-ecoroles/"+userId)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	archiveUsers(userIds, callBack){
+		this.http.post(this.baseUrl+"/users/archive-users", { user_ids : userIds })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	unArchiveUsers(userIds, callBack){
+		this.http.post(this.baseUrl+"/users/unarchive-users", { user_ids : userIds })
 		.subscribe(res => {
 			callBack(res);
 		}, err => {
