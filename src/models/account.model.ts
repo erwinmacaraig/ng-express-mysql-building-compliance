@@ -275,8 +275,10 @@ export class Account extends BaseClass {
         });
     }
 
-    public buildWardenList(user_id: number, locAccUserArchived?) {
+    public buildWardenList(user_id: number, archived?) {
       return new Promise((resolve, reject) => {
+        if(!archived){ archived = 0; }
+
         const sql_warden_list = `
         SELECT
           users.user_id,
@@ -323,7 +325,9 @@ export class Account extends BaseClass {
           GROUP BY
             locations.location_id
           ORDER BY
-            locations.location_id)`;
+            locations.location_id)
+        AND users.archived = ${archived}
+        `;
 
         const connection = db.createConnection(dbconfig);
         connection.query(sql_warden_list, [this.ID(), user_id], (err, results, fields) => {

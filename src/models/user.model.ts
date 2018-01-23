@@ -304,10 +304,32 @@ export class User extends BaseClass {
         });
     }
 
-    public getByAccountId(accountId) {
+    public getByAccountId(accountId, archived?) {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = 0';
-            const param = [accountId];
+            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ?';
+            if(!archived){
+                archived = 0;
+            }
+            const param = [accountId, archived];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
+    public getImpairedByAccountId(accountId, archived?) {
+        return new Promise((resolve, reject) => {
+            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? AND mobility_impaired = 1';
+            if(!archived){
+                archived = 0;
+            }
+            const param = [accountId, archived];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
                 if (error) {

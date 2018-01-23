@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -9,22 +9,45 @@ import { AuthService } from '../../services/auth.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { UserService } from '../../services/users';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { DatepickerOptions } from 'ng2-datepicker';
+import * as enLocale from 'date-fns/locale/en';
+import * as moment from 'moment';
 
 declare var $: any;
 @Component({
-    selector: 'app-mobility-impaired-archived',
+    selector: 'app-archived-mobility-impaired',
     templateUrl: './mobility.impaired.archived.component.html',
     styleUrls: ['./mobility.impaired.archived.component.css'],
-    providers : [EncryptDecryptService, UserService, DashboardPreloaderService]
+    providers : [EncryptDecryptService, UserService, DashboardPreloaderService],
+    host: {
+        '(document:click)': 'onClick($event)'
+    }
 })
 export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
     public peepList = <any>[];
+    @ViewChild("durationDate") durationDate: ElementRef;
+    @ViewChild("formMobility") formMobility: NgForm;
 
     copyOfList = [];
     userData = {};
     showModalLoader = false;
-    selectedToArchive = {};
+    selectedToArchive = {
+        first_name : '', last_name : '', parent_data : {}, locations : []
+    };
     selectedFromList = [];
+
+    options: DatepickerOptions = {
+        locale: enLocale,
+        displayFormat: 'MMM D[,] YYYY',
+        minDate: new Date(Date.now()),
+        maxDate: new Date(Date.now())
+    };
+
+    datepickerModel : Date;
+    isShowDatepicker = false;
+    datepickerModelFormatted = '';
+    selectedPeep = {};
+
     constructor(
         private authService : AuthService,
         private router : Router,
@@ -34,21 +57,29 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
         private dashboardService : DashboardPreloaderService,
         private locationService: LocationsService
         ) {
-
+        this.datepickerModel = new Date();
+        this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
     }
 
     ngOnInit(){
-        this.dataProvider.buildArchivedPeepList().subscribe((peep) => {
+        this.dataProvider.buildArchivedPeepList().subscribe((response) => {
 
+            let tempRoles = {},
+                peep = response['data'];
             for(let i in peep){
                 peep[i]['bg_class'] = this.generateRandomBGClass();
-                if(peep[i]['location_account_user_id']){
-                    peep[i]['id_encrypted'] = this.encDecrService.encrypt(peep[i]['location_account_user_id']).toString();
+                if(peep[i]['user_id']){
+                    peep[i]['id_encrypted'] = this.encDecrService.encrypt(peep[i]['user_id']).toString();
+                    peep[i]['last_login'] = moment(peep[i]['last_login']).format('MMM. DD, YYYY hh:mmA');
                 }
             }
             this.peepList = peep;
             this.copyOfList = JSON.parse(JSON.stringify(peep));
-            this.dashboardService.hide();
+
+            setTimeout(() => {
+                $('.row.filter-container select').material_select();
+                this.dashboardService.hide();
+            }, 500);
         }, (err: HttpErrorResponse) => {});
     }
 
@@ -60,8 +91,16 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
         $('select').material_select();
         this.filterByEvent();
         this.sortByEvent();
-        this.dashboardService.show();
         this.bulkManageActionEvent();
+
+        $('#modalMobility select[name="is_permanent"]').on('change', () => {
+            if($('#modalMobility select[name="is_permanent"]').val() == '1'){
+                this.isShowDatepicker = false;
+                $('#durationDate').prop('disabled', true);
+            }else{
+                $('#durationDate').prop('disabled', false);
+            }
+        });
     }
 
     generateRandomBGClass(){
@@ -161,21 +200,21 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(){}
 
-    onSelectFromTable(event, warden){
+    onSelectFromTable(event, peep){
         let selected = event.target.value;
         if(selected == 'view'){
-            this.router.navigate(["/teams/view-user/", warden.id_encrypted]);
+            this.router.navigate(["/teams/view-user/", peep.id_encrypted]);
         }else{
             event.target.value = "0";
             this.showModalLoader = false;
-            this.selectedToArchive = warden;
+            this.selectedToArchive = peep;
             $('#modalArchive').modal('open');
         }
     }
 
     unArchiveClick(){
         this.showModalLoader = true;
-        this.userService.unArchiveLocationUser([this.selectedToArchive['location_account_user_id']], (response) => {
+        this.userService.unArchiveUsers([this.selectedToArchive['user_id']], (response) => {
             this.showModalLoader = false;
             $('#modalArchive').modal('close');
             this.dashboardService.show();
@@ -205,13 +244,13 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
     singleCheckboxChangeEvent(list, event){
         let copy = JSON.parse(JSON.stringify(this.selectedFromList));
         if(event.target.checked){
-            if(list.location_account_user_id){
+            if(list.user_id){
                 this.selectedFromList.push(list);
             }
         }else{
             let temp = [];
             for(let i in this.selectedFromList){
-                if(this.selectedFromList[i]['location_account_user_id'] != list['location_account_user_id']){
+                if(this.selectedFromList[i]['user_id'] != list['user_id']){
                     temp.push( this.selectedFromList[i] );
                 }
             }
@@ -238,14 +277,77 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
         let arrIds = [];
 
         for(let i in this.selectedFromList){
-            arrIds.push(this.selectedFromList[i]['location_account_user_id']);
+            arrIds.push(this.selectedFromList[i]['user_id']);
         }
 
-        this.userService.unArchiveLocationUser(arrIds, (response) => {
+        this.userService.unArchiveUsers(arrIds, (response) => {
             this.showModalLoader = false;
             $('#modalArchiveBulk').modal('close');
             this.dashboardService.show();
             this.ngOnInit();
         });
+    }
+
+    clickShowPeepInfo(peep){
+        for(let i in peep['mobility_impaired_details'][0]){
+            if( this.formMobility.controls[i] ){
+                this.formMobility.controls[i].setValue(peep['mobility_impaired_details'][0][i]);
+            }
+        }
+
+        this.datepickerModel = moment(peep['mobility_impaired_details'][0]['duration_date'], ['YYYY-MM-DD']).toDate();
+        this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+
+        $('#modalMobility').modal('open');
+    }
+
+    clickCompletePeepInfo(peep){
+        $('#modalMobility').modal('open');
+        this.selectedPeep = peep;
+        this.formMobility.reset();
+    }
+
+    onChangeDatePicker(event){
+        if(!moment(this.datepickerModel).isValid()){
+            this.datepickerModel = new Date();
+            this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+        }else{
+            this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+        }
+        this.isShowDatepicker = false;
+    }
+
+    onClick(event){
+        // if(event.target == this.durationDate.nativeElement){
+        //   this.isShowDatepicker = true;
+        // }else if ( !this.durationDate.nativeElement.contains(event.target)  ) {
+        //   this.isShowDatepicker = false;
+        // }
+    }
+
+    showDatePicker(){
+        this.isShowDatepicker = true;
+    }
+
+    modalPeepFormSubmit(f, event){
+        event.preventDefault();
+
+        if(f.valid){
+            let paramData = JSON.parse(JSON.stringify(f.value));
+            paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
+            paramData['user_id'] = this.selectedPeep['user_id'];
+            paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
+
+            this.showModalLoader = true;
+
+            this.userService.sendMobilityImpaireInformation(paramData, (response) => {
+
+                this.ngOnInit();
+                f.reset();
+                $('#modalMobility').modal('close');
+                this.showModalLoader = false;
+
+            });
+        }
     }
 }

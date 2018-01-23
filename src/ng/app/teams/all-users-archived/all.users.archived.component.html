@@ -22,8 +22,6 @@
 	<div class="col l2 m6 s6">
 		<select class="sort-by">
 			<option value="0" selected>Sort By</option>
-			<option value="loc-name-desc">Location Name Descending</option>
-			<option value="loc-name-asc">Location Name Ascending</option>
 			<option value="user-name-desc">User Name Descending</option>
 			<option value="user-name-asc">User Name Ascending</option>
 		</select>
@@ -47,13 +45,12 @@
 					<th>
 						<p class="checkbox">
 							<input id="allSelect" (change)="selectAllCheckboxEvent($event)" class="filled-in" type="checkbox">
-							<label for="allSelect"></label>
+							<label for="allSelect">Locations</label>
 						</p>
-						Locations
 					</th>
 					<th>Name</th>
 					<th>Email</th>
-					<th>Mobile</th>
+					<th>Contact Information</th>
 					<th>Role</th>
 					<th>Training</th>
 					<th>Action</th>
@@ -67,29 +64,37 @@
 				</tr>
 				<tr *ngFor="let list of listData; let i = index;" [attr.index]="i">
 					<td>
-						<p class="checkbox">
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)">
-							<label for="location-{{i}}" > 
-								<span *ngIf="list.parent_data.name">{{ list.parent_data.name }}, </span> 
-								{{list.name}} 
+						<p class="checkbox" >
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)"  >
+							<label for="location-{{i}}" >
+								<span *ngIf="list.locations.length > 1">Multiple locations</span>
+								<span *ngIf="list.locations.length == 1">
+									<span *ngIf="list.locations[0].parent_name.trim().length > 0">{{ list.locations[0].parent_name }}, </span>
+									{{list.locations[0].name}}
+								</span>
 							</label>
 						</p>
 					</td>
 					<td>
 						<div class="image-container lighten-3" [ngClass]="list.bg_class">
 							<div class="image">
-								<!-- <img src="assets/images/locations/default_profile_location.png"  > -->
+								<img *ngIf="list.profile_pic.trim().length > 0" [src]="list.profile_pic.trim()"  >
 							</div>
 						</div>
 						<div class="text">
 							<a [routerLink]="['/teams/view-user/', list.id_encrypted]">
-								{{list.user_info.first_name}} {{list.user_info.last_name}}
+								{{list.first_name}} {{list.last_name}}
 							</a>
 						</div>
 					</td>
-					<td>{{list.user_info.email}}</td>
-					<td>{{list.user_info.mobile_number}}</td>
+					<td>{{list.email}}</td>
+					<td>{{list.mobile_number}}</td>
 					<td class="with-image role-name">
+						<div *ngIf="list.mobility_impaired == 1" class="impaired"></div>
+						<span *ngFor="let role of list.roles; let ri = index;" class="name">
+							{{role.role_name}}<i *ngIf=" list.roles.length - 1 != ri ">,</i> 
+						</span>
+						<!-- 
 						<div class="image frp" *ngIf="list.role_id == 1 && list.user_info.mobility_impaired == 0"></div>
 						<div class="image trp" *ngIf="list.role_id == 2 && list.user_info.mobility_impaired == 0"></div>
 						<div class="image user" *ngIf="list.role_id != 1 && list.role_id != 2 && list.user_info.mobility_impaired == 0"></div>
@@ -100,6 +105,7 @@
 						<span *ngIf="list.role_id != 1 && list.role_id != 2 && list.role_name"  class="name" >
 							{{list.role_name}}
 						</span>
+						-->
 					</td>
 					<td>
 						<span class="red-text">0/0</span>
@@ -137,11 +143,12 @@
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
 			Are you sure you want to restore 
-			<span *ngIf="selectedToArchive.parent_data.name">
-				{{ selectedToArchive.parent_data.name }}, 
-			</span> 
-			<span>{{selectedToArchive.name}} </span>
-			<span class="blue-text">{{selectedToArchive.user_info.first_name}} {{selectedToArchive.user_info.last_name}}</span>
+			<span *ngIf="selectedToArchive.locations.length > 1">Multiple locations</span>
+			<span *ngIf="selectedToArchive.locations.length == 1">
+				<span *ngIf="selectedToArchive.locations[0].parent_name.trim().length > 0">{{ selectedToArchive.locations[0].parent_name }}, </span>
+				{{selectedToArchive.locations[0].name}}
+			</span>
+			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
@@ -172,9 +179,12 @@
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
-				<span *ngIf="list.parent_data.name">{{ list.parent_data.name }}, </span> 
-				<span>{{list.name}}</span> 
-				<span class="blue-text">{{list.user_info.first_name}} {{list.user_info.last_name}}</span>
+				<span *ngIf="list.locations.length > 1">Multiple locations</span>
+				<span *ngIf="list.locations.length == 1">
+					<span *ngIf="list.locations[0].parent_name.trim().length > 0">{{ list.locations[0].parent_name }}, </span>
+					{{list.locations[0].name}}
+				</span>
+				<span class="blue-text">{{list.first_name}} {{list.last_name}}</span>
 			</li>
 		</ul>
 	</div>

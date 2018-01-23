@@ -26,11 +26,14 @@ declare var $: any;
 export class MobilityImpairedComponent implements OnInit, OnDestroy {
     public peepList = <any>[];
     @ViewChild("durationDate") durationDate: ElementRef;
+    @ViewChild("formMobility") formMobility: NgForm;
 
     copyOfList = [];
     userData = {};
     showModalLoader = false;
-    selectedToArchive = {};
+    selectedToArchive = {
+        first_name : '', last_name : '', parent_data : {}, locations : []
+    };
     selectedFromList = [];
 
     options: DatepickerOptions = {
@@ -59,17 +62,24 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(){
-        this.dataProvider.buildPeepList().subscribe((peep) => {
+        this.dataProvider.buildPeepList().subscribe((response) => {
 
+            let tempRoles = {},
+                peep = response['data'];
             for(let i in peep){
                 peep[i]['bg_class'] = this.generateRandomBGClass();
-                if(peep[i]['location_account_user_id']){
-                    peep[i]['id_encrypted'] = this.encDecrService.encrypt(peep[i]['location_account_user_id']).toString();
+                if(peep[i]['user_id']){
+                    peep[i]['id_encrypted'] = this.encDecrService.encrypt(peep[i]['user_id']).toString();
+                    peep[i]['last_login'] = moment(peep[i]['last_login']).format('MMM. DD, YYYY hh:mmA');
                 }
             }
             this.peepList = peep;
             this.copyOfList = JSON.parse(JSON.stringify(peep));
-            this.dashboardService.hide();
+
+            setTimeout(() => {
+                $('.row.filter-container select').material_select();
+                this.dashboardService.hide();
+            }, 500);
         }, (err: HttpErrorResponse) => {});
     }
 
@@ -81,7 +91,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         $('select').material_select();
         this.filterByEvent();
         this.sortByEvent();
-        this.dashboardService.show();
         this.bulkManageActionEvent();
 
         $('#modalMobility select[name="is_permanent"]').on('change', () => {
@@ -191,21 +200,21 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(){}
 
-    onSelectFromTable(event, warden){
+    onSelectFromTable(event, peep){
         let selected = event.target.value;
         if(selected == 'view'){
-            this.router.navigate(["/teams/view-user/", warden.id_encrypted]);
+            this.router.navigate(["/teams/view-user/", peep.id_encrypted]);
         }else{
             event.target.value = "0";
             this.showModalLoader = false;
-            this.selectedToArchive = warden;
+            this.selectedToArchive = peep;
             $('#modalArchive').modal('open');
         }
     }
 
     archiveClick(){
         this.showModalLoader = true;
-        this.userService.archiveLocationUser([this.selectedToArchive['location_account_user_id']], (response) => {
+        this.userService.archiveUsers([this.selectedToArchive['user_id']], (response) => {
             this.showModalLoader = false;
             $('#modalArchive').modal('close');
             this.dashboardService.show();
@@ -235,13 +244,13 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     singleCheckboxChangeEvent(list, event){
         let copy = JSON.parse(JSON.stringify(this.selectedFromList));
         if(event.target.checked){
-            if(list.location_account_user_id){
+            if(list.user_id){
                 this.selectedFromList.push(list);
             }
         }else{
             let temp = [];
             for(let i in this.selectedFromList){
-                if(this.selectedFromList[i]['location_account_user_id'] != list['location_account_user_id']){
+                if(this.selectedFromList[i]['user_id'] != list['user_id']){
                     temp.push( this.selectedFromList[i] );
                 }
             }
@@ -268,10 +277,10 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         let arrIds = [];
 
         for(let i in this.selectedFromList){
-            arrIds.push(this.selectedFromList[i]['location_account_user_id']);
+            arrIds.push(this.selectedFromList[i]['user_id']);
         }
 
-        this.userService.archiveLocationUser(arrIds, (response) => {
+        this.userService.archiveUsers(arrIds, (response) => {
             this.showModalLoader = false;
             $('#modalArchiveBulk').modal('close');
             this.dashboardService.show();
@@ -279,13 +288,26 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         });
     }
 
+    clickShowPeepInfo(peep){
+        for(let i in peep['mobility_impaired_details'][0]){
+            if( this.formMobility.controls[i] ){
+                this.formMobility.controls[i].setValue(peep['mobility_impaired_details'][0][i]);
+            }
+        }
+
+        this.datepickerModel = moment(peep['mobility_impaired_details'][0]['duration_date'], ['YYYY-MM-DD']).toDate();
+        this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+
+        $('#modalMobility').modal('open');
+    }
+
     clickCompletePeepInfo(peep){
         $('#modalMobility').modal('open');
         this.selectedPeep = peep;
+        this.formMobility.reset();
     }
 
     onChangeDatePicker(event){
-        console.log(event);
         if(!moment(this.datepickerModel).isValid()){
             this.datepickerModel = new Date();
             this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
@@ -313,7 +335,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         if(f.valid){
             let paramData = JSON.parse(JSON.stringify(f.value));
             paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
-            paramData['location_id'] = this.selectedPeep['location_id'];
             paramData['user_id'] = this.selectedPeep['user_id'];
             paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
 

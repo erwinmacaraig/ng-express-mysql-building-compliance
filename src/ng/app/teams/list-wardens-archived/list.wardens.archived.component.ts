@@ -3,11 +3,13 @@ import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse }
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
-import { UserService } from '../../services/users';
-import { AuthService } from '../../services/auth.service';
-import { DashboardPreloaderService } from '../../services/dashboard.preloader';
-import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { LocationsService } from './../../services/locations';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
+import { AuthService } from '../../services/auth.service';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { UserService } from '../../services/users';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import * as moment from 'moment';
 
 declare var $: any;
 @Component({
@@ -21,7 +23,7 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 	userData = {};
 	wardenArr = <any>[];
 	selectedToArchive = {
-		first_name : '', last_name : '', parent_data : {}, user_info : {}
+		first_name : '', last_name : '', parent_data : {}, locations : []
 	};
 	showModalLoader = false;
 	copyOfList = [];
@@ -41,23 +43,29 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 	}
 
 	getwardenArr(callBack?){
-		this.dataProvider.buildArchivedWardenList().subscribe((data) => {
-			this.wardenArr = data;
-			for(let i in this.wardenArr){
-				this.wardenArr[i]['bg_class'] = this.generateRandomBGClass();
-				this.wardenArr[i]['id_encrypted'] = this.encDecrService.encrypt(this.wardenArr[i]['location_account_user_id']).toString();
-			}
+		this.dataProvider.buildArchivedWardenList().subscribe((response) => {
+			let data = response['data'],
+		        tempRoles = {};
 
-			let tempRoleName = [];
-			for(let i in data){
-				if( parseInt(data[i]['role_id']) != 1 && parseInt(data[i]['role_id']) != 2 ){
-					if( !tempRoleName[ data[i]['role_name'] ] ){
-					  tempRoleName[ data[i]['role_name'] ] = data[i]['role_name'];
-					  this.filters.push({ name : data[i]['role_name'], value : data[i]['role_name'] });
-					}
-				}
-			}
+		      for(let i in data){
+		        data[i]['bg_class'] = this.generateRandomBGClass();
+		        data[i]['id_encrypted'] = this.encDecrService.encrypt(data[i]['user_id']).toString();
+		        data[i]['last_login'] = moment(data[i]['last_login']).format('MMM. DD, YYYY hh:mmA');
 
+		        for(let r in data[i]['roles']){
+		          if( data[i]['roles'][r]['role_name'] ){
+		            if( !tempRoles[ data[i]['roles'][r]['role_name'] ] ){
+		              tempRoles[ data[i]['roles'][r]['role_name'] ] = data[i]['roles'][r]['role_name'];
+		              this.filters.push({
+		                value : data[i]['roles'][r]['role_id'],
+		                name : data[i]['roles'][r]['role_name']
+		              });
+		            }
+		          }
+		        }
+		      }
+
+		    this.wardenArr = data;
 			this.copyOfList = JSON.parse( JSON.stringify(this.wardenArr) );
 			if(callBack){
 				callBack();
@@ -93,16 +101,27 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 	filterByEvent(){
 
 		$('select.filter-by').on('change', () => {
-			let selected = $('select.filter-by').val();
-			$('table tbody tr').show();
-			if(parseInt(selected) != 0){
-				$('table tbody tr td.role-name').each((index, elem) => {
-				  if($(elem).find('.name').text().trim() != selected){
-				    $(elem).closest('tr').hide();
-				  }
-				});
-			} 
-		});
+	      let selected = $('select.filter-by').val();
+	      if(parseInt(selected) != 0){
+	        let temp = [],
+	          addedIds = {};
+	        for(let list of this.copyOfList){
+	          let add = false;
+	          for(let role of list.roles){
+	            if( role.role_id == selected ){
+	              add = true;
+	            }
+	          }
+
+	          if(add){
+	            temp.push(list);
+	          }
+	        }
+	        this.wardenArr = temp;
+	      }else{
+	        this.wardenArr = this.copyOfList;
+	      }
+	    });
 		
 	}
 
@@ -110,19 +129,7 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 		$('select.sort-by').on('change', () => {
 			let selected = $('select.sort-by').val();
 			
-			if(selected == 'loc-name-asc'){
-				this.wardenArr.sort((a, b) => {
-					if(a.name < b.name) return -1;
-				    if(a.name > b.name) return 1;
-				    return 0;
-				});
-			}else if(selected == 'loc-name-desc'){
-				this.wardenArr.sort((a, b) => {
-					if(a.name > b.name) return -1;
-				    if(a.name < b.name) return 1;
-				    return 0;
-				});
-			}else if(selected == 'user-name-asc'){
+			if(selected == 'user-name-asc'){
 				this.wardenArr.sort((a, b) => {
 					if(a.first_name < b.first_name) return -1;
 				    if(a.first_name > b.first_name) return 1;
@@ -178,11 +185,14 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 
 	unArchiveClick(){
 		this.showModalLoader = true;
-		this.userService.unArchiveLocationUser([this.selectedToArchive['location_account_user_id']], (response) => {
+		this.userService.unArchiveUsers([this.selectedToArchive['user_id']], (response) => {
 			this.showModalLoader = false;
 			$('#modalArchive').modal('close');
 			this.dashboardService.show();
 			this.getwardenArr(() => { this.dashboardService.hide(); });
+			this.selectedToArchive = {
+				first_name : '', last_name : '', parent_data : {}, locations : []
+			};
 		});
 	}
 
@@ -212,7 +222,7 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 		}else{
 			let temp = [];
 			for(let i in this.selectedFromList){
-				if(this.selectedFromList[i]['location_account_user_id'] != list['location_account_user_id']){
+				if(this.selectedFromList[i]['user_id'] != list['user_id']){
 					temp.push( this.selectedFromList[i] );
 				}
 			}
@@ -239,14 +249,15 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 		let arrIds = [];
 
 		for(let i in this.selectedFromList){
-			arrIds.push(this.selectedFromList[i]['location_account_user_id']);
+			arrIds.push(this.selectedFromList[i]['user_id']);
 		}
 
-		this.userService.unArchiveLocationUser(arrIds, (response) => {
+		this.userService.unArchiveUsers(arrIds, (response) => {
 			this.showModalLoader = false;
 			$('#modalArchiveBulk').modal('close');
 			this.dashboardService.show();
 			this.getwardenArr(() => { this.dashboardService.hide(); });
+			this.selectedFromList = [];
 		});
 	}
 }
