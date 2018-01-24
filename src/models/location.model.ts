@@ -33,9 +33,23 @@ export class Location extends BaseClass {
 		});
 	}
 
-	private getAllChildren(parentId){
-		return new Promise((resolve, reject) => {
-			const sql_load = ` SELECT * FROM locations WHERE parent_id = ? AND archived = 0 `;
+	public getAllLocations(){
+		return new Promise((resolve) => {
+			const sql_load = `SELECT * FROM locations WHERE archived = 0 `;
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_load, (error, results, fields) => {
+				if (error) {
+					return console.log(error);
+				}
+				resolve(results);
+			});
+			connection.end();
+		});
+	}
+
+	public getChildren(parentId, call?){
+		return new Promise((resolve) => {
+			const sql_load = `SELECT * FROM locations WHERE parent_id = ? AND archived = 0 `;
 			const param = [parentId];
 			const connection = db.createConnection(dbconfig);
 
@@ -44,35 +58,18 @@ export class Location extends BaseClass {
 					return console.log(error);
 				}
 
-				if(!results.length){
-					resolve(results);
-				}
-
-				for(let i in results){
-					results[i]['sublocations'] = [];
-					this.getAllChildren(results[i]['location_id']).then(
-						(child) => {
-							results[i]['sublocations'] = child;
-							resolve(results);
-						},
-						() => {
-							resolve(results);
-						}
-					);
-				}
-
-				
+				resolve(results);
 			});
 			connection.end();
 		});
 	}
 
-	public getManyByAccountId(accountId: Number, getChild: Boolean = false) {
+	public getParentLocationByAccountId(accountId: Number){
 		return new Promise((resolve, reject) => {
 			const sql_load = `
 			SELECT * FROM locations
-			WHERE location_id IN (SELECT location_id FROM location_account_relation WHERE account_id = ?) 
-			AND archived = 0
+			WHERE location_id IN (SELECT location_id FROM location_account_relation WHERE account_id = ?)
+			AND archived = 0 AND parent_id = -1
 			ORDER BY location_id ASC
 			`;
 			const param = [accountId];
@@ -86,27 +83,64 @@ export class Location extends BaseClass {
 				}else{
 
 					for(let i in results){
-
 						results[i]['sublocations'] = [];
+					}
 
-						this.getAllChildren(results[i]['location_id']).then(
+					this.dbData = results;
+					resolve(this.dbData);
+				}
+
+			});
+			connection.end();
+		});
+	}
+
+	public getManyByAccountId(accountId: Number, getChild: Boolean = false) {
+		return new Promise((resolve, reject) => {
+			const sql_load = `
+			SELECT * FROM locations
+			WHERE location_id IN (SELECT location_id FROM location_account_relation WHERE account_id = ?)
+			AND archived = 0
+			ORDER BY location_id ASC
+			`;
+			const param = [accountId];
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_load, param, (error, results, fields) => {
+				if (error) {
+					return console.log(error);
+				}
+				for(let i in results){
+					results[i]['sublocations'] = [];
+					if(getChild){
+						this.getChildren(results[i]['location_id']).then(
 							(child) => {
 								results[i]['sublocations'] = child;
 								this.dbData = results;
 								resolve(this.dbData);
-							},
-							() => {
-								resolve(results);
 							}
-						);
-
-					}
-
-					if(!results.length){
+							);
+					}else{
 						this.dbData = results;
 						resolve(this.dbData);
 					}
 				}
+
+				this.dbData = results;
+				resolve(this.dbData);
+			});
+			connection.end();
+		});
+	}
+
+	public getByInIds(ids){
+		return new Promise((resolve) => {
+			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = 0`;
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_load, (error, results, fields) => {
+				if (error) {
+					return console.log(error);
+				}
+				resolve(results);
 			});
 			connection.end();
 		});
@@ -143,10 +177,13 @@ export class Location extends BaseClass {
 
 	public dbUpdate() {
 		return new Promise((resolve, reject) => {
+
 			const sql_update = `UPDATE locations SET
 			parent_id = ?, name = ?, unit = ?, street = ?, city = ?, state = ?,
-			postal_code = ?, country = ?, time_zone = ?, \`order\` = ?,
-			is_building = ?, location_directory_name = ?, archived = ?, tenant_key_contact = ?  
+			postal_code = ?, country = ?, formatted_address = ?,
+			lat = ?, lng = ?,time_zone = ?, \`order\` = ?,
+			is_building = ?, location_directory_name = ?, archived = ?,
+			google_place_id = ?, google_photo_url = ?
 			WHERE location_id = ?`;
 			const param = [
 			('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
@@ -157,14 +194,19 @@ export class Location extends BaseClass {
 			('state' in this.dbData) ? this.dbData['state'] : '',
 			('postal_code' in this.dbData) ? this.dbData['postal_code'] : '',
 			('country' in this.dbData) ? this.dbData['country'] : '',
+			('formatted_address' in this.dbData) ? this.dbData['formatted_address'] : null,
+			('lat' in this.dbData) ? this.dbData['lat'] : null,
+			('lng' in this.dbData) ? this.dbData['lng'] : null,
 			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
 			('order' in this.dbData) ? this.dbData['order'] : null,
 			('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
 			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : null,
 			('archived' in this.dbData) ? this.dbData['archived'] : 0,
-			('tenant_key_contact' in this.dbData) ? this.dbData['tenant_key_contact'] : null,
+			('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
+			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null,
 			this.ID() ? this.ID() : 0
 			];
+			
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_update, param, (err, results, fields) => {
 				if (err) {
@@ -179,26 +221,50 @@ export class Location extends BaseClass {
 
 	public dbInsert() {
 		return new Promise((resolve, reject) => {
-			const sql_insert = 'INSERT INTO locations (`parent_id`, `name`, `unit`, `street`, `city`, `state`, `postal_code`, `country`, `time_zone`, `order`, `is_building`, `location_directory_name`, `archived`, `tenant_key_contact`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+			const sql_insert = `INSERT INTO locations (
+			parent_id,
+			name,
+			unit,
+			street,
+			city,
+			state,
+			postal_code,
+			country,
+			formatted_address,
+			lat,
+			lng,
+			time_zone,
+			\`order\`,
+			is_building,
+			location_directory_name,
+			archived,
+			google_place_id,
+			google_photo_url)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 			const param = [
 			('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
 			('name' in this.dbData) ? this.dbData['name'] : '',
-			('unit' in this.dbData) ? this.dbData['unit'] : ' ',
+			('unit' in this.dbData) ? this.dbData['unit'] : '',
 			('street' in this.dbData) ? this.dbData['street'] : '',
 			('city' in this.dbData) ? this.dbData['city'] : '',
 			('state' in this.dbData) ? this.dbData['state'] : '',
 			('postal_code' in this.dbData) ? this.dbData['postal_code'] : '',
 			('country' in this.dbData) ? this.dbData['country'] : '',
+			('formatted_address' in this.dbData) ? this.dbData['formatted_address'] : null,
+			('lat' in this.dbData) ? this.dbData['lat'] : null,
+			('lng' in this.dbData) ? this.dbData['lng'] : null,
 			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
 			('order' in this.dbData) ? this.dbData['order'] : null,
 			('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
 			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : null,
 			('archived' in this.dbData) ? this.dbData['archived'] : 0,
-			('tenant_key_contact' in this.dbData) ? this.dbData['tenant_key_contact'] : null
+			('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
+			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null
 			];
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_insert, param, (err, results, fields) => {
 				if (err) {
+					console.log(sql_insert);
 					throw new Error(err);
 				}
 				this.id = results.insertId;
@@ -219,6 +285,229 @@ export class Location extends BaseClass {
 				this.id = createData.location_id;
 			}
 			resolve(this.write());
+		});
+	}
+
+	public search(address: string, place_id: string ): Promise<string[]> {
+		return new Promise((resolve, reject) => {
+			const arrResults = [];
+			const sql_search = `SELECT
+			parent_id,
+			location_id,
+			name,
+			unit,
+			formatted_address,
+			google_photo_url
+			FROM
+			locations
+			WHERE
+			parent_id = -1
+			AND
+			formatted_address LIKE '${address}%'
+			AND archived = 0
+			OR
+			google_place_id = ?
+			AND archived = 0
+			LIMIT 5`;
+
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_search, [place_id], (err, results, fields) => {
+				if (err) {
+					reject('There was problem processing SQL');
+					console.log(sql_search);
+					throw new Error('Internal Error. Unable to execute query.');
+				}
+				for (let ref of results) {
+		      // console.log(ref);
+		      if (ref['parent_id'] === -1) {
+		      	arrResults.push(ref);
+		      }
+		  }
+		  console.log(arrResults);
+		  resolve(arrResults);
+		});
+
+			connection.end();
+		});
+	}
+
+	public getDeepLocationsByParentId(parentId){
+		return new Promise((resolve) => {
+			const sql_load = `SELECT * 
+			FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations, 
+			(SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_load, (error, results, fields) => {
+				if (error) {
+					return console.log(error);
+				}
+				resolve(results);
+			});
+			connection.end();
+		});
+	}
+
+	public getSublocations(user_id?: number, role_id?: number) {
+		return new Promise((resolve, reject) => {
+			const location: {[key: number]: Array<Object>} = {};
+			let parentId = 0;
+			let tempArr = [];
+			let parents = [];
+
+			let sublocationQuery; 
+			if (user_id) { 
+				sublocationQuery = `
+					SELECT locations.* FROM locations 
+					INNER JOIN location_account_user ON location_account_user.location_id = locations.location_id 
+					AND location_account_user.user_id = ${user_id} AND locations.archived = 0 `; 
+				if (role_id) { 
+					// sublocationQuery = sublocationQuery + `AND location_account_user.role_id = ${role_id}`; 
+				} 
+			} else { 
+				sublocationQuery = `SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id  DESC`; 
+			} 
+			const sql_get_subloc = `
+			SELECT location_id, name, parent_id FROM (${sublocationQuery}) sublocations, (SELECT @pv := ?) 
+			initialisation WHERE find_in_set(parent_id, @pv) > 0 AND @pv := concat(@pv, ',', location_id) ORDER BY location_id;`;
+
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
+				if (err) {
+					console.log(sql_get_subloc);
+					throw new Error('Internal error. There was a problem processing your query');
+				}
+				if (results.length) {
+					let newResults = [],
+						unassignedResults = [];
+
+					for (let i = 0; i < results.length; i++) {
+						unassignedResults.push({
+							'location_id' : results[i]['location_id'],
+							'name' : results[i]['name'],
+							'parent_id' : results[i]['parent_id'],
+							'children' : []
+						});
+					}
+
+					for(let i in unassignedResults){
+						for(let x in unassignedResults){
+							if(unassignedResults[i]['parent_id'] == unassignedResults[x]['location_id']){
+								unassignedResults[x]['children'].push(unassignedResults[i]);
+							}
+						}
+					}
+
+					for(let i in unassignedResults){
+						if(unassignedResults[i]['parent_id'] == this.ID()){
+							newResults.push(unassignedResults[i]);
+						}
+					}
+
+					resolve(newResults);
+				} else {
+					resolve([]);
+				}
+
+			});
+			connection.end();
+		});
+	}
+
+	public getParentsChildren(parentId){
+		return new Promise((resolve) => {
+
+			let sql = `SELECT * FROM locations WHERE parent_id = ${parentId} AND archived = 0 ORDER BY location_id`;
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql, (err, results, fields) => {
+				if (err) {
+					console.log(sql);
+					throw new Error('Internal error. There was a problem processing your query');
+				}
+
+				resolve(results);
+
+			});
+			connection.end();
+		});
+	}
+
+	public getAncestryIds(sublocId){
+		return new Promise((resolve) => {
+			let sqlDrop = 'DROP FUNCTION IF EXISTS GetAncestry;';
+			const connDrop = db.createConnection(dbconfig);
+			connDrop.query(sqlDrop, (err, results, fields) => {
+				if (err) {
+					throw new Error(err);
+				}
+
+				let sqlFnx = `CREATE FUNCTION GetAncestry (GivenID INT) RETURNS VARCHAR(1024)
+					DETERMINISTIC
+					BEGIN
+					    DECLARE rv VARCHAR(1024);
+					    DECLARE cm CHAR(1);
+					    DECLARE ch INT;
+
+					    SET rv = '';
+					    SET cm = '';
+					    SET ch = GivenID;
+					    WHILE ch > 0 DO
+					        SELECT IFNULL(parent_id,-1) INTO ch FROM
+					        (SELECT parent_id FROM locations WHERE location_id = ch) A;
+					        IF ch > 0 THEN
+					            SET rv = CONCAT(rv,cm,ch);
+					            SET cm = ',';
+					        END IF;
+					    END WHILE;
+					    RETURN rv;
+					END;`;
+				const connFnx = db.createConnection(dbconfig);
+				connFnx.query(sqlFnx, (err, results, fields) => {
+					if (err) {
+						throw new Error(err);
+					}
+
+					let sql = `SELECT location_id, GetAncestry(${sublocId}) as ids FROM locations WHERE location_id = ${sublocId};`;
+
+					const connection = db.createConnection(dbconfig);
+					connection.query(sql, (err, results, fields) => {
+						if (err) {
+							console.log(err);
+							throw new Error(err);
+						}
+						console.log(results);
+						resolve(results);
+					});
+					connection.end();
+
+				});
+				connFnx.end();
+			});
+			connDrop.end();
+		});
+	}
+
+	public getAncestries(sublocId){
+		return new Promise( (resolve) => {
+			this.getAncestryIds(sublocId).then((resultsIds) => {
+				
+				let sql = `SELECT * FROM locations WHERE location_id IN (` + sublocId + `)`;
+
+				if( resultsIds[0]['ids'].length > 0 ){
+                	sql = `SELECT * FROM locations WHERE location_id IN (` + sublocId + `,` + resultsIds[0]['ids'] + `)`;
+                }
+                
+				const connection = db.createConnection(dbconfig);
+				connection.query(sql, (err, results, fields) => {
+					if (err) {
+						console.log(sql);
+						throw new Error('Internal error. There was a problem processing your query');
+					}
+
+					resolve(results);
+
+				});
+				connection.end();
+			});
 		});
 	}
 

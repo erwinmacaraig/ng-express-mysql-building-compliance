@@ -52,9 +52,11 @@ export class User extends BaseClass {
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, uid, (error, results, fields) => {
                 if (error) {
+                    console.log(`${error} and sql is ${sql_load}`);
                     throw error;
                 }
                 if (!results.length) {
+                    console.log('User not found');
                     reject('No user found');
                 } else {
                     this.dbData = results[0];
@@ -119,10 +121,10 @@ export class User extends BaseClass {
             } else {
                 whereClause = 'WHERE user_name = ?';
             }
-            const sql_user = `SELECT users.*, token.verified FROM users
-                              INNER JOIN token ON users.user_id = token.user_id `
-                              + whereClause + ` AND password = ?
-                              AND users.token <> '' AND users.token IS NOT NULL`;
+            const sql_user = `SELECT users.*, token.verified, token.expiration_date, token.action FROM users
+                              INNER JOIN token ON users.user_id = token.id `
+                              + whereClause + ` AND password = ? AND token.action = 'verify' 
+                              AND users.token <> '' AND users.token IS NOT NULL ORDER BY token.token_id DESC`;
             const newPasswd = md5('Ideation' + passwd + 'Max');
             const credential = [username, newPasswd];
             const connection = db.createConnection(dbconfig);
@@ -156,6 +158,7 @@ export class User extends BaseClass {
             time_zone,
             can_login,
             password,
+            invited_by_user,
             account_id,
             last_login,
             evac_role,
@@ -167,7 +170,7 @@ export class User extends BaseClass {
             archived,
             must_change_password,
             user_name
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
             const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
@@ -180,6 +183,7 @@ export class User extends BaseClass {
             ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
             ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
             ('password' in this.dbData) ? this.dbData['password'] : '',
+            ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : '0',
             ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
             ('evac_role' in this.dbData) ? this.dbData['evac_role'] : '',
@@ -219,6 +223,7 @@ export class User extends BaseClass {
             time_zone = ?,
             can_login = ?,
             password = ?,
+            invited_by_user = ?,
             account_id = ?,
             last_login = ?,
             evac_role = ?,
@@ -243,6 +248,7 @@ export class User extends BaseClass {
             ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
             ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
             ('password' in this.dbData) ? this.dbData['password'] : null,
+            ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
             ('evac_role' in this.dbData) ? this.dbData['evac_role'] : null,
@@ -293,6 +299,44 @@ export class User extends BaseClass {
                 }
                 this.dbData = results;
                 resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
+    public getByAccountId(accountId, archived?) {
+        return new Promise((resolve, reject) => {
+            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ?';
+            if(!archived){
+                archived = 0;
+            }
+            const param = [accountId, archived];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
+    public getImpairedByAccountId(accountId, archived?) {
+        return new Promise((resolve, reject) => {
+            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? AND mobility_impaired = 1';
+            if(!archived){
+                archived = 0;
+            }
+            const param = [accountId, archived];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(results);
             });
             connection.end();
         });

@@ -1,0 +1,195 @@
+<div class="row">
+	<div class="col l12 m12 s12" style="position: relative;">
+		<h4>All Archived Users</h4>
+	</div>
+</div>
+
+<div class="row filter-container">
+	<div class="col l6 m5 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search member name" (keyup)="searchMemberEvent($event)">
+			<span class="material-icons">search</span>
+		</div>
+	</div>
+
+	<div class="col l2 m4 s6">
+		<select class="filter-by">
+			<option value="0" selected>Filter By (All)</option>
+			<option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
+		</select>
+	</div>
+
+	<div class="col l2 m6 s6">
+		<select class="sort-by">
+			<option value="0" selected>Sort By</option>
+			<option value="user-name-desc">User Name Descending</option>
+			<option value="user-name-asc">User Name Ascending</option>
+		</select>
+	</div>
+	<div class="col l2 m6 s12">
+		<select class="bulk-manage">
+			<option value="0" selected>Manage Action</option>
+			<option value="restore" >Restore selected</option>
+		</select>
+	</div>
+	
+</div>
+
+
+<div class="row">
+	<div class="col l12 m12 s12">
+		
+		<table class="table striped table-peep">
+			<thead>
+				<tr>
+					<th>
+						<p class="checkbox">
+							<input id="allSelect" (change)="selectAllCheckboxEvent($event)" class="filled-in" type="checkbox">
+							<label for="allSelect">Locations</label>
+						</p>
+					</th>
+					<th>Name</th>
+					<th>Email</th>
+					<th>Contact Information</th>
+					<th>Role</th>
+					<th>Training</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngIf="listData.length == 0">
+					<td colspan="7" class="center-align">
+						<h6>No records found</h6>
+					</td>
+				</tr>
+				<tr *ngFor="let list of listData; let i = index;" [attr.index]="i">
+					<td>
+						<p class="checkbox" >
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)"  >
+							<label for="location-{{i}}" >
+								<span *ngIf="list.locations.length > 1">Multiple locations</span>
+								<span *ngIf="list.locations.length == 1">
+									<span *ngIf="list.locations[0].parent_name.trim().length > 0">{{ list.locations[0].parent_name }}, </span>
+									{{list.locations[0].name}}
+								</span>
+							</label>
+						</p>
+					</td>
+					<td>
+						<div class="image-container lighten-3" [ngClass]="list.bg_class">
+							<div class="image">
+								<img *ngIf="list.profile_pic.trim().length > 0" [src]="list.profile_pic.trim()"  >
+							</div>
+						</div>
+						<div class="text">
+							<a [routerLink]="['/teams/view-user/', list.id_encrypted]">
+								{{list.first_name}} {{list.last_name}}
+							</a>
+						</div>
+					</td>
+					<td>{{list.email}}</td>
+					<td>{{list.mobile_number}}</td>
+					<td class="with-image role-name">
+						<div *ngIf="list.mobility_impaired == 1" class="impaired"></div>
+						<span *ngFor="let role of list.roles; let ri = index;" class="name">
+							{{role.role_name}}<i *ngIf=" list.roles.length - 1 != ri ">,</i> 
+						</span>
+						<!-- 
+						<div class="image frp" *ngIf="list.role_id == 1 && list.user_info.mobility_impaired == 0"></div>
+						<div class="image trp" *ngIf="list.role_id == 2 && list.user_info.mobility_impaired == 0"></div>
+						<div class="image user" *ngIf="list.role_id != 1 && list.role_id != 2 && list.user_info.mobility_impaired == 0"></div>
+						<div *ngIf="list.user_info.mobility_impaired == 1" class="impaired"></div>
+
+						<span *ngIf="list.role_id == 1" class="name">FRP</span>
+						<span *ngIf="list.role_id == 2" class="name">TRP</span>
+						<span *ngIf="list.role_id != 1 && list.role_id != 2 && list.role_name"  class="name" >
+							{{list.role_name}}
+						</span>
+						-->
+					</td>
+					<td>
+						<span class="red-text">0/0</span>
+					</td>
+					<td>
+						<select (change)="onSelectFromTable($event, list)">
+							<option value="0" class="blue-text" selected>Manage</option>
+							<option value="view" class="blue-text">View</option>
+							<option value="restore" class="blue-text">Restore</option>
+						</select>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+
+</div>
+
+<div id="modalArchive" class="modal">
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="showModalLoader">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			Are you sure you want to restore 
+			<span *ngIf="selectedToArchive.locations.length > 1">Multiple locations</span>
+			<span *ngIf="selectedToArchive.locations.length == 1">
+				<span *ngIf="selectedToArchive.locations[0].parent_name.trim().length > 0">{{ selectedToArchive.locations[0].parent_name }}, </span>
+				{{selectedToArchive.locations[0].name}}
+			</span>
+			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
+		</p>
+	</div>
+	<div class="modal-footer" [hidden]="showModalLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
+	</div>
+</div>
+
+
+<div id="modalArchiveBulk" class="modal">
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="showModalLoader">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			Are you sure you want restore the following items?
+		</p>
+		<ul>
+			<li *ngFor="let list of selectedFromList;">
+				<span *ngIf="list.locations.length > 1">Multiple locations</span>
+				<span *ngIf="list.locations.length == 1">
+					<span *ngIf="list.locations[0].parent_name.trim().length > 0">{{ list.locations[0].parent_name }}, </span>
+					{{list.locations[0].name}}
+				</span>
+				<span class="blue-text">{{list.first_name}} {{list.last_name}}</span>
+			</li>
+		</ul>
+	</div>
+	<div class="modal-footer" [hidden]="showModalLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
+	</div>
+</div>

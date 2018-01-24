@@ -1,0 +1,251 @@
+<div class="inline-block left-panel">
+	<div class="row">
+		<div class="col l12 m12 s12 col-user-profile">
+			<h5>User Profile</h5>
+			
+			<div class="image-container">
+				<p class="initials" *ngIf="viewData.user.profilePic.length == 0">
+					{{getInitials(viewData.user.first_name+' '+viewData.user.last_name)}}
+				</p>
+				<img *ngIf="viewData.user.profilePic.length > 0" [src]="viewData.user.profilePic"  >
+			</div>
+
+			<div class="badge-warden" [ngClass]="viewData.badge_class"></div>
+
+			<div class="name-container ">
+				<h5 class="name blue-text">{{viewData.user.first_name+' '+viewData.user.last_name}}</h5>
+				<p *ngIf="viewData.user.last_login.length > 0">Last Login {{viewData.user.last_login}}</p>
+			</div>
+		</div>	
+	</div>
+	<div class="row">
+		<div class="col l12 m12 s12">
+			<div class="select-field">
+				<select id="selectLocation">
+					<option *ngFor="let loc of viewData.locations; let i = index;" [selected]="i == 0" value="{{loc.location_id}}">{{loc.parent_name}} {{loc.name}}</option>
+				</select>
+			</div>
+			<!-- <h6 class="grey-text text-accent-4">Locations</h6> -->
+			<!-- <ul class="list">
+				<li *ngFor="let location of viewData.locations">
+					<span *ngIf="location.parent_data.name">{{location.parent_data.name}},</span>
+					{{location.name}}
+				</li>
+			</ul> -->
+			<!-- <div class="input-field">
+				<input  *ngIf="viewData.location.parent_data.name" id="location" type="text" value="{{viewData.location.parent_data.name}}, {{viewData.location.name}}" readonly>
+				<input  *ngIf="!viewData.location.parent_data.name" id="location" type="text" value="{{viewData.location.name}}" readonly>
+				<label for="location"> Location</label>
+			</div> -->
+		</div>
+
+		<div class="col l12 m12 s12">
+			<!-- <h6 class="grey-text text-accent-4">ECO Roles</h6> -->
+			<!-- <ul class="list">
+				<li *ngFor="let eco_role of viewData.eco_roles">
+					{{eco_role.role_name}}
+				</li>
+			</ul> -->
+			<div class="input-field">
+				<input id="role" type="text" readonly value="{{viewData.role_text}}">
+				<label for="role">
+					<span>Role</span>
+				</label>
+			</div>
+		</div>
+		
+		<div class="col l12 m12 s12">
+			<div class="input-field">
+				<input id="contactInfo" type="text" value="{{viewData.user.mobile_number}}" readonly>
+				<label for="contactInfo">Contact Information</label>
+			</div>
+		</div>
+		<div class="col l12 m12 s12">
+			<div class="input-field">
+				<input id="emailAddress" type="text" value="{{viewData.user.email}}" readonly>
+				<label for="emailAddress">Email Address</label>
+			</div>
+		</div>
+	</div>
+
+	<div class="bottom-buttons">
+		<button class="btn orange waves-effect waves-light remove" *ngIf="showRemoveWardenButton" (click)="clickRemoveWarden()">
+			<div class="image inline-block"></div>
+			<div class="text inline-block">Remove this user as {{viewData.eco_role}}</div>
+		</button>
+
+		<button class="btn pink waves-effect waves-light presonal-emergency" (click)="viewPEEP()" *ngIf="viewData.user.mobility_impaired == 1">
+			<div class="image inline-block"></div>
+			<div class="text inline-block">
+				<span *ngIf="!viewData.user.mobility_impaired_details.user_id">Personal Emergency Evacuation Plan</span>
+				<span *ngIf="viewData.user.mobility_impaired_details.user_id">View Emergency Evacuation Plan</span>
+			</div>
+		</button>
+	</div>
+</div>
+<div class="inline-block right-content">
+	<div class="row">
+		<div class="col s12 m12 l12">
+			<h5>Assigned Trainnings</h5>
+		</div>
+		<div class="col s12 m12 l12">
+
+			<h4 *ngIf="viewData.trainings.length == 0">No training record found</h4>
+	
+			<div class="grid" id="gridContainer">
+				
+			<!-- 	<div class="grid-item card grey lighten-3" >
+				<div class="top">
+					<div class="image close inline-block"></div>
+					<div class="text inline-block red-text">Not Compliance</div>
+				</div>
+				<div class="middle-image">
+					<div class="image red-image"></div>
+				</div>
+				<div class="middle-text">
+					General Occupant and First Response
+					<p class="blue-text"></p>
+				</div>
+						
+				<div class="buttons">
+					<button class="btn red lighten-1 waves-effect waves-light">Send Invitation</button>
+				</div>
+			</div>
+						
+			<div class="grid-item card grey lighten-3" >
+				<div class="top">
+					<div class="image check inline-block"></div>
+					<div class="text inline-block green-text">Compliance</div>
+				</div>
+				<div class="middle-image">
+					<div class="image green-image"></div>
+				</div>
+				<div class="middle-text">
+					Bomb Threat Training
+					<p class="blue-text">
+						Valid until 24/08/2018
+					</p>
+				</div>
+						
+				<div class="buttons">
+					<button class="btn blue waves-effect waves-light">Download Certificate</button>
+					<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
+				</div>
+			</div>
+						
+			<div class="grid-item card grey lighten-3" >
+				<div class="top">
+					<div class="image check inline-block"></div>
+					<div class="text inline-block green-text">Compliance</div>
+				</div>
+				<div class="middle-image">
+					<div class="image yellow-image"></div>
+				</div>
+				<div class="middle-text">
+					Emergency Control Organization
+					<p class="blue-text">
+						Valid until 24/08/2018
+					</p>
+				</div>
+						
+				<div class="buttons">
+					<button class="btn blue waves-effect waves-light">Download Certificate</button>
+					<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
+				</div>
+			</div> -->
+			
+			</div>
+
+		</div>
+	</div>
+	
+</div>
+
+<div id="modalRemoveWarden" class="modal">
+	<div class="modal-content center" *ngIf="showModalRemoveWardenLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" *ngIf="!showModalRemoveWardenLoader">
+		<h5>Confirmation</h5>
+		<h6>Are you sure you want to remove <span class="blue-text">{{viewData.user.first_name}} {{viewData.user.last_name}}</span> as {{viewData.eco_role}} ?</h6>
+		<h6 class="red-text">{{errorMessageRemoveWarden}}</h6>
+	</div>
+	<div class="modal-footer" *ngIf="!showModalRemoveWardenLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="yesRemoveWarden()">Yes</a>
+	</div>
+</div>
+
+
+<div id="modalMobility" class="modal">
+
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<form #f="ngForm" (submit)="modalPeepFormSubmit(f, $event)" [hidden]="showModalLoader">
+
+	<div class="modal-content">
+		<h5>Mobility Impaired Information</h5>
+		<div class="row">
+			<div class="col s12 l6 m6">
+				<div class="select-field">
+					<span style=" font-size: 16px;">Mobility Impaired Status</span>
+					<select ngModel name="is_permanent">
+						<option value="0" selected="selected">Temporary</option>
+						<option value="1">Permanent</option>
+					</select>
+				</div>
+			</div>
+			<div class="col s12 l6 m6">
+				<div class="input-field" >
+					<span style=" font-size: 16px;">Mobility Impaired Upto</span>
+					<ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required>
+				</div>
+			</div>
+			<div class="col s12 m12 l12">
+				<h6>Assistant Type</h6>
+				<input ngModel name="assistant_type" type="text" class="grey-input" placeholder="Please describe requirements and process here." required>
+			</div>
+			<div class="col s12 m12 l12">
+				<h6>Evacuation Equipment Type / Requirement</h6>
+				<input ngModel name="equipment_type" type="text" class="grey-input" placeholder="Please inform what is the equiment and type." required>
+			</div>
+			<div class="col s12 m12 l12">
+				<h6>Evacuation / Egress Procedure</h6>
+				<input ngModel name="evacuation_procedure" type="text" class="grey-input" placeholder="" required>
+			</div>
+		</div>
+
+		<div class="row button-container">
+			<div class="col s12 m12 l12">
+				<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+				<button class="btn orange waves-light waves-effect" [disabled]="f.invalid">Submit</button>
+			</div>
+		</div>
+	</div>
+
+
+	</form>
+</div>

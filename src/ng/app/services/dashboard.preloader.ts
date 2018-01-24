@@ -39,7 +39,7 @@ export class DashboardPreloaderService {
 				    width: 100%;
 				    background-color: #fcfcfc;
 				    height: 100vh;
-				    z-index: 1;
+				    z-index: 20;
 				    padding: 6% 3%;
 				    text-align: center;
 				">`+this.getPreloaderHTML()+`</div>`;

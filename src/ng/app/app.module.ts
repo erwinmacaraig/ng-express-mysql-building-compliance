@@ -6,12 +6,14 @@ import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './auth/token.interceptor';
+import { CommonModule } from '@angular/common';
 
 // services section
 import { AuthService } from './services/auth.service';
 import { AuthGuard } from './services/auth-guard.service';
 import { SignupService } from './services/signup.service';
 import { MessageService } from './services/messaging.service';
+import { LocationsService } from './services/locations';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
@@ -26,17 +28,17 @@ import { CompanyInformationComponent } from './dashboard/company_information/com
 import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
+import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
 
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
-import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
-// todo: integrate 
-//Locations Template Components
+// todo: integrate
+// Locations Template Components
 import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
 import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
@@ -44,15 +46,38 @@ import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.ne
 import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
 import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
-import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
-import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+
+// import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+import { SearchLocationComponent } from './location/search/search-location.component';
+
+
+import { SublocationComponent } from './location/sublocation/sublocation.component';
+
 
 // todo: move to locations module
 import { ReactiveFormsModule } from '@angular/forms';
 import { AgmCoreModule } from '@agm/core';
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
-import { LocationListComponent } from './location/list/location.list';
+import { LocationListComponent } from './location/list/location-list.component';
+import { ViewSingleLocation } from './location/view.single/view-single.component';
+import { LocationComponent } from './location/location.component';
+import { VerificationComponent } from './location/verification/verification.component';
 
+import { TeamsComponent } from './teams/teams.component';
+import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
+import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.impaired.component';
+import { MobilityImpairedArchivedComponent } from './teams/mobility-impaired-archived/mobility.impaired.archived.component';
+import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.mobility.impaired.component';
+import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
+import { ListArchivedWardensComponent } from './teams/list-wardens-archived/list.wardens.archived.component';
+import { AllUsersComponent } from './teams/all-users/all.users.component';
+import { AllUsersArchivedComponent } from './teams/all-users-archived/all.users.archived.component';
+import { AddUserComponent } from './teams/add-user/add.user.component';
+import { ViewUserComponent } from './teams/view-user/view.user.component';
+import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
+import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
+import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
+import { NgDatepickerModule } from 'ng2-datepicker';
 
 @NgModule({
   declarations: [
@@ -63,6 +88,7 @@ import { LocationListComponent } from './location/list/location.list';
     ChangepasswordComponent,
     NavbarComponent,
     DashboardComponent,
+    WardenInvitationFormComponent,
     SignoutComponent,
     CompanyInformationComponent,
     SetupCompanyComponent,
@@ -73,7 +99,6 @@ import { LocationListComponent } from './location/list/location.list';
     SignupUserInfoComponent,
     SendInviteComponent,
     CustomHttpDataProviderComponent,
-    AccountValidationCriteriaComponent,
     NoemailComponent,
     // todo: integrate
     LocationsUiComponent,
@@ -83,12 +108,30 @@ import { LocationListComponent } from './location/list/location.list';
     ViewLocationListComponent,
     ViewLocationSingleComponent,
     ViewLocationMultipleComponent,
-    ViewSublocationComponent,
+    SublocationComponent,
     SearchLocationComponent,
-
     // todo: move to location module
     SetupLocationComponent,
-    LocationListComponent
+    LocationListComponent,
+    ViewSingleLocation,
+    LocationComponent,
+    VerificationComponent,
+    // ViewSublocationComponent
+
+    TeamsComponent,
+    TeamsAddWardenComponent,
+    MobilityImpairedComponent,
+    MobilityImpairedArchivedComponent,
+    AddMobilityImpairedComponent,
+    ListWardensComponent,
+    ListArchivedWardensComponent,
+    AllUsersComponent,
+    AddUserComponent,
+    ViewUserComponent,
+    ViewWardenComponent,
+    ViewGeneralOccupantComponent,
+    ViewChiefWardenComponent,
+    AllUsersArchivedComponent,
   ],
   imports: [
     BrowserModule,
@@ -100,11 +143,14 @@ import { LocationListComponent } from './location/list/location.list';
       libraries: ['places']
     }),
     // todo: move to location module
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgDatepickerModule,
+    CommonModule
   ],
   providers: [
     AuthService,
     AuthGuard,
+    LocationsService,
     MessageService,
     SignupService,
     {

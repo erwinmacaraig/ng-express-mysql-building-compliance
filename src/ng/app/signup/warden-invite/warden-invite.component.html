@@ -1,0 +1,110 @@
+<div id="modalSignup" class="modal">
+	<div class="modal-content">
+    <form #formWardenProfile="ngForm" (ngSubmit)="completeProfile(formWardenProfile)">
+        <div class="container">
+            <div class="row">
+              <div class="col m12 center-align">
+                <h4 class="title">
+                  Welcome to EvacConnect Safety
+                  <br>
+                  Management Tools
+                </h4>
+                <p class="center-align please-fill-up">
+                    Please fill up all fields and submit
+                </p>
+              </div>
+
+              <div class="col m12">
+                  <div class="input-container">
+
+                    <div class="input-field col m12">
+                      <input id="first_name" type="text" name="first_name" placeholder="Your first name" required ngModel #first_name="ngModel">
+                      <label for="first_name" [ngClass]="{'active': parentLocations.length }">First Name
+                        <small *ngIf=" !first_name.valid && first_name.touched "> *Required </small>
+                      </label>
+                    </div>
+
+                    <div class="input-field col m12">
+                      <input id="last_name" type="text" name="last_name" placeholder="Your last name"  [(ngModel)]="lastname" #last_name="ngModel" required>
+                      <label for="last_name" [ngClass]="{'active': parentLocations.length }">Last Name
+                        <small *ngIf="!last_name.valid && last_name.touched"> *Required </small>
+                      </label>
+                    </div>
+
+                    <div class="input-field col m12">
+		              		<input id="email" type="email" name="email"
+                        #email="ngModel"
+                        [ngModel]="email"
+                        required
+                        readonly>
+								      <label for="email" >Email
+                        <!-- <span *ngIf=" emailTaken " email-taken class="red-text"> *Email taken </span> -->
+                        <small *ngIf="!email.valid && email.touched"> *Required </small>
+								      </label>
+                     </div>
+
+                      <div class="select-field col m12 s12" *ngIf="parentLocations.length; else mainBuildingTemplate">
+                        <select id="mainBuilding" [ngModel]="parent" name="parent">
+                          <option value="-1" disabled>Select Main Building</option>
+                          <option *ngFor="let loc of parentLocations; let i = index" [value]="i">{{loc.name || loc.formatted_address}}</option>
+                        </select>
+                      </div>
+
+                      <ng-template #mainBuildingTemplate>
+                        <div class="input-field col m12">
+                          <input id="mainBuilding" type="text" name="parent"  [ngModel]="parent" placeholder="Main Building/Location" readonly>
+                          <label for="mainBuilding" class="active">Main Building</label>
+                        </div>
+                      </ng-template>
+
+                      <div class="select-field col m12 s12" *ngIf="parentLocations.length; else sublocationTemplate">
+                          <select id="sublocation" name="sublocation" [ngModel]="sublocation">
+                            <option value="-1" disabled>Select Sublocation</option>
+                            <option *ngFor="let sub of sublocations" [value]="sub.location_id">{{sub.name}}</option>
+                          </select>
+                      </div>
+
+                      <ng-template #sublocationTemplate>
+                        <div class="input-field col m12">
+                          <input id="sublocation" type="text" placeholder="Sub-location" name="sublocation"  [ngModel]="sublocation" readonly>
+                          <label for="sublocation" class="active">Sublocation</label>
+                        </div>
+                      </ng-template>
+
+                      <div class="input-field col m12">
+                        <input id="account" type="text" name="account" #account="ngModel" (ngModel)="account" readonly placeholder="Account">
+                        <label for="account" class="active">Account
+                          <!-- <small *ngIf=" !inputLastName.valid && inputLastName.dirty "> *Required </small> -->
+                        </label>
+                      </div>
+
+                      <div class="input-field col m12">
+                        <input id="password" type="password" name="password" required minlength="6" maxlength="150" (ngModel)="password" #password="ngModel" required>
+                          <label for="password">Password
+                              <small *ngIf=" password.value != confirmPassword.value "> *Mismatched </small>
+                              <small *ngIf=" password.valid && password.touched "> *Required </small>
+                          </label>
+                      </div>
+
+                      <div class="input-field col m12">
+                        <input id="confirm_password" type="password" required minlength="6" maxlength="150" name="confirmPassword" #confirmPassword="ngModel" (ngModel)="confirmPassword">
+                          <label for="confirm_password"> Confirm password
+                              <small *ngIf=" password.value != confirmPassword.value "> *Mismatched </small>
+                              <small *ngIf=" confirmPassword.valid && confirmPassword.touched "> *Required </small>
+                          </label>
+                      </div>
+                      <div class="input-field col m6">
+                          <a class="btn block waves-effect waves-light btn-close grey lighten-1" (click)="onCloseWardenProfileCompletion()">Back</a>
+                       </div>
+                       <div class="input-field col m6">
+                          <button type="submit" [disabled]="!formWardenProfile.valid" class="btn block waves-effect waves-light btn-submit">Submit</button>
+                       </div>
+
+                  </div> <!-- input-container -->
+              </div> <!-- col m12 -->
+            </div> <!-- div class row -->
+
+        </div> <!-- container -->
+    </form> <!-- form -->
+  </div> <!-- modal content-->
+</div> <!-- modalSignup-->

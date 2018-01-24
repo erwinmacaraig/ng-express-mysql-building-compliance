@@ -18,6 +18,8 @@ export class FileUploader {
     public filename;
     public extname = '';
     private uploadDir = this.getUploadDir();
+    private DIR = '/home/ubuntu/EvacPlatform/evacconnect/uploads/';
+    // private DIR = './uploads/';
 
     constructor(req: Request, res: Response, next: NextFunction) {
       this.req = req;
@@ -27,7 +29,7 @@ export class FileUploader {
 
       this.storageConfig = multer.diskStorage({
         destination: (rq, file, callback) => {
-        callback(null, '/home/ubuntu/EvacPlatform/evacconnect/uploads/');
+          callback(null, this.DIR);
         },
         filename: (rq, file, callback) => {
           this.extname = this.getFileExtension(file.originalname);
@@ -94,6 +96,26 @@ export class FileUploader {
       this.aws_s3 = new AWS.S3();
     }
 
+    public uploadFileToLocalServer(multi: boolean = false) {
+      return new Promise((resolve, reject) => {
+        if (!multi) {
+          this.uploader = multer({
+            storage: this.storageConfig
+          }).single('file');
+        } else {
+          this.uploader = undefined;
+        }
+        this.uploader(this.req, this.res, (err) => {
+          if (err) {
+            console.log(err, 'there was an internal problem');
+            reject(err);
+            throw err;
+          }
+          resolve(this.DIR + this.filename);
+        });
+      });
+    }
+
     public uploadFile(multi: boolean = false) {
       return new Promise((resolve, reject) => {
         if (!multi) {
@@ -106,7 +128,7 @@ export class FileUploader {
             console.log(err, 'there was an internal problem');
             throw err;
           }
-          
+
           fs.readFile(this.req['file']['path'], (error, data) => {
             if (error) {
               console.log('There was a problem reading the uploaded file ', error);

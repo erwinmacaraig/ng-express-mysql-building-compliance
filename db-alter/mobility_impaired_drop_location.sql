@@ -1,0 +1,1 @@
+ALTER TABLE `mobility_impaired_details` DROP `location_id`;

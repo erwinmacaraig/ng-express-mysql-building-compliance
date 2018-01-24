@@ -50,7 +50,7 @@ public validate(req: Request, res: Response, next: NextFunction) {
                 {
                     user_db_token: user.get('token'),
                     user: user.get('user_id')
-                }, 
+                },
                 process.env.KEY, { expiresIn: signedInExpiry }
                 );
 
@@ -63,7 +63,7 @@ public validate(req: Request, res: Response, next: NextFunction) {
                         name: user.get('first_name')+' '+user.get('last_name'),
                         email: user.get('email'),
                         accountId: user.get('account_id'),
-                        roles : {},
+                        roles : [],
                         profilePic : ''
                     }
                 },
@@ -71,12 +71,19 @@ public validate(req: Request, res: Response, next: NextFunction) {
                 getWardenRoles = (callBack) =>{
                     new UserEmRoleRelation().getEmRolesByUserId(user.get('user_id')).then(
                         (userRoles) => {
-                            for(let i in userRoles){
+                            for(let i in userRoles) {
+                                /*
                                 response.data['roles'][ Object.keys( response.data['roles'] ).length ] = {
                                     role_id : userRoles[i]['em_roles_id'],
                                     role_name : userRoles[i]['role_name'],
                                     is_warden_role : userRoles[i]['is_warden_role']
                                 };
+                                */
+                                (response.data['roles']).push({
+                                  role_id : userRoles[i]['em_roles_id'],
+                                  role_name : userRoles[i]['role_name'],
+                                  is_warden_role : userRoles[i]['is_warden_role']
+                              });
                             }
                             callBack();
                         },
@@ -94,15 +101,27 @@ public validate(req: Request, res: Response, next: NextFunction) {
                     new UserRoleRelation().getByUserId(user.get('user_id')).then(
                         (userRoles) => {
                             getWardenRoles(() => {
-                                for(let i in userRoles){
-                                    response.data['roles'][ Object.keys( response.data['roles'] ).length ] = userRoles[i];
-                                }
-                                res.status(200).send(response);
+                              for (let i in userRoles){
+                                console.log(userRoles[i]);
+                                   // response.data['roles'][ Object.keys( response.data['roles'] ).length ] = userRoles[i];
+                                  (response.data['roles']).push(userRoles[i]);
+                              }
+
+                                const now = moment().format('YYYY-MM-DD HH-mm-ss');
+                                user.set('last_login', now);
+                                user.dbUpdate().then(() => {
+                                  res.status(200).send(response);
+                                });
+
                             });
                         },
                         (m) => {
                             getWardenRoles(() => {
+                              const now = moment().format('YYYY-MM-DD HH-mm-ss');
+                              user.set('last_login', now);
+                              user.dbUpdate().then(() => {
                                 res.status(200).send(response);
+                              });
                             });
                         }
                     );
@@ -118,12 +137,24 @@ public validate(req: Request, res: Response, next: NextFunction) {
                     }
                 );
             }else{
+                let action = user.get('action'),
+                    now = moment(),
+                    expiration = moment(user.get('expiration_date'), ['YYYY-MM-DD HH-mm-ss']),
+                    expired = false;
+
+                if(expiration.isBefore(now)){
+                    expired = true;
+                }
+
                 res.status(401).send({
                     verified : false,
+                    token_expired : expired,
                     status: 'Authentication Failed',
                     message: 'Please verify your account',
-                    data: ['username', 'password']
+                    data: ['username', 'password', user.get('user_id')]
                 });
+
+
             }
 
         }, (e) => {

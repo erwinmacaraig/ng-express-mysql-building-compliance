@@ -20,10 +20,17 @@ export class LoginComponent implements OnInit, OnDestroy {
   showInvalidCode = false;
   showErrorOccured = false;
   showSuccess = false;
-  showVerification = false;
+  
+  verification = {
+    loader : false,
+    success : false,
+    buttons : true
+  };
+
   errorOccuredMessage = '';
   private subscription;
   private baseUrl: String;
+  private userId = 0;
   constructor(public http: HttpClient,
     private auth: AuthService,
     private signupService: SignupService,
@@ -35,13 +42,17 @@ export class LoginComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.auth.removeToken();
     $('.modal-overlay').remove();
+    $('#modalSendVerification').modal({
+      dismissible : false,
+      startingTop : '0%',
+      endingTop: '25%'
+    });
   }
 
   signInFormSubmit(f: NgForm) {
     this.showInvalid = false;
     this.showErrorOccured = false;
     this.showSuccess = false;
-    this.showVerification = false;
     this.errorOccuredMessage = '';
 
     interface UserLoginResponse {
@@ -79,7 +90,8 @@ export class LoginComponent implements OnInit, OnDestroy {
       } else {
         let errJSON = JSON.parse(err.error);
         if(errJSON.verified === false){
-          this.showVerification = true;
+          $('#modalSendVerification').modal('open');
+          this.userId = errJSON.data[2];
         }else{
           this.showInvalid = true;
         }
@@ -89,6 +101,21 @@ export class LoginComponent implements OnInit, OnDestroy {
         console.log(`Backend returned code ${err.status}, body was: ${err.error}`);
         this.showErrorOccured = false;
       }
+    });
+
+  }
+
+  resendVerification(){
+    this.verification.loader = true;
+    this.verification.buttons = false;
+    this.signupService.resendEmailVerification(this.userId, (response) => {
+      this.verification.loader = false;
+      this.verification.success = true;
+      setTimeout(() => {
+        this.verification.success = false;
+        this.verification.buttons = true;
+        $('#modalSendVerification').modal('close');
+      }, 3000);
     });
 
   }

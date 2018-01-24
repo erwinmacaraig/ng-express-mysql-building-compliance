@@ -1,0 +1,435 @@
+.top-title-button{
+	margin: 0px 0px 20px 0px;
+}
+
+.top-title-button .btn{
+	background-color: transparent !important;
+    font-size: 14px !important;
+    width: 220px;
+    height: inherit !important;
+    text-align: left;
+    border-radius: 10px !important;
+    border: 1px solid #ed5463;
+    padding: 0px;
+    color: rgba(0, 0, 0, 0.8) !important;
+    padding: 10px;
+    margin: 6px 0px;
+}
+
+.top-title-button .btn .image,
+.modal .header-container .image{
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    background: url('/assets/images/team_icons.png') no-repeat;
+    width: 38px;
+    height: 38px;
+}
+
+.top-title-button .btn .csv-wardens{
+	background-position: 79.5% 35%;
+}
+
+.modal .header-container .csv-wardens{
+    background-position: 95.5% 12%;
+}
+
+.modal .header-container .invite-wardens{
+    background-position: 63.5% 12%;
+}
+
+.modal .header-container .image{
+    width: 60px;
+    height: 60px;
+}
+
+.top-title-button .btn .invite-wardens{
+	background-position: 66.5% 35%;
+}
+
+.top-title-button .btn .text,
+.modal .header-container .text{
+    display: inline-block;
+    width: 150px;
+    color: #414141;
+    line-height: 20px;
+    text-align: left;
+    vertical-align: middle;
+    transition: all 0.5s;
+}
+
+.modal .header-container .text{
+    width: 60%;
+    font-size: 24px;
+    color: #0089ec;
+    line-height: 28px;
+}
+
+.top-title-button .btn:hover{
+	-webkit-filter: brightness(161%);
+    filter: brightness(161%);
+}
+
+
+.top-title-button .title{
+	margin: 1% 0%;
+}
+
+.switch{
+    width: 110px;
+    position: relative;
+    margin: 0 auto;
+    height: 36px;
+}
+
+.switch input[type="checkbox"]{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    pointer-events: visible;
+    z-index: 4;
+}
+
+.switch .background{
+    background-color: #505050;
+    border-radius: 5px;
+    padding: 5px;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+.switch .yes,
+.switch .no{
+    font-size: 14px;
+    color: #fff;
+    z-index: 3;
+    position: absolute;
+}
+
+.switch .yes{
+    top: 18%;
+    left: 16%;
+}
+
+.switch .no{
+    top: 16%;
+    right: 16%;
+}
+
+.switch .highlight{
+    position: absolute;
+    top: 14%;
+    padding: 5px;
+    border-radius: 3px;
+    background-color: #39a1ff;
+    z-index: 2;
+    height: 72%;
+    width: 35%;
+    transition: all 0.4s;
+}
+
+.switch input[type="checkbox"]:not(:checked) + .yes + .no + .highlight{
+    right: 8%;
+}
+
+.switch input[type="checkbox"]:checked + .yes + .no + .highlight{
+    right: 56%;
+}
+
+
+table thead tr th{
+	background-color: #2f2f2f;
+    color: #fff;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: 1px solid #2f2f2f;
+    border-radius: 0px;
+}
+
+table tbody td{
+	border: 1px solid #ddd;
+}
+
+table tfoot td{
+	padding: 0px;
+}
+
+table tfoot td button{
+	width: 100%;
+    border-radius: 0px !important;
+    font-size: 14px !important;
+    height: 45px !important;
+    line-height: 35px;
+}
+
+table select{
+    display: block;
+    background-color: inherit;
+    font-size: 14px;
+}
+
+table select:focus{
+    outline: 0px;
+}
+
+table tbody td input{
+    margin: 0px;
+    border: 0px;
+    font-size: 14px;
+}
+
+table tbody td input:focus{
+    border-bottom: 0px;
+    box-shadow: 0 1px 0 0 #0089ec;
+}
+
+table tbody td a{
+    font-size: 14px;
+}
+
+td.with-remove{
+    position: relative;
+}
+
+td.with-remove a.remove{
+    position: absolute;
+    right: 11px;
+    top: 23px;
+    background-color: #f44336;
+    color: #fff;
+    border-radius: 39px;
+    height: 20px;
+    width: 20px;
+    text-align: center;
+    line-height: 20px;
+    transition: all 0.3s;
+}
+
+td.with-remove a.remove:hover{
+    transform: scale(1.2);
+}
+
+.button-container{
+    margin: 20px 0px;
+}
+
+.button-container .btn{
+    font-size: 14px !important;
+}
+
+#modaCsvUpload,
+#modalInvite{
+    width: 22%;
+    max-height: 100%;
+}
+
+#modaCsvUpload .modal-header{
+    margin: 20px 0px;
+}
+
+#modaCsvUpload a.btn{
+    line-height: 42px;
+}
+
+.modal-content .csv-icon{
+    display: inline-block;
+    width: 35px;
+    height: 26px;
+    background: url(/assets/images/team_icons.png) no-repeat;
+    background-position: 82% 70%;
+    vertical-align: middle;
+}
+
+.modal-content .upload-container{
+    border-radius: 5px;
+    background-color: #ebebeb;
+}
+
+.modal-content .upload-container .text{
+    margin: 10px 0px;
+    font-size: 16px;
+}
+
+.modal-content .upload-container .btn{
+    font-size: 14px !important;
+}
+
+.modal-content .upload-container{
+    padding: 20px;
+}
+
+#modalInvite textarea{
+    min-height: 165px;
+    font-size: 14px;
+    padding: 10px;
+    background-color: #ededed;
+    border: 0px;
+}
+
+#modalLocations{
+    width: 30%;
+    border-radius: 10px;
+    width: 30%;
+    overflow-y: initial;
+}
+
+#modalLocations .modal-content{
+    padding: 35px;
+}
+
+.modal.modal-sublocations .search-container{
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 10px;
+    width: 100% !important;
+}
+
+.modal.modal-sublocations .search-container .input-container{
+    display: inline-block;
+    vertical-align: middle;
+    width: 94%;
+}
+
+.modal.modal-sublocations .search-container .input-container input{
+    margin-bottom: 0px;
+    border-bottom: 0px !important;
+}
+
+.modal.modal-sublocations .search-container .input-container input:focus{
+    border-bottom: 0px !important;
+    box-shadow: none !important;
+}
+
+.modal.modal-sublocations .search-container .icon-container{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.modal.modal-sublocations .list-region ul li{
+    font-size: 16px;
+}
+
+.modal.modal-sublocations .list-region ul:not(:first-child){
+    padding-left: 25px;
+}
+
+.modal.modal-sublocations .list-region ul li:not(.show-drop-down) > ul{
+    display: none;
+}
+
+.modal.modal-sublocations .list-region ul li.show-drop-down > ul{
+    display: block;
+}
+
+.modal.modal-sublocations .name-radio-plus .input,
+.modal.modal-sublocations .name-radio-plus .plus-minus,
+.modal.modal-sublocations .name-radio-plus .name{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus{
+    vertical-align: super;
+    position: relative;
+    text-align: center;
+}
+
+.modal.modal-sublocations .name-radio-plus .minus{
+    display: none;
+}
+
+.modal.modal-sublocations .name-radio-plus input[type="radio"]{
+    position: static;
+    opacity: 1;
+    pointer-events: all;
+    display: none;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]{
+    pointer-events: all;
+    width: 100%;
+    position: absolute;
+    top: 7px;
+    opacity: 0;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]+.sign:after{
+    content: '+';
+    font-size: 18px;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]:checked+.sign:after{
+    content: '-';
+    font-size: 18px;
+}
+
+.modal.modal-sublocations [type="checkbox"]+label{
+    height: 22px;
+    padding-left: 20px;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]+.sign{
+    padding: 0px 5px;
+}
+
+.modal.modal-sublocations a.btn{
+    line-height: 46px;
+}
+
+a.disabled{
+    pointer-events: none;
+    color: #ddd !important;
+}
+
+@media only screen
+  and (max-width: 1440px) {
+    #modaCsvUpload,
+    #modalInvite{
+        width: 35%;
+    }
+}
+
+@media only screen
+  and (max-width: 1024px) {
+    #modaCsvUpload,
+    #modalInvite{
+        width: 40%;
+    }
+}
+
+@media only screen
+  and (max-width: 768px) {
+    #modaCsvUpload,
+    #modalInvite{
+        width: 60%;
+    }
+
+    .top-title-button h4{
+        display: block;
+        width: 100%;
+    }
+
+    .top-title-button .btn{
+        display: block;
+        float: left !important;
+    }
+
+    .top-title-button .btn:first-child{
+        margin-right: 10px;
+    }
+}
+
+@media only screen
+  and (max-width: 500px) {
+    #modaCsvUpload,
+    #modalInvite{
+        width: 90%;
+    }
+}

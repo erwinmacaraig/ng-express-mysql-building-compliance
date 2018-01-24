@@ -5,13 +5,14 @@ import { UserRoleRelation } from '../models/user.role.relation.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { EmailSender } from '../models/email.sender';
 import { Token } from '../models/token.model';
-import { InvitationCode  } from '../models/invitation.code.model';
+import { UserInvitation } from './../models/user.invitation.model';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { LocationAccountUser } from '../models/location.account.user';
 import { SecurityQuestions } from '../models/security-questions.model';
 import { SecurityAnswers } from '../models/security-answers.model';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { Utils } from '../models/utils.model';
+import { UserLocationValidation } from '../models/user-location-validation.model';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -60,6 +61,16 @@ const md5 = require('md5');
         new RegisterRoute().validateUserAgainstAccount(req, res, next);
       });
 
+      router.get('/user-location-verification/:token', (req: Request, res: Response, next: NextFunction) => {
+        new RegisterRoute().verifyUserLocation(req, res, next).then((data) => {
+          res.status(200);
+          return res.redirect('/success-valiadation/?user-location-verification=true');
+        }).catch((e) => {
+          res.status(400);
+          return res.redirect('/success-valiadation/?user-location-verification=false');
+        });
+      });
+
       router.post('/register/resend-email-verification', (req: Request, res: Response, next: NextFunction) => {
         new RegisterRoute().resendEmailVerification(req, res, next);
       });
@@ -75,6 +86,48 @@ const md5 = require('md5');
 	constructor() {
 		super();
 	}
+
+  public async verifyUserLocation(req: Request, res: Response, next: NextFunction) {
+
+    const token = new Token();
+    const tokenData = await token.getByToken(req.params.token);
+    console.log(tokenData);
+    if (!tokenData) {
+      throw new Error('Invalid token');
+    }
+    const expirationDateMoment = moment(tokenData['expiration_date']);
+    const currentDateMoment = moment();
+
+
+    if(!currentDateMoment.isBefore(expirationDateMoment)) {
+      throw new Error('Token already expired');
+    }
+    if (tokenData['action'] !== 'location access' && tokenData['verified'] === 1) {
+      throw new Error('Invalid token');
+    }
+
+    const locationAccntUser = new LocationAccountUser();
+    const user = new User(tokenData['user_id']);
+    await user.load();
+    const verifyInstance = new UserLocationValidation();
+    const verificationInfo = await verifyInstance.getByToken(req.params.token);
+
+    await locationAccntUser.create({
+      location_id: verificationInfo['location_id'],
+      account_id: user.get('account_id'),
+      user_id: tokenData['user_id'],
+      role_id: verificationInfo['role_id']
+    });
+
+    verificationInfo['status'] = 'VERIFIED';
+    await verifyInstance.create(verificationInfo);
+    await token.delete();
+
+    return {
+      message: 'User location verification successful'
+    };
+
+  }
 
 	public validateUserAgainstAccount(req: Request, res: Response, next: NextFunction) {
 	  // get parameters
@@ -368,7 +421,8 @@ const md5 = require('md5');
 
 		tokenModel.create({
 			'token':token,
-			'user_id': userData.user_id,
+			'id' : userData.user_id,
+			'id_type': 'user_id',
 			'action': 'verify',
 			'verified': 0,
 			'expiration_date' : expDateFormat
@@ -389,7 +443,7 @@ const md5 = require('md5');
 		let tokenModel = new Token(),
 			userModel = user,
 			userData = user.getDBData(),
-			locationAccountUser = new LocationAccountUser(),
+			locationAccountUser,
 			userEMrole = new UserEmRoleRelation(),
 			responseData = {
 				status : true,
@@ -399,7 +453,7 @@ const md5 = require('md5');
 				},
 				message : ''
 			}
-		
+
 		let newUsersToken = (callBack) => {
 			this.userVerificationNewUsersToken(
 				tokenModel,
@@ -440,6 +494,7 @@ const md5 = require('md5');
 		let updateInviCode = (code, success, error) => {
 			code.load().then(
 				() => {
+					locationAccountUser = new LocationAccountUser();
 					locationAccountUser.create({
 						'location_id' : code.get('location_id'),
 						'account_id': code.get('account_id'),
@@ -452,12 +507,7 @@ const md5 = require('md5');
 									success();
 								},
 								() => {
-									res.status(400).send({
-										message: 'Internal Server Error. Cannot Update token code status',
-										data: {
-											code: code.get('code')
-										}
-									});
+									error();
 								}
 							);
 						},
@@ -492,51 +542,78 @@ const md5 = require('md5');
 		};
 
 		if(reqBody.role_id == 1 || reqBody.role_id == 2){
+
 			userRole.create({
 				'user_id' : user.ID(),
 				'role_id' : reqBody.role_id
 			}).then(
 				() => {
 					if('invi_code_id' in reqBody) {
-						// update invitation code to be used
-						const code = new InvitationCode(reqBody.invi_code_id);
-						userTokenAndLoginCall((resp) => {
-							responseData.status = true;
-							responseData.data.token = resp.token;
-							responseData.data.user = resp.data;
-							responseData.message = 'Successfully created user';
-							
-							updateInviCode(
-								code,
-								() => {
-									res.statusCode = 200;
-									responseData.data['code'] = code.get('code');
-									res.send(responseData);
-								},
-								() => {
-									responseData.message = 'Location-Account-User saved unsuccessfully';
-									res.send(responseData);
-								}
-							);
-						});
+						const code = new (reqBody.invi_code_id);
+						code.load().then(
+							() => {
+								let c = code.getDBData();
+								let multipleCodes = new UserInvitation();
+								multipleCodes.getManyInvitationByCode( c['code'] ).then(
+									(codes) => {
+										for(let i in codes){
+											const codeUpdate = new UserInvitation(codes[i].invitation_code_id);
+											let updateSuccess;
+
+											if( parseInt(i) == (Object.keys(codes).length - 1) ){
+												updateSuccess = () => {
+													userTokenAndLoginCall((resp) => {
+														responseData.data.token = resp.token;
+														responseData.data.user = resp.data;
+														responseData.message = 'Successfully created user';
+														res.statusCode = 200;
+														responseData.data['code'] = code.get('code');
+														res.send(responseData);
+													});
+												}
+											}
+
+											updateInviCode(
+												codeUpdate,
+												() => {
+													if(typeof updateSuccess == 'function'){
+														updateSuccess();
+													}
+												},
+												() => {
+													responseData.message = 'Location-Account-User saved unsuccessfully';
+													res.send(responseData);
+												}
+											);
+
+
+										}
+									}
+								);
+							}
+						);
 					}else if('email' in reqBody){
 						emailCallAndUserTokenLogin();
 					}
-					
 				},
 				() => {
 					res.statusCode = 500;
 					res.send('Unable to save user role');
 				}
 			);
+
 		}else{
-			userEMrole.create({
+			if('email' in reqBody){
+				emailCallAndUserTokenLogin();
+			}
+
+			/*userEMrole.create({
 				user_id : user.ID(), em_role_id : 9
 			}).then(() => {
 				if('email' in reqBody){
 					emailCallAndUserTokenLogin();
 				}
-			});	
+			});*/
 		}
 	}
 
@@ -661,7 +738,7 @@ const md5 = require('md5');
                         callBack(reponse);
                     }
                 );
-	          	
+
 	        }
         );
 	}
@@ -706,16 +783,22 @@ const md5 = require('md5');
 				status : false,
 				message : '',
 				data : {}
-			};
+			},
+			allTokens;
 
 		res.statusCode = 400;
 
 		tokenModel.getByToken(token).then(
 			(tokenData) => {
+
+				if(tokenData['verified'] == 1){
+					return res.redirect('/success-valiadation?account-validation-invalid-token=true');
+				}
+
 				let expDateMoment = moment(tokenData['expiration_date']),
 					currentDateMoment = moment();
 
-				userId = tokenData['user_id'];
+				userId = tokenData['id'];
 				userModel.setID(userId);
 
 				if(currentDateMoment.isBefore(expDateMoment)){
@@ -745,19 +828,7 @@ const md5 = require('md5');
 						};
 						responseData.message = 'Auto login user';
 						if(redirect){
-							/*let script = `
-								<strong>Success! redirecting....</strong>
-								<script type="text/javascript">
-									setTimeout(function(){
-										localStorage.setItem('currentUser', '`+loginData.token+`');
-										localStorage.setItem('userData', '`+ JSON.stringify(loginData.data) +`');
-										location.replace(location.origin);
-									}, 2000);
-								</script>
-							`;
-							res.send(script);*/
             				return res.redirect('/success-valiadation');
-							// this.render(req, res, 'success-verification.hbs');
 						}else{
 							res.send(responseData);
 						}
@@ -804,48 +875,63 @@ const md5 = require('md5');
 		);
   	}
 
-  	public resendEmailVerification(req: Request, res: Response, next: NextFunction){
+  	public async resendEmailVerification(req: Request, res: Response, next: NextFunction){
   		let userModel = new User(req.body.user_id),
+  			tokenModel = new Token(),
 			response = {
 				status : false,
 				message : '',
 				data : {}
-			};
+			},
+			userData = {},
+			allTokens = <any>[];
 
 		res.statusCode = 400;
 
-		userModel.load().then(
-			(userData) => {
-				let bodyEmail = '',
-					tokenModel = new Token(),
-					token = userData['user_id']+''+tokenModel.generateRandomChars(50),
-					link = req.protocol + '://' + req.get('host') +'/token/'+token;
+		try{
+			userData = await userModel.load();
 
-				bodyEmail += '<h3 style="text-transform:capitalize;">Hi '+userData['first_name']+' '+userData['last_name']+'</h3> <br/>';
-				bodyEmail += '<h4>Your Requested Email Verification From EvacConnect Compliance Management System </h4> <br/>';
-				bodyEmail += '<h5>Please verify your account by clicking the link below</h5> <br/>';
-				bodyEmail += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
-
-				this.sendEmailForRegistration(userData, req,
-					() => {
-						response.message = 'Success! email resent.';
-						response.status = true;
-						res.statusCode = 200;
-						res.send(response);
-					},
-					(err) => {
-						response.message = err;
-						res.send(response);
-					},
-					bodyEmail,
-					token
-				);
-			},
-			() => {
-				response.message = 'No user found';
-				res.send(response);
+			try{
+				allTokens = await tokenModel.getAllByUserId(userData['user_id'], 'verify');
+			}catch(e){
+				allTokens = [];
 			}
-		);
+
+			if(allTokens.length > 0){
+				for(let i in allTokens){
+					let tokenDelete = new Token();
+					tokenDelete.setID(allTokens[i]['token_id']);
+					await tokenDelete.delete();
+				}
+			}
+
+			let bodyEmail = '',
+				token = userData['user_id']+''+tokenModel.generateRandomChars(50),
+				link = req.protocol + '://' + req.get('host') +'/token/'+token;
+
+			bodyEmail += '<h3 style="text-transform:capitalize;">Hi '+userData['first_name']+' '+userData['last_name']+'</h3> <br/>';
+			bodyEmail += '<h4>You Requested Email Verification From EvacConnect Compliance Management System </h4> <br/>';
+			bodyEmail += '<h5>Please verify your account by clicking the link below</h5> <br/>';
+			bodyEmail += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
+
+			this.sendEmailForRegistration(userData, req,
+				() => {
+					response.message = 'Success! email resent.';
+					response.status = true;
+					res.statusCode = 200;
+					res.send(response);
+				},
+				(err) => {
+					response.message = err;
+					res.send(response);
+				},
+				bodyEmail,
+				token
+			);
+		}catch(e){
+			response.message = 'No user found';
+			res.send(response);
+		}
   	}
 
 }

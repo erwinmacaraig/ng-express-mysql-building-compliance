@@ -1,12 +1,33 @@
 import * as db from 'mysql2';
 import * as Promise from 'promise';
+import * as csv from 'fast-csv';
+import * as fs from 'fs';
 
 const dbconfig = require('../config/db');
+const defs = require('../config/defs.json');
 
 export class Utils {
     constructor() {}
 
-    public listAllFRP(account?: number) {
+    public checkUserValidInALocation(user: number) {
+      return new Promise((resolve, reject) => {
+        const sql_check = `SELECT * FROM user_location_validation WHERE user_id = ? AND status = 'VERIFIED'`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_check, [user], (error, results, fields) => {
+          if (error) {
+            reject(`Internal error`);
+            return console.log(error);
+          }
+          console.log(`user is ${user}`);
+          console.log(results);
+          resolve(results.length);
+
+        });
+        connection.end();
+      });
+    }
+
+    public listAllFRP(parent_location: number = 0, user_id: number = 0, account?: number) {
       return new Promise((resolve, reject) => {
         let sql_get_frp = `SELECT
                               users.user_id,
@@ -19,13 +40,21 @@ export class Utils {
                               user_role_relation
                             ON
                               users.user_id = user_role_relation.user_id
+                            INNER JOIN
+                              location_account_user
+                            ON
+                              users.user_id = location_account_user.user_id
                             WHERE
                               user_role_relation.role_id = 1
                             AND
+                              location_account_user.location_id = ?
+                            AND
                               users.token <> ''
                             AND
-                              users.token IS NOT NULL`;
-        const val = [];
+                              users.token IS NOT NULL
+                            AND users.user_id <> ?`;
+        const val = [parent_location];
+        val.push(user_id);
         if (account) {
           sql_get_frp = sql_get_frp + ' AND users.account_id = ?';
           val.push(account);
@@ -45,41 +74,46 @@ export class Utils {
       }); // end Promise
     }
 
-    public listAllTRP(location: number, account?: number) {
+    public listAllTRP(location: number, account?: number, user_id: number = 0) {
       return new Promise((resolve, reject) => {
-        let sql_get_trp = `SELECT
-                                users.user_id,
-                                first_name,
-                                last_name,
-                                email,
-                                location_id
-                              FROM
-                                users
-                              INNER JOIN
-                                user_role_relation
-                              ON
-                                users.user_id = user_role_relation.user_id
-                            INNER JOIN
-                              location_account_relation
-                            ON
-                              location_account_relation.account_id = users.account_id
-                            WHERE
-                              user_role_relation.role_id = 2
-                            AND
-                                users.token <> ''
-                            AND
-                                users.token IS NOT NULL
-                            AND
-                              location_account_relation.location_id = ?
-                            `;
-
-        const val = [location];
+        let accountSql = '';
         if (account) {
-          sql_get_trp = sql_get_trp + ' AND  users.account_id = ?';
-          val.push(account);
+          accountSql = 'AND u.account_id = '+account;
         }
+
+        let sql_get_trp = `
+          SELECT
+            lau.user_id,
+            lau.location_id,
+            u.user_id,
+            u.first_name,
+            u.last_name,
+            u.email,
+            lau.account_id,
+            lau.role_id AS role_id_location,
+            urr.role_id AS role_id_account
+          FROM
+            location_account_user lau
+            INNER JOIN users u ON u.user_id = lau.user_id
+            RIGHT JOIN user_role_relation urr ON u.user_id = urr.user_id
+          WHERE
+            lau.location_id IN (`+location+`) AND
+            lau.role_id = 2 AND
+            u.token IS NOT NULL AND
+            u.user_id <> `+user_id+` AND
+            u.token <> ''
+            `+accountSql+`
+            OR
+            lau.location_id IN (`+location+`) AND
+            urr.role_id = 2 AND
+            u.token IS NOT NULL AND
+            u.user_id <> `+user_id+` AND
+            u.token <> ''
+            `+accountSql+`
+        `;
+
         const connection = db.createConnection(dbconfig);
-        connection.query(sql_get_trp, val, (error, results, fields) => {
+        connection.query(sql_get_trp, (error, results, fields) => {
           if (error) {
             return console.log(error);
           }
@@ -202,6 +236,26 @@ export class Utils {
 
     }
 
+    public buildECORoleList(isWardenRole?: number) {
+      return new Promise((resolve, reject) => {
+        let whereClause = '';
+        if (isWardenRole) {
+          whereClause = `WHERE is_warden_role = ${isWardenRole}`;
+        }
+        const sql_em_roles = `SELECT * FROM em_roles ${whereClause}`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_em_roles, [], (error, results, fields) => {
+          if (error) {
+            console.log(error);
+            reject(error);
+          } else {
+            resolve(results);
+          }
+        });
+        connection.end();
+      });
+    }
+
     public deployQuestions(account_id: number,
           location_id: number,
           user_id: number,
@@ -265,32 +319,43 @@ export class Utils {
         }
       });
     }
-    public queryValidationQuestions(role_id: number, question_id?: number) {
+
+    public processCSVUpload(filename: string) {
       return new Promise((resolve, reject) => {
 
-        let sql = `SELECT
-                        question_id,
-                        question
-                    FROM
-                        question_pool
-                    WHERE
-                        role_id = ?`;
-        const val = [role_id];
-        if (question_id) {
-          sql = sql + ` AND question_id = ?`;
-          val.push(question_id);
-        }
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, val,
-          (error, results, fields) => {
-            if (error) {
-              console.log(error);
-              reject(error);
-            }
-            resolve(results);
+        let counter = 0;
+        const columnNames = [];
+        let fieldnames = {};
+
+        // filename with file path
+        const arrayOfRows = [];
+        const CSVStream =  csv.fromPath(<string>filename)
+          .on('data', (data) => {
+
+              if (counter > 0 ) {
+                for (let i = 0; i < columnNames.length; i++) {
+                  fieldnames[columnNames[i]] = <string>data[i];
+                }
+                arrayOfRows.push(fieldnames);
+                fieldnames = {};
+              } else {
+                for (let n = 0; n < data.length; n++) {
+                  columnNames.push(defs['table_headers'][data[n]]);
+                }
+                // columnNames = data;
+              }
+              counter = counter + 1;
+
+           })
+           .on('end', () => {
+             resolve(arrayOfRows);
+           })
+           .on('error', (error) => {
+             console.log(error);
+             reject(error);
+             throw new Error('There was an error reading your file');
+           })
           });
-          connection.end();
-      });
     }
 
 }

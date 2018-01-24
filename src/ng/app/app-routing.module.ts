@@ -14,18 +14,17 @@ import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
+import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
 import { AuthGuard } from './services/auth-guard.service';
-import { PersonInfoResolver, TRPListResolver, FRPListResolver } from './services/person-info.resolver';
+import { PersonInfoResolver} from './services/person-info.resolver';
 import { PersonDataProviderService } from './services/person-data-provider.service';
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
-import { AccountValidationCriteriaComponent } from './account-validation-criteria/account-validation-criteria.component';
-
-//Locations Template Components
+// Locations Template Components
 import { LocationsUiComponent } from './locations-ui/locations.ui';
 import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
 import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
@@ -33,11 +32,32 @@ import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.ne
 import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
 import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
 import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
-import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
-import { SearchLocationComponent } from './locations-ui/search.location/search.location';
+// import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
+import { SearchLocationComponent } from './location/search/search-location.component';
+
+import { LocationListComponent } from './location/list/location-list.component';
+import { ViewSingleLocation } from './location/view.single/view-single.component';
+import { LocationComponent } from './location/location.component';
+import { SublocationComponent } from './location/sublocation/sublocation.component';
+import { VerificationComponent } from './location/verification/verification.component';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
-import { LocationListComponent } from './location/list/location.list';
+
+import { TeamsComponent } from './teams/teams.component';
+import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
+import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.impaired.component';
+import { MobilityImpairedArchivedComponent } from './teams/mobility-impaired-archived/mobility.impaired.archived.component';
+import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.mobility.impaired.component';
+import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
+import { ListArchivedWardensComponent } from './teams/list-wardens-archived/list.wardens.archived.component';
+import { AllUsersComponent } from './teams/all-users/all.users.component';
+import { AllUsersArchivedComponent } from './teams/all-users-archived/all.users.archived.component';
+import { AddUserComponent } from './teams/add-user/add.user.component';
+import { ViewUserComponent } from './teams/view-user/view.user.component';
+import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
+import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
+import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
+
 
 
 const appRoutes: Routes = [
@@ -46,7 +66,8 @@ const appRoutes: Routes = [
       children : [
         { path : '', component : SignupSelectRoleComponent  },
         { path : 'user', component : SignupUserInfoComponent  },
-        { path: 'warden-signup', component: WardenSignupComponent }
+        { path: 'warden-signup', component: WardenSignupComponent },
+        { path: 'warden-profile-completion/:token', component: WardenInvitationFormComponent }
       ]
   },
   { path: 'no-email', component: NoemailComponent },
@@ -65,9 +86,16 @@ const appRoutes: Routes = [
   { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
-  { path: 'validation-criteria', canActivate: [AuthGuard], component: AccountValidationCriteriaComponent },
   /*{ path: '**', redirectTo: '/dashboard'},*/
-  { 
+  { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
+    { path: 'list', component: LocationListComponent },
+    { path: 'search', component: SearchLocationComponent },
+    { path: 'view/:encrypted', component: ViewSingleLocation },
+    { path: 'view-sublocation/:encrypted', component: SublocationComponent },
+    { path: 'verify-access', component: VerificationComponent }
+
+  ]},
+  {
     path: 'locations-ui', component : LocationsUiComponent,
     children : [
       { path : 'add-single-location', component : AddSingleLocationComponent },
@@ -75,14 +103,31 @@ const appRoutes: Routes = [
       { path : 'add-multiple-next-location', component : AddMultipleNextLocationComponent },
       { path : 'view-location-list', component : ViewLocationListComponent },
       { path : 'view-location-single', component : ViewLocationSingleComponent },
-      { path : 'view-location-multiple', component : ViewLocationMultipleComponent },
-      { path : 'view-sublocation', component : ViewSublocationComponent },
-      { path : 'search-location', component : SearchLocationComponent }
+      { path : 'view-location-multiple', component : ViewLocationMultipleComponent }
     ]
   },
   {
-    path : 'list-locations', canActivate: [AuthGuard], component : LocationListComponent
+    path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
+  },
+  {
+    path : 'teams', canActivate: [AuthGuard], component : TeamsComponent,
+    children : [
+      { path : 'add-wardens', component : TeamsAddWardenComponent },
+      { path : 'mobility-impaired', component : MobilityImpairedComponent },
+      { path : 'mobility-impaired-archived', component : MobilityImpairedArchivedComponent },
+      { path : 'add-mobility-impaired', component : AddMobilityImpairedComponent },
+      { path : 'list-wardens', component : ListWardensComponent },
+      { path : 'list-archived-wardens', component : ListArchivedWardensComponent },
+      { path : 'all-users', component : AllUsersComponent },
+      { path : 'all-archived-users', component : AllUsersArchivedComponent },
+      { path : 'add-user', component : AddUserComponent },
+      { path : 'view-user/:encrypted', component : ViewUserComponent },
+      { path : 'view-warden', component : ViewWardenComponent },
+      { path : 'view-gen-occupant', component : ViewGeneralOccupantComponent },
+      { path : 'view-chief-warden', component : ViewChiefWardenComponent }
+    ]
   }
+
 ];
 
 @NgModule({

@@ -7,7 +7,7 @@ import { Router, NavigationEnd  } from '@angular/router';
 import { SignupService } from '../services/signup.service';
 import { UserService } from '../services/users';
 
-declare var $:any;
+declare var $: any;
 
 @Component({
   selector: 'app-dashboard',
@@ -73,7 +73,10 @@ export class DashboardComponent implements OnInit {
 				setTimeout(() => {
 					$('.alert-email-verification').removeAttr('style').css('opacity', '1');
 				},1000);
-			}
+      } else {
+        localStorage.removeItem('showemailverification');
+      }
+
 		});
 	}
 

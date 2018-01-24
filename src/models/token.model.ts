@@ -6,7 +6,7 @@ const dbconfig = require('../config/db');
 import * as Promise from 'promise';
 export class Token extends BaseClass {
 
-    constructor(id?: number){
+    constructor(id?: number) {
         super();
         if(id) {
             this.id = id;
@@ -34,7 +34,25 @@ export class Token extends BaseClass {
         });
     }
 
-    public getByToken(token:String) {
+    public delete() {
+      return new Promise((resolve, reject) => {
+        const sql_del = `DELETE FROM token WHERE token_id = ? LIMIT 1`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_del, [this.ID()], (error, results, fields) => {
+          if (error) {
+            console.log(error);
+            reject('Error deleting record');
+
+          } else {
+            resolve(true);
+          }
+
+        });
+        connection.end();
+      });
+    }
+
+    public getByToken(token: string) {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM token WHERE token = ?';
             const param = [token];
@@ -43,7 +61,7 @@ export class Token extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              if(!results.length){
+              if(!results.length) {
                 reject('Token not found');
               }else{
                 this.dbData = results[0];
@@ -55,11 +73,40 @@ export class Token extends BaseClass {
         });
     }
 
-    public getkUserVerified(userId) {
+    public getAllByUserId(userId, action?, id_type: string = 'user_id') {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM token WHERE user_id = ? AND verified = 1';
-            const param = [userId];
-            
+            let sql_load = 'SELECT * FROM token WHERE id = ? ',
+                param = [userId];
+
+            if(action){
+                sql_load += 'AND action = ?';
+                param.push(action);
+            }
+
+            sql_load += ' AND id_type = ? ORDER BY token_id DESC ';
+            param.push(id_type);
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              if(!results.length){
+                reject('Token not found');
+              }else{
+                this.dbData = results;
+                resolve(this.dbData);
+              }
+            });
+            connection.end();
+        });
+    }
+
+    public getkUserVerified(userId, id_type: string = 'user_id') {
+        return new Promise((resolve, reject) => {
+            const sql_load = 'SELECT * FROM token WHERE id = ? AND verified = 1 AND id_type = ?';
+            const param = [userId, id_type];
+
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
               if (error) {
@@ -79,9 +126,20 @@ export class Token extends BaseClass {
 
     public dbUpdate() {
         return new Promise((resolve, reject) => {
-          const sql_update = `UPDATE token SET user_id = ?, token = ?, action = ?, verified = ?, expiration_date = ? WHERE token_id = ? `;
+          const sql_update = `UPDATE
+                                token
+                              SET
+                                id = ?,
+                                id_type = ?,
+                                token = ?,
+                                action = ?,
+                                verified = ?,
+                                expiration_date = ?
+                              WHERE
+                                token_id = ? `;
           const token = [
-            ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
+            ('id' in this.dbData) ? this.dbData['id'] : 0,
+            ('id_type' in this.dbData) ? this.dbData['id_type'] : null,
             ('token' in this.dbData) ? this.dbData['token'] : 0,
             ('action' in this.dbData) ? this.dbData['action'] : "",
             ('verified' in this.dbData) ? this.dbData['verified'] : 0,
@@ -103,15 +161,17 @@ export class Token extends BaseClass {
     public dbInsert() {
         return new Promise((resolve, reject) => {
           const sql_insert = `INSERT INTO token (
-            user_id,
+            id,
+            id_type,
             token,
             action,
             verified,
             expiration_date
-          ) VALUES (?, ?, ?, ?, ?)
+          ) VALUES (?, ?, ?, ?, ?, ?)
           `;
           const token = [
-            ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
+            ('id' in this.dbData) ? this.dbData['id'] : 0,
+            ('id_type' in this.dbData) ? this.dbData['id_type'] : null,
             ('token' in this.dbData) ? this.dbData['token'] : 0,
             ('action' in this.dbData) ? this.dbData['action'] : "",
             ('verified' in this.dbData) ? this.dbData['verified'] : 0,

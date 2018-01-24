@@ -1,0 +1,190 @@
+<div class="row top">
+	<div class="col l12 m12 s12">
+		<h4> Archived ECO Member </h4>
+	</div>
+</div>
+
+<div class="row filter-container">
+	<div class="col l4 m5 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search member name" (keyup)="searchMemberEvent($event)">
+			<span class="material-icons">search</span>
+		</div>
+	</div>
+
+	<div class="col l2 m4 s6">
+		<select class="filter-by">
+			<option value="0" selected>Filter By (All)</option>
+			<option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
+		</select>
+	</div>
+
+	<div class="col l2 m6 s6">
+		<select class="sort-by">
+			<option value="0" selected>Sort By</option>
+			<option value="user-name-desc">User Name Descending</option>
+			<option value="user-name-asc">User Name Ascending</option>
+		</select>
+	</div>
+	<div class="col l2 m6 s12">
+		<select class="bulk-manage">
+			<option value="0" selected>Manage Action</option>
+			<option value="restore" >Restore selected</option>
+		</select>
+	</div>
+</div>
+
+
+<div class="row">
+	<div class="col l12 m12 s12">
+		<table class="table striped">
+			<thead>
+				<tr>
+					<th>
+						<p class="checkbox">
+							<input id="allLocations" (change)="selectAllCheckboxEvent($event)" class="filled-in" type="checkbox">
+							<label for="allLocations">Locations</label>
+						</p>
+					</th>
+					<th>Name</th>
+					<th>ECO Role</th>
+					<th>Training</th>
+					<th>Last Login</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngIf="wardenArr.length == 0">
+					<td colspan="6" class="center">
+						<h6>No record found</h6>
+					</td>
+				</tr>
+				<tr *ngFor="let warden of wardenArr; let i = index;">
+					<td>
+						<!-- <p class="checkbox">
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)">
+							<label for="location-{{i}}" > 
+								{{warden['parent_name']}} - {{warden['name']}}
+							</label>
+						</p> -->
+
+						<p class="checkbox" >
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
+							<label for="location-{{i}}" >
+								<span *ngIf="warden.locations.length > 1">Multiple locations</span>
+								<span *ngIf="warden.locations.length == 1">
+									<span *ngIf="warden.locations[0].parent_name.trim().length > 0">{{ warden.locations[0].parent_name }}, </span>
+									{{warden.locations[0].name}}
+								</span>
+							</label>
+						</p>
+					</td>
+					<td>
+						<div class="image-container lighten-3" [ngClass]="warden.bg_class">
+							<div class="image">
+								<img *ngIf="warden.profile_pic.length > 0" [src]="warden.profile_pic"  >
+							</div>
+						</div>
+						<div class="text">
+							<a [routerLink]="['/teams/view-user/', warden.id_encrypted]">
+								{{warden.first_name}} {{warden.last_name}}
+							</a>
+						</div>
+					</td>
+					<td class="with-image role-name">
+						<div class="eco-role">
+							<!-- <div class="image"></div> -->
+							<div *ngIf="warden.mobility_impaired == 1" class="impaired"></div>
+							<span *ngFor="let role of warden.roles; let ri = index;" class="name">
+								{{role.role_name}}<i *ngIf=" warden.roles.length - 1 != ri ">,</i> 
+							</span>
+						</div>
+					</td>
+					<td>
+						<span class="over red-text">0/0</span>
+					</td>
+					<td>
+						{{warden['last_login']}}
+					</td>
+					<td>
+						<select (change)="onSelectFromTable($event, warden)">
+							<option value="0" class="blue-text" selected>Manage</option>
+							<option value="view" class="blue-text">View</option>
+							<option value="restore" class="blue-text" >Restore</option>
+						</select>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+
+</div>
+
+
+<div id="modalArchive" class="modal">
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="showModalLoader">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			Are you sure you want archive 
+			<span *ngIf="selectedToArchive.parent_name">
+				{{ selectedToArchive.parent_name }}, 
+			</span> 
+			<span>{{selectedToArchive.name}} </span>
+			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
+		</p>
+	</div>
+	<div class="modal-footer" [hidden]="showModalLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
+	</div>
+</div>
+
+
+<div id="modalArchiveBulk" class="modal">
+	<div class="modal-content center" [hidden]="!showModalLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="showModalLoader">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			Are you sure you want restore the following items?
+		</p>
+		<ul>
+			<li *ngFor="let list of selectedFromList;">
+				<span *ngIf="list.parent_name">
+					{{ list.parent_name }}, 
+				</span> 
+				<span>{{list.name}}</span> 
+				<span class="blue-text">{{list.first_name}} {{list.last_name}}</span>
+			</li>
+		</ul>
+	</div>
+	<div class="modal-footer" [hidden]="showModalLoader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
+	</div>
+</div>

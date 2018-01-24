@@ -3,14 +3,18 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Account } from '../models/account.model';
-import { InvitationCode  } from '../models/invitation.code.model';
+import { UserInvitation } from './../models/user.invitation.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { Utils } from '../models/utils.model';
 import * as validator from 'validator';
 import { EmailSender } from '../models/email.sender';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
-
+import { UserRoleRelation } from '../models/user.role.relation.model';
+import { Location } from '../models/location.model';
+import { Token } from '../models/token.model';
+import { UserLocationValidation } from '../models/user-location-validation.model';
+import * as moment from 'moment';
 export class UserRelatedRoute extends BaseRoute {
   public static create(router: Router) {
     router.get('/person-info', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -22,70 +26,56 @@ export class UserRelatedRoute extends BaseRoute {
     });
 
     router.get('/person-invi-code', (req: Request, res: Response, next: NextFunction) => {
-      new UserRelatedRoute().getUserInvitationCode(req, res, next);
+      new UserRelatedRoute().getUserUserInvitation(req, res, next);
     });
 
     router.get('/listAllFRP', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-      new UserRelatedRoute().listAllFRP(req, res);
+      new UserRelatedRoute().listAllFRP(req, res).then((list) => {
+        res.status(200).send({
+          status: 'Success',
+          data: list
+        });
+      }).catch((e) => {
+        res.status(400).send();
+      });
     });
 
     router.get('/listAllTRP', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new UserRelatedRoute().listAllTRP(req, res);
     });
 
-    router.post('/validate-info', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response)=> {
-      new UserRelatedRoute().processValidation(req, res);
-    });
-
-    router.get('/list-validation-question', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-      new UserRelatedRoute().generateValidationQuestions(req, res);
-    });
-  }
-
-  public generateValidationQuestions(req: AuthRequest, res: Response) {
-    let role_id = 0;
-    let account_id = 0;
-    console.log(req.query);
-    let numberOfValidationQuestions = 1;
-    let currentQuestionIndex = req.query.currentQ || 0;
-    let currentQuestion = 0;
-    if ('account_id' in req.query) {
-      account_id = req.query.account_id;
-    }
-    if ('role_id' in req.query) {
-      role_id = req.query.role_id;
-    }
-    const utils = new Utils();
-    // get total validation for the user and first question id
-    utils.queryValidationQuestions(role_id).then((results: any[]) => {
-      numberOfValidationQuestions = results.length;
-      if (currentQuestionIndex >= results.length) {
-        currentQuestionIndex = 0;
-      }
-      console.log(results);
-      console.log(results[0]);
-      console.log(results[1]);
-      console.log(results[currentQuestionIndex]);
-      console.log('currentIndex = ' + currentQuestionIndex);
-      currentQuestion = results[currentQuestionIndex]['question_id'];
-      utils.deployQuestions(account_id, 0, req.user['user_id'], 2, currentQuestion).then((data) => {
-        console.log(data);
+    router.post('/verify-location-user', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new UserRelatedRoute().processValidation(req, res).then((data) => {
         return res.status(200).send({
-          qid: currentQuestionIndex,
-          question: results[currentQuestionIndex]['question'],
-          choices: [10, data, 5]
+          message: 'Verification send successfully',
+          status: 'Success'
+        });
+      }).catch((e) => {
+        return res.status(400).send({
+          message: 'Internal Server Error. Problem sending verification request'
         });
       });
     });
-
-
-
-
+    router.get('/location/user-verification', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new UserRelatedRoute().checkUserVerifiedInLocation(req, res);
+    } );
   }
 
-  public getUserInvitationCode(req: Request, res: Response, next: NextFunction) {
+
+  public checkUserVerifiedInLocation(req: AuthRequest, res: Response) {
+    const utils = new Utils();
+    utils.checkUserValidInALocation(req.user.user_id).then((data) => {
+      res.status(200).send({
+        count: data
+      });
+    }).catch((e) => {
+      res.status(400).send((<Error>e).message);
+    });
+  }
+
+  public getUserUserInvitation(req: Request, res: Response, next: NextFunction) {
     const queryParamCode = req.query.code;
-    const invitation_code = new InvitationCode();
+    const invitation_code = new UserInvitation();
 
 
     invitation_code.getInvitationByCode(queryParamCode, false).then((dbData) => {
@@ -112,7 +102,7 @@ export class UserRelatedRoute extends BaseRoute {
       });
     });
 
-  } // end getUserInvitationCode
+  } // end getUserUserInvitation
   public getUserPersonalInfo(req: AuthRequest, res: Response) {
 
     const queryParamUser = req.query.userId;
@@ -215,7 +205,7 @@ export class UserRelatedRoute extends BaseRoute {
           saveAction();
         }
       );
-    }else{
+    } else {
       return res.status(400).send({
         status: false,
         message: 'Domain blacklisted'
@@ -223,29 +213,29 @@ export class UserRelatedRoute extends BaseRoute {
     }
   }
 
-  public listAllFRP(req: AuthRequest, res: Response) {
+  public async listAllFRP(req: AuthRequest, res: Response) {
     const utils = new Utils();
     // const queryParamUser = req.query.userId;
     let account_id = 0;
-    if ('account_id' in req.query) {
-      account_id = req.query.account_id;
-    }
+    account_id = req.user.account_id;
+    const location_id = req.query.location_id;
     console.log(req.query);
-    utils.listAllFRP(account_id).then((list) => {
-      return res.status(200).send({
-        status: 'Success',
-        data: list
-      });
-    }).catch((e) => {
-      return res.status(400).send({
-        message: e
-      });
-    });
+    let location;
+    // get parent location
+    let parentId = location_id;
+    while (parentId !== -1) {
+      location = new Location(parentId);
+      await location.load();
+      parentId = location.get('parent_id');
+    }
+    console.log(location.get('location_id'));
+    const list = await utils.listAllFRP(location.get('location_id'), req.user.user_id);
+
+    return list;
   }
 
   public listAllTRP(req: AuthRequest, res: Response) {
     const utils = new Utils();
-    console.log('TRP', req.query);
     if (!('location_id' in req.query)) {
       return res.status(400).send({
         message: 'Bad Request. Invalid parameters.'
@@ -253,10 +243,9 @@ export class UserRelatedRoute extends BaseRoute {
     }
     const location_id = req.query.location_id;
     let account_id = 0;
-    if ('account_id' in req.query) {
-      account_id = req.query.account_id;
-    }
-    utils.listAllTRP(location_id, account_id).then((list) => {
+    account_id = req.user.account_id;
+
+    utils.listAllTRP(location_id, account_id, req.user.user_id).then((list) => {
       return res.status(200).send({
         status: 'Success',
         data: list
@@ -268,84 +257,122 @@ export class UserRelatedRoute extends BaseRoute {
     });
   }
 
-  public processValidation(req: AuthRequest, res: Response) {
+  public async processValidation(req: AuthRequest, res: Response) {
+
+    // we need to check the role(s)
+    const userRoleRel = new UserRoleRelation();
+    const roles = await userRoleRel.getByUserId(req.user.user_id);
+    // what is the highest rank role
+    let r = 100;
+    for (let i = 0; i < roles.length; i++) {
+      if (r > parseInt(roles[i]['role_id'], 10)) {
+        r = roles[i]['role_id'];
+      }
+    }
+    const roles_text = ['', 'Manager', 'Tenant'];
+
     const user = req.user;
-    const role_id = req.body.role_id;
+    // const role_id = req.body.role_id;
     const location_id = req.body.location_id;
     const account_id = req.body.account_id;
     const userDomain =  user['email'].substr( user['email'].indexOf('@') + 1,  user['email'].length);
-    const approver = new User(req.body.approvalFrom);
+
     const criteria = req.body.criteria;
-    console.log(req.body);
-    // get all user details
-    // console.log(user);
-    console.log(req.body);
-    const utils = new Utils();
-    // save request validation
 
+    let approvers = [],
+      lastApproverId = 0;
+    if(criteria == 'trp_enable'){
+      for(let i in req.body.approver){
+        approvers.push({
+          approver_id : req.body.approver[i]['approver'],
+          location_id : req.body.approver[i]['location']
+        });
+      }
+    }else if(criteria == 'frp_enable'){
+      for(let i in location_id){
+        approvers.push({
+          approver_id : req.body.approver,
+          location_id : location_id[i]
+        });
+      }
+    }
 
-    const requestValidationData = {
-      'user_id': user['user_id'],
-      'approvalFrom': parseInt(req.body.approvalFrom, 10)
-    };
-    approver.load().then(() => {
-      utils.getAccountLocationRelationInfo(location_id, account_id).then((r) => {
-        utils.storeRequestValidation(requestValidationData).then((data) => {
-          r['role_text'] = (role_id == 1) ? 'Building Manager' : 'Tenant';
+    lastApproverId = approvers[ approvers.length - 1 ]['approver_id'];
 
-          const emailOpts = {
-            'from': 'allantaw2@gmail.com',
-            'fromName': 'EvacConnect Compliance Management System',
-            'to': [approver.get('email')],
-            'subject': 'User Validation',
-            'body': `
-            Hi <strong>${approver.get('first_name')} ${approver.get('last_name')}</strong>,
-            <br /> <br />
-            This person is trying to register as a <strong>${r['role_text']}</strong> to <strong>${r['account_name']}</strong>.
-            <br /><br />Please refer to the information below:<br />
-            Name: <strong>${user['first_name']}</strong><br />
-            Last Name: <strong>${user['last_name']}</strong> <br />
-            Email: <strong> ${user['email']}</strong> <br />
-            Submitted TRP Code: <strong>${req.body.trp_code}</strong><br />
-            Domain Name Submitted: <strong> ${userDomain}</strong> <br />
-            Location:
-            <strong>${r['name']} ${r['unit']} ${r['street']} ${r['city']} ${r['state']} ${r['postal_code']}</strong>
-            <br /><br />
-            Please click on the link below to verify this user or just ignore this message. <br />
-            <a href="${req.protocol}://${req.get('host')}/user-account-validation/${data}/${req.body.approvalFrom}/${user['user_id']}/${account_id}/${location_id}"
-            target="_blank" style="text-decoration:none; color:#0277bd;">
-            ${req.protocol}://${req.get('host')}/user-account-validation/${data}/${req.body.approvalFrom}/${user['user_id']}/${account_id}/${location_id}
-            </a>
-            <br /><br />
-            Thank you.
-            `,
-          };
-          const email = new EmailSender(emailOpts);
-          email.send((d) => console.log(d),
-          (err) => console.log(err));
+    for(let i in approvers){
 
-          return res.status(200).send({
-            status: 'OK',
-            data: data
-          });
-        }).catch((e) => {
-          console.log(e);
-          return res.status(400).send({
-            status: 'Bad request storeRequestValidation',
-            data: e
-          });
-        });// request validation
+      let
+        token_string = this.generateRandomChars(5),
+        approver = new User(parseInt(approvers[i]['approver_id'])),
+        utils = new Utils(),
+        location = new Location(parseInt(approvers[i]['location_id'])),
+        token = new Token(),
+        locationValidation = new UserLocationValidation(),
+        expDate = moment(),
+        expDateFormat = '';
 
-      }); // get UserAccountRoleLocationInfo
-    }).catch((e) => {
-      return res.status(400).send({
-        status: 'Bad request approver',
-        data: e
+      expDate.add(24, 'hours');
+      expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
+
+      await location.load();
+      await approver.load();
+
+      await token.create({
+        id: req.user.user_id,
+        id_type: 'user_id',
+        token: token_string,
+        action: 'location access',
+        verified: 0,
+        expiration_date: expDateFormat
       });
-    }); // load
-   // get info to be validated
 
+      await locationValidation.create({
+        user_id: req.user.user_id,
+        approver_id: approvers[i]['approver_id'],
+        role_id: r,
+        location_id: approvers[i]['location_id'],
+        token_id: token.ID()
+      });
 
+      const emailOpts = {
+        'from':       'allantaw2@gmail.com',
+        'fromName':   'EvacConnect Compliance Management System',
+        'to':          [approver.get('email')],
+        'subject':     'User Verification',
+        'body': `
+          Hi <strong>${approver.get('first_name')} ${approver.get('last_name')}</strong>,
+          <br /> <br />
+          This person is trying to register as a <strong>${roles_text[r]}</strong> to <strong>${location.get('formatted_address')}</strong>.
+          <br /><br />Please refer to the information below:<br />
+          Name: <strong>${user['first_name']}</strong><br />
+          Last Name: <strong>${user['last_name']}</strong> <br />
+          Email: <strong> ${user['email']}</strong> <br />
+          Email Domain Name Submitted: <strong> ${userDomain}</strong> <br />
+          Please click on the link below to verify this user or just ignore this message. <br />
+          <a href="${req.protocol}://${req.get('host')}/user-location-verification/${token_string}"
+          target="_blank" style="text-decoration:none; color:#0277bd;">
+          ${req.protocol}://${req.get('host')}/user-location-verification/${token_string}
+          </a>
+          <br /><br />
+          Thank you.
+        `,
+      };
 
+      const email = new EmailSender(emailOpts);
+      email.send(
+        (d) => () => {
+          if(lastApproverId == approver.get('user_id')){
+            return {
+              message: 'Success'
+            };
+          }
+        },
+        (err) => {
+          console.log(err)
+          throw new Error('There was problem sending the email verification');
+        }
+      );
+
+    }
   }
 }

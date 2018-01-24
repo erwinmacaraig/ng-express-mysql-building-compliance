@@ -1,0 +1,509 @@
+.inline-block{
+	display: inline-block;
+}
+
+.left-panel{
+	width: 270px;
+	background-color: #eee;
+	padding: 20px;
+	min-height: 750px;
+	position: relative;
+}
+
+.col-user-profile{
+    position: relative;
+}
+
+.col-user-profile .badge-chief-warden{
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    top: 115px;
+    left: 60px;
+    box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+    background-position: 53% 70.5%;
+}
+
+.right-content{
+	padding: 20px;
+    width: calc(100% - 300px);
+    vertical-align: top;
+}
+
+.left-panel .image-container{
+	width: 80px;
+    height: 80px;
+	display: inline-block;
+  	text-align: center;
+  	vertical-align: middle;
+  	background-color: #79d2bc;
+    border-radius: 80px;
+    position: relative;
+}
+
+.left-panel .image-container .profile-warden{
+    width: 82px;
+    height: 82px;
+    border-radius: 80px;
+    box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+}
+
+.left-panel .image-container img,
+.left-panel .image-container .initials{
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+    max-width: 81px;
+    max-height: 81px;
+    border-radius: 80px;
+    color: #fff;
+    font-size: 40px;
+    margin: 0px;
+}
+
+.left-panel.image img{
+  max-width: 50px;
+  max-height: 50px;
+}
+
+.left-panel h5{
+	font-size: 22px;
+	margin-bottom: 20px;
+}
+
+.left-panel .name-container{
+	display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+.left-panel .name{
+    margin: 0px 0px 2px 0px;
+    vertical-align: middle;
+    width: 136px;
+    font-size: 18px;
+}
+
+.left-panel .name+p{
+	margin: 0px;
+    vertical-align: middle;
+    color: #8f8e8e;
+}
+
+.left-panel .bottom-buttons{
+	position: absolute;
+    bottom: 20px;
+    width: 90%;
+    left: 4%;
+}
+
+.left-panel .bottom-buttons .btn{
+	margin-bottom: 20px;
+	height: 80px !important;
+	padding: 0px;
+    width: 245px;
+}
+
+.left-panel .bottom-buttons .btn .image{
+	width: 40px;
+	height: 40px;
+	box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+}
+
+.left-panel .bottom-buttons .btn .text{
+	font-size: 15px !important;
+    line-height: 20px;
+    text-align: left;
+    width: 160px;
+}
+
+.left-panel .bottom-buttons .btn .text,
+.left-panel .bottom-buttons .btn .image{
+	vertical-align: middle;
+}
+
+.left-panel .bottom-buttons .btn.remove .image{
+	background-position: 63% 70%;
+}
+
+.left-panel .bottom-buttons .btn.presonal-emergency .image{
+	background-position: 73% 70%;
+}
+
+.grid {
+}
+
+.grid:after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+.grid .grid-item{
+	margin-right: 20px;
+    max-width: 260px;
+    position: absolute;
+    box-shadow: none;
+    border-radius: 10px;
+}
+
+.grid-item .top{
+	text-align: center;
+    margin: 10px 0px;
+}
+
+.grid-item .top .image{
+    width: 30px;
+    height: 30px;
+	box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+}
+
+.grid-item .top .text{
+	font-size: 16px;
+    font-weight: bold;
+}
+
+.grid-item .top .image.close{
+	background-position: 6.2% 86.5%;
+}
+
+.grid-item .top .image.check{
+	background-position: 18.7% 86.5%;
+}
+
+.grid-item .top .text,
+.grid-item .top .image{
+	vertical-align: middle;
+}
+
+.grid-item .buttons{
+	text-align: center;
+	margin: 0px 0px 15px 0px;
+}
+
+.grid-item .buttons .btn{
+	width: 80% !important;
+	margin-bottom: 10px;
+}
+
+
+.grid-item .btn{
+	font-size: 14px !important;
+}
+
+.grid-item .middle-text{
+	font-size: 18px;
+    line-height: 20px;
+    width: 250px;
+    padding: 10px 30px;
+    text-align: center;
+}
+
+.grid-item .middle-text p{
+	font-size: 14px;
+}
+
+.grid-item .middle-image{
+	margin: 20px 0px 0px 0px;
+}
+
+.grid-item .middle-image .image{
+    width: 69px;
+    display: block;
+    height: 69px;
+    box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+    margin: 0 auto;
+}
+
+.grid-item .red-image{
+	background-position: 5.5% 11% !important;
+}
+
+.grid-item .green-image{
+	background-position: 25% 11% !important;
+}
+
+.grid-item .yellow-image{
+	background-position: 45.5% 11% !important;
+}
+
+.top-title-button{
+    margin: 0px 0px 20px 0px;
+}
+
+.top-title-button .btn{
+    background-color: transparent !important;
+    font-size: 14px !important;
+    width: 220px;
+    height: inherit !important;
+    text-align: left;
+    border-radius: 10px !important;
+    border: 1px solid #ed5463;
+    padding: 0px;
+    color: rgba(0, 0, 0, 0.8) !important;
+    padding: 10px;
+}
+
+.top-title-button .btn .image{
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    background: url('/assets/images/team_icons.png') no-repeat;
+    width: 38px;
+    height: 38px;
+}
+
+.top-title-button .btn .csv-wardens{
+    background-position: 79.5% 35%;
+}
+
+.top-title-button .btn .text{
+    display: inline-block;
+    width: 150px;
+    color: #414141;
+    line-height: 20px;
+    text-align: left;
+    vertical-align: middle;
+    transition: all 0.5s;
+}
+
+.top-title-button .btn:hover{
+    -webkit-filter: brightness(161%);
+    filter: brightness(161%);
+}
+
+table thead tr th{
+    background-color: #2f2f2f;
+    color: #fff;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: 1px solid #2f2f2f;
+    border-radius: 0px;
+}
+
+table tbody td{
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+table tfoot td{
+    padding: 0px;
+}
+
+table tfoot td button{
+    width: 100%;
+    border-radius: 0px !important;
+    font-size: 14px !important;
+    height: 45px !important;
+    line-height: 35px;
+}
+
+table select{
+    display: block;
+    background-color: inherit;
+    font-size: 14px;
+}
+
+table select:focus{
+    outline: 0px;
+}
+
+table tbody td input{
+    margin: 0px;
+    border: 0px;
+    font-size: 14px;
+}
+
+table tbody td input:focus{
+    border-bottom: 0px;
+    box-shadow: 0 1px 0 0 #0089ec;
+}
+
+table tbody td a{
+    font-size: 14px;
+}
+
+table tbody td .image{
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    background: url('/assets/images/team_icons.png') no-repeat;
+    width: 40px;
+    height: 40px;
+}
+
+.white-hat{
+    background-position: 42.5% 52.5% !important;
+}
+
+.yellow-hat{
+    background-position: 61.2% 52.5% !important;
+}
+
+.red-hat{
+    background-position: 81.1% 52.5% !important;
+}
+
+table tbody td .text{
+    display: inline-block;
+}
+
+.location-div small{
+    font-size: 14px;
+}
+
+.location-div h5{
+    margin: 0px;
+}
+
+.filter-container .search-field{
+    background-color: #eee;
+    padding: 0px 20px;
+    position: relative;
+    margin-top: 0px !important;
+    height: 100%;
+    border-radius: 5px;
+}
+
+.filter-container .search-field i{
+    position: absolute;
+    right: 10px;
+    top: 15px;
+}
+
+.filter-container .search-field input[type="text"]{
+    width: 95%;
+    border-bottom: 0px;
+    margin-bottom: 0px;
+    height: 100%;
+}
+
+.filter-container .search-field input[type="text"]:focus{
+    box-shadow: none !important;
+    border-bottom: 0px !important;
+}
+
+.filter-container > .col {
+    margin-top: 10px;
+    height: 50px !important;
+}
+
+.filter-container .select-field{
+    margin-top: 0px !important;
+}
+
+@media only screen and (max-width: 600px) {
+  .masonry-container {
+    -webkit-column-count: 1;
+    -moz-column-count: 1;
+    column-count: 1;
+  }
+}
+@media only screen and (min-width: 601px) {
+  .masonry-container {
+    -webkit-column-count: 2;
+    -moz-column-count: 2;
+    column-count: 2;
+  }
+}
+@media only screen and (min-width: 993px) {
+  .masonry-container {
+    -webkit-column-count: 3;
+    -moz-column-count: 3;
+    column-count: 3;
+  }
+}
+
+
+#modalInvite{
+    width: 22%;
+    max-height: 100%;
+}
+
+#modalInvite textarea{
+    min-height: 165px;
+    font-size: 14px;
+    padding: 10px;
+    background-color: #ededed;
+    border: 0px;
+}
+
+.modal .header-container .csv-wardens{
+    background-position: 95.5% 12%;
+}
+
+.modal .header-container .invite-wardens{
+    background-position: 63.5% 12%;
+}
+
+.modal .header-container .image{
+    width: 60px;
+    height: 60px;
+}
+
+.button-container{
+    margin: 20px 0px;
+}
+
+
+.modal .header-container .invite-wardens{
+    background-position: 63.5% 12% !important;
+}
+
+.modal .header-container .text {
+    width: 60%;
+    font-size: 24px;
+    color: #0089ec;
+    line-height: 28px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.modal .header-container .image {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+    box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+}
+
+#modalResign {
+    width: 24%;
+}
+
+
+@media only screen
+  and (min-width: 769px) and (max-width: 1440px){
+    #modalInvite,
+    #modalResign{
+        width: 40%;
+    }
+}
+
+@media only screen
+  and (max-width: 768px) {
+    #modalInvite,
+    #modalResign{
+        width: 60%;
+    }
+}
+
+@media only screen
+  and (max-width: 500px) {
+    #modalInvite,
+    #modalResign{
+        width: 90%;
+    }
+}

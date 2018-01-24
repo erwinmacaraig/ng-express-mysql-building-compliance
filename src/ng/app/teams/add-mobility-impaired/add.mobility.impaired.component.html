@@ -1,0 +1,214 @@
+<div class="row row-add-mobility-impaired-form">
+	<div class="col m12 l12 s12 top-title-button">
+		<h4 class="title left">Add Mobility Impaired</h4>
+
+		<button class="btn btn-flat right" (click)="showModalCSV()" style="width: 250px;">
+			<div class="image csv-wardens"></div>
+			<div class="text" style="width: 175px;">Add Mobility Impaired by CSV Upload</div>
+		</button>
+		<!-- <button class="btn btn-flat right" (click)="showModalInvite()" style="margin-right: 20px;">
+			<div class="image invite-wardens"></div>
+			<div class="text">Invite Mobility Impaired by Email</div>
+		</button> -->
+	</div>
+</div>
+
+<div class="row">
+	<div class="col l12 m12 s12">
+
+		<form #addMobilityImpairedForm="ngForm">
+			<table class="table striped">
+				<thead>
+					<tr>
+						<th>First Name</th>
+						<th>Last Name</th>
+						<th>Email</th>
+						<!-- <th>Account Role</th> -->
+						<th>Role</th>
+						<th>Location</th>
+						<th>Contact Information</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngIf="addedUsers.length == 0">
+						<td colspan="7">
+							<h6 class="center">Add new user</h6>
+						</td>
+					</tr>
+					<tr *ngFor="let user of addedUsers; let i = index">
+						<td >
+							<input type="text" class="first-name" [(ngModel)]="user.first_name" placeholder="First name" name="first_name{{i}}" required>
+						</td>
+						<td >
+							<input type="text" [(ngModel)]="user.last_name" placeholder="Last name" name="last_name{{i}}" required>
+						</td>
+						<td style="position: relative;">
+							<div *ngIf="user.errors.email_taken || user.errors.blacklisted || user.errors.invalid"  style=" position: absolute; right: 5px; top: 5px; background-color: #f44336; padding: 1% 3%; color: #fff; border-radius: 5px;">
+								<span *ngIf="user.errors.email_taken">Email is taken</span>
+								<span *ngIf="user.errors.blacklisted || user.errors.invalid">Invalid email</span>
+							</div>
+							<input type="text" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" required>
+						</td>
+						<!-- <td >
+							<select required [(ngModel)]="user.role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">
+								<option value="0" selected>Select Account Role</option>
+								<option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
+							</select>
+						</td> -->
+						<td >
+							<select required [(ngModel)]="user.account_role_id" name="accountRole{{i}}" >
+								<option value="0" selected disabled>Select Role</option>
+								<option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
+							</select>
+						</td>
+						<td >
+							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0 && user.role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
+						</td>
+						<td class="with-remove">
+							<input type="text" [(ngModel)]="user.contact_number" placeholder="Contact Information" name="mobile{{i}}">
+							<a href="javascript:void(0)" class="remove" (click)="removeAddedUser(i)" [hidden]="i == 0">X</a>
+						</td>
+					</tr>
+				</tbody>
+				<tfoot>
+					<tr>
+						<td colspan="7">
+							<button class="btn blue" (click)="addMoreRow()">
+								+ Add more row
+							</button>
+						</td>
+					</tr>
+				</tfoot>
+			</table>
+		</form>
+
+	</div>
+
+	<div class="col l12 m12 s12 button-container right-align">
+		<button class="btn grey lighten-1 waves-effect waves-light cancel" [routerLink]="['/teams/mobility-impaired']"  > Cancel </button>
+		<button class="btn orange waves-effect waves-light cancel" (click)="submitPEEP()" [disabled]="addMobilityImpairedForm.invalid"> Submit </button>
+	</div>
+</div>
+
+<div id="modalLocations" class="modal modal-sublocations">
+
+
+
+	<div class="modal-content">
+		<h5>Select Location</h5>
+
+		<div class="search-container" >
+			<div class="input-container">
+				<input type="text" placeholder="Search Level" >
+			</div>
+			<div class="icon-container">
+				<img src="assets/images/locations/search_icon.png" alt="">
+			</div>
+		</div>
+
+		<form #formLoc="ngForm" (submit)="submitSelectLocationModal(formLoc, $event)">
+
+		<div class="list-region" style="overflow-y: auto; height: 340px;">
+			<ul>
+				<ng-template #recursiveList let-locations>
+					<li *ngFor="let location of locations" class="list-division" [id]="location.location_id">
+						<div class="name-radio-plus">
+							<div class="input">
+								<input ngModel required type="radio" name="selectLocation" [value]="location.location_id" [id]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }" >
+								<label [for]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }"></label>
+								<div class="plus-minus">
+									<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" />
+									<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
+									<span>{{location.name}}</span>
+								</div>
+							</div>
+						</div>
+						<ul *ngIf="location.sublocations.length > 0">
+					        <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: location.sublocations }"></ng-container>
+						</ul>
+					</li>
+				</ng-template>
+				<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: locations }"></ng-container>
+    		</ul>
+		</div>
+
+		<div class="button-container center">
+			<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
+			<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLoc.valid"> Submit </button>
+		</div>
+
+		</form>
+
+	</div>
+</div>
+
+<div id="modalInvite" class="modal">
+  <form #invitefrm="ngForm">
+    <div class="modal-content">
+      <div class="header-container center">
+        <div class="image invite-wardens"></div>
+        <div class="text" style="width: 50%;">Invite Wardens by Email</div>
+      </div>
+
+      <div class="center">
+        <p style="font-size: 16px;">Add email address separated by ","</p>
+        <textarea placeholder="Emails here" [(ngModel)]="bulkEmailInvite" name="inviteTxtArea"></textarea>
+      </div>
+
+      <div class="button-container center">
+        <button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
+        <button class="btn orange waves-effect waves-light" (click)="sendInviteOnClick()"> Submit </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+
+<div id="modaCsvUpload" class="modal">
+	<div class="modal-content">
+		<div class="header-container center">
+			<div class="image csv-wardens"></div>
+			<div class="text">Add Mobility Impaired by CSV Upload</div>
+		</div>
+
+		<div class="center">
+			<p style="font-size: 16px;">If you have a large number of contracts, you can upload them using a CSV file.</p>
+			<h6 class="blue-text" style="margin: 30px 0px;">
+				Step 1 - Download CSV Template
+			</h6>
+			<p style="margin: 30px 0px;">
+				<a href="https://s3.amazonaws.com/allan-delfin/templates/user_import.csv" class="btn orange lighten-1 waves-effect waves-light">
+					<div class="csv-icon"></div>
+					<span>Download CSV Template</span>
+				</a>
+			</p>
+			<h6 class="blue-text" style="margin: 30px 0px;">
+				Step 2 - Upload CSV File
+			</h6>
+			<div class="upload-container">
+				<p class="text">Drag & Drop CSV File</p>
+				<p class="text">or</p>
+        		<button class="btn blue waves-effect waves-light" #btnSelectCSV (click)="selectCSVButtonClick(inputFileCSV)">Select CSV File</button>
+
+        		<input type="file" name="file" accept=".csv" #inputFileCSV (change)="fileChangeEvent($event, btnSelectCSV)" placeholder="Select CSV File" class="btn blue waves-effect waves-light hide" />
+			</div>
+			<h6 class="blue-text" style="margin: 30px 0px;">
+				Step 3 - Will this upload overwrite your existing impaired users uploaded in the system?
+			</h6>
+			<div class="switch">
+				<input type="checkbox" id="override">
+				<div class="yes">Yes</div>
+				<div class="no">No</div>
+				<div class="highlight"></div>
+				<div class="background"></div>
+			</div>
+		</div>
+
+		<div class="button-container center">
+			<button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
+			<button class="btn orange waves-effect waves-light" (click)="onUploadCSVAction()"> Submit </button>
+		</div>
+
+	</div>
+</div>
+

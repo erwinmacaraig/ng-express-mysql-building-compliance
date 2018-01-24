@@ -12,11 +12,9 @@
 
 						<input type="text" name="username" placeholder="Username or Email" id="username" ngModel /><br>
 						<input type="password" name="password" placeholder="Password" id="password" ngModel /><br>
-						<p *ngIf="showVerification" class="error-message">Please verify your account</p>
 						<p *ngIf="showInvalid" class="error-message">Invalid username/email or password</p>
 						<p *ngIf="showErrorOccured" class="error-message">{{errorOccuredMessage}}</p>
 						<p *ngIf="showSuccess" class="success-message"> Success! </p>
-
 						<p class="keep-signed-in-container">
 							<input type="checkbox" class="filled-in blue" value="none" id="remember" name="keepSignedin" checked ngModel />
 							<label for="remember" class="keep-signed-in">Keep me signed in.</label>
@@ -72,6 +70,46 @@
 		</div>
 	</div>
 
+
+</div>
+
+<div id="modalSendVerification" class="modal">
+	<div class="modal-content center">
+		
+		<div *ngIf="verification.loader" class="preloader-wrapper active">
+			<div class="spinner-layer spinner-blue-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+
+		<h4 *ngIf="!verification.loader">
+			
+			<span *ngIf="verification.success">
+				We just sen't you an email for verifcation. Please check it 
+			</span>
+
+			<span *ngIf="!verification.success">
+				Please verify your account <br>
+				<small>
+					<a href="javascript:void(0)" class="blue-text" style="text-decoration: underline; line-height: 20px;" (click)="resendVerification()">
+						Click here to send verification
+					</a>
+				</small>
+			</span>
+
+		</h4>
+
+		<div class="right-align button-container" *ngIf="verification.buttons">
+			<button class="btn grey lighten-1 waves-effect waves-light modal-action modal-close">CANCEL</button>
+		</div>
+
+	</div>
 
 </div>
 

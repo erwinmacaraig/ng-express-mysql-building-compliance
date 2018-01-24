@@ -1,0 +1,168 @@
+<div class="inline-block left-panel">
+	<div class="row">
+		<div class="col l12 m12 s12">
+			<h5>My Eco Role</h5>
+			
+			<div class="image-container">
+				<!-- <div class="profile-warden"></div> -->
+				<p class="initials" *ngIf="viewData.user.profilePic.length > 0 === false">
+					{{getInitials(viewData.user.first_name+' '+viewData.user.last_name)}}
+				</p>
+				<img *ngIf="viewData.user.profilePic.length > 0 === true" [src]="viewData.user.profilePic"  >
+			</div>
+
+			<div class="name-container ">
+				<h5 class="name blue-text">
+					<span *ngIf="viewData.eco_role.role_name">{{viewData.eco_role.role_name}}</span>
+				</h5>
+				<!-- <p>Last Login 0 day</p> -->
+			</div>
+		</div>	
+	</div>
+	<div class="row">
+		<div class="col l12 m12 s12 location-div">
+			<small>Location</small>
+			<h5>
+				<span *ngIf="viewData.location.parent_location.name">{{viewData.location.parent_location.name}}, </span>
+				{{viewData.location.name}}
+			</h5>
+		</div>
+	</div>
+
+	<div class="bottom-buttons">
+		<button class="btn orange waves-effect waves-light remove disabled" *ngIf="hasRequest">
+			<div class="image inline-block"></div>
+			<div class="text inline-block">Warden request in process</div>
+		</button>
+
+		<button class="btn orange waves-effect waves-light remove" (click)="requestWardenClick()" *ngIf="viewData.eco_role.em_roles_id == 8 && !hasRequest">
+			<div class="image inline-block"></div>
+			<div class="text inline-block">Request to be Warden</div>
+		</button>
+
+		<button class="btn pink waves-effect waves-light presonal-emergency">
+			<div class="image inline-block"></div>
+			<div class="text inline-block">Personal Emergency Evacuation Plan</div>
+		</button>
+	</div>
+</div>
+<div class="inline-block right-content">
+	<div class="row">
+		<div class="col s12 m12 l12 top-title-button">
+			<h5 class="left">Team</h5>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col s12 m10 l6">
+			<table>
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Eco Role</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngIf="viewData.team.length == 0">
+						<td colspan="2" class="center">
+							<h6>No team found</h6>
+						</td>
+					</tr>
+					<tr *ngFor="let user of viewData.team">
+						<td>
+							{{user.first_name}} {{user.last_name}}
+						</td>
+						<td class="with-image">
+							<div class="image white-hat" *ngIf="user.em_roles_id == 11 || user.em_roles_id == 15"></div>
+							<div class="image yellow-hat" *ngIf="user.em_roles_id == 10 || user.em_roles_id == 10"></div>
+							<div class="image red-hat" *ngIf="user.em_roles_id == 9 || user.em_roles_id == 16 || user.em_roles_id == 18"></div>
+							<div class="text">
+								{{user.role_name}}
+							</div>
+						</td>
+					</tr>
+					<!-- <tr>
+						<td>
+							Chief Warden Lastname
+						</td>
+						<td class="with-image">
+							<div class="image white-hat"></div>
+							<div class="text">Chief Warden</div>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Deputy Chief Warden Lastname
+						</td>
+						<td class="with-image">
+							<div class="image white-hat"></div>
+							<div class="text">Deputy Chief Warden</div>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Area Warden Lastname
+						</td>
+						<td class="with-image">
+							<div class="image yellow-hat"></div>
+							<div class="text">Area Warden</div>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Warden Lastname
+						</td>
+						<td class="with-image">
+							<div class="image red-hat"></div>
+							<div class="text">Warden</div>
+						</td>
+					</tr> -->
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+</div>
+
+
+<div id="modalRequestWarden" class="modal">
+	<div class="modal-content" *ngIf="!showModalRequestWardenLoader && !showModalRequestWardenSuccess">
+		<h5 style="margin-bottom: 7%;" [hidden]="approvers.length == 0">Select your approver</h5>
+		<h6 [hidden]="approvers.length > 0">
+			Sorry there's no approver for this location
+		</h6>
+		
+		<h6 [hidden]="approvers.length == 0">
+			You need to select a TRP to approve your request
+		</h6>
+		<div class="select-field" [hidden]="approvers.length == 0">
+			<select>
+				<option value="0">Select approver</option>
+				<option *ngFor="let approver of approvers" [value]="approver.user_id">{{approver.first_name}} {{approver.last_name}}</option>
+			</select>
+		</div>
+	</div>
+
+	<div class="modal-content center" *ngIf="showModalRequestWardenLoader && !showModalRequestWardenSuccess">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-content center" *ngIf="showModalRequestWardenSuccess && !showModalRequestWardenLoader">
+		<h5 *ngIf="customMessageModal.status">{{customMessageModal.message}}</h5>
+		<h5 *ngIf="!customMessageModal.status">Request sent!</h5>
+	</div>
+	
+	<div class="modal-footer" *ngIf="!showModalRequestWardenLoader && !showModalRequestWardenSuccess">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" *ngIf="approvers.length > 0" class="waves-effect waves-blue btn-flat" (click)="submitRequest()">Submit</a>
+	</div>
+</div>

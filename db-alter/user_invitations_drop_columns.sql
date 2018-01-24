@@ -1,0 +1,1 @@
+ALTER TABLE user_invitations DROP COLUMN can_login, DROP COLUMN time_zone;
