@@ -25,8 +25,24 @@
     vertical-align: middle;
 }
 
+.main{
+    position: relative;
+}
+
+.row-diagram-details{
+    position: absolute;
+    top: 0px;
+    margin-top: 5%;
+    transition: all 0.5s;
+    width: 95vw;
+}
+
 .row-table-content{
     margin-top: 5%;
+    position: absolute;
+    top: 0px;
+    transition: all 0.5s;
+    width: 95vw;
 }
 
 .row-table-content table{
@@ -135,6 +151,7 @@ table tr td.with-image .image {
     background-position: center;
     background-repeat: no-repeat;
     margin-right: 5px;
+    background-size: 50%;
 }
 
 table tbody td a {
@@ -214,14 +231,18 @@ table tbody tr td .progress .determinate{
     transition: width .3s linear;
 }
 
-table tbody tr{
+table:not(.striped) tbody tr{
     background-color: #eee;
     transition: all .4s;
 }
 
-table tbody tr:hover,
-table tbody tr.active{
+table:not(.striped) tbody tr:hover,
+table:not(.striped) tbody tr.active{
     background-color: #fff;
+}
+
+table:not(.striped) tbody tr:hover{
+    cursor: pointer;
 }
 
 table tbody tr td:first-child{
@@ -260,13 +281,17 @@ table tbody tr.active .arrow{
 .compliance-title-container .image{
     width: 65px;
     position: absolute;
-    background-image: url(/assets/images/compliance/epm_icon.png);
     background-repeat: no-repeat;
     height: 65px;
     background-position: center;
     border-radius: 40px;
     top: 0px;
     left: 0px;
+    background-size: 50%;
+}
+
+.epm-icon{
+    background-image: url(/assets/images/compliance/epm_icon.png);
 }
 
 .compliance-title-container .check-close{
@@ -325,7 +350,7 @@ table tbody tr.active .arrow{
 }
 
 .documents-container .document .text-container{
-    display: inline-block;
+    display: inline-block; 
     vertical-align: top;
     margin: 0px 0px 0px 40px;
 }
@@ -428,4 +453,27 @@ table tbody tr.active .arrow{
 
 .switch input[type="checkbox"]:checked + .yes + .no + .highlight{
     right: 56%;
+}
+
+.diagram-top-of-table{
+    margin-bottom: 20px;
+}
+
+.diagram-top-of-table .title{
+    font-size: 1.4rem !important;
+}
+
+.diagram-top-of-table .give-access-text{
+    font-size: 0.9rem !important;
+    margin: 0px;
+    margin-right: 5px;
+}
+
+.hide-diagram{
+    font-size: 0.9rem !important;
+}
+
+.hide-diagram img{
+    vertical-align: middle;
+    width: 20px;
 }
