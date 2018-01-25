@@ -23,10 +23,22 @@
 	
 	<div class="row row-table-content" style="left: 0%;">
 		<div class="col l5 m12 s12">
-			<div class="progress-container">
+			<div class="progress-loading-container">
+				<div class="left-icon">
+					<div class="image"></div>
+				</div>
+				<div class="right-icon">
+					<div class="image"></div>
+				</div>
+
 				<div class="background"></div>
-				<div class="loading" [attr.percent]="1"></div>
-				<p>0%</p>
+				<div class="loading" [attr.percent]="1">
+					<div class="tip-percentage">
+						<div class="percentage">0%</div>
+						<div class="arrow-down"></div>
+					</div>
+				</div>
+				
 			</div>
 
 			<table class="table">
@@ -63,7 +75,7 @@
 							<div class="image alarm"></div>
 							<div class="text">
 								<p>Valid Till:</p>
-								<p class="yellow-text">0/00/0000</p>
+								<p class="yellow-text text-darken-2">0/00/0000</p>
 							</div>
 
 							<div class="arrow"></div>
@@ -95,7 +107,7 @@
 							<div class="image alarm"></div>
 							<div class="text">
 								<p>Valid Till:</p>
-								<p class="yellow-text">0/00/0000</p>
+								<p class="yellow-text text-darken-2">0/00/0000</p>
 							</div>
 
 							<div class="arrow"></div>
@@ -236,9 +248,12 @@
 							</div>
 						</div>
 
+						<div class="click-view-previous">
+							<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+						</div>
+
 						<div class="buttons">
 							<button class="btn orange waves-effect waves-light">Download</button>
-							<button class="btn grey lighten-1 waves-effect waves-light" (click)="showDiagramDetails()">Diagram Details</button>
 							<button class="btn blue lighten-1 waves-effect waves-light">Shop</button>
 						</div>
 					</div>

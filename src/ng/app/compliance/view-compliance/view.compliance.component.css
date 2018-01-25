@@ -70,41 +70,103 @@
     display: inline-block;
 }
 
-.row-table-content .progress-container{
+.row-table-content .progress-loading-container{
     width: 100%;
     color: #fff;
     position: relative;
+    height: 60px;
+    margin-bottom: 5%;
+}
+
+.row-table-content .progress-loading-container .left-icon,
+.row-table-content .progress-loading-container .right-icon{
+    position: absolute;
+    top: 10%;
+    width: 45px;
     height: 45px;
+    background-color: #e7e7e7;
+    border-radius: 60px;
+    z-index: 2;
 }
 
-.row-table-content .progress-container .background{
-    background-color: #cb0d20;
-    height: 100%;
-    border-radius: 5px;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    width: 100%;
+.row-table-content .progress-loading-container .left-icon{
+    left: 0%;
 }
 
-.row-table-content .progress-container .loading{
-    background-color: #fdd835;
-    height: 100%;
-    border-radius: 5px;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    min-width: 0.5%;
+.row-table-content .progress-loading-container .right-icon{
+    right: 0%;
 }
 
-.row-table-content .progress-container p{
+.row-table-content .progress-loading-container .left-icon .image,
+.row-table-content .progress-loading-container .right-icon .image{
+    width: 30px;
+    height: 30px;
+    background-color: white;
+    border-radius: 40px;
+    border: 3px solid #fff;
     position: absolute;
-    margin: 0;
     top: 50%;
     left: 50%;
     margin-right: -50%;
     transform: translate(-50%, -50%);
-    font-size: 16px;
+}
+
+.row-table-content .progress-loading-container .left-icon .image{
+    
+}
+
+.row-table-content .progress-loading-container .right-icon .image{
+    background-image: url(/assets/images/check_icon.png);
+}
+
+.row-table-content .progress-loading-container .background{
+    background-color: #e7e7e7;
+    height: 20px;
+    border-radius: 5px;
+    position: absolute;
+    top: 19px;
+    left: 7px;
+    width: 98%;
+}
+
+.row-table-content .progress-loading-container .loading{
+    background-color: #dc4453;
+    height: 20px;
+    border-radius: 5px;
+    position: absolute;
+    min-width: 0.5%;
+    top: 19px;
+    left: 43px;
+    max-width: 85%;
+    border: 1px solid;
+}
+
+.row-table-content .progress-loading-container .loading .tip-percentage{
+    position: absolute;
+    top: -43px;
+    right: -17px;
+}
+
+.row-table-content .progress-loading-container .loading .percentage{
+    width: 35px;
+    height: 30px;
+    line-height: 30px;
+    background-color: #525151;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #fff;
+    text-align: center;
+}
+
+.row-table-content .progress-loading-container .loading .arrow-down{
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 15px 7.5px 0 7.5px;
+    border-color: #525151 transparent transparent transparent;
+    position: absolute;
+    bottom: -13px;
+    left: 10px;
 }
 
 
@@ -129,12 +191,12 @@ table tbody{
 }
 
 table thead tr th {
-    background-color: #2f2f2f;
-    color: #fff;
+    background-color: #fff;
+    color: #42A5F5 !important;
     font-weight: unset;
     font-size: 14px;
     letter-spacing: 0.03em;
-    border: 1px solid #2f2f2f;
+    border: 1px solid #eee;
     border-radius: 0px;
 }
 
@@ -238,7 +300,12 @@ table:not(.striped) tbody tr{
 
 table:not(.striped) tbody tr:hover,
 table:not(.striped) tbody tr.active{
-    background-color: #fff;
+    background-color: #474747;
+}
+
+table:not(.striped) tbody tr:hover *,
+table:not(.striped) tbody tr.active *{
+    color: #fff !important;
 }
 
 table:not(.striped) tbody tr:hover{
@@ -269,8 +336,18 @@ table tbody tr .arrow{
     transform: translate(0%, -50%);
 }
 
+table:not(.striped) tbody tr:hover .arrow,
+table:not(.striped) tbody tr.active .arrow{
+   border-color: transparent #fff transparent transparent !important;
+}
+
+
 table tbody tr.active .arrow{
     display: block;
+}
+
+table, th, td {
+    border-radius: 0px !important;
 }
 
 .compliance-title-container{
@@ -370,6 +447,11 @@ table tbody tr.active .arrow{
 
 .documents-container .document .text-container .dates > div p{
     margin: 0px;
+}
+
+.documents-container .document .text-container .buttons .btn{
+    width: 140px;
+    margin-right: 10px;
 }
 
 .documents-container .document .btn{
@@ -476,4 +558,12 @@ table tbody tr.active .arrow{
 .hide-diagram img{
     vertical-align: middle;
     width: 20px;
+}
+
+.click-view-previous{
+    margin: 20px 0px;
+}
+
+.click-view-previous a{
+    font-size: 14px !important;
 }
