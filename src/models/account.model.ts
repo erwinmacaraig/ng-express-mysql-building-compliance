@@ -225,7 +225,7 @@ export class Account extends BaseClass {
             let user_filter = '';
             let role_filter = '';
             if (role_id) {
-                // role_filter = `AND LAU.role_id = ${role_id}`;
+                role_filter = `AND LAU.role_id = ${role_id}`;
                 if (role_id === 1) {
                     role_filter = `${role_filter} AND locations.parent_id = -1`;
                 } else if (role_id === 2) {
