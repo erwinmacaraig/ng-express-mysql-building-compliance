@@ -41,7 +41,7 @@
 				
 			</div>
 
-			<table class="table">
+			<table class="table table-list">
 				<thead>
 					<tr>
 						<th>Compliance Item</th>
@@ -210,7 +210,7 @@
 			<div class="compliance-title-container ">
 				
 				<div class="image" [ngClass]="diagramClass"></div>
-				<div class="check-close"></div>
+				<div class="close"></div>
 
 				<div class="text">
 					<h6 class="title blue-text">{{diagramTitle}}</h6>
@@ -275,12 +275,12 @@
 		</div>
 	</div>
 
-	<div class="row row-diagram-details" style="display: none;">
+	<div class="row row-diagram-details"  style="display: none;">
 		<div class="col l12 m12 s12">
 			<div class="compliance-title-container">
 				
 				<div class="image" [ngClass]="diagramClass"></div>
-				<div class="check-close"></div>
+				<div class="close"></div>
 
 				<div class="text">
 					<h6 class="title blue-text">{{diagramTitle}}</h6>
@@ -293,10 +293,13 @@
 
 			</div>
 		</div>
-		<div class="col l5 m12 s12"  >
-			
-			
+		<div class="content"></div>
+	</div>
 
+	<div target-preview="epm">
+		
+		<div class="col l4 m12 s12"  >
+			
 			<div class="notes-container">
 				<h5>Notes:</h5>
 				<p>Luctus risus volutpat nam inventore blandit elit dolore nostrud ridiculus nonummy ullam voluptate fugit quas tellus mauris quod, adipiscing tempus asperiores laboris elementum praesentium. Nonummy quia wisi, mauris sociosqu doloribus.</p>
@@ -325,8 +328,19 @@
 						</div>
 
 						<div class="buttons">
-							<button class="btn orange waves-effect waves-light">Download</button>
-							<button class="btn blue lighten-1 waves-effect waves-light">Shop</button>
+							<button class="btn btn-block orange waves-effect waves-light">Download</button>
+							<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
+						</div>
+					</div>
+
+					<div class="switch-container">
+						<p class="give-access-text">Give access to TRP</p>
+						<div class="switch" >
+							<input type="checkbox"  >
+							<div class="yes">Yes</div>
+							<div class="no">No</div>
+							<div class="highlight"></div>
+							<div class="background"></div>
 						</div>
 					</div>
 
@@ -334,31 +348,389 @@
 
 			</div>
 		</div>
-		<div class="col l7 m12 s12">
+		<div class="col l8 m12 s12">
 			<div class="diagram-top-of-table">
-				<div class="left">
-					<h5 class="blue-text title">Diagram Review</h5>
-				</div>
-				<div class="right">
-					<p style="display: inline-block; vertical-align: middle;" class="give-access-text">Give access to TRP</p>
-					<div class="switch" style="display: inline-block; vertical-align: middle;">
-						<input type="checkbox"  >
-						<div class="yes">Yes</div>
-						<div class="no">No</div>
-						<div class="highlight"></div>
-						<div class="background"></div>
+				<h5 class="blue-text title">Previous Versions</h5>
+			</div>
+			<div class="filter-container row">
+				<div class="col l6 m12 s12">
+					<div class="search-field">
+						<input placeholder="Search here" type="text">
+						<span class="material-icons">search</span>
 					</div>
 				</div>
-				<div style="clear: both;"></div>
+				<div class="col l3 m12 s12">
+					<select class="filter-by">
+						<option value="0" selected disabled >Filter By</option>
+					</select>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="sort-by">
+						<option value="0" selected disabled >Sort By</option>
+					</select>
+				</div>
 			</div>
 			<table class="striped table">
 				<thead>
 					<tr>
-						<th>Sub locations</th>
+						<th>Date Created</th>
+						<th>Last Review</th>
+						<th>Filename</th>
+						<th>Trainor</th>
+						<th style="width: 10%;">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> file.fle </a>
+						</td>
+						<td>
+							Allan Last
+						</td>
+						<td style="padding: 2px;">
+							<a href="javascript:void(0)" class=" ">
+								<img src="/assets/images/download_ico_blue.png"  >
+							</a>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> file_2.fle </a>
+						</td>
+						<td>
+							First Last
+						</td>
+						<td style="padding: 2px;">
+							<a href="javascript:void(0)" class=" ">
+								<img src="/assets/images/download_ico_blue.png"  >
+							</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	
+	<div target-preview="epc">
+		
+		<div class="col l4 m12 s12"  >
+			
+			<div class="notes-container">
+				<h5>Notes:</h5>
+				<p>Consequat accusamus? Molestias elementum accusamus suspendisse diam porro! At, maiores suspendisse placerat rerum, lorem quam taciti tellus rerum. Laboriosam laudantium, id nostrud metus lorem doloremque tortor assumenda aliquip lacus dis.</p>
+			</div>
+
+			<div class="documents-container">
+				<div class="document" >
+					
+					<div class="preview-container">
+							
+					</div>
+
+					<div class="text-container">
+						<h5 class="file-name">random-naming-example.fle</h5>
+
+						<div class="dates">
+							<div class="created">
+								<p>Last review held on</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+
+							<div class="review">
+								<p>Valid until:</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+						</div>
+
+						<div class="buttons">
+							<button class="btn btn-block orange waves-effect waves-light">Download</button>
+							<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
+						</div>
+					</div>
+
+					<div class="switch-container">
+						<p class="give-access-text">Give access to TRP</p>
+						<div class="switch" >
+							<input type="checkbox"  >
+							<div class="yes">Yes</div>
+							<div class="no">No</div>
+							<div class="highlight"></div>
+							<div class="background"></div>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+		<div class="col l8 m12 s12">
+			<div class="diagram-top-of-table">
+				<h5 class="blue-text title">Previous Versions</h5>
+			</div>
+			<div class="filter-container row">
+				<div class="col l6 m12 s12">
+					<div class="search-field">
+						<input placeholder="Search here" type="text">
+						<span class="material-icons">search</span>
+					</div>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="filter-by">
+						<option value="0" selected disabled >Filter By</option>
+					</select>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="sort-by">
+						<option value="0" selected disabled >Sort By</option>
+					</select>
+				</div>
+			</div>
+			<table class="striped table">
+				<thead>
+					<tr>
+						<th>EPC Records</th>
+						<th>Filename</th>
+						<th>Trainor</th>
+						<th style="width: 10%;">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> file.fle </a>
+						</td>
+						<td>
+							Allan Last
+						</td>
+						<td style="padding: 2px;">
+							<a href="javascript:void(0)" class=" ">
+								<img src="/assets/images/download_ico_blue.png"  >
+							</a>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> file_2.fle </a>
+						</td>
+						<td>
+							First Last
+						</td>
+						<td style="padding: 2px;">
+							<a href="javascript:void(0)" class=" ">
+								<img src="/assets/images/download_ico_blue.png"  >
+							</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div target-preview="evacution_exercise">
+		
+		<div class="col l4 m12 s12"  >
+			
+			<div class="notes-container">
+				<h5>Notes:</h5>
+				<p>Modi libero auctor. Earum veniam veniam officiis rhoncus minus perferendis alias corrupti. Dapibus aut aliquip mauris molestiae. Numquam justo praesent ante explicabo auctor, mollit? Facere! Doloribus nesciunt euismod, congue, varius.</p>
+			</div>
+
+			<div class="documents-container">
+				<div class="document" >
+					
+					<div class="preview-container">
+							
+					</div>
+
+					<div class="text-container">
+						<h5 class="file-name">random-naming-example.fle</h5>
+
+						<div class="dates">
+							<div class="created">
+								<p>Last review held on</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+
+							<div class="review">
+								<p>Valid until:</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+						</div>
+
+						<div class="buttons">
+							<button class="btn btn-block orange waves-effect waves-light">Download</button>
+							<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
+						</div>
+					</div>
+
+					<div class="switch-container">
+						<p class="give-access-text">Give access to TRP</p>
+						<div class="switch" >
+							<input type="checkbox"  >
+							<div class="yes">Yes</div>
+							<div class="no">No</div>
+							<div class="highlight"></div>
+							<div class="background"></div>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+		<div class="col l8 m12 s12">
+			<div class="diagram-top-of-table">
+				<h5 class="blue-text title">Previous Versions</h5>
+			</div>
+			<div class="filter-container row">
+				<div class="col l6 m12 s12">
+					<div class="search-field">
+						<input placeholder="Search here" type="text">
+						<span class="material-icons">search</span>
+					</div>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="filter-by">
+						<option value="0" selected disabled >Filter By</option>
+					</select>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="sort-by">
+						<option value="0" selected disabled >Sort By</option>
+					</select>
+				</div>
+			</div>
+			<table class="striped table">
+				<thead>
+					<tr>
+						<th>Evacuation Exercise Meeting</th>
+						<th>Filename</th>
+						<th>Trainor</th>
+						<th style="width: 10%;">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> file.fle </a>
+						</td>
+						<td>
+							Allan Last
+						</td>
+						<td style="padding: 2px;">
+							<a href="javascript:void(0)" class=" ">
+								<img src="/assets/images/download_ico_blue.png"  >
+							</a>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> file_2.fle </a>
+						</td>
+						<td>
+							First Last
+						</td>
+						<td style="padding: 2px;">
+							<a href="javascript:void(0)" class=" ">
+								<img src="/assets/images/download_ico_blue.png"  >
+							</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div target-preview="evac_diagram">
+		
+		<div class="col l4 m12 s12"  >
+			
+			<div class="notes-container">
+				<h5>Notes:</h5>
+				<p>Voluptatem vitae culpa wisi placerat pulvinar laoreet id rem! Ante viverra irure donec mauris, error, praesent esse occaecat. Dui adipisci. Nobis lobortis eos lacus repudiandae lectus, hendrerit dolorum possimus recusandae.</p>
+			</div>
+
+			<div class="documents-container">
+				<div class="document" >
+					
+					<div class="preview-container">
+							
+					</div>
+
+					<div class="text-container">
+						<h5 class="file-name">random-naming-example.fle</h5>
+
+						<div class="dates">
+							<div class="created">
+								<p>Last review held on:</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+
+							<div class="review">
+								<p>Valid until:</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+						</div>
+
+						<div class="buttons">
+							<button class="btn btn-block orange waves-effect waves-light">Download</button>
+							<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
+						</div>
+					</div>
+
+					<div class="switch-container">
+						<p class="give-access-text">Give access to TRP</p>
+						<div class="switch" >
+							<input type="checkbox"  >
+							<div class="yes">Yes</div>
+							<div class="no">No</div>
+							<div class="highlight"></div>
+							<div class="background"></div>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+		<div class="col l8 m12 s12">
+			<div class="diagram-top-of-table">
+				<h5 class="blue-text title">Diagram Details</h5>
+			</div>
+			
+			<table class="striped table">
+				<thead>
+					<tr>
+						<th>Sub Locations</th>
 						<th>Date Uploaded</th>
-						<th>Valid until</th>
+						<th>Valid Until</th>
 						<th>Diagram</th>
-						<th>Created by</th>
+						<th>Created By</th>
 						<th style="width: 10%;">Action</th>
 					</tr>
 				</thead>
@@ -366,9 +738,7 @@
 					<tr>
 						<td class="with-icon">
 							<div class="image check"></div>
-							<div  class="text">
-								Level 1
-							</div>
+							<div class="text">Level 1</div>
 						</td>
 						<td>
 							00/00/0000
@@ -377,7 +747,7 @@
 							00/00/0000
 						</td>
 						<td>
-							<a href="javascript:void(0)" class="blue-text">View All</a>
+							<a href="javascript:void(0)" class="blue-text"> View All </a>
 						</td>
 						<td>
 							EvacServices
@@ -391,9 +761,7 @@
 					<tr>
 						<td class="with-icon">
 							<div class="image alarm"></div>
-							<div  class="text">
-								Level 2
-							</div>
+							<div class="text">Level 2</div>
 						</td>
 						<td>
 							00/00/0000
@@ -402,7 +770,7 @@
 							00/00/0000
 						</td>
 						<td>
-							<a href="javascript:void(0)" class="blue-text">View All</a>
+							<a href="javascript:void(0)" class="blue-text"> View All </a>
 						</td>
 						<td>
 							EvacServices
@@ -416,9 +784,7 @@
 					<tr>
 						<td class="with-icon">
 							<div class="image expired"></div>
-							<div  class="text">
-								Level 3
-							</div>
+							<div class="text">Level 3</div>
 						</td>
 						<td>
 							00/00/0000
@@ -427,10 +793,148 @@
 							00/00/0000
 						</td>
 						<td>
-							<a href="javascript:void(0)" class="blue-text">View All</a>
+							<a href="javascript:void(0)" class="blue-text"> View All </a>
 						</td>
 						<td>
 							EvacServices
+						</td>
+						<td style="padding: 2px;">
+							<a href="javascript:void(0)" class=" ">
+								<img src="/assets/images/download_ico_blue.png"  >
+							</a>
+						</td>
+					</tr>
+					<tr>
+						<td class="with-icon">
+							<div class="image expired"></div>
+							<div class="text">Level 4</div>
+						</td>
+						<td>
+							--
+						</td>
+						<td>
+							--
+						</td>
+						<td>
+							--
+						</td>
+						<td>
+							--
+						</td>
+						<td>
+							<button class="btn red waves-effect waves-light btn-manage accent-4">Manage</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div target-preview="chief_warden_training">
+		
+		<div class="col l4 m12 s12"  >
+			
+			<div class="notes-container">
+				<h5>Notes:</h5>
+				<p>Interdum quisque? Minim justo, habitant repellat. Inceptos, vel possimus quas necessitatibus cras explicabo libero taciti modi! Sapiente irure ac nulla.</p>
+			</div>
+
+			<div class="documents-container">
+				<div class="document" >
+					
+					<div class="preview-container">
+							
+					</div>
+
+					<div class="text-container">
+						<h5 class="file-name">random-naming-example.fle</h5>
+
+						<div class="dates">
+							<div class="created">
+								<p>Last review held on</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+
+						</div>
+
+						<div class="buttons">
+							<button class="btn btn-block orange waves-effect waves-light">Download</button>
+							<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
+						</div>
+					</div>
+
+					<div class="switch-container">
+						<p class="give-access-text">Give access to TRP</p>
+						<div class="switch" >
+							<input type="checkbox"  >
+							<div class="yes">Yes</div>
+							<div class="no">No</div>
+							<div class="highlight"></div>
+							<div class="background"></div>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+		<div class="col l8 m12 s12">
+			<div class="diagram-top-of-table">
+				<h5 class="blue-text title">Attendance Record</h5>
+			</div>
+			<div class="filter-container row">
+				<div class="col l6 m12 s12">
+					<div class="search-field">
+						<input placeholder="Search here" type="text">
+						<span class="material-icons">search</span>
+					</div>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="filter-by">
+						<option value="0" selected disabled >Filter By</option>
+					</select>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="sort-by">
+						<option value="0" selected disabled >Sort By</option>
+					</select>
+				</div>
+			</div>
+			<table class="striped table">
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Location</th>
+						<th>Filename</th>
+						<th style="width: 10%;">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							Jaka, Level 1
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> file.fle </a>
+						</td>
+						<td style="padding: 2px;">
+							<a href="javascript:void(0)" class=" ">
+								<img src="/assets/images/download_ico_blue.png"  >
+							</a>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							Jaka, Level 1
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> file.fle </a>
 						</td>
 						<td style="padding: 2px;">
 							<a href="javascript:void(0)" class=" ">
@@ -442,7 +946,447 @@
 			</table>
 		</div>
 	</div>
-	
+
+	<div target-preview="warden_training">
+		
+		<div class="col l4 m12 s12"  >
+			
+			<div class="notes-container">
+				<h5>Notes:</h5>
+				<p>Lacus interdum sit auctor sapien quas quasi dolore, parturient. Repudiandae, imperdiet. Quas soluta, ex assumenda varius harum venenatis! Omnis sit.</p>
+			</div>
+
+			<div class="documents-container">
+				<div class="document" >
+					
+					<div class="preview-container">
+							
+					</div>
+
+					<div class="text-container">
+						<h5 class="file-name">random-naming-example.fle</h5>
+
+						<div class="dates">
+							<div class="created">
+								<p>Last review held on:</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+						</div>
+
+						<div class="buttons">
+							<button class="btn btn-block orange waves-effect waves-light">Download</button>
+							<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
+						</div>
+					</div>
+
+					<div class="switch-container">
+						<p class="give-access-text">Give access to TRP</p>
+						<div class="switch" >
+							<input type="checkbox"  >
+							<div class="yes">Yes</div>
+							<div class="no">No</div>
+							<div class="highlight"></div>
+							<div class="background"></div>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+		<div class="col l8 m12 s12">
+			<div class="diagram-top-of-table">
+				<h5 class="blue-text title">Warden Benchmarking</h5>
+			</div>
+			<div class="filter-container row">
+				<div class="col l6 m12 s12">
+					<div class="search-field">
+						<input placeholder="Search here" type="text">
+						<span class="material-icons">search</span>
+					</div>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="filter-by">
+						<option value="0" selected disabled >Filter By</option>
+					</select>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="sort-by">
+						<option value="0" selected disabled >Sort By</option>
+					</select>
+				</div>
+			</div>
+			<table class="striped table">
+				<thead>
+					<tr>
+						<th>Sub Locations</th>
+						<th>Benchmark</th>
+						<th>Nominated</th>
+						<th>Trained</th>
+						<th>Training Compliance</th>
+						<th style="width: 13%;">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							Level 1
+						</td>
+						<td>
+							10
+						</td>
+						<td>
+							8
+						</td>
+						<td>
+							7
+						</td>
+						<td>
+							70%
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> View Warden List </a>
+						</td>
+					</tr>
+					 
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div target-preview="fire_safety_advisor">
+		
+		<div class="col l4 m12 s12"  >
+			
+			<div class="notes-container">
+				<h5>Notes:</h5>
+				<p>Assumenda accumsan ullam faucibus veritatis, etiam quasi beatae dapibus esse auctor inventore consequatur minus laoreet! Habitant erat laudantium dolor repellat.</p>
+			</div>
+
+			<div class="documents-container">
+				<div class="document" >
+					
+					<div class="preview-container">
+							
+					</div>
+
+					<div class="text-container">
+						<h5 class="file-name">random-naming-example.fle</h5>
+
+						<div class="dates">
+							<div class="created">
+								<p>Last review held on</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+
+							<div class="review">
+								<p>Valid until:</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+						</div>
+
+						<div class="buttons">
+							<button class="btn btn-block orange waves-effect waves-light">Download</button>
+							<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
+						</div>
+					</div>
+
+					<div class="switch-container">
+						<p class="give-access-text">Give access to TRP</p>
+						<div class="switch" >
+							<input type="checkbox"  >
+							<div class="yes">Yes</div>
+							<div class="no">No</div>
+							<div class="highlight"></div>
+							<div class="background"></div>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+		<div class="col l8 m12 s12">
+			<div class="diagram-top-of-table">
+				<h5 class="blue-text title">Previous Versions</h5>
+			</div>
+			<div class="filter-container row">
+				<div class="col l6 m12 s12">
+					<div class="search-field">
+						<input placeholder="Search here" type="text">
+						<span class="material-icons">search</span>
+					</div>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="filter-by">
+						<option value="0" selected disabled >Filter By</option>
+					</select>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="sort-by">
+						<option value="0" selected disabled >Sort By</option>
+					</select>
+				</div>
+			</div>
+			<table class="striped table">
+				<thead>
+					<tr>
+						<th>Previous Review</th>
+						<th>Filename</th>
+						<th>Trainor</th>
+						<th style="width: 10%;">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> file.fle </a>
+						</td>
+						<td>
+							Allan Last
+						</td>
+						<td style="padding: 2px;">
+							<a href="javascript:void(0)" class=" ">
+								<img src="/assets/images/download_ico_blue.png"  >
+							</a>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> file_2.fle </a>
+						</td>
+						<td>
+							First Last
+						</td>
+						<td style="padding: 2px;">
+							<a href="javascript:void(0)" class=" ">
+								<img src="/assets/images/download_ico_blue.png"  >
+							</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div target-preview="general_occupant_training">
+		
+		<div class="col l4 m12 s12"  >
+			
+			<div class="notes-container">
+				<h5>Notes:</h5>
+				<p>Mauris placeat magni nostrum! Eius fermentum laudantium maxime ultrices turpis sint adipisci. Dui esse perferendis semper minus, eu aliqua penatibus.</p>
+			</div>
+
+			<div class="documents-container">
+				<div class="document" >
+					
+					<div class="preview-container">
+							
+					</div>
+
+					<div class="text-container">
+						<h5 class="file-name">random-naming-example.fle</h5>
+
+						<div class="dates">
+							<div class="created">
+								<p>Last review held on:</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+						</div>
+
+						<div class="buttons">
+							<button class="btn btn-block orange waves-effect waves-light">Download</button>
+							<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
+						</div>
+					</div>
+
+					<div class="switch-container">
+						<p class="give-access-text">Give access to TRP</p>
+						<div class="switch" >
+							<input type="checkbox"  >
+							<div class="yes">Yes</div>
+							<div class="no">No</div>
+							<div class="highlight"></div>
+							<div class="background"></div>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+		<div class="col l8 m12 s12">
+			<div class="diagram-top-of-table">
+				<h5 class="blue-text title">Warden Benchmarking</h5>
+			</div>
+			<div class="filter-container row">
+				<div class="col l6 m12 s12">
+					<div class="search-field">
+						<input placeholder="Search here" type="text">
+						<span class="material-icons">search</span>
+					</div>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="filter-by">
+						<option value="0" selected disabled >Filter By</option>
+					</select>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="sort-by">
+						<option value="0" selected disabled >Sort By</option>
+					</select>
+				</div>
+			</div>
+			<table class="striped table">
+				<thead>
+					<tr>
+						<th>Sub Locations</th>
+						<th>Staff</th>
+						<th>Trained</th>
+						<th>Training Compliance</th>
+						<th style="width: 13%;">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							Level 1
+						</td>
+						<td>
+							10
+						</td>
+						<td>
+							7
+						</td>
+						<td>
+							70%
+						</td>
+						<td>
+							<a href="javascript:void(0)" class="blue-text"> View User </a>
+						</td>
+					</tr>
+					 
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div target-preview="warden_list">
+		
+		<div class="col l4 m12 s12"  >
+			
+			<div class="notes-container">
+				<h5>Notes:</h5>
+				<p>Ducimus laoreet distinctio voluptas numquam morbi, sociosqu mi incididunt laboriosam, assumenda nascetur? Suscipit donec inventore, quaerat litora saepe, quae eius.</p>
+			</div>
+
+			<div class="documents-container">
+				<div class="document" >
+					
+					<div class="preview-container">
+							
+					</div>
+
+					<div class="text-container">
+						<h5 class="file-name">random-naming-example.fle</h5>
+
+						<div class="dates">
+							<div class="created">
+								<p>Last review held on</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+
+							<div class="review">
+								<p>Valid until:</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+						</div>
+
+						<div class="buttons">
+							<button class="btn btn-block orange waves-effect waves-light">Download</button>
+							<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
+						</div>
+					</div>
+
+					<div class="switch-container">
+						<p class="give-access-text">Give access to TRP</p>
+						<div class="switch" >
+							<input type="checkbox"  >
+							<div class="yes">Yes</div>
+							<div class="no">No</div>
+							<div class="highlight"></div>
+							<div class="background"></div>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+		<div class="col l8 m12 s12">
+			<div class="diagram-top-of-table">
+				<h5 class="blue-text title">Previous Versions</h5>
+			</div>
+			<div class="filter-container row">
+				<div class="col l6 m12 s12">
+					<div class="search-field">
+						<input placeholder="Search here" type="text">
+						<span class="material-icons">search</span>
+					</div>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="filter-by">
+						<option value="0" selected disabled >Filter By</option>
+					</select>
+				</div>
+				<div class="col l3 m12 s12">
+					<select class="sort-by">
+						<option value="0" selected disabled >Sort By</option>
+					</select>
+				</div>
+			</div>
+			<table class="striped table">
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Account</th>
+						<th>TRP Name</th>
+						<th style="width: 10%;">No of new wardens added</th>
+						<th style="width: 10%;">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							00/00/0000
+						</td>
+						<td>
+							<span class="blue-text"> Emapta </span>
+						</td>
+						<td>
+							Allan Last
+						</td>
+						<td>
+							150
+						</td>
+						<td style="padding: 2px;">
+							<a href="javascript:void(0)" class=" ">
+								<img src="/assets/images/download_ico_blue.png"  >
+							</a>
+						</td>
+					</tr>
+					 
+				</tbody>
+			</table>
+		</div>
+	</div>
 
 </div>
 

@@ -65,10 +65,17 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		this.selectedCompliance = compliance;
 		let attr = compliance.toLowerCase().split(' ').join('_'),
 			allTr = $("tr[compliance]"),
-			tr = $("tr[compliance='"+attr+"']");
+			tr = $("tr[compliance='"+attr+"']"),
+			targetPreview = $("[target-preview='"+attr+"']");
 
 		allTr.removeClass('active');
 		tr.addClass('active');
+
+		$('.row-diagram-details .content').html('');
+		if(targetPreview.length > 0){
+			$('.row-diagram-details .content').html( targetPreview.html() );
+		}
+		$('select').material_select();
 
 		if(attr == 'epm'){
 			this.diagramTitle = 'Evacuation Procedures Manual';
@@ -125,7 +132,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 			tableW = $('.row-table-content').width(),
 			diagramLeft = $('.row-diagram-details').position().left;
 
-		$('.row-table-content').css('left', '-'+( tableW )+'px' );
+		$('.row-table-content').css('left', '-'+( tableW + 200 )+'px' );
 		$('.row-diagram-details').css('left', '0px' );
 		setTimeout(() => { $('.row-diagram-details').show(); }, 200);
 
