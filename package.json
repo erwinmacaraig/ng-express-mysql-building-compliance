@@ -54,7 +54,11 @@
     "rxjs": "^5.4.3",
     "swagger-ui-express": "^2.0.8",
     "validator": "^9.0.0",
-    "zone.js": "^0.8.18"
+    "zone.js": "^0.8.18",
+    "paypal-rest-sdk": "^1.8.1",
+    "connect-memcached": "^0.2.0",
+    "memcache": "^0.3.0",
+    "express-session": "^1.15.6"
   },
   "devDependencies": {
     "@angular/cli": "1.4.4",

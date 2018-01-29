@@ -1,9 +1,10 @@
-import { TeamRoute } from './routes/team';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
 import * as logger from 'morgan';
 import * as path from 'path';
+import * as session from 'express-session';
+import * as MemcachedStore from 'connect-memcached';
 
 import * as http from 'http';
 import * as url from 'url';
@@ -20,6 +21,9 @@ import { AwsRoute } from './routes/aws-ses';
 import { AccountRoute } from './routes/account';
 import { LocationRoute } from './routes/location';
 import { TokenRoute } from './routes/token';
+import { PaymentRoute } from './routes/payment';
+import { TeamRoute } from './routes/team';
+import { ProductRoute } from './routes/product';
 
 import * as cors from 'cors';
 
@@ -75,6 +79,8 @@ export class Server {
       // add static paths
       this.app.use(express.static(path.join(__dirname, 'public')));
 
+      const memcachedStore = new MemcachedStore(session);
+
       // configure hbs
       this.app.set('views', path.join(__dirname, 'views'));
       this.app.set('view engine', 'hbs');
@@ -85,6 +91,17 @@ export class Server {
       // use json form parser middlware
       this.app.use(bodyParser.json());
 
+      this.app.use(session({
+        secret: 'evacconnect-true-session',
+        key: 'compliance',
+        proxy: true,
+        store: new memcachedStore({
+          hosts: ['127.0.0.1:11211'],
+          secret: 'evacconnect-memcached-store'
+        }),
+        resave: false,
+        saveUninitialized: false
+      }));
       // use query string parser middlware
       this.app.use(bodyParser.urlencoded({
         extended: true
@@ -138,6 +155,12 @@ export class Server {
 
       // TeamRoute
       TeamRoute.create(router);
+
+      // PaymentRoute
+      PaymentRoute.create(router);
+
+      // ProductRoute
+      ProductRoute.create(router);
 
       this.app.use('/api/v1', router);
 
