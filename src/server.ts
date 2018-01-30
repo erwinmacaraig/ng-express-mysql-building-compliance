@@ -90,17 +90,18 @@ export class Server {
 
       // use json form parser middlware
       this.app.use(bodyParser.json());
-
+      this.app.use(cookieParser());
       this.app.use(session({
         secret: 'evacconnect-true-session',
-        key: 'compliance',
+        key: 'evac-ssid',
         proxy: true,
         store: new memcachedStore({
           hosts: ['127.0.0.1:11211'],
           secret: 'evacconnect-memcached-store'
         }),
         resave: false,
-        saveUninitialized: false
+        saveUninitialized: false,
+        cookie: { maxAge: 180 * 60 * 1000}
       }));
       // use query string parser middlware
       this.app.use(bodyParser.urlencoded({

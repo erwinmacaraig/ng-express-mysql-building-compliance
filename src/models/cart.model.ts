@@ -1,7 +1,7 @@
 export class Cart {
   public items;
   public totalQty;
-  public totalPrice;
+  public totalPrice: number;
 
   constructor(oldCart: Cart) {
     this.items = oldCart.items || {};
@@ -18,10 +18,13 @@ export class Cart {
         price: 0
       };
     }
+    console.log('storedItem', storedItem);
+    console.log('item', item);
+
     storedItem.qty++;
-    storedItem.price = storedItem.item.amount * storedItem.qty;
+    storedItem.price = <number>storedItem.item.amount * <number>storedItem.qty;
     this.totalQty++;
-    this.totalPrice += storedItem.item.amount;
+    this.totalPrice = <number>(this.totalPrice * 1) + <number>(storedItem.item.amount * 1);
   }
 
   public generateArray() {
