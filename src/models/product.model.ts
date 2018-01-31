@@ -82,7 +82,7 @@ export class Product extends BaseClass {
         product_title,
         product_timestamp,
         archived
-      )`;
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
       const product = [
         ('product_code' in this.dbData) ? this.dbData['product_code'] : null,
         ('product_type' in this.dbData) ? this.dbData['product_type'] : null,

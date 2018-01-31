@@ -34,5 +34,8 @@
     "BUILDING MANAGER": 1,
     "MANAGER": 1,
     "TENANT": 2
-  }
+  },
+  "PAID": 1,
+  "UNPAID":0,
+  "PAYMENT_FAILED": 3
 }
