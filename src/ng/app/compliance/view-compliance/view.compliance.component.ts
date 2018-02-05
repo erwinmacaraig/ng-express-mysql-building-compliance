@@ -2,127 +2,221 @@ import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation, ViewChi
 import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router, NavigationStart, NavigationEnd } from '@angular/router';
+import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { UserService } from '../../services/users';
 import { AuthService } from '../../services/auth.service';
 import { SignupService } from '../../services/signup.service';
+import { ComplianceService } from '../../services/compliance.service';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { Observable } from 'rxjs/Rx';
 
 declare var $: any;
+declare var moment: any;
 
 @Component({
 	selector : 'app-view-compliance',
 	templateUrl : './view.compliance.component.html',
 	styleUrls : [ './view.compliance.component.css' ],
-    providers : [AuthService, UserService, SignupService, DashboardPreloaderService]
+    providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService]
 })
 export class ViewComplianceComponent implements OnInit, OnDestroy{
+	@ViewChild("notesTemplate") notesTemplate : ElementRef;
+	@ViewChild("noneTemplate") noneTemplate : ElementRef;
+	@ViewChild("epmTemplate") epmTemplate : ElementRef;
+	@ViewChild("epcTemplate") epcTemplate : ElementRef;
+	@ViewChild("evacution_exerciseTemplate") evacution_exerciseTemplate : ElementRef;
+	@ViewChild("evac_diagramTemplate") evac_diagramTemplate : ElementRef;
+	@ViewChild("chief_warden_trainingTemplate") chief_warden_trainingTemplate : ElementRef;
+	@ViewChild("warden_trainingTemplate") warden_trainingTemplate : ElementRef;
+	@ViewChild("fire_safety_advisorTemplate") fire_safety_advisorTemplate : ElementRef;
+	@ViewChild("general_occupant_trainingTemplate") general_occupant_trainingTemplate : ElementRef;
+	@ViewChild("warden_listTemplate") warden_listTemplate : ElementRef;
+
+	@ViewChild("epmTableTemplate") epmTableTemplate : ElementRef;
+	@ViewChild("epcTableTemplate") epcTableTemplate : ElementRef;
+	@ViewChild("evacution_exerciseTableTemplate") evacution_exerciseTableTemplate : ElementRef;
+	@ViewChild("evac_diagramTableTemplate") evac_diagramTableTemplate : ElementRef;
+	@ViewChild("chief_warden_trainingTableTemplate") chief_warden_trainingTableTemplate : ElementRef;
+	@ViewChild("warden_trainingTableTemplate") warden_trainingTableTemplate : ElementRef;
+	@ViewChild("fire_safety_advisorTableTemplate") fire_safety_advisorTableTemplate : ElementRef;
+	@ViewChild("general_occupant_trainingTableTemplate") general_occupant_trainingTableTemplate : ElementRef;
+	@ViewChild("warden_listTableTemplate") warden_listTableTemplate : ElementRef;
+
 
 	userData = {};
 
-	diagramTitle = '';
-	diagramDescription = '';
-	diagramClass = 'green darken-1 epm-icon';
+	selectedComplianceTitle = '';
+	selectedComplianceDescription = '';
+	selectedComplianceClasses = 'green darken-1 epm-icon';
 
 	previewTemplate = 1;
 
-	selectedCompliance = '';
+	selectedCompliance = {
+		compliance : {
+			note : null,
+			docs : []
+		},
+		short_code : '',
+		template : this.noneTemplate,
+		tableTemplate : this.noneTemplate
+	};
 
 	timer = Observable.interval(10);
 	subscribeTime;
 
+	KPIS = <any>[];
+	dataLoadDone = false;
+
+	encryptedID;
+	locationID = 0;
+	locationData = {
+		'name' : '',
+		'parentData' : <any>{ location_id : 0 }
+	};
+
+	latestComplianceData = <any>[];
+
 	constructor(
 		private router : Router,
+		private route: ActivatedRoute,
 		private authService : AuthService,
 		private userService: UserService, 
         private signupServices: SignupService,
-        private dashboard : DashboardPreloaderService
+        private dashboard : DashboardPreloaderService,
+        private complianceService : ComplianceService,
+        private locationService : LocationsService,
+        private encryptDecrypt : EncryptDecryptService
 		){
 
 		this.userData = this.authService.getUserData();
+
+		this.route.params.subscribe((params) => {
+			this.encryptedID = decodeURIComponent(params['encrypted']);
+			this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
+		});
+	}
+
+	setKPISdataForDisplay(){
+		for(let kpi of this.KPIS){
+			for(let comp of this.latestComplianceData){
+				if( comp.compliance_kpis_id == kpi.compliance_kpis_id ){
+					kpi['compliance'] = comp;
+				}
+
+				if(comp.docs.length > 0){
+					for(let doc of comp.docs){
+						doc['timestamp_formatted'] = moment(doc["timestamp"]).format("MMM. DD, YYYY");
+					}
+				}
+			}
+		}
+
+		for(let kpis of this.KPIS){
+			let mes = kpis.measurement.toLowerCase();
+			if(mes == 'traffic' || mes == 'evac'){
+				kpis['type'] = 'date';
+			}else{
+				kpis['type'] = 'percent';
+			}
+
+			if(kpis.compliance_kpis_id == 4){
+				kpis['icon_class'] = 'light-green epm-icon';
+				kpis['short_code'] = 'epm';
+			}else if(kpis.compliance_kpis_id == 2){
+				kpis['icon_class'] = 'light-blue meeting-icon';
+				kpis['short_code'] = 'epc';
+			}else if(kpis.compliance_kpis_id == 9){
+				kpis['icon_class'] = 'teal evacuation-icon';
+				kpis['short_code'] = 'evacution_exercise';
+			}else if(kpis.compliance_kpis_id == 5){
+				kpis['icon_class'] = 'light-blue lighten-2 diagram-icon';
+				kpis['short_code'] = 'evac_diagram';
+			}else if(kpis.compliance_kpis_id == 12){
+				kpis['icon_class'] = 'orange training-icon';
+				kpis['short_code'] = 'chief_warden_training';
+			}else if(kpis.compliance_kpis_id == 6){
+				kpis['icon_class'] = 'teal accent-3 training-icon';
+				kpis['short_code'] = 'warden_training';
+			}else if(kpis.compliance_kpis_id == 3){
+				kpis['icon_class'] = 'indigo training-icon';
+				kpis['short_code'] = 'fire_safety_advisor';
+			}else if(kpis.compliance_kpis_id == 8){
+				kpis['icon_class'] = 'deep-purple training-icon';
+				kpis['short_code'] = 'general_occupant_training';
+			}else if(kpis.compliance_kpis_id == 13){
+				kpis['icon_class'] = 'green training-icon';
+				kpis['short_code'] = 'warden_list';
+			}
+			let templateName = kpis['short_code']+'Template',
+				tableTemplateName = kpis['short_code']+'TableTemplate';
+			kpis['template'] = this[templateName];
+			kpis['tableTemplate'] = this[tableTemplateName];
+		}
+
+		console.log(this.KPIS);
 	}
 
 	ngOnInit(){
 		
+		this.locationService.getById(this.locationID, (response) => {
+			this.locationData = response.location;
+			this.locationData['parentData'] = response.parent;
+			this.locationData.parentData['sublocations'] = response.siblings;
+			this.locationData.parentData.location_id = this.encryptDecrypt.encrypt(this.locationData.parentData.location_id).toString();
+			if (response.siblings.length) {
+				for (let i = 0; i < response.siblings.length; i++) {
+					this.locationData.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(response.siblings[i].location_id).toString();
+				}
+			}
+			for(let i in this.locationData['sublocations']){
+				this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+			}
+
+			this.complianceService.getKPIS((response) => {
+				this.KPIS = response.data;
+
+				this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
+					this.latestComplianceData = responseCompl.data;
+					this.setKPISdataForDisplay();
+
+
+					setTimeout(() => {
+						$('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
+						this.dashboard.hide();
+						this.clickSelectComplianceFromList(this.KPIS[0]);
+					}, 100);
+				});
+			});
+		});
+
+
 	}
 
 	ngAfterViewInit(){
 		$('.workspace.container').css('position', 'relative');
 		this.dashboard.show();
-
-		setTimeout(() => {
-
-			$('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
-
-			this.dashboard.hide();
-
-			this.clickSelectComplianceFromList('epm');
-		},500);
 	}
 
 	clickSelectComplianceFromList(compliance){
 		this.selectedCompliance = compliance;
-		let attr = compliance.toLowerCase().split(' ').join('_'),
+		let attr = compliance.short_code,
 			allTr = $("tr[compliance]"),
-			tr = $("tr[compliance='"+attr+"']"),
-			targetPreview = $("[target-preview='"+attr+"']");
+			tr = $("tr[compliance='"+attr+"']");
 
 		allTr.removeClass('active');
 		tr.addClass('active');
 
-		$('.row-diagram-details .content').html('');
+		/*$('.row-diagram-details .content').html('');
 		if(targetPreview.length > 0){
 			$('.row-diagram-details .content').html( targetPreview.html() );
-		}
+		}*/
 		$('select').material_select();
 
-		if(attr == 'epm'){
-			this.diagramTitle = 'Evacuation Procedures Manual';
-			this.diagramDescription = 'The Emergency Procedures Manual provides specific procedures and guidelines for dealing with various types of emergency.';
-			this.diagramClass = 'light-green epm-icon';
-
-		}else if(attr == 'epc'){
-			this.diagramTitle = 'Emergency Planning Committee';
-			this.diagramDescription = 'The Emergency Planning Committee develops the emergency plan, emergency response procedures and takes an active role in forming the Emergency Control Organisation (ECO).';
-			this.diagramClass = 'light-blue meeting-icon';
-
-		}else if(attr == 'evacution_exercise'){
-			this.diagramTitle = 'Evacuation Exercise';
-			this.diagramDescription = 'A method of practicing how a building would be evacuated in the event of emergencies. AS3745 requires all facilities to participate in at least one evacuation exercise each year to test the emergency plan’s effectiveness.';
-			this.diagramClass = 'teal evacuation-icon';
-
-		}else if(attr == 'evac_diagram'){
-			this.diagramTitle = 'Evacuation Diagrams';
-			this.diagramDescription = 'Floor plan of a facility which helps occupants in locating nearest emergency evacuation path to assembly area.';
-			this.diagramClass = 'light-blue lighten-2 diagram-icon';
-
-		}else if(attr == 'chief_warden_training'){
-			this.diagramTitle = 'Chief Warden Training';
-			this.diagramDescription = 'This training covers skills and knowledge necessary to effectively perform the duties of a Chief Warden as per the requirements of AS3745.';
-			this.diagramClass = 'orange training-icon';
-
-		}else if(attr == 'warden_training'){
-			this.diagramTitle = 'Warden Training';
-			this.diagramDescription = 'AS3745 requires Wardens to complete required warden training on skills and knowledge specific to their duties.';
-			this.diagramClass = 'teal accent-3 training-icon';
-
-		}else if(attr == 'fire_safety_advisor'){
-			this.diagramTitle = 'Fire Safety Advisor';
-			this.diagramDescription = "A Fire Safety Advisor's main role is to render qualified advice to all tenants, managers, and building owners on all applicable aspects of emergency procedures.";
-			this.diagramClass = 'indigo training-icon';
-
-		}else if(attr == 'general_occupant_training'){
-			this.diagramTitle = 'General Occupant Training';
-			this.diagramDescription = "A person that resides in a building or facility. General occupants need to understand the nature of potential emergencies and what actions to take if emergencies do occur.";
-			this.diagramClass = 'deep-purple training-icon';
-
-		}else if(attr == 'warden_list'){
-			this.diagramTitle = 'Warden List';
-			this.diagramDescription = "Warden List should be regularly reviewed and assessed for any significant changes so that new measures to mitigate emergencies can be developed.";
-			this.diagramClass = 'green training-icon';
-
-		}
+		this.selectedComplianceTitle = compliance.name;
+		this.selectedComplianceDescription = compliance.description;
+		this.selectedComplianceClasses = compliance.icon_class;
 
 	}
 
@@ -135,23 +229,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		$('.row-table-content').css('left', '-'+( tableW + 200 )+'px' );
 		$('.row-diagram-details').css('left', '0px' );
 		setTimeout(() => { $('.row-diagram-details').show(); }, 200);
-
-		/*if(this.subscribeTime){
-			this.subscribeTime.unsubscribe();
-		}
-		this.subscribeTime = this.timer.subscribe((v) => {
-			
-			let tableLeft = $('.row-table-content').position().left,
-				diagramLeft = $('.row-diagram-details').position().left;
-
-			if( diagramLeft > 0 ){
-				$('.row-table-content').css('left', (tableLeft - 500) + 'px' );
-				$('.row-diagram-details').css('left', (diagramLeft - 500) + 'px' );
-			}else{
-				$('.row-diagram-details').show();
-				this.subscribeTime.unsubscribe();
-			}
-		});*/
 	}
 
 	hideDiagramDetails(){

@@ -96,7 +96,7 @@ const appRoutes: Routes = [
     { path: 'verify-access', component: VerificationComponent },
     { path : 'compliance', component : ComplianceComponent,
       children : [
-        { path : 'view', component : ViewComplianceComponent }
+        { path : 'view/:encrypted', component : ViewComplianceComponent }
       ]
     }
   ]},

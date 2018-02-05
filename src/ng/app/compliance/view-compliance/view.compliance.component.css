@@ -37,6 +37,10 @@
     width: 95vw;
 }
 
+.row-diagram-details .click-view-previous{
+    display: none;
+}
+
 .row-table-content{
     margin-top: 5%;
     position: absolute;
@@ -272,7 +276,7 @@ table tbody tr td.with-bar .progress-container{
 }
 
 table tbody tr td.with-bar .progress-container{
-	width: 30%;
+	width: 60%;
 }
 
 table tbody tr td .progress-container p{

@@ -107,7 +107,7 @@ const md5 = require('md5');
     }
 
     const locationAccntUser = new LocationAccountUser();
-    const user = new User(tokenData['user_id']);
+    const user = new User(tokenData['id']);
     await user.load();
     const verifyInstance = new UserLocationValidation();
     const verificationInfo = await verifyInstance.getByToken(req.params.token);
@@ -115,7 +115,7 @@ const md5 = require('md5');
     await locationAccntUser.create({
       location_id: verificationInfo['location_id'],
       account_id: user.get('account_id'),
-      user_id: tokenData['user_id'],
+      user_id: tokenData['id'],
       role_id: verificationInfo['role_id']
     });
 

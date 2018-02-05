@@ -20,6 +20,7 @@ import { AwsRoute } from './routes/aws-ses';
 import { AccountRoute } from './routes/account';
 import { LocationRoute } from './routes/location';
 import { TokenRoute } from './routes/token';
+import { ComplianceRoute } from './routes/compliance';
 
 import * as cors from 'cors';
 
@@ -138,6 +139,9 @@ export class Server {
 
       // TeamRoute
       TeamRoute.create(router);
+
+      //ComplianceRoute
+      ComplianceRoute.create(router);
 
       this.app.use('/api/v1', router);
 
