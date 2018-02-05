@@ -21,13 +21,10 @@ import { AwsRoute } from './routes/aws-ses';
 import { AccountRoute } from './routes/account';
 import { LocationRoute } from './routes/location';
 import { TokenRoute } from './routes/token';
-<<<<<<< HEAD
 import { ComplianceRoute } from './routes/compliance';
-=======
 import { PaymentRoute } from './routes/payment';
 import { TeamRoute } from './routes/team';
 import { ProductRoute } from './routes/product';
->>>>>>> develop
 
 import * as cors from 'cors';
 
