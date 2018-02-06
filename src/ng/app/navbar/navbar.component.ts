@@ -7,6 +7,7 @@ import { ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MessageService } from '../services/messaging.service';
 
+import * as jQuery from 'jquery';
 
 import * as moment from 'moment';
 declare var $: any;
