@@ -1,0 +1,114 @@
+.top-gray{
+	background-color: #ececec;
+}
+
+.top-gray ul{
+	margin: 0px;
+}
+
+.top-gray li {
+    font-size: 15px;
+    display: inline-block;
+    padding: 15px 20px;
+}
+
+.top-gray li select{
+	display: block;
+	border-radius: 5px;
+    background-color: #fff;
+    min-width: 300px;
+}
+
+.package-wrapper{
+	background-color: #f4f2f2;
+	min-height: 550px;
+	overflow-y: hidden;
+	padding: 0px;
+	border-radius: 5px;
+	position: relative;
+	margin: 20px;
+}
+
+.package-wrapper .title-container{
+	position: relative;
+	height: 60px;
+}
+
+.package-wrapper .title-container .title{
+	color: #fff;
+	font-size: 17px;
+	margin: 0px;
+	top: 50%;
+    left: 55%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    width: 150px;
+}
+
+.package-wrapper .title-container .dark-background-arrow{
+	position: absolute;
+	height: 100%;
+	width: 40px;
+	background-color: rgba(0,0,0,0.3);
+}
+
+.package-wrapper .title-container .dark-background-arrow .image{
+	position: absolute;
+    width: 53px;
+    height: 36px;
+    background: url(/assets/images/shop_icons.png);
+    background-position: 51.2% 49.3%;
+    background-size: 700%;
+    z-index: 9;
+    top: 10px;
+}
+
+.package-wrapper .title-container .dark-background-arrow .arrow-right{
+	border-top: 30px solid transparent;
+    border-bottom: 30px solid transparent;
+    border-left: 15px solid rgba(0,0,0,0.3);
+    position: absolute;
+    right: -15px;
+}
+
+.package-wrapper .content{
+	padding: 15px;
+	font-size: 15px !important;
+	color: #656565;
+}
+
+.package-wrapper .content ul li{
+	list-style: disc;
+	margin-bottom: 5px;
+}
+
+.package-wrapper .content ul{
+	padding-left: 20px;
+}
+
+.package-wrapper .content .title{
+	font-size: 20px !important;
+}
+
+.package-wrapper .footer{
+	padding: 10px;
+	position: absolute;
+	width: 100%;
+	bottom: 5px;
+}
+
+.package-wrapper .price-container{
+	padding: 10px;
+	position: absolute;
+	width: 100%;
+	bottom: 50px;
+}
+
+.btn{
+	font-size: 14px !important;
+}
+
+.btn-block{
+	width: 100%;
+}

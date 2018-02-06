@@ -1,0 +1,32 @@
+<app-navbar></app-navbar>
+<div class="shop-navigation">
+	<ul class="left">
+		<li class="compliance-package" [routerLink]="['/shop/compliance-package']">
+			<div class="image"></div> Compliance Package
+		</li>
+		<li class="trainings-package" [routerLink]="['/shop/trainings-package']">
+			<div class="image"></div> Trainings
+		</li>
+		<li class="evacuation-diagrams-package" [routerLink]="['/shop/evacuation-diagram-package']">
+			<div class="image"></div> Evacuation Diagrams
+		</li>
+	</ul>
+	<ul class="right">
+		<li class="favorites">
+			<div class="circle red">1</div>
+			<a href="#">
+				<div class="image"></div> My Favorites
+			</a>
+		</li>
+		<li class="cart">
+			<div class="circle red">1</div>
+			<a href="#">
+				<div class="image"></div> Cart
+			</a>
+		</li>
+	</ul>
+	<div style="clear: both;"></div>
+</div>
+<div class="workspace container">
+	<router-outlet></router-outlet>
+</div>

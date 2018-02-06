@@ -61,6 +61,10 @@ import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen
 import { ComplianceComponent } from './compliance/compliance.component';
 import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
 
+import { ShopComponent } from './shop/shop.component';
+import { CompliancePackageComponent } from './shop/compliance.package.component/compliance.package.component';
+import { TrainingsPackageComponent } from './shop/trainings.package.component/trainings.package.component';
+
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -130,6 +134,13 @@ const appRoutes: Routes = [
       { path : 'view-warden', component : ViewWardenComponent },
       { path : 'view-gen-occupant', component : ViewGeneralOccupantComponent },
       { path : 'view-chief-warden', component : ViewChiefWardenComponent }
+    ]
+  },
+  {
+    path : 'shop', component : ShopComponent,
+    children : [
+      { path : 'compliance-package', component : CompliancePackageComponent },
+      { path : 'trainings-package', component : TrainingsPackageComponent }
     ]
   }
 ];

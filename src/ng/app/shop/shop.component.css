@@ -1,0 +1,129 @@
+.shop-navigation ul{
+	margin: 0px;
+	font-size: 0px;
+}
+
+.shop-navigation ul li{
+	display: inline-block;
+	padding: 15px 20px;
+	font-size: 15px;
+}
+
+.shop-navigation ul li .image{
+	vertical-align: middle;
+    width: 31px;
+    height: 31px;
+    border-radius: 30px;
+    display: inline-block;
+    background: url(/assets/images/shop_icons.png);
+}
+
+.shop-navigation ul li{
+	transition: all 0.2s;
+}
+
+.shop-navigation ul li:hover{
+	cursor: pointer;
+}
+
+.shop-navigation ul li{
+	color: #333;
+}
+
+.shop-navigation ul li:hover,
+.shop-navigation ul.left li.active{
+	color: #fff;
+}
+
+.shop-navigation ul li:hover .image{
+	background-color: #fff !important;
+}
+
+.shop-navigation .right li{
+	position: relative;
+}
+
+.shop-navigation .right li .circle{
+	width: 15px;
+    height: 15px;
+    border-radius: 20px;
+    color: #fff;
+    position: absolute;
+    top: 13px;
+    left: 41px;
+    font-size: 10px;
+    line-height: 14px;
+    text-align: center;
+}
+
+.shop-navigation .right li a,
+.shop-navigation .right li a:hover{
+	color: #2196f3 !important;
+}
+
+.favorites .image{
+	border-radius: 0px;
+	background-position: 29.374% 50% !important;
+}
+
+.cart .image{
+	border-radius: 0px;
+	background-position: 62.374% 49% !important;
+}
+
+.compliance-package .image{
+	background-color: #00bfa5 !important;
+    background-position: 16.374% 85.2% !important;
+}
+
+.trainings-package .image{
+	background-color: #4b89dc !important;
+    background-position: 39.374% 85.2% !important;
+}
+
+.evacuation-diagrams-package .image{
+	background-color: #ad92ed !important;
+    background-position: 50% 85.2% !important;
+}
+
+.compliance-package{
+	border-bottom: 1.5px solid #00bfa5;
+}
+
+.compliance-package:hover,
+.shop-navigation ul.left li.active.compliance-package{
+	background-color: #00bfa5 !important;
+}
+
+.compliance-package:hover .image,
+.shop-navigation ul.left li.active.compliance-package .image{
+	background-position: 5.374% 85.2% !important;
+}
+
+.trainings-package{
+	border-bottom: 1.5px solid #4b89dc;
+}
+
+.trainings-package:hover,
+.shop-navigation ul.left li.active.trainings-package{
+	background-color: #4b89dc !important;
+}
+
+.trainings-package:hover .image,
+.shop-navigation ul.left li.active.trainings-package .image{
+	background-position: 28.2% 85.2% !important;
+}
+
+.evacuation-diagrams-package{
+	border-bottom: 1.5px solid #ad92ed;
+}
+
+.evacuation-diagrams-package:hover,
+.shop-navigation ul.left li.active.evacuation-diagrams-package{
+	background-color: #ad92ed !important;
+}
+
+.evacuation-diagrams-package:hover .image,
+.shop-navigation ul.left li.active.evacuation-diagrams-package .image{
+	background-position: 58.7% 85.2% !important;
+}

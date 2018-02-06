@@ -82,6 +82,12 @@ import { NgDatepickerModule } from 'ng2-datepicker';
 import { ComplianceComponent } from './compliance/compliance.component';
 import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
 
+import { ShopComponent } from './shop/shop.component';
+import { CompliancePackageComponent } from './shop/compliance.package.component/compliance.package.component';
+import { TrainingsPackageComponent } from './shop/trainings.package.component/trainings.package.component';
+
+
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -137,7 +143,11 @@ import { ViewComplianceComponent } from './compliance/view-compliance/view.compl
     AllUsersArchivedComponent,
 
     ComplianceComponent,
-    ViewComplianceComponent
+    ViewComplianceComponent,
+
+    ShopComponent,
+    CompliancePackageComponent,
+    TrainingsPackageComponent
   ],
   imports: [
     BrowserModule,

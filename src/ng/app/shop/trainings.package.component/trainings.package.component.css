@@ -1,0 +1,90 @@
+.top-gray{
+	background-color: #ececec;
+}
+
+.top-gray ul{
+	margin: 0px;
+}
+
+.top-gray li {
+    font-size: 15px;
+    display: inline-block;
+    padding: 15px 20px;
+}
+
+.top-gray li select{
+	display: block;
+	border-radius: 5px;
+    background-color: #fff;
+    min-width: 300px;
+}
+
+.top-gray ul.left li h5{
+	font-size: 18px;
+}
+
+.package-wrapper{
+	background-color: #f4f2f2;
+	min-height: 470px;
+	overflow-y: hidden;
+	padding: 0px;
+	border-radius: 5px;
+	position: relative;
+	margin: 20px;
+}
+
+.package-wrapper .content{
+	padding: 20px;
+	font-size: 15px;
+}
+
+.package-wrapper .content .title{
+	font-size: 18px;
+}
+
+.package-wrapper .image{
+	width: 85px;
+    height: 85px;
+    border-radius: 85px;
+    background: url(/assets/images/shop_icons.png);
+    background-position: 51% 50% !important;
+}
+
+.package-wrapper select{
+	display: block;
+	width: 100%;
+}
+
+.package-wrapper .button-container{
+	position: absolute;
+    bottom: 5px;
+    width: 100%;
+    padding: 15px;
+}
+
+.package-wrapper .button-container button{
+	width: 48%;
+    height: 45px;
+    padding: 0px !important;
+    font-size: 14px !important;
+    text-transform: unset;
+    border-radius: 5px;
+}
+
+.package-wrapper .button-container button .image{
+	background: url(/assets/images/shop_icons.png);
+	vertical-align: middle;
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+}
+
+.save .image{
+	border-radius: 0px;
+	background-position: 30% 50% !important;
+}
+
+.buy .image{
+	border-radius: 0px;
+	background-position: 71.5% 50% !important;
+}
