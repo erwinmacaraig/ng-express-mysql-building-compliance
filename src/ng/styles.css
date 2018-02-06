@@ -137,6 +137,7 @@ input::-ms-clear {
 	background-color: #f0f0f0;
     border-radius: 5px;
     padding: 0px 25px;
+    height: 50px;
 }
 
 .filter-container .select-wrapper .caret{
@@ -150,6 +151,10 @@ input::-ms-clear {
 .filter-container .select-wrapper .dropdown-content{
     width: 100% !important;
     left: 0px !important;
+}
+
+.filter-container .select-wrapper input{
+    height: 50px !important;
 }
 
 .table-peep thead tr th .checkbox{

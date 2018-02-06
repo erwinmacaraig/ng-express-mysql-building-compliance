@@ -21,6 +21,7 @@ import { AwsRoute } from './routes/aws-ses';
 import { AccountRoute } from './routes/account';
 import { LocationRoute } from './routes/location';
 import { TokenRoute } from './routes/token';
+import { ComplianceRoute } from './routes/compliance';
 import { PaymentRoute } from './routes/payment';
 import { TeamRoute } from './routes/team';
 import { ProductRoute } from './routes/product';
@@ -156,6 +157,9 @@ export class Server {
 
       // TeamRoute
       TeamRoute.create(router);
+
+      //ComplianceRoute
+      ComplianceRoute.create(router);
 
       // PaymentRoute
       PaymentRoute.create(router);
