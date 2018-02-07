@@ -13,12 +13,23 @@ import { EncryptDecryptService } from '../services/encrypt.decrypt';
 declare var $: any;
 
 @Component({
-	selector : 'app-shop-component',
-	templateUrl : './shop.component.html',
-	styleUrls : [ './shop.component.css' ],
+	selector : 'app-payment-response-component',
+	templateUrl : './payment.response.component.html',
+	styleUrls : [ './payment.response.component.css' ],
     providers : [AuthService, UserService, SignupService, EncryptDecryptService]
 })
-export class ShopComponent implements OnInit, OnDestroy{
+export class PaymentResponseComponent implements OnInit, OnDestroy{
+
+	message = '';
+	listOfMessages = {
+		1 : 'Payment successfully recorded',
+		2 : 'Payment successfully recorded but cannot update transaction records for items',
+		3 : 'Payment successfully made, but cannot create internal transaction log record',
+		4 : 'There was a problem loading internal transaction log record',
+		5 : 'Payment made but no record of transaction log can be made',
+		6 : 'There was a problem creating transaction log for this session',
+		7 : 'There was a problem updating internal transaction log record'
+	};
 
 	constructor(
 		private router : Router,
@@ -32,20 +43,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 
 		this.router.events.subscribe((e) => {
 			if(e instanceof NavigationEnd){
-				$('.shop-navigation .active').removeClass('active');
-					switch (e.url) {
-						case "/shop/compliance-package":
-							$('.compliance-package').addClass('active');
-							break;
-
-						case "/shop/trainings-package":
-							$('.trainings-package').addClass('active');
-							break;
-
-						case "/shop/evacuation-diagram-package":
-							$('.evacuation-diagrams-package').addClass('active');
-							break;
-					}
+				let num = e.url.replace('/payment-response/', '');
+				this.message = this.listOfMessages[num];
 			}
 		});
 	}
@@ -55,9 +54,9 @@ export class ShopComponent implements OnInit, OnDestroy{
 	}
 
 	ngAfterViewInit(){
-		
-
-		
+		setTimeout(() => {
+			this.router.navigate(["/shop/example"]);
+		}, 3000);
 	}
 
 	ngOnDestroy(){

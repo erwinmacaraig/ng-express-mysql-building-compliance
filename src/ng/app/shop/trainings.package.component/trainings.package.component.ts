@@ -47,7 +47,7 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 	}
 
 	ngOnDestroy(){
-		
+		$('.workspace.container').css('padding', '');
 	}
 
 } 

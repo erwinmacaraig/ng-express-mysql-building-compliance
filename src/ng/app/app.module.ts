@@ -85,8 +85,9 @@ import { ViewComplianceComponent } from './compliance/view-compliance/view.compl
 import { ShopComponent } from './shop/shop.component';
 import { CompliancePackageComponent } from './shop/compliance.package.component/compliance.package.component';
 import { TrainingsPackageComponent } from './shop/trainings.package.component/trainings.package.component';
-
-
+import { EvacuationDiagramPackageComponent } from './shop/evacuation.diagram.package.component/evacuation.diagram.package.component';
+import { ExampleComponent } from './shop/example.component/example.component';
+import { PaymentResponseComponent } from './payment.response/payment.response.component';
 
 @NgModule({
   declarations: [
@@ -147,7 +148,10 @@ import { TrainingsPackageComponent } from './shop/trainings.package.component/tr
 
     ShopComponent,
     CompliancePackageComponent,
-    TrainingsPackageComponent
+    TrainingsPackageComponent,
+    EvacuationDiagramPackageComponent,
+    ExampleComponent,
+    PaymentResponseComponent
   ],
   imports: [
     BrowserModule,

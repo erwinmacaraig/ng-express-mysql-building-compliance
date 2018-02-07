@@ -14,17 +14,31 @@ export class Cart {
     if (!storedItem) {
       storedItem = this.items[id] = {
         item: item,
-        qty: 0,
+        qty: 1,
         price: 0
       };
     }
-    console.log('storedItem', storedItem);
-    console.log('item', item);
 
-    storedItem.qty++;
     storedItem.price = <number>storedItem.item.amount * <number>storedItem.qty;
-    this.totalQty++;
-    this.totalPrice = <number>(this.totalPrice * 1) + <number>(storedItem.item.amount * 1);
+    this.totalQty = this.totalQty + storedItem.qty;
+    this.totalPrice = this.totalPrice + storedItem.price;
+  }
+
+  public remove(item, id){
+    let storedItem = this.items[id];
+
+    this.totalQty = this.totalQty - storedItem.qty;
+    this.totalPrice = this.totalPrice - storedItem.price;
+    
+    let newItems = {};
+    for(let i in this.items){
+      console.log(i);
+      if(i != id){
+        newItems[i] = this.items[i];
+      }
+    }
+    this.items = newItems;
+    console.log(this.items);
   }
 
   public generateArray() {

@@ -64,6 +64,9 @@ import { ViewComplianceComponent } from './compliance/view-compliance/view.compl
 import { ShopComponent } from './shop/shop.component';
 import { CompliancePackageComponent } from './shop/compliance.package.component/compliance.package.component';
 import { TrainingsPackageComponent } from './shop/trainings.package.component/trainings.package.component';
+import { EvacuationDiagramPackageComponent } from './shop/evacuation.diagram.package.component/evacuation.diagram.package.component';
+import { ExampleComponent } from './shop/example.component/example.component';
+import { PaymentResponseComponent } from './payment.response/payment.response.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -140,8 +143,13 @@ const appRoutes: Routes = [
     path : 'shop', component : ShopComponent,
     children : [
       { path : 'compliance-package', component : CompliancePackageComponent },
-      { path : 'trainings-package', component : TrainingsPackageComponent }
+      { path : 'trainings-package', component : TrainingsPackageComponent },
+      { path : 'evacuation-diagram-package', component : EvacuationDiagramPackageComponent },
+      { path : 'example', component : ExampleComponent }
     ]
+  },
+  {
+    path : 'payment-response/:ecnrypted', component : PaymentResponseComponent
   }
 ];
 

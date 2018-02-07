@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -13,12 +13,14 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 declare var $: any;
 
 @Component({
-	selector : 'app-compliance-package-component',
-	templateUrl : './compliance.package.component.html',
-	styleUrls : [ './compliance.package.component.css' ],
+	selector : 'app-evacuation-diagram-package-component',
+	templateUrl : './evacuation.diagram.package.component.html',
+	styleUrls : [ './evacuation.diagram.package.component.css' ],
     providers : [AuthService, UserService, SignupService, EncryptDecryptService]
 })
-export class CompliancePackageComponent implements OnInit, OnDestroy{
+export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
+
+	@ViewChild('quantityInput') quantityInput : ElementRef;
 
 	constructor(
 		private router : Router,
@@ -29,7 +31,6 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
         private signupServices: SignupService,
         private encryptDecrypt : EncryptDecryptService
 		){
-
 	}
 
 	ngOnInit(){
@@ -37,16 +38,24 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 	}
 
 	ngAfterViewInit(){
+		$('select').material_select();
 		$('.workspace.container').css('padding', '0px');
-		$('.package-container').css({
-			'width' : '96%',
-			'margin' : '0 auto',
-			'padding-top' : '3%'
-		});
 	}
 
 	ngOnDestroy(){
 		$('.workspace.container').css('padding', '');
+	}
+
+	addQuantity(){
+		let q = parseInt(this.quantityInput.nativeElement.value);
+		this.quantityInput.nativeElement.value = q + 1;
+	}
+
+	subtractQuantity(){
+		let q = parseInt(this.quantityInput.nativeElement.value);
+		if(q > 5){
+			this.quantityInput.nativeElement.value = q - 1;
+		}
 	}
 
 } 
