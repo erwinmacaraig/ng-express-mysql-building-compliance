@@ -179,10 +179,10 @@
 }
 
 .arrow-right-image{
-	background: #fff url(/assets/images/shop_icons.png);
-    width: 38px;
-    height: 38px;
-    background-position: 4.8% 48% !important;
+	background: url(/assets/images/shop_icons.png);
+    width: 36px;
+    height: 36px;
+    background-position: 5% 48.5% !important;
     border-radius: 40px;
     border: 0px;
 }

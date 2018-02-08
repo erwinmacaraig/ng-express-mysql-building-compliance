@@ -10,6 +10,7 @@ import { Observable } from 'rxjs/Rx';
 import { LocationsService } from '../../services/locations';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { ComplianceService } from '../../services/compliance.service';
+import { MessageService } from '../../services/messaging.service';
 
 declare var $: any;
 
@@ -21,6 +22,17 @@ declare var $: any;
 })
 export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
+	trainingsProducts = <any>[];
+
+	allProducts = <any>[];
+	cart = <any>{
+		items : {},
+		totalPrice : 0
+	};
+	arrayCart = [];
+
+	subs;
+
 	constructor(
 		private router : Router,
 		private route: ActivatedRoute,
@@ -28,8 +40,20 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 		private userService: UserService,
 		private locationService: LocationsService,
         private signupServices: SignupService,
+        private messageService : MessageService,
         private encryptDecrypt : EncryptDecryptService
 		){
+
+		this.subs = this.messageService.getMessage().subscribe((message) => {
+	    	if(message.cart){
+	    		this.cart = message.cart;
+	    	}
+
+	    	if(message.products){
+	    		this.allProducts = message.products;
+	    		this.generateTrainingsProducts();
+	    	}
+	    });
 
 	}
 
@@ -43,6 +67,43 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 			'width' : '96%',
 			'margin' : '0 auto',
 			'padding-top' : '3%'
+		});
+
+		this.messageService.sendMessage({
+			'getData' : true
+		});
+	}
+
+	generateTrainingsProducts(){
+		this.trainingsProducts = [];
+		for(let prod of this.allProducts){
+			if(prod.product_type == 'trainings'){
+				this.trainingsProducts.push(prod);
+			}
+		}
+	}
+
+	isInCart(prodId){
+		let response = false;
+		for(let i in this.cart.items){
+			if( this.cart.items[i] !== null ){
+				if(this.cart.items[i]['item'].product_id == prodId){
+					response = true;
+				}
+			}
+		}
+		return response;
+	}
+
+	addToCart(prodId){
+		this.messageService.sendMessage({
+			'addToCart' : prodId
+		});
+	}
+
+	removeFromCart(prodId){
+		this.messageService.sendMessage({
+			'removeFromCart' : prodId
 		});
 	}
 

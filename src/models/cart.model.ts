@@ -32,13 +32,11 @@ export class Cart {
     
     let newItems = {};
     for(let i in this.items){
-      console.log(i);
       if(i != id){
         newItems[i] = this.items[i];
       }
     }
     this.items = newItems;
-    console.log(this.items);
   }
 
   public generateArray() {

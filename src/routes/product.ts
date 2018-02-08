@@ -132,17 +132,13 @@ export class ProductRoute extends BaseRoute {
         let cartModel = new Cart(req.session.cart ? req.session.cart : {}),
             response = {
                 status : true, data : <any>[], message : ''
-            };
-
-        try{
-            response.data = (req.session.cart !== null) ? req.session.cart : {
-                items : {},
-                totalQty : 0,
-                totalPrice : 0
-            };
-        }catch(e){
-            console.log(e);
-        }
+            };        
+            
+        response.data = (req.session.cart !== undefined) ? req.session.cart : {
+            items : {},
+            totalQty : 0,
+            totalPrice : 0
+        };
 
         res.statusCode = 200;
         res.send(response);

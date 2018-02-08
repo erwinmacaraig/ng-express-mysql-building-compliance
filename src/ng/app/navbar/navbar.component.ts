@@ -43,6 +43,8 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 	showSendInviteLink = false;
 	elems = {};
 
+	showShopLink = false;
+
 	constructor(
 		private auth: AuthService,
     	private userService: UserService,
@@ -98,6 +100,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 		for(let i in this.userRoles){
 			if(this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2){
 				this.showSendInviteLink = true;
+				this.showShopLink = true;
 				trpFrp = true;
 			}
 		}

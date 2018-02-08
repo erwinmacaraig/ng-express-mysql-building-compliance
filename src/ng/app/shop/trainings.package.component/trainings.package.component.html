@@ -20,20 +20,27 @@
 	<div style="clear: both;"></div>
 </div>
 
-<div class="package-container">
+<div class="container" *ngIf="trainingsProducts.length == 0">
+	<div class="row">
+		<div class="col l12 m12 s12">
+			<h4 class="center">No Products Yet</h4>
+		</div>
+	</div>
+</div>
+
+<div class="package-container" *ngIf="trainingsProducts.length > 0">
 	
 	<div class="row">
 		
-		<div class="col l2 m6 s12">
+		<div class="col l2 m6 s12" *ngFor="let prod of trainingsProducts">
 			<div class="package-wrapper">
 				<div class="content">
 					<div class="image teal accent-4 center-block"></div>
 					<h5 class="title blue-text">
-						General Occupant and First Response
+						{{ prod.product_title }}
 					</h5>
-					<p class="orange-text">Online Training</p>
 					<p>
-						Facilis curabitur culpa morbi accusamus, anim augue tenetur tellus quos torquent maiores porta taciti officiis, et in iste mollis excepturi.
+						{{ prod.product_desc }}
 					</p>
 					<select>
 						<option value="0" disabled selected>Select training for</option>
@@ -43,39 +50,17 @@
 					<button class="btn-flat waves-effect waves-light save">
 						<div class="image"></div> Save
 					</button>
-					<button class="btn orange waves-effect waves-light buy">
+					<button class="btn orange waves-effect waves-light buy" *ngIf="!isInCart(prod.product_id)" (click)="addToCart(prod.product_id)">
 						<div class="image"></div> Buy
+					</button>
+
+					<button class="btn orange waves-effect waves-light buy" *ngIf="isInCart(prod.product_id)" (click)="removeFromCart(prod.product_id)">
+						<div class="image"></div> Remove
 					</button>
 				</div>
 			</div>
 		</div>
 
-
-		<div class="col l2 m6 s12">
-			<div class="package-wrapper">
-				<div class="content">
-					<div class="image indigo center-block"></div>
-					<h5 class="title blue-text">
-						Emergency Control Organization
-					</h5>
-					<p class="orange-text">Online Training</p>
-					<p>
-						Facilis curabitur culpa morbi accusamus, anim augue tenetur tellus quos torquent maiores porta taciti officiis, et in iste mollis excepturi.
-					</p>
-					<select>
-						<option value="0" disabled selected>Select training for</option>
-					</select>
-				</div>
-				<div class="button-container">
-					<button class="btn-flat waves-effect waves-light save">
-						<div class="image"></div> Save
-					</button>
-					<button class="btn orange waves-effect waves-light buy">
-						<div class="image"></div> Buy
-					</button>
-				</div>
-			</div>
-		</div>
 
 	</div>
 
