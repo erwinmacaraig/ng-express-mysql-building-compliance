@@ -9,58 +9,99 @@
 <div class="container">
 	
 	<div class="row margin-top-50">
-		<div class="col l3 m4 s12 left-panel">
-			<div class="content">
-				<h5 class="title">Diagram Details</h5>
-			
-				<div class="select-field margin-top-50">
-					<label>Select Location</label>
-					<select>
-						<option value="0" disabled selected>Select Location</option>
-					</select>
-				</div>
+		<div class="col l3 m4 s12">
+			<div class="left-panel">
+				<div class="content">
+					<h5 class="blue-text">Diagram Details</h5>
 				
-				<div class="select-field">
-					<label>Select Finish</label>
-					<select>
-						<option value="standard" selected>Standard</option>
-					</select>
-				</div>
-				
-				<p>
-					<input type="checkbox" class="filled-in" value="none" id="pdf"  />
-					<label for="pdf">PDF File Only</label>
-				</p>
-				
-				<div class="quantity-container">
-					<p>Quantity</p>
-					<div class="input" >
-						<input type="text" #quantityInput readonly value="5">
-						<button class="btn-arrow-up waves-effect waves-light" (click)="addQuantity()"><i class="material-icons">arrow_drop_up</i></button>
-						<button class="btn-arrow-down waves-effect waves-light" (click)="subtractQuantity()"><i class="material-icons">arrow_drop_down</i></button>
+					<div class="select-field margin-top-50">
+						<label>Select Location</label>
+						<select>
+							<option value="0" disabled selected>Select Location</option>
+						</select>
 					</div>
-					<div class="text">
-						x 44 USD
+					
+					<div class="select-field">
+						<label>Select Finish</label>
+						<select>
+							<option value="standard" selected>Standard</option>
+						</select>
 					</div>
-					<p>Minimum of 5 pcs.</p>
+					
+					<p>
+						<input type="checkbox" class="filled-in" value="none" id="pdf"  />
+						<label for="pdf">PDF File Only</label>
+					</p>
+					
+					<div class="quantity-container">
+						<p>Quantity</p>
+						<div class="input" >
+							<input type="text" #quantityInput readonly value="5">
+							<button class="btn-arrow-up waves-effect waves-light" (click)="addQuantity()"><i class="material-icons">arrow_drop_up</i></button>
+							<button class="btn-arrow-down waves-effect waves-light" (click)="subtractQuantity()"><i class="material-icons">arrow_drop_down</i></button>
+						</div>
+						<div class="text">
+							x 44 USD
+						</div>
+						<p>Minimum of 5 pcs.</p>
+					</div>
 				</div>
-
+				
+				<div class="footer">
+					<h5 class="left">
+						Total
+					</h5>
+					<h5 class="right">
+						$ 00
+					</h5>
+					<div style="clear: both;"></div>
+				</div>
 			</div>
-			
-			<div class="footer">
-				<h5 class="left">
-					Total
-				</h5>
-				<h5 class="right">
-					$ 00
-				</h5>
-				<div style="clear: both;"></div>
-			</div>
-
 		</div>
 
-		<div class="col l9 m8 s12 right-panel">
-			
+		<div class="col l9 m8 s12 ">
+
+			<div class="right-panel">
+				<div class="top">
+					<h5 class="blue-text left">Diagram Details</h5>
+					<div class="right">
+						<button class="left-arrow waves-effect waves-light"></button>
+						<button class="right-arrow waves-effect waves-light"></button>
+					</div>
+					<div style="clear: both;"></div>
+				</div>
+				
+				<div class="middle">
+					
+					<table>
+						<tr>
+							<td class="text-container">
+								<h5>Product Name</h5>
+								<p>
+									Parturient odit maxime do vulputate felis occaecat cubilia, morbi dolorum! Ornare ex. Natoque augue.
+								</p>
+							</td>
+							<td class="image-container">
+								<div class="image-wrapper">
+									<img src="" alt="">
+								</div>
+							</td>
+						</tr>
+					</table>
+
+				</div>
+
+				<div class="button-container">
+					<button class="btn-flat waves-effect waves-light save left">
+						<div class="image"></div> Save
+					</button>
+					<button class="btn orange waves-effect waves-light buy right">
+						<div class="image"></div> Buy
+					</button>
+					<div style="clear: both;"></div>
+				</div>
+
+			</div>
 		</div>
 	</div>
 

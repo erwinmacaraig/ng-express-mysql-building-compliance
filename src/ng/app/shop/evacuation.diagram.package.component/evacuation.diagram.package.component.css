@@ -32,6 +32,11 @@
 }
 
 .left-panel{
+	margin-right: 20px;
+}
+
+.left-panel,
+.right-panel{
 	background-color: #f7f7f7;
     border-radius: 5px;
     padding: 0px;
@@ -114,4 +119,86 @@
 .select-field label{
 	font-size: 12px !important;
     color: #434343;
+}
+
+.right-panel{
+	padding: 15px 20px;
+}
+
+.right-panel .top .right{
+	position: relative;
+    top: 15px;
+
+}
+
+.right-panel .top .left-arrow,
+.right-panel .top .right-arrow{
+	background: url(/assets/images/shop_icons.png);
+    width: 28px;
+    height: 28px;
+    border-radius: 3px;
+    border: 0px;
+    margin-right: 5px;
+}
+
+.right-panel .top .left-arrow{
+	background-position: 69% 84% !important;
+}
+
+.right-panel .top .right-arrow{
+	background-position: 79% 84% !important;
+}
+
+.middle table{
+	min-height: 300px;
+	margin: 20px 0px;
+}
+
+.middle table .text-container{
+	width: 30%;
+}
+
+.middle table .image-container{
+	width: 70%;
+}
+
+.middle table .image-container{
+	padding: 5px;
+}
+
+.middle table .image-container .image-wrapper{
+	min-height: 300px;
+	width: 100%;
+	background-color: #fff;
+}
+
+.button-container{
+    width: 100%;
+}
+
+.button-container button{
+	width: 12%;
+    height: 45px;
+    padding: 0px !important;
+    font-size: 14px !important;
+    text-transform: unset;
+    border-radius: 5px;
+}
+
+.button-container button .image{
+	background: url(/assets/images/shop_icons.png);
+	vertical-align: middle;
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+}
+
+.save .image{
+	border-radius: 0px;
+	background-position: 30% 50% !important;
+}
+
+.buy .image{
+	border-radius: 0px;
+	background-position: 71.5% 50% !important;
 }
