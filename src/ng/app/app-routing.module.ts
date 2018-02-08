@@ -67,6 +67,7 @@ import { TrainingsPackageComponent } from './shop/trainings.package.component/tr
 import { EvacuationDiagramPackageComponent } from './shop/evacuation.diagram.package.component/evacuation.diagram.package.component';
 import { ExampleComponent } from './shop/example.component/example.component';
 import { PaymentResponseComponent } from './payment.response/payment.response.component';
+import { CartComponent } from './shop/cart.component/cart.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -145,6 +146,7 @@ const appRoutes: Routes = [
       { path : 'compliance-package', component : CompliancePackageComponent },
       { path : 'trainings-package', component : TrainingsPackageComponent },
       { path : 'evacuation-diagram-package', component : EvacuationDiagramPackageComponent },
+      { path : 'cart', component : CartComponent },
       { path : 'example', component : ExampleComponent }
     ]
   },

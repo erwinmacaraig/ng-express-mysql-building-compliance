@@ -1,0 +1,93 @@
+<div class="top-gray">
+	<ul>
+		<li>
+			<h5>Shopping Cart Checkout</h5>
+		</li>
+	</ul>
+</div>
+
+<div class="container">
+	<div class="row">
+		
+		<div class="col l4 m5 s12">
+			<h5 class="blue-text col-title">Order Summary</h5>
+			
+			<div class="products-wrapper grey lighten-3">
+				<div class="list-container">
+					<ul>
+						<li>
+							
+							<div class="image">
+								
+							</div>
+							<div class="text">
+								<h6 class="name blue-text">Budget</h6>
+								<p>Aliquip donec voluptatibus pretium tempor fringilla</p>
+								<div class="quantity-container">
+									<div class="input" >
+										<input type="text" #quantityInput readonly value="5">
+										<button class="btn-arrow-up waves-effect waves-light" (click)="addQuantity()"><i class="material-icons">arrow_drop_up</i></button>
+										<button class="btn-arrow-down waves-effect waves-light" (click)="subtractQuantity()"><i class="material-icons">arrow_drop_down</i></button>
+									</div>
+									<div class="text">
+										x 44 USD
+									</div>
+								</div>
+							</div>
+
+							<div class="remove-container">
+								<a href="javascript:void(0)" class="black-text right">
+									Close <div class="close-image"></div>
+								</a>
+								<div style="clear: both;"></div>
+							</div>
+
+						</li>
+					</ul>
+				</div>
+				<div class="footer grey darken-3">
+					<p class="left white-text">Total</p>
+					<p class="right white-text">$ 00</p>
+					<p style="clear: both;"></p>
+				</div>
+			</div>
+
+			<div class="discout-wrapper teal lighten-2">
+				<h5 class="white-text">Discout Promo</h5>
+				<input type="text" placeholder="Enter discount coupon code">
+				<button class="btn grey darken-1 waves-effect waves-light">Apply</button>
+			</div>
+
+		</div>
+
+		<div class="col l8 m7 s12">
+			<h5 class="blue-text col-title">Payment Method</h5>
+
+			<div class="payment-wrapper grey lighten-4">
+				<div class="logos row">
+					<div class="col l3 m6 s12 image paypal active"></div>
+					<div class="col l3 m6 s12 image creditcard"></div>
+					<div class="col l3 m6 s12 image bank"></div>
+					<div class="col l3 m6 s12 image bpay"></div>
+				</div>
+
+				<div class="content">
+					<h5 class="name">Payment Name</h5>
+					<p class="description">
+						Perspiciatis unde eiusmod, dolorem aliqua neque litora, enim magnam faucibus.
+						Scelerisque delectus adipisicing donec eum consequatur, minus quod provident proident.
+					</p>
+				</div>
+
+				<div class="footer orange">
+					<p class="left white-text">My Payment</p>
+					<div class="right white-text">
+						<button class="arrow-right-image waves-effect waves-blue"></button>
+					</div>
+					<p style="clear: both;"></p>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>

@@ -56,8 +56,8 @@
     text-align: center;
 }
 
-.shop-navigation .right li a,
-.shop-navigation .right li a:hover{
+.shop-navigation .right li,
+.shop-navigation .right li:hover{
 	color: #2196f3 !important;
 }
 
