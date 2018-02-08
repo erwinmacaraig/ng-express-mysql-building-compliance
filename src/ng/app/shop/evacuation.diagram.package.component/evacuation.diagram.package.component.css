@@ -20,6 +20,10 @@
 	margin-top: 50px;
 }
 
+.margin-top-20{
+	margin-top: 20px;
+}
+
 [type="checkbox"].filled-in:not(:checked)+label:after,
 [type="checkbox"].filled-in:checked+label:after,
 [type="checkbox"].filled-in:checked+label:before{
