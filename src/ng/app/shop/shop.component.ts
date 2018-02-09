@@ -13,6 +13,7 @@ import { Observable, ReplaySubject, BehaviorSubject, Subscription } from 'rxjs/R
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import { MessageService } from '../services/messaging.service';
+import { DashboardPreloaderService } from '../services/dashboard.preloader';
 
 declare var $: any;
 
@@ -20,12 +21,13 @@ declare var $: any;
 	selector : 'app-shop-component',
 	templateUrl : './shop.component.html',
 	styleUrls : [ './shop.component.css' ],
-    providers : [AuthService, UserService, SignupService, EncryptDecryptService, ProductService]
+    providers : [AuthService, UserService, SignupService, EncryptDecryptService, ProductService, DashboardPreloaderService]
 })
 export class ShopComponent implements OnInit, OnDestroy{
 
 	wishList = [];
 
+	packages = <any>[];
 	allProducts = <any>[];
 	cart = <any>{
 		items : {},
@@ -34,6 +36,10 @@ export class ShopComponent implements OnInit, OnDestroy{
 	arrayCart = [];
 
 	subs;
+
+	locations = <any>[];
+
+	userData = {};
 
 	constructor(
 		private router : Router,
@@ -44,8 +50,11 @@ export class ShopComponent implements OnInit, OnDestroy{
         private signupServices: SignupService,
         private productService: ProductService,
         private encryptDecrypt : EncryptDecryptService,
+        private preloaderService: DashboardPreloaderService,
         private messageService : MessageService
 		){
+
+		this.userData = this.authService.getUserData();
 
 		this.productService.getAll((response) => {
 			this.allProducts = response.data;
@@ -62,18 +71,31 @@ export class ShopComponent implements OnInit, OnDestroy{
 			});
 		});
 
+		this.productService.getPackagesAndProducts((response) => {
+			this.packages = response.data;
+			this.messageService.sendMessage({
+				'packages' : this.packages
+			});
+		});
+
+		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
+			this.locations = response.locations;
+			this.messageService.sendMessage({
+				'locations' : this.locations
+			});
+			this.preloaderService.hide();
+		});
+
 		this.router.events.subscribe((e) => {
 			if(e instanceof NavigationEnd){
 				$('.shop-navigation .active').removeClass('active');
 				switch (e.url) {
 					case "/shop/compliance-package":
 						$('.compliance-package').addClass('active');
-
 						break;
 
 					case "/shop/trainings-package":
 						$('.trainings-package').addClass('active');
-
 						break;
 
 					case "/shop/evacuation-diagram-package":
@@ -85,7 +107,23 @@ export class ShopComponent implements OnInit, OnDestroy{
 
 		this.subs = this.messageService.getMessage().subscribe(res => {
 			if(res.addToCart){
-				this.addToCart(res.addToCart, () => {
+				this.addToCart({
+					product_id : res.addToCart,
+					quantity : (res.qty) ? parseInt(res.qty) : 1,
+					location_id : res.location_id
+				}, () => {
+					this.messageService.sendMessage({
+						'cart' : this.cart
+					});
+				});
+			}
+
+			if(res.updateCart){
+				this.updateCart({
+					product_id : res.updateCart,
+					quantity : (res.qty) ? parseInt(res.qty) : 1,
+					location_id : res.location_id
+				}, () => {
 					this.messageService.sendMessage({
 						'cart' : this.cart
 					});
@@ -102,7 +140,7 @@ export class ShopComponent implements OnInit, OnDestroy{
 
 			if(res.getData){
 				this.messageService.sendMessage({
-					'cart' : this.cart, 'products' : this.allProducts
+					'cart' : this.cart, 'products' : this.allProducts, 'packages' : this.packages, 'locations' : this.locations
 				});
 			}
 		});
@@ -112,6 +150,7 @@ export class ShopComponent implements OnInit, OnDestroy{
 	}
 
 	ngAfterViewInit(){
+		this.preloaderService.show();
 	}
 
 	makeCartAsArray(){
@@ -137,6 +176,15 @@ export class ShopComponent implements OnInit, OnDestroy{
 
 	addToCart(prodId, callBack){
 		this.productService.addToCart(prodId, (response) => {
+			this.cart = response.cart;
+			this.makeCartAsArray();
+
+			callBack();
+		});
+	}
+
+	updateCart(data, callBack){
+		this.productService.updateCart(data, (response) => {
 			this.cart = response.cart;
 			this.makeCartAsArray();
 

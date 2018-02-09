@@ -24,13 +24,11 @@
 						<li *ngFor="let cart of arrayCart">
 							
 							<div class="image">
-								
+								<img src="{{cart.item.product_image}}" alt="">
 							</div>
 							<div class="text">
 								<h6 class="name blue-text">{{ cart.item.product_title }}</h6>
-								<p>
-									{{ cart.item.product_desc }}
-								</p>
+								<div [innerHTML]="cart.item.product_desc"></div>
 								<div class="quantity-container">
 									<div class="input" >
 										<input type="text" #quantityInput readonly value="{{cart.qty}}">
@@ -90,7 +88,7 @@
 				<div class="footer orange">
 					<p class="left white-text">My Payment</p>
 					<div class="right white-text">
-						<button class="arrow-right-image waves-effect waves-blue"></button>
+						<button class="arrow-right-image waves-effect waves-blue" (click)="goToPayment()"></button>
 					</div>
 					<p style="clear: both;"></p>
 				</div>

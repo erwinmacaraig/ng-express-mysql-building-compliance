@@ -45,7 +45,8 @@ export class Product extends BaseClass {
                             product_image = ?,
                             product_title = ?,
                             product_timestamp = ?,
-                            archived = ?
+                            archived = ?,
+                            months_of_validity = ?
                           WHERE product_id = ?`;
       const product = [
         ('product_code' in this.dbData) ? this.dbData['product_code'] : null,
@@ -56,6 +57,7 @@ export class Product extends BaseClass {
         ('product_title' in this.dbData) ? this.dbData['product_title'] : null,
         ('product_timestamp' in this.dbData) ? this.dbData['product_timestamp'] : null,
         ('archived' in this.dbData) ? this.dbData['archived'] : 0,
+        ('months_of_validity' in this.dbData) ? this.dbData['months_of_validity'] : 12,
         this.ID() ? this.ID() : 0
       ];
 
@@ -81,8 +83,9 @@ export class Product extends BaseClass {
         product_image,
         product_title,
         product_timestamp,
-        archived
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+        archived,
+        months_of_validity
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       const product = [
         ('product_code' in this.dbData) ? this.dbData['product_code'] : null,
         ('product_type' in this.dbData) ? this.dbData['product_type'] : null,
@@ -91,7 +94,8 @@ export class Product extends BaseClass {
         ('product_image' in this.dbData) ? this.dbData['product_image'] : null,
         ('product_title' in this.dbData) ? this.dbData['product_title'] : null,
         ('product_timestamp' in this.dbData) ? this.dbData['product_timestamp'] : null,
-        ('archived' in this.dbData) ? this.dbData['archived'] : 0
+        ('archived' in this.dbData) ? this.dbData['archived'] : 0,
+        ('months_of_validity' in this.dbData) ? this.dbData['months_of_validity'] : 12
       ];
       const connection = db.createConnection(dbconfig);
       connection.query(insert_sql, product, (error, results, fields) => {

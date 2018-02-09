@@ -89,6 +89,7 @@ import { EvacuationDiagramPackageComponent } from './shop/evacuation.diagram.pac
 import { ExampleComponent } from './shop/example.component/example.component';
 import { PaymentResponseComponent } from './payment.response/payment.response.component';
 import { CartComponent } from './shop/cart.component/cart.component';
+import { PaymentComponent } from './shop/payment.component/payment.component';
 
 @NgModule({
   declarations: [
@@ -153,7 +154,8 @@ import { CartComponent } from './shop/cart.component/cart.component';
     EvacuationDiagramPackageComponent,
     ExampleComponent,
     PaymentResponseComponent,
-    CartComponent
+    CartComponent,
+    PaymentComponent
   ],
   imports: [
     BrowserModule,

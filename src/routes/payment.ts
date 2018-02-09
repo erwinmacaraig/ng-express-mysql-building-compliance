@@ -188,13 +188,24 @@ export class PaymentRoute extends BaseRoute {
     await Object.keys(items).forEach((key) => {
       const transaction = new Transaction();
       try {
+
+        items[key]['expiration_date'] = (items[key]['expiration_date']) ? items[key]['expiration_date'] : null;
+        items[key]['target_user_id'] = (items[key]['target_user_id']) ? items[key]['target_user_id'] : 0;
+        items[key]['diagram_finish'] = (items[key]['diagram_finish']) ? items[key]['diagram_finish'] : null;
+        items[key]['location_id'] = (items[key]['location_id']) ? items[key]['location_id'] : 0;
+
          transaction.create({
           'user_id': user_id,
           'translog_id': translog,
           'product_id': key,
           'quantity': items[key]['qty'],
-          'amount': items[key]['price']
+          'amount': items[key]['price'],
+          'expiration_date' : items[key]['expiration_date'],
+          'target_user_id' : items[key]['target_user_id'],
+          'diagram_finish' : items[key]['diagram_finish'],
+          'location_id' : items[key]['location_id']
         });
+         
       } catch (e) {
         console.log(`Cannot process item ${key}`, );
       }

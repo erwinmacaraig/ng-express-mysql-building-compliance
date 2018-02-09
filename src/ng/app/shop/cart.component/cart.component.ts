@@ -71,30 +71,36 @@ export class CartComponent implements OnInit, OnDestroy{
 		$('.workspace.container').css('padding', '');
 	}
 
-	updateTotalPrice(){
-		this.cart.totalPrice = 0;
-		for(let i in this.cart.items ){
-			let item = this.cart.items[i];
-			this.cart.totalPrice = this.cart.totalPrice + (item.price * item.qty);
+	addQuantity(cart){
+
+		if(cart.item.product_type != 'package'){
+			this.messageService.sendMessage({
+				'updateCart' : cart.item.product_id, 'qty' : parseInt(cart.qty) + 1
+			});
+
+			this.quantityInput.nativeElement.value = parseInt(cart.qty) + 1;
 		}
 
-		this.cart.totalPrice = this.cart.totalPrice.toFixed(2);
-	}
-
-	addQuantity(cart){
-		let q = parseInt(this.quantityInput.nativeElement.value);
-		this.quantityInput.nativeElement.value = q + 1;
-		cart.qty = this.quantityInput.nativeElement.value;
-		this.updateTotalPrice();
 	}
 
 	subtractQuantity(cart){
-		let q = parseInt(this.quantityInput.nativeElement.value);
-		if(q > 0){
-			this.quantityInput.nativeElement.value = q - 1;
-			cart.qty = this.quantityInput.nativeElement.value;
+		let allow = false;
+		if(cart.qty > 0){
+			if(cart.item.product_type == 'diagram' && cart.qty > 5){
+				allow = true;
+			}else if(cart.item.product_type != 'diagram' && cart.item.product_type != 'package'){
+				allow = true;
+			}
 		}
-		this.updateTotalPrice();
+
+		if(allow){
+
+			this.messageService.sendMessage({
+				'updateCart' : cart.item.product_id, 'qty' : parseInt(cart.qty) - 1
+			});
+
+			this.quantityInput.nativeElement.value = parseInt(cart.qty) - 1;
+		}
 	}
 
 	makeCartAsArray(){
@@ -110,6 +116,12 @@ export class CartComponent implements OnInit, OnDestroy{
 		this.messageService.sendMessage({
 			'removeFromCart' : prodId
 		});
+	}
+
+	goToPayment(){
+		if(this.arrayCart.length > 0){
+			this.router.navigate(["/shop/payment"]);
+		}
 	}
 
 } 

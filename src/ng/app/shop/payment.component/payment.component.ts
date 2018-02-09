@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -15,14 +15,16 @@ import { MessageService } from '../../services/messaging.service';
 declare var $: any;
 
 @Component({
-	selector : 'app-trainings-package-component',
-	templateUrl : './trainings.package.component.html',
-	styleUrls : [ './trainings.package.component.css' ],
+	selector : 'app-payment-component',
+	templateUrl : './payment.component.html',
+	styleUrls : [ './payment.component.css' ],
     providers : [AuthService, UserService, SignupService, EncryptDecryptService]
 })
-export class TrainingsPackageComponent implements OnInit, OnDestroy{
+export class PaymentComponent implements OnInit, OnDestroy{
 
-	trainingsProducts = <any>[];
+	@ViewChild('quantityInput') quantityInput : ElementRef;
+
+	complianceProducts = <any>[];
 
 	allProducts = <any>[];
 	cart = <any>{
@@ -33,8 +35,6 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	subs;
 
-	locations = <any>[];
-
 	constructor(
 		private router : Router,
 		private route: ActivatedRoute,
@@ -42,80 +42,50 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 		private userService: UserService,
 		private locationService: LocationsService,
         private signupServices: SignupService,
-        private messageService : MessageService,
-        private encryptDecrypt : EncryptDecryptService
+        private encryptDecrypt : EncryptDecryptService,
+        private messageService : MessageService
 		){
+
 
 		this.subs = this.messageService.getMessage().subscribe((message) => {
 	    	if(message.cart){
 	    		this.cart = message.cart;
-	    	}
-
-	    	if(message.products){
+	    		this.makeCartAsArray();
+	    	}else if(message.products){
 	    		this.allProducts = message.products;
-	    		this.generateTrainingsProducts();
-	    	}
-
-	    	if(message.locations){
-	    		this.locations = message.locations;
 	    	}
 	    });
-
 	}
 
 	ngOnInit(){
-
-	}
-
-	ngAfterViewInit(){
-		$('.workspace.container').css('padding', '0px');
-		$('.package-container').css({
-			'width' : '96%',
-			'margin' : '0 auto',
-			'padding-top' : '3%'
-		});
-
 		this.messageService.sendMessage({
 			'getData' : true
 		});
 	}
 
-	generateTrainingsProducts(){
-		this.trainingsProducts = [];
-		for(let prod of this.allProducts){
-			if(prod.product_type == 'trainings'){
-				this.trainingsProducts.push(prod);
-			}
-		}
-	}
-
-	isInCart(prodId){
-		let response = false;
-		for(let i in this.cart.items){
-			if( this.cart.items[i] !== null ){
-				if(this.cart.items[i]['item'].product_id == prodId){
-					response = true;
-				}
-			}
-		}
-		return response;
-	}
-
-	addToCart(prodId){
-		this.messageService.sendMessage({
-			'addToCart' : prodId
-		});
-	}
-
-	removeFromCart(prodId){
-		this.messageService.sendMessage({
-			'removeFromCart' : prodId
-		});
+	ngAfterViewInit(){
+		$('.workspace.container').css('padding', '0px');
 	}
 
 	ngOnDestroy(){
 		$('.workspace.container').css('padding', '');
-		this.subs.unsubscribe();
 	}
+
+	makeCartAsArray(){
+		this.arrayCart = [];
+		for(let i in this.cart.items){
+			if( this.cart.items[i] !== null ){
+				this.arrayCart.push(this.cart.items[i]);
+			}
+		}
+	}
+
+	submitCheckout(btnSubmit, form, event){
+		event.preventDefault();
+		if(this.arrayCart.length > 0){
+			form.submit();
+		}
+	}
+
 
 } 

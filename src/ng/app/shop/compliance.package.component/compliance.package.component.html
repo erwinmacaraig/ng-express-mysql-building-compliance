@@ -6,24 +6,25 @@
 		<li>
 			<select>
 				<option value="0" disabled selected >Select Location</option>
+				<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
 			</select>
 		</li>
 	</ul>
 </div>
 
-<div class="container" *ngIf="complianceProducts.length == 0">
+<div class="container" *ngIf="packages.length == 0">
 	<div class="row">
 		<div class="col l12 m12 s12">
-			<h4 class="center">No Products Yet</h4>
+			<h4 class="center">No Packages Yet</h4>
 		</div>
 	</div>
 </div>
 
-<div class="package-container"  *ngIf="complianceProducts.length > 0">
+<div class="package-container"  *ngIf="packages.length > 0">
 	
 	<div class="row">
 		
-		<div class="col l2 m6 s12" *ngFor="let prod of complianceProducts; let i = index;">
+		<div class="col l2 m6 s12" *ngFor="let package of packages; let i = index;">
 			<div class="package-wrapper">
 				<div class="title-container teal accent-4">
 					<div class="dark-background-arrow">
@@ -31,19 +32,26 @@
 						<div class="arrow-right"></div>
 					</div>
 					<h4 class="title">
-						{{prod.product_title}}
+						{{package.product_title }}
 					</h4>
 				</div>
 				<div class="content">
 					
-					{{prod.product_desc}}
+
+					<div [innerHTML]="package.product_desc "></div>
+
+					<ul>
+						<li *ngFor="let product of package.products">
+							{{product.product_title}}
+						</li>
+					</ul>
 
 				</div>
 
 				<div class="price-container">
 					<h5 class="blue-text center">
-						<span *ngIf="prod.amount == 0">FREE</span>
-						<span *ngIf="prod.amount > 0">$ {{prod.amount}}</span>
+						<span *ngIf="package.amount == 0">FREE</span>
+						<span *ngIf="package.amount > 0">$ {{package.amount}}</span>
 					</h5>
 					<p class="center">Annual</p>
 
@@ -57,9 +65,13 @@
 				</div>
 
 				<div class="footer">
-					<button class="btn btn-block orange waves-effect waves-light">
-						<span *ngIf="prod.amount == 0">UPGRADE</span>
-						<span *ngIf="prod.amount > 0">SUBSCRIBE</span>
+					<button class="btn btn-block orange waves-effect waves-light" *ngIf="!isInCart(package.product_id)" (click)="addToCart(package.product_id)">
+						<span *ngIf="package.amount == 0">UPGRADE</span>
+						<span *ngIf="package.amount > 0">SUBSCRIBE</span>
+					</button>
+
+					<button class="btn btn-block orange waves-effect waves-light" *ngIf="isInCart(package.product_id)" (click)="removeFromCart(package.product_id)">
+						REMOVE
 					</button>
 				</div>
 			</div>

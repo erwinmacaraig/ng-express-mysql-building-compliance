@@ -68,6 +68,7 @@ import { EvacuationDiagramPackageComponent } from './shop/evacuation.diagram.pac
 import { ExampleComponent } from './shop/example.component/example.component';
 import { PaymentResponseComponent } from './payment.response/payment.response.component';
 import { CartComponent } from './shop/cart.component/cart.component';
+import { PaymentComponent } from './shop/payment.component/payment.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -147,7 +148,8 @@ const appRoutes: Routes = [
       { path : 'trainings-package', component : TrainingsPackageComponent },
       { path : 'evacuation-diagram-package', component : EvacuationDiagramPackageComponent },
       { path : 'cart', component : CartComponent },
-      { path : 'example', component : ExampleComponent }
+      { path : 'example', component : ExampleComponent },
+      { path : 'payment', component : PaymentComponent }
     ]
   },
   {

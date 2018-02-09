@@ -38,8 +38,17 @@ export class ProductService {
 		});
 	}
 
-	public addToCart(prodId, callBack){
-		this.http.get(this.baseUrl+"/product/add-to-cart/"+prodId, this.options)
+	public updateCart(formData, callBack){
+		this.http.post(this.baseUrl+"/product/update-cart", formData, this.options)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	public addToCart(formData, callBack){
+		this.http.post(this.baseUrl+"/product/add-to-cart", formData, this.options)
 		.subscribe(res => {
 			callBack(res);
 		}, err => {
@@ -73,4 +82,14 @@ export class ProductService {
 			callBack( JSON.parse(err.error) );
 		});
 	}
+
+	public getPackagesAndProducts(callBack){
+		this.http.get(this.baseUrl+"/packages-products", this.options)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+	
 }	

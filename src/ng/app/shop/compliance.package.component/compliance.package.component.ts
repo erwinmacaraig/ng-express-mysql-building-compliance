@@ -22,16 +22,18 @@ declare var $: any;
 })
 export class CompliancePackageComponent implements OnInit, OnDestroy{
 
-	complianceProducts = <any>[];
-
-	allProducts = <any>[];
+	packages = [];
 	cart = <any>{
 		items : {},
 		totalPrice : 0
 	};
 	arrayCart = [];
-
 	subs;
+
+	uiLoadObservable = Observable;
+	uiSubs;
+
+	locations = <any>[];
 
 	constructor(
 		private router : Router,
@@ -46,37 +48,65 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 		){
 
 		this.subs = this.messageService.getMessage().subscribe((message) => {
-	    	if(message.cart){
+			if(message.cart){
 	    		this.cart = message.cart;
 	    	}
 
-	    	if(message.products){
-	    		this.allProducts = message.products;
-	    		this.generateComplianceProducts();
+	    	if(message.packages){
+	    		this.packages = message.packages;
+	    	}
+
+	    	if(message.locations){
+	    		this.locations = message.locations;
+	    	}
+	    });
+
+
+	}
+
+	ngOnInit(){
+		this.messageService.sendMessage({ 'getData' : true });
+
+		this.uiSubs = this.uiLoadObservable.interval(100).subscribe(() => {
+	    	if($('.package-container').length > 0){
+	    		$('.workspace.container').css('padding', '0px');
+				$('.package-container').css({
+					'width' : '96%',
+					'margin' : '0 auto',
+					'padding-top' : '3%'
+				});
+
+				this.uiSubs.unsubscribe();
 	    	}
 	    });
 	}
 
-	ngOnInit(){
-
+	ngAfterViewInit(){
+		
 	}
 
-	ngAfterViewInit(){
-		$('.workspace.container').css('padding', '0px');
-		$('.package-container').css({
-			'width' : '96%',
-			'margin' : '0 auto',
-			'padding-top' : '3%'
+	isInCart(prodId){
+		let response = false;
+		for(let i in this.cart.items){
+			if( this.cart.items[i] !== null ){
+				if(this.cart.items[i]['item'].product_id == prodId){
+					response = true;
+				}
+			}
+		}
+		return response;
+	}
+
+	addToCart(prodId){
+		this.messageService.sendMessage({
+			'addToCart' : prodId, 'qty' : 1
 		});
 	}
 
-	generateComplianceProducts(){
-		this.complianceProducts = [];
-		for(let prod of this.allProducts){
-			if(prod.product_type == 'compliance'){
-				this.complianceProducts.push(prod);
-			}
-		}
+	removeFromCart(prodId){
+		this.messageService.sendMessage({
+			'removeFromCart' : prodId
+		});
 	}
 
 	ngOnDestroy(){

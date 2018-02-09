@@ -176,6 +176,11 @@
 	background-color: #fff;
 }
 
+.middle table .image-container .image-wrapper img{
+	max-width: 100%;
+	max-height: 360px;
+}
+
 .button-container{
     width: 100%;
 }
@@ -205,4 +210,9 @@
 .buy .image{
 	border-radius: 0px;
 	background-position: 71.5% 50% !important;
+}
+
+.slides{
+	max-height: 470px;
+	overflow-y: hidden;
 }

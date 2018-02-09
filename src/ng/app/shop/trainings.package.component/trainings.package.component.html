@@ -14,6 +14,7 @@
 		<li>
 			<select>
 				<option value="0" disabled selected >Select Location</option>
+				<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
 			</select>
 		</li>
 	</ul>
@@ -39,9 +40,7 @@
 					<h5 class="title blue-text">
 						{{ prod.product_title }}
 					</h5>
-					<p>
-						{{ prod.product_desc }}
-					</p>
+					<div [innerHTML]="prod.product_desc"></div>
 					<select>
 						<option value="0" disabled selected>Select training for</option>
 					</select>
