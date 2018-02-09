@@ -13,12 +13,16 @@ import { ComplianceDocumentsModel } from '../models/compliance.documents.model';
 import { ComplianceNotesModel } from '../models/compliance.notes.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
+import { Utils } from '../models/utils.model';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as moment from 'moment';
-
+const AWSCredential = require('../config/aws-access-credentials.json');
+const defs = require('../config/defs.json');
 const validator = require('validator');
 const md5 = require('md5');
+
+import * as S3Zipper from 'aws-s3-zipper';
 
 /**
  * / route
@@ -40,16 +44,69 @@ const md5 = require('md5');
    	*/
 	public static create(router: Router) {
 		router.get('/compliance/kpis', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-      		new ComplianceRoute().getKPIS(req, res, next);
+      new ComplianceRoute().getKPIS(req, res, next);
     	});
 
-    	router.post('/compliance/locations-latest-compliance', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-      		new ComplianceRoute().getLocationsLatestCompliance(req, res, next);
-    	});
-	}
+      router.post('/compliance/locations-latest-compliance',
+      new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+        new ComplianceRoute().getLocationsLatestCompliance(req, res, next);
+      });
 
+    router.get('/compliance/download-compliance-documents-pack/',
+    new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+      new ComplianceRoute().downloadDocumentCompliancePack(req, res, next);
+    });
+  }
 
-	public async getKPIS(req: AuthRequest, res: Response, next: NextFunction){
+  public downloadDocumentCompliancePack(req: AuthRequest, res: Response, next: NextFunction) {
+    const utils = new Utils();
+    const config = {
+      'accessKeyId': 'AKIAJUJLEWVLRT5KUU4A',
+      'secretAccessKey': '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',
+      'region': 'us-east-1',
+      'bucket': 'allan-delfin'
+    };
+    const zipper = new S3Zipper(config);
+    const dirPath = __dirname + '/../public/temp';
+    //
+    zipper.zipToFile({
+      's3FolderName': 'account/location',
+      'startKey': null,
+      'zipFileName': `${dirPath}/${defs['COMPLIANCE-DOCS-PACK']}`,
+      'recursive': true
+    }, (err, result) => {
+      if (err) {
+        console.log(err);
+        // throw new Error(err);
+        return res.status(400).send(err);
+      } else {
+        const lastFile = result.zippedFiles[result.zippedFiles.length-1];
+        if (lastFile) {
+          console.log('Zip file: ', lastFile.Key); // next time start from here
+        }
+        const filePath = `${dirPath}/${defs['COMPLIANCE-DOCS-PACK']}`;
+        return res.download(filePath, (error) => {
+          if (error) {
+            console.log(error);
+            return res.status(400).send(error);
+          } else {
+            console.log('Success');
+            /*
+            fs.unlink(filePath, function(e){
+              console.log('Cannot delete file.', e);
+            });
+            */
+
+          }
+        });
+
+      }
+
+    });
+
+  }
+
+	public async getKPIS(req: AuthRequest, res: Response, next: NextFunction) {
 		let kpisModel = new ComplianceKpisModel(),
 			arrWhere = [];
 

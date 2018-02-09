@@ -358,4 +358,99 @@ export class Utils {
           });
     }
 
+    public s3DownloadCompliancePackPathGen(account_id: number = 0, location_id: number = 0): Promise<string> {
+      return new Promise((resolve, reject) => {
+        const sql_get = `SELECT
+                          accounts.account_directory_name,
+                          locations.location_directory_name
+                        FROM
+                          location_account_relation
+                        INNER JOIN
+                          accounts
+                        ON
+                          location_account_relation.account_id = accounts.account_id
+                        INNER JOIN
+                           locations
+                        ON
+                          locations.location_id = location_account_relation.location_id
+                        WHERE
+                          accounts.account_id = ?
+                        AND
+                          locations.location_id = ?
+                        AND
+                          locations.is_building = 1
+                        LIMIT 1`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_get, [account_id, location_id], (error, results, fields) => {
+          if (error) {
+            console.log('utils.model.s3DownloadCompliancePackPathGen', error, sql_get);
+            throw new Error(`Cannot generate path for location id ${location_id} and account id ${account_id}`);
+          } else {
+            if (!results.length) {
+              reject(`Not enough data to generate path for location id ${location_id} and account id ${account_id}`);
+            } else {
+              resolve(`${results[0]['account_directory_name']}/${results[0]['location_directory_name']}`);
+            }
+          }
+        });
+        connection.end();
+
+
+      });
+    }
+
+    public s3DownloadFilePathGen(account_id: number = 0,
+                                 location_id: number = 0,
+                                 kpi: number = 0,
+                                 type: string = 'Primary'
+                                ): Promise<string> {
+      return new Promise((resolve, reject) => {
+        const sql_get = `SELECT
+                             accounts.account_directory_name,
+                             locations.location_directory_name,
+                             compliance_kpis.directory_name,
+                             compliance_documents.document_type,
+                             compliance_documents.file_name
+                          FROM
+                             compliance_documents
+                          INNER JOIN
+                             accounts
+                          ON
+                             compliance_documents.account_id = accounts.account_id
+                          INNER JOIN
+                             locations
+                          ON
+                             compliance_documents.building_id = locations.location_id
+                          INNER JOIN
+                             compliance_kpis
+                          ON
+                            compliance_documents.compliance_kpis_id = compliance_kpis.compliance_kpis_id
+                          WHERE
+                            accounts.account_id = ?
+                          AND
+                            locations.location_id = ?
+                          AND
+                            compliance_kpis.compliance_kpis_id = ?
+                          AND
+                            compliance_documents.document_type = ?
+                          LIMIT 1`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_get, [account_id, location_id, kpi, type], (error,  results, fields) => {
+          if (error) {
+            console.log('utils.model.s3DownloadFilePathGen', error, sql_get);
+            return new Error(`Cannot generate download path for account id ${account_id}, location id ${location_id},
+            kpi ${kpi} and type ${type}`);
+          } else {
+            if (!results.length) {
+              reject(`Not enough date to generate download path for account id ${account_id}, location id ${location_id},
+              kpi ${kpi} and type ${type}`);
+            } else {
+              resolve(`${results[0]['account_directory_name']}/${results[0]['location_directory_name']}/${results[0]['directory_name']}/${results[0]['document_type']}/${results[0]['file_name']}`);
+            }
+          }
+        });
+        connection.end();
+      });
+    }
+
 }

@@ -12,6 +12,8 @@ import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { Observable } from 'rxjs/Rx';
 
+import * as FileSaver from 'file-saver';
+
 declare var $: any;
 declare var moment: any;
 
@@ -19,7 +21,7 @@ declare var moment: any;
 	selector : 'app-view-compliance',
 	templateUrl : './view.compliance.component.html',
 	styleUrls : [ './view.compliance.component.css' ],
-    providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService]
+  providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService]
 })
 export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("notesTemplate") notesTemplate : ElementRef;
@@ -79,15 +81,15 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	latestComplianceData = <any>[];
 
 	constructor(
-		private router : Router,
-		private route: ActivatedRoute,
-		private authService : AuthService,
-		private userService: UserService, 
-        private signupServices: SignupService,
-        private dashboard : DashboardPreloaderService,
-        private complianceService : ComplianceService,
-        private locationService : LocationsService,
-        private encryptDecrypt : EncryptDecryptService
+  		private router : Router,
+  		private route: ActivatedRoute,
+  		private authService : AuthService,
+  		private userService: UserService,
+      private signupServices: SignupService,
+      private dashboard : DashboardPreloaderService,
+      private complianceService : ComplianceService,
+      private locationService : LocationsService,
+      private encryptDecrypt : EncryptDecryptService
 		){
 
 		this.userData = this.authService.getUserData();
@@ -159,7 +161,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	ngOnInit(){
-		
+
 		this.locationService.getById(this.locationID, (response) => {
 			this.locationData = response.location;
 			this.locationData['parentData'] = response.parent;
@@ -241,8 +243,22 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		setTimeout(() => { $('.row-diagram-details').hide(); }, 400);
 	}
 
-	ngOnDestroy(){
+	ngOnDestroy() {
 
-	}
+  }
 
-} 
+  downloadAllPack() {
+    this.dashboard.show();
+    this.complianceService.downloadAllComplianceDocumentPack().subscribe((data) => {
+      this.dashboard.hide();
+      const blob = new Blob([data.body], {type: 'application/zip'});
+      const filename = 'compliance-docs.zip';
+      FileSaver.saveAs(blob, filename);
+    }, (err) => {
+      this.dashboard.hide();
+      console.log(err);
+      console.log('There was an error');
+    });
+  }
+
+}

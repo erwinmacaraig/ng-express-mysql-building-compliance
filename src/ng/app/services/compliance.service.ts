@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
+import { ResponseContentType } from '@angular/http';
 import { PlatformLocation } from '@angular/common';
 import { Observable, BehaviorSubject } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { EncryptDecryptService } from '../services/encrypt.decrypt';
-
 
 @Injectable()
 export class ComplianceService {
@@ -20,7 +20,7 @@ export class ComplianceService {
 	public observableMessage = this.behaviorSubject.asObservable();
 
 	constructor(
-		private http: HttpClient, 
+		private http: HttpClient,
 		private platformLocation: PlatformLocation,
 		private route: ActivatedRoute,
 		private router: Router,
@@ -67,6 +67,32 @@ export class ComplianceService {
 			}, err => {
 				callBack( JSON.parse(err.error) );
 			});
-	}
+  }
+
+  public downloadAllComplianceDocumentPack() {
+    const headers = new HttpHeaders(
+      { 'Content-type' : 'application/json',
+        'Accept': 'application/zip'
+      });
+
+    const requestOptions = {
+      'params': new HttpParams(),
+      'headers': headers,
+      'responseType': ResponseContentType.Blob
+    };
+
+      /*
+{
+        headers: headers,
+        responseType:ResponseContentType.Blob,//dont forget to import the enum
+        //In case you get Module not found: Error: Can't resolve '@angular/http/src/enums', just use 3 instead ex "responseType:3"
+        }
+      */
+
+
+
+     return this.http.get(this.baseUrl + '/compliance/download-compliance-documents-pack/', {headers: headers,
+      responseType: 'arraybuffer', observe: 'response'} );
+  }
 
 }

@@ -147,7 +147,7 @@ export class FileUploader {
                   reject('Cannot upload file. Error reading file from path ' + this.req['file']['path']);
                 } else {
                   resolve('File upload successful');
-                  fs.unlink(this.uploadDir+this.filename, () => {});
+                  fs.unlink(this.DIR + this.filename, () => {});
                   /*
                   this.aws_s3.getSignedUrl('getObject', {
                     Bucket: this.aws_bucket_name,
