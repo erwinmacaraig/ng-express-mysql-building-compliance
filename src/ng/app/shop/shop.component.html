@@ -12,11 +12,9 @@
 		</li>
 	</ul>
 	<ul class="right">
-		<li class="favorites">
-			<div class="circle red" *ngIf="wishList.length > 0" >{{ wishList.length }}</div>
-			<a href="#">
-				<div class="image"></div> My Favorites
-			</a>
+		<li class="favorites" [routerLink]="['/shop/favorites']">
+			<div class="circle red" *ngIf="favorites.length > 0" >{{ favorites.length }}</div>
+			<div class="image"></div> My Favorites
 		</li>
 		<li class="cart" [routerLink]="['/shop/cart']">
 			<div class="circle red" *ngIf="arrayCart.length > 0">{{ arrayCart.length }}</div>

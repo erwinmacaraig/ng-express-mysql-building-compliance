@@ -69,6 +69,7 @@ import { ExampleComponent } from './shop/example.component/example.component';
 import { PaymentResponseComponent } from './payment.response/payment.response.component';
 import { CartComponent } from './shop/cart.component/cart.component';
 import { PaymentComponent } from './shop/payment.component/payment.component';
+import { ProductsFavoritesComponent } from './shop/products.favorites/product.favorites.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -149,7 +150,8 @@ const appRoutes: Routes = [
       { path : 'evacuation-diagram-package', component : EvacuationDiagramPackageComponent },
       { path : 'cart', component : CartComponent },
       { path : 'example', component : ExampleComponent },
-      { path : 'payment', component : PaymentComponent }
+      { path : 'payment', component : PaymentComponent },
+      { path : 'favorites', component : ProductsFavoritesComponent }
     ]
   },
   {

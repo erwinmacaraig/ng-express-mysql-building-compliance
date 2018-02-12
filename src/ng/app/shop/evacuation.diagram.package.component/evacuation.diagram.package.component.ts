@@ -52,6 +52,7 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 	selectSubs;
 
 	locations = <any>[];
+	favorites = <any>[];
 
 	constructor(
 		private router : Router,
@@ -79,6 +80,10 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 	    	if(message.locations){
 	    		this.locations = message.locations;
+	    	}
+
+	    	if(message.favorites){
+	    		this.favorites = message.favorites;
 	    	}
 	    });
 	}
@@ -124,9 +129,12 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		this.showingDiagram.quantity = this.quantityInput.nativeElement.value;
 
 		if( this.isInCart(this.showingDiagram.product_id) ){
-			this.messageService.sendMessage({
-				'updateCart' : this.showingDiagram.product_id, 'qty' : this.showingDiagram.quantity
-			});
+			let locId = parseInt($('#selectLocation').val());
+			if(locId){
+				this.messageService.sendMessage({
+					'updateCart' : true, 'productId' : this.showingDiagram.product_id, 'qty' : this.showingDiagram.quantity, 'locationId' : locId
+				});
+			}
 		}
 	}
 
@@ -137,9 +145,14 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 			this.showingDiagram.quantity = this.quantityInput.nativeElement.value;
 
 			if( this.isInCart(this.showingDiagram.product_id) ){
-				this.messageService.sendMessage({
-					'updateCart' : this.showingDiagram.product_id, 'qty' : this.showingDiagram.quantity
-				});
+
+				let locId = parseInt($('#selectLocation').val());
+				if(locId){
+					this.messageService.sendMessage({
+						'updateCart' : true, 'productId' : this.showingDiagram.product_id, 'qty' : this.showingDiagram.quantity, 'locationId' : locId
+					});
+				}
+
 			}
 		}
 	}
@@ -168,9 +181,14 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 	}
 
 	addToCart(prodId){
-		this.messageService.sendMessage({
-			'addToCart' : prodId, 'qty' : this.showingDiagram.quantity
-		});
+		let locId = parseInt($('#selectLocation').val());
+
+		if(locId){
+			this.messageService.sendMessage({
+				'addToCart' : true, 'productId' : prodId, 'qty' : this.showingDiagram.quantity, 'locationId' : locId
+			});
+		}
+
 	}
 
 	removeFromCart(prodId){
@@ -213,6 +231,32 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 				this.showDiagramsImage = false;
 			}
 		}
+	}
+
+
+	isInFavorites(prodId){
+		let response = false;
+		for(let i in this.favorites){
+			if( this.favorites[i] !== null ){
+				if(this.favorites[i].product_id == prodId){
+					response = true;
+				}
+			}
+		}
+		return response;
+	}
+
+	addToFavorites(prodId){
+		this.messageService.sendMessage({
+			'addToFavorites' : true,
+			'productId' : prodId, 'quantity' : this.showingDiagram.quantity
+		});
+	}
+
+	removeFavorite(prodId){
+		this.messageService.sendMessage({
+			'removeFavorite' : true, 'productId' : prodId
+		});
 	}
 
 	ngOnDestroy(){

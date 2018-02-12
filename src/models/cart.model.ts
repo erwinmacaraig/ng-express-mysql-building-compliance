@@ -15,7 +15,8 @@ export class Cart {
       storedItem = this.items[id] = {
         item: item,
         qty: (item.qty) ? item.qty : 1,
-        price: 0
+        price: 0,
+        location_id : item.location_id
       };
     }
 
@@ -32,6 +33,7 @@ export class Cart {
 
     storedItem.qty = item.qty;
     storedItem.price = <number>storedItem.item.amount * <number>storedItem.qty;
+    storedItem.location_id = item.location_id;
     this.totalQty = parseFloat(this.totalQty) + parseFloat(storedItem.qty);
     this.totalPrice = this.totalPrice + storedItem.price;
   }

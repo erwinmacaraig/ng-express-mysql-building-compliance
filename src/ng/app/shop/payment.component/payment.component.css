@@ -111,10 +111,16 @@
 	vertical-align: text-top;
 }
 
+.list-container .text{
+	display: inline-block;
+    vertical-align: text-top;
+    width: 410px;
+}
+
 .list-container .image{
-	width: 130px;
-	background-color: #fff;
-    min-height: 100px;
+    width: 200px;
+    background-color: #ededed;
+    min-height: 180px;
     margin-right: 10px;
 }
 
@@ -123,22 +129,18 @@
     max-height: 100px;
 }
 
-.list-container ul{
-	max-height: 235px;
-    overflow-y: auto;
+.list-container li > .text{
+	width: 410px;
 }
 
-.list-container ul li > .text{
-	width: 200px;
-}
-
-.list-container ul li{
+.list-container li{
 	position: relative;
 	padding: 20px 10px 20px 0px;
 	border-bottom: 1px solid #fff;
+	margin-bottom: 20px;
 }
 
-.list-container ul li .name{
+.list-container li .name{
 	margin: 0px;
 	font-size: 16px;
 }

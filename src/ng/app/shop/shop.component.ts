@@ -25,8 +25,6 @@ declare var $: any;
 })
 export class ShopComponent implements OnInit, OnDestroy{
 
-	wishList = [];
-
 	packages = <any>[];
 	allProducts = <any>[];
 	cart = <any>{
@@ -36,10 +34,13 @@ export class ShopComponent implements OnInit, OnDestroy{
 	arrayCart = [];
 
 	subs;
+	routesubs;
 
 	locations = <any>[];
 
 	userData = {};
+
+	favorites = <any>[];
 
 	constructor(
 		private router : Router,
@@ -71,6 +72,13 @@ export class ShopComponent implements OnInit, OnDestroy{
 			});
 		});
 
+		this.productService.getFavorites(this.userData['userId'], (response) => {
+			this.favorites = response.data;
+			this.messageService.sendMessage({
+				'favorites' : this.favorites
+			});
+		});
+
 		this.productService.getPackagesAndProducts((response) => {
 			this.packages = response.data;
 			this.messageService.sendMessage({
@@ -86,7 +94,7 @@ export class ShopComponent implements OnInit, OnDestroy{
 			this.preloaderService.hide();
 		});
 
-		this.router.events.subscribe((e) => {
+		this.routesubs = this.router.events.subscribe((e) => {
 			if(e instanceof NavigationEnd){
 				$('.shop-navigation .active').removeClass('active');
 				switch (e.url) {
@@ -108,9 +116,9 @@ export class ShopComponent implements OnInit, OnDestroy{
 		this.subs = this.messageService.getMessage().subscribe(res => {
 			if(res.addToCart){
 				this.addToCart({
-					product_id : res.addToCart,
+					product_id : res.productId,
 					quantity : (res.qty) ? parseInt(res.qty) : 1,
-					location_id : res.location_id
+					location_id : res.locationId
 				}, () => {
 					this.messageService.sendMessage({
 						'cart' : this.cart
@@ -120,9 +128,9 @@ export class ShopComponent implements OnInit, OnDestroy{
 
 			if(res.updateCart){
 				this.updateCart({
-					product_id : res.updateCart,
+					product_id : res.productId,
 					quantity : (res.qty) ? parseInt(res.qty) : 1,
-					location_id : res.location_id
+					location_id : res.locationId
 				}, () => {
 					this.messageService.sendMessage({
 						'cart' : this.cart
@@ -131,7 +139,7 @@ export class ShopComponent implements OnInit, OnDestroy{
 			}
 
 			if(res.removeFromCart){
-				this.removeFromCart(res.removeFromCart, () => {
+				this.removeFromCart(res.productId, () => {
 					this.messageService.sendMessage({
 						'cart' : this.cart
 					});
@@ -140,9 +148,46 @@ export class ShopComponent implements OnInit, OnDestroy{
 
 			if(res.getData){
 				this.messageService.sendMessage({
-					'cart' : this.cart, 'products' : this.allProducts, 'packages' : this.packages, 'locations' : this.locations
+					'cart' : this.cart, 'products' : this.allProducts, 'packages' : this.packages, 
+					'locations' : this.locations, 'favorites' : this.favorites
 				});
 			}
+
+			if(res.addToFavorites){
+				this.addToFavorites({
+					'product_id' : res.productId,
+					'quantity' : (res.quantity) ? res.quantity : 1,
+					'user_id' : this.userData['userId']
+				}, () => {
+					this.messageService.sendMessage({
+						'favorites' : this.favorites
+					});
+				});
+			}
+
+			if(res.removeFavorite){
+				this.removeFromFavorites({
+					'product_id' : res.productId,
+					'user_id' : this.userData['userId']
+				}, () => {
+					this.messageService.sendMessage({
+						'favorites' : this.favorites
+					});
+				});
+			}
+
+			if(res.updateFavorite){
+				this.updateFavorite({
+					'product_id' : res.productId,
+					'quantity' : (res.quantity) ? res.quantity : 1,
+					'user_id' : this.userData['userId']
+				}, () => {
+					this.messageService.sendMessage({
+						'favorites' : this.favorites
+					});
+				});
+			}
+
 		});
 	}
 
@@ -174,8 +219,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToCart(prodId, callBack){
-		this.productService.addToCart(prodId, (response) => {
+	addToCart(data, callBack){
+		this.productService.addToCart(data, (response) => {
 			this.cart = response.cart;
 			this.makeCartAsArray();
 
@@ -201,8 +246,30 @@ export class ShopComponent implements OnInit, OnDestroy{
 		});
 	}
 
+	addToFavorites(data, callBack){
+		this.productService.addToFavorites(data, (response) => {
+			this.favorites = response.data;
+			callBack();
+		});
+	}
+
+	removeFromFavorites(data, callBack){
+		this.productService.removeFavorite(data, (response) => {
+			this.favorites = response.data;
+			callBack();
+		});
+	}
+
+	updateFavorite(data, callBack){
+		this.productService.updateFavorite(data, (response) => {
+			this.favorites = response.data;
+			callBack();
+		});
+	}
+
 	ngOnDestroy(){
-		
+		this.subs.unsubscribe();
+		this.routesubs.unsubscribe();
 	}
 
 } 

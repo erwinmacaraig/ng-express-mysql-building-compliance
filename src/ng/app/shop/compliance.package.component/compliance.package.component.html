@@ -4,7 +4,7 @@
 			Choose Location
 		</li>
 		<li>
-			<select>
+			<select [(ngModel)]="selectLocation" >
 				<option value="0" disabled selected >Select Location</option>
 				<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
 			</select>
@@ -12,7 +12,7 @@
 	</ul>
 </div>
 
-<div class="container" *ngIf="packages.length == 0">
+<div class="container" [hidden]="packages.length > 0">
 	<div class="row">
 		<div class="col l12 m12 s12">
 			<h4 class="center">No Packages Yet</h4>
@@ -20,7 +20,7 @@
 	</div>
 </div>
 
-<div class="package-container"  *ngIf="packages.length > 0">
+<div class="package-container"  [hidden]="packages.length == 0">
 	
 	<div class="row">
 		

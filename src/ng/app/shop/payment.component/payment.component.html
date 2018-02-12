@@ -14,8 +14,31 @@
 	</div>
 
 	<div class="row" *ngIf="arrayCart.length > 0" style="margin-top:50px;">
+
+		<div class="col l7 m7 s12">
+			<ul class="list-container">
+				<li *ngFor="let cart of arrayCart">
+					
+					<div class="image">
+						<img src="{{cart.item.product_image}}" alt="">
+					</div>
+					<div class="text">
+						<h5 class="blue-text">{{cart.item.product_title}}</h5>
+						<div [innerHtml]="cart.item.product_desc"></div>
+
+						<div style="margin: 20px 0px;">
+							<strong>Quantity : <span>{{cart.qty}}</span></strong> <br>
+							<strong>Item Price : <span>{{cart.item.amount}}</span></strong> <br>
+							<strong>Total : <span>{{cart.price}}</span></strong> <br>
+						</div>
+					</div>
+						
+					
+				</li>
+			</ul>
+		</div>
 		
-		<div class="col l12 m12 s12">
+		<div class="col l5 m5 s12">
 
 			<h4>Confirm payment</h4>
 			

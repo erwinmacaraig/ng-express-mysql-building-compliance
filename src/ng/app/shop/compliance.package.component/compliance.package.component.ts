@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation, ViewChild } from '@angular/core';
 import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -22,6 +22,8 @@ declare var $: any;
 })
 export class CompliancePackageComponent implements OnInit, OnDestroy{
 
+	selectLocation = 0;
+
 	packages = [];
 	cart = <any>{
 		items : {},
@@ -29,9 +31,6 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 	};
 	arrayCart = [];
 	subs;
-
-	uiLoadObservable = Observable;
-	uiSubs;
 
 	locations = <any>[];
 
@@ -66,23 +65,15 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 
 	ngOnInit(){
 		this.messageService.sendMessage({ 'getData' : true });
-
-		this.uiSubs = this.uiLoadObservable.interval(100).subscribe(() => {
-	    	if($('.package-container').length > 0){
-	    		$('.workspace.container').css('padding', '0px');
-				$('.package-container').css({
-					'width' : '96%',
-					'margin' : '0 auto',
-					'padding-top' : '3%'
-				});
-
-				this.uiSubs.unsubscribe();
-	    	}
-	    });
 	}
 
 	ngAfterViewInit(){
-		
+		$('.workspace.container').css('padding', '0px');
+		$('.package-container').css({
+			'width' : '96%',
+			'margin' : '0 auto',
+			'padding-top' : '3%'
+		});
 	}
 
 	isInCart(prodId){
@@ -98,14 +89,16 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 	}
 
 	addToCart(prodId){
-		this.messageService.sendMessage({
-			'addToCart' : prodId, 'qty' : 1
-		});
+		if(this.selectLocation > 0){
+			this.messageService.sendMessage({
+				'addToCart' : true, 'productId' : prodId, 'qty' : 1, 'locationId' : this.selectLocation
+			});
+		}
 	}
 
 	removeFromCart(prodId){
 		this.messageService.sendMessage({
-			'removeFromCart' : prodId
+			'removeFromCart' : true, 'productId' : prodId
 		});
 	}
 

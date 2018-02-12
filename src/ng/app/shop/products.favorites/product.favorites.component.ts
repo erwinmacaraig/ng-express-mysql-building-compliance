@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation, ElementRef, ViewChild } from '@angular/core';
 import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -15,14 +15,14 @@ import { MessageService } from '../../services/messaging.service';
 declare var $: any;
 
 @Component({
-	selector : 'app-trainings-package-component',
-	templateUrl : './trainings.package.component.html',
-	styleUrls : [ './trainings.package.component.css' ],
+	selector : 'app-product-favorites-component',
+	templateUrl : './product.favorites.component.html',
+	styleUrls : [ './product.favorites.component.css' ],
     providers : [AuthService, UserService, SignupService, EncryptDecryptService]
 })
-export class TrainingsPackageComponent implements OnInit, OnDestroy{
+export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 
-	trainingsProducts = <any>[];
+	@ViewChild('quantityInput') quantityInput : ElementRef;
 
 	allProducts = <any>[];
 	cart = <any>{
@@ -36,8 +36,6 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 	locations = <any>[];
 
 	favorites = <any>[];
-
-	selectLocation = 0;
 
 	constructor(
 		private router : Router,
@@ -57,7 +55,6 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	    	if(message.products){
 	    		this.allProducts = message.products;
-	    		this.generateTrainingsProducts();
 	    	}
 
 	    	if(message.locations){
@@ -76,28 +73,11 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 	}
 
 	ngAfterViewInit(){
-		$('.workspace.container').css('padding', '0px');
-		$('.package-container').css({
-			'width' : '96%',
-			'margin' : '0 auto',
-			'padding-top' : '3%'
-		});
-
-		console.log( $('.package-container') );
-
 		this.messageService.sendMessage({
 			'getData' : true
 		});
 	}
 
-	generateTrainingsProducts(){
-		this.trainingsProducts = [];
-		for(let prod of this.allProducts){
-			if(prod.product_type == 'trainings'){
-				this.trainingsProducts.push(prod);
-			}
-		}
-	}
 
 	isInCart(prodId){
 		let response = false;
@@ -112,35 +92,14 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 	}
 
 	addToCart(prodId){
-		if(this.selectLocation > 0){
-			this.messageService.sendMessage({
-				'addToCart' : prodId, 'productId' : prodId, 'locationId' : this.selectLocation, 'qty' : 1
-			});
-		}
+		this.messageService.sendMessage({
+			'addToCart' : prodId
+		});
 	}
 
 	removeFromCart(prodId){
 		this.messageService.sendMessage({
 			'removeFromCart' : true, 'productId' : prodId
-		});
-	}
-
-	isInFavorites(prodId){
-		let response = false;
-		for(let i in this.favorites){
-			if( this.favorites[i] !== null ){
-				if(this.favorites[i].product_id == prodId){
-					response = true;
-				}
-			}
-		}
-		return response;
-	}
-
-	addToFavorites(prodId){
-		this.messageService.sendMessage({
-			'addToFavorites' : true,
-			'productId' : prodId, 'quantity' : 1
 		});
 	}
 
@@ -150,8 +109,39 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 		});
 	}
 
+	addQuantity(product){
+
+		if(product.product_type != 'package'){
+			this.messageService.sendMessage({
+				'updateFavorite' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1
+			});
+
+			this.quantityInput.nativeElement.value = parseInt(product.quantity) + 1;
+		}
+
+	}
+
+	subtractQuantity(product){
+		let allow = false;
+		if(product.quantity > 0){
+			if(product.product_type == 'diagram' && product.quantity > 5){
+				allow = true;
+			}else if(product.product_type != 'diagram' && product.product_type != 'package'){
+				allow = true;
+			}
+		}
+
+		if(allow){
+
+			this.messageService.sendMessage({
+				'updateFavorite' : true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1
+			});
+
+			this.quantityInput.nativeElement.value = parseInt(product.quantity) - 1;
+		}
+	}
+
 	ngOnDestroy(){
-		$('.workspace.container').css('padding', '');
 		this.subs.unsubscribe();
 	}
 

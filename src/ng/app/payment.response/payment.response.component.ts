@@ -54,7 +54,9 @@ export class PaymentResponseComponent implements OnInit, OnDestroy{
 	}
 
 	ngAfterViewInit(){
-
+		setTimeout(() => {
+			this.router.navigate(["/shop/compliance-package"]);
+		}, 2000);
 	}
 
 	ngOnDestroy(){

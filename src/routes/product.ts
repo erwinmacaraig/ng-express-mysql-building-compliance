@@ -7,6 +7,7 @@ import * as moment from 'moment';
 
 import { Product } from '../models/product.model';
 import { ProductsRelationModel } from '../models/products.relation.model';
+import { ProductsFavoritesModel } from '../models/products.favorites.model';
 
 export class ProductRoute extends BaseRoute {
     constructor() {
@@ -74,6 +75,22 @@ export class ProductRoute extends BaseRoute {
 
         router.get('/packages-products',  (req : Request, res : Response) => {
             new ProductRoute().getPackagesAndProducts(req, res);
+        });
+
+        router.get('/products/get-favorites/:user_id', (req : Request, res : Response) => {
+            new ProductRoute().getFavorites(req, res);
+        });
+
+        router.post('/products/add-to-favorites', (req : Request, res : Response) => {
+            new ProductRoute().addToFavorites(req, res);
+        });
+
+        router.post('/products/remove-favorite', (req : Request, res : Response) => {
+            new ProductRoute().removeFavorite(req, res);
+        });
+
+        router.post('/products/update-favorite', (req : Request, res : Response) => {
+            new ProductRoute().updateFavorite(req, res);
         });
 
     }
@@ -209,6 +226,114 @@ export class ProductRoute extends BaseRoute {
         productsRelationModel = new ProductsRelationModel();
 
         response.data = await productsRelationModel.getPackagesAndProducts();
+
+        res.send(response);
+    }
+
+    public async getFavorites(req : Request, res : Response){
+        let 
+        userId = req.params.user_id,
+        response = {
+            status : true, data : <any>[], message : ''
+        },
+        favoritesModel = new ProductsFavoritesModel();
+
+        response.data = await favoritesModel.getUsersFavorites(userId);
+        res.send(response);
+    }
+
+    public async addToFavorites(req : Request, res : Response){
+        let 
+        userId = req.body.user_id,
+        qty = parseInt(req.body.quantity),
+        productId = req.body.product_id,
+        response = {
+            status : true, data : <any>[], message : ''
+        },
+        getFavoritesModel = new ProductsFavoritesModel(),
+        usersFavorites = await getFavoritesModel.getUsersFavorites(userId),
+        favoritesModel = new ProductsFavoritesModel(),
+        alreadyHave = false;
+
+        for(let i in usersFavorites){
+            if(usersFavorites[i]['product_id'] == productId && usersFavorites[i]['user_id'] == userId){
+                alreadyHave = true;
+            }
+        }
+
+        if(alreadyHave){
+            response.status = false;
+            response.message = 'Already have this to favorites';
+        }else{
+            await favoritesModel.create({
+                product_id : productId,
+                user_id : userId,
+                quantity : qty
+            });
+        }
+
+        let getNewFavoritesModel = new ProductsFavoritesModel();
+            response.data = await getNewFavoritesModel.getUsersFavorites(userId);
+
+        res.send(response);
+    }
+
+    public async removeFavorite(req : Request, res : Response){
+        let 
+        userId = req.body.user_id,
+        productId = req.body.product_id,
+        response = {
+            status : true, data : <any>[], message : ''
+        },
+        getFavoritesModel = new ProductsFavoritesModel(),
+        usersFavorites = await getFavoritesModel.getUsersFavorites(userId),
+        favoritesModel = new ProductsFavoritesModel(),
+        alreadyHave = false;
+
+        for(let i in usersFavorites){
+            if(usersFavorites[i]['product_id'] == productId && usersFavorites[i]['user_id'] == userId){
+                favoritesModel.setID(usersFavorites[i]['products_favorites_id']);
+                await favoritesModel.delete();
+            }
+        }
+
+        let getNewFavoritesModel = new ProductsFavoritesModel();
+            response.data = await getNewFavoritesModel.getUsersFavorites(userId);
+
+        res.send(response);
+    }
+
+
+    public async updateFavorite(req : Request, res : Response){
+        let 
+        userId = req.body.user_id,
+        qty = parseInt(req.body.quantity),
+        productId = req.body.product_id,
+        response = {
+            status : true, data : <any>[], message : ''
+        },
+        getFavoritesModel = new ProductsFavoritesModel(),
+        usersFavorites = await getFavoritesModel.getUsersFavorites(userId),
+        favoriteModel,
+        hasRecord = false;
+
+
+        for(let i in usersFavorites){
+
+
+            if(usersFavorites[i]['product_id'] == productId && usersFavorites[i]['user_id'] == userId){
+
+                favoriteModel = new ProductsFavoritesModel(usersFavorites[i]['products_favorites_id']);
+                favoriteModel.set('quantity', qty);
+                favoriteModel.set('product_id', productId);
+                favoriteModel.set('user_id', userId);
+
+                await favoriteModel.dbUpdate();
+            }
+        }
+
+        let getNewFavoritesModel = new ProductsFavoritesModel();
+            response.data = await getNewFavoritesModel.getUsersFavorites(userId);
 
         res.send(response);
     }

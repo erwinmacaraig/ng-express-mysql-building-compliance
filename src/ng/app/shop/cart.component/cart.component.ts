@@ -75,7 +75,7 @@ export class CartComponent implements OnInit, OnDestroy{
 
 		if(cart.item.product_type != 'package'){
 			this.messageService.sendMessage({
-				'updateCart' : cart.item.product_id, 'qty' : parseInt(cart.qty) + 1
+				'updateCart' : true, 'productId' : cart.item.product_id, 'qty' : parseInt(cart.qty) + 1, 'locationId' : cart.item.location_id
 			});
 
 			this.quantityInput.nativeElement.value = parseInt(cart.qty) + 1;
@@ -96,7 +96,7 @@ export class CartComponent implements OnInit, OnDestroy{
 		if(allow){
 
 			this.messageService.sendMessage({
-				'updateCart' : cart.item.product_id, 'qty' : parseInt(cart.qty) - 1
+				'updateCart' : true, 'productId' : cart.item.product_id, 'qty' : parseInt(cart.qty) - 1, 'locationId' : cart.item.location_id
 			});
 
 			this.quantityInput.nativeElement.value = parseInt(cart.qty) - 1;
@@ -114,7 +114,7 @@ export class CartComponent implements OnInit, OnDestroy{
 
 	removeFromCart(prodId){
 		this.messageService.sendMessage({
-			'removeFromCart' : prodId
+			'removeFromCart' : true, 'productId' : prodId
 		});
 	}
 

@@ -91,5 +91,41 @@ export class ProductService {
 			callBack( JSON.parse(err.error) );
 		});
 	}
+
+	public getFavorites(userId, callBack){
+		this.http.get(this.baseUrl+"/products/get-favorites/"+userId,  this.options)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	public addToFavorites(formData, callBack){
+		this.http.post(this.baseUrl+"/products/add-to-favorites", formData, this.options)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	public removeFavorite(formData, callBack){
+		this.http.post(this.baseUrl+"/products/remove-favorite", formData, this.options)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	public updateFavorite(formData, callBack){
+		this.http.post(this.baseUrl+"/products/update-favorite", formData, this.options)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
 	
 }	

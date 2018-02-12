@@ -24,7 +24,7 @@
 				
 					<div class="select-field margin-top-50">
 						<label>Select Location</label>
-						<select>
+						<select id="selectLocation">
 							<option value="0" disabled selected>Select Location</option>
 							<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
 						</select>
@@ -99,10 +99,14 @@
 							</table>
 						</div>
 						<div class="button-container">
-							<button class="btn-flat waves-effect waves-light save left">
+							<button class="btn-flat waves-effect waves-light save left" *ngIf="!isInFavorites(showingDiagram.product_id)" (click)="addToFavorites(showingDiagram.product_id)">
 								<div class="image"></div> Save
 							</button>
-							
+
+							<button class="btn-flat waves-effect waves-light save left" *ngIf="isInFavorites(showingDiagram.product_id)" (click)="removeFavorite(showingDiagram.product_id)">
+								<div class="image"></div> Remove
+							</button>
+
 							<button class="btn orange waves-effect waves-light buy right" *ngIf="!isInCart(showingDiagram.product_id)" (click)="addToCart(showingDiagram.product_id)">
 								<div class="image"></div> Buy
 							</button>

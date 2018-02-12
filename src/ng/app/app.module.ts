@@ -90,6 +90,7 @@ import { ExampleComponent } from './shop/example.component/example.component';
 import { PaymentResponseComponent } from './payment.response/payment.response.component';
 import { CartComponent } from './shop/cart.component/cart.component';
 import { PaymentComponent } from './shop/payment.component/payment.component';
+import { ProductsFavoritesComponent } from './shop/products.favorites/product.favorites.component';
 
 @NgModule({
   declarations: [
@@ -155,7 +156,8 @@ import { PaymentComponent } from './shop/payment.component/payment.component';
     ExampleComponent,
     PaymentResponseComponent,
     CartComponent,
-    PaymentComponent
+    PaymentComponent,
+    ProductsFavoritesComponent
   ],
   imports: [
     BrowserModule,
