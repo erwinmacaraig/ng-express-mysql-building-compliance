@@ -143,7 +143,7 @@ const appRoutes: Routes = [
     ]
   },
   {
-    path : 'shop', component : ShopComponent,
+    path : 'shop', canActivate: [AuthGuard], component : ShopComponent,
     children : [
       { path : 'compliance-package', component : CompliancePackageComponent },
       { path : 'trainings-package', component : TrainingsPackageComponent },
