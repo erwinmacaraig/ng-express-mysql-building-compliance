@@ -39,6 +39,10 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	selectLocation = 0;
 
+	userData = {};
+
+	users = <any>[];
+
 	constructor(
 		private router : Router,
 		private route: ActivatedRoute,
@@ -49,6 +53,8 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
         private messageService : MessageService,
         private encryptDecrypt : EncryptDecryptService
 		){
+
+		this.userData = this.authService.getUserData();
 
 		this.subs = this.messageService.getMessage().subscribe((message) => {
 	    	if(message.cart){
@@ -69,6 +75,10 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 	    	}
 	    });
 
+	    this.userService.getUsersByAccountId(this.userData['accountId'], (response) => {
+	    	this.users = response.data;
+	    });
+
 	}
 
 	ngOnInit(){
@@ -83,10 +93,21 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 			'padding-top' : '3%'
 		});
 
-		console.log( $('.package-container') );
-
 		this.messageService.sendMessage({
 			'getData' : true
+		});
+
+		$('body').on('change', 'select[product-id]', (event) => {
+			let currntElem = $(event.currentTarget),
+				prodId = currntElem.attr('product-id');
+			
+			if(this.isInCart(prodId)){
+				this.messageService.sendMessage({
+					'updateCart' : true, 'productId' : prodId, 'locationId' : this.selectLocation, 'qty' : 1,
+					'targetUserId' : parseInt(currntElem.val())
+				});
+			}
+
 		});
 	}
 
@@ -112,9 +133,12 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 	}
 
 	addToCart(prodId){
-		if(this.selectLocation > 0){
+		let selElem = $('select[product-id="'+prodId+'"]'),
+			userTargetId = selElem.val();
+
+		if(this.selectLocation > 0 && userTargetId > 0){
 			this.messageService.sendMessage({
-				'addToCart' : prodId, 'productId' : prodId, 'locationId' : this.selectLocation, 'qty' : 1
+				'addToCart' : true, 'productId' : prodId, 'locationId' : this.selectLocation, 'qty' : 1, 'targetUserId' : parseInt(userTargetId)
 			});
 		}
 	}
@@ -137,11 +161,17 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToFavorites(prodId){
-		this.messageService.sendMessage({
-			'addToFavorites' : true,
-			'productId' : prodId, 'quantity' : 1
-		});
+	addToFavorites(prodId, packageElem){
+
+		let selectedUser = packageElem.querySelector('select').value;
+
+		if(selectedUser > 0 && this.selectLocation > 0){
+			this.messageService.sendMessage({
+				'addToFavorites' : true, 'targetUserId' : selectedUser,
+				'productId' : prodId, 'quantity' : 1, 'locationId' : this.selectLocation
+			});
+		}
+
 	}
 
 	removeFavorite(prodId){

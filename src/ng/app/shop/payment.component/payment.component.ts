@@ -35,6 +35,8 @@ export class PaymentComponent implements OnInit, OnDestroy{
 
 	subs;
 
+	locations = <any>[];
+
 	constructor(
 		private router : Router,
 		private route: ActivatedRoute,
@@ -51,8 +53,14 @@ export class PaymentComponent implements OnInit, OnDestroy{
 	    	if(message.cart){
 	    		this.cart = message.cart;
 	    		this.makeCartAsArray();
-	    	}else if(message.products){
+	    	}
+
+	    	if(message.products){
 	    		this.allProducts = message.products;
+	    	}
+
+	    	if(message.locations){
+	    		this.locations = message.locations;
 	    	}
 	    });
 	}
@@ -84,6 +92,14 @@ export class PaymentComponent implements OnInit, OnDestroy{
 		event.preventDefault();
 		if(this.arrayCart.length > 0){
 			form.submit();
+		}
+	}
+
+	getLocationName(locationId){
+		for(let i in this.locations){
+			if(this.locations[i]['location_id'] == locationId){
+				return this.locations[i]['name'];
+			}
 		}
 	}
 

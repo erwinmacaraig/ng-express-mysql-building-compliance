@@ -32,8 +32,8 @@
 					
 					<div class="select-field">
 						<label>Select Finish</label>
-						<select>
-							<option value="standard" selected>Standard</option>
+						<select id="selectDiagram">
+							<option value="{{fin.diagram_finish_id}}" *ngFor="let fin of diagramFinishes; let i = index" [selected]="i==0" >{{fin.name}}</option>
 						</select>
 					</div>
 					

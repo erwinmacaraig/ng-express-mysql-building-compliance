@@ -93,7 +93,7 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 
 	addToCart(prodId){
 		this.messageService.sendMessage({
-			'addToCart' : prodId
+			'addToCart' : true, 'productId' : prodId
 		});
 	}
 
@@ -112,6 +112,10 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 	addQuantity(product){
 
 		if(product.product_type != 'package'){
+			this.messageService.sendMessage({
+				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1
+			});
+
 			this.messageService.sendMessage({
 				'updateFavorite' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1
 			});
@@ -134,10 +138,22 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 		if(allow){
 
 			this.messageService.sendMessage({
+				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1
+			});
+
+			this.messageService.sendMessage({
 				'updateFavorite' : true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1
 			});
 
 			this.quantityInput.nativeElement.value = parseInt(product.quantity) - 1;
+		}
+	}
+
+	getLocationName(locationId){
+		for(let i in this.locations){
+			if(this.locations[i]['location_id'] == locationId){
+				return this.locations[i]['name'];
+			}
 		}
 	}
 

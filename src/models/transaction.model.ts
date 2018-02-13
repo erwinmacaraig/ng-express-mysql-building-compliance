@@ -48,7 +48,7 @@ export class Transaction extends BaseClass {
                             date_paid = ?,
                             expiration_date = ?,
                             target_user_id = ?,
-                            diagram_finish = ?,
+                            diagram_finish_id = ?,
                             location_id = ?
                           WHERE
                             transaction_id = ?`;
@@ -63,7 +63,7 @@ export class Transaction extends BaseClass {
         ('date_paid' in this.dbData) ? this.dbData['date_paid'] : null,
         ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : null,
         ('target_user_id' in this.dbData) ? this.dbData['target_user_id'] : 0,
-        ('diagram_finish' in this.dbData) ? this.dbData['diagram_finish'] : null,
+        ('diagram_finish_id' in this.dbData) ? this.dbData['diagram_finish_id'] : null,
         ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
         this.ID() ? this.ID() : 0
       ];
@@ -92,7 +92,7 @@ export class Transaction extends BaseClass {
                           date_paid,
                           expiration_date,
                           target_user_id,
-                          diagram_finish,
+                          diagram_finish_id,
                           location_id
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       const transaction = [
@@ -105,7 +105,7 @@ export class Transaction extends BaseClass {
         ('date_paid' in this.dbData) ? this.dbData['date_paid'] : null,
         ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : null,
         ('target_user_id' in this.dbData) ? this.dbData['target_user_id'] : 0,
-        ('diagram_finish' in this.dbData) ? this.dbData['diagram_finish'] : null,
+        ('diagram_finish_id' in this.dbData) ? this.dbData['diagram_finish_id'] : null,
         ('location_id' in this.dbData) ? this.dbData['location_id'] : 0
       ];
       const connection = db.createConnection(dbconfig);

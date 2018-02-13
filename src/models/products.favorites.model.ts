@@ -14,7 +14,7 @@ export class ProductsFavoritesModel extends BaseClass {
 
     public load() {
         return new Promise((resolve, reject) => {
-            const sql_load = `SELECT pf.products_favorites_id, pf.user_id, pf.quantity, p.* 
+            const sql_load = `SELECT pf.products_favorites_id, pf.user_id, pf.quantity, pf.target_user_id, pf.diagram_finish_id, pf.pdf_only, pf.location_id, p.* 
                     FROM products_favorites pf INNER JOIN products p ON pf.product_id = p.product_id 
                     WHERE pf.products_favorites_id = ?`;
             const connection = db.createConnection(dbconfig);
@@ -41,12 +41,20 @@ export class ProductsFavoritesModel extends BaseClass {
             SET
             product_id = ?,
             user_id = ?,
-            quantity = ?
+            quantity = ?,
+            target_user_id = ?,
+            diagram_finish_id = ?,
+            pdf_only = ?,
+            location_id = ?
             WHERE products_favorites_id = ?`;
             const product = [
             ('product_id' in this.dbData) ? this.dbData['product_id'] : 0,
             ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
             ('quantity' in this.dbData) ? this.dbData['quantity'] : 0,
+            ('target_user_id' in this.dbData) ? this.dbData['target_user_id'] : 0,
+            ('diagram_finish_id' in this.dbData) ? this.dbData['diagram_finish_id'] : 0,
+            ('pdf_only' in this.dbData) ? this.dbData['pdf_only'] : 0,
+            ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
             this.ID() ? this.ID() : 0
             ];
 
@@ -64,11 +72,15 @@ export class ProductsFavoritesModel extends BaseClass {
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
-            const insert_sql = `INSERT INTO products_favorites (product_id, user_id, quantity) VALUES (?, ?, ?)`;
+            const insert_sql = `INSERT INTO products_favorites (product_id, user_id, quantity, target_user_id, diagram_finish_id, pdf_only, location_id) VALUES (?, ?, ?, ?, ?, ?, ?)`;
             const product = [
             ('product_id' in this.dbData) ? this.dbData['product_id'] : 0,
             ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
-            ('quantity' in this.dbData) ? this.dbData['quantity'] : 0
+            ('quantity' in this.dbData) ? this.dbData['quantity'] : 0,
+            ('target_user_id' in this.dbData) ? this.dbData['target_user_id'] : 0,
+            ('diagram_finish_id' in this.dbData) ? this.dbData['diagram_finish_id'] : 0,
+            ('pdf_only' in this.dbData) ? this.dbData['pdf_only'] : 0,
+            ('location_id' in this.dbData) ? this.dbData['location_id'] : 0
             ];
             const connection = db.createConnection(dbconfig);
             connection.query(insert_sql, product, (error, results, fields) => {
@@ -114,7 +126,7 @@ export class ProductsFavoritesModel extends BaseClass {
 
     public getUsersFavorites(userId) {
         return new Promise((resolve, reject) => {
-            const sql_load = `SELECT pf.products_favorites_id, pf.user_id, pf.quantity, p.* 
+            const sql_load = `SELECT pf.products_favorites_id, pf.user_id, pf.quantity, pf.target_user_id, pf.diagram_finish_id, pf.pdf_only, pf.location_id, p.* 
                     FROM products_favorites pf INNER JOIN products p ON pf.product_id = p.product_id 
                     WHERE pf.user_id = ?`;
             const connection = db.createConnection(dbconfig);

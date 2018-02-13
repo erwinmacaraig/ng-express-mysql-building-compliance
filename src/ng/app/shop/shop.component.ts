@@ -42,6 +42,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 
 	favorites = <any>[];
 
+	diagramFinishes = <any>[];
+
 	constructor(
 		private router : Router,
 		private route: ActivatedRoute,
@@ -94,6 +96,13 @@ export class ShopComponent implements OnInit, OnDestroy{
 			this.preloaderService.hide();
 		});
 
+		this.productService.getDiagramFinishes((response) => {
+			this.diagramFinishes = response.data;
+			this.messageService.sendMessage({
+				'diagramFinishes' : this.diagramFinishes
+			});
+		});
+
 		this.routesubs = this.router.events.subscribe((e) => {
 			if(e instanceof NavigationEnd){
 				$('.shop-navigation .active').removeClass('active');
@@ -116,9 +125,12 @@ export class ShopComponent implements OnInit, OnDestroy{
 		this.subs = this.messageService.getMessage().subscribe(res => {
 			if(res.addToCart){
 				this.addToCart({
-					product_id : res.productId,
-					quantity : (res.qty) ? parseInt(res.qty) : 1,
-					location_id : res.locationId
+					'product_id' : res.productId,
+					'quantity' : (res.qty) ? parseInt(res.qty) : 1,
+					'location_id' : res.locationId,
+					'target_user_id' : (res.targetUserId) ? res.targetUserId : 0,
+					'diagram_finish_id' : (res.diagramFinishId) ? res.diagramFinishId : null,
+					'pdf_only' : (res.pdfOnly) ? res.pdfOnly : 0
 				}, () => {
 					this.messageService.sendMessage({
 						'cart' : this.cart
@@ -128,9 +140,12 @@ export class ShopComponent implements OnInit, OnDestroy{
 
 			if(res.updateCart){
 				this.updateCart({
-					product_id : res.productId,
-					quantity : (res.qty) ? parseInt(res.qty) : 1,
-					location_id : res.locationId
+					'product_id' : res.productId,
+					'quantity' : (res.qty) ? parseInt(res.qty) : 1,
+					'location_id' : res.locationId,
+					'target_user_id' : (res.targetUserId) ? res.targetUserId : 0,
+					'diagram_finish_id' : (res.diagramFinishId) ? res.diagramFinishId : null,
+					'pdf_only' : (res.pdfOnly) ? res.pdfOnly : 0
 				}, () => {
 					this.messageService.sendMessage({
 						'cart' : this.cart
@@ -149,7 +164,7 @@ export class ShopComponent implements OnInit, OnDestroy{
 			if(res.getData){
 				this.messageService.sendMessage({
 					'cart' : this.cart, 'products' : this.allProducts, 'packages' : this.packages, 
-					'locations' : this.locations, 'favorites' : this.favorites
+					'locations' : this.locations, 'favorites' : this.favorites, 'diagramFinishes' : this.diagramFinishes
 				});
 			}
 
@@ -157,7 +172,11 @@ export class ShopComponent implements OnInit, OnDestroy{
 				this.addToFavorites({
 					'product_id' : res.productId,
 					'quantity' : (res.quantity) ? res.quantity : 1,
-					'user_id' : this.userData['userId']
+					'target_user_id' : (res.targetUserId) ? res.targetUserId : 0,
+					'location_id' : (res.locationId) ? res.locationId : 0,
+					'diagram_finish_id' : (res.diagramFinishId) ? res.diagramFinishId : null,
+					'user_id' : this.userData['userId'],
+					'pdf_only' : (res.pdfOnly) ? res.pdfOnly : 0
 				}, () => {
 					this.messageService.sendMessage({
 						'favorites' : this.favorites
@@ -180,7 +199,11 @@ export class ShopComponent implements OnInit, OnDestroy{
 				this.updateFavorite({
 					'product_id' : res.productId,
 					'quantity' : (res.quantity) ? res.quantity : 1,
-					'user_id' : this.userData['userId']
+					'target_user_id' : (res.targetUserId) ? res.targetUserId : 0,
+					'location_id' : (res.locationId) ? res.locationId : 0,
+					'diagram_finish_id' : (res.diagramFinishId) ? res.diagramFinishId : null,
+					'user_id' : this.userData['userId'],
+					'pdf_only' : (res.pdfOnly) ? res.pdfOnly : 0
 				}, () => {
 					this.messageService.sendMessage({
 						'favorites' : this.favorites

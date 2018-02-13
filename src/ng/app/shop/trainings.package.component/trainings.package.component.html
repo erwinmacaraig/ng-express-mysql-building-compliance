@@ -34,19 +34,20 @@
 	<div class="row">
 		
 		<div class="col l2 m6 s12" *ngFor="let prod of trainingsProducts">
-			<div class="package-wrapper">
+			<div class="package-wrapper" #package>
 				<div class="content">
 					<div class="image teal accent-4 center-block"></div>
 					<h5 class="title blue-text">
 						{{ prod.product_title }}
 					</h5>
 					<div [innerHTML]="prod.product_desc"></div>
-					<select>
+					<select style="font-size: 12px; margin-top: 5px;" [attr.product-id]="prod.product_id">
 						<option value="0" disabled selected>Select training for</option>
+						<option value="{{user.user_id}}" *ngFor="let user of users">{{user.first_name}} {{user.last_name}}</option>
 					</select>
 				</div>
 				<div class="button-container">
-					<button class="btn-flat waves-effect waves-light save" *ngIf="!isInFavorites(prod.product_id)" (click)="addToFavorites(prod.product_id)">
+					<button class="btn-flat waves-effect waves-light save" *ngIf="!isInFavorites(prod.product_id)" (click)="addToFavorites(prod.product_id, package)">
 						<div class="image"></div> Save
 					</button>
 

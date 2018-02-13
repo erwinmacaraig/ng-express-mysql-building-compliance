@@ -15,8 +15,7 @@ export class Cart {
       storedItem = this.items[id] = {
         item: item,
         qty: (item.qty) ? item.qty : 1,
-        price: 0,
-        location_id : item.location_id
+        price: 0
       };
     }
 
@@ -26,6 +25,9 @@ export class Cart {
   }
 
   public update(item, id){
+    if(this.items[id]){
+      this.items[id].item = item;
+    }
     let storedItem = this.items[id];
 
     this.totalPrice = this.totalPrice - storedItem.price;
@@ -33,7 +35,6 @@ export class Cart {
 
     storedItem.qty = item.qty;
     storedItem.price = <number>storedItem.item.amount * <number>storedItem.qty;
-    storedItem.location_id = item.location_id;
     this.totalQty = parseFloat(this.totalQty) + parseFloat(storedItem.qty);
     this.totalPrice = this.totalPrice + storedItem.price;
   }

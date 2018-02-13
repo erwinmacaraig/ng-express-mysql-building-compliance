@@ -53,6 +53,7 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 	locations = <any>[];
 	favorites = <any>[];
+	diagramFinishes = <any>[];
 
 	constructor(
 		private router : Router,
@@ -84,6 +85,10 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 	    	if(message.favorites){
 	    		this.favorites = message.favorites;
+	    	}
+
+	    	if(message.diagramFinishes){
+	    		this.diagramFinishes = message.diagramFinishes;
 	    	}
 	    });
 	}
@@ -121,6 +126,54 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 			this.showingDiagram = this.diagramsProducts[0];
 		}
 
+		$('body').on('change', '#selectLocation', (event) => {
+			if( this.isInCart(this.showingDiagram.product_id) ){
+				this.updateItemToCart();
+			}
+		});
+
+		$('body').on('change', '#selectDiagram', (event) => {
+			if( this.isInCart(this.showingDiagram.product_id) ){
+				this.updateItemToCart();
+			}
+		});
+
+		$('body').on('change', '#pdf', (event) => {
+			if( this.isInCart(this.showingDiagram.product_id) ){
+				this.updateItemToCart();
+			}
+		});
+
+		setTimeout(() => {
+			let item = this.getCartProduct(this.showingDiagram.product_id);
+			$('#selectLocation').val(item['location_id']).material_select('update');
+			$('#selectDiagram').val(item['diagram_finish_id']).material_select('update');
+			$('#pdf').prop('checked', item['pdf_only']);
+		}, 500);
+	}
+
+	updateItemToCart(){
+		let locId = parseInt($('#selectLocation').val()),
+			diagId = parseInt($('#selectDiagram').val()),
+			pdfOnly = ($('#pdf').prop('checked')) ? 1 : 0;
+		if(locId > 0){
+			this.messageService.sendMessage({
+				'updateCart' : true, 'productId' : this.showingDiagram.product_id, 'qty' : this.showingDiagram.quantity, 
+				'locationId' : locId, 'diagramFinishId' : diagId, 'pdfOnly' : pdfOnly
+			});
+		}
+	}
+
+	updateItemToFavorites(){
+		let locId = parseInt($('#selectLocation').val()),
+			diagId = parseInt($('#selectDiagram').val()),
+			pdfOnly = ($('#pdf').prop('checked')) ? 1 : 0;
+		if(locId > 0){
+			this.messageService.sendMessage({
+				'updateFavorite' : true, 'productId' : this.showingDiagram.product_id, 'qty' : this.showingDiagram.quantity, 
+				'locationId' : locId, 'diagramFinishId' : diagId, 'pdfOnly' : pdfOnly
+			});
+		}
 	}
 
 	addQuantity(){
@@ -129,12 +182,7 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		this.showingDiagram.quantity = this.quantityInput.nativeElement.value;
 
 		if( this.isInCart(this.showingDiagram.product_id) ){
-			let locId = parseInt($('#selectLocation').val());
-			if(locId){
-				this.messageService.sendMessage({
-					'updateCart' : true, 'productId' : this.showingDiagram.product_id, 'qty' : this.showingDiagram.quantity, 'locationId' : locId
-				});
-			}
+			this.updateItemToCart();
 		}
 	}
 
@@ -145,14 +193,7 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 			this.showingDiagram.quantity = this.quantityInput.nativeElement.value;
 
 			if( this.isInCart(this.showingDiagram.product_id) ){
-
-				let locId = parseInt($('#selectLocation').val());
-				if(locId){
-					this.messageService.sendMessage({
-						'updateCart' : true, 'productId' : this.showingDiagram.product_id, 'qty' : this.showingDiagram.quantity, 'locationId' : locId
-					});
-				}
-
+				this.updateItemToCart();
 			}
 		}
 	}
@@ -181,19 +222,33 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 	}
 
 	addToCart(prodId){
-		let locId = parseInt($('#selectLocation').val());
+		let locId = parseInt($('#selectLocation').val()),
+			diagId = parseInt($('#selectDiagram').val()),
+			pdfOnly = ($('#pdf').prop('checked')) ? 1 : 0;
 
 		if(locId){
 			this.messageService.sendMessage({
-				'addToCart' : true, 'productId' : prodId, 'qty' : this.showingDiagram.quantity, 'locationId' : locId
+				'addToCart' : true, 'productId' : prodId, 'pdfOnly' : pdfOnly,
+				'qty' : this.showingDiagram.quantity, 'locationId' : locId, 'diagramFinishId' : diagId
 			});
 		}
+	}
 
+	getCartProduct(prodId){
+		let response = {};
+		for(let i in this.cart.items){
+			if( this.cart.items[i] !== null ){
+				if(this.cart.items[i]['item'].product_id == prodId){
+					response = this.cart.items[i]['item'];
+				}
+			}
+		}
+		return response;
 	}
 
 	removeFromCart(prodId){
 		this.messageService.sendMessage({
-			'removeFromCart' : prodId
+			'removeFromCart' : true, 'productId' : prodId
 		});
 	}
 
@@ -229,10 +284,20 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 				}
 
 				this.showDiagramsImage = false;
+
+				if(this.isInCart(this.showingDiagram.product_id)){
+					let item = this.getCartProduct(this.showingDiagram.product_id);
+					$('#selectLocation').val(item['location_id']).material_select('update');
+					$('#selectDiagram').val(item['diagram_finish_id']).material_select('update');
+					$('#pdf').prop('checked', item['pdf_only']);
+				}else{
+					$('#selectLocation').val(0).material_select('update');
+					$('#selectDiagram').val($('#selectDiagram option:first-child').attr('value')).material_select('update');
+					$('#pdf').prop('checked',  false);
+				}
 			}
 		}
 	}
-
 
 	isInFavorites(prodId){
 		let response = false;
@@ -247,10 +312,16 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 	}
 
 	addToFavorites(prodId){
-		this.messageService.sendMessage({
-			'addToFavorites' : true,
-			'productId' : prodId, 'quantity' : this.showingDiagram.quantity
-		});
+		let locId = parseInt($('#selectLocation').val()),
+			diagId = parseInt($('#selectDiagram').val()),
+			pdfOnly = ($('#pdf').prop('checked')) ? 1 : 0;
+
+		if(locId > 0){
+			this.messageService.sendMessage({
+				'addToFavorites' : true, 'locationId' : locId, 'diagramFinishId' : diagId,
+				'productId' : prodId, 'quantity' : this.showingDiagram.quantity, 'pdfOnly' : pdfOnly
+			});
+		}
 	}
 
 	removeFavorite(prodId){

@@ -127,5 +127,14 @@ export class ProductService {
 			callBack( JSON.parse(err.error) );
 		});
 	}
+
+	public getDiagramFinishes(callBack){
+		this.http.get(this.baseUrl+"/products/diagram-finishes",  this.options)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
 	
 }	

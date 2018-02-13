@@ -388,8 +388,11 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.mySubscription = this.messageService.getMessage().subscribe((message) => {
-      this.username = message.person_first_name + ' ' + message.person_last_name;
-      this.usersInitial = this.getInitials(this.username);
+
+    	if(message.person_first_name){	
+	      this.username = message.person_first_name + ' ' + message.person_last_name;
+	      this.usersInitial = this.getInitials(this.username);
+    	}
 
     });
   }
