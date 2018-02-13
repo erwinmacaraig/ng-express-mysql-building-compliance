@@ -1,0 +1,82 @@
+<div class="top-gray">
+	<ul>
+		<li>
+			Choose Location
+		</li>
+		<li>
+			<select [(ngModel)]="selectLocation" >
+				<option value="0" disabled selected >Select Location</option>
+				<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
+			</select>
+		</li>
+	</ul>
+</div>
+
+<div class="container" [hidden]="packages.length > 0">
+	<div class="row">
+		<div class="col l12 m12 s12">
+			<h4 class="center">No Packages Yet</h4>
+		</div>
+	</div>
+</div>
+
+<div class="package-container"  [hidden]="packages.length == 0">
+	
+	<div class="row">
+		
+		<div class="col l2 m6 s12" *ngFor="let package of packages; let i = index;">
+			<div class="package-wrapper">
+				<div class="title-container teal accent-4">
+					<div class="dark-background-arrow">
+						<div class="image"></div>
+						<div class="arrow-right"></div>
+					</div>
+					<h4 class="title">
+						{{package.product_title }}
+					</h4>
+				</div>
+				<div class="content">
+					
+
+					<div [innerHTML]="package.product_desc "></div>
+
+					<ul>
+						<li *ngFor="let product of package.products">
+							{{product.product_title}}
+						</li>
+					</ul>
+
+				</div>
+
+				<div class="price-container">
+					<h5 class="blue-text center">
+						<span *ngIf="package.amount == 0">FREE</span>
+						<span *ngIf="package.amount > 0">$ {{package.amount}}</span>
+					</h5>
+					<p class="center">Annual</p>
+
+
+					<h6 class="center">
+						<a href="javascript:void(0)">View More</a>
+						<div style="transform: rotate(-90deg);">
+							<i class="material-icons blue-text">chevron_left</i>
+						</div>
+					</h6>
+				</div>
+
+				<div class="footer">
+					<button class="btn btn-block orange waves-effect waves-light" *ngIf="!isInCart(package.product_id)" (click)="addToCart(package.product_id)">
+						<span *ngIf="package.amount == 0">UPGRADE</span>
+						<span *ngIf="package.amount > 0">SUBSCRIBE</span>
+					</button>
+
+					<button class="btn btn-block orange waves-effect waves-light" *ngIf="isInCart(package.product_id)" (click)="removeFromCart(package.product_id)">
+						REMOVE
+					</button>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+</div>

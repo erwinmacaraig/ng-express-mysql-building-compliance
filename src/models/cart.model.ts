@@ -14,17 +14,44 @@ export class Cart {
     if (!storedItem) {
       storedItem = this.items[id] = {
         item: item,
-        qty: 0,
+        qty: (item.qty) ? item.qty : 1,
         price: 0
       };
     }
-    console.log('storedItem', storedItem);
-    console.log('item', item);
 
-    storedItem.qty++;
     storedItem.price = <number>storedItem.item.amount * <number>storedItem.qty;
-    this.totalQty++;
-    this.totalPrice = <number>(this.totalPrice * 1) + <number>(storedItem.item.amount * 1);
+    this.totalQty = parseFloat(this.totalQty) + parseFloat(storedItem.qty);
+    this.totalPrice = this.totalPrice + storedItem.price;
+  }
+
+  public update(item, id){
+    if(this.items[id]){
+      this.items[id].item = item;
+    }
+    let storedItem = this.items[id];
+
+    this.totalPrice = this.totalPrice - storedItem.price;
+    this.totalQty = this.totalQty - storedItem.qty;
+
+    storedItem.qty = item.qty;
+    storedItem.price = <number>storedItem.item.amount * <number>storedItem.qty;
+    this.totalQty = parseFloat(this.totalQty) + parseFloat(storedItem.qty);
+    this.totalPrice = this.totalPrice + storedItem.price;
+  }
+
+  public remove(item, id){
+    let storedItem = this.items[id];
+
+    this.totalQty = parseFloat(this.totalQty) - parseFloat(storedItem.qty);
+    this.totalPrice = this.totalPrice - storedItem.price;
+    
+    let newItems = {};
+    for(let i in this.items){
+      if(i != id){
+        newItems[i] = this.items[i];
+      }
+    }
+    this.items = newItems;
   }
 
   public generateArray() {

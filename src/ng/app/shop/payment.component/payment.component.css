@@ -1,0 +1,273 @@
+.top-gray{
+	background-color: #f7f7f7;
+}
+
+.top-gray ul{
+	margin: 0px;
+}
+
+.top-gray li {
+    font-size: 15px;
+    display: inline-block;
+    padding: 15px 20px;
+}
+
+.top-gray li select{
+	display: block;
+	border-radius: 5px;
+    background-color: #fff;
+    min-width: 300px;
+}
+
+.top-gray ul li h5{
+	font-size: 18px;
+}
+
+.col-title{
+	margin: 30px 0px;
+}
+
+.quantity-container{
+	font-size: 14px;
+}
+
+.quantity-container .text{
+	display: inline-block;
+	padding-left: 10px;
+}
+
+.quantity-container .input{
+	position: relative;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	width: 35%;
+	display: inline-block;
+	overflow: hidden;
+	height: 40px;
+    vertical-align: middle;
+}
+
+.quantity-container .input input{
+	width: 80%;
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+    height: 38px;
+    background-color: #fff;
+}
+
+.quantity-container .input .btn-arrow-up, 
+.quantity-container .input .btn-arrow-down{
+	background: transparent;
+    padding: 0px;
+    border: 0px;
+    height: 20px;
+    width: 20px;
+    position: absolute;
+    right: 0px;
+    background-color: #434343;
+}
+
+.quantity-container .input .btn-arrow-down{
+	bottom: 0px;
+}
+
+.input button .material-icons{
+	font-size: 18px;
+	color: #fff;
+}
+
+.products-wrapper .footer,
+.products-wrapper .list-container{
+	padding: 20px;
+}
+
+.products-wrapper{
+	border-radius: 5px;
+}
+
+.products-wrapper .footer{
+	border-radius: 0px 0px 5px 5px;
+	position: absolute;
+    width: 100%;
+    bottom: 0px;
+}
+
+.products-wrapper .footer .left{
+	font-size: 18px;
+	margin:0px;
+	position: relative;
+    top: 6px;
+}
+
+.products-wrapper .footer .right{
+	font-size: 24px;
+	margin:0px;
+}
+
+.list-container .image,
+.list-container .text{
+	display: inline-block;
+	vertical-align: text-top;
+}
+
+.list-container .text{
+	display: inline-block;
+    vertical-align: text-top;
+    width: 410px;
+}
+
+.list-container .image{
+    width: 200px;
+    background-color: #ededed;
+    min-height: 180px;
+    margin-right: 10px;
+}
+
+.list-container .image img{
+	width: 100%;
+    max-height: 100px;
+}
+
+.list-container li > .text{
+	width: 410px;
+}
+
+.list-container li{
+	position: relative;
+	padding: 20px 10px 20px 0px;
+	border-bottom: 1px solid #fff;
+	margin-bottom: 20px;
+}
+
+.list-container li .name{
+	margin: 0px;
+	font-size: 16px;
+}
+
+.remove-container .close-image{
+	background: #fff url(/assets/images/shop_icons.png);
+    vertical-align: middle;
+    width: 22.4px;
+    height: 22px;
+    display: inline-block;
+    background-position: 14.3% 49% !important;
+    border-radius: 25px;
+    margin-left: 7px;
+}
+
+.payment-wrapper{
+	border-radius: 5px;
+}
+
+.payment-wrapper .logos,
+.payment-wrapper .content,
+.payment-wrapper .footer{
+	padding: 20px;
+}
+
+.payment-wrapper .footer{
+	border-radius: 0px 0px 5px 5px;
+	position: absolute;
+    width: 100%;
+    bottom: 0px;
+}
+
+.payment-wrapper .footer .left{
+	font-size: 18px;
+	margin:0px;
+	position: relative;
+    top: 6px;
+}
+
+.payment-wrapper .footer .right{
+	font-size: 24px;
+	margin:0px;
+}
+
+.arrow-right-image{
+	background: url(/assets/images/shop_icons.png);
+    width: 36px;
+    height: 36px;
+    background-position: 5% 48.5% !important;
+    border-radius: 40px;
+    border: 0px;
+}
+
+.payment-wrapper .logos{
+	padding: 10px 35px;
+}
+
+.payment-wrapper .logos .col{
+	display: inline-block;
+	border-bottom: 1px solid #ddd;
+}
+
+.payment-wrapper .logos .image{
+	height: 85px;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.payment-wrapper .logos .image:not(:last-child){
+	border-right: 1px solid #ddd;
+}
+
+.payment-wrapper .logos .image.active{
+	border-bottom: 2px solid orange;
+}
+
+.payment-wrapper .logos .image:hover{
+	cursor: pointer;
+}
+
+
+.paypal{
+	background: url(/assets/images/payments/paypal.png);
+	background-size: 160px;
+}
+
+.creditcard{
+	background: url(/assets/images/payments/card.png);
+	background-size: 160px;
+}
+
+.bank{
+	background: url(/assets/images/payments/bank-direct.png);
+	background-size: 85px;
+}
+
+.bpay{
+	background: url(/assets/images/payments/bpay.png);
+	background-size: 135px;
+}
+
+.products-wrapper,
+.payment-wrapper{
+	height: 375px;
+    position: relative;
+}
+
+.discout-wrapper{
+	padding: 20px;
+	margin: 20px 0px;
+	border-radius: 5px
+}
+
+.discout-wrapper h5{
+	font-size: 18px;
+}
+
+.discout-wrapper input[type="text"]{
+	display: inline-block;
+    width: 58%;
+    margin-right: 10px;
+    background-color: #fff;
+    padding: 0px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.discout-wrapper .btn{
+	font-size: 14px !important;
+}
