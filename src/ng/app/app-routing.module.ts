@@ -58,7 +58,18 @@ import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
 import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
 
+import { ComplianceComponent } from './compliance/compliance.component';
+import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
 
+import { ShopComponent } from './shop/shop.component';
+import { CompliancePackageComponent } from './shop/compliance.package.component/compliance.package.component';
+import { TrainingsPackageComponent } from './shop/trainings.package.component/trainings.package.component';
+import { EvacuationDiagramPackageComponent } from './shop/evacuation.diagram.package.component/evacuation.diagram.package.component';
+import { ExampleComponent } from './shop/example.component/example.component';
+import { PaymentResponseComponent } from './payment.response/payment.response.component';
+import { CartComponent } from './shop/cart.component/cart.component';
+import { PaymentComponent } from './shop/payment.component/payment.component';
+import { ProductsFavoritesComponent } from './shop/products.favorites/product.favorites.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -87,13 +98,17 @@ const appRoutes: Routes = [
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
   /*{ path: '**', redirectTo: '/dashboard'},*/
-  { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
+  { path: 'location', component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
     { path: 'search', component: SearchLocationComponent },
     { path: 'view/:encrypted', component: ViewSingleLocation },
     { path: 'view-sublocation/:encrypted', component: SublocationComponent },
-    { path: 'verify-access', component: VerificationComponent }
-
+    { path: 'verify-access', component: VerificationComponent },
+    { path : 'compliance', component : ComplianceComponent,
+      children : [
+        { path : 'view/:encrypted', component : ViewComplianceComponent }
+      ]
+    }
   ]},
   {
     path: 'locations-ui', component : LocationsUiComponent,
@@ -126,8 +141,22 @@ const appRoutes: Routes = [
       { path : 'view-gen-occupant', component : ViewGeneralOccupantComponent },
       { path : 'view-chief-warden', component : ViewChiefWardenComponent }
     ]
+  },
+  {
+    path : 'shop', component : ShopComponent,
+    children : [
+      { path : 'compliance-package', component : CompliancePackageComponent },
+      { path : 'trainings-package', component : TrainingsPackageComponent },
+      { path : 'evacuation-diagram-package', component : EvacuationDiagramPackageComponent },
+      { path : 'cart', component : CartComponent },
+      { path : 'example', component : ExampleComponent },
+      { path : 'payment', component : PaymentComponent },
+      { path : 'favorites', component : ProductsFavoritesComponent }
+    ]
+  },
+  {
+    path : 'payment-response/:ecnrypted', component : PaymentResponseComponent
   }
-
 ];
 
 @NgModule({

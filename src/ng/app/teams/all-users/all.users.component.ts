@@ -43,6 +43,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			this.listData = response.data;
 
 			let tempRoles = {};
+			console.log(this.listData);
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
 				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']).toString();
@@ -60,6 +61,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 				}
 			}
 
+			console.log(this.listData);
 			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
 			if(callBack){
 				callBack();

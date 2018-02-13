@@ -1,0 +1,1322 @@
+<ng-template #complianceTitleTemplateInner>
+	<div class="image" [ngClass]="selectedComplianceClasses"></div>
+	<div class="close"></div>
+
+	<div class="text">
+		<h6 class="title blue-text">{{selectedComplianceTitle}}</h6>
+		<p class="description">
+			{{selectedComplianceDescription}}
+		</p>
+	</div>
+</ng-template>
+
+<ng-template #complianceTitleTemplate>
+	<div class="compliance-title-container ">
+		<ng-container *ngTemplateOutlet="complianceTitleTemplateInner ? complianceTitleTemplateInner : noneTemplate"></ng-container>
+	</div>
+</ng-template>
+
+
+
+<ng-template #complianceTitleTemplate2>
+	<div class="compliance-title-container ">
+		<ng-container *ngTemplateOutlet="complianceTitleTemplateInner ? complianceTitleTemplateInner : noneTemplate"></ng-container>
+
+		<a href="javascript:void(0)" class="right hide-diagram" (click)="hideDiagramDetails()">Close <img src="/assets/images/expired_icon.png" alt=""></a>
+	</div>
+</ng-template>
+
+<ng-template #notesTemplate>
+	<div class="notes-container">
+		<h5>Notes:</h5>
+		<p *ngIf="selectedCompliance.compliance.note !== null">{{selectedCompliance.compliance.note}}</p> <p *ngIf="selectedCompliance.compliance.note == null"> no notes </p>
+	</div>
+</ng-template>
+
+<ng-template #noneTemplate>
+	<div></div>
+</ng-template>
+
+<ng-template #epmTemplate>
+
+
+	<div class="documents-container"  >
+		<div class="document"  >
+
+			<div class="preview-container">
+
+			</div>
+
+			<div class="text-container">
+				<h5 class="file-name">
+					<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+				</h5>
+
+				<div class="dates">
+					<div class="created">
+						<p>Creation Date:</p>
+						<p class="green-text">
+							<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0]['timestamp_formatted'] }}</span>
+							<span *ngIf="selectedCompliance.compliance.docs[0].length"> 00/00/0000 </span>
+						</p>
+					</div>
+
+					<div class="review">
+						<p>Last Review Date:</p>
+						<p class="green-text">00/00/0000</p>
+					</div>
+				</div>
+
+				<div class="click-view-previous">
+					<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+				</div>
+
+				<div class="buttons">
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0" >Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
+				</div>
+			</div>
+
+			<div class="switch-container">
+				<p class="give-access-text">Give access to TRP</p>
+				<div class="switch" >
+					<input type="checkbox"  >
+					<div class="yes">Yes</div>
+					<div class="no">No</div>
+					<div class="highlight"></div>
+					<div class="background"></div>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+</ng-template>
+
+<ng-template #epcTemplate>
+	<div class="documents-container">
+		<div class="document" >
+
+			<div class="preview-container">
+
+			</div>
+
+			<div class="text-container">
+				<h5 class="file-name">
+					<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+				</h5>
+
+				<div class="dates">
+					<div class="created">
+						<p>Last review held on</p>
+						<p class="green-text">00/00/0000</p>
+					</div>
+
+					<div class="review">
+						<p>Valid until:</p>
+						<p class="green-text">
+							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
+							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
+						</p>
+					</div>
+				</div>
+
+				<div class="click-view-previous">
+					<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+				</div>
+
+				<div class="buttons">
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
+				</div>
+			</div>
+
+			<div class="switch-container">
+				<p class="give-access-text">Give access to TRP</p>
+				<div class="switch" >
+					<input type="checkbox"  >
+					<div class="yes">Yes</div>
+					<div class="no">No</div>
+					<div class="highlight"></div>
+					<div class="background"></div>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+</ng-template>
+
+<ng-template #evacution_exerciseTemplate>
+	<div class="documents-container">
+		<div class="document" >
+
+			<div class="preview-container">
+
+			</div>
+
+			<div class="text-container">
+				<h5 class="file-name">
+					<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+				</h5>
+
+				<div class="dates">
+					<div class="created">
+						<p>Last review held on</p>
+						<p class="green-text">00/00/0000</p>
+					</div>
+
+					<div class="review">
+						<p>Valid until:</p>
+						<p class="green-text">
+							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
+							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
+						</p>
+					</div>
+				</div>
+
+				<div class="click-view-previous">
+					<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+				</div>
+
+				<div class="buttons">
+					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
+				</div>
+			</div>
+
+			<div class="switch-container">
+				<p class="give-access-text">Give access to TRP</p>
+				<div class="switch" >
+					<input type="checkbox"  >
+					<div class="yes">Yes</div>
+					<div class="no">No</div>
+					<div class="highlight"></div>
+					<div class="background"></div>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+</ng-template>
+
+<ng-template #evac_diagramTemplate>
+	<div class="documents-container">
+		<div class="document" >
+
+			<div class="preview-container">
+
+			</div>
+
+			<div class="text-container">
+				<h5 class="file-name">
+					<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+				</h5>
+
+				<div class="dates">
+					<div class="created">
+						<p>Last review held on:</p>
+						<p class="green-text">00/00/0000</p>
+					</div>
+
+					<div class="review">
+						<p>Valid until:</p>
+						<p class="green-text">
+							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
+							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
+						</p>
+					</div>
+				</div>
+
+				<div class="click-view-previous">
+					<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+				</div>
+
+				<div class="buttons">
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
+				</div>
+			</div>
+
+			<div class="switch-container">
+				<p class="give-access-text">Give access to TRP</p>
+				<div class="switch" >
+					<input type="checkbox"  >
+					<div class="yes">Yes</div>
+					<div class="no">No</div>
+					<div class="highlight"></div>
+					<div class="background"></div>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+</ng-template>
+
+<ng-template #chief_warden_trainingTemplate>
+	<div class="documents-container">
+		<div class="document" >
+
+			<div class="preview-container">
+
+			</div>
+
+			<div class="text-container">
+				<h5 class="file-name">
+					<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+				</h5>
+
+				<div class="dates">
+					<div class="created">
+						<p>Last review held on</p>
+						<p class="green-text">00/00/0000</p>
+					</div>
+
+				</div>
+
+				<div class="click-view-previous">
+					<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+				</div>
+
+				<div class="buttons">
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
+				</div>
+			</div>
+
+			<div class="switch-container">
+				<p class="give-access-text">Give access to TRP</p>
+				<div class="switch" >
+					<input type="checkbox"  >
+					<div class="yes">Yes</div>
+					<div class="no">No</div>
+					<div class="highlight"></div>
+					<div class="background"></div>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+</ng-template>
+
+<ng-template #warden_trainingTemplate>
+	<div class="documents-container">
+		<div class="document" >
+
+			<div class="preview-container">
+
+			</div>
+
+			<div class="text-container">
+				<h5 class="file-name">
+					<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+				</h5>
+
+				<div class="dates">
+					<div class="created">
+						<p>Last review held on:</p>
+						<p class="green-text">00/00/0000</p>
+					</div>
+				</div>
+
+				<div class="click-view-previous">
+					<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+				</div>
+
+				<div class="buttons">
+					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
+				</div>
+			</div>
+
+			<div class="switch-container">
+				<p class="give-access-text">Give access to TRP</p>
+				<div class="switch" >
+					<input type="checkbox"  >
+					<div class="yes">Yes</div>
+					<div class="no">No</div>
+					<div class="highlight"></div>
+					<div class="background"></div>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+</ng-template>
+
+<ng-template #fire_safety_advisorTemplate>
+	<div class="documents-container">
+		<div class="document" >
+
+			<div class="preview-container">
+
+			</div>
+
+			<div class="text-container">
+				<h5 class="file-name">
+					<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+				</h5>
+
+				<div class="dates">
+					<div class="created">
+						<p>Last review held on</p>
+						<p class="green-text">00/00/0000</p>
+					</div>
+
+					<div class="review">
+						<p>Valid until:</p>
+						<p class="green-text">00/00/0000</p>
+					</div>
+				</div>
+
+				<div class="click-view-previous">
+					<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+				</div>
+
+				<div class="buttons">
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
+				</div>
+			</div>
+
+			<div class="switch-container">
+				<p class="give-access-text">Give access to TRP</p>
+				<div class="switch" >
+					<input type="checkbox"  >
+					<div class="yes">Yes</div>
+					<div class="no">No</div>
+					<div class="highlight"></div>
+					<div class="background"></div>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+</ng-template>
+
+<ng-template #general_occupant_trainingTemplate>
+	<div class="documents-container">
+		<div class="document" >
+
+			<div class="preview-container">
+
+			</div>
+
+			<div class="text-container">
+				<h5 class="file-name">
+					<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+				</h5>
+
+				<div class="dates">
+					<div class="created">
+						<p>Last review held on:</p>
+						<p class="green-text">00/00/0000</p>
+					</div>
+				</div>
+
+				<div class="click-view-previous">
+					<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+				</div>
+
+				<div class="buttons">
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
+				</div>
+			</div>
+
+			<div class="switch-container">
+				<p class="give-access-text">Give access to TRP</p>
+				<div class="switch" >
+					<input type="checkbox"  >
+					<div class="yes">Yes</div>
+					<div class="no">No</div>
+					<div class="highlight"></div>
+					<div class="background"></div>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+</ng-template>
+
+<ng-template #warden_listTemplate>
+	<div class="documents-container">
+		<div class="document" >
+
+			<div class="preview-container">
+
+			</div>
+
+			<div class="text-container">
+				<h5 class="file-name">
+					<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+				</h5>
+
+				<div class="dates">
+					<div class="created">
+						<p>Last review held on</p>
+						<p class="green-text">00/00/0000</p>
+					</div>
+
+					<div class="review">
+						<p>Valid until:</p>
+						<p class="green-text">00/00/0000</p>
+					</div>
+				</div>
+
+				<div class="click-view-previous">
+					<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+				</div>
+
+				<div class="buttons">
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
+				</div>
+			</div>
+
+			<div class="switch-container">
+				<p class="give-access-text">Give access to TRP</p>
+				<div class="switch" >
+					<input type="checkbox"  >
+					<div class="yes">Yes</div>
+					<div class="no">No</div>
+					<div class="highlight"></div>
+					<div class="background"></div>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+</ng-template>
+
+<ng-template #epmTableTemplate>
+	<div class="col l12 m12 s12">
+		<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
+	</div>
+	<div class="col l4 m12 s12"  >
+		<ng-container *ngTemplateOutlet="epmTemplate"></ng-container>
+	</div>
+	<div class="col l8 m12 s12">
+		<div class="diagram-top-of-table">
+			<h5 class="blue-text title">Previous Versions</h5>
+		</div>
+		<div class="filter-container row">
+			<div class="col l6 m12 s12">
+				<div class="search-field">
+					<input placeholder="Search here" type="text">
+					<span class="material-icons">search</span>
+				</div>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="filter-by">
+					<option value="0" selected disabled >Filter By</option>
+				</select>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="sort-by">
+					<option value="0" selected disabled >Sort By</option>
+				</select>
+			</div>
+		</div>
+		<table class="striped table">
+			<thead>
+				<tr>
+					<th>Date Created</th>
+					<th>Last Review</th>
+					<th>Filename</th>
+					<th>Trainor</th>
+					<th style="width: 10%;">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
+					<td>
+					{{doc.display_format}}
+					</td>
+					<td>
+						{{doc.file_name}}
+					</td>
+					<td>
+						Allan Last
+					</td>
+					<td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
+							<img src="/assets/images/download_ico_blue.png"  >
+						</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</ng-template>
+
+<ng-template #epcTableTemplate>
+	<div class="col l12 m12 s12">
+		<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
+	</div>
+	<div class="col l4 m12 s12"  >
+		<ng-container *ngTemplateOutlet="epcTemplate"></ng-container>
+	</div>
+	<div class="col l8 m12 s12">
+		<div class="diagram-top-of-table">
+			<h5 class="blue-text title">Previous Versions</h5>
+		</div>
+		<div class="filter-container row">
+			<div class="col l6 m12 s12">
+				<div class="search-field">
+					<input placeholder="Search here" type="text">
+					<span class="material-icons">search</span>
+				</div>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="filter-by">
+					<option value="0" selected disabled >Filter By</option>
+				</select>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="sort-by">
+					<option value="0" selected disabled >Sort By</option>
+				</select>
+			</div>
+		</div>
+		<table class="striped table">
+			<thead>
+				<tr>
+					<th>EPC Records</th>
+					<th>Filename</th>
+					<th>Trainor</th>
+					<th style="width: 10%;">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
+					<td>
+					{{doc.display_format}}
+					</td>
+					<td>
+						{{doc.file_name}}
+					</td>
+					<td>
+						Allan Last
+					</td>
+					<td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
+							<img src="/assets/images/download_ico_blue.png"  >
+						</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</ng-template>
+
+<ng-template #evacution_exerciseTableTemplate>
+	<div class="col l12 m12 s12">
+		<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
+	</div>
+	<div class="col l4 m12 s12"  >
+		<ng-container *ngTemplateOutlet="evacution_exerciseTemplate"></ng-container>
+	</div>
+	<div class="col l8 m12 s12">
+		<div class="diagram-top-of-table">
+			<h5 class="blue-text title">Previous Versions</h5>
+		</div>
+		<div class="filter-container row">
+			<div class="col l6 m12 s12">
+				<div class="search-field">
+					<input placeholder="Search here" type="text">
+					<span class="material-icons">search</span>
+				</div>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="filter-by">
+					<option value="0" selected disabled >Filter By</option>
+				</select>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="sort-by">
+					<option value="0" selected disabled >Sort By</option>
+				</select>
+			</div>
+		</div>
+		<table class="striped table">
+			<thead>
+				<tr>
+					<th>Evacuation Exercise Meeting</th>
+					<th>Filename</th>
+					<th>Trainor</th>
+					<th style="width: 10%;">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
+					<td>
+					{{doc.display_format}}
+					</td>
+					<td>
+						{{doc.file_name}}
+					</td>
+					<td>
+						Allan Last
+					</td>
+					<td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
+							<img src="/assets/images/download_ico_blue.png"  >
+						</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</ng-template>
+
+<ng-template #evac_diagramTableTemplate>
+	<div class="col l12 m12 s12">
+		<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
+	</div>
+	<div class="col l4 m12 s12"  >
+		<ng-container *ngTemplateOutlet="evac_diagramTemplate"></ng-container>
+	</div>
+	<div class="col l8 m12 s12">
+		<div class="diagram-top-of-table">
+			<h5 class="blue-text title">Diagram Details</h5>
+		</div>
+
+		<table class="striped table">
+			<thead>
+				<tr>
+					<th>Sub Locations</th>
+					<th>Date Uploaded</th>
+					<th>Valid Until</th>
+					<th>Diagram</th>
+					<th>Created By</th>
+					<th style="width: 10%;">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td class="with-icon">
+						<div class="image check"></div>
+						<div class="text">Level 1</div>
+					</td>
+					<td>
+						00/00/0000
+					</td>
+					<td>
+						00/00/0000
+					</td>
+					<td>
+						<a href="javascript:void(0)" class="blue-text"> View All </a>
+					</td>
+					<td>
+						EvacServices
+					</td>
+					<td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" ">
+							<img src="/assets/images/download_ico_blue.png"  >
+						</a>
+					</td>
+				</tr>
+				<tr>
+					<td class="with-icon">
+						<div class="image alarm"></div>
+						<div class="text">Level 2</div>
+					</td>
+					<td>
+						00/00/0000
+					</td>
+					<td>
+						00/00/0000
+					</td>
+					<td>
+						<a href="javascript:void(0)" class="blue-text"> View All </a>
+					</td>
+					<td>
+						EvacServices
+					</td>
+					<td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" ">
+							<img src="/assets/images/download_ico_blue.png"  >
+						</a>
+					</td>
+				</tr>
+				<tr>
+					<td class="with-icon">
+						<div class="image expired"></div>
+						<div class="text">Level 3</div>
+					</td>
+					<td>
+						00/00/0000
+					</td>
+					<td>
+						00/00/0000
+					</td>
+					<td>
+						<a href="javascript:void(0)" class="blue-text"> View All </a>
+					</td>
+					<td>
+						EvacServices
+					</td>
+					<td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" ">
+							<img src="/assets/images/download_ico_blue.png"  >
+						</a>
+					</td>
+				</tr>
+				<tr>
+					<td class="with-icon">
+						<div class="image expired"></div>
+						<div class="text">Level 4</div>
+					</td>
+					<td>
+						--
+					</td>
+					<td>
+						--
+					</td>
+					<td>
+						--
+					</td>
+					<td>
+						--
+					</td>
+					<td>
+						<button class="btn red waves-effect waves-light btn-manage accent-4">Manage</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</ng-template>
+
+<ng-template #chief_warden_trainingTableTemplate>
+	<div class="col l12 m12 s12">
+		<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
+	</div>
+	<div class="col l4 m12 s12"  >
+		<ng-container *ngTemplateOutlet="chief_warden_trainingTemplate"></ng-container>
+	</div>
+	<div class="col l8 m12 s12">
+		<div class="diagram-top-of-table">
+			<h5 class="blue-text title">Attendance Record</h5>
+		</div>
+		<div class="filter-container row">
+			<div class="col l6 m12 s12">
+				<div class="search-field">
+					<input placeholder="Search here" type="text">
+					<span class="material-icons">search</span>
+				</div>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="filter-by">
+					<option value="0" selected disabled >Filter By</option>
+				</select>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="sort-by">
+					<option value="0" selected disabled >Sort By</option>
+				</select>
+			</div>
+		</div>
+		<table class="striped table">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Location</th>
+					<th>Filename</th>
+					<th style="width: 10%;">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>
+						00/00/0000
+					</td>
+					<td>
+						Jaka, Level 1
+					</td>
+					<td>
+						<a href="javascript:void(0)" class="blue-text"> file.fle </a>
+					</td>
+					<td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" ">
+							<img src="/assets/images/download_ico_blue.png"  >
+						</a>
+					</td>
+				</tr>
+				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
+					<td>
+            {{doc.display_format}}
+            </td>
+					<td>
+						Jaka, Level 1
+					</td>
+					<td>
+						{{doc.file_name}}
+          </td>
+          <td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
+							<img src="/assets/images/download_ico_blue.png"  >
+						</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</ng-template>
+
+<ng-template #warden_trainingTableTemplate>
+	<div class="col l12 m12 s12">
+		<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
+	</div>
+	<div class="col l4 m12 s12"  >
+		<ng-container *ngTemplateOutlet="warden_trainingTemplate"></ng-container>
+	</div>
+	<div class="col l8 m12 s12">
+		<div class="diagram-top-of-table">
+			<h5 class="blue-text title">Warden Benchmarking</h5>
+		</div>
+		<div class="filter-container row">
+			<div class="col l6 m12 s12">
+				<div class="search-field">
+					<input placeholder="Search here" type="text">
+					<span class="material-icons">search</span>
+				</div>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="filter-by">
+					<option value="0" selected disabled >Filter By</option>
+				</select>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="sort-by">
+					<option value="0" selected disabled >Sort By</option>
+				</select>
+			</div>
+		</div>
+		<table class="striped table">
+			<thead>
+				<tr>
+					<th>Sub Locations</th>
+					<th>Benchmark</th>
+					<th>Nominated</th>
+					<th>Trained</th>
+					<th>Training Compliance</th>
+					<th style="width: 13%;">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>
+						Level 1
+					</td>
+					<td>
+						10
+					</td>
+					<td>
+						8
+					</td>
+					<td>
+						7
+					</td>
+					<td>
+						70%
+					</td>
+					<td>
+						<a href="javascript:void(0)" class="blue-text"> View Warden List </a>
+					</td>
+				</tr>
+
+			</tbody>
+		</table>
+	</div>
+</ng-template>
+
+<ng-template #fire_safety_advisorTableTemplate>
+	<div class="col l12 m12 s12">
+		<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
+	</div>
+	<div class="col l4 m12 s12"  >
+		<ng-container *ngTemplateOutlet="fire_safety_advisorTemplate"></ng-container>
+	</div>
+	<div class="col l8 m12 s12">
+		<div class="diagram-top-of-table">
+			<h5 class="blue-text title">Previous Versions</h5>
+		</div>
+		<div class="filter-container row">
+			<div class="col l6 m12 s12">
+				<div class="search-field">
+					<input placeholder="Search here" type="text">
+					<span class="material-icons">search</span>
+				</div>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="filter-by">
+					<option value="0" selected disabled >Filter By</option>
+				</select>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="sort-by">
+					<option value="0" selected disabled >Sort By</option>
+				</select>
+			</div>
+		</div>
+		<table class="striped table">
+			<thead>
+				<tr>
+					<th>Previous Review</th>
+					<th>Filename</th>
+					<th>Trainor</th>
+					<th style="width: 10%;">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
+					<td>
+					{{doc.display_format}}
+					</td>
+					<td>
+						{{doc.file_name}}
+					</td>
+					<td>
+						Allan Last
+					</td>
+					<td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
+							<img src="/assets/images/download_ico_blue.png"  >
+						</a>
+					</td>
+				</tr>
+
+			</tbody>
+		</table>
+	</div>
+</ng-template>
+
+<ng-template #general_occupant_trainingTableTemplate>
+	<div class="col l12 m12 s12">
+		<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
+	</div>
+	<div class="col l4 m12 s12"  >
+		<ng-container *ngTemplateOutlet="general_occupant_trainingTemplate"></ng-container>
+	</div>
+	<div class="col l8 m12 s12">
+		<div class="diagram-top-of-table">
+			<h5 class="blue-text title">Warden Benchmarking</h5>
+		</div>
+		<div class="filter-container row">
+			<div class="col l6 m12 s12">
+				<div class="search-field">
+					<input placeholder="Search here" type="text">
+					<span class="material-icons">search</span>
+				</div>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="filter-by">
+					<option value="0" selected disabled >Filter By</option>
+				</select>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="sort-by">
+					<option value="0" selected disabled >Sort By</option>
+				</select>
+			</div>
+		</div>
+		<table class="striped table">
+			<thead>
+				<tr>
+					<th>Sub Locations</th>
+					<th>Staff</th>
+					<th>Trained</th>
+					<th>Training Compliance</th>
+					<th style="width: 13%;">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>
+						Level 1
+					</td>
+					<td>
+						10
+					</td>
+					<td>
+						7
+					</td>
+					<td>
+						70%
+					</td>
+					<td>
+						<a href="javascript:void(0)" class="blue-text"> View User </a>
+					</td>
+				</tr>
+
+			</tbody>
+		</table>
+	</div>
+</ng-template>
+
+<ng-template #warden_listTableTemplate>
+	<div class="col l12 m12 s12">
+		<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
+	</div>
+	<div class="col l4 m12 s12"  >
+		<ng-container *ngTemplateOutlet="warden_listTemplate"></ng-container>
+	</div>
+	<div class="col l8 m12 s12">
+		<div class="diagram-top-of-table">
+			<h5 class="blue-text title">Previous Versions</h5>
+		</div>
+		<div class="filter-container row">
+			<div class="col l6 m12 s12">
+				<div class="search-field">
+					<input placeholder="Search here" type="text">
+					<span class="material-icons">search</span>
+				</div>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="filter-by">
+					<option value="0" selected disabled >Filter By</option>
+				</select>
+			</div>
+			<div class="col l3 m12 s12">
+				<select class="sort-by">
+					<option value="0" selected disabled >Sort By</option>
+				</select>
+			</div>
+		</div>
+		<table class="striped table">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Account</th>
+					<th>TRP Name</th>
+					<th style="width: 10%;">No of new wardens added</th>
+					<th style="width: 10%;">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>
+						00/00/0000
+					</td>
+					<td>
+						<span class="blue-text"> Emapta </span>
+					</td>
+					<td>
+						Allan Last
+					</td>
+					<td>
+						150
+					</td>
+					<td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" ">
+							<img src="/assets/images/download_ico_blue.png"  >
+						</a>
+					</td>
+				</tr>
+
+			</tbody>
+		</table>
+	</div>
+</ng-template>
+
+
+<div class="top-gray">
+	<h6 class="title">
+		<span *ngIf="locationData.parentData.name">{{locationData.parentData.name}},</span> {{locationData.name}}
+	</h6>
+
+	<div class="upload-buttons">
+		<button class="btn blue waves-effect waves-light">
+			<img src="/assets/images/upload_ico.png" alt="">
+			Upload Documents
+		</button>
+
+		<button class="btn orange waves-effect waves-light" (click)="downloadAllPack()">
+			<img src="/assets/images/download_ico.png" alt="">
+			Download all Pack
+		</button>
+	</div>
+
+	<!-- <a href="" class="archived">
+		<span class="image"></span>
+		View Archived
+	</a> -->
+</div>
+
+<div class="main">
+
+	<div class="row row-table-content" style="left: 0%;">
+		<div class="col l5 m12 s12">
+			<div class="progress-loading-container">
+				<div class="left-icon">
+					<div class="image"></div>
+				</div>
+				<div class="right-icon">
+					<div class="image"></div>
+				</div>
+
+				<div class="background"></div>
+				<div class="loading" [ngStyle]="{'width': totalPercentage}">
+					<div class="tip-percentage">
+						<div class="percentage">{{ totalPercentage }}</div>
+						<div class="arrow-down"></div>
+					</div>
+				</div>
+
+			</div>
+
+			<table class="table table-list">
+				<thead>
+					<tr>
+						<th>Compliance Item</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody>
+
+					<tr *ngFor="let k of KPIS;" (click)="clickSelectComplianceFromList(k)" [attr.compliance]="k.short_code">
+						<td class="with-image">
+							<div class="image {{k.icon_class}}"></div>
+							<span>{{k.name}}</span>
+						</td>
+						<td class="with-icon" *ngIf="k.type == 'date'">
+							<div *ngIf="k.compliance.validity_percentage == 0 || k.compliance.valid_till == null" class="image expired"></div>
+							<div *ngIf="k.compliance.validity_percentage > 0 && k.compliance.validity_percentage <= 50" class="image alarm"></div>
+							<div *ngIf="k.compliance.validity_percentage > 50" class="image check"></div>
+
+							<div class="text">
+								<p>Valid Till:</p>
+								<span *ngIf="k.compliance.valid_till == null"> --/--/---- </span>
+								<p *ngIf="k.compliance.validity_percentage == 0" class="red-text">
+									<span *ngIf="k.compliance.valid_till !== null">{{k.compliance.valid_till}}</span>
+								</p>
+								<div *ngIf="k.compliance.validity_percentage > 0 && k.compliance.validity_percentage <= 50"  >
+									<span *ngIf="k.compliance.valid_till !== null">{{k.compliance.valid_till}}</span>
+								</div>
+								<div *ngIf="k.compliance.validity_percentage > 50" class="image check" class="green-text">
+									<span *ngIf="k.compliance.valid_till !== null">{{k.compliance.valid_till}}</span>
+								</div>
+							</div>
+
+							<div class="arrow"></div>
+						</td>
+						<td class="with-bar" *ngIf="k.type == 'percent'">
+							<div class="text">0%</div>
+							<div class="progress-container">
+								<div class="progress">
+							    	<div class="determinate" style="width: 0%;"></div>
+								</div>
+								<p>0/0</p>
+							</div>
+
+							<div class="arrow"></div>
+						</td>
+					</tr>
+
+				</tbody>
+			</table>
+		</div>
+		<div class="col l7 m12 s12"  >
+
+			<ng-container *ngTemplateOutlet="complianceTitleTemplate ? complianceTitleTemplate : noneTemplate"></ng-container>
+
+			<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
+			<ng-container  *ngTemplateOutlet="selectedCompliance.template"> </ng-container>
+
+			<!-- <div class="notes-container">
+				<h5>Notes:</h5>
+				<p *ngIf="selectedCompliance.compliance.note !== null">{{selectedCompliance.compliance.note}}</p> <p *ngIf="selectedCompliance.compliance.note == null"> no notes </p>
+			</div>
+
+			<div class="documents-container" *ngIf="!selectedCompliance.compliance.docs[0]">
+				<div class="click-view-previous">
+					<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+				</div>
+			</div>
+
+			<div class="documents-container" *ngIf="selectedCompliance.compliance.docs[0]">
+				<div class="document" >
+
+					<div class="preview-container">
+
+					</div>
+
+					<div class="text-container">
+						<h5 class="file-name">{{ selectedCompliance.compliance.docs[0]['file_name'] }}</h5>
+
+						<div class="dates">
+							<div class="created">
+								<p>Creation Date:</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+
+							<div class="review">
+								<p>Last Review Date:</p>
+								<p class="green-text">00/00/0000</p>
+							</div>
+						</div>
+
+						<div class="click-view-previous">
+							<a href="javascript:void(0)" class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+						</div>
+
+						<div class="buttons">
+							<button class="btn orange waves-effect waves-light">Download</button>
+							<button class="btn blue lighten-1 waves-effect waves-light">Shop</button>
+						</div>
+					</div>
+
+
+					<div class="switch-container">
+						<p>Give access to TRP</p>
+						<div class="switch">
+							<input type="checkbox" >
+							<div class="yes">Yes</div>
+							<div class="no">No</div>
+							<div class="highlight"></div>
+							<div class="background"></div>
+						</div>
+					</div>
+				</div>
+
+			</div> -->
+		</div>
+	</div>
+
+	<div class="row row-diagram-details"  style="display: none;">
+		<div class="col l12 m12 s12">
+			<ng-container *ngTemplateOutlet="complianceTitleTemplate2 ? complianceTitleTemplate2 : noneTemplate"></ng-container>
+		</div>
+		<div class="content">
+
+			<ng-container  *ngTemplateOutlet="selectedCompliance.tableTemplate"> </ng-container>
+		</div>
+	</div>
+
+</div>
+
+
+<div preloader></div>

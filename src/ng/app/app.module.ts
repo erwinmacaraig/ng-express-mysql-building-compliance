@@ -79,6 +79,19 @@ import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.w
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
 import { NgDatepickerModule } from 'ng2-datepicker';
 
+import { ComplianceComponent } from './compliance/compliance.component';
+import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
+
+import { ShopComponent } from './shop/shop.component';
+import { CompliancePackageComponent } from './shop/compliance.package.component/compliance.package.component';
+import { TrainingsPackageComponent } from './shop/trainings.package.component/trainings.package.component';
+import { EvacuationDiagramPackageComponent } from './shop/evacuation.diagram.package.component/evacuation.diagram.package.component';
+import { ExampleComponent } from './shop/example.component/example.component';
+import { PaymentResponseComponent } from './payment.response/payment.response.component';
+import { CartComponent } from './shop/cart.component/cart.component';
+import { PaymentComponent } from './shop/payment.component/payment.component';
+import { ProductsFavoritesComponent } from './shop/products.favorites/product.favorites.component';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -132,6 +145,19 @@ import { NgDatepickerModule } from 'ng2-datepicker';
     ViewGeneralOccupantComponent,
     ViewChiefWardenComponent,
     AllUsersArchivedComponent,
+
+    ComplianceComponent,
+    ViewComplianceComponent,
+
+    ShopComponent,
+    CompliancePackageComponent,
+    TrainingsPackageComponent,
+    EvacuationDiagramPackageComponent,
+    ExampleComponent,
+    PaymentResponseComponent,
+    CartComponent,
+    PaymentComponent,
+    ProductsFavoritesComponent
   ],
   imports: [
     BrowserModule,

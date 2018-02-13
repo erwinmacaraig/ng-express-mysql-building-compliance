@@ -1,0 +1,101 @@
+<div class="top-gray">
+	<ul>
+		<li>
+			<h5>Shopping Cart Checkout</h5>
+		</li>
+	</ul>
+</div>
+
+<div class="container">
+	<div class="row" *ngIf="arrayCart.length == 0">
+		<div class="col l12 m12 s12">
+			<h5>Please add a product to cart first</h5>
+		</div>
+	</div>
+
+	<div class="row" *ngIf="arrayCart.length > 0">
+		
+		<div class="col l4 m5 s12">
+			<h5 class="blue-text col-title">Order Summary</h5>
+			
+			<div class="products-wrapper grey lighten-3">
+				<div class="list-container">
+					<ul>
+						<li *ngFor="let cart of arrayCart">
+							
+							<div class="image">
+								<img src="{{cart.item.product_image}}" alt="">
+							</div>
+							<div class="text">
+								<h6 class="name blue-text">{{ cart.item.product_title }}</h6>
+								<div [innerHTML]="cart.item.product_desc"></div>
+								<div class="quantity-container">
+									<div class="input" >
+										<input type="text" #quantityInput readonly value="{{cart.qty}}">
+										<button class="btn-arrow-up waves-effect waves-light" (click)="addQuantity(cart)"><i class="material-icons">arrow_drop_up</i></button>
+										<button class="btn-arrow-down waves-effect waves-light" (click)="subtractQuantity(cart)"><i class="material-icons">arrow_drop_down</i></button>
+									</div>
+									<div class="text">
+										x {{ cart.item.amount }} USD
+									</div>
+								</div>
+								<p>
+									<strong>Location: <span class="orange-text">{{getLocationName(cart.item.location_id)}}</span></strong>
+								</p>
+							</div>
+
+							<div class="remove-container">
+								<a href="javascript:void(0)" (click)="removeFromCart(cart.item.product_id)" class="black-text right">
+									Close <div class="close-image"></div>
+								</a>
+								<div style="clear: both;"></div>
+							</div>
+
+						</li>
+					</ul>
+				</div>
+				<div class="footer grey darken-3">
+					<p class="left white-text">Total</p>
+					<p class="right white-text">$ {{cart.totalPrice}}</p>
+					<p style="clear: both;"></p>
+				</div>
+			</div>
+
+			<div class="discout-wrapper teal lighten-2">
+				<h5 class="white-text">Discout Promo</h5>
+				<input type="text" placeholder="Enter discount coupon code">
+				<button class="btn grey darken-3 waves-effect waves-light">Apply</button>
+			</div>
+
+		</div>
+
+		<div class="col l8 m7 s12">
+			<h5 class="blue-text col-title">Payment Method</h5>
+
+			<div class="payment-wrapper grey lighten-4">
+				<div class="logos row">
+					<div class="col l3 m6 s12 image paypal active"></div>
+					<div class="col l3 m6 s12 image creditcard"></div>
+					<div class="col l3 m6 s12 image bank"></div>
+					<div class="col l3 m6 s12 image bpay"></div>
+				</div>
+
+				<div class="content">
+					<h5 class="name">Paypal</h5>
+					<p class="description">
+						PayPal Holdings, Inc. is an American company operating a worldwide online payments system that supports online money transfers and serves as an electronic alternative to traditional paper methods like checks and money orders. PayPal is one of the world's largest Internet payment companies. The company operates as a payment processor for online vendors, auction sites and other commercial users, for which it charges a small fee in exchange for benefits such as one-click transactions and password memory.
+					</p>
+				</div>
+
+				<div class="footer orange">
+					<p class="left white-text">My Payment</p>
+					<div class="right white-text">
+						<button class="arrow-right-image waves-effect waves-blue" (click)="goToPayment()"></button>
+					</div>
+					<p style="clear: both;"></p>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
