@@ -69,30 +69,28 @@ export class ComplianceService {
 			});
   }
 
-  public downloadAllComplianceDocumentPack() {
+  public downloadAllComplianceDocumentPack(location) {
     const headers = new HttpHeaders(
       { 'Content-type' : 'application/json',
         'Accept': 'application/zip'
       });
 
     const requestOptions = {
-      'params': new HttpParams(),
+      'params': new HttpParams().set('location_id', location.toString()),
       'headers': headers,
       'responseType': ResponseContentType.Blob
     };
 
-      /*
-{
-        headers: headers,
-        responseType:ResponseContentType.Blob,//dont forget to import the enum
-        //In case you get Module not found: Error: Can't resolve '@angular/http/src/enums', just use 3 instead ex "responseType:3"
-        }
-      */
-
-
-
      return this.http.get(this.baseUrl + '/compliance/download-compliance-documents-pack/', {headers: headers,
-      responseType: 'arraybuffer', observe: 'response'} );
+      responseType: 'arraybuffer', observe: 'response', params: new HttpParams().set('location_id', location.toString())} );
+  }
+
+  public downloadComplianceFile(path: string = '', filename: string = '') {
+    return this.http.get(this.baseUrl +
+      '/compliance/download-compliance-file/',
+      {params: new HttpParams().set('keyname', path).set('fname', filename),
+      observe: 'response',
+      responseType: 'arraybuffer'});
   }
 
 }

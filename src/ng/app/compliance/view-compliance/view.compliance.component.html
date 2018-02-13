@@ -72,7 +72,9 @@
 				</div>
 
 				<div class="buttons">
-					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0" >Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
 				</div>
 			</div>
@@ -126,7 +128,9 @@
 				</div>
 
 				<div class="buttons">
-					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
 				</div>
 			</div>
@@ -234,7 +238,9 @@
 				</div>
 
 				<div class="buttons">
-					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
 				</div>
 			</div>
@@ -281,7 +287,9 @@
 				</div>
 
 				<div class="buttons">
-					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
 				</div>
 			</div>
@@ -378,7 +386,9 @@
 				</div>
 
 				<div class="buttons">
-					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Shop</button>
 				</div>
 			</div>
@@ -424,7 +434,9 @@
 				</div>
 
 				<div class="buttons">
-					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
 				</div>
 			</div>
@@ -475,7 +487,9 @@
 				</div>
 
 				<div class="buttons">
-					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+          <button
+          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
 				</div>
 			</div>
@@ -536,40 +550,18 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
+				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
 					<td>
-						00/00/0000
+					{{doc.display_format}}
 					</td>
 					<td>
-						00/00/0000
-					</td>
-					<td>
-						<a href="javascript:void(0)" class="blue-text"> file.fle </a>
+						{{doc.file_name}}
 					</td>
 					<td>
 						Allan Last
 					</td>
 					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						<a href="javascript:void(0)" class="blue-text"> file_2.fle </a>
-					</td>
-					<td>
-						First Last
-					</td>
-					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
+						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
 							<img src="/assets/images/download_ico_blue.png"  >
 						</a>
 					</td>
@@ -618,34 +610,18 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
+				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
 					<td>
-						00/00/0000
+					{{doc.display_format}}
 					</td>
 					<td>
-						<a href="javascript:void(0)" class="blue-text"> file.fle </a>
+						{{doc.file_name}}
 					</td>
 					<td>
 						Allan Last
 					</td>
 					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						<a href="javascript:void(0)" class="blue-text"> file_2.fle </a>
-					</td>
-					<td>
-						First Last
-					</td>
-					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
+						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
 							<img src="/assets/images/download_ico_blue.png"  >
 						</a>
 					</td>
@@ -694,34 +670,18 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
+				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
 					<td>
-						00/00/0000
+					{{doc.display_format}}
 					</td>
 					<td>
-						<a href="javascript:void(0)" class="blue-text"> file.fle </a>
+						{{doc.file_name}}
 					</td>
 					<td>
 						Allan Last
 					</td>
 					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						<a href="javascript:void(0)" class="blue-text"> file_2.fle </a>
-					</td>
-					<td>
-						First Last
-					</td>
-					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
+						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
 							<img src="/assets/images/download_ico_blue.png"  >
 						</a>
 					</td>
@@ -905,18 +865,18 @@
 						</a>
 					</td>
 				</tr>
-				<tr>
+				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
 					<td>
-						00/00/0000
-					</td>
+            {{doc.display_format}}
+            </td>
 					<td>
 						Jaka, Level 1
 					</td>
 					<td>
-						<a href="javascript:void(0)" class="blue-text"> file.fle </a>
-					</td>
-					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
+						{{doc.file_name}}
+          </td>
+          <td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
 							<img src="/assets/images/download_ico_blue.png"  >
 						</a>
 					</td>
@@ -1032,38 +992,23 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
+				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
 					<td>
-						00/00/0000
+					{{doc.display_format}}
 					</td>
 					<td>
-						<a href="javascript:void(0)" class="blue-text"> file.fle </a>
+						{{doc.file_name}}
 					</td>
 					<td>
 						Allan Last
 					</td>
 					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
+						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
 							<img src="/assets/images/download_ico_blue.png"  >
 						</a>
 					</td>
 				</tr>
-				<tr>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						<a href="javascript:void(0)" class="blue-text"> file_2.fle </a>
-					</td>
-					<td>
-						First Last
-					</td>
-					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
+
 			</tbody>
 		</table>
 	</div>
@@ -1234,9 +1179,9 @@
 				</div>
 
 				<div class="background"></div>
-				<div class="loading" [attr.percent]="1">
+				<div class="loading" [ngStyle]="{'width': totalPercentage}">
 					<div class="tip-percentage">
-						<div class="percentage">0%</div>
+						<div class="percentage">{{ totalPercentage }}</div>
 						<div class="arrow-down"></div>
 					</div>
 				</div>
