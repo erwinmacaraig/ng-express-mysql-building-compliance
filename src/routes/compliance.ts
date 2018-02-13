@@ -146,7 +146,13 @@ import * as S3Zipper from 'aws-s3-zipper';
 			}),
       responsibility = '';
       const utils = new Utils();
-      const paths = await utils.s3DownloadFilePathGen(accountID, locationID);
+      let paths;
+      try {
+         paths = await utils.s3DownloadFilePathGen(accountID, locationID);
+      } catch(e) {
+        paths = [];
+      }
+
       console.log(paths);
 
 		for(let i in locAcc){
