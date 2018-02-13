@@ -200,13 +200,14 @@ export class Location extends BaseClass {
 			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
 			('order' in this.dbData) ? this.dbData['order'] : null,
 			('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
-			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : null,
+			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] :
+                                                       (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
 			('archived' in this.dbData) ? this.dbData['archived'] : 0,
 			('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
 			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null,
 			this.ID() ? this.ID() : 0
 			];
-			
+
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_update, param, (err, results, fields) => {
 				if (err) {
@@ -255,8 +256,9 @@ export class Location extends BaseClass {
 			('lng' in this.dbData) ? this.dbData['lng'] : null,
 			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
 			('order' in this.dbData) ? this.dbData['order'] : null,
-			('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
-			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : null,
+      ('is_building' in this.dbData) ? this.dbData['is_building'] : 1,
+      ('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] :
+                            (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
 			('archived' in this.dbData) ? this.dbData['archived'] : 0,
 			('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
 			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null
@@ -333,8 +335,8 @@ export class Location extends BaseClass {
 
 	public getDeepLocationsByParentId(parentId){
 		return new Promise((resolve) => {
-			const sql_load = `SELECT * 
-			FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations, 
+			const sql_load = `SELECT *
+			FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
 			(SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
@@ -354,20 +356,20 @@ export class Location extends BaseClass {
 			let tempArr = [];
 			let parents = [];
 
-			let sublocationQuery; 
-			if (user_id) { 
+			let sublocationQuery;
+			if (user_id) {
 				sublocationQuery = `
-					SELECT locations.* FROM locations 
-					INNER JOIN location_account_user ON location_account_user.location_id = locations.location_id 
-					AND location_account_user.user_id = ${user_id} AND locations.archived = 0 `; 
-				if (role_id) { 
-					// sublocationQuery = sublocationQuery + `AND location_account_user.role_id = ${role_id}`; 
-				} 
-			} else { 
-				sublocationQuery = `SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id  DESC`; 
-			} 
+					SELECT locations.* FROM locations
+					INNER JOIN location_account_user ON location_account_user.location_id = locations.location_id
+					AND location_account_user.user_id = ${user_id} AND locations.archived = 0 `;
+				if (role_id) {
+					// sublocationQuery = sublocationQuery + `AND location_account_user.role_id = ${role_id}`;
+				}
+			} else {
+				sublocationQuery = `SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id  DESC`;
+			}
 			const sql_get_subloc = `
-			SELECT location_id, name, parent_id FROM (${sublocationQuery}) sublocations, (SELECT @pv := ?) 
+			SELECT location_id, name, parent_id FROM (${sublocationQuery}) sublocations, (SELECT @pv := ?)
 			initialisation WHERE find_in_set(parent_id, @pv) > 0 AND @pv := concat(@pv, ',', location_id) ORDER BY location_id;`;
 
 			const connection = db.createConnection(dbconfig);
@@ -489,13 +491,13 @@ export class Location extends BaseClass {
 	public getAncestries(sublocId){
 		return new Promise( (resolve) => {
 			this.getAncestryIds(sublocId).then((resultsIds) => {
-				
+
 				let sql = `SELECT * FROM locations WHERE location_id IN (` + sublocId + `)`;
 
 				if( resultsIds[0]['ids'].length > 0 ){
                 	sql = `SELECT * FROM locations WHERE location_id IN (` + sublocId + `,` + resultsIds[0]['ids'] + `)`;
                 }
-                
+
 				const connection = db.createConnection(dbconfig);
 				connection.query(sql, (err, results, fields) => {
 					if (err) {

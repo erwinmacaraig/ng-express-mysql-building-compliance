@@ -37,5 +37,6 @@
   },
   "PAID": 1,
   "UNPAID":0,
-  "PAYMENT_FAILED": 3
+  "PAYMENT_FAILED": 3,
+  "COMPLIANCE-DOCS-PACK": "compliance-docs.zip"
 }

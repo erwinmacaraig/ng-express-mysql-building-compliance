@@ -1,0 +1,52 @@
+<table>
+	<tr>
+		<td style="vertical-align: top; width: 35%;">
+			
+			<h2>Products</h2>
+
+			<ul>
+				<li *ngFor="let prod of allProducts">
+					<h5>{{prod.product_title}} <small>( {{prod.product_code}} )</small></h5>
+					<div style="width: 250px; height: 100px; background-color: #ddd;"></div>
+					<p>{{prod.product_desc}}</p>
+					<p>{{prod.amount}}</p>
+
+					<button class="btn" *ngIf="!isInCart(prod.product_id)" (click)="addToCart(prod.product_id)">
+						Add To Cart
+					</button>
+
+					<button class="btn" *ngIf="isInCart(prod.product_id)" (click)="removeFromCart(prod.product_id)">
+						Remove From Cart
+					</button>
+				</li>
+			</ul>
+
+		</td>
+		<td style="vertical-align: top; width: 30%;">
+			
+			<h2>Cart</h2>
+			<ul>
+				<li *ngFor="let cart of arrayCart">
+					<h5>{{cart.item.product_title}} <small>{{cart.item.product_code}}</small></h5>
+					<div style="width: 250px; height: 100px; background-color: #ddd;"></div>
+					<p>{{cart.item.product_desc}}</p>
+				</li>
+			</ul>
+
+		</td>
+		<td style="vertical-align: top;">
+			<h2>Pay now</h2>
+			<h5>Total Price : <span>( {{cart.totalPrice.toFixed(2)}} )</span></h5>
+
+			<form method="post" action="/payment/paynow/" #form (submit)="submitCheckout(btnSubmit, form, $event)">
+				<input type="text" name="amount" value="{{cart.totalPrice}}" readonly style="display: none;">
+				<input type="text" name="currency" value="USD" readonly style="display: none;">
+				<textarea name="description" ngModel placeholder="Type here the description"></textarea>
+				<button type="submit" class="btn" #btnSubmit >Submit</button>
+			</form>
+		</td>
+	</tr>
+</table>
+
+
+

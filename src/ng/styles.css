@@ -7,6 +7,11 @@
     width: 100%;
 }
 
+html{
+    font-family: 'Open Sans' !important;
+    letter-spacing: -0.3px;
+}
+
 .btn{
 	text-transform: capitalize !important;
     height: 45px !important;

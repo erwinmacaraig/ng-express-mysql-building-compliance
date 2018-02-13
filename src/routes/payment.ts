@@ -8,10 +8,13 @@ import { Translog } from '../models/translog.model';
 import { Transaction } from '../models/transaction.model';
 import { Gateway } from '../models/gateway.model';
 const defs = require('../config/defs');
+import * as url from 'url';
 
 
 import * as paypal from 'paypal-rest-sdk';
 import { fail } from 'assert';
+
+import * as CryptoJS from 'crypto-js';
 
 
 export class PaymentRoute extends BaseRoute {
@@ -73,10 +76,10 @@ export class PaymentRoute extends BaseRoute {
             },
             'transactions': [{
               'amount': {
-                'total': parseInt(req.body.amount, 10),
-                'currency':  req.body.currency.toString()
+                'total': parseFloat(req.body.amount),
+                'currency':  req.body.currency.toString() || 'USD'
               },
-              'description': req.body.description
+              'description': req.body.description || ''
             }]
           };
           console.log('payment', payment);
@@ -123,6 +126,7 @@ export class PaymentRoute extends BaseRoute {
     });
 
     router.get('/payment/paypal/success/:translogId/', (req, res) => {
+      const password = 'NifLed';
       const translogID = req.params.translogId;
       const txnLog = new Translog(translogID);
       const log = {
@@ -145,21 +149,15 @@ export class PaymentRoute extends BaseRoute {
           txnLog.load().then((txnlogData) => {
             if (txnlogData['status'] != 1) {
               txnLog.create(log).then((data) => {
-                return res.status(400).send({
-                  message: 'Payment made but no record of transaction log can be made.'
-                });
+                res.redirect('/payment-response/5');
               }).catch((e) => {
-                return res.status(400).send({
-                  message: 'There was a problem creating transaction log for this session'
-                });
+                res.redirect('/payment-response/6');
               });
             } else {
               return res.status(400).send(error.response);
             }
           }).catch((e) => {
-            return res.status(400).send({
-              message: 'There was a problem updating internal transaction log record'
-            });
+            res.redirect('/payment-response/7');
           });
         } else {
           log['status'] = 1;
@@ -168,23 +166,15 @@ export class PaymentRoute extends BaseRoute {
           txnLog.load().then((txnlogData) => {
             txnLog.create(log).then((data) => {
               new Transaction().markTransactionAsPaid(txnLog.ID()).then(() => {
-                return res.status(200).send({
-                  message: 'Payment successfully recorded.'
-                });
+                res.redirect('/payment-response/1');
               }).catch((e) => {
-                return res.status(400).send({
-                  message: 'Payment successfully recorded but cannot update transaction records for items'
-                });
+                res.redirect('/payment-response/2');
               });
             }).catch((e) => {
-              return res.status(400).send({
-                message: 'Payment successfully made, but cannot create internal transaction log record. '
-              });
+              res.redirect('/payment-response/3' );
             });
           }).catch((e) => {
-            return res.status(400).send({
-              message: 'There was a problem loading internal transaction log record'
-            });
+            res.redirect('/payment-response/4');
           });
         }
       }
@@ -198,13 +188,20 @@ export class PaymentRoute extends BaseRoute {
     await Object.keys(items).forEach((key) => {
       const transaction = new Transaction();
       try {
-         transaction.create({
+
+        transaction.create({
           'user_id': user_id,
           'translog_id': translog,
           'product_id': key,
           'quantity': items[key]['qty'],
-          'amount': items[key]['price']
+          'amount': items[key]['price'],
+          'expiration_date' : (items[key]['item']['expiration_date']) ? items[key]['item']['expiration_date'] : null,
+          'target_user_id' : (items[key]['item']['target_user_id']) ? items[key]['item']['target_user_id'] : 0,
+          'diagram_finish_id' : (items[key]['item']['diagram_finish_id']) ? items[key]['item']['diagram_finish_id'] : 0,
+          'location_id' : (items[key]['item']['location_id']) ? items[key]['item']['location_id'] : 0,
+          'pdf_only' : (items[key]['item']['pdf_only']) ? items[key]['item']['pdf_only'] : 0
         });
+         
       } catch (e) {
         console.log(`Cannot process item ${key}`, );
       }

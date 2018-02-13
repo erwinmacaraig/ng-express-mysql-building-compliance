@@ -116,7 +116,9 @@ export class Account extends BaseClass {
             ('billing_country' in this.dbData) ? this.dbData['billing_country'] : "",
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
             ('account_type' in this.dbData) ? this.dbData['account_type'] : "Account",
-            ('account_directory_name' in this.dbData) ? this.dbData['account_directory_name'] : null,
+            ('account_directory_name' in this.dbData) ? this.dbData['account_directory_name'] :
+                                                        ('account_name' in this.dbData) ?
+                                                        this.dbData['account_name'].replace(/ /g, '') : null,
             ('archived' in this.dbData) ? this.dbData['archived'] : 0,
             ('block_access' in this.dbData) ? this.dbData['block_access'] : 0,
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
@@ -181,7 +183,9 @@ export class Account extends BaseClass {
             ('billing_country' in this.dbData) ? this.dbData['billing_country'] : "",
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
             ('account_type' in this.dbData) ? this.dbData['account_type'] : "Account",
-            ('account_directory_name' in this.dbData) ? this.dbData['account_directory_name'] : null,
+            ('account_directory_name' in this.dbData) ? this.dbData['account_directory_name'] :
+                                                        ('account_name' in this.dbData) ?
+                                                        this.dbData['account_name'].replace(/ /g, '') : null,
             ('archived' in this.dbData) ? this.dbData['archived'] : 0,
             ('block_access' in this.dbData) ? this.dbData['block_access'] : 0,
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,

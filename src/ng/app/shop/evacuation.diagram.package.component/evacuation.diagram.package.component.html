@@ -1,0 +1,127 @@
+<div class="top-gray">
+	<ul>
+		<li>
+			<h5>Evacuation Diagrams</h5>
+		</li>
+	</ul>
+</div>
+
+<div class="container margin-top-20" *ngIf="diagramsProducts.length == 0">
+	<div class="row ">
+		<div class="col l12 m12 s12">
+			<h4>No Diagram Products Yet</h4>
+		</div>
+	</div>
+</div>
+
+<div class="container margin-top-20" *ngIf="diagramsProducts.length > 0">
+	
+	<div class="row ">
+		<div class="col l3 m12 s12">
+			<div class="left-panel margin-top-20">
+				<div class="content">
+					<h5 class="blue-text">Diagram Details</h5>
+				
+					<div class="select-field margin-top-50">
+						<label>Select Location</label>
+						<select id="selectLocation">
+							<option value="0" disabled selected>Select Location</option>
+							<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
+						</select>
+					</div>
+					
+					<div class="select-field">
+						<label>Select Finish</label>
+						<select id="selectDiagram">
+							<option value="{{fin.diagram_finish_id}}" *ngFor="let fin of diagramFinishes; let i = index" [selected]="i==0" >{{fin.name}}</option>
+						</select>
+					</div>
+					
+					<p>
+						<input type="checkbox" class="filled-in" value="none" id="pdf"  />
+						<label for="pdf">PDF File Only</label>
+					</p>
+					
+					<div class="quantity-container">
+						<p>Quantity</p>
+						<div class="input" >
+							<input type="text" #quantityInput readonly [ngModel]="showingDiagram.quantity"  >
+							<button class="btn-arrow-up waves-effect waves-light" (click)="addQuantity()"><i class="material-icons">arrow_drop_up</i></button>
+							<button class="btn-arrow-down waves-effect waves-light" (click)="subtractQuantity()"><i class="material-icons">arrow_drop_down</i></button>
+						</div>
+						<div class="text">
+							x <span>{{showingDiagram.amount}}</span> USD
+						</div>
+						<p>Minimum of 5 pcs.</p>
+					</div>
+				</div>
+				
+				<div class="footer">
+					<h5 class="left">
+						Total
+					</h5>
+					<h5 class="right">
+						$ <span>{{ (showingDiagram.amount * showingDiagram.quantity).toFixed(2) }}</span>
+					</h5>
+					<div style="clear: both;"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col l9 m12 s12 ">
+
+			<div class="right-panel margin-top-20">
+				<div class="top">
+					<h5 class="blue-text left">Diagram Details</h5>
+					<div class="right">
+						<button class="left-arrow waves-effect waves-light" (click)="moveSlide('left')"></button>
+						<button class="right-arrow waves-effect waves-light" (click)="moveSlide('right')"></button>
+					</div>
+					<div style="clear: both;"></div>
+				</div>
+				
+				<div class="slides">
+					<div class="slide">
+						<div class="middle">
+							<table>
+								<tr>
+									<td class="text-container">
+										<h5>{{showingDiagram.product_title}}</h5>
+										<div [innerHTML]="showingDiagram.product_desc"></div>
+									</td>
+									<td class="image-container">
+										<div class="image-wrapper">
+											<h6 class="center" *ngIf="showingDiagram.product_image.length > 10 && showDiagramsImage == false">loading image...</h6>
+											<img [hidden]="!showDiagramsImage" src="{{showingDiagram.product_image}}"  id="imgTag" >
+										</div>
+									</td>
+								</tr>
+							</table>
+						</div>
+						<div class="button-container">
+							<button class="btn-flat waves-effect waves-light save left" *ngIf="!isInFavorites(showingDiagram.product_id)" (click)="addToFavorites(showingDiagram.product_id)">
+								<div class="image"></div> Save
+							</button>
+
+							<button class="btn-flat waves-effect waves-light save left" *ngIf="isInFavorites(showingDiagram.product_id)" (click)="removeFavorite(showingDiagram.product_id)">
+								<div class="image"></div> Remove
+							</button>
+
+							<button class="btn orange waves-effect waves-light buy right" *ngIf="!isInCart(showingDiagram.product_id)" (click)="addToCart(showingDiagram.product_id)">
+								<div class="image"></div> Buy
+							</button>
+
+							<button class="btn orange waves-effect waves-light buy right" *ngIf="isInCart(showingDiagram.product_id)" (click)="removeFromCart(showingDiagram.product_id)">
+								<div class="image"></div> Remove
+							</button>
+
+							<div style="clear: both;"></div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+</div>

@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
+import { ResponseContentType } from '@angular/http';
 import { PlatformLocation } from '@angular/common';
 import { Observable, BehaviorSubject } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { EncryptDecryptService } from '../services/encrypt.decrypt';
-
 
 @Injectable()
 export class ComplianceService {
@@ -20,7 +20,7 @@ export class ComplianceService {
 	public observableMessage = this.behaviorSubject.asObservable();
 
 	constructor(
-		private http: HttpClient, 
+		private http: HttpClient,
 		private platformLocation: PlatformLocation,
 		private route: ActivatedRoute,
 		private router: Router,
@@ -67,6 +67,30 @@ export class ComplianceService {
 			}, err => {
 				callBack( JSON.parse(err.error) );
 			});
-	}
+  }
+
+  public downloadAllComplianceDocumentPack(location) {
+    const headers = new HttpHeaders(
+      { 'Content-type' : 'application/json',
+        'Accept': 'application/zip'
+      });
+
+    const requestOptions = {
+      'params': new HttpParams().set('location_id', location.toString()),
+      'headers': headers,
+      'responseType': ResponseContentType.Blob
+    };
+
+     return this.http.get(this.baseUrl + '/compliance/download-compliance-documents-pack/', {headers: headers,
+      responseType: 'arraybuffer', observe: 'response', params: new HttpParams().set('location_id', location.toString())} );
+  }
+
+  public downloadComplianceFile(path: string = '', filename: string = '') {
+    return this.http.get(this.baseUrl +
+      '/compliance/download-compliance-file/',
+      {params: new HttpParams().set('keyname', path).set('fname', filename),
+      observe: 'response',
+      responseType: 'arraybuffer'});
+  }
 
 }

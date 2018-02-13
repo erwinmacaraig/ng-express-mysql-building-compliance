@@ -1,0 +1,219 @@
+.top-gray{
+	background-color: #f7f7f7;
+}
+
+.top-gray ul{
+	margin: 0px;
+}
+
+.top-gray li {
+    font-size: 15px;
+    display: inline-block;
+    padding: 15px 20px;
+}
+
+.top-gray ul li h5{
+	font-size: 18px;
+}
+
+.margin-top-50{
+	margin-top: 50px;
+}
+
+.margin-top-20{
+	margin-top: 20px;
+}
+
+[type="checkbox"].filled-in:not(:checked)+label:after,
+[type="checkbox"].filled-in:checked+label:after,
+[type="checkbox"].filled-in:checked+label:before{
+	top: 3px !important;
+}
+
+[type="checkbox"]+label{
+	padding-left: 30px !important;
+    color: #434343;
+}
+
+.left-panel{
+	margin-right: 20px;
+}
+
+.left-panel,
+.right-panel{
+	background-color: #f7f7f7;
+    border-radius: 5px;
+    padding: 0px;
+}
+
+.left-panel .content{
+	padding: 15px;
+}
+
+.left-panel .title{
+	color: #39a1ff;
+}
+
+.left-panel .footer{
+	background-color: #434343;
+	color: #fff;
+	padding: 20px;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.left-panel .footer h5{
+	margin: 0px;
+	font-size: 18px;
+}
+
+.left-panel .footer .right{
+	font-size: 24px;
+}
+
+.left-panel .quantity-container{
+	font-size: 14px;
+}
+
+.left-panel .quantity-container .text{
+	display: inline-block;
+	padding-left: 10px;
+}
+
+.left-panel .quantity-container .input{
+	position: relative;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	width: 25%;
+	display: inline-block;
+	overflow: hidden;
+	height: 40px;
+    vertical-align: middle;
+}
+
+.left-panel .quantity-container .input input{
+	width: 65%;
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+    height: 38px;
+    background-color: #fff;
+}
+
+.left-panel .quantity-container .input .btn-arrow-up, 
+.left-panel .quantity-container .input .btn-arrow-down{
+	background: transparent;
+    padding: 0px;
+    border: 0px;
+    height: 20px;
+    width: 20px;
+    position: absolute;
+    right: 0px;
+    background-color: #434343;
+}
+
+.left-panel .quantity-container .input .btn-arrow-down{
+	bottom: 0px;
+}
+
+.input button .material-icons{
+	font-size: 18px;
+	color: #fff;
+}
+
+.select-field label{
+	font-size: 12px !important;
+    color: #434343;
+}
+
+.right-panel{
+	padding: 15px 20px;
+}
+
+.right-panel .top .right{
+	position: relative;
+    top: 15px;
+
+}
+
+.right-panel .top .left-arrow,
+.right-panel .top .right-arrow{
+	background: url(/assets/images/shop_icons.png);
+    width: 28px;
+    height: 28px;
+    border-radius: 3px;
+    border: 0px;
+    margin-right: 5px;
+}
+
+.right-panel .top .left-arrow{
+	background-position: 69% 84% !important;
+}
+
+.right-panel .top .right-arrow{
+	background-position: 79% 84% !important;
+}
+
+.middle table{
+	min-height: 300px;
+	margin: 20px 0px;
+}
+
+.middle table .text-container{
+	width: 30%;
+}
+
+.middle table .image-container{
+	width: 70%;
+}
+
+.middle table .image-container{
+	padding: 5px;
+}
+
+.middle table .image-container .image-wrapper{
+	min-height: 300px;
+	width: 100%;
+	background-color: #fff;
+}
+
+.middle table .image-container .image-wrapper img{
+	max-width: 100%;
+	max-height: 360px;
+}
+
+.button-container{
+    width: 100%;
+}
+
+.button-container button{
+	width: 12%;
+    height: 45px;
+    padding: 0px !important;
+    font-size: 14px !important;
+    text-transform: unset;
+    border-radius: 5px;
+}
+
+.button-container button .image{
+	background: url(/assets/images/shop_icons.png);
+	vertical-align: middle;
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+}
+
+.save .image{
+	border-radius: 0px;
+	background-position: 30% 50% !important;
+}
+
+.buy .image{
+	border-radius: 0px;
+	background-position: 71.5% 50% !important;
+}
+
+.slides{
+	max-height: 470px;
+	overflow-y: hidden;
+}

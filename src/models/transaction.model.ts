@@ -45,7 +45,11 @@ export class Transaction extends BaseClass {
                             amount = ?,
                             status = ?,
                             transaction_date = ?,
-                            date_paid = ?
+                            date_paid = ?,
+                            expiration_date = ?,
+                            target_user_id = ?,
+                            diagram_finish_id = ?,
+                            location_id = ?
                           WHERE
                             transaction_id = ?`;
       const transaction = [
@@ -57,6 +61,10 @@ export class Transaction extends BaseClass {
         ('status' in this.dbData ) ? this.dbData['status'] : 0,
         ('transaction_date' in this.dbData) ? this.dbData['transaction_date'] : null,
         ('date_paid' in this.dbData) ? this.dbData['date_paid'] : null,
+        ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : null,
+        ('target_user_id' in this.dbData) ? this.dbData['target_user_id'] : 0,
+        ('diagram_finish_id' in this.dbData) ? this.dbData['diagram_finish_id'] : null,
+        ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
         this.ID() ? this.ID() : 0
       ];
 
@@ -81,8 +89,12 @@ export class Transaction extends BaseClass {
                           quantity,
                           amount,
                           status,
-                          date_paid
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+                          date_paid,
+                          expiration_date,
+                          target_user_id,
+                          diagram_finish_id,
+                          location_id
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       const transaction = [
         ('user_id' in this.dbData ) ? this.dbData['user_id'] : 0,
         ('translog_id' in this.dbData ) ? this.dbData['translog_id'] : 0,
@@ -90,7 +102,11 @@ export class Transaction extends BaseClass {
         ('quantity' in this.dbData ) ? this.dbData['quantity'] : 0,
         ('amount' in this.dbData ) ? this.dbData['amount'] : 0.00,
         ('status' in this.dbData ) ? this.dbData['status'] : 0,
-        ('date_paid' in this.dbData) ? this.dbData['date_paid'] : null
+        ('date_paid' in this.dbData) ? this.dbData['date_paid'] : null,
+        ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : null,
+        ('target_user_id' in this.dbData) ? this.dbData['target_user_id'] : 0,
+        ('diagram_finish_id' in this.dbData) ? this.dbData['diagram_finish_id'] : null,
+        ('location_id' in this.dbData) ? this.dbData['location_id'] : 0
       ];
       const connection = db.createConnection(dbconfig);
       connection.query(insert_sql, transaction, (error, results, fields) => {
