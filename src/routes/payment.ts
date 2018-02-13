@@ -55,7 +55,7 @@ export class PaymentRoute extends BaseRoute {
       }
     });
 
-    router.post('/payment/paynow/', new MiddlewareAuth().authenticate, (req, res) => {
+    router.post('/payment/paynow/', (req, res) => {
       if (!req['session']['cart']) {
         return res.status(400).send({
           message: 'Cart empty'
@@ -66,7 +66,7 @@ export class PaymentRoute extends BaseRoute {
       const product_items =  req['session']['cart']['items'];
       transLog.create({}).then((txnLog) => {
         translog_id = transLog.ID();
-        new PaymentRoute().setupTransaction(product_items, translog_id, req['user']['user_id']).then(() => {
+        new PaymentRoute().setupTransaction(product_items, translog_id, req.body.user_id).then(() => {
           const payment = {
             'intent': 'sale',
             'payer': {
