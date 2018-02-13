@@ -47,7 +47,8 @@
 
 			<form method="post" action="/payment/paynow/" #form (submit)="submitCheckout(btnSubmit, form, $event)">
 				<input type="text" name="amount" value="{{cart.totalPrice}}" readonly style="display: none;">
-				<input type="text" name="currency" value="USD" readonly style="display: none;">
+				<input type="text" name="currency" value="USD" readonly >
+				<input type="hidden" name="user_id" value="{{userData.userId}}" >
 				<textarea name="description" ngModel placeholder="Type here the description" style="min-height: 200px;font-size: 18px;padding: 20px;margin: 10px 0px;"></textarea>
 				<button type="submit" class="btn" #btnSubmit >Submit</button>
 			</form>

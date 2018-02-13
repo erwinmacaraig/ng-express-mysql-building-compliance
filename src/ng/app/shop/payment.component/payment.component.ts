@@ -37,6 +37,8 @@ export class PaymentComponent implements OnInit, OnDestroy{
 
 	locations = <any>[];
 
+	userData = {};
+
 	constructor(
 		private router : Router,
 		private route: ActivatedRoute,
@@ -48,6 +50,7 @@ export class PaymentComponent implements OnInit, OnDestroy{
         private messageService : MessageService
 		){
 
+		this.userData = this.authService.getUserData();
 
 		this.subs = this.messageService.getMessage().subscribe((message) => {
 	    	if(message.cart){
