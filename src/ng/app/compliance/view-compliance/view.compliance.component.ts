@@ -12,6 +12,8 @@ import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { Observable } from 'rxjs/Rx';
 
+import * as FileSaver from 'file-saver';
+
 declare var $: any;
 declare var moment: any;
 
@@ -19,7 +21,7 @@ declare var moment: any;
 	selector : 'app-view-compliance',
 	templateUrl : './view.compliance.component.html',
 	styleUrls : [ './view.compliance.component.css' ],
-    providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService]
+  providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService]
 })
 export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("notesTemplate") notesTemplate : ElementRef;
@@ -77,17 +79,17 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	};
 
 	latestComplianceData = <any>[];
-
+  public totalPercentage;
 	constructor(
-		private router : Router,
-		private route: ActivatedRoute,
-		private authService : AuthService,
-		private userService: UserService, 
-        private signupServices: SignupService,
-        private dashboard : DashboardPreloaderService,
-        private complianceService : ComplianceService,
-        private locationService : LocationsService,
-        private encryptDecrypt : EncryptDecryptService
+  		private router : Router,
+  		private route: ActivatedRoute,
+  		private authService : AuthService,
+  		private userService: UserService,
+      private signupServices: SignupService,
+      private dashboard : DashboardPreloaderService,
+      private complianceService : ComplianceService,
+      private locationService : LocationsService,
+      private encryptDecrypt : EncryptDecryptService
 		){
 
 		this.userData = this.authService.getUserData();
@@ -98,22 +100,27 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		});
 	}
 
-	setKPISdataForDisplay(){
-		for(let kpi of this.KPIS){
+	setKPISdataForDisplay() {
+    let counter = 0;
+		for(let kpi of this.KPIS) {
 			for(let comp of this.latestComplianceData){
 				if( comp.compliance_kpis_id == kpi.compliance_kpis_id ){
 					kpi['compliance'] = comp;
 				}
 
-				if(comp.docs.length > 0){
+				if(comp.docs.length > 0) {
 					for(let doc of comp.docs){
-						doc['timestamp_formatted'] = moment(doc["timestamp"]).format("MMM. DD, YYYY");
+            doc['timestamp_formatted'] = moment(doc["timestamp"]).format("MMM. DD, YYYY");
+            doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');
 					}
 				}
 			}
 		}
 
-		for(let kpis of this.KPIS){
+		for(let kpis of this.KPIS) {
+      if (kpis.compliance.docs.length > 0) {
+        counter = counter + 1;
+      }
 			let mes = kpis.measurement.toLowerCase();
 			if(mes == 'traffic' || mes == 'evac'){
 				kpis['type'] = 'date';
@@ -154,12 +161,15 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 			kpis['template'] = this[templateName];
 			kpis['tableTemplate'] = this[tableTemplateName];
 		}
+    this.totalPercentage = (counter / this.KPIS.length) * 100;
+    this.totalPercentage = this.totalPercentage.toString() + '%';
+    console.log(this.KPIS);
+    console.log('counter = ' + counter);
 
-		console.log(this.KPIS);
 	}
 
-	ngOnInit(){
-		
+	ngOnInit() {
+
 		this.locationService.getById(this.locationID, (response) => {
 			this.locationData = response.location;
 			this.locationData['parentData'] = response.parent;
@@ -181,7 +191,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 					this.latestComplianceData = responseCompl.data;
 					this.setKPISdataForDisplay();
 
-
+          console.log(this.selectedCompliance);
 					setTimeout(() => {
 						$('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
 						this.dashboard.hide();
@@ -241,8 +251,37 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		setTimeout(() => { $('.row-diagram-details').hide(); }, 400);
 	}
 
-	ngOnDestroy(){
+	ngOnDestroy() {
 
-	}
+  }
 
-} 
+  downloadAllPack() {
+    this.dashboard.show();
+    //
+    this.complianceService.downloadAllComplianceDocumentPack(this.locationID).subscribe((data) => {
+      this.dashboard.hide();
+      const blob = new Blob([data.body], {type: 'application/zip'});
+      const filename = 'compliance-docs.zip';
+      FileSaver.saveAs(blob, filename);
+    }, (err) => {
+      this.dashboard.hide();
+      console.log(err);
+      console.log('There was an error');
+    });
+  }
+
+
+  downloadKPIFile(kpi_file, filename) {
+    console.log(kpi_file);
+    console.log(filename);
+    this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
+      const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
+      FileSaver.saveAs(blob, filename);
+      console.log(data);
+    },
+    (error) => {
+      console.log('There was an error', error);
+    });
+  }
+
+}
