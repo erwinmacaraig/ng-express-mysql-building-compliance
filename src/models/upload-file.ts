@@ -147,7 +147,7 @@ export class FileUploader {
                   reject('Cannot upload file. Error reading file from path ' + this.req['file']['path']);
                 } else {
                   resolve('File upload successful');
-                  fs.unlink(this.uploadDir+this.filename, () => {});
+                  fs.unlink(this.DIR + this.filename, () => {});
                   /*
                   this.aws_s3.getSignedUrl('getObject', {
                     Bucket: this.aws_bucket_name,
@@ -174,5 +174,35 @@ export class FileUploader {
       return AWSCredential.AWS_S3_ENDPOINT_URL + this.filename;
     }
 
+    public getFile() {
+      return new Promise((resolve, reject) => {
+        const fname = this.req.query.fname;
+        const key = this.req.query.keyname;
+        const dirPath = __dirname + `/../public/temp/${fname}`;
+        const params = {
+          Bucket: this.aws_bucket_name,
+          Key: key
+        };
+        const file_stream = fs.createWriteStream(dirPath);
+        this.aws_s3.getObject(params).createReadStream().pipe(file_stream);
+        file_stream.on('finish', () => {
+          this.res.download(dirPath, (error) => {
+            if (error) {
+              console.log(error);
+              reject(error);
+              this.res.status(400).send(error);
+            } else {
+              console.log('Success');
+              resolve(true);
+              /*
+              fs.unlink(filePath, function(e){
+                console.log('Cannot delete file.', e);
+              });
+              */
+            }
+          });
+        });
+      });
+    }
 
 }

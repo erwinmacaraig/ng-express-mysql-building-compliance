@@ -7,6 +7,8 @@ import { Cart } from '../models/cart.model';
 import { Translog } from '../models/translog.model';
 import { Transaction } from '../models/transaction.model';
 import { Gateway } from '../models/gateway.model';
+import { AuthRequest } from '../interfaces/auth.interface';
+
 const defs = require('../config/defs');
 import * as url from 'url';
 
@@ -38,7 +40,7 @@ export class PaymentRoute extends BaseRoute {
       };
       paypal.configure(paypal_config.api);
     }
-    router.get('/payment/shopping-cart/', (req, res, next) => {
+    router.get('/payment/shopping-cart/', new MiddlewareAuth().authenticate, (req, res, next) => {
       if (!req['session']['cart']) {
         return res.status(400).send({
           message: 'Cart empty'
@@ -64,7 +66,7 @@ export class PaymentRoute extends BaseRoute {
       const product_items =  req['session']['cart']['items'];
       transLog.create({}).then((txnLog) => {
         translog_id = transLog.ID();
-        new PaymentRoute().setupTransaction(product_items, translog_id, 15980).then(() => {
+        new PaymentRoute().setupTransaction(product_items, translog_id, req.body.user_id).then(() => {
           const payment = {
             'intent': 'sale',
             'payer': {
@@ -201,7 +203,7 @@ export class PaymentRoute extends BaseRoute {
           'location_id' : (items[key]['item']['location_id']) ? items[key]['item']['location_id'] : 0,
           'pdf_only' : (items[key]['item']['pdf_only']) ? items[key]['item']['pdf_only'] : 0
         });
-         
+
       } catch (e) {
         console.log(`Cannot process item ${key}`, );
       }

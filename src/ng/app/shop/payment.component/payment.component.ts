@@ -34,10 +34,8 @@ export class PaymentComponent implements OnInit, OnDestroy{
 	arrayCart = [];
 
 	subs;
-
+  	userData;
 	locations = <any>[];
-
-	userData = {};
 
 	constructor(
 		private router : Router,
@@ -50,7 +48,7 @@ export class PaymentComponent implements OnInit, OnDestroy{
         private messageService : MessageService
 		){
 
-		this.userData = this.authService.getUserData();
+    	this.userData = this.authService.getUserData();
 
 		this.subs = this.messageService.getMessage().subscribe((message) => {
 	    	if(message.cart){
@@ -107,4 +105,4 @@ export class PaymentComponent implements OnInit, OnDestroy{
 	}
 
 
-} 
+}
