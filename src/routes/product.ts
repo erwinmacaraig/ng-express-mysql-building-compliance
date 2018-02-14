@@ -56,15 +56,15 @@ export class ProductRoute extends BaseRoute {
             });
         });
 
-        router.get('/products/get-all',  new MiddlewareAuth().authenticate, (req : AuthRequest, res : Response) => {
+        router.get('/products/get-all',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ProductRoute().getAllProducts(req, res);
         });
 
-        router.get('/products/get-cart',  new MiddlewareAuth().authenticate, (req : AuthRequest, res : Response) => {
+        router.get('/products/get-cart',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ProductRoute().getCart(req, res);
         });
 
-        router.get('/product/remove-all-from-cart/',  new MiddlewareAuth().authenticate, (req : AuthRequest, res : Response) => {
+        router.get('/product/remove-all-from-cart/',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             req['session'].cart = {
                 items : {},
                 totalQty : 0,
@@ -75,27 +75,27 @@ export class ProductRoute extends BaseRoute {
             });
         });
 
-        router.get('/packages-products',   new MiddlewareAuth().authenticate, (req : AuthRequest, res : Response) => {
+        router.get('/packages-products',   new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ProductRoute().getPackagesAndProducts(req, res);
         });
 
-        router.get('/products/get-favorites/:user_id',  new MiddlewareAuth().authenticate, (req : AuthRequest, res : Response) => {
+        router.get('/products/get-favorites/:user_id',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ProductRoute().getFavorites(req, res);
         });
 
-        router.post('/products/add-to-favorites',  new MiddlewareAuth().authenticate, (req : AuthRequest, res : Response) => {
+        router.post('/products/add-to-favorites',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ProductRoute().addToFavorites(req, res);
         });
 
-        router.post('/products/remove-favorite',  new MiddlewareAuth().authenticate, (req : AuthRequest, res : Response) => {
+        router.post('/products/remove-favorite',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ProductRoute().removeFavorite(req, res);
         });
 
-        router.post('/products/update-favorite',  new MiddlewareAuth().authenticate, (req : AuthRequest, res : Response) => {
+        router.post('/products/update-favorite',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ProductRoute().updateFavorite(req, res);
         });
 
-        router.get('/products/diagram-finishes',  new MiddlewareAuth().authenticate, (req : AuthRequest, res : Response) => {
+        router.get('/products/diagram-finishes',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ProductRoute().getDiagramFinishes(req, res);
         });
 
@@ -120,7 +120,7 @@ export class ProductRoute extends BaseRoute {
             productDbData['target_user_id'] = target_user_id;
 
             if(productDbData['product_type'] == 'package'){
-                if(productDbData['months_of_validity'] > 0){
+                if (productDbData['months_of_validity'] > 0) {
                     let dateMoment = moment();
                     dateMoment.add( productDbData['months_of_validity'], 'months' );
                     productDbData['expiration_date'] = dateMoment.format('YYYY-MM-DD');
@@ -248,11 +248,7 @@ export class ProductRoute extends BaseRoute {
         res.send(response);
     }
 
-<<<<<<< HEAD
-    public async getFavorites(req : Request, res : Response){
-=======
     public async getFavorites(req : AuthRequest, res : Response){
->>>>>>> f616d0889e9a2f5998b3d4fa1617315c20f305d0
         let
         userId = req.params.user_id,
         response = {
@@ -264,11 +260,7 @@ export class ProductRoute extends BaseRoute {
         res.send(response);
     }
 
-<<<<<<< HEAD
-    public async addToFavorites(req : Request, res : Response){
-=======
     public async addToFavorites(req : AuthRequest, res : Response){
->>>>>>> f616d0889e9a2f5998b3d4fa1617315c20f305d0
         let
         userId = req.body.user_id,
         qty = parseInt(req.body.quantity),
@@ -312,11 +304,7 @@ export class ProductRoute extends BaseRoute {
         res.send(response);
     }
 
-<<<<<<< HEAD
-    public async removeFavorite(req : Request, res : Response){
-=======
     public async removeFavorite(req : AuthRequest, res : Response){
->>>>>>> f616d0889e9a2f5998b3d4fa1617315c20f305d0
         let
         userId = req.body.user_id,
         productId = req.body.product_id,
@@ -342,11 +330,7 @@ export class ProductRoute extends BaseRoute {
     }
 
 
-<<<<<<< HEAD
     public async updateFavorite(req : Request, res : Response){
-=======
-    public async updateFavorite(req : AuthRequest, res : Response){
->>>>>>> f616d0889e9a2f5998b3d4fa1617315c20f305d0
         let
         userId = req.body.user_id,
         qty = parseInt(req.body.quantity),

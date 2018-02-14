@@ -116,4 +116,28 @@ export class Translog extends BaseClass {
     });
   }
 
+  public markTransactions(status: number = 1) {
+    return new Promise((resolve, reject) => {
+      const sql_update = `UPDATE
+                            transactions
+                          SET
+                            date_paid = NOW(),
+                            status = ?
+                          WHERE
+                            translog_id = ?`;
+      const values = [status, this.ID()];
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_update, values, (error, results, fields) => {
+        if (error) {
+          console.log('translog.markTransactions', error);
+          throw new Error(error);
+        } else {
+          resolve(true);
+        }
+      });
+      connection.end();
+    });
+
+  }
+
 }
