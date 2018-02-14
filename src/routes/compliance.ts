@@ -233,23 +233,25 @@ import * as S3Zipper from 'aws-s3-zipper';
 		for(let c in compliances){
 			compliances[c]['measurement'] = compliances[c]['kpis']['measurement'];
 
-			let m = compliances[c]['measurement'];
+			let m = compliances[c]['measurement'],
+				validTillMoment = moment(compliances[c]['valid_till']);
+
+			compliances[c]['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
 
 			if(m == 'Traffic' || m == 'evac'){
-				if(compliances[c]['docs'][0]){
-					let dateOfActivity = moment(compliances[c]['docs'][0]['date_of_activity']),
-						timeStamp = moment(compliances[c]['docs'][0]['timestamp']),
+				if(compliances[c]['docs'][0] && validTillMoment.isValid()){
+					let timeStamp = moment(compliances[c]['docs'][0]['timestamp']),
 						today = moment(),
 						validityInMonths = compliances[c]['kpis']['validity_in_months'];
 
-					dateOfActivity.add(validityInMonths, "months");
+					// dateOfActivity.add(validityInMonths, "months");
 
-					compliances[c]['valid_till'] = dateOfActivity.format('MMM. DD, YYYY');
+					// compliances[c]['valid_till'] = dateOfActivity.format('MMM. DD, YYYY');
 
-					if( dateOfActivity.isSameOrBefore(today) === false ){
-						let daysDiffFromNow = dateOfActivity.diff(today, 'days'),
+					if( validTillMoment.isSameOrBefore(today) === false ){
+						let daysDiffFromNow = validTillMoment.diff(today, 'days'),
 							daysDiffOfNowAndTimeStamp = today.diff(timeStamp, 'days'),
-							decrease = daysDiffOfNowAndTimeStamp - daysDiffFromNow,
+							decrease = daysDiffFromNow - daysDiffOfNowAndTimeStamp,
 							percentage = (decrease / daysDiffOfNowAndTimeStamp) * 100;
 
 						compliances[c]['validity_percentage'] = 100 - Math.round(percentage);
