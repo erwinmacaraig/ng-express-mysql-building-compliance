@@ -27,7 +27,7 @@
 		<div class="right">
 			<ul class="navbar">
 				<li>
-					<a href="javascript:void(0)" *ngIf="showUpgradePremium"><img alt="Location" src="assets/images/premium_bttn.png" ></a>
+					<a [routerLink]="['/shop/compliance-package']" *ngIf="showUpgradePremium"><img alt="Location" src="assets/images/premium_bttn.png" ></a>
 				</li>
 				<li>
 					<a href="javascript:void(0)"><img alt="Training" src="assets/images/search.png" ></a>
@@ -77,12 +77,10 @@
 		</li>
 
 		<li>
-			<a href="javascript:void(0)" *ngIf="showUpgradePremium">
+			<a *ngIf="showUpgradePremium" [routerLink]="['/shop/compliance-package']">
 				<img alt="Location" src="assets/images/premium_bttn.png" >
 			</a>
 		</li>
-
-
 
 	</ul>
 </div>

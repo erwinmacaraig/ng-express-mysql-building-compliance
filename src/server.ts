@@ -158,7 +158,7 @@ export class Server {
       // TeamRoute
       TeamRoute.create(router);
 
-      //ComplianceRoute
+      // ComplianceRoute
       ComplianceRoute.create(router);
 
       // PaymentRoute

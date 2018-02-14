@@ -135,7 +135,7 @@ export class Transaction extends BaseClass {
   }
 
 
-  public markTransactionAsPaid(translog: number = 0) {
+  public markTransactionAsPaid(translog: number = 0, status: number = 1) {
     return new Promise((resolve, reject) => {
       /*
       Object.keys(dbData).forEach((key) => {
@@ -161,14 +161,14 @@ export class Transaction extends BaseClass {
                             transactions
                           SET
                             date_paid = NOW(),
-                            status = 1
+                            status = ?
                           WHERE
                             translog_id = ?`;
-      const values = [translog];
+      const values = [status, translog];
       const connection = db.createConnection(dbconfig);
       connection.query(sql_update, values, (error, results, fields) => {
         if (error) {
-          console.log('transaction. markTransactionAsPaid', error);
+          console.log('transaction.markTransactionAsPaid', error);
           throw new Error(error);
         } else {
           resolve(true);

@@ -55,7 +55,7 @@ export class PaymentRoute extends BaseRoute {
       }
     });
 
-    router.post('/payment/paynow/', (req, res) => {
+    router.post('/payment/paynow/', new MiddlewareAuth().authenticate, (req, res) => {
       if (!req['session']['cart']) {
         return res.status(400).send({
           message: 'Cart empty'
@@ -105,7 +105,9 @@ export class PaymentRoute extends BaseRoute {
                     redirectUrl = link.href;
                   }
                 }
-                res.redirect(redirectUrl);
+                res.send({
+                  'status' : true, 'redirectUrl' : redirectUrl
+                });
               }
             }
           });
@@ -127,8 +129,31 @@ export class PaymentRoute extends BaseRoute {
       });
     });
 
+    router.get('/payment/paypal/cancel/:translogId/', (req, res) => {
+      const translogID = req.params.translogId;
+      const txnLog = new Translog(translogID);
+      const log = {
+        'translog_id': translogID,
+        'payment_gateway': 'paypal',
+        'sent_to_gateway': 1,
+        'gateway_response_token': req.query.token,
+        'status': defs['PAYMENT_CANCELLED']
+      };
+      txnLog.create(log).then((data) => {
+        console.log('Transaction created');
+        txnLog.markTransactions(defs['PAYMENT_CANCELLED']).then((db) => {
+          console.log('Transactions marked as cancelled');
+          res.redirect('/shop/cart');
+        }).catch((e) => {
+          console.log('Cannot mark transactions', e);
+        });
+      }).catch((e) => {
+        console.log('cannot create transaction', e);
+        res.redirect('/shop/cart');
+      });
+    });
+
     router.get('/payment/paypal/success/:translogId/', (req, res) => {
-      const password = 'NifLed';
       const translogID = req.params.translogId;
       const txnLog = new Translog(translogID);
       const log = {

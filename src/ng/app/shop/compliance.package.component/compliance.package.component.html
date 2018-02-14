@@ -4,7 +4,7 @@
 			Choose Location
 		</li>
 		<li>
-			<select [(ngModel)]="selectLocation" >
+			<select [(ngModel)]="selectLocation"  id="selectLocation" style="transition: all 0.5s;" >
 				<option value="0" disabled selected >Select Location</option>
 				<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
 			</select>
@@ -65,12 +65,12 @@
 				</div>
 
 				<div class="footer">
-					<button class="btn btn-block orange waves-effect waves-light" *ngIf="!isInCart(package.product_id)" (click)="addToCart(package.product_id)">
+					<button class="btn btn-block orange waves-effect waves-light" #btnAdd *ngIf="!isInCart(package.product_id)" (click)="addToCart(package.product_id, btnAdd)">
 						<span *ngIf="package.amount == 0">UPGRADE</span>
 						<span *ngIf="package.amount > 0">SUBSCRIBE</span>
 					</button>
 
-					<button class="btn btn-block orange waves-effect waves-light" *ngIf="isInCart(package.product_id)" (click)="removeFromCart(package.product_id)">
+					<button class="btn btn-block orange waves-effect waves-light" #btnRemove *ngIf="isInCart(package.product_id)" (click)="removeFromCart(package.product_id, btnRemove)">
 						REMOVE
 					</button>
 				</div>

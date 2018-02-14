@@ -46,15 +46,15 @@
 							</div>
 
 							<div class="delete-add-to-cart">
-								<button class="btn-flat waves-effect waves-light save left" (click)="removeFavorite(product.product_id)">
+								<button class="btn-flat waves-effect waves-light save left" #btnDelete (click)="removeFavorite(product.product_id, btnDelete)">
 									<i class="material-icons">delete</i>
 								</button>
 
-								<button class="btn orange waves-effect waves-light buy right" *ngIf="!isInCart(product.product_id)" (click)="addToCart(product.product_id)">
+								<button class="btn orange waves-effect waves-light buy right" #btnAdd *ngIf="!isInCart(product.product_id)" (click)="addToCart(product.product_id, btnAdd)">
 									<div class="image"></div> Add to cart
 								</button>
 
-								<button class="btn orange waves-effect waves-light buy right" *ngIf="isInCart(product.product_id)" (click)="removeFromCart(product.product_id)">
+								<button class="btn orange waves-effect waves-light buy right" #btnRemove *ngIf="isInCart(product.product_id)" (click)="removeFromCart(product.product_id, btnRemove)">
 									<div class="image"></div> Remove
 								</button>
 

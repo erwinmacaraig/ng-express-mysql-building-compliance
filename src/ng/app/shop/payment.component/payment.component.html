@@ -43,14 +43,14 @@
 
 			<h4>Confirm payment</h4>
 
-			<h5>Total Price : <span>( ${{cart.totalPrice.toFixed(2)}} )</span></h5>
+			<h5>Total Price : <span> ${{cart.totalPrice.toFixed(2)}} </span></h5>
 
-			<form method="post" action="/payment/paynow/" #form (submit)="submitCheckout(btnSubmit, form, $event)">
-				<input type="hidden" name="amount" value="{{cart.totalPrice}}"  >
-				<input type="hidden" name="currency" value="USD" readonly >
-				<input type="hidden" name="user_id" value="{{userData.userId}}" >
+			<form #form="ngForm" (submit)="submitCheckout(btnSubmit, form, $event)">
+				<input type="hidden" name="amount" ngModel >
+				<input type="hidden" name="currency" ngModel  >
+				<input type="hidden" name="user_id" ngModel  >
 				<textarea name="description" ngModel placeholder="Type here the description" style="min-height: 200px;font-size: 18px;padding: 20px;margin: 10px 0px;"></textarea>
-				<button type="submit" class="btn" #btnSubmit >Submit</button>
+				<button type="submit" class="btn orange waves-effect waves-light center" #btnSubmit >Submit</button>
 			</form>
 
 		</div>
