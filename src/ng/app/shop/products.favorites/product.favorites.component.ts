@@ -36,6 +36,7 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 	locations = <any>[];
 
 	favorites = <any>[];
+	btnDisabled = [];
 
 	constructor(
 		private router : Router,
@@ -51,6 +52,12 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 		this.subs = this.messageService.getMessage().subscribe((message) => {
 	    	if(message.cart){
 	    		this.cart = message.cart;
+
+	    		this.btnDisabled.forEach((btn) => {
+	    			btn.disabled = false;
+	    		});
+
+	    		this.btnDisabled = [];
 	    	}
 
 	    	if(message.products){
@@ -91,19 +98,24 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToCart(prodId){
+	addToCart(prodId, btn){
+		btn.disabled = true;
+		this.btnDisabled.push(btn);
 		this.messageService.sendMessage({
 			'addToCart' : true, 'productId' : prodId
 		});
 	}
 
-	removeFromCart(prodId){
+	removeFromCart(prodId, btn){
+		btn.disabled = true;
+		this.btnDisabled.push(btn);
 		this.messageService.sendMessage({
 			'removeFromCart' : true, 'productId' : prodId
 		});
 	}
 
-	removeFavorite(prodId){
+	removeFavorite(prodId, btn){
+		btn.disabled = true;
 		this.messageService.sendMessage({
 			'removeFavorite' : true, 'productId' : prodId
 		});

@@ -312,7 +312,7 @@ table.table-list:not(.striped) tbody tr{
 
 table.table-list:not(.striped) tbody tr:hover,
 table.table-list:not(.striped) tbody tr.active{
-    background-color: #474747;
+    background-color: #75beff;
 }
 
 table.table-list:not(.striped) tbody tr:hover *,

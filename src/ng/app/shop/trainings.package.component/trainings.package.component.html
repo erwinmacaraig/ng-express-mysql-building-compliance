@@ -12,7 +12,7 @@
 			Choose Location
 		</li>
 		<li>
-			<select [(ngModel)]="selectLocation">
+			<select [(ngModel)]="selectLocation" id="selectLocation" style="transition: all 0.5s;">
 				<option value="0" disabled selected >Select Location</option>
 				<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
 			</select>
@@ -47,19 +47,19 @@
 					</select>
 				</div>
 				<div class="button-container">
-					<button class="btn-flat waves-effect waves-light save" *ngIf="!isInFavorites(prod.product_id)" (click)="addToFavorites(prod.product_id, package)">
+					<button class="btn-flat waves-effect waves-light save" #btnSave *ngIf="!isInFavorites(prod.product_id)" (click)="addToFavorites(prod.product_id, package, btnSave)">
 						<div class="image"></div> Save
 					</button>
 
-					<button class="btn-flat waves-effect waves-light save" *ngIf="isInFavorites(prod.product_id)" (click)="removeFavorite(prod.product_id)">
+					<button class="btn-flat waves-effect waves-light save" #btnSaveRemove *ngIf="isInFavorites(prod.product_id)" (click)="removeFavorite(prod.product_id, btnSaveRemove)">
 						<div class="image"></div> Remove
 					</button>
 
-					<button class="btn orange waves-effect waves-light buy" *ngIf="!isInCart(prod.product_id)" (click)="addToCart(prod.product_id)">
+					<button class="btn orange waves-effect waves-light buy" #btnAdd *ngIf="!isInCart(prod.product_id)" (click)="addToCart(prod.product_id, btnAdd)">
 						<div class="image"></div> Buy
 					</button>
 
-					<button class="btn orange waves-effect waves-light buy" *ngIf="isInCart(prod.product_id)" (click)="removeFromCart(prod.product_id)">
+					<button class="btn orange waves-effect waves-light buy" #btnRemove *ngIf="isInCart(prod.product_id)" (click)="removeFromCart(prod.product_id, btnRemove)">
 						<div class="image"></div> Remove
 					</button>
 				</div>

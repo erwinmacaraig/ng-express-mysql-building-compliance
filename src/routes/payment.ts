@@ -55,7 +55,7 @@ export class PaymentRoute extends BaseRoute {
       }
     });
 
-    router.post('/payment/paynow/', (req, res) => {
+    router.post('/payment/paynow/', new MiddlewareAuth().authenticate, (req, res) => {
       if (!req['session']['cart']) {
         return res.status(400).send({
           message: 'Cart empty'
@@ -105,7 +105,9 @@ export class PaymentRoute extends BaseRoute {
                     redirectUrl = link.href;
                   }
                 }
-                res.redirect(redirectUrl);
+                res.send({
+                  'status' : true, 'redirectUrl' : redirectUrl
+                });
               }
             }
           });
@@ -128,7 +130,6 @@ export class PaymentRoute extends BaseRoute {
     });
 
     router.get('/payment/paypal/success/:translogId/', (req, res) => {
-      const password = 'NifLed';
       const translogID = req.params.translogId;
       const txnLog = new Translog(translogID);
       const log = {
