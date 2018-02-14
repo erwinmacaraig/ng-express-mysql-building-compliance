@@ -34,6 +34,8 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 
 	locations = <any>[];
 
+	btnDisabled = [];
+
 	constructor(
 		private router : Router,
 		private route: ActivatedRoute,
@@ -49,6 +51,12 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 		this.subs = this.messageService.getMessage().subscribe((message) => {
 			if(message.cart){
 	    		this.cart = message.cart;
+
+	    		this.btnDisabled.forEach((btn) => {
+	    			btn.disabled = false;
+	    		});
+
+	    		this.btnDisabled = [];
 	    	}
 
 	    	if(message.packages){
@@ -88,15 +96,26 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToCart(prodId){
+	addToCart(prodId, btn){
 		if(this.selectLocation > 0){
+			btn.disabled = true;
+			this.btnDisabled.push(btn);
+
 			this.messageService.sendMessage({
 				'addToCart' : true, 'productId' : prodId, 'qty' : 1, 'locationId' : this.selectLocation
 			});
+		}else{
+			$('#selectLocation').css('border', '1px solid #F44336');
+			setTimeout(() => {
+				$('#selectLocation').css('border', '0px');
+			}, 1000);
 		}
 	}
 
-	removeFromCart(prodId){
+	removeFromCart(prodId, btn){
+		btn.disabled = true;
+		this.btnDisabled.push(btn);
+
 		this.messageService.sendMessage({
 			'removeFromCart' : true, 'productId' : prodId
 		});

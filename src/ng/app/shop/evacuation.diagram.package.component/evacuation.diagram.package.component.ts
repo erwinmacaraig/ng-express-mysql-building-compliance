@@ -55,6 +55,9 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 	favorites = <any>[];
 	diagramFinishes = <any>[];
 
+	btnDisabled = [];
+	btnDisabled2 = [];
+
 	constructor(
 		private router : Router,
 		private route: ActivatedRoute,
@@ -69,6 +72,12 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		this.subs = this.messageService.getMessage().subscribe((message) => {
 	    	if(message.cart){
 	    		this.cart = message.cart;
+
+	    		this.btnDisabled.forEach((btn) => {
+	    			btn.disabled = false;
+	    		});
+
+	    		this.btnDisabled = [];
 	    	}
 
 	    	if(message.products){
@@ -221,16 +230,24 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToCart(prodId){
+	addToCart(prodId, btn){
 		let locId = parseInt($('#selectLocation').val()),
 			diagId = parseInt($('#selectDiagram').val()),
 			pdfOnly = ($('#pdf').prop('checked')) ? 1 : 0;
 
 		if(locId){
+			btn.disabled = true;
+			this.btnDisabled.push(btn);
+
 			this.messageService.sendMessage({
 				'addToCart' : true, 'productId' : prodId, 'pdfOnly' : pdfOnly,
 				'qty' : this.showingDiagram.quantity, 'locationId' : locId, 'diagramFinishId' : diagId
 			});
+		}else{
+			$('#selectLocation').parent('.select-wrapper').find('input.select-dropdown').css('border-bottom', '1px solid #F44336');
+			setTimeout(() => {
+				$('#selectLocation').parent('.select-wrapper').find('input.select-dropdown').css('border-bottom', '1px solid rgb(158, 158, 158)');
+			}, 1000);
 		}
 	}
 
@@ -246,7 +263,7 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	removeFromCart(prodId){
+	removeFromCart(prodId, btn){
 		this.messageService.sendMessage({
 			'removeFromCart' : true, 'productId' : prodId
 		});
@@ -311,20 +328,29 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToFavorites(prodId){
+	addToFavorites(prodId, btn){
 		let locId = parseInt($('#selectLocation').val()),
 			diagId = parseInt($('#selectDiagram').val()),
 			pdfOnly = ($('#pdf').prop('checked')) ? 1 : 0;
 
 		if(locId > 0){
+			btn.disabled = true;
+			this.btnDisabled2.push(btn);
 			this.messageService.sendMessage({
 				'addToFavorites' : true, 'locationId' : locId, 'diagramFinishId' : diagId,
 				'productId' : prodId, 'quantity' : this.showingDiagram.quantity, 'pdfOnly' : pdfOnly
 			});
+		}else{
+			$('#selectLocation').parent('.select-wrapper').find('input.select-dropdown').css('border-bottom', '1px solid #F44336');
+			setTimeout(() => {
+				$('#selectLocation').parent('.select-wrapper').find('input.select-dropdown').css('border-bottom', '1px solid rgb(158, 158, 158)');
+			}, 1000);
 		}
 	}
 
-	removeFavorite(prodId){
+	removeFavorite(prodId, btn){
+		btn.disabled = true;
+		this.btnDisabled2.push(btn);
 		this.messageService.sendMessage({
 			'removeFavorite' : true, 'productId' : prodId
 		});

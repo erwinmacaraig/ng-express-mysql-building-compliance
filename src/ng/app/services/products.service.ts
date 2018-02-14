@@ -136,5 +136,14 @@ export class ProductService {
 			callBack( JSON.parse(err.error) );
 		});
 	}
+
+	public payNow(formData, callBack){
+		this.http.post(this.baseUrl+"/payment/paynow/", formData, this.options)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err) );
+		});
+	}
 	
 }	

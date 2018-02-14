@@ -43,6 +43,9 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	users = <any>[];
 
+	btnDisabled = [];
+	btnDisabled2 = [];
+
 	constructor(
 		private router : Router,
 		private route: ActivatedRoute,
@@ -59,6 +62,12 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 		this.subs = this.messageService.getMessage().subscribe((message) => {
 	    	if(message.cart){
 	    		this.cart = message.cart;
+
+	    		this.btnDisabled.forEach((btn) => {
+	    			btn.disabled = false;
+	    		});
+
+	    		this.btnDisabled = [];
 	    	}
 
 	    	if(message.products){
@@ -72,6 +81,12 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	    	if(message.favorites){
 	    		this.favorites = message.favorites;
+
+	    		this.btnDisabled2.forEach((btn) => {
+	    			btn.disabled = false;
+	    		});
+
+	    		this.btnDisabled2 = [];
 	    	}
 	    });
 
@@ -132,18 +147,34 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToCart(prodId){
+	addToCart(prodId, btn){
 		let selElem = $('select[product-id="'+prodId+'"]'),
 			userTargetId = selElem.val();
 
 		if(this.selectLocation > 0 && userTargetId > 0){
+			btn.disabled = true;
+			this.btnDisabled.push(btn);
+
 			this.messageService.sendMessage({
 				'addToCart' : true, 'productId' : prodId, 'locationId' : this.selectLocation, 'qty' : 1, 'targetUserId' : parseInt(userTargetId)
 			});
+		}else{
+			if(this.selectLocation < 1){
+				$('#selectLocation').css('border', '1px solid #F44336');
+			}
+			if(userTargetId < 1){
+				selElem.css('border', '1px solid #F44336');
+			}
+			setTimeout(() => {
+				$('#selectLocation').css('border', '0px');
+				selElem.css('border', '0px');
+			}, 1000);
 		}
 	}
 
-	removeFromCart(prodId){
+	removeFromCart(prodId, btn){
+		btn.disabled = true;
+		this.btnDisabled.push(btn);
 		this.messageService.sendMessage({
 			'removeFromCart' : true, 'productId' : prodId
 		});
@@ -161,20 +192,36 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToFavorites(prodId, packageElem){
+	addToFavorites(prodId, packageElem, btn){
 
-		let selectedUser = packageElem.querySelector('select').value;
+		let selElem = $('select[product-id="'+prodId+'"]'),
+			userTargetId = selElem.val();
 
-		if(selectedUser > 0 && this.selectLocation > 0){
+		if(userTargetId > 0 && this.selectLocation > 0){
+			btn.disabled = true;
+			this.btnDisabled2.push(btn);
 			this.messageService.sendMessage({
-				'addToFavorites' : true, 'targetUserId' : selectedUser,
+				'addToFavorites' : true, 'targetUserId' : userTargetId,
 				'productId' : prodId, 'quantity' : 1, 'locationId' : this.selectLocation
 			});
+		}else{
+			if(this.selectLocation < 1){
+				$('#selectLocation').css('border', '1px solid #F44336');
+			}
+			if(userTargetId < 1){
+				selElem.css('border', '1px solid #F44336');
+			}
+			setTimeout(() => {
+				$('#selectLocation').css('border', '0px');
+				selElem.css('border', '0px');
+			}, 1000);
 		}
 
 	}
 
-	removeFavorite(prodId){
+	removeFavorite(prodId, btn){
+		btn.disabled = true;
+		this.btnDisabled2.push(btn);
 		this.messageService.sendMessage({
 			'removeFavorite' : true, 'productId' : prodId
 		});

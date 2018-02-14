@@ -11,6 +11,7 @@ import { LocationsService } from '../../services/locations';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { ComplianceService } from '../../services/compliance.service';
 import { MessageService } from '../../services/messaging.service';
+import { ProductService } from '../../services/products.service';
 
 declare var $: any;
 
@@ -18,7 +19,7 @@ declare var $: any;
 	selector : 'app-payment-component',
 	templateUrl : './payment.component.html',
 	styleUrls : [ './payment.component.css' ],
-    providers : [AuthService, UserService, SignupService, EncryptDecryptService]
+    providers : [AuthService, UserService, SignupService, EncryptDecryptService, ProductService]
 })
 export class PaymentComponent implements OnInit, OnDestroy{
 
@@ -34,7 +35,7 @@ export class PaymentComponent implements OnInit, OnDestroy{
 	arrayCart = [];
 
 	subs;
-  userData;
+  	userData;
 	locations = <any>[];
 
 	constructor(
@@ -45,10 +46,12 @@ export class PaymentComponent implements OnInit, OnDestroy{
 		private locationService: LocationsService,
         private signupServices: SignupService,
         private encryptDecrypt : EncryptDecryptService,
-        private messageService : MessageService
+        private messageService : MessageService,
+        private productService : ProductService
 		){
 
-    this.userData = this.authService.getUserData();
+    	this.userData = this.authService.getUserData();
+
 		this.subs = this.messageService.getMessage().subscribe((message) => {
 	    	if(message.cart){
 	    		this.cart = message.cart;
@@ -88,10 +91,24 @@ export class PaymentComponent implements OnInit, OnDestroy{
 		}
 	}
 
-	submitCheckout(btnSubmit, form, event){
+	submitCheckout(btnSubmit, form: NgForm, event){
 		event.preventDefault();
 		if(this.arrayCart.length > 0){
-			form.submit();
+			
+			btnSubmit.disabled = true;
+			btnSubmit.innerHtml = 'Submitting...';
+
+			form.controls.amount.setValue(this.cart.totalPrice);
+			form.controls.user_id.setValue(this.userData.userId);
+			form.controls.currency.setValue('USD');
+
+			this.productService.payNow(form.value, (response) => {
+				if(response.status){
+					window.location.replace(response.redirectUrl);
+				}else{
+					console.log(response);
+				}
+			});
 		}
 	}
 

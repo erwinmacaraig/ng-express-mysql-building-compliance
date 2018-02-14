@@ -99,19 +99,19 @@
 							</table>
 						</div>
 						<div class="button-container">
-							<button class="btn-flat waves-effect waves-light save left" *ngIf="!isInFavorites(showingDiagram.product_id)" (click)="addToFavorites(showingDiagram.product_id)">
+							<button class="btn-flat waves-effect waves-light save left" #btnSave *ngIf="!isInFavorites(showingDiagram.product_id)" (click)="addToFavorites(showingDiagram.product_id, btnSave)">
 								<div class="image"></div> Save
 							</button>
 
-							<button class="btn-flat waves-effect waves-light save left" *ngIf="isInFavorites(showingDiagram.product_id)" (click)="removeFavorite(showingDiagram.product_id)">
+							<button class="btn-flat waves-effect waves-light save left" #btnSaveRemove *ngIf="isInFavorites(showingDiagram.product_id)" (click)="removeFavorite(showingDiagram.product_id, btnSaveRemove)">
 								<div class="image"></div> Remove
 							</button>
 
-							<button class="btn orange waves-effect waves-light buy right" *ngIf="!isInCart(showingDiagram.product_id)" (click)="addToCart(showingDiagram.product_id)">
+							<button class="btn orange waves-effect waves-light buy right" #btnAdd *ngIf="!isInCart(showingDiagram.product_id)" (click)="addToCart(showingDiagram.product_id, btnAdd)">
 								<div class="image"></div> Buy
 							</button>
 
-							<button class="btn orange waves-effect waves-light buy right" *ngIf="isInCart(showingDiagram.product_id)" (click)="removeFromCart(showingDiagram.product_id)">
+							<button class="btn orange waves-effect waves-light buy right" #btnRemove *ngIf="isInCart(showingDiagram.product_id)" (click)="removeFromCart(showingDiagram.product_id, btnRemove)">
 								<div class="image"></div> Remove
 							</button>
 
