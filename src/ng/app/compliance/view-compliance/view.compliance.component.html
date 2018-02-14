@@ -37,7 +37,7 @@
 	<div></div>
 </ng-template>
 
-<ng-template #epmTemplate>
+<ng-template #epmTemplate> <!-- Emergency Procedure Manual -->
 
 
 	<div class="documents-container"  >
@@ -54,7 +54,7 @@
 
 				<div class="dates">
 					<div class="created">
-						<p>Creation Date:</p>
+						<p>EPM Creation date</p>
 						<p class="green-text">
 							<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0]['timestamp_formatted'] }}</span>
 							<span *ngIf="selectedCompliance.compliance.docs[0].length"> 00/00/0000 </span>
@@ -62,7 +62,7 @@
 					</div>
 
 					<div class="review">
-						<p>Last Review Date:</p>
+						<p>EPM Review date:</p>
 						<p class="green-text">00/00/0000</p>
 					</div>
 				</div>
@@ -95,7 +95,7 @@
 	</div>
 </ng-template>
 
-<ng-template #epcTemplate>
+<ng-template #epcTemplate> <!-- Emergency Procedure Committee -->
 	<div class="documents-container">
 		<div class="document" >
 
@@ -110,12 +110,12 @@
 
 				<div class="dates">
 					<div class="created">
-						<p>Last review held on</p>
+						<p>Last EPC meeting held on:</p>
 						<p class="green-text">00/00/0000</p>
 					</div>
 
 					<div class="review">
-						<p>Valid until:</p>
+						<p>Compliance valid till:</p>
 						<p class="green-text">
 							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
 							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
@@ -151,7 +151,7 @@
 	</div>
 </ng-template>
 
-<ng-template #evacution_exerciseTemplate>
+<ng-template #evacution_exerciseTemplate> <!-- Evacuation Exercise -->
 	<div class="documents-container">
 		<div class="document" >
 
@@ -166,12 +166,12 @@
 
 				<div class="dates">
 					<div class="created">
-						<p>Last review held on</p>
+						<p>Date of activity:</p>
 						<p class="green-text">00/00/0000</p>
 					</div>
 
 					<div class="review">
-						<p>Valid until:</p>
+						<p>Compliance valid till:</p>
 						<p class="green-text">
 							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
 							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
@@ -205,7 +205,7 @@
 	</div>
 </ng-template>
 
-<ng-template #evac_diagramTemplate>
+<ng-template #evac_diagramTemplate> <!-- Evac Diagram -->
 	<div class="documents-container">
 		<div class="document" >
 
@@ -220,12 +220,12 @@
 
 				<div class="dates">
 					<div class="created">
-						<p>Last review held on:</p>
+						<p>Diagrams Creation date:</p>
 						<p class="green-text">00/00/0000</p>
 					</div>
 
 					<div class="review">
-						<p>Valid until:</p>
+						<p>Diagram review date:</p>
 						<p class="green-text">
 							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
 							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
@@ -261,7 +261,7 @@
 	</div>
 </ng-template>
 
-<ng-template #chief_warden_trainingTemplate>
+<ng-template #chief_warden_trainingTemplate> <!-- Chief Warden Training -->
 	<div class="documents-container">
 		<div class="document" >
 
@@ -276,7 +276,7 @@
 
 				<div class="dates">
 					<div class="created">
-						<p>Last review held on</p>
+						<p>Last Chief warden training held on:</p>
 						<p class="green-text">00/00/0000</p>
 					</div>
 
@@ -310,7 +310,7 @@
 	</div>
 </ng-template>
 
-<ng-template #warden_trainingTemplate>
+<ng-template #warden_trainingTemplate> <!-- Warden Training -->
 	<div class="documents-container">
 		<div class="document" >
 
@@ -325,7 +325,7 @@
 
 				<div class="dates">
 					<div class="created">
-						<p>Last review held on:</p>
+						<p>Last warden training session held on</p>
 						<p class="green-text">00/00/0000</p>
 					</div>
 				</div>
@@ -356,7 +356,7 @@
 	</div>
 </ng-template>
 
-<ng-template #fire_safety_advisorTemplate>
+<ng-template #fire_safety_advisorTemplate><!-- Fire Safety Advisor -->
 	<div class="documents-container">
 		<div class="document" >
 
@@ -371,12 +371,12 @@
 
 				<div class="dates">
 					<div class="created">
-						<p>Last review held on</p>
+						<p>Last Fire safety review date:</p>
 						<p class="green-text">00/00/0000</p>
 					</div>
 
 					<div class="review">
-						<p>Valid until:</p>
+						<p>Report valid till:</p>
 						<p class="green-text">00/00/0000</p>
 					</div>
 				</div>
@@ -409,7 +409,7 @@
 	</div>
 </ng-template>
 
-<ng-template #general_occupant_trainingTemplate>
+<ng-template #general_occupant_trainingTemplate> <!-- General Occupant Training -->
 	<div class="documents-container">
 		<div class="document" >
 
@@ -424,7 +424,7 @@
 
 				<div class="dates">
 					<div class="created">
-						<p>Last review held on:</p>
+						<p>Last General Occupant training held on:</p>
 						<p class="green-text">00/00/0000</p>
 					</div>
 				</div>
@@ -457,7 +457,7 @@
 	</div>
 </ng-template>
 
-<ng-template #warden_listTemplate>
+<ng-template #warden_listTemplate> <!-- Warden Lists -->
 	<div class="documents-container">
 		<div class="document" >
 
@@ -472,13 +472,13 @@
 
 				<div class="dates">
 					<div class="created">
-						<p>Last review held on</p>
-						<p class="green-text">00/00/0000</p>
+						<p></p>
+						<p class="green-text"></p>
 					</div>
 
 					<div class="review">
-						<p>Valid until:</p>
-						<p class="green-text">00/00/0000</p>
+						<p></p>
+						<p class="green-text"></p>
 					</div>
 				</div>
 
