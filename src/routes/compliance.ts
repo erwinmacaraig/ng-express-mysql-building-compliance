@@ -44,15 +44,15 @@ import * as S3Zipper from 'aws-s3-zipper';
    	* @method create
    	* @static
    	*/
-	public static create(router: Router) {
-		router.get('/compliance/kpis', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+  public static create(router: Router) {
+    router.get('/compliance/kpis', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
       new ComplianceRoute().getKPIS(req, res, next);
-    	});
+    });
 
-      router.post('/compliance/locations-latest-compliance',
+    router.post('/compliance/locations-latest-compliance',
       new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
         new ComplianceRoute().getLocationsLatestCompliance(req, res, next);
-      });
+    });
 
     router.get('/compliance/download-compliance-documents-pack/',
     new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -67,6 +67,20 @@ import * as S3Zipper from 'aws-s3-zipper';
         res.end();
       });
 
+    });
+
+    router.post('/compliance/toggleTPRViewAccess/',
+        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+          const compliance_documents_id = ('compliance_documents_id' in req.body) ? req.body.compliance_documents_id : 0;
+          const viewable_by_trp = ('viewable_by_trp' in req.body) ? req.body.viewable_by_trp : 0;
+          const complianceDocObj = new ComplianceDocumentsModel(compliance_documents_id);
+          complianceDocObj.load().then((loadData) => {
+            return complianceDocObj.create({'viewable_by_trp': viewable_by_trp});
+          }).then((createResults) => {
+            return res.status(200).send({'viewable_by_trp': viewable_by_trp});
+          }).catch((e) => {
+            return res.status(400).send({'message':  'Change Failed.'});
+          });
     });
   }
 
