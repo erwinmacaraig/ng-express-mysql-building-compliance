@@ -81,7 +81,7 @@ export class CartComponent implements OnInit, OnDestroy{
 
 	addQuantity(cart){
 
-		if(cart.item.product_type != 'package'){
+		if(cart.item.product_type != 'package' || cart.item.product_type != 'addon'){
 			this.messageService.sendMessage({
 				'updateCart' : true, 'productId' : cart.item.product_id, 'qty' : parseInt(cart.qty) + 1, 'locationId' : cart.item.location_id
 			});
@@ -96,7 +96,7 @@ export class CartComponent implements OnInit, OnDestroy{
 		if(cart.qty > 0){
 			if(cart.item.product_type == 'diagram' && cart.qty > 5){
 				allow = true;
-			}else if(cart.item.product_type != 'diagram' && cart.item.product_type != 'package'){
+			}else if(cart.item.product_type != 'diagram' && cart.item.product_type != 'package' && cart.item.product_type != 'addon'){
 				allow = true;
 			}
 		}

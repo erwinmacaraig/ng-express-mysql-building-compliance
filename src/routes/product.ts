@@ -108,10 +108,26 @@ export class ProductRoute extends BaseRoute {
         const diagram_finish_id = (req.body.diagram_finish_id) ? req.body.diagram_finish_id : 0;
         const pdf_only = (req.body.pdf_only) ? req.body.pdf_only : 0;
         const target_user_id = (req.body.target_user_id) ? req.body.target_user_id : 0;
+        const add_ons_id = (req.body.add_ons_id) ? req.body.add_ons_id : [];
         const cart = new Cart(req.session.cart ? req.session.cart : {});
+
         try {
-            const product = new Product(product_id);
-            const productDbData = await product.load();
+            const prodListModel = new Product();
+            const products = await <any>prodListModel.listProducts();
+
+            let productDbData = {},
+                addOnsData = [];
+
+            for(let i in products){
+                let prod = products[i];
+                if(prod.product_id == product_id){
+                    productDbData = prod;
+                }
+
+                if(add_ons_id.indexOf(prod.product_id) > -1){
+                    addOnsData.push(prod);
+                }
+            }
 
             productDbData['qty'] = quantity;
             productDbData['location_id'] = location_id;
@@ -127,8 +143,27 @@ export class ProductRoute extends BaseRoute {
                 }
             }
 
-            cart.add(productDbData, product.ID());
+            cart.add(productDbData, product_id);
             req.session.cart = cart;
+
+            for(let i in addOnsData){
+                addOnsData[i]['qty'] = quantity;
+                addOnsData[i]['location_id'] = location_id;
+                addOnsData[i]['diagram_finish_id'] = diagram_finish_id;
+                addOnsData[i]['pdf_only'] = pdf_only;
+                addOnsData[i]['target_user_id'] = target_user_id;
+
+                if(addOnsData[i]['product_type'] == 'package'){
+                    if(addOnsData[i]['months_of_validity'] > 0){
+                        let dateMoment = moment();
+                        dateMoment.add( addOnsData[i]['months_of_validity'], 'months' );
+                        addOnsData[i]['expiration_date'] = dateMoment.format('YYYY-MM-DD');
+                    }
+                }
+
+                cart.add(addOnsData[i], addOnsData[i]['product_id']);
+                req.session.cart = cart;
+            }
 
             return {
                 message: 'Success. Product added to cart.',

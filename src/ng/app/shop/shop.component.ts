@@ -130,7 +130,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 					'location_id' : res.locationId,
 					'target_user_id' : (res.targetUserId) ? res.targetUserId : 0,
 					'diagram_finish_id' : (res.diagramFinishId) ? res.diagramFinishId : null,
-					'pdf_only' : (res.pdfOnly) ? res.pdfOnly : 0
+					'pdf_only' : (res.pdfOnly) ? res.pdfOnly : 0,
+					'add_ons_id' : (res.addOnsId) ? res.addOnsId : []
 				}, () => {
 					this.messageService.sendMessage({
 						'cart' : this.cart

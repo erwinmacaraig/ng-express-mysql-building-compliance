@@ -23,6 +23,7 @@ declare var $: any;
 export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	trainingsProducts = <any>[];
+	categories = <any>[];
 
 	allProducts = <any>[];
 	cart = <any>{
@@ -45,6 +46,7 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	btnDisabled = [];
 	btnDisabled2 = [];
+	selectedCategoryName = '';
 
 	constructor(
 		private router : Router,
@@ -131,7 +133,18 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 		for(let prod of this.allProducts){
 			if(prod.product_type == 'trainings'){
 				this.trainingsProducts.push(prod);
+
+				if(prod.category !== null){
+	    			if(this.categories.indexOf( prod.category ) == -1){
+	    				this.categories.push(prod.category);
+	    			}
+    			}
+
 			}
+		}
+
+		if(this.categories.length > 0){
+			this.selectedCategoryName = this.categories[0];
 		}
 	}
 
@@ -170,6 +183,21 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 				selElem.css('border', '0px');
 			}, 1000);
 		}
+	}
+
+	buyNow(prodId, btn){
+		let selElem = $('select[product-id="'+prodId+'"]'),
+			userTargetId = selElem.val();
+
+		this.addToCart(prodId, btn);
+
+		if(this.selectLocation > 0 && userTargetId > 0){
+			setTimeout(() => {
+				this.router.navigate(["/shop/cart"]);
+			}, 500);
+		}
+		
+		
 	}
 
 	removeFromCart(prodId, btn){

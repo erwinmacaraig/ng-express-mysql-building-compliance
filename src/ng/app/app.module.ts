@@ -92,8 +92,12 @@ import { CartComponent } from './shop/cart.component/cart.component';
 import { PaymentComponent } from './shop/payment.component/payment.component';
 import { ProductsFavoritesComponent } from './shop/products.favorites/product.favorites.component';
 
+
+import { SafeHtmlPipe } from './pipes/safehtml';
+
 @NgModule({
   declarations: [
+    SafeHtmlPipe,
     AppComponent,
     LoginComponent,
     SignupComponent,

@@ -36,7 +36,7 @@
 										<button class="btn-arrow-down waves-effect waves-light" (click)="subtractQuantity(cart)"><i class="material-icons">arrow_drop_down</i></button>
 									</div>
 									<div class="text">
-										x {{ cart.item.amount }} USD
+										x ${{cart.item.amount}}
 									</div>
 								</div>
 								<p>
@@ -45,7 +45,7 @@
 							</div>
 
 							<div class="remove-container">
-								<a href="javascript:void(0)" (click)="removeFromCart(cart.item.product_id)" class="black-text right">
+								<a href="javascript:void(0)" *ngIf="cart.item.product_type != 'addon'" (click)="removeFromCart(cart.item.product_id)" class="black-text right">
 									Close <div class="close-image"></div>
 								</a>
 								<div style="clear: both;"></div>
@@ -56,7 +56,7 @@
 				</div>
 				<div class="footer grey darken-3">
 					<p class="left white-text">Total</p>
-					<p class="right white-text">$ {{cart.totalPrice}}</p>
+					<p class="right white-text"><strong>$ {{cart.totalPrice.toFixed(2)}}</strong></p>
 					<p style="clear: both;"></p>
 				</div>
 			</div>
