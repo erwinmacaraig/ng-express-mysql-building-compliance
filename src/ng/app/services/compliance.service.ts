@@ -93,4 +93,11 @@ export class ComplianceService {
       responseType: 'arraybuffer'});
   }
 
+  public toggleTRPViewAccess(compliance_documents_id: number = 0, access: boolean = false) {
+    return this.http.post<any>(this.baseUrl + '/compliance/toggleTPRViewAccess/', {
+      'compliance_documents_id': compliance_documents_id,
+      'viewable_by_trp': access
+    });
+  }
+
 }

@@ -284,4 +284,20 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     });
   }
 
+  assignAccessToTRP(e, compliance) {
+    this.selectedCompliance = compliance;
+    const temp = this.selectedCompliance.compliance.docs[0].viewable_by_trp;
+    this.selectedCompliance.compliance.docs[0].viewable_by_trp =
+       !this.selectedCompliance.compliance.docs[0].viewable_by_trp;
+
+    this.complianceService.toggleTRPViewAccess(
+      this.selectedCompliance.compliance.docs[0].compliance_documents_id,
+      this.selectedCompliance.compliance.docs[0].viewable_by_trp).subscribe((data) => {
+        console.log('Toggled View TRP to ' + this.selectedCompliance.compliance.docs[0].viewable_by_trp);
+      }, (error) => {
+        this.selectedCompliance.compliance.docs[0].viewable_by_trp = temp;
+        console.log(error);
+      });
+  }
+
 }

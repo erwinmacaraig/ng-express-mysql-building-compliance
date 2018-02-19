@@ -44,15 +44,15 @@ import * as S3Zipper from 'aws-s3-zipper';
    	* @method create
    	* @static
    	*/
-	public static create(router: Router) {
-		router.get('/compliance/kpis', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+  public static create(router: Router) {
+    router.get('/compliance/kpis', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
       new ComplianceRoute().getKPIS(req, res, next);
-    	});
+    });
 
-      router.post('/compliance/locations-latest-compliance',
+    router.post('/compliance/locations-latest-compliance',
       new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
         new ComplianceRoute().getLocationsLatestCompliance(req, res, next);
-      });
+    });
 
     router.get('/compliance/download-compliance-documents-pack/',
     new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -67,6 +67,20 @@ import * as S3Zipper from 'aws-s3-zipper';
         res.end();
       });
 
+    });
+
+    router.post('/compliance/toggleTPRViewAccess/',
+        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+          const compliance_documents_id = ('compliance_documents_id' in req.body) ? req.body.compliance_documents_id : 0;
+          const viewable_by_trp = ('viewable_by_trp' in req.body) ? req.body.viewable_by_trp : 0;
+          const complianceDocObj = new ComplianceDocumentsModel(compliance_documents_id);
+          complianceDocObj.load().then((loadData) => {
+            return complianceDocObj.create({'viewable_by_trp': viewable_by_trp});
+          }).then((createResults) => {
+            return res.status(200).send({'viewable_by_trp': viewable_by_trp});
+          }).catch((e) => {
+            return res.status(400).send({'message':  'Change Failed.'});
+          });
     });
   }
 
@@ -233,23 +247,25 @@ import * as S3Zipper from 'aws-s3-zipper';
 		for(let c in compliances){
 			compliances[c]['measurement'] = compliances[c]['kpis']['measurement'];
 
-			let m = compliances[c]['measurement'];
+			let m = compliances[c]['measurement'],
+				validTillMoment = moment(compliances[c]['valid_till']);
+
+			compliances[c]['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
 
 			if(m == 'Traffic' || m == 'evac'){
-				if(compliances[c]['docs'][0]){
-					let dateOfActivity = moment(compliances[c]['docs'][0]['date_of_activity']),
-						timeStamp = moment(compliances[c]['docs'][0]['timestamp']),
+				if(compliances[c]['docs'][0] && validTillMoment.isValid()){
+					let timeStamp = moment(compliances[c]['docs'][0]['timestamp']),
 						today = moment(),
 						validityInMonths = compliances[c]['kpis']['validity_in_months'];
 
-					dateOfActivity.add(validityInMonths, "months");
+					// dateOfActivity.add(validityInMonths, "months");
 
-					compliances[c]['valid_till'] = dateOfActivity.format('MMM. DD, YYYY');
+					// compliances[c]['valid_till'] = dateOfActivity.format('MMM. DD, YYYY');
 
-					if( dateOfActivity.isSameOrBefore(today) === false ){
-						let daysDiffFromNow = dateOfActivity.diff(today, 'days'),
+					if( validTillMoment.isSameOrBefore(today) === false ){
+						let daysDiffFromNow = validTillMoment.diff(today, 'days'),
 							daysDiffOfNowAndTimeStamp = today.diff(timeStamp, 'days'),
-							decrease = daysDiffOfNowAndTimeStamp - daysDiffFromNow,
+							decrease = daysDiffFromNow - daysDiffOfNowAndTimeStamp,
 							percentage = (decrease / daysDiffOfNowAndTimeStamp) * 100;
 
 						compliances[c]['validity_percentage'] = 100 - Math.round(percentage);
@@ -264,9 +280,6 @@ import * as S3Zipper from 'aws-s3-zipper';
 				// 8 General Occupant
 				// 11 General Occupant
 			}
-
-
-
 		}
 
 
