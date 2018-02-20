@@ -71,6 +71,11 @@ import { CartComponent } from './shop/cart.component/cart.component';
 import { PaymentComponent } from './shop/payment.component/payment.component';
 import { ProductsFavoritesComponent } from './shop/products.favorites/product.favorites.component';
 
+import { TrainingsComponent } from './trainings/trainings.component';
+import { MyTrainingsComponent } from './trainings/my-training/mytraining.component';
+import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
+import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
+
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -156,6 +161,14 @@ const appRoutes: Routes = [
   },
   {
     path : 'payment-response/:ecnrypted', component : PaymentResponseComponent
+  },
+  {
+    path : 'trainings', component : TrainingsComponent,
+    children : [
+      { path : 'my-training', component : MyTrainingsComponent },
+      { path : 'team-training', component : TeamTrainingComponent },
+      { path : 'training-invite', component : TrainingInviteComponent }
+    ]
   }
 ];
 
