@@ -214,6 +214,7 @@ export class PaymentRoute extends BaseRoute {
 
     await Object.keys(items).forEach((key) => {
       const transaction = new Transaction();
+
       try {
 
         transaction.create({
@@ -223,10 +224,8 @@ export class PaymentRoute extends BaseRoute {
           'quantity': items[key]['qty'],
           'amount': items[key]['price'],
           'expiration_date' : (items[key]['item']['expiration_date']) ? items[key]['item']['expiration_date'] : null,
-          'target_user_id' : (items[key]['item']['target_user_id']) ? items[key]['item']['target_user_id'] : 0,
-          'diagram_finish_id' : (items[key]['item']['diagram_finish_id']) ? items[key]['item']['diagram_finish_id'] : 0,
           'location_id' : (items[key]['item']['location_id']) ? items[key]['item']['location_id'] : 0,
-          'pdf_only' : (items[key]['item']['pdf_only']) ? items[key]['item']['pdf_only'] : 0
+          'account_id' : (items[key]['item']['account_id']) ? items[key]['item']['account_id'] : 0
         });
 
       } catch (e) {

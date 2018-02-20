@@ -65,6 +65,15 @@ export class ProductService {
 		});
 	}
 
+	public removeDiagramsFromCart(callBack){
+		this.http.get(this.baseUrl+"/product/remove-diagrams-from-cart", this.options)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 	public removeAllFromCart(callBack){
 		this.http.get(this.baseUrl+"/product/remove-all-from-cart/", this.options)
 		.subscribe(res => {
@@ -121,15 +130,6 @@ export class ProductService {
 
 	public updateFavorite(formData, callBack){
 		this.http.post(this.baseUrl+"/products/update-favorite", formData, this.options)
-		.subscribe(res => {
-			callBack(res);
-		}, err => {
-			callBack( JSON.parse(err.error) );
-		});
-	}
-
-	public getDiagramFinishes(callBack){
-		this.http.get(this.baseUrl+"/products/diagram-finishes",  this.options)
 		.subscribe(res => {
 			callBack(res);
 		}, err => {

@@ -38,7 +38,7 @@
 				<div class="title">Category</div>
 				<div class="content">
 					<ul>
-						<li *ngFor="let cat of categories">
+						<li *ngFor="let cat of categories" (click)="selectCategory(cat)" [ngClass]="{ active : cat == selectedCategoryName }">
 							<div>{{cat}}</div>
 						</li>
 					</ul>
@@ -56,7 +56,7 @@
 				</div>
 			</div>
 			
-			<div class="row" *ngFor="let prod of trainingsProducts">
+			<div class="row" *ngFor="let prod of showingProducts">
 				
 				<div class="col l12 m12 s12" >
 					<div class="package-wrapper" #package>
@@ -97,7 +97,7 @@
 										<div class="col l6 m12 s12">
 											<select style="font-size: 12px; margin-top: 5px;" [attr.product-id]="prod.product_id">
 												<option value="0" disabled selected>Select training for</option>
-												<option value="{{user.user_id}}" *ngFor="let user of users">{{user.first_name}} {{user.last_name}}</option>
+												<option value="{{acc.account_id}}" *ngFor="let acc of accounts">{{acc.account_name}}</option>
 											</select>
 										</div>
 

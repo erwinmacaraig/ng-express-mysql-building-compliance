@@ -14,7 +14,6 @@ import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 const validator = require('validator');
-import * as Promise from 'promise';
 
 /**
  * / route
@@ -381,30 +380,19 @@ import * as Promise from 'promise';
 		}
 	}
 
-	public getRelatedAccounts(req: AuthRequest, res: Response){
+	public async getRelatedAccounts(req: AuthRequest, res: Response){
 		let accountModel = new Account(),
 			response = {
-				status: false,
+				status: true,
 				message : '',
 				data : {}
 			},
 			account_id = req.params.account_id;
 
-		res.statusCode = 400;
+		res.statusCode = 200;
 
-		accountModel.setID(account_id);
-		accountModel.load().then(
-			() => {
-				response.status = true;
-				response.data = [accountModel.getDBData()];
-				res.statusCode = 200;
-				res.send(response);
-			},
-			() => {
-				response.message = 'No accounts found';
-				res.send(response);
-			}
-		);
+		response.data = await accountModel.getRelatedAccounts(account_id);
+		res.send(response);
 	}
 
 	public validateSendUserInvitation(data){

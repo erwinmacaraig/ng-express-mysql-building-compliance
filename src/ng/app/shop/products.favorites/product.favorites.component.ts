@@ -98,11 +98,12 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToCart(prodId, btn){
+	addToCart(product, btn){
+		let prodId = product.product_id;
 		btn.disabled = true;
 		this.btnDisabled.push(btn);
 		this.messageService.sendMessage({
-			'addToCart' : true, 'productId' : prodId
+			'addToCart' : true, 'productId' : prodId, 'locationId' : product.location_id, 'quantity' : parseInt(product.quantity)
 		});
 	}
 
@@ -125,11 +126,11 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 
 		if(product.product_type != 'package'){
 			this.messageService.sendMessage({
-				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1
+				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1, 'locationId' : product.location_id
 			});
 
 			this.messageService.sendMessage({
-				'updateFavorite' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1
+				'updateFavorite' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1, 'locationId' : product.location_id
 			});
 
 			this.quantityInput.nativeElement.value = parseInt(product.quantity) + 1;
@@ -150,11 +151,11 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 		if(allow){
 
 			this.messageService.sendMessage({
-				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1
+				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1, 'locationId' : product.location_id
 			});
 
 			this.messageService.sendMessage({
-				'updateFavorite' : true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1
+				'updateFavorite' : true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1, 'locationId' : product.location_id
 			});
 
 			this.quantityInput.nativeElement.value = parseInt(product.quantity) - 1;

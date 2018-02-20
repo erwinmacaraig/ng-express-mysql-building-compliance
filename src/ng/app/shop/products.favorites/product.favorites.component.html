@@ -50,7 +50,7 @@
 									<i class="material-icons">delete</i>
 								</button>
 
-								<button class="btn orange waves-effect waves-light buy right" #btnAdd *ngIf="!isInCart(product.product_id)" (click)="addToCart(product.product_id, btnAdd)">
+								<button class="btn orange waves-effect waves-light buy right" #btnAdd *ngIf="!isInCart(product.product_id)" (click)="addToCart(product, btnAdd)">
 									<div class="image"></div> Add to cart
 								</button>
 

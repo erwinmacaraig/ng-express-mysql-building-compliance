@@ -36,12 +36,11 @@
 }
 
 .left-panel{
-	margin-right: 20px;
+	background-color: #f7f7f7;
 }
 
 .left-panel,
 .right-panel{
-	background-color: #f7f7f7;
     border-radius: 5px;
     padding: 0px;
 }
@@ -71,27 +70,33 @@
 	font-size: 24px;
 }
 
-.left-panel .quantity-container{
+.quantity-container{
 	font-size: 14px;
 }
 
-.left-panel .quantity-container .text{
+.quantity-container .text{
 	display: inline-block;
 	padding-left: 10px;
 }
 
-.left-panel .quantity-container .input{
+.quantity-container .input{
 	position: relative;
 	border: 1px solid #ddd;
 	border-radius: 5px;
-	width: 25%;
 	display: inline-block;
 	overflow: hidden;
 	height: 40px;
     vertical-align: middle;
+    width: 25%;
 }
 
-.left-panel .quantity-container .input input{
+.list-container .quantity-container .input{
+	width: 60px;
+	display: block;
+    margin: 0 auto;
+}
+
+.quantity-container .input input{
 	width: 65%;
     text-align: center;
     margin: 0px;
@@ -100,8 +105,8 @@
     background-color: #fff;
 }
 
-.left-panel .quantity-container .input .btn-arrow-up, 
-.left-panel .quantity-container .input .btn-arrow-down{
+.quantity-container .input .btn-arrow-up, 
+.quantity-container .input .btn-arrow-down{
 	background: transparent;
     padding: 0px;
     border: 0px;
@@ -112,8 +117,15 @@
     background-color: #434343;
 }
 
-.left-panel .quantity-container .input .btn-arrow-down{
+.quantity-container .input .btn-arrow-down{
 	bottom: 0px;
+}
+
+.list-container .quantity-container > p{
+	display: block;
+    margin: 0 auto;
+    width: 50px;
+    padding-bottom: 10px;
 }
 
 .input button .material-icons{
@@ -130,90 +142,132 @@
 	padding: 15px 20px;
 }
 
-.right-panel .top .right{
-	position: relative;
-    top: 15px;
-
+.right-panel .top h5{
+	font-size: 18px;
 }
 
-.right-panel .top .left-arrow,
-.right-panel .top .right-arrow{
-	background: url(/assets/images/shop_icons.png);
-    width: 28px;
-    height: 28px;
-    border-radius: 3px;
-    border: 0px;
-    margin-right: 5px;
-}
-
-.right-panel .top .left-arrow{
-	background-position: 69% 84% !important;
-}
-
-.right-panel .top .right-arrow{
-	background-position: 79% 84% !important;
-}
-
-.middle table{
-	min-height: 300px;
-	margin: 20px 0px;
-}
-
-.middle table .text-container{
-	width: 30%;
-}
-
-.middle table .image-container{
-	width: 70%;
-}
-
-.middle table .image-container{
-	padding: 5px;
-}
-
-.middle table .image-container .image-wrapper{
-	min-height: 300px;
-	width: 100%;
-	background-color: #fff;
-}
-
-.middle table .image-container .image-wrapper img{
-	max-width: 100%;
-	max-height: 360px;
-}
 
 .button-container{
     width: 100%;
 }
 
-.button-container button{
-	width: 12%;
-    height: 45px;
-    padding: 0px !important;
+.buy-buttons button{
+    padding: 0px 20px !important;
     font-size: 14px !important;
     text-transform: unset;
     border-radius: 5px;
+    margin-bottom: 10px;
+    width: 100%;
 }
 
-.button-container button .image{
+.buy .image{
 	background: url(/assets/images/shop_icons.png);
 	vertical-align: middle;
     width: 25px;
     height: 25px;
     display: inline-block;
+    vertical-align: middle;
+    border-radius: 0px;
+	background-position: 71.5% 50% !important;
+}
+
+.save{
+	color: #39a1ff;
+	text-transform: unset;
 }
 
 .save .image{
+	background: url(/assets/images/shop_icons.png);
 	border-radius: 0px;
 	background-position: 30% 50% !important;
-}
-
-.buy .image{
-	border-radius: 0px;
-	background-position: 71.5% 50% !important;
+	width: 25px;
+    height: 25px;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .slides{
 	max-height: 470px;
 	overflow-y: hidden;
+}
+
+.buy-buttons{
+	margin: 10px 0px;
+}
+
+.select-diagram{
+	font-size: 14px;
+}
+
+.select-diagram h5,
+.list-container h5{
+	font-size: 18px;
+}
+
+.list-container > h5.blue-text{
+	margin: 40px 0px;
+}
+
+.select-diagram select{
+    display: inline-block;
+    width: 350px;
+    margin: 0px 10px;
+}
+
+.top,
+.select-diagram{
+	border-bottom: 1px solid #ddd;
+    padding: 10px;
+}
+
+.list-container ul{
+	margin: 0px;
+}
+
+.list-container ul li{
+	padding: 10px;
+    border-bottom: 1px solid #ddd;
+    position: relative;
+    height: 245px;
+}
+
+.list-container ul li .image {
+    width: 250px;
+    height: 200px;
+    background-color: #ededed;
+    position: absolute;
+    left: 0px;
+    top: 20px;
+}
+
+.list-container ul li .text{
+	width: 50%;
+    vertical-align: top;
+    margin: 0px 10px;
+    position: absolute;
+    left: 260px;
+}
+
+.list-container ul li .quantity{
+	position: absolute;
+    right: 0px;
+    top: 20px;
+}
+
+.list-container ul li .quantity .orange-text{
+	font-size: 18px;
+    display: block;
+    margin: 0 auto;
+    width: 50px;
+    padding-bottom: 10px;
+}
+
+
+.list-container ul li .image img{
+	max-width: 100%;
+	max-height: 200px;
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }

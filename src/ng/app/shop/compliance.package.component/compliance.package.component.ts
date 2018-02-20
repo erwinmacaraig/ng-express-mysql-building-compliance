@@ -172,10 +172,23 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 			btn.disabled = true;
 			this.btnDisabled.push(btn);
 
-			this.messageService.sendMessage({
-				'addToCart' : true, 'productId' : prodId, 'qty' : 1, 'locationId' : this.selectLocation,
-				'addOnsId' : (addOnIds) ? addOnIds : []
-			});
+			if(addOnIds){
+				for(let id of addOnIds){
+					this.messageService.sendMessage({
+						'addToCart' : true, 'productId' : prodId, 'qty' : 1, 'locationId' : this.selectLocation,
+						'addOns' : [
+							{
+								product_id : id, location_id : this.selectLocation, qty : 1
+							}
+						]
+					});
+				}
+			}else{
+				this.messageService.sendMessage({
+					'addToCart' : true, 'productId' : prodId, 'qty' : 1, 'locationId' : this.selectLocation
+				});
+			}
+
 		}else{
 			$('#selectLocation').css('border', '1px solid #F44336');
 			setTimeout(() => {
@@ -193,13 +206,13 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 				this.addToCart(packge.product_id, btnAdd, [this.fsaProduct['product_id']]);
 				setTimeout(() => {
 					this.router.navigate(["/shop/cart"]);
-				}, 500);
+				}, 1000);
 			}
 		}else if(this.selectLocation > 0){
 			this.addToCart(packge.product_id, btnAdd);
 			setTimeout(() => {
 				this.router.navigate(["/shop/cart"]);
-			}, 500);
+			}, 1000);
 		}else{
 			$('#selectLocation').css('border', '1px solid #F44336');
 			setTimeout(() => {

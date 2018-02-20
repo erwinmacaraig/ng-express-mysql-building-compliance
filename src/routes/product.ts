@@ -8,7 +8,6 @@ import * as moment from 'moment';
 import { Product } from '../models/product.model';
 import { ProductsRelationModel } from '../models/products.relation.model';
 import { ProductsFavoritesModel } from '../models/products.favorites.model';
-import { DiagramFinishModel } from '../models/diagram.finish.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 
 export class ProductRoute extends BaseRoute {
@@ -64,7 +63,7 @@ export class ProductRoute extends BaseRoute {
             new ProductRoute().getCart(req, res);
         });
 
-        router.get('/product/remove-all-from-cart/',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        router.get('/product/remove-all-from-cart/',   (req: AuthRequest, res: Response) => {
             req['session'].cart = {
                 items : {},
                 totalQty : 0,
@@ -95,8 +94,8 @@ export class ProductRoute extends BaseRoute {
             new ProductRoute().updateFavorite(req, res);
         });
 
-        router.get('/products/diagram-finishes',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-            new ProductRoute().getDiagramFinishes(req, res);
+        router.get('/product/remove-diagrams-from-cart', (req: AuthRequest, res: Response) => {
+            new ProductRoute().removeDiagramsFromCart(req, res);
         });
 
     }
@@ -105,18 +104,17 @@ export class ProductRoute extends BaseRoute {
         const product_id = req.body.product_id;
         const quantity = req.body.quantity;
         const location_id = (req.body.location_id) ? req.body.location_id : 0;
-        const diagram_finish_id = (req.body.diagram_finish_id) ? req.body.diagram_finish_id : 0;
-        const pdf_only = (req.body.pdf_only) ? req.body.pdf_only : 0;
-        const target_user_id = (req.body.target_user_id) ? req.body.target_user_id : 0;
-        const add_ons_id = (req.body.add_ons_id) ? req.body.add_ons_id : [];
+        const account_id = (req.body.account_id) ? req.body.account_id : 0;
         const cart = new Cart(req.session.cart ? req.session.cart : {});
+        const addOnsItems = (req.body.add_on_items) ? req.body.add_on_items : []; 
 
         try {
             const prodListModel = new Product();
             const products = await <any>prodListModel.listProducts();
 
             let productDbData = {},
-                addOnsData = [];
+                addOnsItemsDB = [],
+                toSave = [];
 
             for(let i in products){
                 let prod = products[i];
@@ -124,16 +122,17 @@ export class ProductRoute extends BaseRoute {
                     productDbData = prod;
                 }
 
-                if(add_ons_id.indexOf(prod.product_id) > -1){
-                    addOnsData.push(prod);
+                for(let x in addOnsItems){
+                    if(prod.product_id == addOnsItems[x]['product_id']){
+                        addOnsItemsDB.push(prod);
+                    }
                 }
+
             }
 
             productDbData['qty'] = quantity;
             productDbData['location_id'] = location_id;
-            productDbData['diagram_finish_id'] = diagram_finish_id;
-            productDbData['pdf_only'] = pdf_only;
-            productDbData['target_user_id'] = target_user_id;
+            productDbData['account_id'] = account_id;
 
             if(productDbData['product_type'] == 'package'){
                 if (productDbData['months_of_validity'] > 0) {
@@ -143,31 +142,38 @@ export class ProductRoute extends BaseRoute {
                 }
             }
 
-            cart.add(productDbData, product_id);
-            req.session.cart = cart;
+            toSave.push(productDbData);
 
-            for(let i in addOnsData){
-                addOnsData[i]['qty'] = quantity;
-                addOnsData[i]['location_id'] = location_id;
-                addOnsData[i]['diagram_finish_id'] = diagram_finish_id;
-                addOnsData[i]['pdf_only'] = pdf_only;
-                addOnsData[i]['target_user_id'] = target_user_id;
+            for(let item of addOnsItemsDB){
+                let cart2 = new Cart(req.session.cart ? req.session.cart : {}),
+                    pdbData = item,
+                    qty = 1,
+                    accntId = 0,
+                    locId = 0;
 
-                if(addOnsData[i]['product_type'] == 'package'){
-                    if(addOnsData[i]['months_of_validity'] > 0){
-                        let dateMoment = moment();
-                        dateMoment.add( addOnsData[i]['months_of_validity'], 'months' );
-                        addOnsData[i]['expiration_date'] = dateMoment.format('YYYY-MM-DD');
+                for(let i in addOnsItems){
+                    if(addOnsItems[i]['product_id'] == item.product_id){
+                        qty = addOnsItems[i]['qty'];
+                        locId = addOnsItems[i]['location_id'];
+                        accntId = (addOnsItems[i]['account_id']) ? addOnsItems[i]['account_id'] : 0;
                     }
                 }
 
-                cart.add(addOnsData[i], addOnsData[i]['product_id']);
+                pdbData['qty'] = qty;
+                pdbData['location_id'] = locId;
+                pdbData['account_id'] = accntId;
+
+                toSave.push(pdbData);
+            }
+
+            for(let i in toSave){
+                cart.add(toSave[i], toSave[i]['product_id']);
                 req.session.cart = cart;
             }
 
             return {
                 message: 'Success. Product added to cart.',
-                cart: cart
+                cart: req.session.cart
             };
         } catch (e) {
             console.log(e);
@@ -182,27 +188,78 @@ export class ProductRoute extends BaseRoute {
         const product_id = req.body.product_id;
         const quantity = req.body.quantity;
         const location_id = (req.body.location_id) ? req.body.location_id : 0;
-        const diagram_finish_id = (req.body.diagram_finish_id) ? req.body.diagram_finish_id : 0;
-        const pdf_only = (req.body.pdf_only) ? req.body.pdf_only : 0;
-        const target_user_id = (req.body.target_user_id) ? req.body.target_user_id : 0;
+        const account_id = (req.body.account_id) ? req.body.account_id : 0;
         const cart = new Cart(req.session.cart ? req.session.cart : {});
+        const addOnsItems = (req.body.add_on_items) ? req.body.add_on_items : []; 
+
         try {
-            const product = new Product(product_id);
-            const productDbData = await product.load();
+            const prodListModel = new Product();
+            const products = await <any>prodListModel.listProducts();
+
+            let productDbData = {},
+                addOnsItemsDB = [],
+                toSave = [];
+
+            for(let i in products){
+                let prod = products[i];
+                if(prod.product_id == product_id){
+                    productDbData = prod;
+                }
+
+                for(let x in addOnsItems){
+                    if(prod.product_id == addOnsItems[x]['product_id']){
+                        addOnsItemsDB.push(prod);
+                    }
+                }
+
+            }
 
             productDbData['qty'] = quantity;
             productDbData['location_id'] = location_id;
-            productDbData['diagram_finish_id'] = diagram_finish_id;
-            productDbData['pdf_only'] = pdf_only;
-            productDbData['target_user_id'] = target_user_id;
+            productDbData['account_id'] = account_id;
 
-            cart.update(productDbData, product.ID());
-            req.session.cart = cart;
+            if(productDbData['product_type'] == 'package'){
+                if (productDbData['months_of_validity'] > 0) {
+                    let dateMoment = moment();
+                    dateMoment.add( productDbData['months_of_validity'], 'months' );
+                    productDbData['expiration_date'] = dateMoment.format('YYYY-MM-DD');
+                }
+            }
+
+            toSave.push(productDbData);
+
+            for(let item of addOnsItemsDB){
+                let cart2 = new Cart(req.session.cart ? req.session.cart : {}),
+                    pdbData = item,
+                    qty = 1,
+                    accntId = 0,
+                    locId = 0;
+
+                for(let i in addOnsItems){
+                    if(addOnsItems[i]['product_id'] == item.product_id){
+                        qty = addOnsItems[i]['qty'];
+                        locId = addOnsItems[i]['location_id'];
+                        accntId = (addOnsItems[i]['account_id']) ? addOnsItems[i]['account_id'] : 0;
+                    }
+                }
+
+                pdbData['qty'] = qty;
+                pdbData['location_id'] = locId;
+                pdbData['account_id'] = accntId;
+
+                toSave.push(pdbData);
+            }
+
+            for(let i in toSave){
+                cart.update(toSave[i], toSave[i]['product_id']);
+                req.session.cart = cart;
+            }
 
             return {
                 message: 'Success. Product update from cart.',
-                cart: cart
+                cart: req.session.cart
             };
+
         } catch (e) {
             return {
                 message: 'Fail. There was a problem updating the product to cart.',
@@ -236,6 +293,44 @@ export class ProductRoute extends BaseRoute {
                 cart: cart
             };
         }
+    }
+
+    public async removeDiagramsFromCart(req, res: Response){
+        const cart = new Cart(req.session.cart ? req.session.cart : {});
+        let newCart = {
+            items : {}, totalQty : 0, totalPrice : 0
+        },
+        response = {
+            message : '',
+            cart : {}
+        };
+
+         try {
+            for(let i in cart.items){
+                let item = cart.items[i]['item'];
+                if(item.product_type != 'diagram'){
+                    newCart.items[ item.product_id ] = {
+                        'item': item,
+                        'qty': (item.qty) ? item.qty : 1,
+                        'price' : <number>item.amount * <number>cart.items[i].qty
+                    }
+
+                    newCart.totalQty = <number>newCart.totalQty + <number>cart.items[i].qty;
+                    newCart.totalPrice = <number>newCart.totalPrice + (<number>item.amount * <number>cart.items[i].qty)
+                }
+            }
+
+            req.session.cart = newCart;
+            response.cart = newCart;
+        } catch (e) {
+
+           console.log(e);
+           response.message = e;
+           response.cart = req.session.cart;
+        }
+
+        res.send( response );
+
     }
 
     public async generateProductList(req, res) {
@@ -300,10 +395,8 @@ export class ProductRoute extends BaseRoute {
         userId = req.body.user_id,
         qty = parseInt(req.body.quantity),
         productId = req.body.product_id,
+        accountId = req.body.account_id,
         locationId = req.body.location_id,
-        targetUserId = (req.body.target_user_id) ? req.body.target_user_id : 0,
-        diagramFinishId = (req.body.diagram_finish_id) ? req.body.diagram_finish_id : 0,
-        pdfOnly = (req.body.pdf_only) ? req.body.pdf_only : 0,
         response = {
             status : true, data : <any>[], message : ''
         },
@@ -327,9 +420,7 @@ export class ProductRoute extends BaseRoute {
                 user_id : userId,
                 quantity : qty,
                 location_id : locationId,
-                target_user_id : targetUserId,
-                diagram_finish_id : diagramFinishId,
-                pdf_only : pdfOnly
+                account_id : accountId
             });
         }
 
@@ -370,10 +461,8 @@ export class ProductRoute extends BaseRoute {
         userId = req.body.user_id,
         qty = parseInt(req.body.quantity),
         productId = req.body.product_id,
+        accountId = req.body.account_id,
         locationId = req.body.location_id,
-        targetUserId = (req.body.target_user_id) ? req.body.target_user_id : 0,
-        diagramFinishId = (req.body.diagram_finish_id) ? req.body.diagram_finish_id : 0,
-        pdfOnly = (req.body.pdf_only) ? req.body.pdf_only : 0,
         response = {
             status : true, data : <any>[], message : ''
         },
@@ -393,9 +482,7 @@ export class ProductRoute extends BaseRoute {
                 favoriteModel.set('product_id', productId);
                 favoriteModel.set('user_id', userId);
                 favoriteModel.set('location_id', locationId);
-                favoriteModel.set('target_user_id', targetUserId);
-                favoriteModel.set('diagram_finish_id', diagramFinishId);
-                favoriteModel.set('pdf_only', pdfOnly);
+                favoriteModel.set('account_id', accountId);
 
                 await favoriteModel.dbUpdate();
             }
@@ -405,16 +492,6 @@ export class ProductRoute extends BaseRoute {
             response.data = await getNewFavoritesModel.getUsersFavorites(userId);
 
         res.send(response);
-    }
-
-    public async getDiagramFinishes(req : AuthRequest, res : Response){
-        let diagramModel = new DiagramFinishModel();
-
-        res.send({
-            status : true,
-            data : await diagramModel.getAll(),
-            message : ''
-        });
     }
 
 }

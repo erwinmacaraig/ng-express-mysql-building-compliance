@@ -42,11 +42,12 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	userData = {};
 
-	users = <any>[];
+	accounts = <any>[];
 
 	btnDisabled = [];
 	btnDisabled2 = [];
 	selectedCategoryName = '';
+	showingProducts = [];
 
 	constructor(
 		private router : Router,
@@ -90,10 +91,10 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	    		this.btnDisabled2 = [];
 	    	}
-	    });
 
-	    this.userService.getUsersByAccountId(this.userData['accountId'], (response) => {
-	    	this.users = response.data;
+	    	if(message.accounts){
+	    		this.accounts = message.accounts;
+	    	}
 	    });
 
 	}
@@ -121,11 +122,21 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 			if(this.isInCart(prodId)){
 				this.messageService.sendMessage({
 					'updateCart' : true, 'productId' : prodId, 'locationId' : this.selectLocation, 'qty' : 1,
-					'targetUserId' : parseInt(currntElem.val())
+					'accountId' : parseInt(currntElem.val())
 				});
 			}
 
 		});
+	}
+
+	selectCategory(catName){
+		this.showingProducts = [];
+		for(let prod of this.allProducts){
+			if(prod.category == catName){
+				this.showingProducts.push(prod);
+				this.selectedCategoryName = catName;
+			}
+		}
 	}
 
 	generateTrainingsProducts(){
@@ -144,7 +155,8 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 		}
 
 		if(this.categories.length > 0){
-			this.selectedCategoryName = this.categories[0];
+			this.selectCategory(this.categories[0]);
+
 		}
 	}
 
@@ -162,20 +174,20 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	addToCart(prodId, btn){
 		let selElem = $('select[product-id="'+prodId+'"]'),
-			userTargetId = selElem.val();
+			accountTargetId = selElem.val();
 
-		if(this.selectLocation > 0 && userTargetId > 0){
+		if(this.selectLocation > 0 && accountTargetId > 0){
 			btn.disabled = true;
 			this.btnDisabled.push(btn);
 
 			this.messageService.sendMessage({
-				'addToCart' : true, 'productId' : prodId, 'locationId' : this.selectLocation, 'qty' : 1, 'targetUserId' : parseInt(userTargetId)
+				'addToCart' : true, 'productId' : prodId, 'locationId' : this.selectLocation, 'qty' : 1, 'accountId' : parseInt(accountTargetId)
 			});
 		}else{
 			if(this.selectLocation < 1){
 				$('#selectLocation').css('border', '1px solid #F44336');
 			}
-			if(userTargetId < 1){
+			if(accountTargetId < 1){
 				selElem.css('border', '1px solid #F44336');
 			}
 			setTimeout(() => {
@@ -187,14 +199,14 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	buyNow(prodId, btn){
 		let selElem = $('select[product-id="'+prodId+'"]'),
-			userTargetId = selElem.val();
+			accountTargetId = selElem.val();
 
 		this.addToCart(prodId, btn);
 
-		if(this.selectLocation > 0 && userTargetId > 0){
+		if(this.selectLocation > 0 && accountTargetId > 0){
 			setTimeout(() => {
 				this.router.navigate(["/shop/cart"]);
-			}, 500);
+			}, 1000);
 		}
 		
 		
@@ -223,20 +235,20 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 	addToFavorites(prodId, packageElem, btn){
 
 		let selElem = $('select[product-id="'+prodId+'"]'),
-			userTargetId = selElem.val();
+			accountTargetId = selElem.val();
 
-		if(userTargetId > 0 && this.selectLocation > 0){
+		if(accountTargetId > 0 && this.selectLocation > 0){
 			btn.disabled = true;
 			this.btnDisabled2.push(btn);
 			this.messageService.sendMessage({
-				'addToFavorites' : true, 'targetUserId' : userTargetId,
+				'addToFavorites' : true, 'accountId' : accountTargetId,
 				'productId' : prodId, 'quantity' : 1, 'locationId' : this.selectLocation
 			});
 		}else{
 			if(this.selectLocation < 1){
 				$('#selectLocation').css('border', '1px solid #F44336');
 			}
-			if(userTargetId < 1){
+			if(accountTargetId < 1){
 				selElem.css('border', '1px solid #F44336');
 			}
 			setTimeout(() => {
