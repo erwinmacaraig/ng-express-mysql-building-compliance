@@ -79,7 +79,7 @@
 				<div class="top">
 					<h5 class="orange-text left">Select Diagram Finish <small class="blue-text">{{totalAddedQuantity}}/<span>{{totalQuantity}}</span> </small></h5>
 					<div class="right">
-						<button class="btn-flat waves-effect waves-light save" #btnSave *ngIf="!isInFavorites()" (click)="addToFavorites(btnSave)">
+						<button class="btn-flat waves-effect waves-light save" #btnSaveFav *ngIf="!isInFavorites()" (click)="addToFavorites(btnSaveFav)">
 							<div class="image"></div> Save
 						</button>
 

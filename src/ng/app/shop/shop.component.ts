@@ -173,7 +173,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 					'quantity' : (res.quantity) ? res.quantity : 1,
 					'location_id' : (res.locationId) ? res.locationId : 0,
 					'account_id' : (res.accountId) ? res.accountId : 0,
-					'user_id' : this.userData['userId']
+					'user_id' : this.userData['userId'],
+					'add_on_items' : (res.addOns) ?  res.addOns : []
 				}, () => {
 					this.messageService.sendMessage({
 						'favorites' : this.favorites
@@ -212,6 +213,14 @@ export class ShopComponent implements OnInit, OnDestroy{
 						'cart' : this.cart
 					});
 				});
+			}
+
+			if(res.removeDiagramsInFavorites){
+				this.removeDiagramsInFavorites(() => {
+					this.messageService.sendMessage({
+						'favorites' : this.favorites
+					});
+				}, res.callBack);
 			}
 
 		});
@@ -292,6 +301,16 @@ export class ShopComponent implements OnInit, OnDestroy{
 		this.productService.removeFavorite(data, (response) => {
 			this.favorites = response.data;
 			callBack();
+		});
+	}
+
+	removeDiagramsInFavorites(callBack, cbFunction){
+		this.productService.removeDiagramsInFavorites((response) => {
+			this.favorites = response.data;
+			callBack();
+			if(cbFunction){
+				cbFunction();
+			}
 		});
 	}
 

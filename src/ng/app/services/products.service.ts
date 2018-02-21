@@ -128,6 +128,15 @@ export class ProductService {
 		});
 	}
 
+	public removeDiagramsInFavorites(callBack){
+		this.http.get(this.baseUrl+"/products/remove-diagrams-in-favorite",  this.options)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 	public updateFavorite(formData, callBack){
 		this.http.post(this.baseUrl+"/products/update-favorite", formData, this.options)
 		.subscribe(res => {

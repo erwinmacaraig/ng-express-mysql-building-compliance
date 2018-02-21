@@ -94,8 +94,12 @@ export class ProductRoute extends BaseRoute {
             new ProductRoute().updateFavorite(req, res);
         });
 
-        router.get('/product/remove-diagrams-from-cart', (req: AuthRequest, res: Response) => {
+        router.get('/product/remove-diagrams-from-cart', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ProductRoute().removeDiagramsFromCart(req, res);
+        });
+
+        router.get('/products/remove-diagrams-in-favorite', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new ProductRoute().removeDiagramsInFavorites(req, res);
         });
 
     }
@@ -455,6 +459,29 @@ export class ProductRoute extends BaseRoute {
         res.send(response);
     }
 
+    public async removeDiagramsInFavorites(req : AuthRequest, res : Response){
+        let
+        userId = req.user.user_id,
+        response = {
+            status : true, data : <any>[], message : ''
+        },
+        getFavoritesModel = new ProductsFavoritesModel(),
+        usersFavorites = await getFavoritesModel.getUsersFavorites(userId),
+        favoritesModel = new ProductsFavoritesModel();
+
+        for(let i in usersFavorites){
+            if(usersFavorites[i]['product_type'] == 'diagram'){
+                favoritesModel.setID(usersFavorites[i]['products_favorites_id']);
+                await favoritesModel.delete();
+            }
+        }
+
+
+        let getNewFavoritesModel = new ProductsFavoritesModel();
+            response.data = await getNewFavoritesModel.getUsersFavorites(userId);
+
+        res.send(response);
+    }
 
     public async updateFavorite(req : Request, res : Response){
         let

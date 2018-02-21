@@ -80,6 +80,12 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 	    	if(message.favorites){
 	    		this.favorites = message.favorites;
+
+	    		this.btnDisabled2.forEach((btn) => {
+	    			btn.disabled = false;
+	    		});
+
+	    		this.btnDisabled2 = [];
 	    	}
 
 	    });
@@ -134,26 +140,13 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		if(locId > 0 && this.totalAddedQuantity == this.totalQuantity){
 
 			btn.disabled = true;
-			this.removeFromCart();
+			this.removeDiagramsFromCart();
 			setTimeout(() => {
 				this.addToCart(btn);
 			},500);
 
 		}
 	}
-
-	/*
-	updateItemToFavorites(){
-		let locId = parseInt($('#selectLocation').val()),
-			diagId = parseInt($('#selectDiagram').val());
-			// pdfOnly = ($('#pdf').prop('checked')) ? 1 : 0;
-		if(locId > 0){
-			this.messageService.sendMessage({
-				'updateFavorite' : true, 'productId' : this.showingDiagram.product_id, 'qty' : this.showingDiagram.quantity, 
-				'locationId' : locId, 'diagramFinishId' : diagId
-			});
-		}
-	}*/
 
 	addQuantity(){
 		let q = parseInt(this.quantityInput.nativeElement.value);
@@ -189,7 +182,7 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 	subtractTotalQuantity(prod, inp){
 		let q = parseInt(inp.value);
-		if(this.totalAddedQuantity > 0){
+		if(this.totalAddedQuantity > 0 && q > 0){
 			inp.value = q - 1;
 			prod.quantity = q - 1;
 			this.totalAddedQuantity--;
@@ -210,7 +203,7 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		}
 	}
 
-	removeFromCart(){
+	removeDiagramsFromCart(){
 		this.messageService.sendMessage({
 			'removeDiagramsFromCart' : true
 		});
@@ -318,7 +311,7 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 		if(locId && this.totalAddedQuantity > 0){
 			btn.disabled = true;
-			this.removeFromCart();
+			this.removeDiagramsFromCart();
 			setTimeout(() => {
 				this.addToCart(btn);
 			},500);
@@ -341,24 +334,45 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToFavorites(prodId, btn){
+	addToFavorites(btn){
 		let locId = parseInt($('#selectLocation').val()),
 			diagId = parseInt($('#selectDiagram').val());/*,
 			pdfOnly = ($('#pdf').prop('checked')) ? 1 : 0;*/
 
-		if(locId > 0){
+		if(locId && this.totalAddedQuantity == this.totalQuantity){
 			btn.disabled = true;
 			this.btnDisabled2.push(btn);
-			// this.messageService.sendMessage({
-			// 	'addToFavorites' : true, 'locationId' : locId, 'diagramFinishId' : diagId,
-			// 	'productId' : prodId, 'quantity' : this.showingDiagram.quantity
-			// });
+
+			let thisClass = this;
+			let callBack = () => {
+				for(let i in thisClass.diagramsProducts){
+					let prod = thisClass.diagramsProducts[i],
+						amount = parseFloat(prod.amount),
+						qty = prod.quantity;
+
+					if(qty > 0){
+
+						thisClass.messageService.sendMessage({
+							'addToFavorites' : true, 'locationId' : locId,
+							'productId' : prod.product_id, 'quantity' : qty
+						});
+
+					}
+				}
+			};
+
+			this.messageService.sendMessage({
+				'removeDiagramsInFavorites' : true,
+				'callBack' : callBack
+			});
+			
 		}else{
 			$('#selectLocation').parent('.select-wrapper').find('input.select-dropdown').css('border-bottom', '1px solid #F44336');
 			setTimeout(() => {
 				$('#selectLocation').parent('.select-wrapper').find('input.select-dropdown').css('border-bottom', '1px solid rgb(158, 158, 158)');
 			}, 1000);
 		}
+
 	}
 
 	removeFavorite(prodId, btn){
