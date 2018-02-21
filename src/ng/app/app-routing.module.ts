@@ -116,17 +116,6 @@ const appRoutes: Routes = [
     }
   ]},
   {
-    path: 'locations-ui', component : LocationsUiComponent,
-    children : [
-      { path : 'add-single-location', component : AddSingleLocationComponent },
-      { path : 'add-multiple-location', component : AddMultipleLocationComponent },
-      { path : 'add-multiple-next-location', component : AddMultipleNextLocationComponent },
-      { path : 'view-location-list', component : ViewLocationListComponent },
-      { path : 'view-location-single', component : ViewLocationSingleComponent },
-      { path : 'view-location-multiple', component : ViewLocationMultipleComponent }
-    ]
-  },
-  {
     path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
   },
   {
@@ -163,7 +152,7 @@ const appRoutes: Routes = [
     path : 'payment-response/:ecnrypted', component : PaymentResponseComponent
   },
   {
-    path : 'trainings', component : TrainingsComponent,
+    path : 'trainings', canActivate: [AuthGuard], component : TrainingsComponent,
     children : [
       { path : 'my-training', component : MyTrainingsComponent },
       { path : 'team-training', component : TeamTrainingComponent },

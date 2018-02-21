@@ -100,4 +100,14 @@ export class ComplianceService {
     });
   }
 
+  public getAllRegisteredCourses() {
+    return this.http.get<Array<object>>(this.baseUrl + '/lms/getAllCourses/', this.options);
+  }
+
+  public initializeLRS(relation: number = 0) {
+    return this.http.post<any>(this.baseUrl + '/lms/initLRS/', {
+      'relation': relation
+    });
+  }
+
 }

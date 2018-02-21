@@ -88,10 +88,10 @@ import * as S3Zipper from 'aws-s3-zipper';
 
     const utils = new Utils();
     const config = {
-      'accessKeyId': 'AKIAJUJLEWVLRT5KUU4A',
-      'secretAccessKey': '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',
-      'region': 'us-east-1',
-      'bucket': 'allan-delfin'
+      'accessKeyId': AWSCredential.AWSAccessKeyId,
+      'secretAccessKey': AWSCredential.AWSSecretKey,
+      'region': AWSCredential.AWS_REGION,
+      'bucket': AWSCredential.AWS_Bucket
     };
     const zipper = new S3Zipper(config);
     const dirPath = __dirname + '/../public/temp';

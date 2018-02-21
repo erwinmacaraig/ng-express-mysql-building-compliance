@@ -9,81 +9,31 @@
 <div class="container" style="margin-top: 5%;">
 
 	<div class="row">
-		
+
 		<div class="col l12 m12 s12">
-			
-			<div class="training-box">
+
+			<div class="training-box" *ngFor="let course of courses">
 				<div class="image-content">
 					<div class="image grey lighten-2"></div>
 					<div class="content">
-						General Occupant and First Response
+           {{course.course_name}}
+            <!-- course taken <p class="blue-text">Valid until 00/00/0000</p> -->
 					</div>
 				</div>
-				<div class="buttons">
-					<form action="POST" action="" ngNoForm>
+				<div class="buttons"><!--
+					<form method="POST" action="http://localhost:3000/lms/launch-course/" ngNoForm>
+            <input type="hidden" name="courseId" value="2" />
+            <input type="hidden" name="userId" value="15980" />
 						<button type="submit" class="btn red waves-effect waves-light">Take this course</button>
-					</form>
-				</div>
-			</div>
+          </form> -->
+          <button type="button" class="btn red waves-effect waves-light" (click)="loadTrainingCourse(course)">Take this course</button>
+        </div>
 
-
-			<div class="training-box">
-				<div class="image-content">
-					<div class="image grey lighten-2"></div>
-					<div class="content">
-						Bomb Threat Training
-					</div>
-				</div>
-				<div class="buttons">
-					<form action="POST" action="" ngNoForm>
-						<button type="submit" class="btn red waves-effect waves-light">Take this course</button>
-					</form>
-				</div>
-			</div>
-
-			<div class="training-box">
-				<div class="image-content">
-					<div class="image grey lighten-2"></div>
-					<div class="content">
-						Emergency Control Organization
-
-						<p class="blue-text">Valid until 00/00/0000</p>
-					</div>
-				</div>
-				<div class="buttons">
-					<button class="btn light-blue waves-effect waves-light">Download Certificate</button>
-					<button  class="btn grey waves-effect waves-light">Retake this course</button>
-				</div>
-			</div>
-
-			<div class="training-box">
-				<div class="image-content">
-					<div class="image grey lighten-2"></div>
-					<div class="content">
-						Active Shooter Response Procedures
-
-						<p class="blue-text">Valid until 00/00/0000</p>
-					</div>
-				</div>
-				<div class="buttons">
-					<button class="btn light-blue waves-effect waves-light">Download Certificate</button>
-					<button  class="btn grey waves-effect waves-light">Retake this course</button>
-				</div>
-			</div>
-
-			<div class="training-box">
-				<div class="image-content">
-					<div class="image grey lighten-2"></div>
-					<div class="content">
-						Shelter in Place Procedures
-
-						<p class="blue-text">Valid until 00/00/0000</p>
-					</div>
-				</div>
-				<div class="buttons">
-					<button class="btn light-blue waves-effect waves-light">Download Certificate</button>
-					<button  class="btn grey waves-effect waves-light">Retake this course</button>
-				</div>
+        <!-- course taken
+          <div class="buttons">
+            <button class="btn light-blue waves-effect waves-light">Download Certificate</button>
+            <button  class="btn grey waves-effect waves-light">Retake this course</button>
+          </div> -->
 			</div>
 
 		</div>
@@ -92,3 +42,16 @@
 	</div>
 
 </div>
+<!-- src="http://localhost:3000/courses/evac/index_lms.html" -->
+<div *ngIf="toggle">
+  <div class="modal" id="training">
+    <div class="modal-content">
+      <iframe  [src]="selectedCourse.formatted_launcher_url" frameborder="0"><p>Not Supported by this browser</p></iframe>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat">Close</button>
+    </div>
+  </div>
+</div>
+<div preloader></div>
+
