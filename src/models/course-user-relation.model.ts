@@ -118,6 +118,34 @@ export class CourseUserRelation extends BaseClass {
           }
       });
       connection.end();
-  });
+    });
+  }
+
+  public getAllCourseForUser(user: number = 0): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT
+                     *
+                  FROM
+                    course_user_relation
+                  INNER JOIN
+                    scorm_course
+                  ON
+                    course_user_relation.course_id = scorm_course.course_id
+                  WHERE
+                    course_user_relation.user_id = ?`;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql, [user], (error, results, fields) => {
+        if (error) {
+          console.log('course-user-relation.model.getAllCourseForUser', error, sql);
+          throw new Error('There was a problem retrieving all courses for this user - ' + user);
+        }
+        if (results.length > 0) {
+          resolve(results);
+        } else {
+          reject('There were no records found for this user - ' +  user);
+        }
+      });
+      connection.end();
+    });
   }
 }

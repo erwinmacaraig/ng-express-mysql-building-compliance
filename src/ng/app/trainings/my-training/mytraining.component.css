@@ -1,3 +1,31 @@
+.modal {
+  width: 90%;
+  height: 90%;
+  top: 5%;
+  left: 5%;
+  right: 5%;
+  bottom: 5%;
+}  /* increase the height and width as you desire */
+
+#training iframe {
+  height: 90%;
+  width: 97%;
+  position: absolute;
+}
+
+#training{
+  top: 11% !important;
+  left: 1%;
+  width: 98vw;
+  height: 92vh;
+  max-height: 100vh;
+}
+
+#training .modal-footer{
+  position: absolute;
+  bottom: 10px;
+}
+
 .training-box{
     background-color: #f5f5f5;
     border-radius: 5px;

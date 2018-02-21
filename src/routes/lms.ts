@@ -1,6 +1,8 @@
 import { BaseRoute } from './route';
 import { NextFunction, Request, Response, Router } from 'express';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
+import { AuthRequest } from '../interfaces/auth.interface';
+
 import * as fs from 'fs';
 import * as moment from 'moment';
 
@@ -21,6 +23,15 @@ export class LMSRoute extends BaseRoute {
       }).catch((e) => {
         console.log(e);
         return res.render('lms-launcher-error.hbs', {});
+      });
+    });
+
+    router.post('/lms/initLRS/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+      const scorm = new Scorm();
+      scorm.init(req.body.relation).then((data) => {
+        return res.status(200).send({'status': data});
+      }).catch((e) => {
+        return res.status(400).send({'status': false});
       });
     });
 
@@ -47,7 +58,17 @@ export class LMSRoute extends BaseRoute {
           'status': false
         });
       });
+    });
 
+    router.get('/lms/getAllCourses/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      const courseUserRelation = new CourseUserRelation();
+      courseUserRelation.getAllCourseForUser(req.user.user_id).then((courses) => {
+        return res.status(200).send({
+          'courses': courses
+        });
+      }).catch((e) => {
+        return res.status(400).send({'message': 'No course registered for this user - ' + req.user.user_id});
+      });
     });
 
   } // end of create
@@ -67,6 +88,6 @@ export class LMSRoute extends BaseRoute {
     }
     await scorm.init(relation);
     return courseData;
-
   } // end initializeLRS
+
 } // end of class

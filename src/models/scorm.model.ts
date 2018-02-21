@@ -102,6 +102,8 @@ export class Scorm {
 
     public getDataModelVal(relation: number = 0, param: string = ''): Promise<string> {
         return new Promise((resolve, reject) => {
+            console.log(`relation is ${relation}`);
+            console.log(`parameter is ${param}`);
             const sql_get = `SELECT
                               parameter_value
                             FROM
@@ -117,6 +119,7 @@ export class Scorm {
                     console.log('scorm.model.getDataModelVal', error);
                     throw new Error('Cannot get data model value with the given parameter ' + param + ' AND relation ' + relation);
                 }
+                console.log(results);
                 resolve(results[0]['parameter_value']);
             });
             connection.end();
