@@ -22,6 +22,18 @@ module.exports = function(grunt) {
             cwd: "./src/config",
             src: ["*.json"],
             dest: "./dist/config"
+          },
+          {
+			expand: true,
+			cwd: "./javascripts",
+			src: ["**"],
+			dest: "./dist/public/javascripts"
+          },
+          {
+		    expand: true,
+		    cwd: "./courses",
+		    src: ["**"],
+		    dest: "./dist/public/courses"
           }
         ]
       }
@@ -58,8 +70,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask("default", [
     "copy",
-    "ts",
-    "watch"
+    "ts"
   ]);
 
 };

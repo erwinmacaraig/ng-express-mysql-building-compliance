@@ -93,4 +93,21 @@ export class ComplianceService {
       responseType: 'arraybuffer'});
   }
 
+  public toggleTRPViewAccess(compliance_documents_id: number = 0, access: boolean = false) {
+    return this.http.post<any>(this.baseUrl + '/compliance/toggleTPRViewAccess/', {
+      'compliance_documents_id': compliance_documents_id,
+      'viewable_by_trp': access
+    });
+  }
+
+  public getAllRegisteredCourses() {
+    return this.http.get<Array<object>>(this.baseUrl + '/lms/getAllCourses/', this.options);
+  }
+
+  public initializeLRS(relation: number = 0) {
+    return this.http.post<any>(this.baseUrl + '/lms/initLRS/', {
+      'relation': relation
+    });
+  }
+
 }

@@ -1,0 +1,83 @@
+.btn{
+    width: 100%;
+    margin-bottom: 10px;
+    font-size: 14px !important;
+    padding: 0px;
+}
+
+.search-container{
+    background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 10px;
+    width: 100% !important;
+}
+
+.search-container .input-container{
+    display: inline-block;
+    vertical-align: middle;
+    width: 94%;
+}
+
+.search-container .input-container input{
+    margin-bottom: 0px;
+    border-bottom: 0px !important;
+}
+
+.search-container .input-container input:focus{
+    border-bottom: 0px !important;
+    box-shadow: none !important;
+}
+
+.search-container .icon-container{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.search-container .icon-container img{
+    margin-top: 5px;
+}
+
+thead th{
+    border-radius: 0px;
+    font-weight: normal;
+    background-color: #3d3d3d !important;
+    padding: 10px;
+    font-size: 14px;
+}
+
+table.bordered>thead>tr,
+table.bordered>tbody>tr {
+    border-bottom: 1px solid #d3d3d3;
+}
+
+table tr td{
+    padding: 20px;
+    font-size: 14px;
+    line-height: 27px;
+}
+
+table tr td:last-child{
+    padding-top: 30px;
+}
+
+table tr td a:hover{
+    text-decoration: underline;
+}
+
+table tr td:first-child img{
+    float: left;
+    width: 45px;
+    height: 45px;
+    background-color: #36bb9b;
+    line-height: 45px;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    margin-right: 8px;
+}
+
+table tr td:first-child span{
+    vertical-align: -webkit-baseline-middle;
+}

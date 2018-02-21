@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <base href="/">
+    <script src="javascripts/jquery/jquery.min.js"></script>
+    <script src="javascripts/API.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      user_course_relation = {{course_user_relation_id}};
+    </script>
+
+    <style>
+     html, body {height:100%;width:100%;overflow:hidden}
+     iframe {height:95%;width:95%}
+    .content {height:100%}
+</style>
+    <title>Evacconnect LMS Launcher</title>
+</head>
+
+<body>
+<h2>{{course_name}}</h2>
+<div class="content">
+    <iframe src="{{course_launcher}}" frameborder="0"><p>Not Supported by this browser</p></iframe>
+</div>
+
+<script type="text/javascript">
+$(window).on('beforeunload', function() {
+  window.open('http://localhost:3000/trainings/my-training');
+  return $(window).close();
+});
+</script>
+
+<h2>This is it pansit</h2>
+</body>
+</html>
