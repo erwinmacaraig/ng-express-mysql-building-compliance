@@ -1,4 +1,4 @@
-<div class="top-gray">
+<div class="top-gray" *ngIf="arrayCart.length > 0">
 	<ul>
 		<li>
 			<h5>Shopping Cart Checkout</h5>
@@ -7,13 +7,14 @@
 </div>
 
 <div class="container">
+
 	<div class="row" *ngIf="arrayCart.length == 0">
-		<div class="col l12 m12 s12">
-			<h5>Please add a product to cart first</h5>
+		<div class="col l12 m12 s12 " style="margin-top: 50px;">
+			<h5 class="center">Please add a product to cart first</h5>
 		</div>
 	</div>
 
-	<div class="row" *ngIf="arrayCart.length > 0">
+	<div class="row"  *ngIf="arrayCart.length > 0">
 		
 		<div class="col l4 m5 s12">
 			<h5 class="blue-text col-title">Order Summary</h5>

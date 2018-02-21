@@ -40,9 +40,6 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 	locations = <any>[];
 	favorites = <any>[];
 
-	btnDisabled = [];
-	btnDisabled2 = [];
-
 	totalQuantity = 5;
 	totalAddedQuantity = 0;
 	totalAmount = 0.00;
@@ -61,12 +58,6 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		this.subs = this.messageService.getMessage().subscribe((message) => {
 	    	if(message.cart){
 	    		this.cart = message.cart;
-
-	    		this.btnDisabled.forEach((btn) => {
-	    			btn.disabled = false;
-	    		});
-
-	    		this.btnDisabled = [];
 	    	}
 
 	    	if(message.products){
@@ -80,12 +71,6 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 	    	if(message.favorites){
 	    		this.favorites = message.favorites;
-
-	    		this.btnDisabled2.forEach((btn) => {
-	    			btn.disabled = false;
-	    		});
-
-	    		this.btnDisabled2 = [];
 	    	}
 
 	    });
@@ -251,7 +236,10 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 		if(locId && this.totalAddedQuantity == this.totalQuantity){
 			btn.disabled = true;
-			this.btnDisabled.push(btn);
+
+			let cb = () => {
+				btn.disabled = false;
+			};
 
 			let prodToAdd = [],
 				count = 0;
@@ -282,14 +270,14 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 				this.messageService.sendMessage({
 					'addToCart' : true, 'productId' : prodToAdd[0].prodId,
 					'qty' : prodToAdd[0].quantity, 'locationId' : locId,
-					'addOns' : addOns
+					'addOns' : addOns, 'callBack' : cb
 				});
 			}
 			
 		}else{
-			$('#selectLocation').parent('.select-wrapper').find('input.select-dropdown').css('border-bottom', '1px solid #F44336');
+			$('#selectLocation').css('border', '1px solid #F44336');
 			setTimeout(() => {
-				$('#selectLocation').parent('.select-wrapper').find('input.select-dropdown').css('border-bottom', '1px solid rgb(158, 158, 158)');
+				$('#selectLocation').css('border', '');
 			}, 1000);
 		}
 	}
@@ -341,8 +329,6 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 		if(locId && this.totalAddedQuantity == this.totalQuantity){
 			btn.disabled = true;
-			this.btnDisabled2.push(btn);
-
 			let thisClass = this;
 			let callBack = () => {
 				for(let i in thisClass.diagramsProducts){
@@ -354,7 +340,9 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 						thisClass.messageService.sendMessage({
 							'addToFavorites' : true, 'locationId' : locId,
-							'productId' : prod.product_id, 'quantity' : qty
+							'productId' : prod.product_id, 'quantity' : qty, 'callBack' : () => {
+								btn.disabled = false;
+							}
 						});
 
 					}
@@ -367,9 +355,9 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 			});
 			
 		}else{
-			$('#selectLocation').parent('.select-wrapper').find('input.select-dropdown').css('border-bottom', '1px solid #F44336');
+			$('#selectLocation').css('border', '1px solid #F44336');
 			setTimeout(() => {
-				$('#selectLocation').parent('.select-wrapper').find('input.select-dropdown').css('border-bottom', '1px solid rgb(158, 158, 158)');
+				$('#selectLocation').css('border', '');
 			}, 1000);
 		}
 
@@ -377,7 +365,9 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 	removeFavorite(prodId, btn){
 		btn.disabled = true;
-		this.btnDisabled2.push(btn);
+		let cb = () => {
+			btn.disabled = false;
+		};
 		this.messageService.sendMessage({
 			'removeFavorite' : true, 'productId' : prodId
 		});

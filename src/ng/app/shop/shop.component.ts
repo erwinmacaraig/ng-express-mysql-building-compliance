@@ -136,6 +136,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 					this.messageService.sendMessage({
 						'cart' : this.cart
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -149,6 +151,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 					this.messageService.sendMessage({
 						'cart' : this.cart
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -157,6 +161,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 					this.messageService.sendMessage({
 						'cart' : this.cart
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -179,6 +185,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 					this.messageService.sendMessage({
 						'favorites' : this.favorites
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -190,6 +198,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 					this.messageService.sendMessage({
 						'favorites' : this.favorites
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -204,6 +214,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 					this.messageService.sendMessage({
 						'favorites' : this.favorites
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -212,6 +224,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 					this.messageService.sendMessage({
 						'cart' : this.cart
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -220,7 +234,9 @@ export class ShopComponent implements OnInit, OnDestroy{
 					this.messageService.sendMessage({
 						'favorites' : this.favorites
 					});
-				}, res.callBack);
+
+					if(res.callBack){ res.callBack(); }
+				});
 			}
 
 		});
@@ -304,13 +320,10 @@ export class ShopComponent implements OnInit, OnDestroy{
 		});
 	}
 
-	removeDiagramsInFavorites(callBack, cbFunction){
+	removeDiagramsInFavorites(callBack){
 		this.productService.removeDiagramsInFavorites((response) => {
 			this.favorites = response.data;
 			callBack();
-			if(cbFunction){
-				cbFunction();
-			}
 		});
 	}
 
