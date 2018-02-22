@@ -1,4 +1,4 @@
-<div class="top-gray">
+<div class="top-gray" *ngIf="arrayCart.length > 0">
 	<ul>
 		<li>
 			<h5>Shopping Cart Checkout</h5>
@@ -7,13 +7,14 @@
 </div>
 
 <div class="container">
+
 	<div class="row" *ngIf="arrayCart.length == 0">
-		<div class="col l12 m12 s12">
-			<h5>Please add a product to cart first</h5>
+		<div class="col l12 m12 s12 " style="margin-top: 50px;">
+			<h5 class="center">Please add a product to cart first</h5>
 		</div>
 	</div>
 
-	<div class="row" *ngIf="arrayCart.length > 0">
+	<div class="row"  *ngIf="arrayCart.length > 0">
 		
 		<div class="col l4 m5 s12">
 			<h5 class="blue-text col-title">Order Summary</h5>
@@ -36,7 +37,7 @@
 										<button class="btn-arrow-down waves-effect waves-light" (click)="subtractQuantity(cart)"><i class="material-icons">arrow_drop_down</i></button>
 									</div>
 									<div class="text">
-										x {{ cart.item.amount }} USD
+										x ${{cart.item.amount}}
 									</div>
 								</div>
 								<p>
@@ -56,7 +57,7 @@
 				</div>
 				<div class="footer grey darken-3">
 					<p class="left white-text">Total</p>
-					<p class="right white-text">$ {{cart.totalPrice}}</p>
+					<p class="right white-text"><strong>$ {{cart.totalPrice.toFixed(2)}}</strong></p>
 					<p style="clear: both;"></p>
 				</div>
 			</div>
@@ -82,7 +83,7 @@
 
 				<div class="content">
 					<h5 class="name">Paypal</h5>
-					<p class="description">
+					<p class="description" style="font-size: 15px;">
 						PayPal Holdings, Inc. is an American company operating a worldwide online payments system that supports online money transfers and serves as an electronic alternative to traditional paper methods like checks and money orders. PayPal is one of the world's largest Internet payment companies. The company operates as a payment processor for online vendors, auction sites and other commercial users, for which it charges a small fee in exchange for benefits such as one-click transactions and password memory.
 					</p>
 				</div>

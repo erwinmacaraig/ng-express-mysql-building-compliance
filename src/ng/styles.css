@@ -218,3 +218,28 @@ ng-datepicker .ngx-datepicker-input{
 table thead tr th .checkbox label {
     color: #fff;
 }
+
+
+.package-wrapper .content ul li{
+    list-style: disc;
+    margin-bottom: 5px;
+}
+
+.package-wrapper .content ul{
+    padding-left: 20px;
+}
+
+#checkAddFsa+label{
+    padding-left: 30px !important;
+    line-height: 20px !important;
+    color: rgba(0,0,0,0.87);
+    font-weight: bold;
+}
+
+#checkAddFsa.filled-in:not(:checked)+label:after{
+    background-color: #fff !important;
+}
+
+strong{
+    font-weight: bold !important;
+}

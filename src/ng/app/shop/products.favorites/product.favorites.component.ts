@@ -36,7 +36,6 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 	locations = <any>[];
 
 	favorites = <any>[];
-	btnDisabled = [];
 
 	constructor(
 		private router : Router,
@@ -52,12 +51,6 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 		this.subs = this.messageService.getMessage().subscribe((message) => {
 	    	if(message.cart){
 	    		this.cart = message.cart;
-
-	    		this.btnDisabled.forEach((btn) => {
-	    			btn.disabled = false;
-	    		});
-
-	    		this.btnDisabled = [];
 	    	}
 
 	    	if(message.products){
@@ -98,38 +91,62 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToCart(prodId, btn){
+	addToCart(product, btn){
+		let prodId = product.product_id;
+		
 		btn.disabled = true;
-		this.btnDisabled.push(btn);
+
+		let cb = () => {
+			btn.disabled = false;
+		};
+
 		this.messageService.sendMessage({
-			'addToCart' : true, 'productId' : prodId
+			'addToCart' : true, 'productId' : prodId, 'locationId' : product.location_id, 'quantity' : parseInt(product.quantity), 
+			'accountId' : product.account_id, 'callBack' : cb
 		});
 	}
 
 	removeFromCart(prodId, btn){
 		btn.disabled = true;
-		this.btnDisabled.push(btn);
+
+		let cb = () => {
+			btn.disabled = false;
+		};
+
 		this.messageService.sendMessage({
-			'removeFromCart' : true, 'productId' : prodId
+			'removeFromCart' : true, 'productId' : prodId, 'callBack' : cb
 		});
 	}
 
 	removeFavorite(prodId, btn){
 		btn.disabled = true;
+
+		let cb = () => {
+			btn.disabled = false;
+		};
+
 		this.messageService.sendMessage({
-			'removeFavorite' : true, 'productId' : prodId
+			'removeFavorite' : true, 'productId' : prodId, 'callBack' : cb
 		});
 	}
 
-	addQuantity(product){
+	addQuantity(product, btn){
 
 		if(product.product_type != 'package'){
+			btn.disabled = true;
+
+			let cb = () => {
+				btn.disabled = false;
+			};
+
 			this.messageService.sendMessage({
-				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1
+				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1, 
+				'locationId' : product.location_id, 'accountId' : product.account_id, 'callBack' : cb
 			});
 
 			this.messageService.sendMessage({
-				'updateFavorite' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1
+				'updateFavorite' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1, 
+				'locationId' : product.location_id, 'accountId' : product.account_id, 'callBack' : cb
 			});
 
 			this.quantityInput.nativeElement.value = parseInt(product.quantity) + 1;
@@ -137,24 +154,22 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 
 	}
 
-	subtractQuantity(product){
-		let allow = false;
-		if(product.quantity > 0){
-			if(product.product_type == 'diagram' && product.quantity > 5){
-				allow = true;
-			}else if(product.product_type != 'diagram' && product.product_type != 'package'){
-				allow = true;
-			}
-		}
+	subtractQuantity(product, btn){
+		if(product.quantity > 0 && product.product_type != 'package'){
+			btn.disabled = true;
 
-		if(allow){
+			let cb = () => {
+				btn.disabled = false;
+			};
 
 			this.messageService.sendMessage({
-				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1
+				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1, 
+				'locationId' : product.location_id, 'accountId' : product.account_id, 'callBack' : cb
 			});
 
 			this.messageService.sendMessage({
-				'updateFavorite' : true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1
+				'updateFavorite' : true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1, 
+				'locationId' : product.location_id, 'accountId' : product.account_id, 'callBack' : cb
 			});
 
 			this.quantityInput.nativeElement.value = parseInt(product.quantity) - 1;

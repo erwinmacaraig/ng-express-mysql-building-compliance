@@ -37,8 +37,8 @@
 								<div>Quantity</div>
 								<div class="input" >
 									<input type="text" #quantityInput readonly value="{{product.quantity}}" >
-									<button class="btn-arrow-up waves-effect waves-light" (click)="addQuantity(product)" ><i class="material-icons">arrow_drop_up</i></button>
-									<button class="btn-arrow-down waves-effect waves-light"  (click)="subtractQuantity(product)"><i class="material-icons">arrow_drop_down</i></button>
+									<button class="btn-arrow-up waves-effect waves-light" #btnAdd (click)="addQuantity(product, btnAdd)" ><i class="material-icons">arrow_drop_up</i></button>
+									<button class="btn-arrow-down waves-effect waves-light" #btnSub  (click)="subtractQuantity(product, btnSub)"><i class="material-icons">arrow_drop_down</i></button>
 								</div>
 								<div class="text">
 									$<span> {{product.amount}} </span>
@@ -50,7 +50,7 @@
 									<i class="material-icons">delete</i>
 								</button>
 
-								<button class="btn orange waves-effect waves-light buy right" #btnAdd *ngIf="!isInCart(product.product_id)" (click)="addToCart(product.product_id, btnAdd)">
+								<button class="btn orange waves-effect waves-light buy right" #btnAdd *ngIf="!isInCart(product.product_id)" (click)="addToCart(product, btnAdd)">
 									<div class="image"></div> Add to cart
 								</button>
 

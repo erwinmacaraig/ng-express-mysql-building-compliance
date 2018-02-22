@@ -124,7 +124,7 @@
 }
 
 .list-container ul{
-	max-height: 235px;
+	max-height: 370px;
     overflow-y: auto;
 }
 
@@ -242,7 +242,7 @@
 
 .products-wrapper,
 .payment-wrapper{
-	height: 375px;
+	height: 475px;
     position: relative;
 }
 

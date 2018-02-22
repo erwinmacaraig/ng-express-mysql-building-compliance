@@ -23,6 +23,7 @@ declare var $: any;
 export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	trainingsProducts = <any>[];
+	categories = <any>[];
 
 	allProducts = <any>[];
 	cart = <any>{
@@ -41,10 +42,12 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	userData = {};
 
-	users = <any>[];
+	accounts = <any>[];
 
 	btnDisabled = [];
 	btnDisabled2 = [];
+	selectedCategoryName = '';
+	showingProducts = [];
 
 	constructor(
 		private router : Router,
@@ -88,10 +91,10 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	    		this.btnDisabled2 = [];
 	    	}
-	    });
 
-	    this.userService.getUsersByAccountId(this.userData['accountId'], (response) => {
-	    	this.users = response.data;
+	    	if(message.accounts){
+	    		this.accounts = message.accounts;
+	    	}
 	    });
 
 	}
@@ -119,11 +122,21 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 			if(this.isInCart(prodId)){
 				this.messageService.sendMessage({
 					'updateCart' : true, 'productId' : prodId, 'locationId' : this.selectLocation, 'qty' : 1,
-					'targetUserId' : parseInt(currntElem.val())
+					'accountId' : parseInt(currntElem.val())
 				});
 			}
 
 		});
+	}
+
+	selectCategory(catName){
+		this.showingProducts = [];
+		for(let prod of this.allProducts){
+			if(prod.category == catName){
+				this.showingProducts.push(prod);
+				this.selectedCategoryName = catName;
+			}
+		}
 	}
 
 	generateTrainingsProducts(){
@@ -131,7 +144,19 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 		for(let prod of this.allProducts){
 			if(prod.product_type == 'trainings'){
 				this.trainingsProducts.push(prod);
+
+				if(prod.category !== null){
+	    			if(this.categories.indexOf( prod.category ) == -1){
+	    				this.categories.push(prod.category);
+	    			}
+    			}
+
 			}
+		}
+
+		if(this.categories.length > 0){
+			this.selectCategory(this.categories[0]);
+
 		}
 	}
 
@@ -149,20 +174,20 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 
 	addToCart(prodId, btn){
 		let selElem = $('select[product-id="'+prodId+'"]'),
-			userTargetId = selElem.val();
+			accountTargetId = selElem.val();
 
-		if(this.selectLocation > 0 && userTargetId > 0){
+		if(this.selectLocation > 0 && accountTargetId > 0){
 			btn.disabled = true;
 			this.btnDisabled.push(btn);
 
 			this.messageService.sendMessage({
-				'addToCart' : true, 'productId' : prodId, 'locationId' : this.selectLocation, 'qty' : 1, 'targetUserId' : parseInt(userTargetId)
+				'addToCart' : true, 'productId' : prodId, 'locationId' : this.selectLocation, 'qty' : 1, 'accountId' : parseInt(accountTargetId)
 			});
 		}else{
 			if(this.selectLocation < 1){
 				$('#selectLocation').css('border', '1px solid #F44336');
 			}
-			if(userTargetId < 1){
+			if(accountTargetId < 1){
 				selElem.css('border', '1px solid #F44336');
 			}
 			setTimeout(() => {
@@ -170,6 +195,21 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 				selElem.css('border', '0px');
 			}, 1000);
 		}
+	}
+
+	buyNow(prodId, btn){
+		let selElem = $('select[product-id="'+prodId+'"]'),
+			accountTargetId = selElem.val();
+
+		this.addToCart(prodId, btn);
+
+		if(this.selectLocation > 0 && accountTargetId > 0){
+			setTimeout(() => {
+				this.router.navigate(["/shop/cart"]);
+			}, 1000);
+		}
+		
+		
 	}
 
 	removeFromCart(prodId, btn){
@@ -195,20 +235,20 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 	addToFavorites(prodId, packageElem, btn){
 
 		let selElem = $('select[product-id="'+prodId+'"]'),
-			userTargetId = selElem.val();
+			accountTargetId = selElem.val();
 
-		if(userTargetId > 0 && this.selectLocation > 0){
+		if(accountTargetId > 0 && this.selectLocation > 0){
 			btn.disabled = true;
 			this.btnDisabled2.push(btn);
 			this.messageService.sendMessage({
-				'addToFavorites' : true, 'targetUserId' : userTargetId,
+				'addToFavorites' : true, 'accountId' : accountTargetId,
 				'productId' : prodId, 'quantity' : 1, 'locationId' : this.selectLocation
 			});
 		}else{
 			if(this.selectLocation < 1){
 				$('#selectLocation').css('border', '1px solid #F44336');
 			}
-			if(userTargetId < 1){
+			if(accountTargetId < 1){
 				selElem.css('border', '1px solid #F44336');
 			}
 			setTimeout(() => {
