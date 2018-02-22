@@ -79,7 +79,7 @@ export class PaymentRoute extends BaseRoute {
             'transactions': [{
               'amount': {
                 'total': parseFloat(req.body.amount),
-                'currency':  req.body.currency.toString() || 'USD'
+                'currency':  req.body.currency.toString() || 'AUD'
               },
               'description': req.body.description || ''
             }]
