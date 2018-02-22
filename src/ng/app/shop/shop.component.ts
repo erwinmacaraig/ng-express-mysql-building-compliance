@@ -45,6 +45,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 
 	accounts = <any>[];
 
+	isCartHidden = false;
+
 	constructor(
 		private router : Router,
 		private route: ActivatedRoute,
@@ -111,14 +113,29 @@ export class ShopComponent implements OnInit, OnDestroy{
 				switch (e.url) {
 					case "/shop/compliance-package":
 						$('.compliance-package').addClass('active');
+						this.isCartHidden = false;
 						break;
 
 					case "/shop/trainings-package":
 						$('.trainings-package').addClass('active');
+						this.isCartHidden = false;
 						break;
 
 					case "/shop/evacuation-diagram-package":
 						$('.evacuation-diagrams-package').addClass('active');
+						this.isCartHidden = false;
+						break;
+
+					case "/shop/favorites":
+						this.isCartHidden = false;
+						break;
+
+					case "/shop/cart":
+						this.isCartHidden = true;
+						break;
+
+					case "/shop/payment":
+						this.isCartHidden = true;
 						break;
 				}
 			}

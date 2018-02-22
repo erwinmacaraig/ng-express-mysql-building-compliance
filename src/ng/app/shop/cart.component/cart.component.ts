@@ -126,9 +126,31 @@ export class CartComponent implements OnInit, OnDestroy{
 		});
 	}
 
+	checkDiagramItems(){
+		let response = true,
+			hasDiagram = false,
+			diagramQty = 0;
+		for(let cart of this.arrayCart){
+			if(cart.item.product_type == 'diagram'){
+				hasDiagram = true;
+				diagramQty += diagramQty + cart.qty
+			}
+		}
+
+		if(diagramQty < 5 && hasDiagram == true){
+			response = false;
+		}
+
+		return response;
+	}
+
 	goToPayment(){
 		if(this.arrayCart.length > 0){
-			this.router.navigate(["/shop/payment"]);
+			if(this.checkDiagramItems()){
+				this.router.navigate(["/shop/payment"]);
+			}else{
+				$('#diagramErrorMessage').show();
+			}
 		}
 	}
 

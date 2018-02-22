@@ -101,7 +101,7 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 		};
 
 		this.messageService.sendMessage({
-			'addToCart' : true, 'productId' : prodId, 'locationId' : product.location_id, 'quantity' : parseInt(product.quantity), 
+			'addToCart' : true, 'productId' : prodId, 'locationId' : product.location_id, 'qty' : parseInt(product.quantity), 
 			'accountId' : product.account_id, 'callBack' : cb
 		});
 	}
@@ -140,12 +140,12 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 			};
 
 			this.messageService.sendMessage({
-				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1, 
+				'updateCart' :  true, 'productId' : product.product_id, 'qty' : parseInt(product.quantity) + 1, 
 				'locationId' : product.location_id, 'accountId' : product.account_id, 'callBack' : cb
 			});
 
 			this.messageService.sendMessage({
-				'updateFavorite' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) + 1, 
+				'updateFavorite' :  true, 'productId' : product.product_id, 'qty' : parseInt(product.quantity) + 1, 
 				'locationId' : product.location_id, 'accountId' : product.account_id, 'callBack' : cb
 			});
 
@@ -163,12 +163,12 @@ export class ProductsFavoritesComponent implements OnInit, OnDestroy{
 			};
 
 			this.messageService.sendMessage({
-				'updateCart' :  true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1, 
+				'updateCart' :  true, 'productId' : product.product_id, 'qty' : parseInt(product.quantity) - 1, 
 				'locationId' : product.location_id, 'accountId' : product.account_id, 'callBack' : cb
 			});
 
 			this.messageService.sendMessage({
-				'updateFavorite' : true, 'productId' : product.product_id, 'quantity' : parseInt(product.quantity) - 1, 
+				'updateFavorite' : true, 'productId' : product.product_id, 'qty' : parseInt(product.quantity) - 1, 
 				'locationId' : product.location_id, 'accountId' : product.account_id, 'callBack' : cb
 			});
 

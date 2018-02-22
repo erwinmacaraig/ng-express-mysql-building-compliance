@@ -143,6 +143,12 @@
 	font-size: 16px;
 }
 
+.list-container ul li .product-description{
+	max-height: 130px;
+	margin: 10px 0px;
+	overflow: auto;
+}
+
 .remove-container .close-image{
 	background: #fff url(/assets/images/shop_icons.png);
     vertical-align: middle;
