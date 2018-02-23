@@ -167,12 +167,13 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToCart(prodId, btn, addOnIds?){
+	addToCart(prodId, btn, addOnIds?, cb?){
 		if(this.selectLocation > 0){
 			btn.disabled = true;
 			this.btnDisabled.push(btn);
+			addOnIds = (addOnIds) ? addOnIds : [];
 
-			if(addOnIds){
+			if(addOnIds.length > 0){
 				for(let id of addOnIds){
 					this.messageService.sendMessage({
 						'addToCart' : true, 'productId' : prodId, 'qty' : 1, 'locationId' : this.selectLocation,
@@ -180,20 +181,24 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 							{
 								product_id : id, location_id : this.selectLocation, qty : 1
 							}
-						]
+						],
+						'callBack' : (cb) ? cb : undefined
 					});
 				}
 			}else{
 				this.messageService.sendMessage({
-					'addToCart' : true, 'productId' : prodId, 'qty' : 1, 'locationId' : this.selectLocation
+					'addToCart' : true, 'productId' : prodId, 'qty' : 1, 'locationId' : this.selectLocation, 'callBack' : (cb) ? cb : undefined
 				});
 			}
 
 		}else{
-			$('#selectLocation').css('border', '1px solid #F44336');
+			$('#selectLocation').css({
+				'box-shadow' : '0px 2px 8px 0px #afafaf',
+				'transform' : 'scale(1.2)'
+			});
 			setTimeout(() => {
-				$('#selectLocation').css('border', '0px');
-			}, 1000);
+				$('#selectLocation').css({ 'box-shadow' : '', 'transform' : '' });
+			}, 2000);
 		}
 	}
 
@@ -203,21 +208,22 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 				this.selectedPackage = packge;
 				$('#modalFSA').modal('open');
 			}else{
-				this.addToCart(packge.product_id, btnAdd, [this.fsaProduct['product_id']]);
-				setTimeout(() => {
+				this.addToCart(packge.product_id, btnAdd, [this.fsaProduct['product_id']], () => {
 					this.router.navigate(["/shop/cart"]);
-				}, 1000);
+				});
 			}
 		}else if(this.selectLocation > 0){
-			this.addToCart(packge.product_id, btnAdd);
-			setTimeout(() => {
+			this.addToCart(packge.product_id, btnAdd, [], () => {
 				this.router.navigate(["/shop/cart"]);
-			}, 1000);
+			});
 		}else{
-			$('#selectLocation').css('border', '1px solid #F44336');
+			$('#selectLocation').css({
+				'box-shadow' : '0px 2px 8px 0px #afafaf',
+				'transform' : 'scale(1.2)'
+			});
 			setTimeout(() => {
-				$('#selectLocation').css('border', '0px');
-			}, 1000);
+				$('#selectLocation').css({ 'box-shadow' : '', 'transform' : '' });
+			}, 2000);
 		}
 	}
 
@@ -227,13 +233,12 @@ export class CompliancePackageComponent implements OnInit, OnDestroy{
 			addOns.push(this.fsaProduct['product_id']);
 		}
 
-		this.addToCart(this.selectedPackage['product_id'], btn, addOns);
-		setTimeout(() => {
+		this.addToCart(this.selectedPackage['product_id'], btn, addOns, () => {
 			$('#modalFSA').modal('close');
-		}, 200);
-		setTimeout(() => {
-			this.router.navigate(["/shop/cart"]);
-		}, 500);
+			setTimeout(() => {
+				this.router.navigate(["/shop/cart"]);
+			}, 200);
+		});
 	}
 
 	removeFromCart(prodId, btn){

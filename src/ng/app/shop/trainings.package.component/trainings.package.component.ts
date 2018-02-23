@@ -129,6 +129,16 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 		});
 	}
 
+	selectLocationZoom(){
+		$('#selectLocation').css({
+			'box-shadow' : '0px 2px 8px 0px #afafaf',
+			'transform' : 'scale(1.2)'
+		});
+		setTimeout(() => {
+			$('#selectLocation').css({ 'box-shadow' : '', 'transform' : '' });
+		}, 2000);
+	}
+
 	selectCategory(catName){
 		this.showingProducts = [];
 		for(let prod of this.allProducts){
@@ -185,15 +195,15 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 			});
 		}else{
 			if(this.selectLocation < 1){
-				$('#selectLocation').css('border', '1px solid #F44336');
+				this.selectLocationZoom();
 			}
 			if(accountTargetId < 1){
 				selElem.css('border', '1px solid #F44336');
+				setTimeout(() => {
+					selElem.css('border', '0px');
+				}, 2000);
 			}
-			setTimeout(() => {
-				$('#selectLocation').css('border', '0px');
-				selElem.css('border', '0px');
-			}, 1000);
+			
 		}
 	}
 
@@ -207,6 +217,16 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 			setTimeout(() => {
 				this.router.navigate(["/shop/cart"]);
 			}, 1000);
+		}else{
+			if(this.selectLocation < 1){
+				this.selectLocationZoom();
+			}
+			if(accountTargetId < 1){
+				selElem.css('border', '1px solid #F44336');
+				setTimeout(() => {
+					selElem.css('border', '0px');
+				}, 2000);
+			}
 		}
 		
 		
@@ -246,15 +266,14 @@ export class TrainingsPackageComponent implements OnInit, OnDestroy{
 			});
 		}else{
 			if(this.selectLocation < 1){
-				$('#selectLocation').css('border', '1px solid #F44336');
+				this.selectLocationZoom();
 			}
 			if(accountTargetId < 1){
 				selElem.css('border', '1px solid #F44336');
+				setTimeout(() => {
+					selElem.css('border', '0px');
+				}, 2000);
 			}
-			setTimeout(() => {
-				$('#selectLocation').css('border', '0px');
-				selElem.css('border', '0px');
-			}, 1000);
 		}
 
 	}

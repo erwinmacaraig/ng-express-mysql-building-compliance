@@ -16,7 +16,7 @@
 			<div class="circle red" *ngIf="favorites.length > 0" >{{ favorites.length }}</div>
 			<div class="image"></div> My Favorites
 		</li>
-		<li class="cart" [routerLink]="['/shop/cart']">
+		<li class="cart" [routerLink]="['/shop/cart']" *ngIf="!isCartHidden">
 			<div class="circle red" *ngIf="arrayCart.length > 0">{{ arrayCart.length }}</div>
 			<div class="image"></div> Cart
 		</li>
