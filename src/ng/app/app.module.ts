@@ -92,13 +92,17 @@ import { CartComponent } from './shop/cart.component/cart.component';
 import { PaymentComponent } from './shop/payment.component/payment.component';
 import { ProductsFavoritesComponent } from './shop/products.favorites/product.favorites.component';
 
+import { SafeHtmlPipe } from './pipes/safehtml';
+
 import { TrainingsComponent } from './trainings/trainings.component';
 import { MyTrainingsComponent } from './trainings/my-training/mytraining.component';
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
 
+
 @NgModule({
   declarations: [
+    SafeHtmlPipe,
     AppComponent,
     LoginComponent,
     SignupComponent,

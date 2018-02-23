@@ -32,38 +32,109 @@
 <div class="package-container" [hidden]="trainingsProducts.length == 0">
 	
 	<div class="row">
-		
-		<div class="col l2 m6 s12" *ngFor="let prod of trainingsProducts">
-			<div class="package-wrapper" #package>
+
+		<div class="col l2 m3 s12">
+			<div class="category">
+				<div class="title">Category</div>
 				<div class="content">
-					<div class="image teal accent-4 center-block"></div>
-					<h5 class="title blue-text">
-						{{ prod.product_title }}
-					</h5>
-					<div [innerHTML]="prod.product_desc"></div>
-					<select style="font-size: 12px; margin-top: 5px;" [attr.product-id]="prod.product_id">
-						<option value="0" disabled selected>Select training for</option>
-						<option value="{{user.user_id}}" *ngFor="let user of users">{{user.first_name}} {{user.last_name}}</option>
-					</select>
-				</div>
-				<div class="button-container">
-					<button class="btn-flat waves-effect waves-light save" #btnSave *ngIf="!isInFavorites(prod.product_id)" (click)="addToFavorites(prod.product_id, package, btnSave)">
-						<div class="image"></div> Save
-					</button>
-
-					<button class="btn-flat waves-effect waves-light save" #btnSaveRemove *ngIf="isInFavorites(prod.product_id)" (click)="removeFavorite(prod.product_id, btnSaveRemove)">
-						<div class="image"></div> Remove
-					</button>
-
-					<button class="btn orange waves-effect waves-light buy" #btnAdd *ngIf="!isInCart(prod.product_id)" (click)="addToCart(prod.product_id, btnAdd)">
-						<div class="image"></div> Buy
-					</button>
-
-					<button class="btn orange waves-effect waves-light buy" #btnRemove *ngIf="isInCart(prod.product_id)" (click)="removeFromCart(prod.product_id, btnRemove)">
-						<div class="image"></div> Remove
-					</button>
+					<ul>
+						<li *ngFor="let cat of categories" (click)="selectCategory(cat)" [ngClass]="{ active : cat == selectedCategoryName }">
+							<div>{{cat}}</div>
+						</li>
+					</ul>
 				</div>
 			</div>
+		</div>
+		
+		<div class="col l10 m9 s12" style="padding: 0px 80px;">
+
+			<div class="row">
+				<div class="col l12 m12 s12">
+					<h5 class="orange-text left category-name" style="font-size: 1.3rem;">{{selectedCategoryName}}</h5>
+					<h5 class="blue-text right no-margin" style="font-size: 1.3rem;">Remaining License : 10</h5>
+					<div style="clear: both;"></div>
+				</div>
+			</div>
+			
+			<div class="row" *ngFor="let prod of showingProducts">
+				
+				<div class="col l12 m12 s12" >
+					<div class="package-wrapper" #package>
+
+						<div class="row">
+							<div class="col l4 m12 s12">
+								<div class="image-container">
+									<div *ngIf="prod.product_image == null" style="width: 100%; height: 200px; background-color: #ddd;">
+										
+									</div>
+									<img *ngIf="prod.product_image != null" src="{{prod.product_image}}" alt="">
+								</div>
+							</div>
+							<div class="col l4 m12 s12">
+								<div class="content">
+									<h5 class="title blue-text">
+										{{ prod.product_title }} <span class="orange-text"> - ${{prod.amount}}</span>
+									</h5>
+									<div [innerHTML]="prod.product_desc | safeHtml"></div>
+									
+								</div>
+							</div>
+							<div class="col l4 m12 s12">
+								<div class="button-container">
+
+									<div class="row">
+										
+										<div class="col l6 m12 s12">
+											<button class="btn-flat waves-effect waves-light save" #btnSave *ngIf="!isInFavorites(prod.product_id)" (click)="addToFavorites(prod.product_id, package, btnSave)">
+												<div class="image"></div> Save
+											</button>
+
+											<button class="btn-flat waves-effect waves-light save" #btnSaveRemove *ngIf="isInFavorites(prod.product_id)" (click)="removeFavorite(prod.product_id, btnSaveRemove)">
+												<div class="image"></div> Remove
+											</button>
+										</div>
+
+										<div class="col l6 m12 s12">
+											<select style="font-size: 12px; margin-top: 5px;" [attr.product-id]="prod.product_id">
+												<option value="0" disabled selected>Select training for</option>
+												<option value="{{acc.account_id}}" *ngFor="let acc of accounts">{{acc.account_name}}</option>
+											</select>
+										</div>
+
+									</div>
+
+									<div class="row">
+										<div class="col l6 m12 s12">
+											<button class="btn orange waves-effect waves-light buy" #btnAdd *ngIf="!isInCart(prod.product_id)" (click)="addToCart(prod.product_id, btnAdd)">
+												<div class="image"></div> Add to Cart
+											</button>
+
+											<button class="btn orange waves-effect waves-light buy" #btnRemove *ngIf="isInCart(prod.product_id)" (click)="removeFromCart(prod.product_id, btnRemove)">
+												<div class="image"></div> Remove
+											</button>
+										</div>
+
+										<div class="col l6 m12 s12">
+											<button class="btn blue waves-effect waves-light buy" #btnAdd *ngIf="!isInCart(prod.product_id)" (click)="buyNow(prod.product_id, btnAdd)">
+												<div class="image"></div> Buy Now
+											</button>
+
+											<button class="btn orange waves-effect waves-light buy" #btnRemove *ngIf="isInCart(prod.product_id)" (click)="removeFromCart(prod.product_id, btnRemove)">
+												<div class="image"></div> Remove
+											</button>
+										</div>
+									</div>
+									
+								</div>
+							</div>
+						</div>
+						
+					</div>
+
+				</div>
+
+			</div>
+
 		</div>
 
 

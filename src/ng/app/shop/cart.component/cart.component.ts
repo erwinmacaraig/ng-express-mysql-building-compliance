@@ -80,10 +80,14 @@ export class CartComponent implements OnInit, OnDestroy{
 	}
 
 	addQuantity(cart){
+		let allow = false;
+		if(cart.item.product_type == 'diagram'){
+			allow = true;
+		} 
 
-		if(cart.item.product_type != 'package'){
+		if(allow){
 			this.messageService.sendMessage({
-				'updateCart' : true, 'productId' : cart.item.product_id, 'qty' : parseInt(cart.qty) + 1, 'locationId' : cart.item.location_id
+				'updateCart' : true, 'productId' : cart.item.product_id, 'qty' : parseInt(cart.qty) + 1, 'locationId' : cart.item.location_id, 'accountId' : cart.item.account_id
 			});
 
 			this.quantityInput.nativeElement.value = parseInt(cart.qty) + 1;
@@ -93,18 +97,14 @@ export class CartComponent implements OnInit, OnDestroy{
 
 	subtractQuantity(cart){
 		let allow = false;
-		if(cart.qty > 0){
-			if(cart.item.product_type == 'diagram' && cart.qty > 5){
-				allow = true;
-			}else if(cart.item.product_type != 'diagram' && cart.item.product_type != 'package'){
-				allow = true;
-			}
+		if(cart.item.product_type == 'diagram' ){
+			allow = true;
 		}
 
 		if(allow){
 
 			this.messageService.sendMessage({
-				'updateCart' : true, 'productId' : cart.item.product_id, 'qty' : parseInt(cart.qty) - 1, 'locationId' : cart.item.location_id
+				'updateCart' : true, 'productId' : cart.item.product_id, 'qty' : parseInt(cart.qty) - 1, 'locationId' : cart.item.location_id, 'accountId' : cart.item.account_id
 			});
 
 			this.quantityInput.nativeElement.value = parseInt(cart.qty) - 1;
@@ -126,9 +126,31 @@ export class CartComponent implements OnInit, OnDestroy{
 		});
 	}
 
+	checkDiagramItems(){
+		let response = true,
+			hasDiagram = false,
+			diagramQty = 0;
+		for(let cart of this.arrayCart){
+			if(cart.item.product_type == 'diagram'){
+				hasDiagram = true;
+				diagramQty += diagramQty + cart.qty
+			}
+		}
+
+		if(diagramQty < 5 && hasDiagram == true){
+			response = false;
+		}
+
+		return response;
+	}
+
 	goToPayment(){
 		if(this.arrayCart.length > 0){
-			this.router.navigate(["/shop/payment"]);
+			if(this.checkDiagramItems()){
+				this.router.navigate(["/shop/payment"]);
+			}else{
+				$('#diagramErrorMessage').show();
+			}
 		}
 	}
 

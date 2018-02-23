@@ -7,6 +7,7 @@ import { UserService } from '../services/users';
 import { AuthService } from '../services/auth.service';
 import { SignupService } from '../services/signup.service';
 import { LocationsService } from '../services/locations';
+import { AccountsDataProviderService } from '../services/accounts';
 import { EncryptDecryptService } from '../services/encrypt.decrypt';
 import { ProductService  } from '../services/products.service';
 import { Observable, ReplaySubject, BehaviorSubject, Subscription } from 'rxjs/Rx';
@@ -21,7 +22,7 @@ declare var $: any;
 	selector : 'app-shop-component',
 	templateUrl : './shop.component.html',
 	styleUrls : [ './shop.component.css' ],
-    providers : [AuthService, UserService, SignupService, EncryptDecryptService, ProductService, DashboardPreloaderService]
+    providers : [AuthService, UserService, SignupService, EncryptDecryptService, ProductService, DashboardPreloaderService, AccountsDataProviderService]
 })
 export class ShopComponent implements OnInit, OnDestroy{
 
@@ -42,7 +43,9 @@ export class ShopComponent implements OnInit, OnDestroy{
 
 	favorites = <any>[];
 
-	diagramFinishes = <any>[];
+	accounts = <any>[];
+
+	isCartHidden = false;
 
 	constructor(
 		private router : Router,
@@ -54,7 +57,8 @@ export class ShopComponent implements OnInit, OnDestroy{
         private productService: ProductService,
         private encryptDecrypt : EncryptDecryptService,
         private preloaderService: DashboardPreloaderService,
-        private messageService : MessageService
+        private messageService : MessageService,
+        private accountService : AccountsDataProviderService
 		){
 
 		this.userData = this.authService.getUserData();
@@ -96,10 +100,10 @@ export class ShopComponent implements OnInit, OnDestroy{
 			this.preloaderService.hide();
 		});
 
-		this.productService.getDiagramFinishes((response) => {
-			this.diagramFinishes = response.data;
+		this.accountService.getRelatedAccounts(this.userData['accountId'], (responseAccounts) => {
+			this.accounts = responseAccounts.data;
 			this.messageService.sendMessage({
-				'diagramFinishes' : this.diagramFinishes
+				'accounts' : this.accounts
 			});
 		});
 
@@ -109,14 +113,29 @@ export class ShopComponent implements OnInit, OnDestroy{
 				switch (e.url) {
 					case "/shop/compliance-package":
 						$('.compliance-package').addClass('active');
+						this.isCartHidden = false;
 						break;
 
 					case "/shop/trainings-package":
 						$('.trainings-package').addClass('active');
+						this.isCartHidden = false;
 						break;
 
 					case "/shop/evacuation-diagram-package":
 						$('.evacuation-diagrams-package').addClass('active');
+						this.isCartHidden = false;
+						break;
+
+					case "/shop/favorites":
+						this.isCartHidden = false;
+						break;
+
+					case "/shop/cart":
+						this.isCartHidden = true;
+						break;
+
+					case "/shop/payment":
+						this.isCartHidden = true;
 						break;
 				}
 			}
@@ -128,13 +147,14 @@ export class ShopComponent implements OnInit, OnDestroy{
 					'product_id' : res.productId,
 					'quantity' : (res.qty) ? parseInt(res.qty) : 1,
 					'location_id' : res.locationId,
-					'target_user_id' : (res.targetUserId) ? res.targetUserId : 0,
-					'diagram_finish_id' : (res.diagramFinishId) ? res.diagramFinishId : null,
-					'pdf_only' : (res.pdfOnly) ? res.pdfOnly : 0
+					'account_id' : (res.accountId) ? res.accountId : 0,
+					'add_on_items' : (res.addOns) ?  res.addOns : []
 				}, () => {
 					this.messageService.sendMessage({
 						'cart' : this.cart
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -142,14 +162,14 @@ export class ShopComponent implements OnInit, OnDestroy{
 				this.updateCart({
 					'product_id' : res.productId,
 					'quantity' : (res.qty) ? parseInt(res.qty) : 1,
-					'location_id' : res.locationId,
-					'target_user_id' : (res.targetUserId) ? res.targetUserId : 0,
-					'diagram_finish_id' : (res.diagramFinishId) ? res.diagramFinishId : null,
-					'pdf_only' : (res.pdfOnly) ? res.pdfOnly : 0
+					'account_id' : (res.accountId) ? res.accountId : 0,
+					'location_id' : res.locationId
 				}, () => {
 					this.messageService.sendMessage({
 						'cart' : this.cart
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -158,13 +178,15 @@ export class ShopComponent implements OnInit, OnDestroy{
 					this.messageService.sendMessage({
 						'cart' : this.cart
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
 			if(res.getData){
 				this.messageService.sendMessage({
 					'cart' : this.cart, 'products' : this.allProducts, 'packages' : this.packages, 
-					'locations' : this.locations, 'favorites' : this.favorites, 'diagramFinishes' : this.diagramFinishes
+					'locations' : this.locations, 'favorites' : this.favorites, 'accounts' : this.accounts
 				});
 			}
 
@@ -172,15 +194,16 @@ export class ShopComponent implements OnInit, OnDestroy{
 				this.addToFavorites({
 					'product_id' : res.productId,
 					'quantity' : (res.quantity) ? res.quantity : 1,
-					'target_user_id' : (res.targetUserId) ? res.targetUserId : 0,
 					'location_id' : (res.locationId) ? res.locationId : 0,
-					'diagram_finish_id' : (res.diagramFinishId) ? res.diagramFinishId : null,
+					'account_id' : (res.accountId) ? res.accountId : 0,
 					'user_id' : this.userData['userId'],
-					'pdf_only' : (res.pdfOnly) ? res.pdfOnly : 0
+					'add_on_items' : (res.addOns) ?  res.addOns : []
 				}, () => {
 					this.messageService.sendMessage({
 						'favorites' : this.favorites
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -192,6 +215,8 @@ export class ShopComponent implements OnInit, OnDestroy{
 					this.messageService.sendMessage({
 						'favorites' : this.favorites
 					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -199,15 +224,35 @@ export class ShopComponent implements OnInit, OnDestroy{
 				this.updateFavorite({
 					'product_id' : res.productId,
 					'quantity' : (res.quantity) ? res.quantity : 1,
-					'target_user_id' : (res.targetUserId) ? res.targetUserId : 0,
 					'location_id' : (res.locationId) ? res.locationId : 0,
-					'diagram_finish_id' : (res.diagramFinishId) ? res.diagramFinishId : null,
-					'user_id' : this.userData['userId'],
-					'pdf_only' : (res.pdfOnly) ? res.pdfOnly : 0
+					'account_id' : (res.accountId) ? res.accountId : 0,
+					'user_id' : this.userData['userId']
 				}, () => {
 					this.messageService.sendMessage({
 						'favorites' : this.favorites
 					});
+
+					if(res.callBack){ res.callBack(); }
+				});
+			}
+
+			if(res.removeDiagramsFromCart){
+				this.removeDiagramsFromCart(() => {
+					this.messageService.sendMessage({
+						'cart' : this.cart
+					});
+
+					if(res.callBack){ res.callBack(); }
+				});
+			}
+
+			if(res.removeDiagramsInFavorites){
+				this.removeDiagramsInFavorites(() => {
+					this.messageService.sendMessage({
+						'favorites' : this.favorites
+					});
+
+					if(res.callBack){ res.callBack(); }
 				});
 			}
 
@@ -269,6 +314,15 @@ export class ShopComponent implements OnInit, OnDestroy{
 		});
 	}
 
+	removeDiagramsFromCart(callBack){
+		this.productService.removeDiagramsFromCart((response) => {
+			this.cart = response.cart;
+			this.makeCartAsArray();
+
+			callBack();
+		});
+	}
+
 	addToFavorites(data, callBack){
 		this.productService.addToFavorites(data, (response) => {
 			this.favorites = response.data;
@@ -278,6 +332,13 @@ export class ShopComponent implements OnInit, OnDestroy{
 
 	removeFromFavorites(data, callBack){
 		this.productService.removeFavorite(data, (response) => {
+			this.favorites = response.data;
+			callBack();
+		});
+	}
+
+	removeDiagramsInFavorites(callBack){
+		this.productService.removeDiagramsInFavorites((response) => {
 			this.favorites = response.data;
 			callBack();
 		});

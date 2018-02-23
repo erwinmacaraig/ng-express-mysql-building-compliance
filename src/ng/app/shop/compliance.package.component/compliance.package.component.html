@@ -20,63 +20,124 @@
 	</div>
 </div>
 
-<div class="package-container"  [hidden]="packages.length == 0">
+<div class="container"  [hidden]="packages.length == 0">
+
+	<div class="row row-title">
+		<div class="col l12 m12 s12">
+			<h4 class="orange-text center">Most Recommended for Building Management</h4>
+		</div>
+	</div>
 	
-	<div class="row">
+	<div class="row row-products" *ngFor="let row of rowPackages">
 		
-		<div class="col l2 m6 s12" *ngFor="let package of packages; let i = index;">
-			<div class="package-wrapper">
-				<div class="title-container teal accent-4">
-					<div class="dark-background-arrow">
-						<div class="image"></div>
-						<div class="arrow-right"></div>
+		<div class="col l4 m12 s12" *ngFor="let package of row.packages; let i = index;">
+			<div class="package-wrapper" [style.margin-top]="package.marginTop" [style.height]="package.height">
+				<div class="title-container {{package.backgroundClasses}}" *ngIf="!package.noTitleContainer">
+					
+					<div class="logo-container">
+						<img src="/assets/images/{{package.icon}}" alt="">
 					</div>
-					<h4 class="title">
-						{{package.product_title }}
-					</h4>
+					<div class="text-container">
+						<div>
+							<h4 class="title">
+								{{package.product_title }}
+							</h4>
+						</div>
+					</div>	
+
+					<div class="dark-background center">
+						<h4 class="white-text">$ {{package.amount}}</h4>
+						<i class="white-text">per site per annum</i>
+					</div>
+					
 				</div>
 				<div class="content">
 					
+					<div [innerHTML]="package.product_desc | safeHtml"></div>
 
-					<div [innerHTML]="package.product_desc "></div>
-
-					<ul>
+					<!-- <ul>
 						<li *ngFor="let product of package.products">
 							{{product.product_title}}
 						</li>
-					</ul>
+					</ul> -->
 
-				</div>
+					<div *ngIf="package.addFSA">
+						<p>
+							<input id="checkAddFsa" type="checkbox" class="filled-in"  >
+							<label for="checkAddFsa">Add desktop FSA Support $340 <br> per site per annum</label>
+						</p>
+					</div>
 
-				<div class="price-container">
-					<h5 class="blue-text center">
-						<span *ngIf="package.amount == 0">FREE</span>
-						<span *ngIf="package.amount > 0">$ {{package.amount}}</span>
-					</h5>
-					<p class="center">Annual</p>
-
-
-					<h6 class="center">
-						<a href="javascript:void(0)">View More</a>
-						<div style="transform: rotate(-90deg);">
-							<i class="material-icons blue-text">chevron_left</i>
-						</div>
-					</h6>
 				</div>
 
 				<div class="footer">
-					<button class="btn btn-block orange waves-effect waves-light" #btnAdd *ngIf="!isInCart(package.product_id)" (click)="addToCart(package.product_id, btnAdd)">
-						<span *ngIf="package.amount == 0">UPGRADE</span>
-						<span *ngIf="package.amount > 0">SUBSCRIBE</span>
+					<button class="btn btn-block orange waves-effect waves-light" *ngIf="package.btnReplacement" [routerLink]="package.btnReplacement.link">
+						{{package.btnReplacement.text}}
 					</button>
 
-					<button class="btn btn-block orange waves-effect waves-light" #btnRemove *ngIf="isInCart(package.product_id)" (click)="removeFromCart(package.product_id, btnRemove)">
-						REMOVE
-					</button>
+					<div *ngIf="!package.btnReplacement">
+						<button class="btn btn-block orange waves-effect waves-light" #btnAdd *ngIf="!isInCart(package.product_id)" (click)="clickSubscribe(package, btnAdd)">
+							<span *ngIf="package.btnText">{{package.btnText}}</span>
+							<span *ngIf="!package.btnText">
+								<span *ngIf="package.amount == 0">UPGRADE</span>
+								<span *ngIf="package.amount > 0">SUBSCRIBE</span>
+							</span>
+						</button>
+
+						<button class="btn btn-block orange waves-effect waves-light" #btnRemove *ngIf="isInCart(package.product_id)" (click)="removeFromCart(package.product_id, btnRemove)">
+							REMOVE
+						</button>
+					</div>
+
 				</div>
 			</div>
 		</div>
 
 	</div>
 
+</div>
+
+
+
+<div id="modalFSA" class="modal">
+	<div class="modal-content">
+		
+		<div class="row">
+			<div class="col l4 m4 s12">
+				<div class="image-container">
+					<div  *ngIf="fsaProduct.product_image.length == 0" style="background-color: #ddd; width:100%; min-height: 200px;">
+						
+					</div>
+					<img  *ngIf="fsaProduct.product_image.length > 0" src="{{fsaProduct.product_image}}" alt="">
+				</div>
+			</div>
+
+			<div class="col l8 m8 s12">
+				
+				<h5 class="blue-text">
+					Are you sure you don't want to add Desktop FSA Support
+				</h5>
+
+				<h5 class="blue-text">
+					You'll miss this awesome features
+				</h5>
+
+				<ul>
+					<li>Complete and manage your Emergency Procedures Manual online</li>
+					<li>Includes warden and general occupant online training for 10 total occupants per building/tenancy.</li>
+					<li>Ability to self-manage your own compliance through forms and other tools</li>
+				</ul>
+
+				<p>
+					
+					<button class="btn grey waves-effect waves-light" #btnAdd (click)="addFSAClickEvent('add', btnAdd)">Add FSA Support</button>
+					<button class="btn orange waves-effect waves-light" #btnNoAdd (click)="addFSAClickEvent('continue', btnNoAdd)">Continue without FSA Support</button>
+
+				</p>
+				
+			</div>
+		</div>	
+	
+
+	</div>
 </div>

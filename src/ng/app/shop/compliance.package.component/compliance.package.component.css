@@ -26,50 +26,17 @@
 	padding: 0px;
 	border-radius: 5px;
 	position: relative;
-	margin: 20px;
 }
 
 .package-wrapper .title-container{
 	position: relative;
-	height: 60px;
+	height: 80px;
 }
 
 .package-wrapper .title-container .title{
-	color: #fff;
-	font-size: 17px;
-	margin: 0px;
-	top: 50%;
-    left: 55%;
-    margin-right: -50%;
-    transform: translate(-50%, -50%);
-    position: absolute;
-    width: 150px;
-}
-
-.package-wrapper .title-container .dark-background-arrow{
-	position: absolute;
-	height: 100%;
-	width: 40px;
-	background-color: rgba(0,0,0,0.3);
-}
-
-.package-wrapper .title-container .dark-background-arrow .image{
-	position: absolute;
-    width: 53px;
-    height: 36px;
-    background: url(/assets/images/shop_icons.png);
-    background-position: 51.2% 49.3%;
-    background-size: 700%;
-    z-index: 9;
-    top: 10px;
-}
-
-.package-wrapper .title-container .dark-background-arrow .arrow-right{
-	border-top: 30px solid transparent;
-    border-bottom: 30px solid transparent;
-    border-left: 15px solid rgba(0,0,0,0.3);
-    position: absolute;
-    right: -15px;
+    color: #fff;
+    font-size: 18px;
+    margin: 0px;
 }
 
 .package-wrapper .content{
@@ -107,8 +74,127 @@
 
 .btn{
 	font-size: 14px !important;
+	min-height: 50px;
 }
 
 .btn-block{
 	width: 100%;
+}
+
+.package-wrapper .title-container .logo-container{
+    width: 20%;
+    height: 100%;
+    position: absolute;
+    left: 0%;
+}
+
+.package-wrapper .title-container .logo-container img{
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.package-wrapper .title-container .text-container > div{
+	display: flex;
+    align-items: center;
+    height: 80px;
+}
+
+.package-wrapper .title-container .text-container{
+    display: inline-block;
+    width: 130px;
+    height: 100%;
+    position: absolute;
+    vertical-align: top;
+    left: 21%;
+}
+
+.package-wrapper .title-container .dark-background{
+    display: inline-block;
+    width: 125px;
+    background-color: rgba(58, 58, 58, 0.5);
+    height: 100%;
+    vertical-align: top;
+    position: absolute;
+    right: 0%;
+}
+
+.package-wrapper .title-container .dark-background h4{
+	font-size: 22px;
+    margin: 17px 0px 4px 0px;
+}
+
+.package-wrapper .title-container .dark-background i{
+	font-size: 12px;
+}
+
+.row-title{
+	margin: 30px 0px;
+}
+
+.row-title h4.orange-text{
+	font-size: 26px;
+}
+
+#modalFSA .modal-content .row > .col{
+	
+	position: relative;
+}
+
+#modalFSA .image-container{
+    width: 100%;
+}
+
+#modalFSA .image-container img{
+	max-width: 95%;
+}
+
+#modalFSA .modal-content ul{
+	font-size: 16px;
+    padding-left: 20px;
+}
+
+#modalFSA .modal-content ul li{
+	list-style: disc;
+}
+
+
+@media only screen 
+  and (min-width: 1441px){
+	#modalFSA{
+		width: 45%;
+	}
+
+	#modalFSA .modal-content .row > .col{
+		height: 340px;
+	}
+}
+
+
+@media only screen 
+  and (min-width: 1024px){
+	
+	#modalFSA .image-container{
+		margin-top: 10%;
+	}
+
+}
+
+@media only screen 
+  and (max-width: 1024px){
+	
+	#modalFSA{
+		width: 80%;
+	}
+
+	
+}
+
+@media only screen 
+  and (max-width: 768px){
+	#modalFSA .btn{
+		margin: 10px 0px;
+		width: 100%;
+	}
 }

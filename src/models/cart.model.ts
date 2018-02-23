@@ -17,11 +17,14 @@ export class Cart {
         qty: (item.qty) ? item.qty : 1,
         price: 0
       };
+
+      storedItem.price = <number>storedItem.item.amount * <number>storedItem.qty;
+      this.totalQty = parseFloat(this.totalQty) + parseFloat(storedItem.qty);
+      this.totalPrice = this.totalPrice + storedItem.price;
+    }else{
+      this.update(item, id);
     }
 
-    storedItem.price = <number>storedItem.item.amount * <number>storedItem.qty;
-    this.totalQty = parseFloat(this.totalQty) + parseFloat(storedItem.qty);
-    this.totalPrice = this.totalPrice + storedItem.price;
   }
 
   public update(item, id){
