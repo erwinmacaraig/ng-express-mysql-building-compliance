@@ -136,10 +136,8 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		if(locId > 0 && this.totalAddedQuantity == this.totalQuantity){
 
 			btn.disabled = true;
-			this.removeDiagramsFromCart(() => {
-				this.addToCart(btn, ()=>{
-					btn.disabled = false;
-				});
+			this.addToCart(btn, ()=>{
+				btn.disabled = false;
 			});
 
 		}else if(locId < 1 || isNaN(locId)){
@@ -154,6 +152,12 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 		if($('#selectDiagram').val() > 0){
 			this.totalAddedQuantity = this.totalQuantity;
+
+			for(let prod of this.diagramsProducts){
+				if(prod.product_id == $('#selectDiagram').val()){
+					prod.quantity = this.totalAddedQuantity;
+				}
+			}
 		}
 	}
 
@@ -166,6 +170,12 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 		if($('#selectDiagram').val() > 0){
 			this.totalAddedQuantity = this.totalQuantity;
+
+			for(let prod of this.diagramsProducts){
+				if(prod.product_id == $('#selectDiagram').val()){
+					prod.quantity = this.totalAddedQuantity;
+				}
+			}
 		}
 	}
 
@@ -290,7 +300,7 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 				});
 			}
 			
-		}else{
+		}else if(isNaN(locId) || locId == null){
 			this.selectLocationZoom();
 		}
 	}
@@ -314,10 +324,8 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 			this.selectLocationZoom();
 		}else if(  this.totalAddedQuantity > 0 ){
 			btn.disabled = true;
-			this.removeDiagramsFromCart(() => {
-				this.addToCart(btn, () => {
-					this.router.navigate(["/shop/cart"]);
-				});
+			this.addToCart(btn, () => {
+				this.router.navigate(["/shop/cart"]);
 			});
 		}
 
@@ -367,10 +375,9 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 				'callBack' : callBack
 			});
 			
-		}else{
+		}else if(isNaN(locId) || locId == null){
 			this.selectLocationZoom();
-		}
-
+		} 
 	}
 
 	removeFavorite(prodId, btn){
