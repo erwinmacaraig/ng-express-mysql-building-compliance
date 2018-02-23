@@ -199,14 +199,6 @@
     font-size: 16px;
 }
 
-.row-add-info .btn-set{
-    font-size: 15px !important;
-    padding: 30px;
-    line-height: 0px !important;
-    margin: 40px 0px;
-}
-
-
 #modalSetLevels{
     width: 30%;
 }
@@ -558,12 +550,76 @@
   line-height: 40px !important;
 }
 
+.inline-block{
+    display: inline-block;
+}
+
+.inputs-button-container .inline-block{
+    margin: 5px;
+}
+
+.input-arrow-up-down{
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 60px;
+    display: inline-block;
+    overflow: hidden;
+    height: 42px;
+    vertical-align: middle;
+}
+
+.input-arrow-up-down input{
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+    height: 40px;
+    background-color: #fff;
+    position: absolute;
+    left: 0px;
+    width: 37px;
+}
+
+.input-arrow-up-down .btn-arrow-up, 
+.input-arrow-up-down .btn-arrow-down{
+    background: transparent;
+    padding: 0px;
+    border: 0px;
+    height: 20px;
+    width: 20px;
+    position: absolute;
+    right: 0px;
+    background-color: #434343;
+    color: #fff;
+}
+
+.input-arrow-up-down .btn-arrow-down{
+    bottom: 0px;
+}
+
+.input-arrow-up-down .material-icons{
+    font-size: 20px;
+}
+
+.inputs-button-container .btn{
+    font-size: 15px !important;
+}
+
+.inputs-button-container{
+    margin: 40px 0px;
+}
+
 @media only screen
 and (max-width: 768px){
     
     #modalAddSublocation,
     #modalArchive{
       width: 60% !important;
+    }
+
+    .search-container,
+    .search-container.active{
+        width: 98%;
     }
 
 }

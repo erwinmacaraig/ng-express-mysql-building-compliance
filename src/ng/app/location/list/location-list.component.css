@@ -131,6 +131,55 @@ table tr td.location-name img{
     margin-right: 5px;
 }
 
+table tr td.location-name .circle{
+	vertical-align: middle;
+    margin-right: 5px;
+}
+
+table tr td .btn{
+	font-size: 12px !important;
+    padding: 0px 10px;
+    max-height: 30px;
+    line-height: 12px;
+}
+
+table tr td .checkbox{
+    margin: 0px 10px;
+}
+
+table tr td .checkbox[type="checkbox"] + label{
+    color: #333;
+    padding-left: 15px;
+	height: 15px;
+}
+
+table tr td .checkbox[type="checkbox"].filled-in:not(:checked) + label:after {
+    background-color: #fff;
+    border: 1px solid #aaaaaa;
+}
+
+table tr td .image-container{
+	width: 50px;
+    height: 50px;
+	display: inline-block;
+  	text-align: center;
+  	vertical-align: middle;
+  	background-color: #fff;
+    border-radius: 30px;
+    margin: 0px 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+table tr td img{
+	width: 50px;
+	height: 50px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
 .compliance .percent,
 .compliance .bar {
 	display: inline-block;
@@ -147,4 +196,59 @@ table tr td.location-name img{
 	background-color: #b71928;
     width: 60%;
     height: 11px;
+}
+
+.filter-container > .col{
+	height: 50px !important;
+}
+
+.filter-container .add-peep .image{
+	background: url(/assets/images/team_icons.png) no-repeat;
+    width: 35px;
+    height: 35px;
+    background-position: 18% 36%;
+    vertical-align: middle;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.filter-container .btn{
+	width: 100%;
+    padding: 0px;
+    height: 50px !important;
+}
+
+.filter-container .search-field{
+	background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 5px;
+    height: 50px;
+    vertical-align: bottom;
+    position: relative;
+}
+
+.filter-container .search-field input{
+	margin: 3px 14px 0px 0px !important;
+    padding: 0px;
+    display: inline-block;
+    width: 90%;
+    border-bottom: 0px;
+}
+
+.filter-container .search-field input:focus{
+	border-bottom: 0px;
+    box-shadow: none;
+}
+
+.filter-container .search-field .material-icons{
+	width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    position: absolute;
+    top: 29%;
+    right: 4%;
+}
+
+.inline-block{
+	display: inline-block;
 }
