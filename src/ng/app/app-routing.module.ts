@@ -76,6 +76,8 @@ import { MyTrainingsComponent } from './trainings/my-training/mytraining.compone
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
 
+// To delete
+import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -158,6 +160,9 @@ const appRoutes: Routes = [
       { path : 'team-training', component : TeamTrainingComponent },
       { path : 'training-invite', component : TrainingInviteComponent }
     ]
+  },
+  {
+    path: 'warden-benchmarking', component: WardenBenchMarkingComponent
   }
 ];
 
