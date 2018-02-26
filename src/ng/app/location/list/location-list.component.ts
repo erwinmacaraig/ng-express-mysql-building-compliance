@@ -89,14 +89,31 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 	ngOnInit(){
 		this.preloaderService.show();
-
-		
 	}
 
 	ngAfterViewInit(){
 		$('.nav-list-locations').addClass('active');
 		$('.location-navigation .active').removeClass('active');
 		$('.location-navigation .view-location').addClass('active');
+
+
+		this.selectRowEvent();
+	}
+
+	selectRowEvent(){
+
+		$('body').off('change.selectchangeevent').on('change.selectchangeevent', 'select.initialized', (e) => {
+			e.preventDefault();
+			let target = $(e.target),
+				val = target.val();
+
+			if(val.indexOf('view-') > -1){
+				let locIdEnc = val.replace('view-', '');
+
+				this.router.navigate(["/location/view/", locIdEnc]);
+			}
+		});
+
 	}
 
 	ngOnDestroy(){

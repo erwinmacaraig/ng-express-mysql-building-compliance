@@ -246,3 +246,23 @@ table thead tr th .checkbox label {
 strong{
     font-weight: bold !important;
 }
+
+td.select-blue .caret{
+    color: #39a1ff !important;
+}
+
+td.select-blue input[type="text"]{
+    color: #39a1ff;
+    border-bottom: 0px;
+    font-size: 14px;
+    margin-bottom: 0px;
+}
+
+td.select-blue ul li > span{
+    font-size: 13px !important;
+    padding: 10px 12px;
+}
+
+td.select-blue .dropdown-content li{
+    min-height: 10px;
+}

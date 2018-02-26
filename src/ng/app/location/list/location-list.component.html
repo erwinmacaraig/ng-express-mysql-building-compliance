@@ -1,6 +1,24 @@
 <div class="row">
 	<div class="col m12">
-		<h5 class="text">Location List</h5>
+		<h5 class="text left">Location List</h5>
+
+		<div class="right table-align">
+			<h5 class="medium-text">Show only not compliant</h5>
+			<div class="switch">
+				<input type="checkbox" id="override">
+				<div class="yes">Yes</div>
+				<div class="no">No</div>
+				<div class="highlight"></div>
+				<div class="background"></div>
+			</div>
+
+			<a href="#" class="archived" [routerLink]="['/location/list']">
+				<span class="image"></span>
+				View Archive
+			</a>
+		</div>
+
+		<div style="clear: both;"></div>
 	</div>
 </div>
 
@@ -36,7 +54,7 @@
 <div class="row">
 	<div class="col m12 s12" >
 
-		<table class="highlight striped bordered table-list-locations">
+		<table class="highlight striped table-list-locations">
 			<thead>
 				<tr class="grey darken-4 white-text">
 					<th>
@@ -66,11 +84,13 @@
 							<label style="padding-left: 15px; height: 15px;" for="location-{{i}}"></label>
 						</div>
 						<div class="image-container lighten-3 green inline-block" >
-							<img src="http://lorempixel.com/100/50/" alt="">
+							<img src="{{location.google_photo_url}}" alt="">
 						</div>
 						<div class="inline-block">
-							<span *ngIf="locations[i].name.length > 0"> {{locations[i].name}}</span>
-							<span *ngIf="locations[i].name.length == 0"> {{locations[i].formatted_address}} </span>
+							<a [routerLink]="['/location/view/', location.location_id]" class="location-name-link">
+								<span *ngIf="location.name.length > 0"> {{location.name}}</span>
+								<span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+							</a>
 						</div>
 					</td>
 					<td>
@@ -87,14 +107,16 @@
 						0
 					</td>
 					<td class="compliance">
-						<a href="javascipt:void(0)">
+						<a [routerLink]="['/location/compliance/view/', location.location_id]">
 							<div class="percent">0%</div>
 							<div class="bar"></div>
 						</a>
 					</td>
-					<td>
+					<td class="select-blue">
 						<select>
 							<option value="0">Manage</option>
+							<option value="view-{{location.location_id}}">View</option>
+							<option value="archive">Archive</option>
 						</select>
 					</td>
 				</tr>
