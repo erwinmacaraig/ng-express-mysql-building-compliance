@@ -24,17 +24,8 @@ import { EmailSuccessVerficiationComponent } from './email-success-verficiation/
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
-// Locations Template Components
-import { LocationsUiComponent } from './locations-ui/locations.ui';
-import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
-import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
-import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.next.location/add.multiple.next.location';
-import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
-import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
-import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
-// import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
-import { SearchLocationComponent } from './location/search/search-location.component';
 
+import { SearchLocationComponent } from './location/search/search-location.component';
 import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
