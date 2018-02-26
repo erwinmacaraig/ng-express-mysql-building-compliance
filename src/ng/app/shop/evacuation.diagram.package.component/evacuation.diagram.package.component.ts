@@ -95,6 +95,17 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		});
 	}
 
+	selectLocationZoom(){
+		$('#selectLocation').css({
+			'box-shadow' : '0px 2px 8px 0px #afafaf',
+			'transform' : 'scale(1.2)'
+		});
+		window.scroll(0, 0);
+		setTimeout(() => {
+			$('#selectLocation').css({ 'box-shadow' : '', 'transform' : '' });
+		}, 2000);
+	}
+
 	onChageSelectDiagram(selectDiagram){
 		let selProdId = selectDiagram.value;
 
@@ -125,11 +136,12 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		if(locId > 0 && this.totalAddedQuantity == this.totalQuantity){
 
 			btn.disabled = true;
-			this.removeDiagramsFromCart();
-			setTimeout(() => {
-				this.addToCart(btn);
-			},500);
+			this.addToCart(btn, ()=>{
+				btn.disabled = false;
+			});
 
+		}else if(locId < 1 || isNaN(locId)){
+			this.selectLocationZoom();
 		}
 	}
 
@@ -140,6 +152,12 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 		if($('#selectDiagram').val() > 0){
 			this.totalAddedQuantity = this.totalQuantity;
+
+			for(let prod of this.diagramsProducts){
+				if(prod.product_id == $('#selectDiagram').val()){
+					prod.quantity = this.totalAddedQuantity;
+				}
+			}
 		}
 	}
 
@@ -152,6 +170,12 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 
 		if($('#selectDiagram').val() > 0){
 			this.totalAddedQuantity = this.totalQuantity;
+
+			for(let prod of this.diagramsProducts){
+				if(prod.product_id == $('#selectDiagram').val()){
+					prod.quantity = this.totalAddedQuantity;
+				}
+			}
 		}
 	}
 
@@ -176,6 +200,7 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 	}
 
 	updateTotalAmount(){
+		this.totalAmount = 0;
 		for(let i in this.diagramsProducts){
 			let prod = this.diagramsProducts[i],
 				amount = parseFloat(prod.amount),
@@ -188,9 +213,9 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		}
 	}
 
-	removeDiagramsFromCart(){
+	removeDiagramsFromCart(cb){
 		this.messageService.sendMessage({
-			'removeDiagramsFromCart' : true
+			'removeDiagramsFromCart' : true, 'callBack' : cb
 		});
 	}
 
@@ -229,16 +254,17 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 		return response;
 	}
 
-	addToCart(btn){
+	addToCart(btn, callBack){
 		let locId = parseInt($('#selectLocation').val()),
 			diagId = parseInt($('#selectDiagram').val());
 			// pdfOnly = ($('#pdf').prop('checked')) ? 1 : 0;
 
-		if(locId && this.totalAddedQuantity == this.totalQuantity){
+		if(locId > 0 && this.totalAddedQuantity == this.totalQuantity){
 			btn.disabled = true;
 
 			let cb = () => {
 				btn.disabled = false;
+				callBack();
 			};
 
 			let prodToAdd = [],
@@ -274,11 +300,8 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 				});
 			}
 			
-		}else{
-			$('#selectLocation').css('border', '1px solid #F44336');
-			setTimeout(() => {
-				$('#selectLocation').css('border', '');
-			}, 1000);
+		}else if(isNaN(locId) || locId == null){
+			this.selectLocationZoom();
 		}
 	}
 
@@ -297,17 +320,15 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 	buyNow(btn){
 		let locId = parseInt($('#selectLocation').val());
 
-		if(locId && this.totalAddedQuantity > 0){
+		if(locId < 1 || isNaN(locId)){
+			this.selectLocationZoom();
+		}else if(  this.totalAddedQuantity > 0 ){
 			btn.disabled = true;
-			this.removeDiagramsFromCart();
-			setTimeout(() => {
-				this.addToCart(btn);
-			},500);
-
-			setTimeout(() => {
+			this.addToCart(btn, () => {
 				this.router.navigate(["/shop/cart"]);
-			},1500);
+			});
 		}
+
 	}
 
 	isInFavorites(prodId){
@@ -354,13 +375,9 @@ export class EvacuationDiagramPackageComponent implements OnInit, OnDestroy{
 				'callBack' : callBack
 			});
 			
-		}else{
-			$('#selectLocation').css('border', '1px solid #F44336');
-			setTimeout(() => {
-				$('#selectLocation').css('border', '');
-			}, 1000);
-		}
-
+		}else if(isNaN(locId) || locId == null){
+			this.selectLocationZoom();
+		} 
 	}
 
 	removeFavorite(prodId, btn){

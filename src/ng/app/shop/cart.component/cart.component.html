@@ -15,6 +15,10 @@
 	</div>
 
 	<div class="row"  *ngIf="arrayCart.length > 0">
+
+		<div id="diagramErrorMessage" class="col l12 m12 s12 center red white-text" style="margin: 50px 0px; display: none; border-radius: 5px;"> 
+			<h5 style="font-size: 1.3rem;">* You have diagram items which the quantity is lower than 5pcs. Please add quantity on it</h5> 
+		</div>
 		
 		<div class="col l4 m5 s12">
 			<h5 class="blue-text col-title">Order Summary</h5>
@@ -29,7 +33,7 @@
 							</div>
 							<div class="text">
 								<h6 class="name blue-text">{{ cart.item.product_title }}</h6>
-								<div [innerHTML]="cart.item.product_desc"></div>
+								<div class='product-description' [innerHTML]="cart.item.product_desc"></div>
 								<div class="quantity-container">
 									<div class="input" >
 										<input type="text" #quantityInput readonly value="{{cart.qty}}">
@@ -47,7 +51,7 @@
 
 							<div class="remove-container">
 								<a href="javascript:void(0)" (click)="removeFromCart(cart.item.product_id)" class="black-text right">
-									Close <div class="close-image"></div>
+									Remove <div class="close-image"></div>
 								</a>
 								<div style="clear: both;"></div>
 							</div>

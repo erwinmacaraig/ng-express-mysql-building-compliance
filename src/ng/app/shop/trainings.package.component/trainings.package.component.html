@@ -50,8 +50,8 @@
 
 			<div class="row">
 				<div class="col l12 m12 s12">
-					<h5 class="orange-text left category-name">{{selectedCategoryName}}</h5>
-					<h5 class="blue-text right no-margin">Remaining License : 10</h5>
+					<h5 class="orange-text left category-name" style="font-size: 1.3rem;">{{selectedCategoryName}}</h5>
+					<h5 class="blue-text right no-margin" style="font-size: 1.3rem;">Remaining License : 10</h5>
 					<div style="clear: both;"></div>
 				</div>
 			</div>
@@ -73,7 +73,7 @@
 							<div class="col l4 m12 s12">
 								<div class="content">
 									<h5 class="title blue-text">
-										{{ prod.product_title }}
+										{{ prod.product_title }} <span class="orange-text"> - ${{prod.amount}}</span>
 									</h5>
 									<div [innerHTML]="prod.product_desc | safeHtml"></div>
 									
