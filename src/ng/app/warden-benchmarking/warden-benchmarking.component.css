@@ -44,6 +44,27 @@
 	bottom: 0px;
 }
 
+.slide-container {
+  padding:10px;
+}
+
+
+.btn-submit,
+.btn-submit:hover,
+.btn-submit:active,
+.btn-submit:focus{
+	background-color: #f7941d;
+	box-shadow: none !important;
+}
+
+.btn-close,
+.btn-close:hover,
+.btn-close:active,
+.btn-close:focus{
+	background-color: #ddd;
+	box-shadow: none !important;
+	color: #111;
+}
 /*
 .switch .highlight{
   position: absolute;

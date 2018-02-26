@@ -97,6 +97,8 @@ import { MyTrainingsComponent } from './trainings/my-training/mytraining.compone
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
 
+import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -167,7 +169,8 @@ import { TrainingInviteComponent } from './trainings/training-invite/training.in
     TrainingsComponent,
     MyTrainingsComponent,
     TeamTrainingComponent,
-    TrainingInviteComponent
+    TrainingInviteComponent,
+    WardenBenchMarkingComponent
   ],
   imports: [
     BrowserModule,
