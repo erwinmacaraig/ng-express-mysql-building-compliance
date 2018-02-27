@@ -19,37 +19,54 @@
            {{course.course_name}}
             <!-- course taken <p class="blue-text">Valid until 00/00/0000</p> -->
 					</div>
-				</div>
-				<div class="buttons"><!--
-					<form method="POST" action="http://localhost:3000/lms/launch-course/" ngNoForm>
-            <input type="hidden" name="courseId" value="2" />
-            <input type="hidden" name="userId" value="15980" />
-						<button type="submit" class="btn red waves-effect waves-light">Take this course</button>
-          </form> -->
+        </div>
+        <!-- null -->
+				<div class="buttons" *ngIf="!course.lesson_status">
+          <button type="button" class="btn red waves-effect waves-light" (click)="loadTrainingCourse(course)">Take this course</button>
+        </div>
+        <!-- not attempted -->
+        <div class="buttons" *ngIf="course.lesson_status == 'not attempted'">
           <button type="button" class="btn red waves-effect waves-light" (click)="loadTrainingCourse(course)">Take this course</button>
         </div>
 
-        <!-- course taken
-          <div class="buttons">
-            <button class="btn light-blue waves-effect waves-light">Download Certificate</button>
-            <button  class="btn grey waves-effect waves-light">Retake this course</button>
-          </div> -->
+        <!-- failed -->
+        <div class="buttons" *ngIf="course.lesson_status == 'failed'">
+          <button type="button" class="btn red waves-effect waves-light" (click)="loadTrainingCourse(course)">Retake this course</button>
+        </div>
+
+        <!-- incomplete -->
+        <div class="buttons" *ngIf="course.lesson_status == 'incomplete'">
+          <button type="button" class="btn waves-effect waves-light" (click)="loadTrainingCourse(course)">Continue course</button>
+        </div>
+
+        <!-- incomplete -->
+        <div class="buttons" *ngIf="course.lesson_status == 'browsed'">
+          <button type="button" class="btn waves-effect waves-light" (click)="loadTrainingCourse(course)">Continue course</button>
+        </div>
+
+        <!-- completed -->
+        <div class="buttons" *ngIf="course.lesson_status == 'completed'">
+          <button class="btn light-blue waves-effect waves-light">Download Certificate</button>
+          <button  class="btn grey waves-effect waves-light" (click)="loadTrainingCourse(course)">Retake this course</button>
+        </div>
+
+        <!-- passed -->
+        <div class="buttons" *ngIf="course.lesson_status == 'passed'">
+          <button class="btn light-blue waves-effect waves-light">Download Certificate</button>
+          <button  class="btn grey waves-effect waves-light" (click)="loadTrainingCourse(course)">Retake this course</button>
+        </div>
 			</div>
-
 		</div>
-
-
 	</div>
-
 </div>
-<!-- src="http://localhost:3000/courses/evac/index_lms.html" -->
+
 <div *ngIf="toggle">
   <div class="modal" id="training">
     <div class="modal-content">
-      <iframe  [src]="selectedCourse.formatted_launcher_url" frameborder="0"><p>Not Supported by this browser</p></iframe>
+      <iframe [src]="selectedCourse.formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
     </div>
     <div class="modal-footer">
-      <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat">Close</button>
+      <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule()" >Close</button>
     </div>
   </div>
 </div>
