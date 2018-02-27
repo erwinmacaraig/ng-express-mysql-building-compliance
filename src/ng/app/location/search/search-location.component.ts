@@ -83,6 +83,21 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     public inpSublocationNameTwoWayData = "";
     public selectedSubLocationFromModal = {};
 
+    public LEVELS = {
+        occupiable : 0,
+        carpark : 0,
+        plantroom : 0,
+        others : 0
+    };
+
+    public modalCreateNewLocation = {
+        showLoader : false,
+        others : [],
+        occupiable : [],
+        carpark : [],
+        plantroom : []
+    };
+
     constructor(private mapsAPILoader: MapsAPILoader,
         private ngZone: NgZone,
         private locationService: LocationsService,
@@ -487,5 +502,177 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         }
     }
 
+    getTotalCountOfLevelValues(){
+        let total = 0;
+        for(let i in this.LEVELS){
+            total += this.LEVELS[i];
+        }
+
+        return total;
+    }
+
+    addLevel(type, input){
+        if(type in this.LEVELS){
+            let total = this.getTotalCountOfLevelValues(),
+                inpLevels = $('#inpLevels');
+
+            if( total <= 100 ){ 
+                this.LEVELS[type] += 1;
+                input.value = this.LEVELS[type];
+
+                if(inpLevels.val() <= total){
+                    $('#inpLevels').val(total + 1);
+                }
+            }
+        }
+    }
+
+    subtractLevel(type, input){
+        if(type in this.LEVELS){
+            if(this.LEVELS[type] > 0){
+                let total = this.getTotalCountOfLevelValues(),
+                    inpLevels = $('#inpLevels');
+
+                this.LEVELS[type] -= 1;
+                input.value = this.LEVELS[type];
+            }
+        }
+    }
+
+    changeTotalLevels(){
+        let inpVal = $('#inpLevels').val(),
+            total = this.getTotalCountOfLevelValues();
+
+        if(inpVal > 100){
+            $('#inpLevels').val(100);
+        }
+
+        if(inpVal < total){
+            $('.input-level').val(0);
+            for(let i in this.LEVELS){
+                this.LEVELS[i] = 0;
+            }
+        }
+    }
+
+    prodceedNewLocation(){
+        let total = this.getTotalCountOfLevelValues(),
+            inpLevelVal = parseInt($('#inpLevels').val());
+
+        if(total > 0 || inpLevelVal > 0){
+            this.modalCreateNewLocation[ 'occupiable' ] = [];
+            this.modalCreateNewLocation[ 'others' ] = [];
+            this.modalCreateNewLocation[ 'carpark' ] = [];
+            this.modalCreateNewLocation[ 'plantroom' ] = [];
+
+           if(total > 0){
+               for(let i in this.LEVELS){
+                    if( this.modalCreateNewLocation[ i ] ){
+
+                        for(let c = 1; c <= this.LEVELS[i]; c++ ){
+                            let n = '';
+                            switch (i) {
+                                case "others":
+                                    n = 'Other';
+                                    break;
+                                
+                                case "occupiable":
+                                    n = 'Level';
+                                    break;
+
+                                case "carpark":
+                                    n = 'Car Park';
+                                    break;
+
+                                case "plantroom":
+                                    n = 'Plant Room';
+                                    break;
+                            }
+
+
+                            this.modalCreateNewLocation[ i ].push({
+                                number : c,
+                                name :  n
+                            });
+                        }
+                    }
+                }
+           }else if(inpLevelVal > 0){
+                for(let i = 1; i <= inpLevelVal; i++){
+                    this.modalCreateNewLocation[ 'occupiable' ].push({
+                        number : i,
+                        name :  'Level '
+                    });
+                }
+           }
+            
+           $('#modalCreateNewLocation').modal('open');
+        }
+
+        
+    }
+
+    submitNewLocation(){
+        let total = this.getTotalCountOfLevelValues(),
+            name = $('#inpLocationName').val(),
+            formData = {
+                unit : '',
+                location_name : (name.length == 0) ? this.formattedAddress : name,
+                street_number : (this.street_number.value !== null) ? this.street_number.value : '',
+                street : (this.street_name.value !== null) ? this.street_name.value : '',
+                city : this.city.value,
+                state : (this.state.value !== null) ? this.state.value : '',
+                postal_code : (this.postal_code.value !== null) ? this.postal_code.value : '',
+                country : this.country.value,
+                formatted_address : this.formattedAddress,
+                latitude : this.searchResultLocation['latitude'],
+                longitude : this.searchResultLocation['longitude'],
+                photoUrl : (this.searchResultLocation['photoUrl']) ? this.searchResultLocation['photoUrl'] : '',
+                google_place_id : this.searchResultLocation['google_place_id'],
+                sublevels : []
+            },
+            inpLevelVal = parseInt($('#inpLevels').val());
+
+        if(total > 0 || inpLevelVal > 0){
+
+            if(total > 0){
+                for(let c in this.modalCreateNewLocation['occupiable']){
+                    let name = this.modalCreateNewLocation['occupiable'][c]['name'] + ' ' + this.modalCreateNewLocation['occupiable'][c]['number'];
+                    formData.sublevels.push(name  );
+                }
+
+                for(let c in this.modalCreateNewLocation['carpark']){
+                    let name = this.modalCreateNewLocation['carpark'][c]['name'] + ' ' + this.modalCreateNewLocation['carpark'][c]['number'];
+                    formData.sublevels.push(name  );
+                }
+
+                for(let c in this.modalCreateNewLocation['plantroom']){
+                   let name = this.modalCreateNewLocation['plantroom'][c]['name'] + ' ' + this.modalCreateNewLocation['plantroom'][c]['number'];
+                    formData.sublevels.push(name  );
+                }
+
+                for(let c in this.modalCreateNewLocation['others']){
+                    let name = this.modalCreateNewLocation['others'][c]['name'] + ' ' + this.modalCreateNewLocation['others'][c]['number'];
+                    formData.sublevels.push(name  );
+                }
+            }else if(inpLevelVal > 0){
+                for(let i = 1; i <= inpLevelVal; i++){
+                    let name = 'Level '+i;
+                    formData.sublevels.push(name);
+                }
+            }
+
+            this.modalCreateNewLocation.showLoader = true;
+
+            this.locationService.createSingleLocation(formData).subscribe((data) => {
+                this.modalCreateNewLocation.showLoader = false;
+                $('#modalCreateNewLocation').modal('close');
+                setTimeout(() => {
+                    this.router.navigate(['/location', 'list']);
+                }, 300);
+            });
+
+        }
+    }
 
 }

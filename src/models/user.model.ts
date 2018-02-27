@@ -304,6 +304,24 @@ export class User extends BaseClass {
         });
     }
 
+    public getAdmins(limit?){
+        return new Promise((resolve, reject) => {
+            let sql_load = "SELECT * FROM users WHERE evac_role = 'admin' AND archived = 0";
+            if(limit){
+                sql_load += " LIMIT "+limit;
+            }
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
     public getByAccountId(accountId, archived?) {
         return new Promise((resolve, reject) => {
             let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ?';

@@ -9,10 +9,17 @@ import { Location } from '../models/location.model';
 import { LocationAccountUser } from '../models/location.account.user';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
+import { EmailSender } from '../models/email.sender';
+import { BlacklistedEmails } from '../models/blacklisted-emails';
+import { Token } from '../models/token.model';
+
+
 import * as fs from 'fs';
 import * as path from 'path';
 const validator = require('validator');
 const md5 = require('md5');
+const moment = require('moment');
+const url = require('url');
 
 /**
  * / route
@@ -136,6 +143,11 @@ const md5 = require('md5');
       router.get('/location/get-sublocations-of-parent/:parent_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
         new LocationRoute().getSublocationsOfParent(req, res)
       });
+
+
+      router.get('/new-location-verification/', (req: Request, res: Response) => {
+        new LocationRoute.verifyNewLocation(req, res);
+      });
    	}
 
 
@@ -175,6 +187,89 @@ const md5 = require('md5');
             message: `Unable to fulfill request`
           });
         });
+    }
+
+    public async verifyNewLocation(req: Request, res: Response){
+      let queryObject = url.parse(req.url, true).query,
+        token = queryObject.token,
+        action = queryObject.action,
+        tokenModel = new Token(),
+        tokenData = await tokenModel.getByToken(token);
+    }
+
+    public async sendEmailCreateNewLocation(dbLocationData, req){
+      if(Object.keys(dbLocationData).length > 0){
+        let userModelAdmin = new User(),
+          admins = await userModelAdmin.getAdmins(5),
+          userModel = new User(req.user.user_id),
+          user = <any> await userModel.load();
+
+          for(let i in admins){
+            let admin = admins[i],
+              tokenModel = new Token(),
+              token = this.generateRandomChars(25);
+
+            try{
+              await tokenModel.create({
+                'token' : token,
+                'action' : 'new location verification',
+                'verified' : 0,
+                'expiration_date' : moment().add(1, 'day').format('YYYY-MM-DD'),
+                'id' : dbLocationData.id_of_location,
+                'id_type' : 'location_id'
+              });
+
+              let opts = {
+                  from : 'allantaw2@gmail.com',
+                  fromName : 'EvacConnect',
+                  to : [],
+                  body : '',
+                  attachments: [],
+                  subject : 'EvacConnect New Location Verification'
+              };
+
+              let email = new EmailSender(opts),
+                emailBody = email.getEmailHTMLHeader(),
+                linkTrue = req.protocol + '://' + req.get('host') +'/new-location-verification/?token='+token+'&action=true',
+                linkFalse = req.protocol + '://' + req.get('host') +'/new-location-verification/?token='+token+'&action=false';
+
+              emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(admin.first_name)+' '+this.capitalizeFirstLetter(admin.last_name)+'</h3> <br/>';
+              emailBody += '<h4> This user : '+this.capitalizeFirstLetter(user.first_name)+' '+this.capitalizeFirstLetter(user.last_name)+ ' is trying to create a new location which needs your verification.  </h4> ';
+              emailBody += `<h4>Location name : `+dbLocationData.name+`</h4>`;
+              emailBody += `<h4>Address : `+dbLocationData.formatted_address+`</h4>`;
+              emailBody += `<h4>Levels :  </h4>`;
+              emailBody += '<ul>';
+                for(let i = 0; i < req.body.sublevels.length; i++){
+                  if(req.body.sublevels[i].length > 0){
+                    emailBody += '<li>'+req.body.sublevels[i]+'</li>';
+                  }
+                }
+              emailBody += '</ul>';
+
+              emailBody += '<h5>Action : <a href="'+linkTrue+'" target="_blank" style="text-decoration:none; color:#39a1ff;">Approve</a>  || <a href="'+linkFalse+'" target="_blank" style="text-decoration:none; color:#dc4453;">Decline</a><br/></h5>';
+              
+              emailBody += '<h5>Thank you!</h5>';
+
+              emailBody += email.getEmailHTMLFooter();
+
+              email.assignOptions({
+                body : emailBody,
+                to: [admin.email]
+              });
+
+              await email.send(
+                () => { }, 
+                () => { console.log('Unable to send email ('+admin.email+')');  }
+              );
+            }catch(e){
+              console.log(e);
+            }
+
+            
+
+          }
+
+      }
     }
 
 
@@ -226,7 +321,7 @@ const md5 = require('md5');
             break;
           }
         });
-        console.log(dbLocationData);
+
         const location = new Location();
         let locationAccntUser;
         let locationAccnt;
@@ -247,6 +342,8 @@ const md5 = require('md5');
         try {
           await location.create(dbLocationData);
           parent_id = location.ID();
+          dbLocationData["id_of_location"] = location.ID();
+
           locationAccnt = new LocationAccountRelation();
           await locationAccnt.create({
             'location_id': parent_id,
@@ -261,6 +358,7 @@ const md5 = require('md5');
             user_id: req.user.user_id,
             role_id: r
           });
+
         } catch (er) {
           throw new Error('Unable to create main location');
         }
@@ -271,8 +369,9 @@ const md5 = require('md5');
             const subLevel = new Location();
             locationAccnt = new LocationAccountRelation();
 
-            dbLocationData['name'] = req.body.sublevels[i];
-            await subLevel.create(dbLocationData);
+            let copyDbLocationData = JSON.parse( JSON.stringify(dbLocationData) );
+            copyDbLocationData['name'] = req.body.sublevels[i];
+            await subLevel.create(copyDbLocationData);
 
             await locationAccnt.create({
               'location_id': subLevel.ID(),
@@ -291,9 +390,11 @@ const md5 = require('md5');
             throw new Error('Unable to process sub levels');
           }
         }
-        return {
-          status: 'Success'
-        };
+
+        await this.sendEmailCreateNewLocation(dbLocationData, req);
+
+        return 'success';
+         
     }
 
     public async createSublocation(req: AuthRequest, res: Response){
