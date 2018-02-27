@@ -54,6 +54,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     public selectedSubLocationFromModal = {};
     @ViewChild('inputSublocation') public inputSublocation: ElementRef;
 
+    mutationOversable;
+
     constructor(
         private auth: AuthService,
         private preloaderService: DashboardPreloaderService,
@@ -61,9 +63,25 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         private encryptDecrypt: EncryptDecryptService,
         private route: ActivatedRoute,
         private router: Router,
-        private donut: DonutService
+        private donut: DonutService,
+        private elemRef: ElementRef
         ){
         this.userData = this.auth.getUserData();
+
+        this.mutationOversable = new MutationObserver((mutationsList) => {
+            mutationsList.forEach((mutation) => {
+                if(mutation.target.nodeName != '#text'){
+                    let target = $(mutation.target);
+                    if(target.find('select:not(.initialized)').length > 0){
+
+                        target.find('select:not(.initialized)').material_select();
+
+                    }
+                }
+            });
+        });
+
+        this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
     }
 
     ngOnChanges() {
@@ -108,10 +126,10 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         });
 
         this.locationService.getSublocationsOfParent(this.locationID)
-            .subscribe((response) => {
-                this.locationsSublocations = response.data;
-                this.sameSublocationCopy = JSON.parse( JSON.stringify(this.locationsSublocations) );
-            });
+        .subscribe((response) => {
+            this.locationsSublocations = response.data;
+            this.sameSublocationCopy = JSON.parse( JSON.stringify(this.locationsSublocations) );
+        });
 
 		// DONUT update
 		// this.donut.updateDonutChart('#specificChart', 30, true);
@@ -202,6 +220,28 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         $('.nav-list-locations').addClass('active');
         $('.location-navigation .active').removeClass('active');
         $('.location-navigation .view-location').addClass('active');
+
+        this.selectRowEvent();
+    }
+
+    selectRowEvent(){
+
+        $('body').off('change.selectchangeevent').on('change.selectchangeevent', 'select.initialized', (e) => {
+            e.preventDefault();
+            let target = $(e.target),
+                val = target.val();
+
+            if(val.indexOf('view-') > -1){
+                let locIdEnc = val.replace('view-', '');
+
+                this.router.navigate(["/location/view/", locIdEnc]);
+            }else if(val.indexOf('viewsub-') > -1){
+                let locIdEnc = val.replace('viewsub-', '');
+
+                this.router.navigate(["/location/view-sublocation/", locIdEnc]);
+            }
+        });
+
     }
 
 	getCountryName(abbr){
@@ -251,10 +291,17 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     }
 
 	ngOnDestroy() {
-        /*
-        this.sub.unsubsribe();
-        this.loc_sub.unsubsribe();
-        */
+        
+        if(typeof this.sub == 'object' && this.sub['unsubsribe']){
+            this.sub.unsubsribe();
+        }
+
+        if(typeof this.loc_sub == 'object' && this.loc_sub['unsubsribe']){
+            this.loc_sub.unsubsribe();
+        }
+        
+       
+       this.mutationOversable.disconnect();
     }
 
 

@@ -37,22 +37,9 @@ import { SignupUserInfoComponent } from './signup/user.info/user.info.component'
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
-// todo: integrate
-// Locations Template Components
-import { LocationsUiComponent } from './locations-ui/locations.ui';
-import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
-import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
-import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.next.location/add.multiple.next.location';
-import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
-import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
-import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
 
-// import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
 import { SearchLocationComponent } from './location/search/search-location.component';
-
-
 import { SublocationComponent } from './location/sublocation/sublocation.component';
-
 
 // todo: move to locations module
 import { ReactiveFormsModule } from '@angular/forms';
@@ -99,6 +86,7 @@ import { MyTrainingsComponent } from './trainings/my-training/mytraining.compone
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
 
+import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 
 @NgModule({
   declarations: [
@@ -122,14 +110,7 @@ import { TrainingInviteComponent } from './trainings/training-invite/training.in
     SendInviteComponent,
     CustomHttpDataProviderComponent,
     NoemailComponent,
-    // todo: integrate
-    LocationsUiComponent,
-    AddSingleLocationComponent,
-    AddMultipleLocationComponent,
-    AddMultipleNextLocationComponent,
-    ViewLocationListComponent,
-    ViewLocationSingleComponent,
-    ViewLocationMultipleComponent,
+
     SublocationComponent,
     SearchLocationComponent,
     // todo: move to location module
@@ -171,7 +152,8 @@ import { TrainingInviteComponent } from './trainings/training-invite/training.in
     TrainingsComponent,
     MyTrainingsComponent,
     TeamTrainingComponent,
-    TrainingInviteComponent
+    TrainingInviteComponent,
+    WardenBenchMarkingComponent
   ],
   imports: [
     BrowserModule,

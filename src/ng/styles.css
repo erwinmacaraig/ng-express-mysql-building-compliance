@@ -162,12 +162,14 @@ input::-ms-clear {
     height: 50px !important;
 }
 
-.table-peep thead tr th .checkbox{
+.table-peep thead tr th .checkbox,
+.table-list-locations thead tr th .checkbox{
 	margin: 0px 10px;
     display: inline-block;
 }
 
-.table-peep thead tr th .checkbox [type="checkbox"]+label {
+.table-peep thead tr th .checkbox [type="checkbox"]+label,
+.table-list-locations thead tr th .checkbox [type="checkbox"]+label{
     position: relative;
     padding-left: 30px;
     cursor: pointer;
@@ -181,7 +183,8 @@ input::-ms-clear {
     user-select: none;
 }
 
-.table-peep thead tr th .checkbox [type="checkbox"].filled-in:not(:checked)+label:after {
+.table-peep thead tr th .checkbox [type="checkbox"].filled-in:not(:checked)+label:after,
+.table-list-locations thead tr th .checkbox [type="checkbox"].filled-in:not(:checked)+label:after {
     height: 20px;
     width: 20px;
     background-color: #fff;
@@ -242,4 +245,24 @@ table thead tr th .checkbox label {
 
 strong{
     font-weight: bold !important;
+}
+
+td.select-blue .caret{
+    color: #39a1ff !important;
+}
+
+td.select-blue input[type="text"]{
+    color: #39a1ff;
+    border-bottom: 0px;
+    font-size: 14px;
+    margin-bottom: 0px;
+}
+
+td.select-blue ul li > span{
+    font-size: 13px !important;
+    padding: 10px 12px;
+}
+
+td.select-blue .dropdown-content li{
+    min-height: 10px;
 }

@@ -29,8 +29,8 @@
 				</form>
 			</div>
 		</div>
-  </div>
-  <!-- No Results -->
+  	</div>
+  	<!-- No Results -->
 	<div class="row row-add-info" *ngIf="!results.length">
 		<div class="col s12 m12 l12 center-align">
 			<p class="blue-text add-more-text">Add more details on this location</p>
@@ -38,24 +38,57 @@
 		<div class="col s12 m6 l6">
 			<div class="input-field">
 				<input id="inpLocationName" type="text" placeholder="Location name here" [formControl]="locationName">
-				<label for="inpLocationName" class="active"> Location Name  (Optional)</label>
+				<label for="inpLocationName" class="active"> Location Name (Optional)</label>
 			</div>
 		</div>
 		<div class="col s12 m6 l6">
 			<div class="input-field">
 				<input id="inpLevels" type="number" placeholder="Number of levels here" min="1" value="1" [formControl]="numLevels">
-				<label for="inpLevels" class="active"> How many levels are you occupying? </label>
+				<label for="inpLevels" class="active" style="width: 460px;"> The total numbers of levels, including Carpark, Plant Room & Others </label>
 			</div>
 		</div>
-		<div class="col s12 m12 l12 center-align">
-			<button class="btn waves-effect waves-light orange btn-set modal-trigger" href="#modalSetLevels" (click)="updateLevels()">
-				Proceed to this location and set level labels
-			</button>
+		<div class="col s12 m12 l12 center-align inputs-button-container">
+			<div class="inline-block">
+				<span>Occupiable Level</span>
+				<div class="input-arrow-up-down" >
+					<input type="text" readonly value="0">
+					<button class="btn-arrow-up waves-effect waves-light" ><i class="material-icons">arrow_drop_up</i></button>
+					<button class="btn-arrow-down waves-effect waves-light"  ><i class="material-icons">arrow_drop_down</i></button>
+				</div>
+			</div>
+			<div class="inline-block">
+				<span>Carpark</span>
+				<div class="input-arrow-up-down" >
+					<input type="text" readonly value="0">
+					<button class="btn-arrow-up waves-effect waves-light" ><i class="material-icons">arrow_drop_up</i></button>
+					<button class="btn-arrow-down waves-effect waves-light"  ><i class="material-icons">arrow_drop_down</i></button>
+				</div>
+			</div>
+			<div class="inline-block">
+				<span>Plant Room</span>
+				<div class="input-arrow-up-down" >
+					<input type="text" readonly value="0">
+					<button class="btn-arrow-up waves-effect waves-light" ><i class="material-icons">arrow_drop_up</i></button>
+					<button class="btn-arrow-down waves-effect waves-light"  ><i class="material-icons">arrow_drop_down</i></button>
+				</div>
+			</div>
+			<div class="inline-block">
+				<span>Others</span>
+				<div class="input-arrow-up-down" >
+					<input type="text" readonly value="0">
+					<button class="btn-arrow-up waves-effect waves-light" ><i class="material-icons">arrow_drop_up</i></button>
+					<button class="btn-arrow-down waves-effect waves-light"  ><i class="material-icons">arrow_drop_down</i></button>
+				</div>
+			</div>
+			<div class="inline-block">
+				<button class="btn waves-effect waves-light orange" > Proceed </button>
+			</div>
+			
 		</div>
-  </div>
-  <!-- End of No Results -->
+  	</div>
+  	<!-- End of No Results -->
 
-  <div class="row row-list-result">
+  	<div class="row row-list-result">
       <!-- Location results -->
       <div class="col l12 m12 s12" *ngFor="let component of results">
       	<div class="wrapper">

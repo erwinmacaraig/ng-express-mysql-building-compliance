@@ -124,13 +124,19 @@ export class CourseUserRelation extends BaseClass {
   public getAllCourseForUser(user: number = 0): Promise<Array<object>> {
     return new Promise((resolve, reject) => {
       const sql = `SELECT
-                     *
+                      course_user_relation.*,
+                      scorm_course.*,
+                      scorm.parameter_value as lesson_status
                   FROM
                     course_user_relation
                   INNER JOIN
                     scorm_course
                   ON
                     course_user_relation.course_id = scorm_course.course_id
+                  LEFT JOIN
+                    scorm
+                  ON (course_user_relation.course_user_relation_id = scorm.course_user_relation_id
+                      AND scorm.parameter_name = 'cmi.core.lesson_status')
                   WHERE
                     course_user_relation.user_id = ?`;
       const connection = db.createConnection(dbconfig);
