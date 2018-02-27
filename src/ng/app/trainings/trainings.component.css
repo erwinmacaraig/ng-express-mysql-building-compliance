@@ -1,0 +1,90 @@
+.trainings-navigation ul{
+	margin: 0px;
+	font-size: 0px;
+}
+
+.trainings-navigation ul li{
+	display: inline-block;
+	padding: 15px 20px;
+	font-size: 15px;
+}
+
+.trainings-navigation ul li .image{
+	vertical-align: middle;
+    width: 31px;
+    height: 31px;
+    border-radius: 30px;
+    display: inline-block;
+    background-size: contain;
+}
+
+.trainings-navigation ul li{
+	transition: all 0.2s;
+}
+
+.trainings-navigation ul li:hover{
+	cursor: pointer;
+}
+
+.trainings-navigation ul li{
+	color: #333;
+}
+
+.trainings-navigation ul li:hover,
+.trainings-navigation ul li.active{
+	color: #fff;
+}
+
+.my-training .image{
+    background: url(/assets/images/trainings/mytraining.png);
+}
+
+.my-training{
+	border-bottom: 1.5px solid #dc4453;
+}
+
+.my-training:hover,
+.trainings-navigation ul li.active.my-training{
+	background-color: #dc4453 !important;
+}
+
+.my-training:hover .image,
+.trainings-navigation ul li.active.my-training .image{
+	background: url(/assets/images/trainings/mytraining-hover.png);
+}
+
+.team-training .image{
+    background: url(/assets/images/trainings/teamtraining.png);
+}
+
+.team-training{
+	border-bottom: 1.5px solid #c8a4f0;
+}
+
+.team-training:hover,
+.trainings-navigation ul li.active.team-training{
+	background-color: #c8a4f0 !important;
+}
+
+.team-training:hover .image,
+.trainings-navigation ul li.active.team-training .image{
+	background: url(/assets/images/trainings/teamtraining-hover.png);
+}
+
+.training-invite .image{
+	background: url(/assets/images/trainings/traininginvite.png);
+}
+
+.training-invite{
+	border-bottom: 1.5px solid #36bb9b;
+}
+
+.training-invite:hover,
+.trainings-navigation ul li.active.training-invite{
+	background-color: #36bb9b !important;
+}
+
+.training-invite:hover .image,
+.trainings-navigation ul li.active.training-invite .image{
+	background: url(/assets/images/trainings/traininginvite-hover.png);
+}

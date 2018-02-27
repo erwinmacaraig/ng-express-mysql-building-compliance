@@ -24,17 +24,8 @@ import { EmailSuccessVerficiationComponent } from './email-success-verficiation/
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
-// Locations Template Components
-import { LocationsUiComponent } from './locations-ui/locations.ui';
-import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
-import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
-import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.next.location/add.multiple.next.location';
-import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
-import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
-import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
-// import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
-import { SearchLocationComponent } from './location/search/search-location.component';
 
+import { SearchLocationComponent } from './location/search/search-location.component';
 import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
@@ -58,8 +49,26 @@ import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
 import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
 
+import { ComplianceComponent } from './compliance/compliance.component';
+import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
 
+import { ShopComponent } from './shop/shop.component';
+import { CompliancePackageComponent } from './shop/compliance.package.component/compliance.package.component';
+import { TrainingsPackageComponent } from './shop/trainings.package.component/trainings.package.component';
+import { EvacuationDiagramPackageComponent } from './shop/evacuation.diagram.package.component/evacuation.diagram.package.component';
+import { ExampleComponent } from './shop/example.component/example.component';
+import { PaymentResponseComponent } from './payment.response/payment.response.component';
+import { CartComponent } from './shop/cart.component/cart.component';
+import { PaymentComponent } from './shop/payment.component/payment.component';
+import { ProductsFavoritesComponent } from './shop/products.favorites/product.favorites.component';
 
+import { TrainingsComponent } from './trainings/trainings.component';
+import { MyTrainingsComponent } from './trainings/my-training/mytraining.component';
+import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
+import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
+
+// To delete
+import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -87,25 +96,18 @@ const appRoutes: Routes = [
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
   /*{ path: '**', redirectTo: '/dashboard'},*/
-  { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
+  { path: 'location', component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
     { path: 'search', component: SearchLocationComponent },
     { path: 'view/:encrypted', component: ViewSingleLocation },
     { path: 'view-sublocation/:encrypted', component: SublocationComponent },
-    { path: 'verify-access', component: VerificationComponent }
-
+    { path: 'verify-access', component: VerificationComponent },
+    { path : 'compliance', component : ComplianceComponent,
+      children : [
+        { path : 'view/:encrypted', component : ViewComplianceComponent }
+      ]
+    }
   ]},
-  {
-    path: 'locations-ui', component : LocationsUiComponent,
-    children : [
-      { path : 'add-single-location', component : AddSingleLocationComponent },
-      { path : 'add-multiple-location', component : AddMultipleLocationComponent },
-      { path : 'add-multiple-next-location', component : AddMultipleNextLocationComponent },
-      { path : 'view-location-list', component : ViewLocationListComponent },
-      { path : 'view-location-single', component : ViewLocationSingleComponent },
-      { path : 'view-location-multiple', component : ViewLocationMultipleComponent }
-    ]
-  },
   {
     path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
   },
@@ -126,8 +128,33 @@ const appRoutes: Routes = [
       { path : 'view-gen-occupant', component : ViewGeneralOccupantComponent },
       { path : 'view-chief-warden', component : ViewChiefWardenComponent }
     ]
+  },
+  {
+    path : 'shop', canActivate: [AuthGuard], component : ShopComponent,
+    children : [
+      { path : 'compliance-package', component : CompliancePackageComponent },
+      { path : 'trainings-package', component : TrainingsPackageComponent },
+      { path : 'evacuation-diagram-package', component : EvacuationDiagramPackageComponent },
+      { path : 'cart', component : CartComponent },
+      { path : 'example', component : ExampleComponent },
+      { path : 'payment', component : PaymentComponent },
+      { path : 'favorites', component : ProductsFavoritesComponent }
+    ]
+  },
+  {
+    path : 'payment-response/:ecnrypted', component : PaymentResponseComponent
+  },
+  {
+    path : 'trainings', canActivate: [AuthGuard], component : TrainingsComponent,
+    children : [
+      { path : 'my-training', component : MyTrainingsComponent },
+      { path : 'team-training', component : TeamTrainingComponent },
+      { path : 'training-invite', component : TrainingInviteComponent }
+    ]
+  },
+  {
+    path: 'warden-benchmarking', component: WardenBenchMarkingComponent
   }
-
 ];
 
 @NgModule({

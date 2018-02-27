@@ -80,7 +80,7 @@
 							<label for="location-{{i}}" >
 								<span *ngIf="list.locations.length > 1">Multiple locations</span>
 								<span *ngIf="list.locations.length == 1">
-									<span *ngIf="list.locations[0].parent_name.trim().length > 0">{{ list.locations[0].parent_name }}, </span>
+									<span *ngIf="list.locations[0].parent_name">{{ list.locations[0].parent_name }}, </span>
 									{{list.locations[0].name}}
 								</span>
 							</label>

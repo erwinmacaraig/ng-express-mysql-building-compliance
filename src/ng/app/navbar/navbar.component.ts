@@ -7,6 +7,7 @@ import { ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MessageService } from '../services/messaging.service';
 
+import * as jQuery from 'jquery';
 
 import * as moment from 'moment';
 declare var $: any;
@@ -41,6 +42,8 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 
 	showSendInviteLink = false;
 	elems = {};
+
+	showShopLink = false;
 
 	constructor(
 		private auth: AuthService,
@@ -97,6 +100,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 		for(let i in this.userRoles){
 			if(this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2){
 				this.showSendInviteLink = true;
+				this.showShopLink = true;
 				trpFrp = true;
 			}
 		}
@@ -384,8 +388,11 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.mySubscription = this.messageService.getMessage().subscribe((message) => {
-      this.username = message.person_first_name + ' ' + message.person_last_name;
-      this.usersInitial = this.getInitials(this.username);
+
+    	if(message.person_first_name){	
+	      this.username = message.person_first_name + ' ' + message.person_last_name;
+	      this.usersInitial = this.getInitials(this.username);
+    	}
 
     });
   }

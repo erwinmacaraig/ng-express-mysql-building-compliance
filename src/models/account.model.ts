@@ -75,6 +75,34 @@ export class Account extends BaseClass {
         });
     }
 
+    getRelatedAccounts(accntId){
+      return new Promise((resolve, reject) => {
+            const sql_load = `SELECT a.*
+                      FROM
+                        location_account_relation lar
+                      INNER JOIN accounts a ON lar.account_id = a.account_id
+                      WHERE
+                        lar.location_id  IN (SELECT la.location_id FROM location_account_relation la WHERE la.account_id = ?) 
+                        AND a.archived = 0
+                      GROUP BY lar.account_id`;
+            const param = [accntId];
+
+
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+
+              this.dbData = results;
+              resolve(this.dbData);
+            });
+            connection.end();
+        });
+       
+    }
+
     public searchByAccountName(name: String) {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT * FROM accounts WHERE account_name LIKE "%`+name+`%" AND archived = 0 ORDER BY account_name ASC `;
@@ -116,7 +144,9 @@ export class Account extends BaseClass {
             ('billing_country' in this.dbData) ? this.dbData['billing_country'] : "",
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
             ('account_type' in this.dbData) ? this.dbData['account_type'] : "Account",
-            ('account_directory_name' in this.dbData) ? this.dbData['account_directory_name'] : null,
+            ('account_directory_name' in this.dbData) ? this.dbData['account_directory_name'] :
+                                                        ('account_name' in this.dbData) ?
+                                                        this.dbData['account_name'].replace(/ /g, '') : null,
             ('archived' in this.dbData) ? this.dbData['archived'] : 0,
             ('block_access' in this.dbData) ? this.dbData['block_access'] : 0,
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
@@ -181,7 +211,9 @@ export class Account extends BaseClass {
             ('billing_country' in this.dbData) ? this.dbData['billing_country'] : "",
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
             ('account_type' in this.dbData) ? this.dbData['account_type'] : "Account",
-            ('account_directory_name' in this.dbData) ? this.dbData['account_directory_name'] : null,
+            ('account_directory_name' in this.dbData) ? this.dbData['account_directory_name'] :
+                                                        ('account_name' in this.dbData) ?
+                                                        this.dbData['account_name'].replace(/ /g, '') : null,
             ('archived' in this.dbData) ? this.dbData['archived'] : 0,
             ('block_access' in this.dbData) ? this.dbData['block_access'] : 0,
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,

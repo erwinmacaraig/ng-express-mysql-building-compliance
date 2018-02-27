@@ -1,0 +1,59 @@
+<div class="top-gray">
+	<ul>
+		<li>
+			<h5>Payment</h5>
+		</li>
+	</ul>
+</div>
+
+<div class="container">
+	<div class="row" *ngIf="arrayCart.length == 0">
+		<div class="col l12 m12 s12">
+			<h5>Please add a product to cart first</h5>
+		</div>
+	</div>
+
+	<div class="row" *ngIf="arrayCart.length > 0" style="margin-top:50px;">
+
+		<div class="col l7 m7 s12">
+			<ul class="list-container">
+				<li *ngFor="let cart of arrayCart">
+
+					<div class="image">
+						<img src="{{cart.item.product_image}}" alt="">
+					</div>
+					<div class="text">
+						<h5 class="blue-text">{{cart.item.product_title}}</h5>
+						<div [innerHtml]="cart.item.product_desc"></div>
+
+						<div style="margin: 20px 0px;">
+							<strong>Quantity : <span>{{cart.qty}}</span></strong> <br>
+							<strong>Item Price : <span>{{cart.item.amount}}</span></strong> <br>
+							<strong>Total : <span>{{cart.price}}</span></strong> <br>
+							<strong>Location : <span>{{getLocationName(cart.item.location_id)}}</span></strong>
+						</div>
+					</div>
+
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="col l5 m5 s12">
+
+			<h4>Confirm payment</h4>
+
+			<h5>Total Price : <span> ${{cart.totalPrice.toFixed(2)}} </span></h5>
+
+			<form #form="ngForm" (submit)="submitCheckout(btnSubmit, form, $event)">
+				<input type="hidden" name="amount" ngModel >
+				<input type="hidden" name="currency" ngModel  >
+				<input type="hidden" name="user_id" ngModel  >
+				<textarea name="description" ngModel placeholder="Type here the description" style="min-height: 200px;font-size: 18px;padding: 20px;margin: 10px 0px;"></textarea>
+				<button type="submit" class="btn orange waves-effect waves-light center" #btnSubmit >Submit</button>
+			</form>
+
+		</div>
+
+	</div>
+</div>

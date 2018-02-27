@@ -1,0 +1,79 @@
+.modal {
+  width: 90%;
+  height: 90%;
+  top: 5%;
+  left: 5%;
+  right: 5%;
+  bottom: 5%;
+}  /* increase the height and width as you desire */
+
+#training iframe {
+  height: 90%;
+  width: 97%;
+  position: absolute;
+}
+
+#training{
+  top: 11% !important;
+  left: 1%;
+  width: 98vw;
+  height: 92vh;
+  max-height: 100vh;
+}
+
+#training .modal-footer{
+  position: absolute;
+  bottom: 10px;
+}
+
+.training-box{
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    padding: 15px;
+    width: 220px;
+    float: left;
+    margin: 5px;
+}
+
+.training-box .btn{
+	width: 100%;
+	margin-bottom: 10px;
+	font-size: 13px !important;
+	padding: 0px;
+}
+
+.training-box .image-content{
+	height: 250px;
+}
+
+.training-box .image-content .image{
+	width: 120px;
+    height: 120px;
+    border-radius: 70px;
+    margin: 0 auto;
+}
+
+.training-box .image-content .content{
+	font-size: 14px;
+    text-align: center;
+    margin-top: 10%;
+	color: #565656;
+}
+
+@media screen and (max-width: 1024px) {
+	.training-box{
+		width: 310px;
+	}
+}
+
+@media screen and (max-width: 768px) {
+	.training-box{
+		width: 285px;
+	}
+}
+
+@media screen and (max-width: 500px) {
+	.training-box{
+		width: 100%;
+	}
+}

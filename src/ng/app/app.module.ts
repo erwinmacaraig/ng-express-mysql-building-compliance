@@ -37,22 +37,9 @@ import { SignupUserInfoComponent } from './signup/user.info/user.info.component'
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
-// todo: integrate
-// Locations Template Components
-import { LocationsUiComponent } from './locations-ui/locations.ui';
-import { AddSingleLocationComponent } from './locations-ui/add.single.location/add.single.location';
-import { AddMultipleLocationComponent } from './locations-ui/add.multiple.location/add.multiple.location';
-import { AddMultipleNextLocationComponent } from './locations-ui/add.multiple.next.location/add.multiple.next.location';
-import { ViewLocationListComponent } from './locations-ui/view.location.list/view.location.list';
-import { ViewLocationSingleComponent } from './locations-ui/view.location.single/view.location.single';
-import { ViewLocationMultipleComponent } from './locations-ui/view.location.multiple/view.location.multiple';
 
-// import { ViewSublocationComponent } from './locations-ui/view.sublocation/view.sublocation';
 import { SearchLocationComponent } from './location/search/search-location.component';
-
-
 import { SublocationComponent } from './location/sublocation/sublocation.component';
-
 
 // todo: move to locations module
 import { ReactiveFormsModule } from '@angular/forms';
@@ -79,8 +66,31 @@ import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.w
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
 import { NgDatepickerModule } from 'ng2-datepicker';
 
+import { ComplianceComponent } from './compliance/compliance.component';
+import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
+
+import { ShopComponent } from './shop/shop.component';
+import { CompliancePackageComponent } from './shop/compliance.package.component/compliance.package.component';
+import { TrainingsPackageComponent } from './shop/trainings.package.component/trainings.package.component';
+import { EvacuationDiagramPackageComponent } from './shop/evacuation.diagram.package.component/evacuation.diagram.package.component';
+import { ExampleComponent } from './shop/example.component/example.component';
+import { PaymentResponseComponent } from './payment.response/payment.response.component';
+import { CartComponent } from './shop/cart.component/cart.component';
+import { PaymentComponent } from './shop/payment.component/payment.component';
+import { ProductsFavoritesComponent } from './shop/products.favorites/product.favorites.component';
+
+import { SafeHtmlPipe } from './pipes/safehtml';
+
+import { TrainingsComponent } from './trainings/trainings.component';
+import { MyTrainingsComponent } from './trainings/my-training/mytraining.component';
+import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
+import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
+
+import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
+
 @NgModule({
   declarations: [
+    SafeHtmlPipe,
     AppComponent,
     LoginComponent,
     SignupComponent,
@@ -100,14 +110,7 @@ import { NgDatepickerModule } from 'ng2-datepicker';
     SendInviteComponent,
     CustomHttpDataProviderComponent,
     NoemailComponent,
-    // todo: integrate
-    LocationsUiComponent,
-    AddSingleLocationComponent,
-    AddMultipleLocationComponent,
-    AddMultipleNextLocationComponent,
-    ViewLocationListComponent,
-    ViewLocationSingleComponent,
-    ViewLocationMultipleComponent,
+
     SublocationComponent,
     SearchLocationComponent,
     // todo: move to location module
@@ -132,6 +135,25 @@ import { NgDatepickerModule } from 'ng2-datepicker';
     ViewGeneralOccupantComponent,
     ViewChiefWardenComponent,
     AllUsersArchivedComponent,
+
+    ComplianceComponent,
+    ViewComplianceComponent,
+
+    ShopComponent,
+    CompliancePackageComponent,
+    TrainingsPackageComponent,
+    EvacuationDiagramPackageComponent,
+    ExampleComponent,
+    PaymentResponseComponent,
+    CartComponent,
+    PaymentComponent,
+    ProductsFavoritesComponent,
+
+    TrainingsComponent,
+    MyTrainingsComponent,
+    TeamTrainingComponent,
+    TrainingInviteComponent,
+    WardenBenchMarkingComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,74 @@
+<div class="row">
+	<div class="col s12 m12 l12" style="border-bottom: 1px solid #ddd;">
+		<h5 class="blue-text page-title">
+			Online Training
+		</h5>
+	</div>
+</div>
+
+<div class="container" style="margin-top: 5%;">
+
+	<div class="row">
+
+		<div class="col l12 m12 s12">
+
+			<div class="training-box" *ngFor="let course of courses">
+				<div class="image-content">
+					<div class="image grey lighten-2"></div>
+					<div class="content">
+           {{course.course_name}}
+            <!-- course taken <p class="blue-text">Valid until 00/00/0000</p> -->
+					</div>
+        </div>
+        <!-- null -->
+				<div class="buttons" *ngIf="!course.lesson_status">
+          <button type="button" class="btn red waves-effect waves-light" (click)="loadTrainingCourse(course)">Take this course</button>
+        </div>
+        <!-- not attempted -->
+        <div class="buttons" *ngIf="course.lesson_status == 'not attempted'">
+          <button type="button" class="btn red waves-effect waves-light" (click)="loadTrainingCourse(course)">Take this course</button>
+        </div>
+
+        <!-- failed -->
+        <div class="buttons" *ngIf="course.lesson_status == 'failed'">
+          <button type="button" class="btn red waves-effect waves-light" (click)="loadTrainingCourse(course)">Retake this course</button>
+        </div>
+
+        <!-- incomplete -->
+        <div class="buttons" *ngIf="course.lesson_status == 'incomplete'">
+          <button type="button" class="btn waves-effect waves-light" (click)="loadTrainingCourse(course)">Continue course</button>
+        </div>
+
+        <!-- incomplete -->
+        <div class="buttons" *ngIf="course.lesson_status == 'browsed'">
+          <button type="button" class="btn waves-effect waves-light" (click)="loadTrainingCourse(course)">Continue course</button>
+        </div>
+
+        <!-- completed -->
+        <div class="buttons" *ngIf="course.lesson_status == 'completed'">
+          <button class="btn light-blue waves-effect waves-light">Download Certificate</button>
+          <button  class="btn grey waves-effect waves-light" (click)="loadTrainingCourse(course)">Retake this course</button>
+        </div>
+
+        <!-- passed -->
+        <div class="buttons" *ngIf="course.lesson_status == 'passed'">
+          <button class="btn light-blue waves-effect waves-light">Download Certificate</button>
+          <button  class="btn grey waves-effect waves-light" (click)="loadTrainingCourse(course)">Retake this course</button>
+        </div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div *ngIf="toggle">
+  <div class="modal" id="training">
+    <div class="modal-content">
+      <iframe [src]="selectedCourse.formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule()" >Close</button>
+    </div>
+  </div>
+</div>
+<div preloader></div>
+

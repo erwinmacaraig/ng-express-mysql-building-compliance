@@ -34,5 +34,10 @@
     "BUILDING MANAGER": 1,
     "MANAGER": 1,
     "TENANT": 2
-  }
+  },
+  "PAID": 1,
+  "PAYMENT_CANCELLED": 2,
+  "UNPAID":0,
+  "PAYMENT_FAILED": 3,
+  "COMPLIANCE-DOCS-PACK": "compliance-docs.zip"
 }

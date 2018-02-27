@@ -1,0 +1,74 @@
+<div class="container">
+	<div class="row">
+		
+		<div class="col l12 m12 s12" *ngIf="favorites.length == 0"  style="margin-top: 50px;">
+			<h5 class="center">Please save products to your favorites</h5>
+		</div>
+
+		<div class="col l12 m12 s12" *ngIf="favorites.length > 0"  >
+
+			<div class="row">
+				<div class="col l12 m12 s12">
+					<h5>My Favorites</h5>
+				</div>
+			</div>
+
+			<ul class="list-container">
+				<li *ngFor="let product of favorites">
+					<div class="row">
+						<div class="col l3 m6 s12"> 
+							<div class="image-wrapper">
+								<img src="{{product.product_image}}" alt=""> 
+							</div>
+						</div>
+									
+						<div class="col l6 m6 s12 description-container">
+							<h5 class="blue-text title">{{product.product_title}} </h5>
+							<div [innerHtml]="product.product_desc"></div>
+							<p>
+								<strong>Location: <span class="orange-text">{{getLocationName(product.location_id)}}</span></strong>
+							</p>
+							<div style="margin-top: 5px;"></div>
+						</div>
+
+						<div class="col l3 m12 s12 button-container">
+
+							<div class="quantity-container">
+								<div>Quantity</div>
+								<div class="input" >
+									<input type="text" #quantityInput readonly value="{{product.quantity}}" >
+									<button class="btn-arrow-up waves-effect waves-light" #btnAdd (click)="addQuantity(product, btnAdd)" ><i class="material-icons">arrow_drop_up</i></button>
+									<button class="btn-arrow-down waves-effect waves-light" #btnSub  (click)="subtractQuantity(product, btnSub)"><i class="material-icons">arrow_drop_down</i></button>
+								</div>
+								<div class="text">
+									$<span> {{product.amount}} </span>
+								</div>
+							</div>
+
+							<div class="delete-add-to-cart">
+								<button class="btn-flat waves-effect waves-light save left" #btnDelete (click)="removeFavorite(product.product_id, btnDelete)">
+									<i class="material-icons">delete</i>
+								</button>
+
+								<button class="btn orange waves-effect waves-light buy right" #btnAdd *ngIf="!isInCart(product.product_id)" (click)="addToCart(product, btnAdd)">
+									<div class="image"></div> Add to cart
+								</button>
+
+								<button class="btn orange waves-effect waves-light buy right" #btnRemove *ngIf="isInCart(product.product_id)" (click)="removeFromCart(product.product_id, btnRemove)">
+									<div class="image"></div> Remove
+								</button>
+
+								<div style="clear: both;"></div>
+							</div>
+
+						</div>
+					</div>
+				</li>
+
+
+			</ul>
+
+		</div>
+
+	</div>
+</div>

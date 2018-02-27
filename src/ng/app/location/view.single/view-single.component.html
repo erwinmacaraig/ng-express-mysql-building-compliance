@@ -19,13 +19,13 @@
 				<span class="end">0 </span>
 				<span class="end">completion</span>
 			</p>
-			<button class="btn red waves-effect waves-light darken-3">Manage Compliance</button>
+			<a class="btn red waves-effect waves-light darken-3" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
 		</div>
 	</div>
 	<div class="col l10 m10 s12">
 		<div class="row">
-			<div class="col l8 m8 s12`">
-				<div class="details-container">
+			<div class="col l12 m12 s12" style="margin-bottom: 40px;">
+				<div class="details-container left">
 					<div class="inline-block image-wrapper">
 						<div class="image-container">
 							<div class="image">
@@ -38,87 +38,96 @@
 						<table class="no-borders">
 							<tr>
 								<td><h5> {{locationData.name}} </h5></td>
-								<td></td>
-								<td>
-									<!-- <div class="edit-details">
-										<a href="javascript:void(0) " >
-											<img src="assets/images/locations/editdetails_icon.png" > Edit Details
-										</a>
-									</div> -->
-								</td>
 							</tr>
 							<tr>
-								<td>Key Contact Person</td> <td> : </td> <td>  Unknown  </td>
+								<td>{{locationData.formatted_address}}</td>
 							</tr>
+							
 							<tr>
-								<td>Address</td> <td> : </td> <td>  {{locationData.formatted_address}}  </td>
+								<td>Region : N/A</td>
 							</tr>
-							<tr>
-								<td>FRP</td> <td> : </td>
-								<td>
-									<span *ngIf="locationData.frp.length == 0">Unknown</span>
-									<span *ngFor="let frp of locationData.frp">{{frp.first_name}} {{frp.last_name}}</span>
-								</td>
-							</tr>
+
 						</table>
-						<div class="archived">
-							<a href="javascript:void(0) " (click)="onClickArchiveLocation(locationData)">
-								<img src="assets/images/locations/archived_icon.png" > Archive Location
-							</a>
-						</div>
 					</div>
 				</div>
-			</div>
-			<div class="col l4 m4 s12 right-align right-top-container">
 
-				<a class="btn grey waves-effect waves-light" [routerLink]="['/location', 'view', locationData['parent_id']]">
-					Back to location
-				</a>
+				<div class="right">
+					<div class="table-align" style="margin-bottom: 30px;">
+						<h5 class="medium-text">Show only not compliant</h5>
+						<div class="switch">
+							<input type="checkbox" id="override">
+							<div class="yes">Yes</div>
+							<div class="no">No</div>
+							<div class="highlight"></div>
+							<div class="background"></div>
+						</div>
 
-				<button class="btn blue waves-effect waves-light modal-trigger" href="#modalAddSublocation">
-					Add new sublocation
-				</button>
+						<a href="#" class="archived" [routerLink]="['/location/list']">
+							<span class="image"></span>
+							View Archive
+						</a>
+					</div>
+
+					<a class="btn grey waves-effect waves-light back-to-location right" [routerLink]="['/location/list']">
+						Back to location
+					</a>
+				</div>
+
+				<div style="clear: both;"></div>
+
+				
 			</div>
 
 			<div class="col l12 m12 s12">
-				<table class="highlight striped bordered">
+				<table class="highlight striped">
 					<thead>
 						<tr class="grey darken-4 white-text">
-							<th>Sublocations</th>
-							<th>Floor Wardens</th>
-							<th>Wardens</th>
-							<th>Warden Trainings</th>
-							<th>Mobility Impaired</th>
+							<th>Sub Location</th>
+							<th>warden Benchmarking</th>
+							<th>No. of Tenants</th>
+							<th>Compliance</th>
 							<th>Manage</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr *ngIf="locationData.sublocations.length == 0">
-							<td colspan="6" class="center-align">
+							<td colspan="5" class="center-align">
 								<p>No sublocations found</p>
 							</td>
 						</tr>
 						<tr *ngFor="let sub of locationData.sublocations">
 							<td>
-								{{sub.name}}
+								<a [routerLink]="['/location/view/', sub.location_id]" class="location-name-link" *ngIf="sub.children.length > 0">
+									{{sub.name}}
+								</a>
+
+								<a [routerLink]="['/location/view-sublocation/', sub.location_id]" class="location-name-link" *ngIf="sub.children.length == 0">
+									{{sub.name}}
+								</a>
+								
 							</td>
 							<td>
-								{{sub.overall_floor_warden}}
+								0/00
 							</td>
 							<td>
-								{{sub.overall_warden_count}}
+								<span style="margin-right:10px;">0</span> <button class="btn grey darken-2 waves-effect waves-light"> Add tenants </button>
 							</td>
 							<td class="trainings">
 								<div class="percent">0%</div>
 								<div class="bar"></div>
 							</td>
-							<td>
-								{{sub.overall_impaired}}
+							<td class="select-blue">
+								<select>
+									<option value="0">Manage</option>
+									<option value="view-{{sub.location_id}}" *ngIf="sub.children.length > 0">View</option>
+									<option value="viewsub-{{sub.location_id}}" *ngIf="sub.children.length == 0">View</option>
+									<option value="archive">Archive</option>
+								</select>
 							</td>
-							<td>
+							<!-- <td>
 								<a *ngIf="sub.children.length > 0" [routerLink]="['/location', 'view', sub.location_id]" >Details </a>
 								<a *ngIf="sub.children.length == 0" [routerLink]="['/location', 'view-sublocation', sub.location_id]">Details</a>
-							</td>
+							</td> -->
 						</tr>
 					</tbody>
 				</table>
