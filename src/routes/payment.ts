@@ -64,8 +64,10 @@ export class PaymentRoute extends BaseRoute {
       let translog_id = 0;
       const transLog = new Translog();
       const product_items =  req['session']['cart']['items'];
+
       transLog.create({}).then((txnLog) => {
         translog_id = transLog.ID();
+
         new PaymentRoute().setupTransaction(product_items, translog_id, req.body.user_id).then(() => {
           const payment = {
             'intent': 'sale',
@@ -84,7 +86,7 @@ export class PaymentRoute extends BaseRoute {
               'description': req.body.description || ''
             }]
           };
-          console.log('payment', payment);
+          
           paypal.payment.create(payment, (error, paymentMade) => {
             if (error) {
               console.log(error);
@@ -98,7 +100,7 @@ export class PaymentRoute extends BaseRoute {
               if (payment.payer.payment_method === 'paypal') {
                 req['paymentId'] = paymentMade.id;
                 let redirectUrl;
-                console.log(paymentMade);
+                 
                 for (let i = 0; i < paymentMade.links.length; i++) {
                   const link = paymentMade.links[i];
                   if (link.method === 'REDIRECT') {
@@ -214,24 +216,27 @@ export class PaymentRoute extends BaseRoute {
 
     await Object.keys(items).forEach((key) => {
       const transaction = new Transaction();
-      try {
 
-        transaction.create({
-          'user_id': user_id,
-          'translog_id': translog,
-          'product_id': key,
-          'quantity': items[key]['qty'],
-          'amount': items[key]['price'],
-          'expiration_date' : (items[key]['item']['expiration_date']) ? items[key]['item']['expiration_date'] : null,
-          'target_user_id' : (items[key]['item']['target_user_id']) ? items[key]['item']['target_user_id'] : 0,
-          'diagram_finish_id' : (items[key]['item']['diagram_finish_id']) ? items[key]['item']['diagram_finish_id'] : 0,
-          'location_id' : (items[key]['item']['location_id']) ? items[key]['item']['location_id'] : 0,
-          'pdf_only' : (items[key]['item']['pdf_only']) ? items[key]['item']['pdf_only'] : 0
-        });
+      if(items[key]['qty']){
+        try {
 
-      } catch (e) {
-        console.log(`Cannot process item ${key}`, );
+          transaction.create({
+            'user_id': user_id,
+            'translog_id': translog,
+            'product_id': key,
+            'quantity': items[key]['qty'],
+            'amount': items[key]['price'],
+            'expiration_date' : (items[key]['item']['expiration_date']) ? items[key]['item']['expiration_date'] : null,
+            'location_id' : (items[key]['item']['location_id']) ? items[key]['item']['location_id'] : 0,
+            'account_id' : (items[key]['item']['account_id']) ? items[key]['item']['account_id'] : 0,
+            'status' : (items[key]['status']) ? items[key]['status'] : 0
+          });
+
+        } catch (e) {
+          console.log(`Cannot process item ${key}`, );
+        }
       }
+
     });
     return;
   }

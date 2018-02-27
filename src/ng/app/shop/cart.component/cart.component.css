@@ -124,7 +124,7 @@
 }
 
 .list-container ul{
-	max-height: 235px;
+	max-height: 370px;
     overflow-y: auto;
 }
 
@@ -141,6 +141,12 @@
 .list-container ul li .name{
 	margin: 0px;
 	font-size: 16px;
+}
+
+.list-container ul li .product-description{
+	max-height: 130px;
+	margin: 10px 0px;
+	overflow: auto;
 }
 
 .remove-container .close-image{
@@ -242,7 +248,7 @@
 
 .products-wrapper,
 .payment-wrapper{
-	height: 375px;
+	height: 475px;
     position: relative;
 }
 

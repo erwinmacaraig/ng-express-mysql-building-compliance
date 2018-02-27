@@ -34,39 +34,104 @@
 		<div class="col l10 m10 s12 right-part">
 
 			<div class="row">
-				<div class="col l5 m5 s12">
-					<h5 class="blue-title"> {{parentData.name}}, {{locationData.name}} </h5>
+				<div class="col l12 m12 s12" style="margin-bottom: 40px;">
+					<div class="details-container left">
+						<div class="inline-block image-wrapper">
+							<div class="image-container">
+								<div class="image">
+									<img src="assets/images/locations/default_profile_location.png" alt="" *ngIf="!locationData.google_photo_url">
+									<img src="{{locationData.google_photo_url}}" alt="" *ngIf="locationData.google_photo_url">
+								</div>
+							</div>
+						</div>
+						<div class="inline-block details">
+							<table class="no-borders">
+								<tr>
+									<td><h5> <span *ngIf="parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}} </h5></td>
+								</tr>
+								<tr>
+									<td>{{locationData.formatted_address}}</td>
+								</tr>
+								
+								<tr>
+									<td>Region : N/A</td>
+								</tr>
 
-					<div class="input-field search-warden">
-						<input id="inpSearchWarden" type="text" placeholder="Search warden here">
-						<label for="inpSearchWarden">Assign Floor Warden</label>
+							</table>
+						</div>
 					</div>
 
-				</div>
-				<div class="col l6 m6 s12 right-align">
-					<div class="archived">
-						<a href="javascript:void(0)" (click)="onClickArchiveLocation(locationData)">
-							<img src="assets/images/locations/archived_icon.png"> [ Archive Sub Location ]
+					<div class="right">
+						<div class="table-align" style="margin-bottom: 30px;">
+							<h5 class="medium-text">Show only not compliant</h5>
+							<div class="switch">
+								<input type="checkbox" id="override">
+								<div class="yes">Yes</div>
+								<div class="no">No</div>
+								<div class="highlight"></div>
+								<div class="background"></div>
+							</div>
+
+							<a href="#" class="archived" [routerLink]="['/location/list']">
+								<span class="image"></span>
+								View Archive
+							</a>
+						</div>
+
+						<a class="btn grey waves-effect waves-light back-to-location right" [routerLink]="['/location', 'view', parentData.location_id]">
+							Back to {{parentData.name}}
 						</a>
 					</div>
-					<a class="btn blue waves-effect waves-light back-to" [routerLink]="['/location', 'view', parentData.location_id]">Back to {{parentData.name}}</a>
+
+					<div style="clear: both;"></div>
+				</div>
+
+				<div class="col l12 m12 s12">
+					<table class="highlight striped no-borders">
+						<thead>
+							<tr class="grey darken-4 white-text">
+								<th>Tenants</th>
+								<th>TRP</th>
+								<th>Warden Benchmarking</th>
+								<th>Wardens</th>
+								<th>Wardens Trained</th>
+								<th>Action</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>
+									Account name
+								</td>
+								<td>
+									Trp Name
+								</td>
+								<td>
+									5/20
+								</td>
+								<td>
+									5/20
+								</td>
+								<td class="compliance">
+									<div class="percent">0%</div>
+									<div class="bar"></div>
+								</td>
+								<td class="select-blue">
+									<select>
+										<option value="0">Manage</option>
+										<option value="archive">Archive</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td colspan="6" class="btn-block-holder">
+									<button class="btn blue waves-effect waves-light">+ Add new tenant</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
 				</div>
 			</div>
-
-			<div class="row bottom-row">
-				<div class="col l11 m11 s12">
-					<h5 class="blue-title"> {{locationData.name}} Warden Team </h5>
-					<hr />
-					<div class="no-team-message">
-						You don't have warden team yet. <br/>
-						Please set-up Building Name <br/>
-						warden team
-					</div>
-
-					<button class="btn waves-light waves-effect orange">Go to team</button>
-				</div>
-			</div>
-
 
 		</div>
 	</div>

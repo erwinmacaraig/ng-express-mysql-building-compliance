@@ -20,7 +20,9 @@ export class SublocationComponent implements OnInit, OnDestroy {
     encryptedID;
     locationID = 0;
     locationData = {};
-    public parentData = {};
+    public parentData = {
+        name : ''
+    };
 
     errorMessageModalSublocation = '';
     showLoaderModalSublocation = false;
@@ -35,7 +37,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
     ngOnInit() {
         $('select').material_select();
         $('.modal').modal({ dismissible: false });
-        Materialize.updateTextFields();
+        // Materialize.updateTextFields();
         this.route.params.subscribe((params) => {
             this.encryptedID = params['encrypted'];
             this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);

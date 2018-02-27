@@ -6,7 +6,7 @@
 	</ul>
 </div>
 
-<div class="container margin-top-20" *ngIf="diagramsProducts.length == 0">
+<div class="container margin-top-20" [hidden]="diagramsProducts.length > 0">
 	<div class="row ">
 		<div class="col l12 m12 s12">
 			<h4>No Diagram Products Yet</h4>
@@ -14,43 +14,37 @@
 	</div>
 </div>
 
-<div class="container margin-top-20" *ngIf="diagramsProducts.length > 0">
+<div class="container margin-top-20" [hidden]="diagramsProducts.length == 0">
 	
 	<div class="row ">
+		<div id="selectLocationMessage" class="col l12 m12 s12 center red white-text" style="margin: 50px 0px; transition: all 0.3s; display: none; border-radius: 5px;"> 
+			<h5 style="font-size: 1.3rem;">* Please select location</h5> 
+		</div>
+
 		<div class="col l3 m12 s12">
 			<div class="left-panel margin-top-20">
 				<div class="content">
 					<h5 class="blue-text">Diagram Details</h5>
 				
-					<div class="select-field margin-top-50">
-						<label>Select Location</label>
-						<select id="selectLocation">
+					<div class="select-field" style="margin-top: 30px;">
+						<h5 style="margin: 5px; font-size: 14px;">Select Location</h5>
+						<select id="selectLocation" style="display: block;">
 							<option value="0" disabled selected>Select Location</option>
 							<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
 						</select>
 					</div>
 					
-					<div class="select-field">
-						<label>Select Finish</label>
-						<select id="selectDiagram">
-							<option value="{{fin.diagram_finish_id}}" *ngFor="let fin of diagramFinishes; let i = index" [selected]="i==0" >{{fin.name}}</option>
-						</select>
-					</div>
-					
-					<p>
+					<!-- <p>
 						<input type="checkbox" class="filled-in" value="none" id="pdf"  />
 						<label for="pdf">PDF File Only</label>
-					</p>
+					</p> -->
 					
 					<div class="quantity-container">
 						<p>Quantity</p>
 						<div class="input" >
-							<input type="text" #quantityInput readonly [ngModel]="showingDiagram.quantity"  >
+							<input type="text" #quantityInput readonly [ngModel]="totalQuantity"  >
 							<button class="btn-arrow-up waves-effect waves-light" (click)="addQuantity()"><i class="material-icons">arrow_drop_up</i></button>
 							<button class="btn-arrow-down waves-effect waves-light" (click)="subtractQuantity()"><i class="material-icons">arrow_drop_down</i></button>
-						</div>
-						<div class="text">
-							x <span>{{showingDiagram.amount}}</span> USD
 						</div>
 						<p>Minimum of 5 pcs.</p>
 					</div>
@@ -61,10 +55,25 @@
 						Total
 					</h5>
 					<h5 class="right">
-						$ <span>{{ (showingDiagram.amount * showingDiagram.quantity).toFixed(2) }}</span>
+						$ <span>{{totalAmount.toFixed(2)}}</span>
 					</h5>
 					<div style="clear: both;"></div>
 				</div>
+			</div>
+
+			<div class="buy-buttons">
+				<button class="btn orange waves-effect waves-light buy" #btnAdd *ngIf="!isInCart()" (click)="addToCart(btnAdd)">
+					<div class="image"></div> Add To Cart
+				</button>
+
+				<button class="btn orange waves-effect waves-light buy" #btnUpdate *ngIf="isInCart()" (click)="updateItemToCart(btnUpdate)">
+					<div class="image"></div> Update Cart
+				</button>
+
+				<button class="btn light-blue waves-effect waves-light buy" #btnBuyNow (click)="buyNow(btnBuyNow)">
+					<div class="image"></div> Buy Now
+				</button>
+
 			</div>
 		</div>
 
@@ -72,55 +81,67 @@
 
 			<div class="right-panel margin-top-20">
 				<div class="top">
-					<h5 class="blue-text left">Diagram Details</h5>
+					<h5 class="orange-text left">Select Diagram Finish <small class="blue-text">{{totalAddedQuantity}}/<span>{{totalQuantity}}</span> </small></h5>
 					<div class="right">
-						<button class="left-arrow waves-effect waves-light" (click)="moveSlide('left')"></button>
-						<button class="right-arrow waves-effect waves-light" (click)="moveSlide('right')"></button>
+						<button class="btn-flat waves-effect waves-light save" #btnSaveFav *ngIf="!isInFavorites()" (click)="addToFavorites(btnSaveFav)">
+							<div class="image"></div> Save
+						</button>
+
+						<button class="btn-flat waves-effect waves-light save" #btnSaveRemove *ngIf="isInFavorites()" (click)="removeFavorite(btnSaveRemove)">
+							<div class="image"></div> Remove
+						</button>
 					</div>
 					<div style="clear: both;"></div>
 				</div>
-				
-				<div class="slides">
-					<div class="slide">
-						<div class="middle">
-							<table>
-								<tr>
-									<td class="text-container">
-										<h5>{{showingDiagram.product_title}}</h5>
-										<div [innerHTML]="showingDiagram.product_desc"></div>
-									</td>
-									<td class="image-container">
-										<div class="image-wrapper">
-											<h6 class="center" *ngIf="showingDiagram.product_image.length > 10 && showDiagramsImage == false">loading image...</h6>
-											<img [hidden]="!showDiagramsImage" src="{{showingDiagram.product_image}}"  id="imgTag" >
-										</div>
-									</td>
-								</tr>
-							</table>
-						</div>
-						<div class="button-container">
-							<button class="btn-flat waves-effect waves-light save left" #btnSave *ngIf="!isInFavorites(showingDiagram.product_id)" (click)="addToFavorites(showingDiagram.product_id, btnSave)">
-								<div class="image"></div> Save
-							</button>
 
-							<button class="btn-flat waves-effect waves-light save left" #btnSaveRemove *ngIf="isInFavorites(showingDiagram.product_id)" (click)="removeFavorite(showingDiagram.product_id, btnSaveRemove)">
-								<div class="image"></div> Remove
-							</button>
-
-							<button class="btn orange waves-effect waves-light buy right" #btnAdd *ngIf="!isInCart(showingDiagram.product_id)" (click)="addToCart(showingDiagram.product_id, btnAdd)">
-								<div class="image"></div> Buy
-							</button>
-
-							<button class="btn orange waves-effect waves-light buy right" #btnRemove *ngIf="isInCart(showingDiagram.product_id)" (click)="removeFromCart(showingDiagram.product_id, btnRemove)">
-								<div class="image"></div> Remove
-							</button>
-
-							<div style="clear: both;"></div>
-						</div>
+				<div class="select-diagram">
+					<h5 class="blue-text">
+						Do you want all diagrams to have the same finish?
+					</h5>
+					
+					<div class="select">
+						If yes
+						<select id="selectDiagram" #selectDiagram (change)="onChageSelectDiagram(selectDiagram)" >
+							<option value="0" selected>Different Finishes </option>
+							<option value="{{prod.product_id}}" *ngFor="let prod of diagramsProducts;"   >{{prod.product_title}}</option>
+						</select>
 					</div>
+
+				</div>
+
+				<div class="list-container">
+					<h5 class="blue-text">
+						If no, please select finish on each diagrams
+					</h5>
+					<ul>
+						<li *ngFor="let prod of diagramsProducts">
+							
+							<div class="image">
+								<img src="{{prod.product_image}}" alt="">
+							</div>
+							<div class="text">
+								<h5 class="blue-text">{{prod.product_title}}</h5>
+								<div [innerHtml]="prod.product_desc | safeHtml"></div>
+							</div>
+							<div class="quantity">
+								<p class="orange-text"> ${{prod.amount}} </p>
+								<div class="quantity-container">
+									<p>Quantity</p>
+									<div class="input" >
+										<input type="text" readonly #inpQ value="{{prod.quantity}}" ([ngModel])="prod.quantity" >
+										<button class="btn-arrow-up waves-effect waves-light" (click)="addTotalQuantity(prod, inpQ)" ><i class="material-icons">arrow_drop_up</i></button>
+										<button class="btn-arrow-down waves-effect waves-light" (click)="subtractTotalQuantity(prod, inpQ)" ><i class="material-icons">arrow_drop_down</i></button>
+									</div>
+								</div>
+
+							</div>
+
+						</li>
+					</ul>
 				</div>
 
 			</div>
+
 		</div>
 	</div>
 

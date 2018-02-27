@@ -1,69 +1,128 @@
-  <div class="row">
-		<div class="col m12">
-			<h5 class="text">{{accountData.account_name}}</h5>
+<div class="row">
+	<div class="col m12">
+		<h5 class="text left">Location List</h5>
+
+		<div class="right table-align">
+			<h5 class="medium-text">Show only not compliant</h5>
+			<div class="switch">
+				<input type="checkbox" id="override">
+				<div class="yes">Yes</div>
+				<div class="no">No</div>
+				<div class="highlight"></div>
+				<div class="background"></div>
+			</div>
+
+			<a href="#" class="archived" [routerLink]="['/location/list']">
+				<span class="image"></span>
+				View Archive
+			</a>
+		</div>
+
+		<div style="clear: both;"></div>
+	</div>
+</div>
+
+<div class="row filter-container">
+	<div class="col l4 m5 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search location"  >
+			<span class="material-icons">search</span>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col m12 s12">
 
-			<table class="highlight striped bordered">
-				<thead>
-					<tr class="grey darken-4 white-text">
-						<th>Location Name</th>
-						<!-- <th>No. of Locations</th> -->
-						<th>Level Occupied</th>
-						<th>FRP</th>
-						<th>Compliance</th>
-						<th>Wardens from Tenancy</th>
-						<th>Mobility Impaired</th>
-						<th>Activity</th>
-						<th>Manage</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr *ngIf="locations.length == 0">
-						<td colspan="9" class="center-align">
-							<h6>No records yet</h6>
-						</td>
-					</tr>
-					<tr *ngFor="let location of locations; let i = index">
-						<td class="location-name">
-              <img src="assets/images/locations/single_location_icon.png">
-              <!-- <img src="{{locations[i].google_photo_url}}" width="150" height="150" *ngIf="locations[i].google_photo_url"> -->
-              <span *ngIf="locations[i].name.length > 0"> {{locations[i].name}}</span>
-              <span *ngIf="locations[i].name.length == 0"> {{locations[i].formatted_address}} </span>
-						</td>
-						<!-- <td> 1 </td> -->
-						<td>
-							{{location['total_subs']}}
-						</td>
-						<td>
-                <span>Unknown</span>
-              <!--
-							<span *ngIf="location.frp.length == 0">Unknown</span>
-              <span *ngFor="let frp of location.frp"> {{frp.first_name}} {{frp.last_name}} </span>
-              -->
-						</td>
-						<td class="compliance">
+	<div class="col l3 m4 s6">
+		<select class="filter-by">
+			<option value="0" selected>Filter By (All)</option>
+			<option value=" " > </option>
+		</select>
+	</div>
+
+	<div class="col l3 m6 s6">
+		<select class="sort-by">
+			<option value="0" selected>Sort By</option>
+		</select>
+	</div>
+	<div class="col l2 m6 s12">
+		<select class="bulk-manage">
+			<option value="0" selected disabled>Manage Action</option>
+			<option value="archive" >Archive selected</option>
+		</select>
+	</div>
+
+</div>
+
+<div class="row">
+	<div class="col m12 s12" >
+
+		<table class="highlight striped table-list-locations">
+			<thead>
+				<tr class="grey darken-4 white-text">
+					<th>
+						<p class="checkbox">
+							<input class="filled-in" id="allSelect" type="checkbox">
+							<label for="allSelect">Location Name</label>
+						</p>
+					</th>
+					<th>Sublocations</th>
+					<th>No. of Tenants</th>
+					<th>No. of Wardens</th>
+					<th>Mobility Impaired</th>
+					<th>Compliance</th>
+					<th>Manage</th>
+				</tr>
+			</thead>
+			<tbody  (domChange)="onDomChange($event)">
+				<tr *ngIf="locations.length == 0">
+					<td colspan="7" class="center-align">
+						<h6>No records yet</h6>
+					</td>
+				</tr>
+				<tr *ngFor="let location of locations; let i = index;"  >
+					<td>
+						<div class="checkbox inline-block" >
+							<input id="location-{{i}}"  class="filled-in" type="checkbox"    >
+							<label style="padding-left: 15px; height: 15px;" for="location-{{i}}"></label>
+						</div>
+						<div class="image-container lighten-3 green inline-block" >
+							<img src="{{location.google_photo_url}}" alt="">
+						</div>
+						<div class="inline-block">
+							<a [routerLink]="['/location/view/', location.location_id]" class="location-name-link">
+								<span *ngIf="location.name.length > 0"> {{location.name}}</span>
+								<span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+							</a>
+						</div>
+					</td>
+					<td>
+						{{location.sublocations.length}}
+					</td>
+					<td>
+						<span style="margin-right:10px;">0</span> <button class="btn grey darken-2 waves-effect waves-light"> Add tenants </button>
+					</td>
+					
+					<td>
+						<span style="margin-right:10px;">0</span> <button class="btn grey darken-2 waves-effect waves-light"> Add Wardens </button>
+					</td>
+					<td>
+						0
+					</td>
+					<td class="compliance">
+						<a [routerLink]="['/location/compliance/view/', location.location_id]">
 							<div class="percent">0%</div>
 							<div class="bar"></div>
-						</td>
-						<td>
-							0
-						</td>
-						<td>
-							0
-						</td>
-						<td>
-							<a href="javascript:void(0)">View History</a>
-						</td>
-						<td>
-							<a [routerLink]="['/location', 'view', location['location_id']]">Details</a>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-    </div>
+						</a>
+					</td>
+					<td class="select-blue">
+						<select>
+							<option value="0">Manage</option>
+							<option value="view-{{location.location_id}}">View</option>
+							<option value="archive">Archive</option>
+						</select>
+					</td>
+				</tr>
+			</tbody>
+		</table>
 	</div>
+</div>
 <div preloader></div>
 
