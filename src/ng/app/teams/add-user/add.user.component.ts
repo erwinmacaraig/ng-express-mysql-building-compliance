@@ -4,18 +4,19 @@ import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { ViewChild } from '@angular/core';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 
 declare var $: any;
 @Component({
   selector: 'app-add-user',
   templateUrl: './add.user.component.html',
   styleUrls: ['./add.user.component.css'],
-  providers : [DashboardPreloaderService, UserService]
+  providers : [DashboardPreloaderService, UserService, EncryptDecryptService]
 })
 export class AddUserComponent implements OnInit, OnDestroy {
 	@ViewChild('f') addWardenForm: NgForm;
@@ -48,6 +49,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
     public bulkEmailInvite;
     public CSVFileToUpload;
 
+    public routeSub;
+    private paramRole = '';
+    private paramLocIdEnc = '';
+    private paramLocId = '';
 
 
 
@@ -56,10 +61,21 @@ export class AddUserComponent implements OnInit, OnDestroy {
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService,
         private dashboardPreloaderService : DashboardPreloaderService,
-        private userService : UserService
+        private userService : UserService,
+        private router : Router,
+        private actRoute : ActivatedRoute,
+        private encdecrypt : EncryptDecryptService
         ) {
 
         this.userData = this.authService.getUserData();
+
+        this.routeSub = this.actRoute.params.subscribe((params) => {
+            if('location_id' in params){
+                this.paramLocIdEnc = params.location_id;
+                this.paramLocId = this.encdecrypt.decrypt(params.location_id);
+                this.paramRole = params.role;
+            }
+        });
         
     }
 
@@ -67,18 +83,19 @@ export class AddUserComponent implements OnInit, OnDestroy {
 		this.accountRoles = [
         {
             role_id: 2,
-            role_name: 'Tenant'
+            role_name: 'Tenant',
+            selected : (this.paramRole == 'tenant') ? true : false
         }
         ];
-        console.log('Highest rank role is ' + this.authService.getHighestRankRole());
+
         this.userRole = this.authService.getHighestRankRole();
         if (this.userRole == 1) {
             this.accountRoles.push({
                 role_id: 1,
-                role_name: 'Building Manager'
+                role_name: 'Building Manager',
+                selected : (this.paramRole == 'building manager') ? true : false
             });
         }
-        console.log(this.accountRoles);
 
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
@@ -89,7 +106,17 @@ export class AddUserComponent implements OnInit, OnDestroy {
                         role_name : roles[i]['role_name']
                     });
                 }
-                console.log(this.ecoRoles);
+
+                if(this.paramRole.length > 0){
+                    let newAccRole = [];
+                    for(let i in this.accountRoles){
+                        if(this.accountRoles[i]['selected']){
+                            newAccRole.push(this.accountRoles[i]);
+                        }
+                    }
+
+                    this.accountRoles = newAccRole;
+                }
             }, (err) => {
                 console.log('Server Error. Unable to get the list');
             }
@@ -98,19 +125,71 @@ export class AddUserComponent implements OnInit, OnDestroy {
         this.dashboardPreloaderService.show();
         this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
             this.locations = response.locations;
+            if(this.paramRole.length > 0){
+                this.locations = this.filterLocationForSelectedValue();
+            }
+
             this.locationsCopy = JSON.parse( JSON.stringify(this.locations) );
             this.dashboardPreloaderService.hide();
+
+            this.addMoreRow();
         });
 	}
 
 	addMoreRow(){
 		//a copy
 		let prop = JSON.parse(JSON.stringify(this.userProperty));
+
+        if(this.paramRole.length > 0){
+            for(let i in this.accountRoles){
+                if(this.accountRoles[i]['selected']){
+                    prop.account_role_id = this.accountRoles[i]['role_id']
+                }
+            }
+        }
+
 		this.addedUsers.push( prop );
 
         setTimeout(() => {
-            $('form table tbody tr:last-child').find('input.first-name').focus();
+            $("form table tbody tr:last-child").find('input.first-name').focus();
         },300);
+    }
+
+    filterLocationForSelectedValue(){
+        let selected = {};
+        let loopAddKey = (data, mainParent?) => {
+            for(let i in data){
+                if(typeof mainParent === 'undefined'){
+                    mainParent = JSON.parse(JSON.stringify(data[i]));
+                }else if(mainParent.location_id != data[i]['location_id'] && data[i]['parent_id'] == -1){
+                    mainParent = JSON.parse(JSON.stringify(data[i]));
+                }
+
+                if(this.paramRole.length > 0){
+                    if(this.paramLocId == data[i]['location_id']){
+                        if('location_id' in mainParent){
+                            selected = mainParent;
+                        }else{
+                            selected = data[i];
+                        }
+                    }
+                }
+
+                if(mainParent){
+                    data[i]['main_parent'] = (mainParent.location_id != data[i]['location_id']) ? mainParent : {};
+                }else{
+                    data[i]['main_parent'] = {};
+                }
+
+                if(data[i]['sublocations'].length > 0){
+                    loopAddKey(data[i]['sublocations'], mainParent);
+                }
+            }
+        };
+
+        loopAddKey(this.locations);
+
+        return [selected];
     }
 
     onChangeDropDown(event){
@@ -250,11 +329,13 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
 		$('select').material_select();
 
-        this.addMoreRow();
+        
         this.dragDropFileEvent();
 	}
 
-	ngOnDestroy(){}
+	ngOnDestroy(){
+        this.routeSub.unsubscribe();
+    }
 
     submitUsers(f){
         if(this.addedUsers.length > 0 && f.valid){

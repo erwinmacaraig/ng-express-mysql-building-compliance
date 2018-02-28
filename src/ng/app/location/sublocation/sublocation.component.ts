@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -6,6 +6,11 @@ import { Router, ActivatedRoute } from '@angular/router';
 
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { LocationsService } from '../../services/locations';
+import { UserService } from '../../services/users';
+
+import { Observable } from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 declare var $: any;
 declare var Materialize: any;
@@ -23,28 +28,54 @@ export class SublocationComponent implements OnInit, OnDestroy {
     public parentData = {
         name : ''
     };
+    encLocId = '';
 
     errorMessageModalSublocation = '';
     showLoaderModalSublocation = false;
     selectedLocationToArchive = {};
 
+    routeSubs;
+
+    tenants = [];
+
+    mutationOversable = <any> {};
+
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
         private route: ActivatedRoute,
-        private router: Router
-    ) {}
+        private router: Router,
+        private userService : UserService,
+        private elemRef: ElementRef
+    ) {
+
+        this.mutationOversable = new MutationObserver((mutationsList) => {
+            mutationsList.forEach((mutation) => {
+                if(mutation.target.nodeName != '#text'){
+                    let target = $(mutation.target);
+                    if(target.find('select:not(.initialized)').length > 0){
+
+                        target.find('select:not(.initialized)').material_select();
+
+                    }
+                }
+            });
+        });
+
+        this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
+    }
 
     ngOnInit() {
         $('select').material_select();
         $('.modal').modal({ dismissible: false });
         // Materialize.updateTextFields();
-        this.route.params.subscribe((params) => {
+        this.routeSubs = this.route.params.subscribe((params) => {
             this.encryptedID = params['encrypted'];
             this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
             this.locationService.getById(this.locationID, (response) => {
 
                 this.parentData = response.parent;
                 this.locationData = response.location;
+                this.encLocId = this.encryptDecrypt.encrypt(this.locationData['location_id']).toString();
                 this.parentData['location_id'] = this.encryptDecrypt.encrypt(this.parentData['location_id']).toString();
                 this.parentData['sublocations'] = response.siblings;
 
@@ -55,6 +86,10 @@ export class SublocationComponent implements OnInit, OnDestroy {
                   this.parentData['name'] = this.parentData['formatted_address'];
                 }
                 console.log(this.parentData);
+
+                this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
+                    this.tenants = tenantsResponse.data;
+                });
 
 
             });
@@ -95,6 +130,9 @@ export class SublocationComponent implements OnInit, OnDestroy {
         );
     }
 
-    ngOnDestroy() {}
+    ngOnDestroy() {
+        this.routeSubs.unsubscribe();
+        this.mutationOversable.disconnect();
+    }
 
 }

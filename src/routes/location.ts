@@ -16,6 +16,7 @@ import { Token } from '../models/token.model';
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as CryptoJS from 'crypto-js';
 const validator = require('validator');
 const md5 = require('md5');
 const moment = require('moment');
@@ -144,23 +145,20 @@ const url = require('url');
         new LocationRoute().getSublocationsOfParent(req, res)
       });
 
-
-      router.get('/new-location-verification/', (req: Request, res: Response) => {
-        new LocationRoute.verifyNewLocation(req, res);
-      });
    	}
 
 
 
-	/**
-	* Constructor
-	*
-	* @class RegisterRoute
-	* @constructor
-	*/
-	constructor() {
-		super();
-	}
+  	/**
+  	* Constructor
+  	*
+  	* @class RegisterRoute
+  	* @constructor
+  	*/
+  	constructor() {
+  		super();
+  	}
+
 
   	public searchDbForLocation(req: AuthRequest, res: Response) {
         const location = new Location();
@@ -189,20 +187,133 @@ const url = require('url');
         });
     }
 
-    public async verifyNewLocation(req: Request, res: Response){
-      let queryObject = url.parse(req.url, true).query,
-        token = queryObject.token,
-        action = queryObject.action,
-        tokenModel = new Token(),
-        tokenData = await tokenModel.getByToken(token);
+    public async sendEmailNewLocationValidated(dbLocationData, user_id, status, req){
+      if(Object.keys(dbLocationData).length > 0){
+        let userModel = new User(user_id),
+          user = <any> await userModel.load(),
+          statusMsg = (status) ? 'Approved' : 'Declined';
+
+          let opts = {
+              from : 'allantaw2@gmail.com',
+              fromName : 'EvacConnect',
+              to : [],
+              body : '',
+              attachments: [],
+              subject : 'EvacConnect Location Verification '+statusMsg
+          };
+
+          let email = new EmailSender(opts),
+            emailBody = email.getEmailHTMLHeader();
+
+          emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(user.first_name)+' '+this.capitalizeFirstLetter(user.last_name)+'</h3> <br/>';
+          emailBody += '<h4> Your new location created has been '+statusMsg+' </h4> ';
+          emailBody += `<h4>Location name : `+dbLocationData.name+`</h4>`;
+          emailBody += `<h4>Address : `+dbLocationData.formatted_address+`</h4>`;
+
+          emailBody += '<h5>Thank you!</h5>';
+
+          emailBody += email.getEmailHTMLFooter();
+
+          email.assignOptions({
+            body : emailBody,
+            to: [user.email]
+          });
+
+          await email.send(
+            () => { }, 
+            () => { console.log('Unable to send email ('+user.email+')');  }
+          );
+
+      }
     }
 
-    public async sendEmailCreateNewLocation(dbLocationData, req){
-      if(Object.keys(dbLocationData).length > 0){
+    public async verifyNewLocation(req: Request, res: Response, tokenData){
+      let queryObject = url.parse(req.url, true).query,
+        action = queryObject.action,
+        admin_id = queryObject.admin,
+        user_id = queryObject.user,
+        tokenModel = new Token(),
+        momentToday = moment(),
+        userModel = new User(user_id),
+        locationModel = new Location();
+
+        console.log(queryObject);
+
+        res.set('Content-Type', 'text/html');
+
+        try{
+          let momentToken = moment(tokenData['expiration_date']),
+            user = await userModel.load();
+
+          console.log(  momentToken.isAfter(momentToday) && tokenData['verified'] == 0 );
+
+          if(momentToken.isAfter(momentToday) && tokenData['verified'] == 0){
+
+            try{
+
+              for(let i in tokenData){
+                tokenModel.set(i, tokenData[i]);
+              }
+
+              tokenModel.setID(tokenData['token_id']);
+              tokenModel.set('verified', 1);
+              await tokenModel.dbUpdate();
+
+              locationModel.setID(tokenData['id']);
+              let location = await locationModel.load(),
+                locationDeepChildModel = new Location(),
+                deepLocations = await locationDeepChildModel.getDeepLocationsByParentId(tokenData['id']),
+                toUpdateLocs = [];
+
+              toUpdateLocs.push(location);
+              for(let i in deepLocations){
+                toUpdateLocs.push(deepLocations[i]);
+              }
+
+              let statusAdmin = (action == 'true') ? 1 : 2,
+                  statusMessage = (action == 'true') ? 'Approved' : 'Declined';
+
+              for(let i in toUpdateLocs){
+                let locModelUpdate = new Location( toUpdateLocs[i]['location_id'] );
+
+                for(let k in toUpdateLocs[i]){
+                  locModelUpdate.set(k, toUpdateLocs[i][k]);
+                }
+
+                locModelUpdate.set('admin_verified', statusAdmin);
+                locModelUpdate.set('admin_verified_date', momentToday.format('YYYY-MM-DD'));
+                locModelUpdate.set('admin_id', admin_id);
+                await locModelUpdate.dbUpdate();
+              }
+
+              location['children'] = deepLocations;
+
+              await this.sendEmailNewLocationValidated(location, user_id, statusAdmin, req);
+
+              res.send(new Buffer(`<h1>Location request has been successfully `+statusMessage+` </h1> `));
+
+            }catch(e){
+              res.send(new Buffer(`<h1>Location not found</h1> `));
+            }
+
+          }else{
+            res.send(new Buffer(`<h1>Token expired or been used</h1> `));
+          }
+
+        }catch(e){
+          res.send(new Buffer(`<h1>Token Invalid</h1> `));
+        }
+
+    }
+
+    public async sendEmailCreateNewLocation(dbLocationData, req, isSubLoc?){
+
+      if( Object.keys(dbLocationData).length > 0 ){
         let userModelAdmin = new User(),
           admins = await userModelAdmin.getAdmins(5),
           userModel = new User(req.user.user_id),
-          user = <any> await userModel.load();
+          user = <any> await userModel.load(),
+          isSub = (isSubLoc) ? isSubLoc : false;
 
           for(let i in admins){
             let admin = admins[i],
@@ -212,9 +323,9 @@ const url = require('url');
             try{
               await tokenModel.create({
                 'token' : token,
-                'action' : 'new location verification',
+                'action' : 'locationverification',
                 'verified' : 0,
-                'expiration_date' : moment().add(1, 'day').format('YYYY-MM-DD'),
+                'expiration_date' : moment().add(6, 'days').format('YYYY-MM-DD'),
                 'id' : dbLocationData.id_of_location,
                 'id_type' : 'location_id'
               });
@@ -230,21 +341,30 @@ const url = require('url');
 
               let email = new EmailSender(opts),
                 emailBody = email.getEmailHTMLHeader(),
-                linkTrue = req.protocol + '://' + req.get('host') +'/new-location-verification/?token='+token+'&action=true',
-                linkFalse = req.protocol + '://' + req.get('host') +'/new-location-verification/?token='+token+'&action=false';
+                linkTrue = req.protocol + '://' + req.get('host') +'/token/'+token+'?action=true&admin='+admin.user_id+'&user='+user.user_id,
+                linkFalse = req.protocol + '://' + req.get('host') +'/token/'+token+'?action=false&admin='+admin.user_id+'&user='+user.user_id;
 
               emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(admin.first_name)+' '+this.capitalizeFirstLetter(admin.last_name)+'</h3> <br/>';
               emailBody += '<h4> This user : '+this.capitalizeFirstLetter(user.first_name)+' '+this.capitalizeFirstLetter(user.last_name)+ ' is trying to create a new location which needs your verification.  </h4> ';
-              emailBody += `<h4>Location name : `+dbLocationData.name+`</h4>`;
+              
+              if(isSub){
+                  emailBody += `<h4>Location name : `+dbLocationData.parent.name+`, `+dbLocationData.name+`</h4>`;
+              }else{
+                  emailBody += `<h4>Location name : `+dbLocationData.name+`</h4>`;
+              }
+              
               emailBody += `<h4>Address : `+dbLocationData.formatted_address+`</h4>`;
-              emailBody += `<h4>Levels :  </h4>`;
-              emailBody += '<ul>';
-                for(let i = 0; i < req.body.sublevels.length; i++){
-                  if(req.body.sublevels[i].length > 0){
-                    emailBody += '<li>'+req.body.sublevels[i]+'</li>';
-                  }
-                }
-              emailBody += '</ul>';
+
+              if(dbLocationData.sublevels.length > 0){
+                  emailBody += `<h4>Levels :  </h4>`;
+                  emailBody += '<ul>';
+                    for(let i = 0; i < dbLocationData.sublevels.length; i++){
+                      if(dbLocationData.sublevels[i].length > 0){
+                        emailBody += '<li>'+dbLocationData.sublevels[i]+'</li>';
+                      }
+                    }
+                  emailBody += '</ul>';
+              }
 
               emailBody += '<h5>Action : <a href="'+linkTrue+'" target="_blank" style="text-decoration:none; color:#39a1ff;">Approve</a>  || <a href="'+linkFalse+'" target="_blank" style="text-decoration:none; color:#dc4453;">Decline</a><br/></h5>';
               
@@ -391,6 +511,8 @@ const url = require('url');
           }
         }
 
+        dbLocationData['sublevels'] = req.body.sublevels;
+
         await this.sendEmailCreateNewLocation(dbLocationData, req);
 
         return 'success';
@@ -440,6 +562,10 @@ const url = require('url');
 			subData['parent_id'] = parentId;
 			subData['order'] = null;
 
+            subData['admin_verified'] = 0;
+            subData['admin_verified_date'] = null;
+            subData['admin_id'] = 0;
+
 			try{
 				await locationSub.create(subData);
 				subData['location_id'] = locationSub.ID();
@@ -456,6 +582,15 @@ const url = require('url');
 					'user_id' : req.user.user_id,
 					'role_id' : r
 				});
+
+                let parentModel = new Location(parentId),
+                    parent = await parentModel.load();
+
+                subData['parent'] = parent;
+                subData['id_of_location'] = locationSub.ID();
+                subData['sublevels'] = [];
+
+                await this.sendEmailCreateNewLocation(subData, req, true);
 
 				return subData;
 			}catch (e){

@@ -97,26 +97,31 @@
 						{{location.sublocations.length}}
 					</td>
 					<td>
-						<span style="margin-right:10px;">0</span> <button class="btn grey darken-2 waves-effect waves-light"> Add tenants </button>
+						<span style="margin-right:10px;">0</span> <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', location.location_id]" > Add tenants </a>
 					</td>
 					
 					<td>
-						<span style="margin-right:10px;">0</span> <button class="btn grey darken-2 waves-effect waves-light"> Add Wardens </button>
+						<span style="margin-right:10px;">0</span> <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-wardens/', location.location_id]" > Add Wardens </a>
 					</td>
 					<td>
 						0
 					</td>
-					<td class="compliance">
-						<a [routerLink]="['/location/compliance/view/', location.location_id]">
-							<div class="percent">0%</div>
-							<div class="bar"></div>
+					<td class="with-bar">
+						<span *ngIf="location.admin_verified == 0" class="red-text">For verification</span>
+						<a *ngIf="location.admin_verified == 1" [routerLink]="['/location/compliance/view/', location.location_id]">
+							<div class="text">0%</div>
+							<div class="progress-container">
+								<div class="progress">
+							    	<div class="determinate" style="width: 0%;"></div>
+								</div>
+							</div>
 						</a>
 					</td>
 					<td class="select-blue">
 						<select>
 							<option value="0">Manage</option>
-							<option value="addtenants">Add Tenants</option>
-							<option value="addwardens">Add Wardens</option>
+							<option value="addtenants-{{location.location_id}}">Add Tenants</option>
+							<option value="addwardens-{{location.location_id}}">Add Wardens</option>
 							<option value="view-{{location.location_id}}">View</option>
 							<option value="archive">Archive</option>
 						</select>

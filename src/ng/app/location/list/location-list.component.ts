@@ -111,6 +111,14 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				let locIdEnc = val.replace('view-', '');
 
 				this.router.navigate(["/location/view/", locIdEnc]);
+			}else if(val.indexOf('addtenants-') > -1){
+				let locIdEnc = val.replace('addtenants-', '');
+
+				this.router.navigate(["/teams/add-user/tenant", locIdEnc]);
+			}else if(val.indexOf('addwardens-') > -1){
+				let locIdEnc = val.replace('addwardens-', '');
+
+				this.router.navigate(["/teams/add-wardens", locIdEnc]);
 			}
 		});
 
@@ -123,4 +131,5 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	getInitial(name:String){
 		return name.split('')[0].toUpperCase();
 	}
+
 }

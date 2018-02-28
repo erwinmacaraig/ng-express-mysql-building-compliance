@@ -19,7 +19,8 @@
 				<span class="end">0 </span>
 				<span class="end">completion</span>
 			</p>
-			<a class="btn red waves-effect waves-light darken-3" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
+			<h5 *ngIf="locationData.admin_verified == 0" class="red-text center">For Verification</h5>
+			<a *ngIf="locationData.admin_verified == 1" class="btn red waves-effect waves-light darken-3" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
 		</div>
 	</div>
 	<div class="col l10 m10 s12">
@@ -110,17 +111,24 @@
 								0/00
 							</td>
 							<td>
-								<span style="margin-right:10px;">0</span> <button class="btn grey darken-2 waves-effect waves-light"> Add tenants </button>
+								<span style="margin-right:10px;">0</span> <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', sub.location_id]"> Add tenants </a>
 							</td>
-							<td class="trainings">
-								<div class="percent">0%</div>
-								<div class="bar"></div>
+							<td class="with-bar">
+								<span *ngIf="locationData.admin_verified == 0" class="red-text">For Verification</span>
+
+								<div *ngIf="locationData.admin_verified > 0" class="text">0%</div>
+								<div *ngIf="locationData.admin_verified > 0" class="progress-container">
+									<div class="progress">
+								    	<div class="determinate" style="width: 0%;"></div>
+									</div>
+								</div>
 							</td>
 							<td class="select-blue">
 								<select>
 									<option value="0">Manage</option>
 									<option value="view-{{sub.location_id}}" *ngIf="sub.children.length > 0">View</option>
 									<option value="viewsub-{{sub.location_id}}" *ngIf="sub.children.length == 0">View</option>
+									<option value="addtenants-{{sub.location_id}}" >Add Tenants</option>
 									<option value="archive">Archive</option>
 								</select>
 							</td>

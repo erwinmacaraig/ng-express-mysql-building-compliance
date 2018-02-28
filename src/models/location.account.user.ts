@@ -171,6 +171,24 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
+    public getByLocationIdAndAccountId(locationIds, accntId) {
+        return new Promise((resolve, reject) => {
+            const sql_load = 'SELECT * FROM location_account_user WHERE location_id IN (?) AND account_id IN (?)';
+            const param = [locationIds, accntId];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+
+                this.dbData = results;
+                resolve(this.dbData);
+
+            });
+            connection.end();
+        });
+    }
+
     public getWardensByAccountId(accountId: Number){
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT u.*, er.role_name, lau.location_id, er.em_roles_id, er.is_warden_role

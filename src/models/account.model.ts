@@ -272,7 +272,8 @@ export class Account extends BaseClass {
             locations.name,
             locations.formatted_address,
             locations.location_id,
-            locations.google_photo_url
+            locations.google_photo_url,
+            locations.admin_verified
             FROM
             locations
             INNER JOIN

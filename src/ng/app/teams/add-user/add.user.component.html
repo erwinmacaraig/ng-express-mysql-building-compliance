@@ -54,8 +54,8 @@
 						<td >
 							
 							<select required [(ngModel)]="user.account_role_id" name="accountRole{{i}}" >
-								<option value="0" selected disabled>Select Role</option>
-								<option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
+								<option value="0" disabled selected *ngIf="this.paramRole.length == 0">Select Role</option>
+								<option *ngFor="let role of accountRoles" [value]="role.role_id" [selected]="role.selected"> {{ role.role_name }} </option>
 							</select>
 						</td>
 						<td > 
