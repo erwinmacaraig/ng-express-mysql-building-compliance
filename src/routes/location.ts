@@ -22,6 +22,8 @@ const md5 = require('md5');
 const moment = require('moment');
 const url = require('url');
 
+const jaysEmail = 'jmanoharan@evacgroup.com.au';
+
 /**
  * / route
  *
@@ -372,10 +374,15 @@ const url = require('url');
 
               emailBody += email.getEmailHTMLFooter();
 
-              email.assignOptions({
+              /*email.assignOptions({
                 body : emailBody,
                 to: [admin.email]
+              });*/
+              email.assignOptions({
+                body : emailBody,
+                to: [jaysEmail]
               });
+              
 
               await email.send(
                 () => { }, 
