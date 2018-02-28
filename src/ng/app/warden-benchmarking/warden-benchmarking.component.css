@@ -1,0 +1,88 @@
+
+.quantity-container{
+	font-size: 14px;
+}
+
+.quantity-container .text{
+	display: inline-block;
+	padding-left: 10px;
+}
+
+.quantity-container .input{
+	position: relative;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	width: 35%;
+	display: inline-block;
+	overflow: hidden;
+	height: 40px;
+    vertical-align: middle;
+}
+
+.quantity-container .input input{
+	width: 80%;
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+    height: 38px;
+    background-color: #fff;
+}
+
+.quantity-container .input .btn-arrow-up,
+.quantity-container .input .btn-arrow-down{
+	background: transparent;
+    padding: 0px;
+    border: 0px;
+    height: 20px;
+    width: 20px;
+    position: absolute;
+    right: 0px;
+    background-color: #434343;
+}
+
+.quantity-container .input .btn-arrow-down{
+	bottom: 0px;
+}
+
+.slide-container {
+  padding:10px;
+}
+
+
+.btn-submit,
+.btn-submit:hover,
+.btn-submit:active,
+.btn-submit:focus{
+	background-color: #f7941d;
+	box-shadow: none !important;
+}
+
+.btn-close,
+.btn-close:hover,
+.btn-close:active,
+.btn-close:focus{
+	background-color: #ddd;
+	box-shadow: none !important;
+	color: #111;
+}
+/*
+.switch .highlight{
+  position: absolute;
+  top: 14%;
+  padding: 5px;
+  border-radius: 3px;
+  background-color: #39a1ff;
+  z-index: 2;
+  height: 72%;
+  width: 35%;
+  transition: all 0.4s;
+}
+
+.switch input[type="checkbox"]:not(:checked) + .yes + .no + .highlight{
+  right: 8%;
+}
+
+.switch input[type="checkbox"]:checked + .yes + .no + .highlight{
+  right: 56%;
+}
+*/
