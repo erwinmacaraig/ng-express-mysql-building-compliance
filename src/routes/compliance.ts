@@ -190,7 +190,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 		arrWhereCompliance.push(['account_id = '+accountID]);
 		arrWhereCompliance.push(['account_role = "'+responsibility+'"']);
 
-		let compliances = <any> await complianceModel.getWhere(arrWhereCompliance); // console.log(compliances);
+		let compliances = <any> await complianceModel.getWhere(arrWhereCompliance); console.log(compliances, '========================================');
 		for(let i in kpis){
 			let hasKpis = false;
 			for(let c in compliances){
@@ -199,30 +199,30 @@ import * as S3Zipper from 'aws-s3-zipper';
 				}
 			}
 
-			if(!hasKpis){
-				let createComplianceModel = new ComplianceModel(),
-					compObj = {
-						'compliance_kpis_id' : kpis[i]['compliance_kpis_id'],
-						'compliance_status' : 0,
-						'building_id' : locationID,
-						'account_id' : accountID,
-						'valid_till' : null,
-						'required' : 1,
-						'account_role' : responsibility,
-						'override_by_evac' : 0
-					};
-				await createComplianceModel.create(compObj);
-				compObj['compliance_id'] = createComplianceModel.ID();
-				compliances.push(compObj);
-			}
+      if (!hasKpis) {
+          let createComplianceModel = new ComplianceModel(),
+          compObj = {
+            'compliance_kpis_id': kpis[i]['compliance_kpis_id'],
+            'compliance_status': 0,
+            'building_id': locationID,
+            'account_id': accountID,
+            'valid_till': null,
+            'required': 1,
+            'account_role': responsibility,
+            'override_by_evac': 0
+          };
+        await createComplianceModel.create(compObj);
+        compObj['compliance_id'] = createComplianceModel.ID();
+        compliances.push(compObj);
+      }
 		}
 
-		let whereDocs = [];
-		whereDocs.push(['building_id = '+locationID]);
-		whereDocs.push(['account_id = '+accountID]);
-		whereDocs.push(['document_type = "Primary" ']);
-		whereDocs.push(['override_document = -1 ']);
-		let docs = await complianceDocsModel.getWhere(whereDocs);
+    let whereDocs = [];
+    whereDocs.push(['building_id = ' + locationID]);
+    whereDocs.push(['account_id = ' + accountID]);
+    whereDocs.push(['document_type = "Primary" ']);
+    whereDocs.push(['override_document = -1 ']);
+    let docs = await complianceDocsModel.getWhere(whereDocs);
 
     for (let c in compliances) {
 			compliances[c]['docs'] = [];

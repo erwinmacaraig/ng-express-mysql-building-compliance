@@ -45,7 +45,11 @@ export class ComplianceModel extends BaseClass {
                 }
                 sql += arrWhere[i];
             }
+
+
             sql += ` ORDER BY compliance_id DESC `;
+
+            console.log(sql);
             const connection = db.createConnection(dbconfig);
             connection.query(sql, (error, results, fields) => {
                 if (error) {
@@ -92,7 +96,7 @@ export class ComplianceModel extends BaseClass {
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
-            const sql = `INSERT INTO compliance 
+            const sql = `INSERT INTO compliance
             ( compliance_kpis_id, compliance_status, building_id, account_id, valid_till, required, account_role, override_by_evac )
             VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )`;
             const param = [

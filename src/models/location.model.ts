@@ -511,6 +511,12 @@ export class Location extends BaseClass {
 				connection.end();
 			});
 		});
-	}
+  }
+
+  public getEMRoles(em_role_id: number = 0, location_id?: number) {
+    return new Promise(){
+
+    }
+  }
 
 }
