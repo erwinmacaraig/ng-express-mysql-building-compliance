@@ -132,9 +132,13 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getByInIds(ids){
+	public getByInIds(ids, archived?){
 		return new Promise((resolve) => {
-			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = 0`;
+			if(archived == undefined){
+				archived = 0;
+			}
+
+			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived;
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
 				if (error) {

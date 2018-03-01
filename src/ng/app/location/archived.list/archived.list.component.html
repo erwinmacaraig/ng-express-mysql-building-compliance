@@ -1,6 +1,6 @@
 <div class="row">
 	<div class="col m12">
-		<h5 class="text left">Location List</h5>
+		<h5 class="text left">Location Archived List</h5>
 
 		<div class="right table-align">
 			<h5 class="medium-text">Show only not compliant</h5>
@@ -12,10 +12,7 @@
 				<div class="background"></div>
 			</div>
 
-			<a href="#" class="archived" [routerLink]="['/location/archived/list']">
-				<span class="image"></span>
-				View Archive
-			</a>
+			<button [routerLink]="['/location/list']" class="btn grey waves-effect waves-light back-to-list">Back to list</button>
 		</div>
 
 		<div style="clear: both;"></div>
@@ -55,7 +52,7 @@
 	<div class="col l2 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Manage Action</option>
-			<option value="archive" >Archive selected</option>
+			<option value="restore" >Restore selected</option>
 		</select>
 	</div>
 
@@ -133,7 +130,7 @@
 							<option value="addtenants-{{location.location_id}}">Add Tenants</option>
 							<option value="addwardens-{{location.location_id}}">Add Wardens</option>
 							<option value="view-{{location.location_id}}">View</option>
-							<option value="archive-{{location.location_id}}">Archive</option>
+							<option value="restore-{{location.location_id}}">Restore</option>
 						</select>
 					</td>
 				</tr>
@@ -160,16 +157,16 @@
 	<div class="modal-content" [hidden]="modalArchive.loader">
 		<h5>Confirmation</h5>
 		
-		<h5 *ngIf="selectedArchive.length == 0">No location selected</h5>
-		<div *ngIf="selectedArchive.length > 0">
+		<h5 *ngIf="selectedRestore.length == 0">No location selected</h5>
+		<div *ngIf="selectedRestore.length > 0">
 			<p style="font-size: 16px;">
-				Are you sure you want archive location : {{selectedArchive.name}}?
+				Are you sure you want to restore location : {{selectedRestore.name}}?
 			</p>
 		</div>
 	</div>
 	<div class="modal-footer" [hidden]="modalArchive.loader">
 		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" *ngIf="selectedArchive.length  > 0" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a href="javascipt:void(0)" *ngIf="selectedRestore.length  > 0" class="waves-effect waves-blue btn-flat" (click)="restoreClick()">Restore</a>
 	</div>
 </div>
 
@@ -194,7 +191,7 @@
 		<h5 *ngIf="arraySelectedLocs.length == 0">No location selected</h5>
 		<div *ngIf="arraySelectedLocs.length > 0">
 			<p style="font-size: 16px;">
-				Are you sure you want archive the following location?
+				Are you sure you want restore the following location?
 			</p>
 			<ul>
 				<li *ngFor="let loc of arraySelectedLocs;">
@@ -205,7 +202,7 @@
 	</div>
 	<div class="modal-footer" [hidden]="modalArchiveBulk.loader">
 		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+		<a href="javascipt:void(0)" *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkRestoreClick()">Restore</a>
 	</div>
 </div>
 
