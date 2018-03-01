@@ -45,6 +45,8 @@ export class DashboardComponent implements OnInit {
 						if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
 							if(this.userData['accountId'] < 1){
 								router.navigate(['/setup-company']);
+							}else{
+								router.navigate(['/dashboard/main']);
 							}
 						}
 					}
@@ -62,7 +64,6 @@ export class DashboardComponent implements OnInit {
 				this.showResponse = false;
 			}, 3000);
 		});
-
 	}
 
 	ngOnInit() {
@@ -73,10 +74,9 @@ export class DashboardComponent implements OnInit {
 				setTimeout(() => {
 					$('.alert-email-verification').removeAttr('style').css('opacity', '1');
 				},1000);
-      } else {
-        localStorage.removeItem('showemailverification');
-      }
-
+			} else {
+				localStorage.removeItem('showemailverification');
+			}
 		});
 	}
 

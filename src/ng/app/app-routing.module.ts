@@ -7,6 +7,9 @@ import { SignupComponent } from './signup/signup.component';
 import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+
+import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
+
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
@@ -84,7 +87,8 @@ const appRoutes: Routes = [
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-user-password/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
-  { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent, children: [
+  { path: 'dashboard',  component: DashboardComponent, children: [
+      { path: 'main', component : FrpTrpDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
       { path: 'company-information', component: CompanyInformationComponent },
       { path : 'send-invite', component : SendInviteComponent }

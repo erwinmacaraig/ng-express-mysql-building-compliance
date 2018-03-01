@@ -132,6 +132,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         });
 
 		// DONUT update
+        // Donut Service
 		// this.donut.updateDonutChart('#specificChart', 30, true);
 	}
 
