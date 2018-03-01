@@ -23,6 +23,9 @@ export class DashboardComponent implements OnInit {
 	showResponse = false;
 	responseMessage = '';
 
+	routerSubs;
+	isFRPTRP = false;
+
 	constructor(
 		private http: HttpClient,
 		private platform: PlatformLocation,
@@ -37,19 +40,30 @@ export class DashboardComponent implements OnInit {
 	}
 
 	subscribeAndCheckUserHasAccountToSetup(router){
-		router.events.subscribe((val) => {
+		this.routerSubs = router.events.subscribe((val) => {
 			if(val instanceof NavigationEnd){
 				if( this.userData ){
 					this.userRoles = this.userData['roles'];
+
 					for(let i in this.userRoles){
 						if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
+							this.isFRPTRP = true;
+
 							if(this.userData['accountId'] < 1){
 								router.navigate(['/setup-company']);
-							}else{
-								router.navigate(['/dashboard/main']);
 							}
 						}
 					}
+
+					if(val.url == '/' || val.url == '/dashboard'){
+						if(this.isFRPTRP){
+							router.navigate(['/dashboard/main']);
+						}else{
+							router.navigate(['/dashboard/user']);
+						}
+					}
+
+
 				}
 			}
 	    });

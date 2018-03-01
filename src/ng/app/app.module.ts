@@ -24,6 +24,7 @@ import { NavbarComponent } from './navbar/navbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
+import { UserDashboardComponent  } from './dashboard/user/user.component';
 
 
 import { SignoutComponent } from './signout/signout.component';
@@ -104,6 +105,7 @@ import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchm
     DashboardComponent,
 
     FrpTrpDashboardComponent,
+    UserDashboardComponent,
 
     WardenInvitationFormComponent,
     SignoutComponent,
