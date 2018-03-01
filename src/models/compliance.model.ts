@@ -49,7 +49,7 @@ export class ComplianceModel extends BaseClass {
 
             sql += ` ORDER BY compliance_id DESC `;
 
-            console.log(sql);
+            // console.log(sql);
             const connection = db.createConnection(dbconfig);
             connection.query(sql, (error, results, fields) => {
                 if (error) {

@@ -190,8 +190,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 				this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
 					this.latestComplianceData = responseCompl.data;
 					this.setKPISdataForDisplay();
-
-          console.log(this.selectedCompliance);
 					setTimeout(() => {
 						$('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
 						this.dashboard.hide();
@@ -210,7 +208,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	clickSelectComplianceFromList(compliance){
-		this.selectedCompliance = compliance;
+    this.selectedCompliance = compliance;
+    console.log(this.selectedCompliance);
 		let attr = compliance.short_code,
 			allTr = $("tr[compliance]"),
 			tr = $("tr[compliance='"+attr+"']");
