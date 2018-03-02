@@ -6,13 +6,15 @@ CREATE TABLE scorm_course (
     CONSTRAINT PRIMARY KEY (course_id)
 )engine=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS course_user_relation;
 CREATE TABLE course_user_relation (
   course_user_relation_id INT NOT NULL AUTO_INCREMENT,
   user_id INT DEFAULT 0,
   course_id INT DEFAULT 0,
+  training_requirement_id INT DEFAULT 0,
   dtTimeStamp DATETIME DEFAULT current_timestamp,
   PRIMARY KEY (course_user_relation_id),
-  UNIQUE KEY user_course (course_id, user_id)
+  UNIQUE KEY user_course (user_id, course_id, training_requirement_id)
 )engine=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 
 

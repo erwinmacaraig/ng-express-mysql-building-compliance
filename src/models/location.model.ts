@@ -415,7 +415,7 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getParentsChildren(parentId){
+	public getParentsChildren(parentId) {
 		return new Promise((resolve) => {
 
 			let sql = `SELECT * FROM locations WHERE parent_id = ${parentId} AND archived = 0 ORDER BY location_id`;
@@ -511,6 +511,67 @@ export class Location extends BaseClass {
 				connection.end();
 			});
 		});
-	}
+  }
+
+  public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number) {
+
+    return new Promise((resolve, reject) => {
+      let location = this.ID();
+      if (location_id) {
+        location = location_id;
+      }
+      let location_em_roles = {};
+      this.getParentsChildren(location).then((sublocations) => {
+        const subIds = [];
+        Object.keys(sublocations).forEach((key) => {
+          subIds.push(sublocations[key]['location_id']);
+        });
+        const subIdstring = subIds.join(',');
+        const sql = `SELECT
+                    user_em_roles_relation.*,
+                    em_roles.role_name
+                  FROM
+                    user_em_roles_relation
+                  INNER JOIN
+                    em_roles
+                  ON
+                    em_roles.em_roles_id = user_em_roles_relation.em_role_id
+                  WHERE
+                    location_id IN (${subIdstring})
+                  order by em_role_id;`;
+        // console.log(sql);
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [], (error, results, fields) => {
+          if (error) {
+            console.log('location.model.getEMRolesForThisLocation', error, sql);
+            throw new Error('There was an error getting the EM Roles for this location');
+          }
+          if (!results.length) {
+            reject('There are no EM Roles for this location id - ' + location);
+          } else {
+            // console.log('Roles from db are ', results);
+            for (let i = 0; i < results.length; i++) {
+              if (results[i]['em_role_id'] in location_em_roles) {
+                location_em_roles[results[i]['em_role_id']]['count'] = location_em_roles[results[i]['em_role_id']]['count'] + 1;
+                (location_em_roles[results[i]['em_role_id']]['users']).push(results[i]['user_id']);
+              }
+              else {
+                let keyIndex = results[i]['em_role_id'];
+                location_em_roles[keyIndex] = {
+                  'name': results[i]['role_name'],
+                  'count': 1,
+                  'users': [results[i]['user_id']]
+                };
+              }
+            }
+            resolve(location_em_roles);
+          }
+
+        });
+        connection.end();
+        });
+    });
+
+  }
 
 }
