@@ -94,6 +94,15 @@ import { TrainingInviteComponent } from './trainings/training-invite/training.in
 
 import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 
+import { ReportsComponent } from './reports/reports.component';
+import { ReportsLocationsComponent  } from './reports/locations/reports.locations.component';
+import { ReportsLocationsSummaryOfComplianceComponent  } from './reports/summary-of-compliance/summary.of.compliance.component';
+import { ReportsLocationsComplianceComponent } from './reports/location-compliance/location.compliance.component';
+import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
+import { ReportsTeamsComponent } from './reports/teams/teams.component';
+import { ReportsTrainingsComponent } from './reports/trainings/trainings.component';
+
+
 @NgModule({
   declarations: [
     SafeHtmlPipe,
@@ -164,7 +173,15 @@ import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchm
     MyTrainingsComponent,
     TeamTrainingComponent,
     TrainingInviteComponent,
-    WardenBenchMarkingComponent
+    WardenBenchMarkingComponent,
+
+    ReportsComponent,
+    ReportsLocationsComponent,
+    ReportsLocationsSummaryOfComplianceComponent,
+    ReportsLocationsComplianceComponent,
+    ReportsLocationsStatementComplianceComponent,
+    ReportsTeamsComponent,
+    ReportsTrainingsComponent
   ],
   imports: [
     BrowserModule,

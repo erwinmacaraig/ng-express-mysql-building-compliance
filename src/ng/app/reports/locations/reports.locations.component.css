@@ -1,0 +1,56 @@
+.block-container{
+	padding: 20px;
+    border-radius: 10px;
+    margin: 13%;
+    min-height: 350px;
+    position: relative;
+}
+
+.block-container .image{
+	width: 130px;
+    height: 130px;
+    background-image: url(/assets/images/sprite_report.png);
+    margin-top: 40px;
+    background-size: 350%;
+}
+
+.image.locations{
+    background-position: 4% 9%;
+}
+
+.image.portfolio{
+    background-position: 46.5% 9%;
+}
+
+.image.activity{
+    background-position: 93% 9%;
+}
+
+.block-container .btn{
+    height: 75px !important;
+    line-height: 21px;
+    font-size: 18px !important;
+    position: absolute;
+    bottom: 15px;
+    left: 7%;
+    width: 86%;
+}
+
+.margin-top-100{
+	margin-top: 100px;
+}
+
+
+@media only screen
+  and (max-width: 500px) {
+  	.block-container{
+	  	margin: 3%;
+	}
+}
+
+@media only screen
+  and (min-width: 993px) and (max-width: 1770px) {
+	.block-container{
+	  	margin: 5%;
+	}
+}
