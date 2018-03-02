@@ -93,6 +93,10 @@ export class LocationsService {
     return this.http.post<any>(this.baseUrl + '/location/archive', oParam);
   }
 
+  archiveMultipleLocation(oParam: Object): Observable<any>{
+    return this.http.post<any>(this.baseUrl + '/location/archive-multiple', oParam);
+  }
+
 	getParentLocationsForListing(accountid, callBack){
 		this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/', this.options)
 	      .subscribe(res => {
@@ -101,6 +105,15 @@ export class LocationsService {
 	        callBack( JSON.parse(err.error) );
 	      });
 	}
+
+  getArchivedParentLocationsForListing(accountid, callBack){
+    this.http.get(this.baseUrl + '/location/get-archived-parent-locations-by-account-id/', this.options)
+        .subscribe(res => {
+          callBack(res);
+        }, err => {
+          callBack( JSON.parse(err.error) );
+        });
+  }
 
   getLocationsHierarchyByAccountId(accountid, callBack){
     this.http.get(this.baseUrl + '/location/get-locations-hierarchy-by-account-id', this.options)

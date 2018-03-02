@@ -132,9 +132,13 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getByInIds(ids){
+	public getByInIds(ids, archived?){
 		return new Promise((resolve) => {
-			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = 0`;
+			if(archived == undefined){
+				archived = 0;
+			}
+
+			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived;
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
 				if (error) {
@@ -183,7 +187,7 @@ export class Location extends BaseClass {
 			postal_code = ?, country = ?, formatted_address = ?,
 			lat = ?, lng = ?,time_zone = ?, \`order\` = ?,
 			is_building = ?, location_directory_name = ?, archived = ?,
-			google_place_id = ?, google_photo_url = ?
+			google_place_id = ?, google_photo_url = ?, admin_verified = ?, admin_verified_date = ?, admin_id = ?
 			WHERE location_id = ?`;
 			const param = [
 			('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
@@ -200,11 +204,13 @@ export class Location extends BaseClass {
 			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
 			('order' in this.dbData) ? this.dbData['order'] : null,
 			('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
-			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] :
-                                                       (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
+			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
 			('archived' in this.dbData) ? this.dbData['archived'] : 0,
 			('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
 			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null,
+			('admin_verified' in this.dbData) ? this.dbData['admin_verified'] : 0,
+			('admin_verified_date' in this.dbData) ? this.dbData['admin_verified_date'] : null,
+			('admin_id' in this.dbData) ? this.dbData['admin_id'] : 0,
 			this.ID() ? this.ID() : 0
 			];
 
@@ -240,8 +246,11 @@ export class Location extends BaseClass {
 			location_directory_name,
 			archived,
 			google_place_id,
-			google_photo_url)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+			google_photo_url,
+			admin_verified,
+			admin_verified_date,
+			admin_id)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 			const param = [
 			('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
 			('name' in this.dbData) ? this.dbData['name'] : '',
@@ -256,12 +265,14 @@ export class Location extends BaseClass {
 			('lng' in this.dbData) ? this.dbData['lng'] : null,
 			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
 			('order' in this.dbData) ? this.dbData['order'] : null,
-      ('is_building' in this.dbData) ? this.dbData['is_building'] : 1,
-      ('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] :
-                            (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
+      		('is_building' in this.dbData) ? this.dbData['is_building'] : 1,
+      		('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
 			('archived' in this.dbData) ? this.dbData['archived'] : 0,
 			('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
-			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null
+			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null,
+			('admin_verified' in this.dbData) ? this.dbData['admin_verified'] : 0,
+			('admin_verified_date' in this.dbData) ? this.dbData['admin_verified_date'] : null,
+			('admin_id' in this.dbData) ? this.dbData['admin_id'] : 0,
 			];
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_insert, param, (err, results, fields) => {

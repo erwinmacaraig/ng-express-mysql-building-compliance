@@ -113,6 +113,10 @@ export class UsersRoute extends BaseRoute {
 	    router.post('/users/mobility-impaired-info', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().saveMobilityImpairedDetails(req, res, next);
 	    });
+
+	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getLocationsTenants(req, res, next);
+	    });
 	}
 
 	public uploadProfilePicture(req: Request, res: Response, next: NextFunction){
@@ -1280,6 +1284,98 @@ export class UsersRoute extends BaseRoute {
 
 
 		res.send(response);
+	}
+
+	public async getLocationsTenants(req: Request, res: Response, next: NextFunction){
+		let response = {
+			data : <any>[],
+			message : ''
+		},
+		locId = req.params.location_id,
+		locationAccModel = new LocationAccountRelation(),
+		returnData = [];
+
+		let tenantsAccount = await locationAccModel.getTenantsOfLocationId(locId),
+			accountIds = [],
+			accounts = [];
+		for(let i in tenantsAccount){
+			let accountModel = new Account(tenantsAccount[i]['account_id']);
+
+			try{
+				let acc = await accountModel.load();
+				acc['users'] = [];
+				acc['trps'] = [];
+				acc['trp_name'] = '';
+				acc['warden_benchmarking'] = '0/00';
+				acc['wardens'] = '0/00';
+				acc['wardens_trained'] = 0;
+				accounts.push( acc );
+			}catch(e){}
+
+			accountIds.push(tenantsAccount[i]['account_id']);
+		}
+
+		let locAccUserModel = new LocationAccountUser(),
+			locAccUserData = await locAccUserModel.getByLocationIdAndAccountId(locId, accountIds.join(',')),
+			users = [];
+
+		for(let i in locAccUserData){
+			let loc = locAccUserData[i],
+				userModel = new User(loc.user_id);
+
+			try{
+				let user = <any> await userModel.load();
+
+				for(let a in accounts){
+
+					if(accounts[a]['account_id'] == loc.account_id){
+						
+						let emRoleModel = new UserEmRoleRelation(),
+							emRoles = <any> [];
+
+						try{
+							emRoles = await emRoleModel.getEmRolesByUserId(user.user_id);
+						}catch(e){ }
+
+						if(loc.role_id == 2){
+							accounts[a]['trps'].push({
+								first_name : user.first_name,
+								last_name : user.last_name,
+								user_id : user.user_id
+							});
+						}
+
+						accounts[a]['users'].push({
+							role_id : loc.role_id,
+							first_name : user.first_name,
+							last_name : user.last_name,
+							user_id : user.user_id,
+							em_roles : emRoles
+						});
+					}
+
+
+
+				}
+
+				users.push( user );
+			}catch(e){}
+		}
+
+		
+		for(let a in accounts){
+			let trpnamesArr = [];
+			for(let x in accounts[a]['trps']){
+				trpnamesArr.push( accounts[a]['trps'][x]['first_name'] +' '+ accounts[a]['trps'][x]['last_name'] );
+			}
+
+			accounts[a]['trp_name'] = trpnamesArr.join(', ');
+		}
+
+		response.data = accounts;
+
+		res.send(response);
+
 	}
 
 }

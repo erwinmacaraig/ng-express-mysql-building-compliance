@@ -9,10 +9,20 @@ import { Location } from '../models/location.model';
 import { LocationAccountUser } from '../models/location.account.user';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
+import { EmailSender } from '../models/email.sender';
+import { BlacklistedEmails } from '../models/blacklisted-emails';
+import { Token } from '../models/token.model';
+
+
 import * as fs from 'fs';
 import * as path from 'path';
+import * as CryptoJS from 'crypto-js';
 const validator = require('validator');
 const md5 = require('md5');
+const moment = require('moment');
+const url = require('url');
+
+const jaysEmail = 'jmanoharan@evacgroup.com.au';
 
 /**
  * / route
@@ -42,15 +52,16 @@ const md5 = require('md5');
          });
 	   	});
 
-      router.post('/location/assign-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        new LocationRoute().assignSubLocation(req, res).then((data) => {
-            return res.status(200).send({
-              message: data
+        router.post('/location/assign-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new LocationRoute().assignSubLocation(req, res).then((data) => {
+                return res.status(200).send({
+                  message: data
+                });
+            }).catch((e) => {
+              return res.status(400).send((<Error>e).message);
             });
-        }).catch((e) => {
-          return res.status(400).send((<Error>e).message);
         });
-      });
+
 	   	router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
 	   		new LocationRoute().getByAccountId(req, res, next);
 	   	});
@@ -60,7 +71,7 @@ const md5 = require('md5');
 	   	});
 
      	router.get('/location/get-parent-locations-by-account-id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-          new LocationRoute().getParentLocationsByAccount(req, res).then((data) => {
+          new LocationRoute().getParentLocationsByAccount(req, res, 0).then((data) => {
             return res.status(200).send(data);
           }).catch((err) => {
             return res.status(400).send({
@@ -70,18 +81,29 @@ const md5 = require('md5');
      		});
      	});
 
-      router.get('/location/get-locations-hierarchy-by-account-id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-          new LocationRoute().getLocationsHierarchyByAccount(req, res).then((data) => {
+         router.get('/location/get-archived-parent-locations-by-account-id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          new LocationRoute().getParentLocationsByAccount(req, res, 1).then((data) => {
             return res.status(200).send(data);
           }).catch((err) => {
             return res.status(400).send({
-                locations : [],
+                  locations : [],
                 message: err
-            });
+              });
+             });
          });
-      });
 
-      router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        router.get('/location/get-locations-hierarchy-by-account-id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new LocationRoute().getLocationsHierarchyByAccount(req, res).then((data) => {
+                return res.status(200).send(data);
+            }).catch((err) => {
+                return res.status(400).send({
+                    locations : [],
+                    message: err
+                });
+            });
+        });
+
+        router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 			    new LocationRoute().createLocation(req, res).then((data) => {
 	            return res.status(200).send({
 	              message: 'Create location successful'
@@ -91,19 +113,19 @@ const md5 = require('md5');
 	              message: 'Bad Request'
 	            });
 	        });
-      });
-
-      router.post('/sublocation/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        new LocationRoute().createSublocation(req, res).then((sublocationData) => {
-          return res.status(200).send({
-            data : sublocationData,
-            message: 'Create sublocation successful'
-          });
-        }).catch((e) => {
-          console.log( (<Error>e).message);
-          return res.status(400).send((<Error>e).message);
         });
-      });
+
+        router.post('/sublocation/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new LocationRoute().createSublocation(req, res).then((sublocationData) => {
+                return res.status(200).send({
+                    data : sublocationData,
+                    message: 'Create sublocation successful'
+                });
+            }).catch((e) => {
+                console.log( (<Error>e).message);
+                return res.status(400).send((<Error>e).message);
+            });
+        });
 
   		router.post('/location/search-db-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
   			new LocationRoute().searchDbForLocation(req, res);
@@ -122,33 +144,47 @@ const md5 = require('md5');
   		});
 
   		router.post('/location/archive', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-  			new LocationRoute().archiveLocation(req, res).then((data) => {
-          return res.status(200).send({
-            message: 'Successful'
-          });
-        }).catch((e) => {
-          return res.status(400).send({
-            message: e
-          });
+            new LocationRoute().archiveLocation(req, res).then((data) => {
+                return res.status(200).send({
+                    message: 'Successful'
+                });
+            }).catch((e) => {
+                return res.status(400).send({
+                    message: e
+                });
+            });
         });
-      });
+
+        router.post('/location/archive-multiple', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new LocationRoute().archiveMultipleLocation(req, res).then((data) => {
+                return res.status(200).send({
+                    message: 'Successful'
+                });
+            }).catch((e) => {
+                return res.status(400).send({
+                    message: e
+                });
+            });
+        });
 
       router.get('/location/get-sublocations-of-parent/:parent_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
         new LocationRoute().getSublocationsOfParent(req, res)
       });
+
    	}
 
 
 
-	/**
-	* Constructor
-	*
-	* @class RegisterRoute
-	* @constructor
-	*/
-	constructor() {
-		super();
-	}
+  	/**
+  	* Constructor
+  	*
+  	* @class RegisterRoute
+  	* @constructor
+  	*/
+  	constructor() {
+  		super();
+  	}
+
 
   	public searchDbForLocation(req: AuthRequest, res: Response) {
         const location = new Location();
@@ -175,6 +211,216 @@ const md5 = require('md5');
             message: `Unable to fulfill request`
           });
         });
+    }
+
+    public async sendEmailNewLocationValidated(dbLocationData, user_id, status, req){
+      if(Object.keys(dbLocationData).length > 0){
+        let userModel = new User(user_id),
+          user = <any> await userModel.load(),
+          statusMsg = (status) ? 'Approved' : 'Declined';
+
+          let opts = {
+              from : 'allantaw2@gmail.com',
+              fromName : 'EvacConnect',
+              to : [],
+              body : '',
+              attachments: [],
+              subject : 'EvacConnect Location Verification '+statusMsg
+          };
+
+          let email = new EmailSender(opts),
+            emailBody = email.getEmailHTMLHeader();
+
+          emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(user.first_name)+' '+this.capitalizeFirstLetter(user.last_name)+'</h3> <br/>';
+          emailBody += '<h4> Your new location created has been '+statusMsg+' </h4> ';
+          emailBody += `<h4>Location name : `+dbLocationData.name+`</h4>`;
+          emailBody += `<h4>Address : `+dbLocationData.formatted_address+`</h4>`;
+
+          emailBody += '<h5>Thank you!</h5>';
+
+          emailBody += email.getEmailHTMLFooter();
+
+          email.assignOptions({
+            body : emailBody,
+            to: [user.email]
+          });
+
+          await email.send(
+            () => { }, 
+            () => { console.log('Unable to send email ('+user.email+')');  }
+          );
+
+      }
+    }
+
+    public async verifyNewLocation(req: Request, res: Response, tokenData){
+      let queryObject = url.parse(req.url, true).query,
+        action = queryObject.action,
+        admin_id = queryObject.admin,
+        user_id = queryObject.user,
+        tokenModel = new Token(),
+        momentToday = moment(),
+        userModel = new User(user_id),
+        locationModel = new Location();
+
+        console.log(queryObject);
+
+        res.set('Content-Type', 'text/html');
+
+        try{
+          let momentToken = moment(tokenData['expiration_date']),
+            user = await userModel.load();
+
+          console.log(  momentToken.isAfter(momentToday) && tokenData['verified'] == 0 );
+
+          if(momentToken.isAfter(momentToday) && tokenData['verified'] == 0){
+
+            try{
+
+              for(let i in tokenData){
+                tokenModel.set(i, tokenData[i]);
+              }
+
+              tokenModel.setID(tokenData['token_id']);
+              tokenModel.set('verified', 1);
+              await tokenModel.dbUpdate();
+
+              locationModel.setID(tokenData['id']);
+              let location = await locationModel.load(),
+                locationDeepChildModel = new Location(),
+                deepLocations = await locationDeepChildModel.getDeepLocationsByParentId(tokenData['id']),
+                toUpdateLocs = [];
+
+              toUpdateLocs.push(location);
+              for(let i in deepLocations){
+                toUpdateLocs.push(deepLocations[i]);
+              }
+
+              let statusAdmin = (action == 'true') ? 1 : 2,
+                  statusMessage = (action == 'true') ? 'Approved' : 'Declined';
+
+              for(let i in toUpdateLocs){
+                let locModelUpdate = new Location( toUpdateLocs[i]['location_id'] );
+
+                for(let k in toUpdateLocs[i]){
+                  locModelUpdate.set(k, toUpdateLocs[i][k]);
+                }
+
+                locModelUpdate.set('admin_verified', statusAdmin);
+                locModelUpdate.set('admin_verified_date', momentToday.format('YYYY-MM-DD'));
+                locModelUpdate.set('admin_id', admin_id);
+                await locModelUpdate.dbUpdate();
+              }
+
+              location['children'] = deepLocations;
+
+              await this.sendEmailNewLocationValidated(location, user_id, statusAdmin, req);
+
+              res.send(new Buffer(`<h1>Location request has been successfully `+statusMessage+` </h1> `));
+
+            }catch(e){
+              res.send(new Buffer(`<h1>Location not found</h1> `));
+            }
+
+          }else{
+            res.send(new Buffer(`<h1>Token expired or been used</h1> `));
+          }
+
+        }catch(e){
+          res.send(new Buffer(`<h1>Token Invalid</h1> `));
+        }
+
+    }
+
+    public async sendEmailCreateNewLocation(dbLocationData, req, isSubLoc?){
+
+      if( Object.keys(dbLocationData).length > 0 ){
+        let userModelAdmin = new User(),
+          admins = await userModelAdmin.getAdmins(5),
+          userModel = new User(req.user.user_id),
+          user = <any> await userModel.load(),
+          isSub = (isSubLoc) ? isSubLoc : false;
+
+          for(let i in admins){
+            let admin = admins[i],
+              tokenModel = new Token(),
+              token = this.generateRandomChars(25);
+
+            try{
+              await tokenModel.create({
+                'token' : token,
+                'action' : 'locationverification',
+                'verified' : 0,
+                'expiration_date' : moment().add(6, 'days').format('YYYY-MM-DD'),
+                'id' : dbLocationData.id_of_location,
+                'id_type' : 'location_id'
+              });
+
+              let opts = {
+                  from : 'allantaw2@gmail.com',
+                  fromName : 'EvacConnect',
+                  to : [],
+                  body : '',
+                  attachments: [],
+                  subject : 'EvacConnect New Location Verification'
+              };
+
+              let email = new EmailSender(opts),
+                emailBody = email.getEmailHTMLHeader(),
+                linkTrue = req.protocol + '://' + req.get('host') +'/token/'+token+'?action=true&admin='+admin.user_id+'&user='+user.user_id,
+                linkFalse = req.protocol + '://' + req.get('host') +'/token/'+token+'?action=false&admin='+admin.user_id+'&user='+user.user_id;
+
+              emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(admin.first_name)+' '+this.capitalizeFirstLetter(admin.last_name)+'</h3> <br/>';
+              emailBody += '<h4> This user : '+this.capitalizeFirstLetter(user.first_name)+' '+this.capitalizeFirstLetter(user.last_name)+ ' is trying to create a new location which needs your verification.  </h4> ';
+              
+              if(isSub){
+                  emailBody += `<h4>Location name : `+dbLocationData.parent.name+`, `+dbLocationData.name+`</h4>`;
+              }else{
+                  emailBody += `<h4>Location name : `+dbLocationData.name+`</h4>`;
+              }
+              
+              emailBody += `<h4>Address : `+dbLocationData.formatted_address+`</h4>`;
+
+              if(dbLocationData.sublevels.length > 0){
+                  emailBody += `<h4>Levels :  </h4>`;
+                  emailBody += '<ul>';
+                    for(let i = 0; i < dbLocationData.sublevels.length; i++){
+                      if(dbLocationData.sublevels[i].length > 0){
+                        emailBody += '<li>'+dbLocationData.sublevels[i]+'</li>';
+                      }
+                    }
+                  emailBody += '</ul>';
+              }
+
+              emailBody += '<h5>Action : <a href="'+linkTrue+'" target="_blank" style="text-decoration:none; color:#39a1ff;">Approve</a>  || <a href="'+linkFalse+'" target="_blank" style="text-decoration:none; color:#dc4453;">Decline</a><br/></h5>';
+              
+              emailBody += '<h5>Thank you!</h5>';
+
+              emailBody += email.getEmailHTMLFooter();
+
+              /*email.assignOptions({
+                body : emailBody,
+                to: [admin.email]
+              });*/
+              email.assignOptions({
+                body : emailBody,
+                to: [jaysEmail]
+              });
+              
+
+              await email.send(
+                () => { }, 
+                () => { console.log('Unable to send email ('+admin.email+')');  }
+              );
+            }catch(e){
+              console.log(e);
+            }
+
+            
+
+          }
+
+      }
     }
 
 
@@ -226,7 +472,7 @@ const md5 = require('md5');
             break;
           }
         });
-        console.log(dbLocationData);
+
         const location = new Location();
         let locationAccntUser;
         let locationAccnt;
@@ -247,6 +493,8 @@ const md5 = require('md5');
         try {
           await location.create(dbLocationData);
           parent_id = location.ID();
+          dbLocationData["id_of_location"] = location.ID();
+
           locationAccnt = new LocationAccountRelation();
           await locationAccnt.create({
             'location_id': parent_id,
@@ -261,6 +509,7 @@ const md5 = require('md5');
             user_id: req.user.user_id,
             role_id: r
           });
+
         } catch (er) {
           throw new Error('Unable to create main location');
         }
@@ -271,8 +520,9 @@ const md5 = require('md5');
             const subLevel = new Location();
             locationAccnt = new LocationAccountRelation();
 
-            dbLocationData['name'] = req.body.sublevels[i];
-            await subLevel.create(dbLocationData);
+            let copyDbLocationData = JSON.parse( JSON.stringify(dbLocationData) );
+            copyDbLocationData['name'] = req.body.sublevels[i];
+            await subLevel.create(copyDbLocationData);
 
             await locationAccnt.create({
               'location_id': subLevel.ID(),
@@ -291,9 +541,13 @@ const md5 = require('md5');
             throw new Error('Unable to process sub levels');
           }
         }
-        return {
-          status: 'Success'
-        };
+
+        dbLocationData['sublevels'] = req.body.sublevels;
+
+        await this.sendEmailCreateNewLocation(dbLocationData, req);
+
+        return 'success';
+         
     }
 
     public async createSublocation(req: AuthRequest, res: Response){
@@ -339,6 +593,10 @@ const md5 = require('md5');
 			subData['parent_id'] = parentId;
 			subData['order'] = null;
 
+            subData['admin_verified'] = 0;
+            subData['admin_verified_date'] = null;
+            subData['admin_id'] = 0;
+
 			try{
 				await locationSub.create(subData);
 				subData['location_id'] = locationSub.ID();
@@ -355,6 +613,15 @@ const md5 = require('md5');
 					'user_id' : req.user.user_id,
 					'role_id' : r
 				});
+
+                let parentModel = new Location(parentId),
+                    parent = await parentModel.load();
+
+                subData['parent'] = parent;
+                subData['id_of_location'] = locationSub.ID();
+                subData['sublevels'] = [];
+
+                await this.sendEmailCreateNewLocation(subData, req, true);
 
 				return subData;
 			}catch (e){
@@ -410,6 +677,7 @@ const md5 = require('md5');
 
     public async archiveLocation(req: AuthRequest, res: Response){
     	let locationId = req.body.location_id,
+            archivedValue = (req.body.archived) ? req.body.archived : 1,
     		locationModel = new Location(),
     		locationSubModel = new Location(),
     		locations;
@@ -423,7 +691,7 @@ const md5 = require('md5');
     		}
 
     		locationModel.setID(locationId);
-    		locationModel.set('archived', 1);
+    		locationModel.set('archived', archivedValue);
 
     		try{
     			await locationModel.dbUpdate();
@@ -436,7 +704,7 @@ const md5 = require('md5');
 	    				archiveModel.set(x, sublocations[i][x]);
 	    			}
 	    			archiveModel.setID(sublocations[i]['location_id']);
-	    			archiveModel.set('archived', 1);
+	    			archiveModel.set('archived', archivedValue);
 
 	    			await archiveModel.dbUpdate();
 	    		}
@@ -448,6 +716,35 @@ const md5 = require('md5');
     	}else{
     		throw new Error('No location found');
     	}
+    }
+
+    public async archiveMultipleLocation(req: AuthRequest, res: Response){
+      let locations = req.body.locations;
+
+      for(let i in locations){
+        let 
+            locModel = new Location(locations[i]['location_id']),
+            location = <any> await locModel.load(),
+            archivedValue = 0;
+
+        for(let k in location){
+          locModel.set(k, location[k]);
+        }
+
+        for(let k in locations){
+          if(locations[k]['location_id'] == location.location_id){
+            archivedValue = locations[k]['archived'];
+          }
+        }
+
+        locModel.setID( location['location_id'] );
+        locModel.set('archived', archivedValue);
+
+        await locModel.dbUpdate();
+      }
+
+      return "success";
+
     }
 
   	private mergeObjects(obj1,obj2){
@@ -737,12 +1034,12 @@ const md5 = require('md5');
 		);
 	}
 
-	public async getParentLocationsByAccount(req: AuthRequest, res: Response) {
+	public async getParentLocationsByAccount(req: AuthRequest, res: Response, archived?) {
 	    const accountId = req.user.account_id;
 	    const account = new Account(accountId);
 	    let locationsOnAccount = [];
 	    let location;
-      	let data;
+        let data;
 	    // we need to check the role(s)
 	    const userRoleRel = new UserRoleRelation();
 	    const roles = await userRoleRel.getByUserId(req.user.user_id);
@@ -754,17 +1051,37 @@ const md5 = require('md5');
 	    		r = roles[i]['role_id'];
 	    	}
 	    }
-		  // locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id);
-		  // console.log(locationsOnAccount);
-		  locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r);
+		  
+		locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r, archived);
 
   		switch(r) {
   			case 1:
   				for (let loc of locationsOnAccount) {
   					location = new Location(loc.location_id);
   					loc['sublocations'] = await location.getSublocations();
-  				}
-  				// break;
+                }
+
+
+                for(let i in locationsOnAccount){
+                    let locAccModel = new LocationAccountRelation(),
+                    locAcc = <any> await locAccModel.getManyByLocationId(locationsOnAccount[i]['location_id']);
+
+                    let locAccUserModel = new LocationAccountUser(),
+                    locAccUser = <any> await locAccUserModel.getWardensByAccountIdLocationId(accountId, locationsOnAccount[i]['location_id']);
+
+                    let impairedCount = 0 ;
+                    for(let x in locAccUser){
+                      if(locAccUser[x]['mobility_impaired'] == 1){
+                        impairedCount++;
+                      }
+                    }
+
+                    locationsOnAccount[i]['num_tenants'] = locAcc.length;
+                    locationsOnAccount[i]['num_wardens'] = locAccUser.length;
+                    locationsOnAccount[i]['mobility_impaired'] = impairedCount;
+                    locationsOnAccount[i]['compliance'] = 0;
+                }
+                
   				return { 'locations' : locationsOnAccount };
   			case 2:
   				// get the parent or parents of these sublocation
@@ -797,17 +1114,38 @@ const md5 = require('md5');
   				}
 
   				let seenRoots = [];
-  		    let processedRootParents = [];
+  		        let processedRootParents = [];
   				for (let r of rootParents) {
-	          if(seenRoots.indexOf(r['location_id']) == -1) {
-	            r['sublocations'] = [];
-	            r['sublocations'] = objectOfSubs[r['desc']];
-	            r['sublocations']['total'] = 0;
-	            r['total_subs'] = objectOfSubs[r['desc']].length;
-	            seenRoots.push(r['location_id']);
-	            processedRootParents.push(r);
-	          }
-	        }
+	              if(seenRoots.indexOf(r['location_id']) == -1) {
+    	            r['sublocations'] = [];
+    	            r['sublocations'] = objectOfSubs[r['desc']];
+    	            r['sublocations']['total'] = 0;
+    	            r['total_subs'] = objectOfSubs[r['desc']].length;
+	                seenRoots.push(r['location_id']);
+	                processedRootParents.push(r);
+	              }
+	            }
+
+                for(let i in processedRootParents){
+                    let locAccModel = new LocationAccountRelation(),
+                    locAcc = <any> await locAccModel.getManyByLocationId(processedRootParents[i]['location_id']);
+
+                    let locAccUserModel = new LocationAccountUser(),
+                    locAccUser = <any> await locAccUserModel.getWardensByAccountIdLocationId(accountId, processedRootParents[i]['location_id']);
+
+                    let impairedCount = 0 ;
+                    for(let x in locAccUser){
+                        if(locAccUser[x]['mobility_impaired'] == 1){
+                            impairedCount++;
+                        }
+                    }
+
+                    processedRootParents[i]['num_tenants'] = locAcc.length;
+                    processedRootParents[i]['num_wardens'] = locAccUser.length;
+                    processedRootParents[i]['mobility_impaired'] = impairedCount;
+                    processedRootParents[i]['compliance'] = 0;
+                }
+
   				return {
   					'locations':  processedRootParents
   				};
@@ -815,120 +1153,120 @@ const md5 = require('md5');
   		return locationsOnAccount;
 	}
 
-  public async getLocationsHierarchyByAccount(req: AuthRequest, res: Response){
-    const accountId = req.user.account_id;
-    const account = new Account(accountId);
-    let locationsOnAccount = [];
-    let location;
-      let data;
-    // we need to check the role(s)
-    const userRoleRel = new UserRoleRelation();
-    const roles = await userRoleRel.getByUserId(req.user.user_id);
+    public async getLocationsHierarchyByAccount(req: AuthRequest, res: Response){
+        const accountId = req.user.account_id;
+        const account = new Account(accountId);
+        let locationsOnAccount = [];
+        let location;
+          let data;
+        // we need to check the role(s)
+        const userRoleRel = new UserRoleRelation();
+        const roles = await userRoleRel.getByUserId(req.user.user_id);
 
-    // what is the highest rank role
-    let r = 100;
-    for (let i = 0; i < roles.length; i++) {
-      if(r > parseInt(roles[i]['role_id'], 10)) {
-        r = roles[i]['role_id'];
-      }
-    }
-    locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r);
-
-    let response = {};
-    switch(r) {
-      case 1:
-        for (let loc of locationsOnAccount) {
-          location = new Location(loc.location_id);
-          loc['sublocations'] = await location.getSublocations();
+        // what is the highest rank role
+        let r = 100;
+        for (let i = 0; i < roles.length; i++) {
+          if(r > parseInt(roles[i]['role_id'], 10)) {
+            r = roles[i]['role_id'];
+          }
         }
-        response = { 'locations' : JSON.parse(JSON.stringify(locationsOnAccount)) };
-        break;
-      case 2:
-        let results;
-        let objectOfSubs:{[key: number]: any[]} = {};
-        let seenParents = [];
-        let rootParents = [];
-        let pId = 0;
-        for (let loc of locationsOnAccount) {
-          objectOfSubs[loc.parent_id] = [];
-        }
-        for (let loc of locationsOnAccount) {
-          objectOfSubs[loc.parent_id].push(loc);
+        locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r);
 
-          if ((seenParents.indexOf(loc.parent_id)*1)  === -1) {
-
-            seenParents.push(loc.parent_id);
-            let parentId = loc.parent_id;
-            while (parentId !== -1) {
-              location = new Location(parentId);
-              await location.load();
-              parentId = location.get('parent_id');
+        let response = {};
+        switch(r) {
+          case 1:
+            for (let loc of locationsOnAccount) {
+              location = new Location(loc.location_id);
+              loc['sublocations'] = await location.getSublocations();
             }
+            response = { 'locations' : JSON.parse(JSON.stringify(locationsOnAccount)) };
+            break;
+          case 2:
+            let results;
+            let objectOfSubs:{[key: number]: any[]} = {};
+            let seenParents = [];
+            let rootParents = [];
+            let pId = 0;
+            for (let loc of locationsOnAccount) {
+              objectOfSubs[loc.parent_id] = [];
+            }
+            for (let loc of locationsOnAccount) {
+              objectOfSubs[loc.parent_id].push(loc);
 
-            rootParents.push(location.getDBData());
-            location.set('desc', loc.parent_id);
-            location = undefined;
-          }
-        }
+              if ((seenParents.indexOf(loc.parent_id)*1)  === -1) {
 
-        let seenRoots = [];
-        let processedRootParents = [];
-        for (let r of rootParents) {
-          if(seenRoots.indexOf(r['location_id']) == -1) {
-            r['sublocations'] = [];
-            r['sublocations'] = objectOfSubs[r['desc']];
-            r['sublocations']['total'] = 0;
-            r['total_subs'] = objectOfSubs[r['desc']].length;
-            seenRoots.push(r['location_id']);
-            processedRootParents.push(r);
-          }
-        }
-        response =  { 'locations':  processedRootParents };
-        break;
-    }
+                seenParents.push(loc.parent_id);
+                let parentId = loc.parent_id;
+                while (parentId !== -1) {
+                  location = new Location(parentId);
+                  await location.load();
+                  parentId = location.get('parent_id');
+                }
 
-    let locations = response['locations'];
-    let responseLocations = [];
-
-    for(let i in locations){
-      if(locations[i]['parent_id'] == -1){
-        let locModel = new Location();
-        let deepLocations = await locModel.getDeepLocationsByParentId(locations[i]['location_id']);
-        for(let x in deepLocations){
-          deepLocations[x] = {
-            location_id : deepLocations[x]['location_id'],
-            parent_id : deepLocations[x]['parent_id'],
-            name : deepLocations[x]['name'],
-            formatted_address : deepLocations[x]['formatted_address'],
-            google_photo_url : deepLocations[x]['google_photo_url']
-          };
-          if(r == 2){
-            deepLocations[x]['is_here'] = false;
-            for(let n in locationsOnAccount){
-              if(locationsOnAccount[n]['location_id'] == deepLocations[x]['location_id']){
-                deepLocations[x]['is_here'] = true;
+                rootParents.push(location.getDBData());
+                location.set('desc', loc.parent_id);
+                location = undefined;
               }
             }
+
+            let seenRoots = [];
+            let processedRootParents = [];
+            for (let r of rootParents) {
+              if(seenRoots.indexOf(r['location_id']) == -1) {
+                r['sublocations'] = [];
+                r['sublocations'] = objectOfSubs[r['desc']];
+                r['sublocations']['total'] = 0;
+                r['total_subs'] = objectOfSubs[r['desc']].length;
+                seenRoots.push(r['location_id']);
+                processedRootParents.push(r);
+              }
+            }
+            response =  { 'locations':  processedRootParents };
+            break;
+        }
+
+        let locations = response['locations'];
+        let responseLocations = [];
+
+        for(let i in locations){
+          if(locations[i]['parent_id'] == -1){
+            let locModel = new Location();
+            let deepLocations = await locModel.getDeepLocationsByParentId(locations[i]['location_id']);
+            for(let x in deepLocations){
+              deepLocations[x] = {
+                location_id : deepLocations[x]['location_id'],
+                parent_id : deepLocations[x]['parent_id'],
+                name : deepLocations[x]['name'],
+                formatted_address : deepLocations[x]['formatted_address'],
+                google_photo_url : deepLocations[x]['google_photo_url']
+              };
+              if(r == 2){
+                deepLocations[x]['is_here'] = false;
+                for(let n in locationsOnAccount){
+                  if(locationsOnAccount[n]['location_id'] == deepLocations[x]['location_id']){
+                    deepLocations[x]['is_here'] = true;
+                  }
+                }
+              }
+            }
+
+            let p = {
+              location_id : locations[i]['location_id'],
+              parent_id : locations[i]['parent_id'],
+              name : locations[i]['name'],
+              formatted_address : locations[i]['formatted_address'],
+              google_photo_url : locations[i]['google_photo_url']
+            };
+            let temp = [];
+            temp.push(p);
+            temp = temp.concat(deepLocations);
+            let merged = this.mergeToParent(temp);
+            responseLocations.push(merged[0]);
           }
         }
 
-        let p = {
-          location_id : locations[i]['location_id'],
-          parent_id : locations[i]['parent_id'],
-          name : locations[i]['name'],
-          formatted_address : locations[i]['formatted_address'],
-          google_photo_url : locations[i]['google_photo_url']
-        };
-        let temp = [];
-        temp.push(p);
-        temp = temp.concat(deepLocations);
-        let merged = this.mergeToParent(temp);
-        responseLocations.push(merged[0]);
-      }
+        return { 'locations' : responseLocations };
     }
-
-    return { 'locations' : responseLocations };
-  }
 
 	public getDeepLocationsById(req: AuthRequest, res: Response){
 		let  response = {
@@ -1021,24 +1359,24 @@ const md5 = require('md5');
 		);
 	}
 
-  public getSublocationsOfParent(req: AuthRequest, res: Response){
-    let
-    parentId = req.params.parent_id,
-    response = {
-      status : false,
-      message : '',
-      data : <any>[]
-    },
-    locationSublocations = new Location();
-    res.statusCode = 200;
+    public getSublocationsOfParent(req: AuthRequest, res: Response){
+        let
+        parentId = req.params.parent_id,
+        response = {
+          status : false,
+          message : '',
+          data : <any>[]
+        },
+        locationSublocations = new Location();
+        res.statusCode = 200;
 
 
-    locationSublocations.getParentsChildren(parentId).then((results) => {
-      response.data = results;
-      res.send(response);
-    });
+        locationSublocations.getParentsChildren(parentId).then((results) => {
+          response.data = results;
+          res.send(response);
+        });
 
-  }
+    }
 
 }
 

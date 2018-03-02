@@ -373,6 +373,11 @@ table tbody tr td .progress .determinate{
     padding: 0px 10px;
 }
 
+.back-to-list{
+    font-size: 14px !important;
+    margin-left: 20px;
+    height: 36px !important;
+}
 
 .archived{
 	font-size: 15px;

@@ -20,6 +20,7 @@ import * as multer from 'multer';
 import { RegisterRoute } from './register';
 import { ForgotPasswordRequestRoute } from './forgot.password';
 import { UsersRoute } from './users';
+import { LocationRoute } from './location';
 
 
 
@@ -85,6 +86,9 @@ export class TokenRoute extends BaseRoute {
 				break;
 			case "user-request-decline":
 				new UsersRoute().userRequestHandler(req, res, tokenData, true);
+				break;
+			case "locationverification":
+				new LocationRoute().verifyNewLocation(req, res, tokenData);
 				break;
 			default:
 				response.message = 'No action found';
