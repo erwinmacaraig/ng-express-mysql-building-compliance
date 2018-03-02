@@ -22,6 +22,11 @@ import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.compone
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { NavbarComponent } from './navbar/navbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+
+import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
+import { UserDashboardComponent  } from './dashboard/user/user.component';
+
+
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
@@ -99,6 +104,10 @@ import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchm
     ChangepasswordComponent,
     NavbarComponent,
     DashboardComponent,
+
+    FrpTrpDashboardComponent,
+    UserDashboardComponent,
+
     WardenInvitationFormComponent,
     SignoutComponent,
     CompanyInformationComponent,
