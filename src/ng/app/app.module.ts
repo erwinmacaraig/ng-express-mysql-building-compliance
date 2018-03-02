@@ -22,6 +22,11 @@ import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.compone
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { NavbarComponent } from './navbar/navbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+
+import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
+import { UserDashboardComponent  } from './dashboard/user/user.component';
+
+
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
@@ -49,6 +54,7 @@ import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
 import { VerificationComponent } from './location/verification/verification.component';
+import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
 
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
@@ -98,6 +104,10 @@ import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchm
     ChangepasswordComponent,
     NavbarComponent,
     DashboardComponent,
+
+    FrpTrpDashboardComponent,
+    UserDashboardComponent,
+
     WardenInvitationFormComponent,
     SignoutComponent,
     CompanyInformationComponent,
@@ -119,6 +129,7 @@ import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchm
     ViewSingleLocation,
     LocationComponent,
     VerificationComponent,
+    ArchivedLocationListComponent,
     // ViewSublocationComponent
 
     TeamsComponent,

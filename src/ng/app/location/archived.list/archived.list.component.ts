@@ -16,12 +16,12 @@ import { isArray } from 'util';
 
 declare var $: any;
 @Component({
-  selector: 'app-location-list',
-  templateUrl: './location-list.component.html',
-  styleUrls: ['./location-list.component.css'],
+  selector: 'app-archived-location-list',
+  templateUrl: './archived.list.component.html',
+  styleUrls: ['./archived.list.component.css'],
   providers : [LocationsService, DashboardPreloaderService, AuthService, AccountsDataProviderService, EncryptDecryptService]
 })
-export class LocationListComponent implements OnInit, OnDestroy {
+export class ArchivedLocationListComponent implements OnInit, OnDestroy {
 
 	@ViewChild('inpSearchLoc') inpSearchLoc;
 	@ViewChild('tbodyElem') tbodyElem;
@@ -36,7 +36,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	private mutationOversable;
 
 	arraySelectedLocs = [];
-	selectedArchive = {
+	selectedRestore = {
 		length : 0
 	};
 
@@ -98,7 +98,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	}
 
 	getLocationsForListing(callback){
-		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
+		this.locationService.getArchivedParentLocationsForListing(this.userData['accountId'], (response) => {
     		
     		this.locations = response.locations;
     		if (this.locations.length > 0) {
@@ -133,7 +133,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 			let target = $(e.target),
 				val = target.val();
 
-			if(val == 'archive'){
+			if(val == 'restore'){
 				$('select.bulk-manage').val("0").material_select("update");
 				if(this.arraySelectedLocs.length > 0){
 					$('#modalArchiveBulk').modal('open');
@@ -142,7 +142,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	bulkArchiveClick(){
+	bulkRestoreClick(){
 		if(this.arraySelectedLocs.length > 0){
 			this.modalArchiveBulk.loader = true;
 			let locs = [];
@@ -150,7 +150,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 			for(let i in this.arraySelectedLocs){
 				locs.push({
 					location_id : this.encryptDecrypt.decrypt(this.arraySelectedLocs[i]['location_id']),
-					archived : 1
+					archived : 0
 				});
 			}
 
@@ -165,19 +165,20 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				this.getLocationsForListing(() => {
 					this.modalArchiveBulk.loader = false;
 					$('#modalArchiveBulk').modal('close');
+					
 		    	});
 			});
 		}
 	}
 
-	archiveClick(){
-		if(this.selectedArchive.length > 0){
+	restoreClick(){
+		if(this.selectedRestore.length > 0){
 			this.modalArchive.loader = true;
 			let locs = [];
 
 			locs.push({
-				location_id : this.encryptDecrypt.decrypt(this.selectedArchive['location_id']),
-				archived : 1
+				location_id : this.encryptDecrypt.decrypt(this.selectedRestore['location_id']),
+				archived : 0
 			});
 
 			this.locationService.archiveMultipleLocation({
@@ -211,19 +212,18 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				let locIdEnc = val.replace('addwardens-', '');
 
 				this.router.navigate(["/teams/add-wardens", locIdEnc]);
-			}else if(val.indexOf("archive-") > -1){
-				let locIdEnc = val.replace('archive-', '');
+			}else if(val.indexOf("restore-") > -1){
+				let locIdEnc = val.replace('restore-', '');
 
 				for(let i in this.locationsBackup){
 					if(this.locationsBackup[i]['location_id'] == locIdEnc){
-						this.selectedArchive = this.locationsBackup[i];
-						this.selectedArchive.length = 1;
+						this.selectedRestore = this.locationsBackup[i];
+						this.selectedRestore.length = 1;
 						$('#modalArchive').modal('open');
 					}
 				}
 
 			}
-
 		});
 	}
 

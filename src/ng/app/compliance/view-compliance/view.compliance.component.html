@@ -1234,14 +1234,13 @@
 							<div class="arrow"></div>
 						</td>
 						<td class="with-bar" *ngIf="k.type == 'percent'">
-							<div class="text">0%</div>
+							<div class="text">{{k.compliance.percentage}}</div>
 							<div class="progress-container">
 								<div class="progress">
-							    	<div class="determinate" style="width: 0%;"></div>
+							    	<div class="determinate" [ngStyle]="{'width': k.compliance.percentage}"></div>
 								</div>
-								<p>0/0</p>
+								<p> {{k.compliance.total_personnel_trained.total_passed}} / {{k.compliance.total_personnel}} </p>
 							</div>
-
 							<div class="arrow"></div>
 						</td>
 					</tr>

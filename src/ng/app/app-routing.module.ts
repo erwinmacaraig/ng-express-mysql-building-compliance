@@ -7,6 +7,10 @@ import { SignupComponent } from './signup/signup.component';
 import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+
+import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
+import { UserDashboardComponent  } from './dashboard/user/user.component';
+
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
@@ -31,6 +35,7 @@ import { ViewSingleLocation } from './location/view.single/view-single.component
 import { LocationComponent } from './location/location.component';
 import { SublocationComponent } from './location/sublocation/sublocation.component';
 import { VerificationComponent } from './location/verification/verification.component';
+import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 
@@ -84,7 +89,9 @@ const appRoutes: Routes = [
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-user-password/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
-  { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent, children: [
+  { path: 'dashboard',  component: DashboardComponent, children: [
+      { path: 'main', component : FrpTrpDashboardComponent },
+      { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
       { path: 'company-information', component: CompanyInformationComponent },
       { path : 'send-invite', component : SendInviteComponent }
@@ -98,6 +105,7 @@ const appRoutes: Routes = [
   /*{ path: '**', redirectTo: '/dashboard'},*/
   { path: 'location', component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
+    { path: 'archived/list', component: ArchivedLocationListComponent },
     { path: 'search', component: SearchLocationComponent },
     { path: 'view/:encrypted', component: ViewSingleLocation },
     { path: 'view-sublocation/:encrypted', component: SublocationComponent },
@@ -115,6 +123,7 @@ const appRoutes: Routes = [
     path : 'teams', canActivate: [AuthGuard], component : TeamsComponent,
     children : [
       { path : 'add-wardens', component : TeamsAddWardenComponent },
+      { path : 'add-wardens/:location_id', component : TeamsAddWardenComponent },
       { path : 'mobility-impaired', component : MobilityImpairedComponent },
       { path : 'mobility-impaired-archived', component : MobilityImpairedArchivedComponent },
       { path : 'add-mobility-impaired', component : AddMobilityImpairedComponent },
@@ -123,6 +132,7 @@ const appRoutes: Routes = [
       { path : 'all-users', component : AllUsersComponent },
       { path : 'all-archived-users', component : AllUsersArchivedComponent },
       { path : 'add-user', component : AddUserComponent },
+      { path : 'add-user/:role/:location_id', component : AddUserComponent },
       { path : 'view-user/:encrypted', component : ViewUserComponent },
       { path : 'view-warden', component : ViewWardenComponent },
       { path : 'view-gen-occupant', component : ViewGeneralOccupantComponent },

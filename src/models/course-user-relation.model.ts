@@ -1,5 +1,7 @@
+
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
+import { TrainingCertification } from './training.certification.model';
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
@@ -15,7 +17,7 @@ export class CourseUserRelation extends BaseClass {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT * FROM course_user_relation WHERE course_user_relation_id = ?`;
       const connection = db.createConnection(dbconfig);
-      connection.query(sql_load, [this.ID], (error, results, fields) => {
+      connection.query(sql_load, [this.ID()], (error, results, fields) => {
         if (error) {
           console.log('course-user-relation.model.load', error, sql_load);
           throw new Error('There was a problem loading course user relation id');
@@ -37,10 +39,12 @@ export class CourseUserRelation extends BaseClass {
       const sql_insert = `INSERT INTO course_user_relation (
         user_id,
         course_id,
-      ) VALUES (?, ?)`;
+        training_requirement_id
+      ) VALUES (?, ?, ?)`;
       const param = [
         ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
-        ('course_id' in this.dbData) ? this.dbData['course_id'] : 0
+        ('course_id' in this.dbData) ? this.dbData['course_id'] : 0,
+        ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0
       ];
       const connection = db.createConnection(dbconfig);
       connection.query(sql_insert, param, (error, results, fields) => {
@@ -60,13 +64,15 @@ export class CourseUserRelation extends BaseClass {
     return new Promise((resolve, reject) => {
       const sql_update = `UPDATE course_user_relation SET
                             user_id = ?,
-                            course_id = ?
+                            course_id = ?,
+                            training_requirement_id = ?
                           WHERE
                             course_user_relation_id = ?
       `;
       const param = [
         ('user_id' in this.dbData) ? this.dbData['user_id'] : null,
         ('course_id' in this.dbData) ? this.dbData['course_id'] : null,
+        ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
         this.ID() ? this.ID() : 0
       ];
       const connection = db.createConnection(dbconfig);
@@ -154,4 +160,32 @@ export class CourseUserRelation extends BaseClass {
       connection.end();
     });
   }
+
+  public updateUserTrainingCourseCertificate() {
+    return new Promise((resolve, reject) => {
+      if (!this.id) {
+        console.log('No object reference. Please pass object ID');
+        reject('Cannot instantiate, no object id present');
+        return;
+      }
+      const trainingCertObj = new TrainingCertification();
+      this.load().then((courseUserRelationData) => {
+        console.log(courseUserRelationData);
+        trainingCertObj.checkAndUpdateTrainingCert({
+          'training_requirement_id': courseUserRelationData['training_requirement_id'],
+          'user_id': courseUserRelationData['user_id']
+        }).then((data) => {
+          resolve(true);
+        }).catch((e) => {
+          console.log(e);
+          reject(e);
+        });
+      }).catch((er) => {
+        console.log(er);
+        reject('Unable to load data');
+      });
+    });
+  }
+
+
 }

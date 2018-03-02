@@ -82,7 +82,7 @@ export class EmailSender {
         return email;
     }
 
-    public send(success, error){
+    public async send(success, error){
         var
         email = this.buildEmail(),
         params = {
@@ -116,7 +116,7 @@ export class EmailSender {
             }
         });
         */
-        this.ses.sendEmail(params, function(err, data) {
+        await this.ses.sendEmail(params, function(err, data) {
           if(err) {
               error(err);
           }

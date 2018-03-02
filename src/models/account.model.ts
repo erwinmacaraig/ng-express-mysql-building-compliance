@@ -252,9 +252,12 @@ export class Account extends BaseClass {
         });
     }
 
-    public getLocationsOnAccount(user_id?: number, role_id?: number): Promise<Object[]> {
+    public getLocationsOnAccount(user_id?: number, role_id?: number, archived?): Promise<Object[]> {
         return new Promise((resolve, reject) => {
             let user_filter = '';
+            if(archived == undefined){
+              archived = 0;
+            }
             let role_filter = '';
             if (role_id) {
                 role_filter = `AND LAU.role_id = ${role_id}`;
@@ -272,7 +275,8 @@ export class Account extends BaseClass {
             locations.name,
             locations.formatted_address,
             locations.location_id,
-            locations.google_photo_url
+            locations.google_photo_url,
+            locations.admin_verified
             FROM
             locations
             INNER JOIN
@@ -281,13 +285,13 @@ export class Account extends BaseClass {
             locations.location_id = LAU.location_id
             WHERE
             LAU.account_id = ?
-            AND locations.archived = 0
+            AND locations.archived = ?
             ${user_filter} ${role_filter}
             GROUP BY locations.location_id
             ORDER BY
             locations.location_id;
             `;
-            const val = [this.ID()];
+            const val = [this.ID(), archived];
             const connection = db.createConnection(dbconfig);
 
             connection.query(sql_get_locations, val, (err, results, fields) => {

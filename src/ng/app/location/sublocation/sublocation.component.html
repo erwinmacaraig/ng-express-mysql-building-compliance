@@ -99,22 +99,31 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr>
+							<tr *ngIf="tenants.length == 0">
+								<td class="center" colspan="6">
+									<strong>No tenants found</strong>
+								</td>
+							</tr>
+							<tr *ngFor="let tenant of tenants">
 								<td>
-									Account name
+									{{tenant.account_name}}
 								</td>
 								<td>
-									Trp Name
+									{{tenant.trp_name}}
 								</td>
 								<td>
-									5/20
+									{{tenant.warden_benchmarking}}
 								</td>
 								<td>
-									5/20
+									{{tenant.wardens}}
 								</td>
-								<td class="compliance">
-									<div class="percent">0%</div>
-									<div class="bar"></div>
+								<td class="with-bar">
+									<div class="text">0%</div>
+									<div class="progress-container">
+										<div class="progress">
+									    	<div class="determinate" style="width: 0%;"></div>
+										</div>
+									</div>
 								</td>
 								<td class="select-blue">
 									<select>
@@ -125,7 +134,7 @@
 							</tr>
 							<tr>
 								<td colspan="6" class="btn-block-holder">
-									<button class="btn blue waves-effect waves-light">+ Add new tenant</button>
+									<a class="btn blue waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', encLocId]">+ Add new tenant</a>
 								</td>
 							</tr>
 						</tbody>

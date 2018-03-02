@@ -7,6 +7,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AuthService } from '../../services/auth.service';
+import { UserService } from '../../services/users';
 import { LocationsService } from '../../services/locations';
 import { Countries } from '../../models/country.model';
 
@@ -48,13 +49,16 @@ export class ViewSublocationComponent implements OnInit, OnDestroy {
     showLoaderModalSublocation = false;
     selectedLocationToArchive = {};
 
+    routeSubs;
+
 	constructor(
 		private auth: AuthService,
 		private preloaderService : DashboardPreloaderService,
 		private locationService : LocationsService,
 		private encryptDecrypt : EncryptDecryptService,
 		private route: ActivatedRoute,
-		private router: Router
+		private router: Router,
+		private userService : UserService
 		){
 		this.userData = this.auth.getUserData();
 	}
@@ -68,7 +72,7 @@ export class ViewSublocationComponent implements OnInit, OnDestroy {
 	ngOnInit(){
 		$('select').material_select();
 
-		this.route.params.subscribe((params) => {
+		this.routeSubs = this.route.params.subscribe((params) => {
 			this.encryptedID = params['encrypted'];
 			this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
 			this.locationService.getById(this.locationID, (response) => {
@@ -84,6 +88,10 @@ export class ViewSublocationComponent implements OnInit, OnDestroy {
 				for(let i in this.locationData['sublocations']){
 					this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
 				}
+
+				this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
+					console.log(tenantsResponse);
+				});
 			});
 		});
 	}
@@ -116,6 +124,8 @@ export class ViewSublocationComponent implements OnInit, OnDestroy {
         );
     }
 
-	ngOnDestroy(){}
+	ngOnDestroy(){
+		this.routeSubs.unsubscribe();
+	}
 
 }

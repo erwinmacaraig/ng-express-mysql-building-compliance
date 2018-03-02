@@ -180,4 +180,13 @@ export class UserService {
 		});
 	}
 
+	getTenantsInLocation(locId, callBack){
+		this.http.get(this.baseUrl+"/users/get-tenants/"+locId)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 }

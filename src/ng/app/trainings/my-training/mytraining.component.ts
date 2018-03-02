@@ -114,7 +114,8 @@ export class MyTrainingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  public onCloseCourseModule() {
+  public onCloseCourseModule(course: object = {}) {
+
     this.complianceService.getAllRegisteredCourses().subscribe((data) => {
       console.log(data);
       if (data['courses'].length > 0) {

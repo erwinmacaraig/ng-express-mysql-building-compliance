@@ -38,7 +38,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         country : '',
         google_photo_url: '',
         formatted_address: '',
-        sublocations : []
+        sublocations : [],
+        admin_verified : 0
     };
     private sub;
     private loc_sub;
@@ -111,6 +112,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                     this.locationData.formatted_address = response.location.formatted_address;
                     this.locationData.sublocations = response.sublocations;
                     this.locationData.google_photo_url = response.location.google_photo_url || undefined;
+                    this.locationData.admin_verified = response.location.admin_verified;
                     if (response.location.parent_id === -1) {
                         this.isHome = true;
                     }
@@ -132,6 +134,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         });
 
 		// DONUT update
+        // Donut Service
 		// this.donut.updateDonutChart('#specificChart', 30, true);
 	}
 
@@ -239,6 +242,10 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 let locIdEnc = val.replace('viewsub-', '');
 
                 this.router.navigate(["/location/view-sublocation/", locIdEnc]);
+            }else if(val.indexOf('addtenants-') > -1){
+                let locIdEnc = val.replace('addtenants-', '');
+
+                this.router.navigate(["/teams/add-user/tenant", locIdEnc]);
             }
         });
 

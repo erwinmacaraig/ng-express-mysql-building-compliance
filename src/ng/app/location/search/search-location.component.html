@@ -43,7 +43,7 @@
 		</div>
 		<div class="col s12 m6 l6">
 			<div class="input-field">
-				<input id="inpLevels" type="number" placeholder="Number of levels here" min="1" value="1" [formControl]="numLevels">
+				<input id="inpLevels" type="number" placeholder="Number of levels here" min="1" max="100" value="0" (change)="changeTotalLevels()">
 				<label for="inpLevels" class="active" style="width: 460px;"> The total numbers of levels, including Carpark, Plant Room & Others </label>
 			</div>
 		</div>
@@ -51,37 +51,37 @@
 			<div class="inline-block">
 				<span>Occupiable Level</span>
 				<div class="input-arrow-up-down" >
-					<input type="text" readonly value="0">
-					<button class="btn-arrow-up waves-effect waves-light" ><i class="material-icons">arrow_drop_up</i></button>
-					<button class="btn-arrow-down waves-effect waves-light"  ><i class="material-icons">arrow_drop_down</i></button>
+					<input type="text" readonly class="input-level" value="0" #inpOccupiable>
+					<button class="btn-arrow-up waves-effect waves-light" (click)="addLevel('occupiable', inpOccupiable)"><i class="material-icons">arrow_drop_up</i></button>
+					<button class="btn-arrow-down waves-effect waves-light"  (click)="subtractLevel('occupiable', inpOccupiable)"><i class="material-icons">arrow_drop_down</i></button>
 				</div>
 			</div>
 			<div class="inline-block">
 				<span>Carpark</span>
 				<div class="input-arrow-up-down" >
-					<input type="text" readonly value="0">
-					<button class="btn-arrow-up waves-effect waves-light" ><i class="material-icons">arrow_drop_up</i></button>
-					<button class="btn-arrow-down waves-effect waves-light"  ><i class="material-icons">arrow_drop_down</i></button>
+					<input type="text" readonly class="input-level" value="0" #inpCarPark>
+					<button class="btn-arrow-up waves-effect waves-light" (click)="addLevel('carpark', inpCarPark)"><i class="material-icons">arrow_drop_up</i></button>
+					<button class="btn-arrow-down waves-effect waves-light"  (click)="subtractLevel('carpark', inpCarPark)"><i class="material-icons">arrow_drop_down</i></button>
 				</div>
 			</div>
 			<div class="inline-block">
 				<span>Plant Room</span>
 				<div class="input-arrow-up-down" >
-					<input type="text" readonly value="0">
-					<button class="btn-arrow-up waves-effect waves-light" ><i class="material-icons">arrow_drop_up</i></button>
-					<button class="btn-arrow-down waves-effect waves-light"  ><i class="material-icons">arrow_drop_down</i></button>
+					<input type="text" readonly class="input-level" value="0" #inpPlatRoom>
+					<button class="btn-arrow-up waves-effect waves-light" (click)="addLevel('plantroom', inpPlatRoom)"><i class="material-icons">arrow_drop_up</i></button>
+					<button class="btn-arrow-down waves-effect waves-light"  (click)="subtractLevel('plantroom', inpPlatRoom)"><i class="material-icons">arrow_drop_down</i></button>
 				</div>
 			</div>
 			<div class="inline-block">
 				<span>Others</span>
 				<div class="input-arrow-up-down" >
-					<input type="text" readonly value="0">
-					<button class="btn-arrow-up waves-effect waves-light" ><i class="material-icons">arrow_drop_up</i></button>
-					<button class="btn-arrow-down waves-effect waves-light"  ><i class="material-icons">arrow_drop_down</i></button>
+					<input type="text" readonly class="input-level" value="0" #inpOthers>
+					<button class="btn-arrow-up waves-effect waves-light" (click)="addLevel('others', inpOthers)"><i class="material-icons">arrow_drop_up</i></button>
+					<button class="btn-arrow-down waves-effect waves-light"  (click)="subtractLevel('others', inpOthers)"><i class="material-icons">arrow_drop_down</i></button>
 				</div>
 			</div>
 			<div class="inline-block">
-				<button class="btn waves-effect waves-light orange" > Proceed </button>
+				<button class="btn waves-effect waves-light orange" (click)="prodceedNewLocation()"> Proceed </button>
 			</div>
 			
 		</div>
@@ -118,7 +118,7 @@
     </div>
 
 
-	<div class="row" *ngIf="emailVerified">
+	<div class="row" *ngIf="false">
 		<div class="col s12 m12 l12 center-align">
 			<button class="btn btn-add-multiple">
 				<img class="image" src="assets/images/locations/multiple_locations.png" >
@@ -178,7 +178,6 @@
 		</div>
 	</form>
 </div>
-
 
 <div id="modalSublocations" class="modal modal-sublocations">
 	<div class="modal-content">
@@ -301,6 +300,61 @@
 			</form>
 		</div>
 
+
+	</div>
+</div>
+
+
+<div id="modalCreateNewLocation" class="modal">
+	
+	<div class="modal-content center-align" *ngIf="modalCreateNewLocation.showLoader">
+		<div class="preloader-wrapper big active">
+			<div class="spinner-layer spinner-blue-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div>
+				<div class="gap-patch">
+					<div class="circle"></div>
+				</div>
+				<div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+		<h5 style="font-size: 18px;">Saving location...</h5>
+	</div>
+
+	<div class="modal-content" *ngIf="!modalCreateNewLocation.showLoader"  >
+		<h4 class="blue-text header" style="font-size: 22px;">
+			Confirm creation of new location
+		</h4>
+		<p class="address" style="font-size: 16px;">{{formattedAddress}}</p>
+		<p class="address" style=" font-size: 18px; margin: 0px;"> Level Names </p>
+
+		<div style="max-height: 400px; overflow-y: auto; font-size: 16px;">
+			<ul style="padding-left: 20px;">
+				<li  *ngFor="let occup of modalCreateNewLocation.occupiable;" style="list-style-type: disc;">
+					{{occup.name}} {{occup.number}}
+				</li>
+				<li  *ngFor="let car of modalCreateNewLocation.carpark;" style="list-style-type: disc;">
+					{{car.name}} {{car.number}}
+				</li>
+				<li  *ngFor="let plant of modalCreateNewLocation.plantroom;" style="list-style-type: disc;">
+					{{plant.name}} {{plant.number}}
+				</li>
+				<li  *ngFor="let other of modalCreateNewLocation.others;" style="list-style-type: disc;">
+					{{other.name}} {{other.number}}
+				</li>
+			</ul>
+		</div>
+
+
+		<div class="buttons-field" style="margin: 35px 0px 0px 0px;">
+			<button class="btn waves-effect waves-light lighten-1 grey btn-cancel modal-close">Cancel</button>
+			<button class="btn waves-effect waves-light orange btn-submit" (click)="submitNewLocation()">Submit</button>
+		</div>
+		
+		<div class="clearfix"></div>
 
 	</div>
 </div>
