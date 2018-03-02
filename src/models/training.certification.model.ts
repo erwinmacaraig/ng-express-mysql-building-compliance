@@ -3,6 +3,7 @@ import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
+import * as moment from 'moment';
 
 export class TrainingCertification extends BaseClass {
 
@@ -39,7 +40,7 @@ export class TrainingCertification extends BaseClass {
       const sql_insert = `INSERT INTO certifications (
         training_requirement_id,
         course_method,
-        third_party,
+        third_party_name,
         description,
         user_id,
         certification_date,
@@ -50,11 +51,11 @@ export class TrainingCertification extends BaseClass {
       const connection = db.createConnection(dbconfig);
       const values = [
         ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
-        ('course_method' in this.dbData) ? this.dbData['course_method'] : '',
-        ('third_party' in this.dbData) ? this.dbData['third_party'] : null,
+        ('course_method' in this.dbData) ? this.dbData['course_method'] : 'online_by_evac',
+        ('third_party_name' in this.dbData) ? this.dbData['third_party_name'] : null,
         ('description' in this.dbData) ? this.dbData['description'] : null,
-        ('user_id' in this.dbData) ? this.dbData[''] : 0,
-        ('certification_date' in this.dbData) ? this.dbData['certification_date'] : null,
+        ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
+        ('certification_date' in this.dbData) ? this.dbData['certification_date'] : moment().format('YYYY-MM-DD'),
         ('pass' in this.dbData) ? this.dbData['pass'] : 1,
         ('registered' in this.dbData) ? this.dbData['registered'] : 1
       ];
@@ -77,7 +78,7 @@ export class TrainingCertification extends BaseClass {
       const sql_update = `UPDATE certifications SET
           training_requirement_id = ?,
           course_method = ?,
-          third_party = ?,
+          third_party_name = ?,
           description = ?,
           user_id = ?,
           certification_date = ?,
@@ -88,8 +89,8 @@ export class TrainingCertification extends BaseClass {
       `;
       const values = [
         ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
-        ('course_method' in this.dbData) ? this.dbData['course_method'] : '',
-        ('third_party' in this.dbData) ? this.dbData['third_party'] : null,
+        ('course_method' in this.dbData) ? this.dbData['course_method'] : 'online_by_evac',
+        ('third_party_name' in this.dbData) ? this.dbData['third_party_name'] : null,
         ('description' in this.dbData) ? this.dbData['description'] : null,
         ('user_id' in this.dbData) ? this.dbData[''] : 0,
         ('certification_date' in this.dbData) ? this.dbData['certification_date'] : null,
@@ -112,12 +113,13 @@ export class TrainingCertification extends BaseClass {
   public create(createData) {
     return new Promise((resolve, reject) => {
       Object.keys(createData).forEach((key) => {
+        console.log(`key is ${key} and value is ${createData[key]}`);
         this.dbData[key] = createData[key];
         if ('certifications_id' in createData) {
           this.id = createData['certifications_id'];
         }
-        resolve(this.write());
       });
+      resolve(this.write());
     });
   }
 
@@ -193,4 +195,58 @@ export class TrainingCertification extends BaseClass {
       connection.end();
     });
   }
+
+  public checkAndUpdateTrainingCert(certData: object = {}) {
+    return new Promise((resolve, reject) => {
+      let sql_where_filter = 'WHERE 1=1';
+      sql_where_filter += ('training_requirement_id' in certData) ?
+        ` AND certifications.training_requirement_id = ${certData['training_requirement_id']}` : '';
+
+      sql_where_filter += ('user_id' in certData) ? ` AND certifications.user_id = ${certData['user_id']}` :'';
+
+      sql_where_filter += ('certifications_id' in certData) ?
+        `AND certifications.certifications_id = ${certData['certifications_id']}` : '';
+
+      const sql_check = `SELECT
+            certifications.certifications_id,
+            certifications.training_requirement_id,
+            certifications.user_id,
+            certifications.certification_date,
+            DATE_ADD(certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
+            certifications.pass,
+            IF (certification_date IS NOT NULL,
+              IF(DATE_ADD(certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'active', 'expired'),
+                'not taken') as validity
+          FROM
+            certifications
+          INNER JOIN
+            training_requirement
+          ON
+            training_requirement.training_requirement_id = certifications.training_requirement_id
+          ${sql_where_filter}
+          AND DATE_ADD(certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()
+      `;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_check, [], (error, results, fields) => {
+        if (error) {
+          console.log('Cannot check the data of this given certificate', error, certData, sql_check);
+          throw new Error('Cannot check the data of this given certificate');
+        }
+        // there is no certification or certification is expired
+        if (!results.length) {
+          this.create(certData).then((data) => {
+            resolve(true);
+          }).catch((e) => {
+            console.log('training.certification.model creating/updating certification failed');
+            reject('training.certification.model creating/updating certification failed');
+          });
+        } else {
+          reject('Certificate is still valid');
+        }
+      });
+      connection.end();
+
+    });
+  }
+
 }
