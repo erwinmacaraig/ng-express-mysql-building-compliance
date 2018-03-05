@@ -9,9 +9,16 @@
 			<div class="row">
 				<div class="col m5 s12 left-column ">
 					<form  novalidate (ngSubmit)="signInFormSubmit(formSignIn)" #formSignIn="ngForm">
-
-						<input type="text" name="username" placeholder="Username or Email" id="username" ngModel /><br>
-						<input type="password" name="password" placeholder="Password" id="password" ngModel /><br>
+						<div class="username-container">
+							<div class="image"></div>
+							<input type="text" name="username" placeholder="Username or Email" id="username" ngModel />
+						</div>
+						<div class="password-container">
+							<div class="image"></div>
+							<input type="password" name="password" placeholder="Password" id="password" ngModel />
+						</div>
+						
+						
 						<p *ngIf="showInvalid" class="error-message">Invalid username/email or password</p>
 						<p *ngIf="showErrorOccured" class="error-message">{{errorOccuredMessage}}</p>
 						<p *ngIf="showSuccess" class="success-message"> Success! </p>
