@@ -621,8 +621,8 @@ export class UsersRoute extends BaseRoute {
 			users[i]['errors'] = {};
 
 			if(isEmailValid){
-				isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
-				if(!isBlackListedEmail){
+				// isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
+				// if(!isBlackListedEmail){
 					await userModel.getByEmail(users[i]['email']).then(
 						() => {
 							console.log(userModel.getDBData());
@@ -631,10 +631,10 @@ export class UsersRoute extends BaseRoute {
 						},
 						() => {}
 					);
-				}else{
-					users[i]['errors']['blacklisted'] = true;
-					hasError = true;
-				}
+				// }else{
+				// 	users[i]['errors']['blacklisted'] = true;
+				// 	hasError = true;
+				// }
 			}else{
 				users[i]['errors']['invalid'] = true;
 				hasError = true;

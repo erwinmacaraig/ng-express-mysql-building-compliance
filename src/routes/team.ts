@@ -366,10 +366,10 @@ export class TeamRoute extends BaseRoute {
       } catch (e) {
         if (validator.isEmail(p['email'])) {
 
-          if(new BlacklistedEmails().isEmailBlacklisted(p['email'])){
-            p['errors']['blacklisted'] = true;
-            invalidPeep.push(p);
-          }else{
+          // if(new BlacklistedEmails().isEmailBlacklisted(p['email'])){
+          //   p['errors']['blacklisted'] = true;
+          //   invalidPeep.push(p);
+          // }else{
             p['invited_by_user'] = req.user.user_id;
             p['account_id'] = req.user.account_id;
             const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
@@ -441,7 +441,7 @@ export class TeamRoute extends BaseRoute {
             email.send((data) => console.log(data),
                        (err) => console.log(err)
                       );
-          }
+          //}
 
         } else {
           p['errors']['invalid'] = true;
@@ -470,10 +470,10 @@ export class TeamRoute extends BaseRoute {
       } catch (e) {
 
         if (validator.isEmail(warden['email'])) {
-          if(new BlacklistedEmails().isEmailBlacklisted(warden['email'])){
-            warden['errors']['blacklisted'] = true;
-            invalidWarden.push(warden);
-          }else{
+          // if(new BlacklistedEmails().isEmailBlacklisted(warden['email'])){
+          //   warden['errors']['blacklisted'] = true;
+          //   invalidWarden.push(warden);
+          // }else{
             const userInvitation = new UserInvitation();
             const tokenModel = new Token();
             const tokenStr = tokenModel.generateRandomChars(10);
@@ -517,7 +517,7 @@ export class TeamRoute extends BaseRoute {
             email.send((data) => console.log(data),
                        (err) => console.log(err)
                       );
-          }
+          // }
         } else {
           warden['errors']['invalid'] = true;
           invalidWarden.push(warden);
