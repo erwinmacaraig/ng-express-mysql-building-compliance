@@ -880,6 +880,11 @@ export class TeamRoute extends BaseRoute {
             arrWhere.push( ["lau.role_id IN ("+allowedRoleIds.join(',')+")" ] );
 
         let locations = await locationAccountUser.getMany(arrWhere);
+        for(let i in locations){
+          if(locations[i]['parent_name'] == null){
+            locations[i]['parent_name'] = '';
+          }
+        }
 
         response['locations'] = locations;
 
@@ -1170,7 +1175,7 @@ export class TeamRoute extends BaseRoute {
           user.locations.push({
             location_id : user.location_id,
             name : user.location_name,
-            parent_name : user.parent_name
+            parent_name : (user.parent_name == null) ? '' : user.parent_name
           });
           toSendData.push(user);
         }

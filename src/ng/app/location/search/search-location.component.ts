@@ -516,13 +516,13 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
             let total = this.getTotalCountOfLevelValues(),
                 inpLevels = $('#inpLevels');
 
-            if( total <= 100 ){ 
+            if( total <= 100 && inpLevels.val() > total){ 
                 this.LEVELS[type] += 1;
                 input.value = this.LEVELS[type];
 
-                if(inpLevels.val() <= total){
+                /*if(inpLevels.val() <= total){
                     $('#inpLevels').val(total + 1);
-                }
+                }*/
             }
         }
     }
