@@ -1,0 +1,136 @@
+.reports-navigation{
+	border-bottom: 1px solid #ddd;
+}
+
+.reports-navigation ul{
+	margin: 0px;
+}
+
+.reports-navigation ul li{
+	display: inline-block;
+	padding: 20px;
+	cursor: pointer;
+	height: 70px;
+	margin-right: -4px;
+}
+
+.reports-navigation ul li .default,
+.reports-navigation ul li .hover{
+	vertical-align: middle;
+	display: none;
+}
+
+.reports-navigation ul li .default{
+	display: inline-block;
+}
+
+.reports-navigation ul li:hover .default{
+	display: none;
+}
+
+.reports-navigation ul li:hover .hover,
+.reports-navigation ul li.active .hover{
+	display: inline-block;
+}
+
+.reports-navigation ul li.active .default{
+	display: none;
+}
+
+.reports-navigation ul li.green-theme:hover,
+.reports-navigation ul li.green-theme:hover a{
+	background-color: #36bb9b;
+	color: #fff;
+}
+
+.reports-navigation ul li.green-theme{
+	border-bottom: 1px solid #36bb9b;
+}
+
+.reports-navigation ul li.green-theme:hover{
+	border-bottom: 2px solid #36bb9b;
+}
+
+.reports-navigation ul li.active.green-theme,
+.reports-navigation ul li.active.green-theme a{
+	background-color: #36bb9b;
+	color: #fff;
+}
+
+.reports-navigation ul li.pink-theme:hover,
+.reports-navigation ul li.pink-theme:hover a{
+	background-color: #dc4453;
+	color: #fff;
+}
+
+.reports-navigation ul li.pink-theme:hover{
+	border-bottom: 2px solid #dc4453;
+}
+
+.reports-navigation ul li.active.pink-theme,
+.reports-navigation ul li.active.pink-theme a{
+	background-color: #dc4453;
+	color: #fff;
+}
+
+.reports-navigation ul li.pink-theme{
+	border-bottom: 1px solid #dc4453;
+}
+
+.reports-navigation ul li.purple-theme:hover,
+.reports-navigation ul li.purple-theme:hover a{
+	background-color: #cda4e6;
+	color: #fff;
+}
+
+.reports-navigation ul li.purple-theme:hover{
+	border-bottom: 2px solid #cda4e6;
+}
+
+.reports-navigation ul li.active.purple-theme,
+.reports-navigation ul li.active.purple-theme a{
+	background-color: #cda4e6;
+	color: #fff;
+}
+
+.reports-navigation ul li.purple-theme{
+	border-bottom: 1px solid #cda4e6;
+}
+
+.reports-navigation a{
+	color: #545454;
+	font-size: 16px;
+}
+
+.reports-navigation .default,
+.reports-navigation .hover{
+	-moz-box-sizing: border-box;
+    box-sizing: border-box;
+    background: url('/assets/images/sprite_report.png') no-repeat;
+    width: 38px;
+    height: 38px;
+}
+
+.reports-navigation .locations .default{
+	background-position: 27% 67%;
+}
+
+.reports-navigation .locations .hover{
+	background-position: 27% 92%;
+}
+
+.reports-navigation .teams .default{
+	background-position: 44.4% 67%;
+}
+
+.reports-navigation .teams .hover{
+	background-position: 44.4% 91.5%;
+}
+
+.reports-navigation .trainings .default{
+	background-position: 9.4% 67%;
+}
+
+.reports-navigation .trainings .hover{
+	background-position: 9.5% 91.3%;
+}

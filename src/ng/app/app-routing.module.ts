@@ -72,6 +72,14 @@ import { MyTrainingsComponent } from './trainings/my-training/mytraining.compone
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
 
+import { ReportsComponent } from './reports/reports.component';
+import { ReportsLocationsComponent  } from './reports/locations/reports.locations.component';
+import { ReportsLocationsSummaryOfComplianceComponent  } from './reports/summary-of-compliance/summary.of.compliance.component';
+import { ReportsLocationsComplianceComponent } from './reports/location-compliance/location.compliance.component';
+import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
+import { ReportsTeamsComponent } from './reports/teams/teams.component';
+import { ReportsTrainingsComponent  } from './reports/trainings/trainings.component';
+
 // To delete
 import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 const appRoutes: Routes = [
@@ -164,6 +172,17 @@ const appRoutes: Routes = [
   },
   {
     path: 'warden-benchmarking', component: WardenBenchMarkingComponent
+  },
+  {
+    path : 'reports', component : ReportsComponent,
+    children : [
+      {  path : 'locations', component : ReportsLocationsComponent },
+      { path : 'locations/summary-of-compliance', component : ReportsLocationsSummaryOfComplianceComponent },
+      { path : 'locations/location-compliance', component : ReportsLocationsComplianceComponent },
+      { path : 'locations/statement-compliance', component : ReportsLocationsStatementComplianceComponent },
+      { path : 'teams', component : ReportsTeamsComponent },
+      { path : 'trainings', component : ReportsTrainingsComponent }
+    ]
   }
 ];
 
