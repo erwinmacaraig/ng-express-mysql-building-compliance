@@ -234,6 +234,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
                 this.selectedUser['location_id'] = selectedLocationId;
+            }else if( parseInt(this.selectedUser['account_location_id']) > 0 ){
+                this.selectedUser['location_id'] = this.selectedUser['account_location_id'];
             }
 
             this.selectedUser['location_name'] = '';
