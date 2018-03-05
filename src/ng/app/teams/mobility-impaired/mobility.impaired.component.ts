@@ -189,8 +189,9 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             this.peepList = this.copyOfList;
         }else{
             for(let i in this.copyOfList){
-                let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase();
-                if(name.indexOf(key) > -1){
+                let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase(),
+                    email = this.copyOfList[i]['email'];
+                if(name.indexOf(key) > -1 || email.indexOf(key) > -1){
                     temp.push( this.copyOfList[i] );
                 }
             }

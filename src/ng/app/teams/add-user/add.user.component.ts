@@ -343,8 +343,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
             this.userService.createBulkUsers(this.addedUsers, (response) => {
                 this.addedUsers = response.data;
                 if(this.addedUsers.length == 0){
-                    let prop = JSON.parse(JSON.stringify(this.userProperty));
-                    this.addedUsers.push( prop );
+                    // let prop = JSON.parse(JSON.stringify(this.userProperty));
+                    // this.addedUsers.push( prop );
+                    
+                    this.router.navigate(["/teams/all-users"]);
                 }
                 this.showLoadingButton = false;
             });

@@ -46,7 +46,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     constructor(
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
-        private locationService : LocationsService
+        private locationService : LocationsService,
+        private router : Router
         ) {
 
         this.userData = this.authService.getUserData();
@@ -265,7 +266,9 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         this.dataProvider.addPEEP(strPEEP).subscribe((data) => {
             this.addedUsers = data;
             if(Object.keys(this.addedUsers).length == 0){
-                this.addMoreRow();
+                // this.addMoreRow();
+                
+                this.router.navigate(["/teams/mobility-impaired"]);
             }
         }, (error: HttpErrorResponse) => {
             console.log(error);
