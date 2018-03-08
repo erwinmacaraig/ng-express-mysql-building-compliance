@@ -18,8 +18,8 @@ export class FileUploader {
     public filename;
     public extname = '';
     private uploadDir = this.getUploadDir();
-    private DIR = '/home/ubuntu/EvacPlatform/evacconnect/uploads/';
-    // private DIR = './uploads/';
+    // private DIR = '/home/ubuntu/EvacPlatform/evacconnect/uploads/';
+    private DIR = './uploads/';
 
     constructor(req: Request, res: Response, next: NextFunction) {
       this.req = req;
@@ -176,8 +176,8 @@ export class FileUploader {
 
     public getFile() {
       return new Promise((resolve, reject) => {
-        const fname = this.req.query.fname;
-        const key = this.req.query.keyname;
+        const fname = decodeURIComponent(this.req.query.fname); console.log(this.req.query.fname);
+        const key = decodeURIComponent(this.req.query.keyname);
         const dirPath = __dirname + `/../public/temp/${fname}`;
         const params = {
           Bucket: this.aws_bucket_name,

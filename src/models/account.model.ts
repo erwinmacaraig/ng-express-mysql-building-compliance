@@ -82,7 +82,7 @@ export class Account extends BaseClass {
                         location_account_relation lar
                       INNER JOIN accounts a ON lar.account_id = a.account_id
                       WHERE
-                        lar.location_id  IN (SELECT la.location_id FROM location_account_relation la WHERE la.account_id = ?) 
+                        lar.location_id  IN (SELECT la.location_id FROM location_account_relation la WHERE la.account_id = ?)
                         AND a.archived = 0
                       GROUP BY lar.account_id`;
             const param = [accntId];
@@ -100,7 +100,7 @@ export class Account extends BaseClass {
             });
             connection.end();
         });
-       
+
     }
 
     public searchByAccountName(name: String) {
@@ -263,33 +263,37 @@ export class Account extends BaseClass {
                 role_filter = `AND LAU.role_id = ${role_id}`;
                 if (role_id === 1) {
                     role_filter = `${role_filter} AND locations.parent_id = -1`;
-                } else if (role_id === 2) {
+                } else if (role_id >= 2) {
                     role_filter = `${role_filter} AND locations.parent_id <> -1`;
                 }
+            } else {
+              role_filter = `${role_filter} AND locations.parent_id <> -1 AND locations.is_building = 0`;
             }
             if (user_id) {
                 user_filter = `AND LAU.user_id = ${user_id}`;
             }
             const sql_get_locations = `SELECT
-            locations.parent_id,
-            locations.name,
-            locations.formatted_address,
-            locations.location_id,
-            locations.google_photo_url,
-            locations.admin_verified
+              locations.parent_id,
+              locations.name,
+              locations.formatted_address,
+              locations.location_id,
+              locations.google_photo_url,
+              locations.admin_verified
             FROM
-            locations
+              locations
             INNER JOIN
-            location_account_user LAU
+              location_account_user LAU
             ON
-            locations.location_id = LAU.location_id
+              locations.location_id = LAU.location_id
             WHERE
-            LAU.account_id = ?
-            AND locations.archived = ?
-            ${user_filter} ${role_filter}
-            GROUP BY locations.location_id
+              LAU.account_id = ?
+            AND
+              locations.archived = ?
+              ${user_filter} ${role_filter}
+            GROUP BY
+              locations.location_id
             ORDER BY
-            locations.location_id;
+              locations.location_id;
             `;
             const val = [this.ID(), archived];
             const connection = db.createConnection(dbconfig);
