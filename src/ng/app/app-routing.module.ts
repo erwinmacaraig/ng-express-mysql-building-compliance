@@ -36,6 +36,7 @@ import { LocationComponent } from './location/location.component';
 import { SublocationComponent } from './location/sublocation/sublocation.component';
 import { VerificationComponent } from './location/verification/verification.component';
 import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
+import { WardenLocationComponent } from './location/waden/warden.location.component';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 
@@ -122,7 +123,8 @@ const appRoutes: Routes = [
       children : [
         { path : 'view/:encrypted', component : ViewComplianceComponent }
       ]
-    }
+    },
+    { path : 'warden', component : WardenLocationComponent }
   ]},
   {
     path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
