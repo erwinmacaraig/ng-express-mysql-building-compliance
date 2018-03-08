@@ -1023,21 +1023,21 @@ export class TeamRoute extends BaseRoute {
   }*/
 
   public async buildPEEPList(req: AuthRequest, res:Response, archived?){
-      let accountId = req['user']['account_id'],
-        userID = req['user']['user_id'],
-        locationAccountUser = new LocationAccountUser(),
-        response = {
-            data : <any>[],
-            status : false,
-            message : ''
-        },
-        allParents = [],
-        allUsersModel = new User(),
-        allUsers = <any>[],
-        allUsersIds = [],
-        emRolesModel = new UserEmRoleRelation(),
-        emRoles = await emRolesModel.getEmRoles(),
-        emRolesIndexedId = {};
+    let accountId = req['user']['account_id'],
+      userID = req['user']['user_id'],
+      locationAccountUser = new LocationAccountUser(),
+      response = {
+          data : <any>[],
+          status : false,
+          message : ''
+      },
+      allParents = [],
+      allUsersModel = new User(),
+      allUsers = <any>[],
+      allUsersIds = [],
+      emRolesModel = new UserEmRoleRelation(),
+      emRoles = await emRolesModel.getEmRoles(),
+      emRolesIndexedId = {};
 
     if(!archived){ archived = 0; }
 
@@ -1121,9 +1121,9 @@ export class TeamRoute extends BaseRoute {
 
         user['roles'] = [];
         arrWhere.push( "user_id = "+user["user_id"] );
-        arrWhere.push( "duration_date > NOW()" );
 
         user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
+
         for(let userMobil of user.mobility_impaired_details){
           userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
         }
@@ -1181,7 +1181,6 @@ export class TeamRoute extends BaseRoute {
 
         let arrWhere = [];
         arrWhere.push( "user_invitations_id = "+user["user_invitations_id"] );
-        arrWhere.push( "duration_date > NOW()" );
 
         user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
         for(let userMobil of user.mobility_impaired_details){

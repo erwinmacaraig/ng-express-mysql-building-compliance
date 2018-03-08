@@ -1321,14 +1321,18 @@ export class UsersRoute extends BaseRoute {
 
 		let saveData = {
 			'is_permanent' : req.body.is_permanent,
-			'duration_date' : req.body.duration_date,
 			'assistant_type' : req.body.assistant_type,
 			'equipment_type' : req.body.equipment_type,
+			'duration_date' : '',
 			'evacuation_procedure' : req.body.evacuation_procedure
 		};
 
 		if('mobility_impaired_details_id' in req.body){
 			saveData['mobility_impaired_details_id'] = req.body.mobility_impaired_details_id;
+		}
+
+		if(saveData['is_permanent'] == 0){
+			saveData['duration_date'] = req.body.duration_date;
 		}
 
 		if('user_id' in req.body){

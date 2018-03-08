@@ -88,13 +88,6 @@
 								</span>
 							</label>
 						</p>
-						<p *ngIf="!peep.user_id">
-							<span *ngIf="peep.locations.length > 1">Multiple locations</span>
-							<span *ngIf="peep.locations.length == 1">
-								<span *ngIf="peep.locations[0].parent_name.trim().length > 0">{{ peep.locations[0].parent_name }}, </span>
-								{{peep.locations[0].name}}
-							</span>
-						</p>
 					</td>
 					<td>
 						<div class="image-container lighten-3" [ngClass]="peep.bg_class">
@@ -236,18 +229,19 @@
 			<div class="col s12 l6 m6">
 				<div class="select-field">
 					<span style=" font-size: 16px;">Mobility Impaired Status</span>
-					<select ngModel name="is_permanent">
+					<select ngModel   name="is_permanent">
 						<option value="0" selected="selected">Temporary</option>
-						<option value="1">Permanent</option>
+						<option value="1" >Permanent</option>
 					</select>
 				</div>
 			</div>
 			<div class="col s12 l6 m6">
-				<div class="input-field" >
+				<div class="input-field">
 					<span style=" font-size: 16px;">Mobility Impaired Upto</span>
 					<ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
-					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required>
+					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required >
 				</div>
+
 			</div>
 			<div class="col s12 m12 l12">
 				<h6>Assistant Type</h6>

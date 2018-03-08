@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
+import { NgForm, NgModel } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { LocationsService } from './../../services/locations';
@@ -38,8 +38,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     options: DatepickerOptions = {
         displayFormat: 'MMM D[,] YYYY',
-        minDate: new Date(Date.now()),
-        maxDate: new Date(Date.now())
+        minDate: new Date(Date.now())
     };
 
     datepickerModel : Date;
@@ -79,6 +78,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 $('.row.filter-container select').material_select();
                 this.dashboardService.hide();
             }, 500);
+
         }, (err: HttpErrorResponse) => {});
     }
 
@@ -97,9 +97,13 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             if($('#modalMobility select[name="is_permanent"]').val() == '1'){
                 this.isShowDatepicker = false;
                 $('#durationDate').prop('disabled', true);
+                this.durationDate.nativeElement.value = "no date available";
             }else{
+                this.durationDate.nativeElement.value = "";
                 $('#durationDate').prop('disabled', false);
             }
+
+            $('#modalMobility select[name="is_permanent"]').material_select('update');
         });
     }
 
@@ -230,9 +234,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         }else if('user_invitations_id' in this.selectedToArchive){
             id = this.selectedToArchive['user_invitations_id'];
             this.userService.archiveInvitedUsers([id], cb);
-        }
-
-        
+        } 
     }
 
     selectAllCheckboxEvent(event){
@@ -260,10 +262,18 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             if(list.user_id){
                 this.selectedFromList.push(list);
             }
+
+            if(list.user_invitations_id){
+                this.selectedFromList.push(list);
+            }
         }else{
             let temp = [];
             for(let i in this.selectedFromList){
                 if(this.selectedFromList[i]['user_id'] != list['user_id']){
+                    temp.push( this.selectedFromList[i] );
+                }
+
+                if(this.selectedFromList[i]['user_invitations_id'] != list['user_invitations_id']){
                     temp.push( this.selectedFromList[i] );
                 }
             }
@@ -287,17 +297,29 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     bulkArchiveClick(){
         this.showModalLoader = true;
-        let arrIds = [];
+        let arrIds = [],
+            arrInviteesIds = [];
 
         for(let i in this.selectedFromList){
-            arrIds.push(this.selectedFromList[i]['user_id']);
+            if('user_id' in this.selectedFromList[i]){
+                arrIds.push(this.selectedFromList[i]['user_id']);
+            }
+
+            if('user_invitations_id' in this.selectedFromList[i]){
+                arrInviteesIds.push(this.selectedFromList[i]['user_invitations_id']);
+            }
         }
 
-        this.userService.archiveUsers(arrIds, (response) => {
+        let cb = (response) => {
+            $('#allLocations').prop('checked', false);
             this.showModalLoader = false;
             $('#modalArchiveBulk').modal('close');
             this.dashboardService.show();
             this.ngOnInit();
+        }
+
+        this.userService.archiveUsers(arrIds, (response) => {
+            this.userService.archiveInvitedUsers(arrInviteesIds, cb);
         });
     }
 
@@ -322,7 +344,8 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
     clickShowPeepInfo(peep){
-        this.datepickerModel = moment().toDate();
+        $('#modalMobility select[name="is_permanent"]').val('0').trigger('change');
+        this.datepickerModelFormatted = 'no date available';
 
         for(let i in peep['mobility_impaired_details'][0]){
             if( this.formMobility.controls[i] && i != 'duration_date' ){
@@ -331,13 +354,18 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         }
 
         if(peep['mobility_impaired_details'].length > 0){
-            this.datepickerModel = moment(peep['mobility_impaired_details'][0]['duration_date'], ['YYYY-MM-DD']).toDate();
+            $('#modalMobility select[name="is_permanent"]').val(peep['mobility_impaired_details'][0]['is_permanent']);
+
+            if(peep['mobility_impaired_details'][0]['is_permanent'] == 0){
+                this.datepickerModel = moment(peep['mobility_impaired_details'][0]['duration_date'], ['YYYY-MM-DD']).toDate();
+                this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+            }else{
+                $('#modalMobility select[name="is_permanent"]').val('1').trigger('change');
+            }
         }
 
         this.selectedPeep = peep;
         
-        this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
-
         $('#modalMobility').modal('open');
     }
 
