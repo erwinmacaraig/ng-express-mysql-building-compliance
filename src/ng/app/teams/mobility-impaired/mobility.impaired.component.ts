@@ -37,7 +37,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     selectedFromList = [];
 
     options: DatepickerOptions = {
-        locale: enLocale,
         displayFormat: 'MMM D[,] YYYY',
         minDate: new Date(Date.now()),
         maxDate: new Date(Date.now())
@@ -92,6 +91,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         this.filterByEvent();
         this.sortByEvent();
         this.bulkManageActionEvent();
+        this.clickViewPeepEvent();
 
         $('#modalMobility select[name="is_permanent"]').on('change', () => {
             if($('#modalMobility select[name="is_permanent"]').val() == '1'){
@@ -215,12 +215,24 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     archiveClick(){
         this.showModalLoader = true;
-        this.userService.archiveUsers([this.selectedToArchive['user_id']], (response) => {
+
+        let cb = (response) => {
             this.showModalLoader = false;
             $('#modalArchive').modal('close');
             this.dashboardService.show();
             this.ngOnInit();
-        });
+        },
+        id = 0;
+
+        if('user_id' in this.selectedToArchive){
+            id = this.selectedToArchive['user_id'];
+            this.userService.archiveUsers([id], cb);
+        }else if('user_invitations_id' in this.selectedToArchive){
+            id = this.selectedToArchive['user_invitations_id'];
+            this.userService.archiveInvitedUsers([id], cb);
+        }
+
+        
     }
 
     selectAllCheckboxEvent(event){
@@ -289,14 +301,41 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         });
     }
 
+    clickViewPeepEvent(){
+        $('body').on('click.viewpeeplink', 'a.view-peep-link', (event) => {
+            let thisLink = $(event.target),
+                attr = (thisLink.attr('user_id')) ? 'user' : 'invited',
+                id = (attr == 'user') ? thisLink.attr('user_id') : thisLink.attr('user_invitations_id'),
+                peep = {};
+
+            for(let i in this.copyOfList){
+                if( this.copyOfList[i]['user_id'] == id && attr == 'user' ){
+                    peep = this.copyOfList[i];
+                }else if( this.copyOfList[i]['user_invitations_id'] == id && attr == 'invited' ){
+                    peep = this.copyOfList[i];
+                }
+            }
+
+            this.clickShowPeepInfo(peep);
+
+        });
+    }
+
     clickShowPeepInfo(peep){
+        this.datepickerModel = moment().toDate();
+
         for(let i in peep['mobility_impaired_details'][0]){
-            if( this.formMobility.controls[i] ){
+            if( this.formMobility.controls[i] && i != 'duration_date' ){
                 this.formMobility.controls[i].setValue(peep['mobility_impaired_details'][0][i]);
             }
         }
 
-        this.datepickerModel = moment(peep['mobility_impaired_details'][0]['duration_date'], ['YYYY-MM-DD']).toDate();
+        if(peep['mobility_impaired_details'].length > 0){
+            this.datepickerModel = moment(peep['mobility_impaired_details'][0]['duration_date'], ['YYYY-MM-DD']).toDate();
+        }
+
+        this.selectedPeep = peep;
+        
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 
         $('#modalMobility').modal('open');
@@ -336,7 +375,16 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         if(f.valid){
             let paramData = JSON.parse(JSON.stringify(f.value));
             paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
-            paramData['user_id'] = this.selectedPeep['user_id'];
+            if('user_id' in this.selectedPeep){
+                paramData['user_id'] = this.selectedPeep['user_id'];
+            }else if('user_invitations_id' in this.selectedPeep){
+                paramData['user_invitations_id'] = this.selectedPeep['user_invitations_id'];
+            }
+
+            if(this.selectedPeep['mobility_impaired_details'].length > 0){
+                paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
+            }
+            
             paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
 
             this.showModalLoader = true;
