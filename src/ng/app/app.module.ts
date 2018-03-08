@@ -55,6 +55,7 @@ import { ViewSingleLocation } from './location/view.single/view-single.component
 import { LocationComponent } from './location/location.component';
 import { VerificationComponent } from './location/verification/verification.component';
 import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
+import { WardenLocationComponent } from './location/waden/warden.location.component';
 
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
@@ -139,6 +140,7 @@ import { ReportsTrainingsComponent } from './reports/trainings/trainings.compone
     LocationComponent,
     VerificationComponent,
     ArchivedLocationListComponent,
+    WardenLocationComponent,
     // ViewSublocationComponent
 
     TeamsComponent,
