@@ -45,6 +45,8 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 
 	showShopLink = false;
 
+	locationLinkForFrp = false;
+
 	constructor(
 		private auth: AuthService,
     	private userService: UserService,
@@ -101,6 +103,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 			if(this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2){
 				this.showSendInviteLink = true;
 				this.showShopLink = true;
+				this.locationLinkForFrp = true;
 				trpFrp = true;
 			}
 		}
@@ -116,7 +119,6 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 				this.hasUserImage = true;
 			}
 		}
-
 	}
 
 	setElements(){
@@ -384,18 +386,18 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 
 		this.changePhotoSelectFileEvent();
 		this.changePhotoWebCamEvent();
-  }
+  	}
 
-  ngAfterViewInit() {
-    this.mySubscription = this.messageService.getMessage().subscribe((message) => {
+	ngAfterViewInit() {
+		this.mySubscription = this.messageService.getMessage().subscribe((message) => {
 
-    	if(message.person_first_name){	
-	      this.username = message.person_first_name + ' ' + message.person_last_name;
-	      this.usersInitial = this.getInitials(this.username);
-    	}
+			if(message.person_first_name){	
+				this.username = message.person_first_name + ' ' + message.person_last_name;
+				this.usersInitial = this.getInitials(this.username);
+			}
 
-    });
-  }
+		});
+	}
 
 
 }

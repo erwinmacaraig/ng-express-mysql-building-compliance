@@ -222,7 +222,11 @@ export class LocationListComponent implements OnInit, OnDestroy {
 					}
 				}
 
-			}
+			}else if(val.indexOf('benchmark-') > -1){
+                let locIdEnc = val.replace('benchmark-', '');
+
+                console.log(' Benchmark location id ' + locIdEnc);
+            }
 
 		});
 	}

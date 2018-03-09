@@ -206,6 +206,8 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
                             }
                         }
                     }
+
+                    console.log( this.searchResultLocation );
                     this.localLocationSearch(this.searchResultLocation);
                 });
             });

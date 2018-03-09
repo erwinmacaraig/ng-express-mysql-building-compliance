@@ -84,7 +84,7 @@
 					<thead>
 						<tr class="grey darken-4 white-text">
 							<th>Sub Location</th>
-							<th>warden Benchmarking</th>
+							<th>Warden Benchmarking</th>
 							<th>No. of Tenants</th>
 							<th>Compliance</th>
 							<th>Manage</th>
@@ -130,6 +130,7 @@
 									<option value="viewsub-{{sub.location_id}}" *ngIf="sub.children.length == 0">View</option>
 									<option value="addtenants-{{sub.location_id}}" >Add Tenants</option>
 									<option value="archive">Archive</option>
+									<option value="benchmark-{{sub.location_id}}">Benchmark</option>
 								</select>
 							</td>
 							<!-- <td>

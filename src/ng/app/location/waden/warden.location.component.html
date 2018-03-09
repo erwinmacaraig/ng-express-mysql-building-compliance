@@ -1,7 +1,7 @@
 <div class="container-fluid">
-	<div class="row">
+	<div class="row" style="margin-bottom: 0px;">
 		
-		<div class="col l2 m4 s12 grey lighten-5 left-nav">
+		<div class="col l2 m4 s12 grey lighten-4 left-nav">
 			
 			<h5>My Location</h5>
 
@@ -47,14 +47,15 @@
 			</div>
 
 			<div class="profile-pic-container">
-				<p class="label">Floor Warden</p>
+				<p class="label">{{roleName}}</p>
 				
 				<div class="pic-bg grey lighten-3">
-					<img src="http://lorempixel.com/400/200" >
+					<div class="initials" *ngIf="userData.profilePic.length == 0">{{userInitials}}</div>
+					<img *ngIf="userData.profilePic.length > 0" src="{{userData.profilePic}}" >
 				</div>
 
 				<div class="user-details">
-					<h5>John Snow</h5>
+					<h5>{{userData.name}}</h5>
 					<label>Last Login 2 days ago</label>
 				</div>
 			</div>

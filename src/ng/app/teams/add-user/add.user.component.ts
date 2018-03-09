@@ -13,15 +13,15 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 
 declare var $: any;
 @Component({
-  selector: 'app-add-user',
-  templateUrl: './add.user.component.html',
-  styleUrls: ['./add.user.component.css'],
-  providers : [DashboardPreloaderService, UserService, EncryptDecryptService]
+    selector: 'app-add-user',
+    templateUrl: './add.user.component.html',
+    styleUrls: ['./add.user.component.css'],
+    providers : [DashboardPreloaderService, UserService, EncryptDecryptService]
 })
 export class AddUserComponent implements OnInit, OnDestroy {
 	@ViewChild('f') addWardenForm: NgForm;
     @ViewChild('invitefrm') emailInviteForm: NgForm;
-	public userProperty = {
+    public userProperty = {
         first_name : '',
         last_name : '',
         email : '',
@@ -43,7 +43,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
     public locationsCopy = [];
     public userData = {};
     public selectedUser = {};
-	public addedUsers = [];
+    public addedUsers = [];
     showLoadingButton = false;
 
     public bulkEmailInvite;
@@ -56,7 +56,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
 
 
-	constructor(
+    constructor(
         private authService: AuthService, 
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService,
@@ -79,8 +79,8 @@ export class AddUserComponent implements OnInit, OnDestroy {
         
     }
 
-	ngOnInit(){
-		this.accountRoles = [
+    ngOnInit(){
+        this.accountRoles = [
         {
             role_id: 2,
             role_name: 'Tenant',
@@ -99,27 +99,27 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
-                this.ecoRoles = roles;
-                for(let i in roles){
-                    this.accountRoles.push({
-                        role_id : roles[i]['em_roles_id'],
-                        role_name : roles[i]['role_name']
-                    });
-                }
-
-                if(this.paramRole.length > 0){
-                    let newAccRole = [];
-                    for(let i in this.accountRoles){
-                        if(this.accountRoles[i]['selected']){
-                            newAccRole.push(this.accountRoles[i]);
-                        }
-                    }
-
-                    this.accountRoles = newAccRole;
-                }
-            }, (err) => {
-                console.log('Server Error. Unable to get the list');
+            this.ecoRoles = roles;
+            for(let i in roles){
+                this.accountRoles.push({
+                    role_id : roles[i]['em_roles_id'],
+                    role_name : roles[i]['role_name']
+                });
             }
+
+            if(this.paramRole.length > 0){
+                let newAccRole = [];
+                for(let i in this.accountRoles){
+                    if(this.accountRoles[i]['selected']){
+                        newAccRole.push(this.accountRoles[i]);
+                    }
+                }
+
+                this.accountRoles = newAccRole;
+            }
+        }, (err) => {
+            console.log('Server Error. Unable to get the list');
+        }
         );
 
         this.dashboardPreloaderService.show();
@@ -134,9 +134,9 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
             this.addMoreRow();
         });
-	}
+    }
 
-	addMoreRow(){
+    addMoreRow(){
 		//a copy
 		let prop = JSON.parse(JSON.stringify(this.userProperty));
 
@@ -148,7 +148,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
             }
         }
 
-		this.addedUsers.push( prop );
+        this.addedUsers.push( prop );
 
         setTimeout(() => {
             $("form table tbody tr:last-child").find('input.first-name').focus();
@@ -275,9 +275,9 @@ export class AddUserComponent implements OnInit, OnDestroy {
         event.preventDefault();
         if(form.valid){
             let selectedLocationId = form.controls.selectLocation.value,
-                selected = this.searchChildLocation(this.locations, selectedLocationId),
-                parent = this.findParent(this.locations, selected['parent_id']),
-                lastParent = this.getLastParent(selectedLocationId);
+            selected = this.searchChildLocation(this.locations, selectedLocationId),
+            parent = this.findParent(this.locations, selected['parent_id']),
+            lastParent = this.getLastParent(selectedLocationId);
 
             if(typeof parent == 'undefined'){
                 parent = selected;
@@ -285,21 +285,21 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
             switch (parseInt(this.selectedUser['account_role_id']) ) {
                 case 1:
-                    this.selectedUser['account_location_id'] = lastParent.location_id;
-                    break;
+                this.selectedUser['account_location_id'] = lastParent.location_id;
+                break;
                 
                 case 2:
-                    if(parent.parent_id == -1){
-                        this.selectedUser['account_location_id'] = selectedLocationId;
-                    }else{
-                        this.selectedUser['account_location_id'] = parent.location_id;
-                    }
-                    
-                    break;
+                if(parent.parent_id == -1){
+                    this.selectedUser['account_location_id'] = selectedLocationId;
+                }else{
+                    this.selectedUser['account_location_id'] = parent.location_id;
+                }
+
+                break;
 
                 default:
-                    this.selectedUser['account_location_id'] = selectedLocationId;
-                    break;
+                this.selectedUser['account_location_id'] = selectedLocationId;
+                break;
             }
 
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
@@ -322,18 +322,22 @@ export class AddUserComponent implements OnInit, OnDestroy {
         this.selectedUser = {};
     }
 
-	ngAfterViewInit(){
-		$('.modal').modal({
-			dismissible: false
-		});
+    ngAfterViewInit(){
+        $('.modal').modal({
+            dismissible: false
+        });
 
-		$('select').material_select();
+        $('select').material_select();
 
         
         this.dragDropFileEvent();
-	}
 
-	ngOnDestroy(){
+        $('body').off('keyup.keyupemail').on('keyup.keyupemail', 'input[type="email"]', (elem) => {
+        	console.log(this.addWardenForm.controls);
+        });
+    }
+
+    ngOnDestroy(){
         this.routeSub.unsubscribe();
     }
 
@@ -343,8 +347,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
             this.userService.createBulkUsers(this.addedUsers, (response) => {
                 this.addedUsers = response.data;
                 if(this.addedUsers.length == 0){
-                    let prop = JSON.parse(JSON.stringify(this.userProperty));
-                    this.addedUsers.push( prop );
+                    // let prop = JSON.parse(JSON.stringify(this.userProperty));
+                    // this.addedUsers.push( prop );
+                    
+                    this.router.navigate(["/teams/all-users"]);
                 }
                 this.showLoadingButton = false;
             });
@@ -370,15 +376,15 @@ export class AddUserComponent implements OnInit, OnDestroy {
         const email_regex =
         /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
         for (let x = 0; x < this.bulkEmailInvite.length; x++) {
-          if (email_regex.test(this.bulkEmailInvite[x].trim())) {
-            validEmails.push(this.bulkEmailInvite[x].trim());
-          }
+            if (email_regex.test(this.bulkEmailInvite[x].trim())) {
+                validEmails.push(this.bulkEmailInvite[x].trim());
+            }
         }
         this.dataProvider.sendWardenInvitation(validEmails).subscribe((data) => {
-          console.log(data);
-          $('#modalInvite').modal('close');
+            console.log(data);
+            $('#modalInvite').modal('close');
         }, (e) => {
-          console.log(e);
+            console.log(e);
         }
         );
         this.emailInviteForm.controls.inviteTxtArea.reset();
@@ -398,21 +404,21 @@ export class AddUserComponent implements OnInit, OnDestroy {
         formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
         formData.append('override',  override);
         this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
-          console.log(data);
+            console.log(data);
         }, (e) => {
-          console.log(e);
+            console.log(e);
         });
     }
 
     isAdvancedUpload() {
-      var div = document.createElement('div');
-      return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
+        var div = document.createElement('div');
+        return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
     };
 
     dragDropFileEvent(){
         let modal = $('#modaCsvUpload'),
-            uploadContainer = modal.find('.upload-container'),
-            inputFile = uploadContainer.find('input[name="file"]');
+        uploadContainer = modal.find('.upload-container'),
+        inputFile = uploadContainer.find('input[name="file"]');
 
         if(this.isAdvancedUpload()){
             uploadContainer.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {

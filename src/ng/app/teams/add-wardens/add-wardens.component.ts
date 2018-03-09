@@ -58,7 +58,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         private dataProvider: PersonDataProviderService,
         private actRoute : ActivatedRoute,
         private locationService: LocationsService,
-        private encdecrypt : EncryptDecryptService
+        private encdecrypt : EncryptDecryptService,
+        private router : Router
         ) {
 
         this.userData = this.authService.getUserData();
@@ -352,7 +353,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         this.dataProvider.addBulkWarden(strWardens).subscribe((data) => {
           this.addedUsers = data;
           if(Object.keys(this.addedUsers).length == 0){
-              this.addMoreRow();
+              // this.addMoreRow();
+              this.router.navigate(["/teams/list-wardens"]);
           }
         },
       (data) => {

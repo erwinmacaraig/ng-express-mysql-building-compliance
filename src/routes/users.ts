@@ -74,6 +74,14 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().removeUsersFromArchive(req, res, next);
 	    });
 
+	    router.post('/users/archive-invited-users', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().setInvitedUsersToArchive(req, res, next);
+	    });
+
+	    router.post('/users/unarchive-invited-users', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().removeInvitedUsersFromArchive(req, res, next);
+	    });
+
 	    router.get('/users/get-archived-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getUsersByAccountId(req, res, next, 1);
 	    });
@@ -527,6 +535,46 @@ export class UsersRoute extends BaseRoute {
 
 		for(let i in req.body['user_ids']){
 			let userModel = new User(req.body['user_ids'][i]);
+			await userModel.load();
+			
+			userModel.set('archived', 0);
+			await userModel.dbUpdate();
+		}
+
+		response.message = 'Success';
+		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async setInvitedUsersToArchive(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : true,
+			data : <any>[],
+			message : ''
+		};
+
+		for(let i in req.body['ids']){
+			let userModel = new UserInvitation(req.body['ids'][i]);
+			await userModel.load();
+			
+			userModel.set('archived', 1);
+			await userModel.dbUpdate();
+		}
+
+		response.message = 'Success';
+		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async removeInvitedUsersFromArchive(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : true,
+			data : <any>[],
+			message : ''
+		};
+
+		for(let i in req.body['ids']){
+			let userModel = new UserInvitation(req.body['ids'][i]);
 			await userModel.load();
 			
 			userModel.set('archived', 0);
@@ -1269,19 +1317,33 @@ export class UsersRoute extends BaseRoute {
 		response = <any>{
 			status : true, data : [], message : ''
 		},
-		userId = req.body.user_id,
 		mobilityImpairedModel = new MobilityImpairedModel();
 
-		await mobilityImpairedModel.create({
-			'user_id' : userId,
+		let saveData = {
 			'is_permanent' : req.body.is_permanent,
-			'duration_date' : req.body.duration_date,
 			'assistant_type' : req.body.assistant_type,
 			'equipment_type' : req.body.equipment_type,
-			'evacuation_procedure' : req.body.evacuation_procedure,
-			'date_created' : moment().format('YYYY-MM-DD HH:mm:00')
-		});
+			'duration_date' : '',
+			'evacuation_procedure' : req.body.evacuation_procedure
+		};
 
+		if('mobility_impaired_details_id' in req.body){
+			saveData['mobility_impaired_details_id'] = req.body.mobility_impaired_details_id;
+		}
+
+		if(saveData['is_permanent'] == 0){
+			saveData['duration_date'] = req.body.duration_date;
+		}
+
+		if('user_id' in req.body){
+			saveData['user_id'] = req.body.user_id;
+			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+		}else if('user_invitations_id' in req.body){
+			saveData['user_invitations_id'] = req.body.user_invitations_id;
+			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+		}
+
+		await mobilityImpairedModel.create(saveData);
 
 		res.send(response);
 	}

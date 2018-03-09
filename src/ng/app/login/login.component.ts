@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -46,6 +46,24 @@ export class LoginComponent implements OnInit, OnDestroy {
       dismissible : false,
       startingTop : '0%',
       endingTop: '25%'
+    });
+  }
+
+  ngAfterViewInit(){
+    $('#username').on('focus', () => {
+      $('#username').parent('.username-container').addClass('focus');
+    });
+
+    $('#username').on('blur', () => {
+      $('#username').parent('.username-container').removeClass('focus');
+    });
+
+    $('#password').on('focus', () => {
+      $('#password').parent('.password-container').addClass('focus');
+    });
+
+    $('#password').on('blur', () => {
+      $('#password').parent('.password-container').removeClass('focus');
     });
   }
 

@@ -89,6 +89,7 @@ export class EmailSender {
             // RawMessage: { Data: new Buffer(email) },
             Destination: {
               ToAddresses: this.options['to'],
+              // ToAddresses : ['adelfin@evacgroup.com.au'],
               CcAddresses: this.options['cc']
             },
             Source: "'EvacConnect' <" + this.getOptionToIntoString() + ">'",
