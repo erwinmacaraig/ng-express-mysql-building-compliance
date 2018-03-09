@@ -206,6 +206,9 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		formData = f.value;
 		formData.creator_id = userData.userId;
 		formData.unit_no = (formData.unit_no === null) ? '' : formData.unit_no;
+		formData.building_number = (formData.building_number === null) ? '' : formData.building_number;
+		formData.key_contact = (formData.key_contact === null) ? '' : formData.key_contact;
+		formData.trp_code = '';
 
 		if(this.companyIsSelected){
 			formData['account_id'] = this.selectedAccountId;

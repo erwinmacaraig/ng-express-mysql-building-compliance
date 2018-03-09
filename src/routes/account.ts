@@ -162,7 +162,7 @@ const validator = require('validator');
 		data.building_number = validator.isEmpty(''+data.building_number+'') ? '' : data.building_number;
 		data.city = this.capitalizeFirstLetter(data.city.toLowerCase());
 		data.state = this.capitalizeFirstLetter(data.state.toLowerCase());
-		data.key_contact = this.capitalizeFirstLetter(data.key_contact.toLowerCase());
+		data.key_contact = (data.key_contact != null) ? this.capitalizeFirstLetter(data.key_contact.toLowerCase()) : '';
 		data.unit_no = validator.isEmpty( ''+data['unit_no']+'' ) ? ' ' : data['unit_no'];
 
 		return data;
