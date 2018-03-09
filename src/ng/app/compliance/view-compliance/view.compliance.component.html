@@ -828,6 +828,7 @@
 		<ng-container *ngTemplateOutlet="chief_warden_trainingTemplate"></ng-container>
 	</div>
 	<div class="col l8 m12 s12">
+    <!--
 		<div class="diagram-top-of-table">
 			<h5 class="blue-text title">Attendance Record</h5>
 		</div>
@@ -849,50 +850,64 @@
 				</select>
 			</div>
 		</div>
-		<table class="striped table">
-			<thead>
-				<tr>
-					<th>Date</th>
-					<th>Location</th>
-					<th>Filename</th>
-					<th style="width: 10%;">Action</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						Jaka, Level 1
-					</td>
-					<td>
-						<a href="javascript:void(0)" class="blue-text"> file.fle </a>
-					</td>
-					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
-				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
-					<td>
-            {{doc.display_format}}
+  -->
+    <div class="col l8 m12 s12">
+      <div class="diagram-top-of-table">
+        <h5 class="blue-text title">Chief Warden</h5>
+      </div>
+      <div class="filter-container row">
+        <div class="col l6 m12 s12">
+          <div class="search-field">
+            <input placeholder="Search here" type="text">
+            <span class="material-icons">search</span>
+          </div>
+        </div>
+        <div class="col l3 m12 s12">
+          <select class="filter-by">
+            <option value="0" selected disabled >Filter By</option>
+          </select>
+        </div>
+        <div class="col l3 m12 s12">
+          <select class="sort-by">
+            <option value="0" selected disabled >Sort By</option>
+          </select>
+        </div>
+      </div>
+      <table class="striped table">
+        <thead>
+          <tr>
+            <th>Sub Locations</th>
+            <th>Benchmark</th>
+            <th>Nominated</th>
+            <th>Trained</th>
+            <th>Training Compliance</th>
+            <th style="width: 13%;">Action</th>
+          </tr>
+        </thead>
+        <tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 12">
+          <tr *ngFor="let loc of selectedCompliance['compliance']['location_details']['location']">
+            <td>{{selectedCompliance['compliance']['location_details'][loc].name}}</td>
+            <td>
+              <pre>to do</pre>
             </td>
-					<td>
-						Jaka, Level 1
-					</td>
-					<td>
-						{{doc.file_name}}
-          </td>
-          <td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+            <td>{{selectedCompliance['compliance']['location_details'][loc].users.length}}</td>
+            <td>
+              {{selectedCompliance['compliance']['location_details'][loc].training.total_passed}}
+            </td>
+            <td>
+              {{selectedCompliance['compliance']['location_details'][loc].training.percentage}}
+            </td>
+            <td>
+              <a href="javascript:void(0)" class="blue-text"> View Warden List </a>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+
+
 	</div>
 </ng-template>
 
@@ -936,22 +951,18 @@
 					<th style="width: 13%;">Action</th>
 				</tr>
 			</thead>
-			<tbody>
-				<tr>
+			<tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 6">
+				<tr *ngFor="let loc of selectedCompliance['compliance']['location_details']['location']">
+					<td>{{selectedCompliance['compliance']['location_details'][loc].name}}</td>
 					<td>
-						Level 1
+						<pre>to do</pre>
+					</td>
+					<td>{{selectedCompliance['compliance']['location_details'][loc].users.length}}</td>
+					<td>
+						{{selectedCompliance['compliance']['location_details'][loc].training.total_passed}}
 					</td>
 					<td>
-						10
-					</td>
-					<td>
-						8
-					</td>
-					<td>
-						7
-					</td>
-					<td>
-						70%
+						{{selectedCompliance['compliance']['location_details'][loc].training.percentage}}
 					</td>
 					<td>
 						<a href="javascript:void(0)" class="blue-text"> View Warden List </a>

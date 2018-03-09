@@ -426,10 +426,18 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getParentsChildren(parentId) {
+	public getParentsChildren(parentId, account_id: number = 0) {
 		return new Promise((resolve) => {
 
-			let sql = `SELECT * FROM locations WHERE parent_id = ${parentId} AND archived = 0 ORDER BY location_id`;
+      let sql = `SELECT * FROM locations WHERE parent_id = ${parentId} AND archived = 0 ORDER BY location_id`;
+
+      if (account_id) {
+        sql = `SELECT DISTINCT locations.* FROM  locations INNER JOIN location_account_relation
+               ON locations.location_id = location_account_relation.location_id
+               WHERE locations.parent_id = ${parentId}
+               AND location_account_relation.account_id = ${account_id}
+               AND locations.archived = 0 ORDER BY locations.location_id`;
+      }
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql, (err, results, fields) => {
 				if (err) {
@@ -524,15 +532,19 @@ export class Location extends BaseClass {
 		});
   }
 
-  public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number) {
-
+  public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number, account_id?:number) {
     return new Promise((resolve, reject) => {
       let location = this.ID();
+      let account = 0;
       if (location_id) {
         location = location_id;
       }
+      if (account_id) {
+        account = account_id;
+      }
       let location_em_roles = {};
-      this.getParentsChildren(location).then((sublocations) => {
+      let subLocToEmRoles:{[key: number]: {}} = {};
+      this.getParentsChildren(location, account).then((sublocations) => {
         const subIds = [];
         Object.keys(sublocations).forEach((key) => {
           subIds.push(sublocations[key]['location_id']);
@@ -540,15 +552,20 @@ export class Location extends BaseClass {
         const subIdstring = subIds.join(',');
         const sql = `SELECT
                     user_em_roles_relation.*,
-                    em_roles.role_name
+                    em_roles.role_name,
+                    locations.name
                   FROM
                     user_em_roles_relation
                   INNER JOIN
                     em_roles
                   ON
                     em_roles.em_roles_id = user_em_roles_relation.em_role_id
+                  INNER JOIN
+                    locations
+                  ON
+                    locations.location_id = user_em_roles_relation.location_id
                   WHERE
-                    location_id IN (${subIdstring})
+                  user_em_roles_relation.location_id IN (${subIdstring})
                   order by em_role_id;`;
         // console.log(sql);
         const connection = db.createConnection(dbconfig);
@@ -565,15 +582,43 @@ export class Location extends BaseClass {
               if (results[i]['em_role_id'] in location_em_roles) {
                 location_em_roles[results[i]['em_role_id']]['count'] = location_em_roles[results[i]['em_role_id']]['count'] + 1;
                 (location_em_roles[results[i]['em_role_id']]['users']).push(results[i]['user_id']);
+                if ((location_em_roles[results[i]['em_role_id']]['location']).indexOf(results[i]['location_id']) == -1) {
+                  (location_em_roles[results[i]['em_role_id']]['location']).push(results[i]['location_id']);
+                }
+                // (location_em_roles[results[i]['em_role_id']][results[i]['location_id']]).push(results[i]['user_id']);
+                let loc = results[i]['location_id'];
+                loc = loc.toString();
+
+                if (loc in  location_em_roles[results[i]['em_role_id']]) {
+                  (location_em_roles[results[i]['em_role_id']][loc]['users']).push(results[i]['user_id']);
+                } else {
+                  location_em_roles[results[i]['em_role_id']][loc] = {
+                    'users': [],
+                    'name': ''
+                  }
+                  location_em_roles[results[i]['em_role_id']][loc]['users'].push(results[i]['user_id']);
+                  location_em_roles[results[i]['em_role_id']][loc]['name'] = results[i]['name']
+                }
               }
               else {
                 let keyIndex = results[i]['em_role_id'];
+                let loc = results[i]['location_id'].toString();
                 location_em_roles[keyIndex] = {
                   'name': results[i]['role_name'],
                   'count': 1,
-                  'users': [results[i]['user_id']]
+                  'users': [results[i]['user_id']],
+                  'location': [results[i]['location_id']]
                 };
+                location_em_roles[results[i]['em_role_id']][loc] = {
+                  'users': [],
+                  'name': ''
+                }
+                location_em_roles[keyIndex][loc]['users'].push(results[i]['user_id']);
+                location_em_roles[keyIndex][loc]['name'] = results[i]['name']
+
+
               }
+
             }
             resolve(location_em_roles);
           }

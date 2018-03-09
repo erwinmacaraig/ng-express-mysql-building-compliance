@@ -172,8 +172,46 @@ import * as S3Zipper from 'aws-s3-zipper';
         paths = [];
       }
       try {
-        emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation();
-        console.log(emrolesOnThisLocation);
+        emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, 0, accountID);
+        if ('8' in emrolesOnThisLocation) {
+          if (emrolesOnThisLocation['8']['location'].length > 0) {
+            let locId;
+            for (let i = 0; i < emrolesOnThisLocation['8']['location'].length; i++) {
+              locId = emrolesOnThisLocation['8']['location'][i].toString();
+              if (emrolesOnThisLocation['8'][locId]['users'].length > 0) {
+                emrolesOnThisLocation['8'][locId]['training'] =
+                   await training.getEMRUserCertifications(emrolesOnThisLocation['8'][locId]['users']);
+              }
+            }
+          }
+        }
+
+        if ('9' in emrolesOnThisLocation) {
+          if (emrolesOnThisLocation['9']['location'].length > 0) {
+            let locId;
+            for (let i = 0; i < emrolesOnThisLocation['9']['location'].length; i++) {
+              locId = emrolesOnThisLocation['9']['location'][i].toString();
+              if (emrolesOnThisLocation['9'][locId]['users'].length > 0) {
+                emrolesOnThisLocation['9'][locId]['training'] =
+                   await training.getEMRUserCertifications(emrolesOnThisLocation['9'][locId]['users']);
+              }
+            }
+          }
+        }
+        if ('11' in emrolesOnThisLocation) {
+          if (emrolesOnThisLocation['11']['location'].length > 0) {
+            let locId;
+            for (let i = 0; i < emrolesOnThisLocation['11']['location'].length; i++) {
+              locId = emrolesOnThisLocation['11']['location'][i].toString();
+              if (emrolesOnThisLocation['11'][locId]['users'].length > 0) {
+                emrolesOnThisLocation['11'][locId]['training'] =
+                   await training.getEMRUserCertifications(emrolesOnThisLocation['11'][locId]['users']);
+              }
+            }
+          }
+        }
+
+        // console.log(emrolesOnThisLocation);
       } catch (e) {
         console.log(e);
         emrolesOnThisLocation = {};
@@ -305,6 +343,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         // Warden Training
         if ('9' in emrolesOnThisLocation) {
           compliances[c]['total_personnel'] = compliances[c]['warden_total'] = emrolesOnThisLocation['9']['count'];
+          compliances[c]['location_details'] = emrolesOnThisLocation[9];
           try {
             compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['9']['users']);
             tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
@@ -326,6 +365,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         // General Occupant Training
         if ('8' in emrolesOnThisLocation) {
           compliances[c]['total_personnel'] = compliances[c]['general_occupant_total'] = emrolesOnThisLocation['8']['count'];
+          compliances[c]['location_details'] = emrolesOnThisLocation[8];
           try {
             compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['8']['users']);
             tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
@@ -346,6 +386,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         // Chief Warden Training
         if ('11' in emrolesOnThisLocation) {
           compliances[c]['total_personnel'] =  compliances[c]['chief_warden_total'] = emrolesOnThisLocation['11']['count'];
+          compliances[c]['location_details'] = emrolesOnThisLocation[11];
           try {
             compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['11']['users']);
             tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);

@@ -133,7 +133,8 @@ export class TrainingCertification extends BaseClass {
       const outcome = {
         'total_passed': 0,
         'passed': [],
-        'failed': []
+        'failed': [],
+        'percentage': ''
       };
       const users_string = users.join(',');
       const connection = db.createConnection(dbconfig);
@@ -189,6 +190,7 @@ export class TrainingCertification extends BaseClass {
             }
           }
           outcome['total_passed'] = trained;
+          outcome['percentage'] = Math.round((trained / users.length) * 100).toFixed(0).toString() + '%';
         }
         resolve(outcome);
       });
