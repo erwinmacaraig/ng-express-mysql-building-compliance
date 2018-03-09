@@ -47,7 +47,7 @@
 								<span *ngIf="user.errors.email_taken">Email is taken</span>
 								<span *ngIf="user.errors.blacklisted || user.errors.invalid">Invalid email</span>
 							</div>
-							<input type="text" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" required>
+							<input type="text" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
 						</td>
 						<!-- <td >
 							<select required [(ngModel)]="user.role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">
@@ -56,13 +56,14 @@
 							</select>
 						</td> -->
 						<td >
-							<select required [(ngModel)]="user.account_role_id" name="accountRole{{i}}" >
+							<select required [(ngModel)]="user.account_role_id" name="accountRole{{i}}" pattern="[1-9][0-9]*">
 								<option value="0" selected disabled>Select Role</option>
 								<option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
 							</select>
 						</td>
 						<td >
 							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0 && user.role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
+							<input type="hidden" name="selectedLocation{{i}}" [(ngModel)]="user.account_location_id" required pattern="[1-9][0-9]*">
 						</td>
 						<td class="with-remove">
 							<input type="text" [(ngModel)]="user.contact_number" placeholder="Contact Information" name="mobile{{i}}">
@@ -119,7 +120,8 @@
 								<div class="plus-minus">
 									<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" />
 									<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
-									<span>{{location.name}}</span>
+									<span *ngIf="location.name.length > 0">{{location.name}}</span>
+									<span *ngIf="location.name.length == 0">{{location.formatted_address}}</span>
 								</div>
 							</div>
 						</div>
