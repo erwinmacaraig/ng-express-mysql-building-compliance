@@ -1,5 +1,5 @@
 .archived{
-	font-size: 14px;
+    font-size: 14px;
     position: absolute;
     right: 30px;
     top: 26px;
@@ -7,7 +7,7 @@
 }
 
 .archived .image{
-	background: url(/assets/images/team_icons.png) no-repeat;
+    background: url(/assets/images/team_icons.png) no-repeat;
     width: 23px;
     height: 27px;
     background-position: 30.5% 35.7%;
@@ -16,11 +16,11 @@
 }
 
 .filter-container > .col{
-	height: 50px !important;
+    height: 50px !important;
 }
 
 .filter-container .add-peep .image{
-	background: url(/assets/images/team_icons.png) no-repeat;
+    background: url(/assets/images/team_icons.png) no-repeat;
     width: 35px;
     height: 35px;
     background-position: 6% 36%;
@@ -30,13 +30,13 @@
 }
 
 .filter-container .btn{
-	width: 100%;
+    width: 100%;
     padding: 0px;
     height: 50px !important;
 }
 
 .filter-container .search-field{
-	background-color: #f0f0f0;
+    background-color: #f0f0f0;
     padding: 0px 20px;
     border-radius: 5px;
     height: 50px;
@@ -45,7 +45,7 @@
 }
 
 .filter-container .search-field input{
-	margin: 3px 14px 0px 0px !important;
+    margin: 3px 14px 0px 0px !important;
     padding: 0px;
     display: inline-block;
     width: 90%;
@@ -53,12 +53,12 @@
 }
 
 .filter-container .search-field input:focus{
-	border-bottom: 0px;
+    border-bottom: 0px;
     box-shadow: none;
 }
 
 .filter-container .search-field .material-icons{
-	width: 23px;
+    width: 23px;
     height: 27px;
     background-position: 30.5% 35.7%;
     position: absolute;
@@ -67,7 +67,7 @@
 }
 
 table thead tr th{
-	background-color: #2f2f2f;
+    background-color: #2f2f2f;
     color: #fff;
     font-weight: unset;
     font-size: 14px;
@@ -77,16 +77,16 @@ table thead tr th{
 }
 
 table tbody td{
-	border: 1px solid #ddd;
-	font-size: 14px;
+    border: 1px solid #ddd;
+    font-size: 14px;
 }
 
 table tfoot td{
-	padding: 0px;
+    padding: 0px;
 }
 
 table tfoot td button{
-	width: 100%;
+    width: 100%;
     border-radius: 0px !important;
     font-size: 14px !important;
     height: 45px !important;
@@ -138,18 +138,18 @@ table tr td.trainings .bar {
 }
 
 table tr td .checkbox{
-	margin: 0px 10px;
+    margin: 0px 10px;
 }
 
 table tr td .checkbox [type="checkbox"]+label{
-	padding-left: 30px;
+    padding-left: 30px;
     height: 20px;
     line-height: 20px;
     color: #333;
 }
 
 table tr td .checkbox [type="checkbox"].filled-in:not(:checked)+label:after{
-	background-color: #fff;
+    background-color: #fff;
     border: 1px solid #aaaaaa;
 }
 
@@ -159,24 +159,29 @@ table tr td .text{
 }
 
 table tr td .image-container{
-	width: 50px;
+    width: 50px;
     height: 50px;
-	display: inline-block;
-  	text-align: center;
-  	vertical-align: middle;
-  	background-color: #fff;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #fff;
     border-radius: 30px;
     margin: 0px 10px;
     overflow: hidden;
 }
 
 table tr td .image{
-	overflow: hidden;
+    overflow: hidden;
 }
 
 table tr td .image img{
   max-width: 50px;
   max-height: 50px;
+}
+
+#modalMobility .btn{
+    font-size: 15px !important;
+    line-height: 43px;
 }
 
 #modalArchiveBulk,
@@ -200,11 +205,16 @@ table tr td .image img{
     #modalArchive{
         width: 60%;
     }
+
+    #modalMobility{
+        width : 90%;
+    }
 }
 
 @media only screen and (max-width: 500px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalMobility{
         width: 90%;
     }
 }

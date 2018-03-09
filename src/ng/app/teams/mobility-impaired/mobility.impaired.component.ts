@@ -98,8 +98,12 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 this.isShowDatepicker = false;
                 $('#durationDate').prop('disabled', true);
                 this.durationDate.nativeElement.value = "no date available";
+                this.formMobility.controls.duration_date.disable();
             }else{
                 this.durationDate.nativeElement.value = "";
+                this.formMobility.controls.duration_date.markAsPristine();
+                this.formMobility.controls.duration_date.enable();
+
                 $('#durationDate').prop('disabled', false);
             }
 
@@ -148,7 +152,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 this.peepList = this.copyOfList;
             }
         });
-
     }
 
     sortByEvent(){
@@ -202,8 +205,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             this.peepList = temp;
         }
     }
-
-    ngOnDestroy(){}
 
     onSelectFromTable(event, peep){
         let selected = event.target.value;
@@ -279,6 +280,19 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             }
             this.selectedFromList = temp;
         }
+
+        let checkboxes = $('table tbody input[type="checkbox"]'),
+            countChecked = 0;
+        checkboxes.each((indx, elem) => {
+            if($(elem).prop('checked')){
+                countChecked++;
+            }
+        });
+
+        $('#allLocations').prop('checked', false);
+        if(countChecked == checkboxes.length){
+            $('#allLocations').prop('checked', true);
+        }
     }
 
     bulkManageActionEvent(){
@@ -324,7 +338,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
     clickViewPeepEvent(){
-        $('body').on('click.viewpeeplink', 'a.view-peep-link', (event) => {
+        $('body').off('click.viewpeeplink').on('click.viewpeeplink', 'a.view-peep-link', (event) => {
             let thisLink = $(event.target),
                 attr = (thisLink.attr('user_id')) ? 'user' : 'invited',
                 id = (attr == 'user') ? thisLink.attr('user_id') : thisLink.attr('user_invitations_id'),
@@ -347,17 +361,17 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         $('#modalMobility select[name="is_permanent"]').val('0').trigger('change');
         this.datepickerModelFormatted = 'no date available';
 
-        for(let i in peep['mobility_impaired_details'][0]){
-            if( this.formMobility.controls[i] && i != 'duration_date' ){
-                this.formMobility.controls[i].setValue(peep['mobility_impaired_details'][0][i]);
-            }
-        }
-
         if(peep['mobility_impaired_details'].length > 0){
+            for(let i in peep['mobility_impaired_details'][0]){
+                if( this.formMobility.controls[i] && i != 'duration_date' ){
+                    this.formMobility.controls[i].setValue(peep['mobility_impaired_details'][0][i]);
+                }
+            }
+
             $('#modalMobility select[name="is_permanent"]').val(peep['mobility_impaired_details'][0]['is_permanent']);
 
             if(peep['mobility_impaired_details'][0]['is_permanent'] == 0){
-                this.datepickerModel = moment(peep['mobility_impaired_details'][0]['duration_date'], ['YYYY-MM-DD']).toDate();
+                this.datepickerModel = moment(peep['mobility_impaired_details'][0]['duration_date']).toDate();
                 this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
             }else{
                 $('#modalMobility select[name="is_permanent"]').val('1').trigger('change');
@@ -416,6 +430,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
 
             this.showModalLoader = true;
+            this.dashboardService.show();
 
             this.userService.sendMobilityImpaireInformation(paramData, (response) => {
 
@@ -427,4 +442,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             });
         }
     }
+
+    ngOnDestroy(){}
 }
