@@ -85,6 +85,14 @@
     transform: translate(-50%, -50%);
 }
 
+.profile-pic-container .pic-bg .initials{
+	position: absolute;
+    font-size: 28px;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 .profile-pic-container .user-details{
 	display: inline-block;
 	padding: 0px 20px;
@@ -93,13 +101,14 @@
 
 @media only screen and (min-width: 993px){
 	.left-nav{
-		height: calc(100vh - 157px);
+		height: calc(100vh - 70px);
 	}
 
 	.buttons{
 	    position: absolute;
 	    bottom: 20px;
 	    left: 0px;
-	    margin: 0px 25px;
+	    width: 100%;
+	    padding: 0px 30px;
 	}
 }
