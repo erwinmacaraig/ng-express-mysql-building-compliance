@@ -12,6 +12,7 @@ import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { EmailSender } from '../models/email.sender';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { Token } from '../models/token.model';
+import { UserEmRoleRelation } from '../models/user.em.role.relation';
 
 
 import * as fs from 'fs';
@@ -246,7 +247,7 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
           });
 
           await email.send(
-            () => { }, 
+            () => { },
             () => { console.log('Unable to send email ('+user.email+')');  }
           );
 
@@ -372,13 +373,13 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
 
               emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(admin.first_name)+' '+this.capitalizeFirstLetter(admin.last_name)+'</h3> <br/>';
               emailBody += '<h4> This user : '+this.capitalizeFirstLetter(user.first_name)+' '+this.capitalizeFirstLetter(user.last_name)+ ' is trying to create a new location which needs your verification.  </h4> ';
-              
+
               if(isSub){
                   emailBody += `<h4>Location name : `+dbLocationData.parent.name+`, `+dbLocationData.name+`</h4>`;
               }else{
                   emailBody += `<h4>Location name : `+dbLocationData.name+`</h4>`;
               }
-              
+
               emailBody += `<h4>Address : `+dbLocationData.formatted_address+`</h4>`;
 
               if(dbLocationData.sublevels.length > 0){
@@ -393,7 +394,7 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
               }
 
               emailBody += '<h5>Action : <a href="'+linkTrue+'" target="_blank" style="text-decoration:none; color:#39a1ff;">Approve</a>  || <a href="'+linkFalse+'" target="_blank" style="text-decoration:none; color:#dc4453;">Decline</a><br/></h5>';
-              
+
               emailBody += '<h5>Thank you!</h5>';
 
               emailBody += email.getEmailHTMLFooter();
@@ -406,17 +407,17 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
                 body : emailBody,
                 to: [jaysEmail]
               });
-              
+
 
               await email.send(
-                () => { }, 
+                () => { },
                 () => { console.log('Unable to send email ('+admin.email+')');  }
               );
             }catch(e){
               console.log(e);
             }
 
-            
+
 
           }
 
@@ -547,7 +548,7 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
         await this.sendEmailCreateNewLocation(dbLocationData, req);
 
         return 'success';
-         
+
     }
 
     public async createSublocation(req: AuthRequest, res: Response){
@@ -722,7 +723,7 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
       let locations = req.body.locations;
 
       for(let i in locations){
-        let 
+        let
             locModel = new Location(locations[i]['location_id']),
             location = <any> await locModel.load(),
             archivedValue = 0;
@@ -1039,117 +1040,191 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
 	    const account = new Account(accountId);
 	    let locationsOnAccount = [];
 	    let location;
-        let data;
-	    // we need to check the role(s)
-	    const userRoleRel = new UserRoleRelation();
-	    const roles = await userRoleRel.getByUserId(req.user.user_id);
+      let data;
+      // we need to check the role(s)
+      let userRoleRel;
+      let roles;
+      try {
+        userRoleRel = new UserRoleRelation();
+        console.log('userRoleRel', userRoleRel);
+        roles = await userRoleRel.getByUserId(req.user.user_id);
+        console.log('roles', roles);
 
-	    // what is the highest rank role
-	    let r = 100;
-	    for (let i = 0; i < roles.length; i++) {
-	    	if(r > parseInt(roles[i]['role_id'], 10)) {
-	    		r = roles[i]['role_id'];
-	    	}
-	    }
-		  
-		locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r, archived);
-
-  		switch(r) {
-  			case 1:
-  				for (let loc of locationsOnAccount) {
-  					location = new Location(loc.location_id);
-  					loc['sublocations'] = await location.getSublocations();
-                }
+        // what is the highest rank role (trp and frp)
+  	    let r = 100;
+  	    for (let i = 0; i < roles.length; i++) {
+  	    	if(r > parseInt(roles[i]['role_id'], 10)) {
+  	    		r = roles[i]['role_id'];
+  	    	}
+        }
+        locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r, archived);
+        switch(r) {
+          case 1:
+            for (let loc of locationsOnAccount) {
+              location = new Location(loc.location_id);
+              loc['sublocations'] = await location.getSublocations();
+                  }
 
 
-                for(let i in locationsOnAccount){
-                    let locAccModel = new LocationAccountRelation(),
-                    locAcc = <any> await locAccModel.getManyByLocationId(locationsOnAccount[i]['location_id']);
+                  for(let i in locationsOnAccount){
+                      let locAccModel = new LocationAccountRelation(),
+                      locAcc = <any> await locAccModel.getManyByLocationId(locationsOnAccount[i]['location_id']);
 
-                    let locAccUserModel = new LocationAccountUser(),
-                    locAccUser = <any> await locAccUserModel.getWardensByAccountIdLocationId(accountId, locationsOnAccount[i]['location_id']);
+                      let locAccUserModel = new LocationAccountUser(),
+                      locAccUser = <any> await locAccUserModel.getWardensByAccountIdLocationId(accountId, locationsOnAccount[i]['location_id']);
 
-                    let impairedCount = 0 ;
-                    for(let x in locAccUser){
-                      if(locAccUser[x]['mobility_impaired'] == 1){
-                        impairedCount++;
-                      }
-                    }
-
-                    locationsOnAccount[i]['num_tenants'] = locAcc.length;
-                    locationsOnAccount[i]['num_wardens'] = locAccUser.length;
-                    locationsOnAccount[i]['mobility_impaired'] = impairedCount;
-                    locationsOnAccount[i]['compliance'] = 0;
-                }
-                
-  				return { 'locations' : locationsOnAccount };
-  			case 2:
-  				// get the parent or parents of these sublocation
-  				let results;
-  				// let objectOfSubs:{[key: number]: Array<Object>} = {};
-  				let objectOfSubs:{[key: number]: any[]} = {};
-  				let seenParents = []; // these are the parent ids
-  				let rootParents = [];
-  				let pId = 0;
-  				for (let loc of locationsOnAccount) {
-  					objectOfSubs[loc.parent_id] = [];
-  				}
-  				for (let loc of locationsOnAccount) {
-  					objectOfSubs[loc.parent_id].push(loc);
-
-  					if ((seenParents.indexOf(loc.parent_id)*1)  === -1) {
-
-  						seenParents.push(loc.parent_id);
-  						let parentId = loc.parent_id;
-  						while (parentId !== -1) {
-  							location = new Location(parentId);
-  							await location.load();
-  							parentId = location.get('parent_id');
-  						}
-
-  						rootParents.push(location.getDBData());
-  						location.set('desc', loc.parent_id);
-  						location = undefined;
-  					}
-  				}
-
-  				let seenRoots = [];
-  		        let processedRootParents = [];
-  				for (let r of rootParents) {
-	              if(seenRoots.indexOf(r['location_id']) == -1) {
-    	            r['sublocations'] = [];
-    	            r['sublocations'] = objectOfSubs[r['desc']];
-    	            r['sublocations']['total'] = 0;
-    	            r['total_subs'] = objectOfSubs[r['desc']].length;
-	                seenRoots.push(r['location_id']);
-	                processedRootParents.push(r);
-	              }
-	            }
-
-                for(let i in processedRootParents){
-                    let locAccModel = new LocationAccountRelation(),
-                    locAcc = <any> await locAccModel.getManyByLocationId(processedRootParents[i]['location_id']);
-
-                    let locAccUserModel = new LocationAccountUser(),
-                    locAccUser = <any> await locAccUserModel.getWardensByAccountIdLocationId(accountId, processedRootParents[i]['location_id']);
-
-                    let impairedCount = 0 ;
-                    for(let x in locAccUser){
+                      let impairedCount = 0 ;
+                      for(let x in locAccUser){
                         if(locAccUser[x]['mobility_impaired'] == 1){
-                            impairedCount++;
+                          impairedCount++;
                         }
-                    }
+                      }
 
-                    processedRootParents[i]['num_tenants'] = locAcc.length;
-                    processedRootParents[i]['num_wardens'] = locAccUser.length;
-                    processedRootParents[i]['mobility_impaired'] = impairedCount;
-                    processedRootParents[i]['compliance'] = 0;
+                      locationsOnAccount[i]['num_tenants'] = locAcc.length;
+                      locationsOnAccount[i]['num_wardens'] = locAccUser.length;
+                      locationsOnAccount[i]['mobility_impaired'] = impairedCount;
+                      locationsOnAccount[i]['compliance'] = 0;
+                  }
+
+            return { 'locations' : locationsOnAccount };
+          case 2:
+            // get the parent or parents of these sublocation
+            let results;
+            // let objectOfSubs:{[key: number]: Array<Object>} = {};
+            let objectOfSubs:{[key: number]: any[]} = {};
+            let seenParents = []; // these are the parent ids
+            let rootParents = [];
+            let pId = 0;
+            for (let loc of locationsOnAccount) {
+              objectOfSubs[loc.parent_id] = [];
+            }
+            for (let loc of locationsOnAccount) {
+              objectOfSubs[loc.parent_id].push(loc);
+
+              if ((seenParents.indexOf(loc.parent_id)*1)  === -1) {
+
+                seenParents.push(loc.parent_id);
+                let parentId = loc.parent_id;
+                while (parentId !== -1) {
+                  location = new Location(parentId);
+                  await location.load();
+                  parentId = location.get('parent_id');
                 }
 
-  				return {
-  					'locations':  processedRootParents
-  				};
-  		}
+                rootParents.push(location.getDBData());
+                location.set('desc', loc.parent_id);
+                location = undefined;
+              }
+            }
+
+            let seenRoots = [];
+                let processedRootParents = [];
+            for (let r of rootParents) {
+                  if(seenRoots.indexOf(r['location_id']) == -1) {
+                    r['sublocations'] = [];
+                    r['sublocations'] = objectOfSubs[r['desc']];
+                    r['sublocations']['total'] = 0;
+                    r['total_subs'] = objectOfSubs[r['desc']].length;
+                    seenRoots.push(r['location_id']);
+                    processedRootParents.push(r);
+                  }
+                }
+
+                  for(let i in processedRootParents){
+                      let locAccModel = new LocationAccountRelation(),
+                      locAcc = <any> await locAccModel.getManyByLocationId(processedRootParents[i]['location_id']);
+
+                      let locAccUserModel = new LocationAccountUser(),
+                      locAccUser = <any> await locAccUserModel.getWardensByAccountIdLocationId(accountId, processedRootParents[i]['location_id']);
+
+                      let impairedCount = 0 ;
+                      for(let x in locAccUser){
+                          if(locAccUser[x]['mobility_impaired'] == 1){
+                              impairedCount++;
+                          }
+                      }
+
+                      processedRootParents[i]['num_tenants'] = locAcc.length;
+                      processedRootParents[i]['num_wardens'] = locAccUser.length;
+                      processedRootParents[i]['mobility_impaired'] = impairedCount;
+                      processedRootParents[i]['compliance'] = 0;
+                  }
+            return {
+              'locations':  processedRootParents
+            };
+        }
+
+      } catch (e) {
+        userRoleRel = new UserEmRoleRelation();
+        // we understand that this is emergency role
+        locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 0, archived);
+
+        // get the parent or parents of these sublocation
+        let results;
+        // let objectOfSubs:{[key: number]: Array<Object>} = {};
+        let objectOfSubs:{[key: number]: any[]} = {};
+        let seenParents = []; // these are the parent ids
+        let rootParents = [];
+        let pId = 0;
+        for (let loc of locationsOnAccount) {
+          objectOfSubs[loc.parent_id] = [];
+        }
+        for (let loc of locationsOnAccount) {
+          objectOfSubs[loc.parent_id].push(loc);
+
+          if ((seenParents.indexOf(loc.parent_id)*1)  === -1) {
+
+            seenParents.push(loc.parent_id);
+            let parentId = loc.parent_id;
+            while (parentId !== -1) {
+              location = new Location(parentId);
+              await location.load();
+              parentId = location.get('parent_id');
+            }
+
+            rootParents.push(location.getDBData());
+            location.set('desc', loc.parent_id);
+            location = undefined;
+          }
+        }
+        let seenRoots = [];
+        let processedRootParents = [];
+        for (let r of rootParents) {
+          if(seenRoots.indexOf(r['location_id']) == -1) {
+            r['sublocations'] = [];
+            r['sublocations'] = objectOfSubs[r['desc']];
+            r['sublocations']['total'] = 0;
+            r['total_subs'] = objectOfSubs[r['desc']].length;
+            seenRoots.push(r['location_id']);
+            processedRootParents.push(r);
+          }
+        }
+
+        for(let i in processedRootParents) {
+            let locAccModel = new LocationAccountRelation(),
+            locAcc = <any> await locAccModel.getManyByLocationId(processedRootParents[i]['location_id']);
+
+            let locAccUserModel = new LocationAccountUser(),
+            locAccUser = <any> await locAccUserModel.getWardensByAccountIdLocationId(accountId, processedRootParents[i]['location_id']);
+            console.log(accountId); console.log(processedRootParents[i]['location_id']);
+            let impairedCount = 0 ;
+            for(let x in locAccUser){
+                if(locAccUser[x]['mobility_impaired'] == 1){
+                    impairedCount++;
+                }
+            }
+
+            processedRootParents[i]['num_tenants'] = locAcc.length;
+            processedRootParents[i]['num_wardens'] = locAccUser.length;
+            processedRootParents[i]['mobility_impaired'] = impairedCount;
+            processedRootParents[i]['compliance'] = 0;
+        }
+        return {
+          'locations':  processedRootParents
+        };
+
+      }
+
   		return locationsOnAccount;
 	}
 
