@@ -55,15 +55,16 @@
 				<div class="dates">
 					<div class="created">
 						<p>EPM Creation date</p>
-						<p class="green-text">
-							<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0]['timestamp_formatted'] }}</span>
-							<span *ngIf="selectedCompliance.compliance.docs[0].length"> 00/00/0000 </span>
+						<p class="green-text" *ngIf="selectedCompliance.compliance.docs.length > 0">
+              <span>{{ selectedCompliance.compliance.docs[0]['valid_till'] }}</span>
 						</p>
 					</div>
 
 					<div class="review">
-						<p>EPM Review date:</p>
-						<p class="green-text">00/00/0000</p>
+            <p>EPM Review date:</p>
+						<p class="green-text" *ngIf="selectedCompliance.compliance.docs.length > 0" >
+              <span >{{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}</span>
+            </p>
 					</div>
 				</div>
 
@@ -110,14 +111,14 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last EPC meeting held on:</p>
-						<p class="green-text">00/00/0000</p>
+						<p class="green-text">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted}}</p>
 					</div>
 
 					<div class="review">
 						<p>Compliance valid till:</p>
 						<p class="green-text">
-							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
-							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
+							<span *ngIf="selectedCompliance.compliance.docs[0] !== null">{{ selectedCompliance.compliance.docs[0].valid_till }}</span>
+							<span *ngIf="selectedCompliance.compliance.docs[0] == null"> 00/00/0000 </span>
 						</p>
 					</div>
 				</div>
@@ -171,8 +172,8 @@
 					<div class="review">
 						<p>Compliance valid till:</p>
 						<p class="green-text">
-							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
-							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
+							<span *ngIf="selectedCompliance.compliance.docs[0] !== null">{{ selectedCompliance.compliance.docs[0].valid_till }}</span>
+							<span *ngIf="selectedCompliance.compliance.docs[0] == null"> 00/00/0000 </span>
 						</p>
 					</div>
 				</div>
@@ -378,12 +379,12 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last Fire safety review date:</p>
-						<p class="green-text">00/00/0000</p>
+						<p class="green-text">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted }}</p>
 					</div>
 
 					<div class="review">
 						<p>Report valid till:</p>
-						<p class="green-text">00/00/0000</p>
+						<p class="green-text">{{selectedCompliance.compliance.docs[0].valid_till}}</p>
 					</div>
 				</div>
 
@@ -828,6 +829,7 @@
 		<ng-container *ngTemplateOutlet="chief_warden_trainingTemplate"></ng-container>
 	</div>
 	<div class="col l8 m12 s12">
+    <!--
 		<div class="diagram-top-of-table">
 			<h5 class="blue-text title">Attendance Record</h5>
 		</div>
@@ -849,50 +851,64 @@
 				</select>
 			</div>
 		</div>
-		<table class="striped table">
-			<thead>
-				<tr>
-					<th>Date</th>
-					<th>Location</th>
-					<th>Filename</th>
-					<th style="width: 10%;">Action</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						Jaka, Level 1
-					</td>
-					<td>
-						<a href="javascript:void(0)" class="blue-text"> file.fle </a>
-					</td>
-					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
-				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
-					<td>
-            {{doc.display_format}}
+  -->
+    <div class="col l8 m12 s12">
+      <div class="diagram-top-of-table">
+        <h5 class="blue-text title">Chief Warden</h5>
+      </div>
+      <div class="filter-container row">
+        <div class="col l6 m12 s12">
+          <div class="search-field">
+            <input placeholder="Search here" type="text">
+            <span class="material-icons">search</span>
+          </div>
+        </div>
+        <div class="col l3 m12 s12">
+          <select class="filter-by">
+            <option value="0" selected disabled >Filter By</option>
+          </select>
+        </div>
+        <div class="col l3 m12 s12">
+          <select class="sort-by">
+            <option value="0" selected disabled >Sort By</option>
+          </select>
+        </div>
+      </div>
+      <table class="striped table">
+        <thead>
+          <tr>
+            <th>Sub Locations</th>
+            <th>Benchmark</th>
+            <th>Nominated</th>
+            <th>Trained</th>
+            <th>Training Compliance</th>
+            <th style="width: 13%;">Action</th>
+          </tr>
+        </thead>
+        <tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 12">
+          <tr *ngFor="let loc of selectedCompliance['compliance']['location_details']['location']">
+            <td>{{selectedCompliance['compliance']['location_details'][loc].name}}</td>
+            <td>
+              <pre>to do</pre>
             </td>
-					<td>
-						Jaka, Level 1
-					</td>
-					<td>
-						{{doc.file_name}}
-          </td>
-          <td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+            <td>{{selectedCompliance['compliance']['location_details'][loc].users.length}}</td>
+            <td>
+              {{selectedCompliance['compliance']['location_details'][loc].training.total_passed}}
+            </td>
+            <td>
+              {{selectedCompliance['compliance']['location_details'][loc].training.percentage}}
+            </td>
+            <td>
+              <a href="javascript:void(0)" class="blue-text"> View Warden List </a>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+
+
 	</div>
 </ng-template>
 
@@ -936,22 +952,18 @@
 					<th style="width: 13%;">Action</th>
 				</tr>
 			</thead>
-			<tbody>
-				<tr>
+			<tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 6">
+				<tr *ngFor="let loc of selectedCompliance['compliance']['location_details']['location']">
+					<td>{{selectedCompliance['compliance']['location_details'][loc].name}}</td>
 					<td>
-						Level 1
+						<pre>to do</pre>
+					</td>
+					<td>{{selectedCompliance['compliance']['location_details'][loc].users.length}}</td>
+					<td>
+						{{selectedCompliance['compliance']['location_details'][loc].training.total_passed}}
 					</td>
 					<td>
-						10
-					</td>
-					<td>
-						8
-					</td>
-					<td>
-						7
-					</td>
-					<td>
-						70%
+						{{selectedCompliance['compliance']['location_details'][loc].training.percentage}}
 					</td>
 					<td>
 						<a href="javascript:void(0)" class="blue-text"> View Warden List </a>
@@ -1218,16 +1230,16 @@
 							<div *ngIf="k.compliance.validity_percentage > 50" class="image check"></div>
 
 							<div class="text">
-								<p>Valid Till:</p>
-								<span *ngIf="k.compliance.valid_till == null"> --/--/---- </span>
+								<p *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">Valid Till:</p>
+								<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till == null"> --/--/---- </span>
 								<p *ngIf="k.compliance.validity_percentage == 0" class="red-text">
-									<span *ngIf="k.compliance.valid_till !== null">{{k.compliance.valid_till}}</span>
+									<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
 								</p>
-								<div *ngIf="k.compliance.validity_percentage > 0 && k.compliance.validity_percentage <= 50"  >
-									<span *ngIf="k.compliance.valid_till !== null">{{k.compliance.valid_till}}</span>
+								<div *ngIf="k.compliance.validity_percentage > 0 && k.compliance.validity_percentage <= 50">
+									<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
 								</div>
 								<div *ngIf="k.compliance.validity_percentage > 50" class="image check" class="green-text">
-									<span *ngIf="k.compliance.valid_till !== null">{{k.compliance.valid_till}}</span>
+									<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
 								</div>
 							</div>
 

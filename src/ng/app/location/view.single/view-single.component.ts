@@ -246,6 +246,10 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 let locIdEnc = val.replace('addtenants-', '');
 
                 this.router.navigate(["/teams/add-user/tenant", locIdEnc]);
+            }else if(val.indexOf('benchmark-') > -1){
+                let locIdEnc = val.replace('benchmark-', '');
+
+                console.log(' Benchmark location id ' + locIdEnc);
             }
         });
 

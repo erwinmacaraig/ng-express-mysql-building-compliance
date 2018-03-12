@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
+import { NgForm, NgModel } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { LocationsService } from './../../services/locations';
@@ -37,10 +37,8 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     selectedFromList = [];
 
     options: DatepickerOptions = {
-        locale: enLocale,
         displayFormat: 'MMM D[,] YYYY',
-        minDate: new Date(Date.now()),
-        maxDate: new Date(Date.now())
+        minDate: new Date(Date.now())
     };
 
     datepickerModel : Date;
@@ -80,6 +78,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 $('.row.filter-container select').material_select();
                 this.dashboardService.hide();
             }, 500);
+
         }, (err: HttpErrorResponse) => {});
     }
 
@@ -92,14 +91,23 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         this.filterByEvent();
         this.sortByEvent();
         this.bulkManageActionEvent();
+        this.clickViewPeepEvent();
 
         $('#modalMobility select[name="is_permanent"]').on('change', () => {
             if($('#modalMobility select[name="is_permanent"]').val() == '1'){
                 this.isShowDatepicker = false;
                 $('#durationDate').prop('disabled', true);
+                this.durationDate.nativeElement.value = "no date available";
+                this.formMobility.controls.duration_date.disable();
             }else{
+                this.durationDate.nativeElement.value = "";
+                this.formMobility.controls.duration_date.markAsPristine();
+                this.formMobility.controls.duration_date.enable();
+
                 $('#durationDate').prop('disabled', false);
             }
+
+            $('#modalMobility select[name="is_permanent"]').material_select('update');
         });
     }
 
@@ -144,7 +152,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 this.peepList = this.copyOfList;
             }
         });
-
     }
 
     sortByEvent(){
@@ -189,16 +196,15 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             this.peepList = this.copyOfList;
         }else{
             for(let i in this.copyOfList){
-                let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase();
-                if(name.indexOf(key) > -1){
+                let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase(),
+                    email = this.copyOfList[i]['email'];
+                if(name.indexOf(key) > -1 || email.indexOf(key) > -1){
                     temp.push( this.copyOfList[i] );
                 }
             }
             this.peepList = temp;
         }
     }
-
-    ngOnDestroy(){}
 
     onSelectFromTable(event, peep){
         let selected = event.target.value;
@@ -214,12 +220,22 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     archiveClick(){
         this.showModalLoader = true;
-        this.userService.archiveUsers([this.selectedToArchive['user_id']], (response) => {
+
+        let cb = (response) => {
             this.showModalLoader = false;
             $('#modalArchive').modal('close');
             this.dashboardService.show();
             this.ngOnInit();
-        });
+        },
+        id = 0;
+
+        if('user_id' in this.selectedToArchive){
+            id = this.selectedToArchive['user_id'];
+            this.userService.archiveUsers([id], cb);
+        }else if('user_invitations_id' in this.selectedToArchive){
+            id = this.selectedToArchive['user_invitations_id'];
+            this.userService.archiveInvitedUsers([id], cb);
+        } 
     }
 
     selectAllCheckboxEvent(event){
@@ -247,14 +263,35 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             if(list.user_id){
                 this.selectedFromList.push(list);
             }
+
+            if(list.user_invitations_id){
+                this.selectedFromList.push(list);
+            }
         }else{
             let temp = [];
             for(let i in this.selectedFromList){
                 if(this.selectedFromList[i]['user_id'] != list['user_id']){
                     temp.push( this.selectedFromList[i] );
                 }
+
+                if(this.selectedFromList[i]['user_invitations_id'] != list['user_invitations_id']){
+                    temp.push( this.selectedFromList[i] );
+                }
             }
             this.selectedFromList = temp;
+        }
+
+        let checkboxes = $('table tbody input[type="checkbox"]'),
+            countChecked = 0;
+        checkboxes.each((indx, elem) => {
+            if($(elem).prop('checked')){
+                countChecked++;
+            }
+        });
+
+        $('#allLocations').prop('checked', false);
+        if(countChecked == checkboxes.length){
+            $('#allLocations').prop('checked', true);
         }
     }
 
@@ -274,30 +311,75 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     bulkArchiveClick(){
         this.showModalLoader = true;
-        let arrIds = [];
+        let arrIds = [],
+            arrInviteesIds = [];
 
         for(let i in this.selectedFromList){
-            arrIds.push(this.selectedFromList[i]['user_id']);
+            if('user_id' in this.selectedFromList[i]){
+                arrIds.push(this.selectedFromList[i]['user_id']);
+            }
+
+            if('user_invitations_id' in this.selectedFromList[i]){
+                arrInviteesIds.push(this.selectedFromList[i]['user_invitations_id']);
+            }
         }
 
-        this.userService.archiveUsers(arrIds, (response) => {
+        let cb = (response) => {
+            $('#allLocations').prop('checked', false);
             this.showModalLoader = false;
             $('#modalArchiveBulk').modal('close');
             this.dashboardService.show();
             this.ngOnInit();
+        }
+
+        this.userService.archiveUsers(arrIds, (response) => {
+            this.userService.archiveInvitedUsers(arrInviteesIds, cb);
+        });
+    }
+
+    clickViewPeepEvent(){
+        $('body').off('click.viewpeeplink').on('click.viewpeeplink', 'a.view-peep-link', (event) => {
+            let thisLink = $(event.target),
+                attr = (thisLink.attr('user_id')) ? 'user' : 'invited',
+                id = (attr == 'user') ? thisLink.attr('user_id') : thisLink.attr('user_invitations_id'),
+                peep = {};
+
+            for(let i in this.copyOfList){
+                if( this.copyOfList[i]['user_id'] == id && attr == 'user' ){
+                    peep = this.copyOfList[i];
+                }else if( this.copyOfList[i]['user_invitations_id'] == id && attr == 'invited' ){
+                    peep = this.copyOfList[i];
+                }
+            }
+
+            this.clickShowPeepInfo(peep);
+
         });
     }
 
     clickShowPeepInfo(peep){
-        for(let i in peep['mobility_impaired_details'][0]){
-            if( this.formMobility.controls[i] ){
-                this.formMobility.controls[i].setValue(peep['mobility_impaired_details'][0][i]);
+        $('#modalMobility select[name="is_permanent"]').val('0').trigger('change');
+        this.datepickerModelFormatted = 'no date available';
+
+        if(peep['mobility_impaired_details'].length > 0){
+            for(let i in peep['mobility_impaired_details'][0]){
+                if( this.formMobility.controls[i] && i != 'duration_date' ){
+                    this.formMobility.controls[i].setValue(peep['mobility_impaired_details'][0][i]);
+                }
+            }
+
+            $('#modalMobility select[name="is_permanent"]').val(peep['mobility_impaired_details'][0]['is_permanent']);
+
+            if(peep['mobility_impaired_details'][0]['is_permanent'] == 0){
+                this.datepickerModel = moment(peep['mobility_impaired_details'][0]['duration_date']).toDate();
+                this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+            }else{
+                $('#modalMobility select[name="is_permanent"]').val('1').trigger('change');
             }
         }
 
-        this.datepickerModel = moment(peep['mobility_impaired_details'][0]['duration_date'], ['YYYY-MM-DD']).toDate();
-        this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
-
+        this.selectedPeep = peep;
+        
         $('#modalMobility').modal('open');
     }
 
@@ -335,10 +417,20 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         if(f.valid){
             let paramData = JSON.parse(JSON.stringify(f.value));
             paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
-            paramData['user_id'] = this.selectedPeep['user_id'];
+            if('user_id' in this.selectedPeep){
+                paramData['user_id'] = this.selectedPeep['user_id'];
+            }else if('user_invitations_id' in this.selectedPeep){
+                paramData['user_invitations_id'] = this.selectedPeep['user_invitations_id'];
+            }
+
+            if(this.selectedPeep['mobility_impaired_details'].length > 0){
+                paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
+            }
+            
             paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
 
             this.showModalLoader = true;
+            this.dashboardService.show();
 
             this.userService.sendMobilityImpaireInformation(paramData, (response) => {
 
@@ -350,4 +442,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             });
         }
     }
+
+    ngOnDestroy(){}
 }

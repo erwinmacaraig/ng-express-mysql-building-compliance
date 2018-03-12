@@ -174,7 +174,8 @@ export class UserInvitation extends BaseClass {
                     contact_number = ?,
                     phone_number = ?,
                     invited_by_user = ?,
-                    was_used = ?
+                    was_used = ?,
+                    archived = ?
                 WHERE
                     user_invitations_id = ?
             `;
@@ -191,6 +192,7 @@ export class UserInvitation extends BaseClass {
                 ('phone_number' in this.dbData) ? this.dbData['phone_number'] : null,
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
                 ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
+                ('archived' in this.dbData) ? this.dbData['archived'] : 0,
                 this.ID() ? this.ID() : 0
             ];
             const connection = db.createConnection(dbconfig);
@@ -221,8 +223,10 @@ export class UserInvitation extends BaseClass {
                 contact_number,
                 phone_number,
                 invited_by_user,
-                was_used
+                was_used,
+                archived
             ) VALUES (
+                ?,
                 ?,
                 ?,
                 ?,
@@ -248,7 +252,8 @@ export class UserInvitation extends BaseClass {
                 ('contact_number' in this.dbData) ? this.dbData['contact_number'] : '',
                 ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
-                ('was_used' in this.dbData) ? this.dbData['was_used'] : 0
+                ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
+                ('archived' in this.dbData) ? this.dbData['archived'] : 0
             ];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_insert, values, (err, results, fields) => {

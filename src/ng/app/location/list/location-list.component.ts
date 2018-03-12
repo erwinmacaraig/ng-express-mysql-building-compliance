@@ -90,7 +90,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		});
 
 		this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
- 
+
   	}
 
 	ngOnInit(){
@@ -99,7 +99,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 	getLocationsForListing(callback){
 		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
-    		
+
     		this.locations = response.locations;
     		if (this.locations.length > 0) {
     			for (let i = 0; i < this.locations.length; i++) {
@@ -186,7 +186,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				this.getLocationsForListing(() => {
 					this.modalArchive.loader = false;
 					$('#modalArchive').modal('close');
-					
+
 		    	});
 			});
 		}
@@ -222,7 +222,11 @@ export class LocationListComponent implements OnInit, OnDestroy {
 					}
 				}
 
-			}
+			}else if(val.indexOf('benchmark-') > -1){
+                let locIdEnc = val.replace('benchmark-', '');
+                $('#modalWardenBenchmarkCalc').modal('open');
+                console.log(' Benchmark location id ' + locIdEnc);
+            }
 
 		});
 	}
@@ -464,12 +468,12 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 	onChangeTableCheckboxEvent(location, checkbox){
 		let checked = checkbox.checked;
-		
+
 		switch (checked) {
 			case true:
 				this.arraySelectedLocs.push(location);
 				break;
-			
+
 			default:
 				let newArr = [];
 				for(let i in this.arraySelectedLocs){
@@ -481,7 +485,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				break;
 		}
 
-		
+
 
 		console.log(this.arraySelectedLocs);
 	}

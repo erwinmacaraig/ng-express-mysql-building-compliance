@@ -191,7 +191,8 @@ import { ReportsTrainingsComponent } from './reports/trainings/trainings.compone
     HttpClientModule,
     AppRoutingModule,
     AgmCoreModule.forRoot({
-      apiKey: 'AIzaSyD4QEsIs8QgjTj0bOIizxUZqIk7zVgFxzk',
+      // apiKey: 'AIzaSyDiE9BDUZGheckC5U_yQqbQlVrEBENs9HA',
+      apiKey : 'AIzaSyD4QEsIs8QgjTj0bOIizxUZqIk7zVgFxzk ',
       libraries: ['places']
     }),
     // todo: move to location module

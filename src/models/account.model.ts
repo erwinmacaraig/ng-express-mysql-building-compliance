@@ -152,8 +152,8 @@ export class Account extends BaseClass {
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
             ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "1;8;General Occupant,0;9;Warden",
             ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
-            ('trp_code' in this.dbData) ? this.dbData['trp_code'] : null,
-            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : null,
+            ('trp_code' in this.dbData) ? this.dbData['trp_code'] : '',
+            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : '',
             ('key_contact' in this.dbData) ? this.dbData['key_contact'] : "",
             ('time_zone' in this.dbData) ? this.dbData['time_zone'] : "",
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
@@ -219,8 +219,8 @@ export class Account extends BaseClass {
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
             ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "1;8;General Occupant,0;9;Warden",
             ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
-            ('trp_code' in this.dbData) ? this.dbData['trp_code'] : null,
-            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : null,
+            ('trp_code' in this.dbData) ? this.dbData['trp_code'] : '',
+            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : '',
             ('key_contact' in this.dbData) ? this.dbData['key_contact'] : "",
             ('time_zone' in this.dbData) ? this.dbData['time_zone'] : ""
           ];

@@ -81,6 +81,24 @@ export class UserService {
 		});
 	}
 
+	archiveInvitedUsers(invitedUserIds, callBack){
+		this.http.post(this.baseUrl+"/users/archive-invited-users", { ids : invitedUserIds })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	unArchiveInvitedUsers(invitedUserIds, callBack){
+		this.http.post(this.baseUrl+"/users/unarchive-invited-users", { ids : invitedUserIds })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 	archiveLocationUser(locAccntUserId, callBack){
 		this.http.post(this.baseUrl+"/users/archive-location-account-user", { location_account_user_id : locAccntUserId })
 		.subscribe(res => {

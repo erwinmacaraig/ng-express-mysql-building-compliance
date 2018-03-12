@@ -1023,21 +1023,21 @@ export class TeamRoute extends BaseRoute {
   }*/
 
   public async buildPEEPList(req: AuthRequest, res:Response, archived?){
-      let accountId = req['user']['account_id'],
-        userID = req['user']['user_id'],
-        locationAccountUser = new LocationAccountUser(),
-        response = {
-            data : <any>[],
-            status : false,
-            message : ''
-        },
-        allParents = [],
-        allUsersModel = new User(),
-        allUsers = <any>[],
-        allUsersIds = [],
-        emRolesModel = new UserEmRoleRelation(),
-        emRoles = await emRolesModel.getEmRoles(),
-        emRolesIndexedId = {};
+    let accountId = req['user']['account_id'],
+      userID = req['user']['user_id'],
+      locationAccountUser = new LocationAccountUser(),
+      response = {
+          data : <any>[],
+          status : false,
+          message : ''
+      },
+      allParents = [],
+      allUsersModel = new User(),
+      allUsers = <any>[],
+      allUsersIds = [],
+      emRolesModel = new UserEmRoleRelation(),
+      emRoles = await emRolesModel.getEmRoles(),
+      emRolesIndexedId = {};
 
     if(!archived){ archived = 0; }
 
@@ -1121,9 +1121,9 @@ export class TeamRoute extends BaseRoute {
 
         user['roles'] = [];
         arrWhere.push( "user_id = "+user["user_id"] );
-        arrWhere.push( "duration_date > NOW()" );
 
         user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
+
         for(let userMobil of user.mobility_impaired_details){
           userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
         }
@@ -1158,29 +1158,44 @@ export class TeamRoute extends BaseRoute {
         }
     }
 
-    if(!archived){
-      let userInviModel = new UserInvitation(),
+    let userInviModel = new UserInvitation(),
         whereInvi = [];
 
       whereInvi.push([ 'account_id = '+accountId ]);
       whereInvi.push([ 'mobility_impaired = 1' ]);
       whereInvi.push([ 'was_used = 0' ]);
+      
 
-      try{
-        let usersInvited:any = await userInviModel.getWhere(whereInvi);
-        for(let user of usersInvited){
-          user['locations'] = [];
-          user['profile_pic'] = '';
-          user['mobility_impaired_details'] = [];
-          user.locations.push({
-            location_id : user.location_id,
-            name : user.location_name,
-            parent_name : (user.parent_name == null) ? '' : user.parent_name
-          });
-          toSendData.push(user);
-        }
-      }catch(e){}
+    if(!archived){
+      whereInvi.push([ 'archived = 0' ]);
+    }else{
+      whereInvi.push([ 'archived = '+archived ]);
     }
+
+    try{
+      let usersInvited:any = await userInviModel.getWhere(whereInvi);
+      for(let user of usersInvited){
+        user['locations'] = [];
+        user['profile_pic'] = '';
+        user['mobility_impaired_details'] = [];
+
+        let arrWhere = [];
+        arrWhere.push( "user_invitations_id = "+user["user_invitations_id"] );
+
+        user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
+        for(let userMobil of user.mobility_impaired_details){
+          userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+        }
+
+        user.locations.push({
+          location_id : user.location_id,
+          name : user.location_name,
+          parent_name : (user.parent_name == null) ? '' : user.parent_name
+        });
+
+        toSendData.push(user);
+      }
+    }catch(e){}
 
 
     response.data = toSendData;
