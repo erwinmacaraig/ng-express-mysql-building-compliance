@@ -217,29 +217,34 @@ import * as S3Zipper from 'aws-s3-zipper';
         emrolesOnThisLocation = {};
       }
 
-		for(let i in locAcc){
-			if(locAcc[i]['location_id'] == locationID){
-				responsibility = locAcc[i]['responsibility'];
-			}
-		}
+    for ( const i in locAcc) {
+      if (locAcc[i]['location_id'] == locationID) {
+        responsibility = locAcc[i]['responsibility'];
+      }
+    }
 
-		arrWhereKPIS.push([' description IS NOT NULL ']);
-		let kpis =  await kpisModel.getWhere(arrWhereKPIS),
-			kpisIds = [],
-			noCompliancesIds = [];
-
-		for(let i in kpis){
+    arrWhereKPIS.push([' description IS NOT NULL ']);
+    let kpis =  await kpisModel.getWhere(arrWhereKPIS),
+      kpisIds = [],
+      noCompliancesIds = [];
+/*
+		for(let i in kpis) {
 			kpisIds.push(kpis[i]['compliance_kpis_id']);
 			noCompliancesIds.push(kpis[i]['compliance_kpis_id']);
-		}
+    }
+*/
+    Object.keys(kpis).forEach((key) => {
+      kpisIds.push(kpis[key]['compliance_kpis_id']);
+      noCompliancesIds.push(kpis[key]['compliance_kpis_id']);
+    });
 
-		arrWhereCompliance.push(['compliance_kpis_id IN ('+kpisIds.join(',')+')']);
-		arrWhereCompliance.push(['building_id = '+locationID]);
-		arrWhereCompliance.push(['account_id = '+accountID]);
-		arrWhereCompliance.push(['account_role = "'+responsibility+'"']);
+    arrWhereCompliance.push(['compliance_kpis_id IN (' + kpisIds.join(',') + ')']);
+    arrWhereCompliance.push(['building_id = ' + locationID]);
+    arrWhereCompliance.push(['account_id = ' + accountID]);
+    arrWhereCompliance.push(['account_role = "' + responsibility + '"']);
 
 		let compliances = <any> await complianceModel.getWhere(arrWhereCompliance); // console.log(compliances, '========================================');
-		for(let i in kpis){
+		for(let i in kpis) {
 			let hasKpis = false;
 			for(let c in compliances){
 				if(compliances[c]['compliance_kpis_id'] == kpis[i]['compliance_kpis_id']){
@@ -265,12 +270,12 @@ import * as S3Zipper from 'aws-s3-zipper';
       }
 		}
 
-    let whereDocs = [];
+    const whereDocs = [];
     whereDocs.push(['building_id = ' + locationID]);
     whereDocs.push(['account_id = ' + accountID]);
     whereDocs.push(['document_type = "Primary" ']);
     whereDocs.push(['override_document = -1 ']);
-    let docs = await complianceDocsModel.getWhere(whereDocs);
+    const docs = await complianceDocsModel.getWhere(whereDocs);
 
     for (let c in compliances) {
 			compliances[c]['docs'] = [];
@@ -291,131 +296,129 @@ import * as S3Zipper from 'aws-s3-zipper';
 
 		}
 
+  const compliance_keys_arr = Object.keys(compliances);
+  // for (const c in compliances) {
+  for (let i = 0; i < compliance_keys_arr.length; i++ ) {
+    const c = compliance_keys_arr[i];
+    compliances[c]['measurement'] = compliances[c]['kpis']['measurement'];
 
-		for(let c in compliances){
-			compliances[c]['measurement'] = compliances[c]['kpis']['measurement'];
+    const m = compliances[c]['measurement']
+    const validTillMoment = moment(compliances[c]['valid_till']);
 
-			let m = compliances[c]['measurement'],
-				validTillMoment = moment(compliances[c]['valid_till']);
+    compliances[c]['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
 
-			compliances[c]['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
+    if(m == 'Traffic' || m == 'evac'){
+      if (compliances[c]['docs'][0]) {
+        const timeStamp = moment(compliances[c]['docs'][0]['timestamp']);
+        const today = moment();
+        const dateOfActivity = moment(compliances[c]['docs'][0]['date_of_activity']);
+        const validityInMonths = compliances[c]['kpis']['validity_in_months'];
+        const dateOfActivityValidityMoment = moment(compliances[c]['docs'][0]['date_of_activity']).add(validityInMonths, 'months');
 
-			if(m == 'Traffic' || m == 'evac'){
-				if(compliances[c]['docs'][0] && validTillMoment.isValid()){
-					let timeStamp = moment(compliances[c]['docs'][0]['timestamp']),
-						today = moment(),
-						validityInMonths = compliances[c]['kpis']['validity_in_months'];
-
-					// dateOfActivity.add(validityInMonths, "months");
-
-					// compliances[c]['valid_till'] = dateOfActivity.format('MMM. DD, YYYY');
-
-					if( validTillMoment.isSameOrBefore(today) === false ){
-						let daysDiffFromNow = validTillMoment.diff(today, 'days'),
-							daysDiffOfNowAndTimeStamp = today.diff(timeStamp, 'days'),
-							decrease = daysDiffFromNow - daysDiffOfNowAndTimeStamp,
-							percentage = (decrease / daysDiffOfNowAndTimeStamp) * 100;
-
-						compliances[c]['validity_percentage'] = 100 - Math.round(percentage);
-						compliances[c]['compliance_status'] = 1;
-					}else{
-						compliances[c]['validity_percentage'] = 0;
-						compliances[c]['compliance_status'] = 2;
-					}
-				}
-			}else if(m == 'Precent'){
-				// 6 Warden Training
-				// 8 General Occupant
-				// 11 General Occupant
+        if (dateOfActivityValidityMoment.diff(today, 'days') > 0) {
+          const daysOfActivityValidityDiffFromNow = dateOfActivityValidityMoment.diff(today, 'days');
+          const daysDiffOfNowAndDateOfActivity = today.diff(dateOfActivity, 'days');
+          const decrease = daysOfActivityValidityDiffFromNow - daysDiffOfNowAndDateOfActivity;
+          compliances[c]['validity_percentage'] = dateOfActivityValidityMoment.diff(today, 'days');
+          compliances[c]['compliance_status'] = 1;
+      } else {
+          compliances[c]['validity_percentage'] = 0;
+          compliances[c]['compliance_status'] = 2;
+        }
       }
-      let tempPercetage;
+    } else if(m == 'Precent'){
+      // 6 Warden Training
+      // 8 General Occupant
+      // 11 General Occupant
+    }
+    let tempPercetage;
 
-      compliances[c]['total_personnel'] = 0;
-      compliances[c]['total_personnel_trained'] = {
-        'total_passed' : 0,
-        'passed': [],
-        'failed': []
-      };
-      compliances[c]['percentage'] = '0%';
+    compliances[c]['total_personnel'] = 0;
+    compliances[c]['total_personnel_trained'] = {
+      'total_passed' : 0,
+      'passed': [],
+      'failed': []
+    };
+    compliances[c]['percentage'] = '0%';
 
-      switch(compliances[c]['compliance_kpis_id']) {
-        case 6:
-        // Warden Training
-        if ('9' in emrolesOnThisLocation) {
-          compliances[c]['total_personnel'] = compliances[c]['warden_total'] = emrolesOnThisLocation['9']['count'];
-          compliances[c]['location_details'] = emrolesOnThisLocation[9];
-          try {
-            compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['9']['users']);
-            tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
-            compliances[c]['percentage'] = tempPercetage + '%';
-          } catch (e) {
-            compliances[c]['total_personnel'] = 0;
-            compliances[c]['total_personnel_trained'] = {
-            'total_passed' : 0,
-            'passed': [],
-            'failed': []
-          };
-          compliances[c]['percentage'] = '0%';
-          }
-        }
-        // compliances[c]['total_personnel'] = compliances[c]['warden_total'] = ('9' in emrolesOnThisLocation) ? emrolesOnThisLocation['9']['count'] : 0;
-
-        break;
-        case 8:
-        // General Occupant Training
-        if ('8' in emrolesOnThisLocation) {
-          compliances[c]['total_personnel'] = compliances[c]['general_occupant_total'] = emrolesOnThisLocation['8']['count'];
-          compliances[c]['location_details'] = emrolesOnThisLocation[8];
-          try {
-            compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['8']['users']);
-            tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
-            compliances[c]['percentage'] = tempPercetage + '%';
-          } catch (e) {
-            compliances[c]['total_personnel'] = 0;
-            compliances[c]['total_personnel_trained'] = {
-            'total_passed' : 0,
-            'passed': [],
-            'failed': []
-          };
-          compliances[c]['percentage'] = '0%';
-          }
-        }
-          // compliances[c]['total_personnel'] = compliances[c]['general_occupant_total'] = ('8' in emrolesOnThisLocation) ? emrolesOnThisLocation['8']['count'] : 0;
-        break;
-        case 12:
-        // Chief Warden Training
-        if ('11' in emrolesOnThisLocation) {
-          compliances[c]['total_personnel'] =  compliances[c]['chief_warden_total'] = emrolesOnThisLocation['11']['count'];
-          compliances[c]['location_details'] = emrolesOnThisLocation[11];
-          try {
-            compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['11']['users']);
-            tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
-            compliances[c]['percentage'] = tempPercetage + '%';
-          } catch (e) {
-            compliances[c]['total_personnel'] = 0;
-            compliances[c]['total_personnel_trained'] = {
-            'total_passed' : 0,
-            'passed': [],
-            'failed': []
-          };
-          compliances[c]['percentage'] = '0%';
-          }
-        }
-        break;
-        default:
-          /*
+    switch(compliances[c]['compliance_kpis_id']) {
+      case 6:
+      // Warden Training
+      if ('9' in emrolesOnThisLocation) {
+        compliances[c]['total_personnel'] = compliances[c]['warden_total'] = emrolesOnThisLocation['9']['count'];
+        compliances[c]['location_details'] = emrolesOnThisLocation[9];
+        try {
+          compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['9']['users']);
+          tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
+          compliances[c]['percentage'] = tempPercetage + '%';
+        } catch (e) {
           compliances[c]['total_personnel'] = 0;
           compliances[c]['total_personnel_trained'] = {
-            'total_passed' : 0,
-            'passed': [],
-            'failed': []
-          };
-          compliances[c]['percentage'] = '0%';
-          */
-        break;
+          'total_passed' : 0,
+          'passed': [],
+          'failed': []
+        };
+        compliances[c]['percentage'] = '0%';
+        }
       }
+      // compliances[c]['total_personnel'] = compliances[c]['warden_total'] = ('9' in emrolesOnThisLocation) ? emrolesOnThisLocation['9']['count'] : 0;
 
-		}
+      break;
+      case 8:
+      // General Occupant Training
+      if ('8' in emrolesOnThisLocation) {
+        compliances[c]['total_personnel'] = compliances[c]['general_occupant_total'] = emrolesOnThisLocation['8']['count'];
+        compliances[c]['location_details'] = emrolesOnThisLocation[8];
+        try {
+          compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['8']['users']);
+          tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
+          compliances[c]['percentage'] = tempPercetage + '%';
+        } catch (e) {
+          compliances[c]['total_personnel'] = 0;
+          compliances[c]['total_personnel_trained'] = {
+          'total_passed' : 0,
+          'passed': [],
+          'failed': []
+        };
+        compliances[c]['percentage'] = '0%';
+        }
+      }
+        // compliances[c]['total_personnel'] = compliances[c]['general_occupant_total'] = ('8' in emrolesOnThisLocation) ? emrolesOnThisLocation['8']['count'] : 0;
+      break;
+      case 12:
+      // Chief Warden Training
+      if ('11' in emrolesOnThisLocation) {
+        compliances[c]['total_personnel'] =  compliances[c]['chief_warden_total'] = emrolesOnThisLocation['11']['count'];
+        compliances[c]['location_details'] = emrolesOnThisLocation[11];
+        try {
+          compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['11']['users']);
+          tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
+          compliances[c]['percentage'] = tempPercetage + '%';
+        } catch (e) {
+          compliances[c]['total_personnel'] = 0;
+          compliances[c]['total_personnel_trained'] = {
+          'total_passed' : 0,
+          'passed': [],
+          'failed': []
+        };
+        compliances[c]['percentage'] = '0%';
+        }
+      }
+      break;
+      default:
+        /*
+        compliances[c]['total_personnel'] = 0;
+        compliances[c]['total_personnel_trained'] = {
+          'total_passed' : 0,
+          'passed': [],
+          'failed': []
+        };
+        compliances[c]['percentage'] = '0%';
+        */
+      break;
+    }
+
+  }
 
 
 		this.response.status = true;

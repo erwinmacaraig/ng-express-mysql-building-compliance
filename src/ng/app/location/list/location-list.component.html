@@ -109,7 +109,7 @@
 					<td>
 						<span style="margin-right:10px;">{{location.num_tenants}}</span> <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', location.location_id]" > Add tenants </a>
 					</td>
-					
+
 					<td>
 						<span style="margin-right:10px;">{{location.num_wardens}}</span> <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-wardens/', location.location_id]" > Add Wardens </a>
 					</td>
@@ -160,7 +160,7 @@
 	</div>
 	<div class="modal-content" [hidden]="modalArchive.loader">
 		<h5>Confirmation</h5>
-		
+
 		<h5 *ngIf="selectedArchive.length == 0">No location selected</h5>
 		<div *ngIf="selectedArchive.length > 0">
 			<p style="font-size: 16px;">
@@ -191,7 +191,7 @@
 	</div>
 	<div class="modal-content" [hidden]="modalArchiveBulk.loader">
 		<h5>Confirmation</h5>
-		
+
 		<h5 *ngIf="arraySelectedLocs.length == 0">No location selected</h5>
 		<div *ngIf="arraySelectedLocs.length > 0">
 			<p style="font-size: 16px;">
@@ -210,3 +210,13 @@
 	</div>
 </div>
 
+
+<div id="modalWardenBenchmarkCalc" class="modal">
+
+    <div class="modal-content" >
+     <app-warden-benchmarking></app-warden-benchmarking>
+    </div>
+    <div class="modal-footer" >
+
+    </div>
+  </div>

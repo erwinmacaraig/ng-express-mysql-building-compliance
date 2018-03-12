@@ -55,15 +55,16 @@
 				<div class="dates">
 					<div class="created">
 						<p>EPM Creation date</p>
-						<p class="green-text">
-							<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0]['timestamp_formatted'] }}</span>
-							<span *ngIf="selectedCompliance.compliance.docs[0].length"> 00/00/0000 </span>
+						<p class="green-text" *ngIf="selectedCompliance.compliance.docs.length > 0">
+              <span>{{ selectedCompliance.compliance.docs[0]['valid_till'] }}</span>
 						</p>
 					</div>
 
 					<div class="review">
-						<p>EPM Review date:</p>
-						<p class="green-text">00/00/0000</p>
+            <p>EPM Review date:</p>
+						<p class="green-text" *ngIf="selectedCompliance.compliance.docs.length > 0" >
+              <span >{{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}</span>
+            </p>
 					</div>
 				</div>
 
@@ -110,14 +111,14 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last EPC meeting held on:</p>
-						<p class="green-text">00/00/0000</p>
+						<p class="green-text">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted}}</p>
 					</div>
 
 					<div class="review">
 						<p>Compliance valid till:</p>
 						<p class="green-text">
-							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
-							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
+							<span *ngIf="selectedCompliance.compliance.docs[0] !== null">{{ selectedCompliance.compliance.docs[0].valid_till }}</span>
+							<span *ngIf="selectedCompliance.compliance.docs[0] == null"> 00/00/0000 </span>
 						</p>
 					</div>
 				</div>
@@ -171,8 +172,8 @@
 					<div class="review">
 						<p>Compliance valid till:</p>
 						<p class="green-text">
-							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
-							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
+							<span *ngIf="selectedCompliance.compliance.docs[0] !== null">{{ selectedCompliance.compliance.docs[0].valid_till }}</span>
+							<span *ngIf="selectedCompliance.compliance.docs[0] == null"> 00/00/0000 </span>
 						</p>
 					</div>
 				</div>
@@ -378,12 +379,12 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last Fire safety review date:</p>
-						<p class="green-text">00/00/0000</p>
+						<p class="green-text">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted }}</p>
 					</div>
 
 					<div class="review">
 						<p>Report valid till:</p>
-						<p class="green-text">00/00/0000</p>
+						<p class="green-text">{{selectedCompliance.compliance.docs[0].valid_till}}</p>
 					</div>
 				</div>
 
@@ -1229,16 +1230,16 @@
 							<div *ngIf="k.compliance.validity_percentage > 50" class="image check"></div>
 
 							<div class="text">
-								<p>Valid Till:</p>
-								<span *ngIf="k.compliance.valid_till == null"> --/--/---- </span>
+								<p *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">Valid Till:</p>
+								<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till == null"> --/--/---- </span>
 								<p *ngIf="k.compliance.validity_percentage == 0" class="red-text">
-									<span *ngIf="k.compliance.valid_till !== null">{{k.compliance.valid_till}}</span>
+									<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
 								</p>
-								<div *ngIf="k.compliance.validity_percentage > 0 && k.compliance.validity_percentage <= 50"  >
-									<span *ngIf="k.compliance.valid_till !== null">{{k.compliance.valid_till}}</span>
+								<div *ngIf="k.compliance.validity_percentage > 0 && k.compliance.validity_percentage <= 50">
+									<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
 								</div>
 								<div *ngIf="k.compliance.validity_percentage > 50" class="image check" class="green-text">
-									<span *ngIf="k.compliance.valid_till !== null">{{k.compliance.valid_till}}</span>
+									<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
 								</div>
 							</div>
 
