@@ -120,7 +120,7 @@ export class WardenBenchMarkingComponent implements OnInit, OnDestroy, AfterView
       'crossing_road_required': submittedCrossingOfRoads,
       'assembly_area_wardens_percentage': ($('#additional_wardens')[0].checked) ? submittedAdditionalWardens : '0'
     };
-    this.http.post<any>('http://ec2-13-55-135-227.ap-southeast-2.compute.amazonaws.com/apis/warden_number_calculator/', body)
+    this.http.post<any>('https://mycompliancegroup.com/apis/warden_number_calculator/apis/warden_number_calculator/', body)
     .subscribe((data) => {
       console.log(data);
     }, (e) => {
