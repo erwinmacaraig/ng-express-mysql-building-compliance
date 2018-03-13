@@ -26,6 +26,7 @@ import * as validator from 'validator';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as multer from 'multer';
+const md5 = require('md5');
 
 
 export class UsersRoute extends BaseRoute {
@@ -42,6 +43,10 @@ export class UsersRoute extends BaseRoute {
 
 
 	public static create(router: Router) {
+		router.post('/users/update', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().updateUser(req, res, next);
+	    });
+
 		router.post('/users/upload-profile-picture', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().uploadProfilePicture(req, res, next);
 	    });
@@ -125,6 +130,42 @@ export class UsersRoute extends BaseRoute {
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getLocationsTenants(req, res, next);
 	    });
+	}
+
+	public async updateUser(req: Request , res: Response, next: NextFunction){
+		let 
+		response = {
+			status : false,
+			data : {},
+			message : ''
+		};
+
+		try{
+			let 
+			userModel = new User(req.body.user_id),
+			userData = await userModel.load();
+
+			for(let i in userData){
+				if(i in req.body){
+					if(i == 'password'){
+						req.body[i] = md5('Ideation'+req.body[i]+'Max');
+					}
+					userData[i] = req.body[i];
+				}
+			}
+
+			userModel.setID(req.body.user_id);
+
+			await userModel.dbUpdate();
+
+			response.status = true;
+			response.data = userData;
+		}catch(e){
+			response.message = 'No user found';
+		}
+
+
+		res.send(response);
 	}
 
 	public uploadProfilePicture(req: Request, res: Response, next: NextFunction){
@@ -418,7 +459,8 @@ export class UsersRoute extends BaseRoute {
 		fileModel = new Files(),
 		user = {},
 		emRolesModel = new UserEmRoleRelation(),
-		emRoles = await emRolesModel.getEmRoles();
+		emRoles = await emRolesModel.getEmRoles(),
+		mobilityModel = new MobilityImpairedModel();
 
 		response.data.eco_roles = emRoles;
 
@@ -473,6 +515,15 @@ export class UsersRoute extends BaseRoute {
 		                user['profilePic'] = '';
 		            }
 		        );
+
+
+				user['mobility_impaired_details'] = <any> await mobilityModel.getMany([ [ "user_id = "+userId] ]);
+
+				for(let i in user['mobility_impaired_details']){
+					user['mobility_impaired_details'][i]['date_created_formatted'] = moment(user['mobility_impaired_details'][i]['date_created']).format('MMM. DD, YYYY');
+					user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
+				}
+
 			}
 
 			response.data.locations = locations;
