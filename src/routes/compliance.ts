@@ -187,6 +187,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         }
 
         if ('9' in emrolesOnThisLocation) {
+          console.log(emrolesOnThisLocation['9']);
           if (emrolesOnThisLocation['9']['location'].length > 0) {
             let locId;
             for (let i = 0; i < emrolesOnThisLocation['9']['location'].length; i++) {
@@ -196,9 +197,12 @@ import * as S3Zipper from 'aws-s3-zipper';
                    await training.getEMRUserCertifications(emrolesOnThisLocation['9'][locId]['users']);
               }
             }
+          } else { // there is no  warden assigned to the selected location
+
           }
         }
         if ('11' in emrolesOnThisLocation) {
+          console.log(emrolesOnThisLocation['11']);
           if (emrolesOnThisLocation['11']['location'].length > 0) {
             let locId;
             for (let i = 0; i < emrolesOnThisLocation['11']['location'].length; i++) {
@@ -208,6 +212,8 @@ import * as S3Zipper from 'aws-s3-zipper';
                    await training.getEMRUserCertifications(emrolesOnThisLocation['11'][locId]['users']);
               }
             }
+          } else {
+            console.log('There is no chief warden assigned to this location');
           }
         }
 
@@ -243,8 +249,8 @@ import * as S3Zipper from 'aws-s3-zipper';
     arrWhereCompliance.push(['account_id = ' + accountID]);
     arrWhereCompliance.push(['account_role = "' + responsibility + '"']);
 
-		let compliances = <any> await complianceModel.getWhere(arrWhereCompliance); // console.log(compliances, '========================================');
-		for(let i in kpis) {
+    let compliances = <any> await complianceModel.getWhere(arrWhereCompliance); // console.log(compliances, '========================================');
+    for(let i in kpis) {
 			let hasKpis = false;
 			for(let c in compliances){
 				if(compliances[c]['compliance_kpis_id'] == kpis[i]['compliance_kpis_id']){
@@ -302,31 +308,20 @@ import * as S3Zipper from 'aws-s3-zipper';
     const c = compliance_keys_arr[i];
     compliances[c]['measurement'] = compliances[c]['kpis']['measurement'];
 
-    const m = compliances[c]['measurement']
+    const m = compliances[c]['measurement'];
     const validTillMoment = moment(compliances[c]['valid_till']);
 
     compliances[c]['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
-
-    if(m == 'Traffic' || m == 'evac'){
-      if (compliances[c]['docs'][0]) {
-        const timeStamp = moment(compliances[c]['docs'][0]['timestamp']);
-        const today = moment();
-        const dateOfActivity = moment(compliances[c]['docs'][0]['date_of_activity']);
-        const validityInMonths = compliances[c]['kpis']['validity_in_months'];
-        const dateOfActivityValidityMoment = moment(compliances[c]['docs'][0]['date_of_activity']).add(validityInMonths, 'months');
-
-        if (dateOfActivityValidityMoment.diff(today, 'days') > 0) {
-          const daysOfActivityValidityDiffFromNow = dateOfActivityValidityMoment.diff(today, 'days');
-          const daysDiffOfNowAndDateOfActivity = today.diff(dateOfActivity, 'days');
-          const decrease = daysOfActivityValidityDiffFromNow - daysDiffOfNowAndDateOfActivity;
-          compliances[c]['validity_percentage'] = dateOfActivityValidityMoment.diff(today, 'days');
-          compliances[c]['compliance_status'] = 1;
-      } else {
-          compliances[c]['validity_percentage'] = 0;
-          compliances[c]['compliance_status'] = 2;
-        }
+    const today = moment();
+    if (m === 'Traffic' || m === 'evac') {
+      if (compliances[c]['docs'][0] && validTillMoment.diff(today, 'days') > 0) {
+        compliances[c]['validity_status'] = 'valid';
+      } else if (compliances[c]['docs'][0] && validTillMoment.diff(today, 'days') <= 0) {
+        compliances[c]['validity_status'] = 'invalid';
+      } else if (compliances[c]['docs'].length === 0) {
+        compliances[c]['validity_status'] = 'none-exist';
       }
-    } else if(m == 'Precent'){
+    } else if (m === 'Percent') {
       // 6 Warden Training
       // 8 General Occupant
       // 11 General Occupant
