@@ -69,6 +69,21 @@
 	</div>
 
 	<div class="bottom-buttons">
+
+		<div class="select-field">
+			<select id="selectAction">
+				<option value="0" disabled selected>Select Action</option>
+				<option value="profile">Update Profile</option>
+				<option value="credential">Update Credential</option>
+				<option value="location">Assign Location & Role</option>
+			</select>
+		</div>
+
+		<!-- <button class="btn orange waves-effect waves-light update-user" (click)="updateUserInfo()">
+			<div class="image inline-block"></div>
+			<div class="text inline-block">Update Profile</div>
+		</button> -->
+
 		<button class="btn orange waves-effect waves-light remove" *ngIf="showRemoveWardenButton" (click)="clickRemoveWarden()">
 			<div class="image inline-block"></div>
 			<div class="text inline-block">Remove this user as {{viewData.eco_role}}</div>
@@ -81,6 +96,9 @@
 				<span *ngIf="viewData.user.mobility_impaired_details.user_id">View Emergency Evacuation Plan</span>
 			</div>
 		</button>
+
+
+
 	</div>
 </div>
 <div class="inline-block right-content">
@@ -181,7 +199,7 @@
 		<h6 class="red-text">{{errorMessageRemoveWarden}}</h6>
 	</div>
 	<div class="modal-footer" *ngIf="!showModalRemoveWardenLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<button class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</button>
 		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="yesRemoveWarden()">Yes</a>
 	</div>
 </div>
@@ -203,7 +221,7 @@
 		</div>
 	</div>
 	
-	<form #f="ngForm" (submit)="modalPeepFormSubmit(f, $event)" [hidden]="showModalLoader">
+	<form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
 
 	<div class="modal-content">
 		<h5>Mobility Impaired Information</h5>
@@ -213,16 +231,17 @@
 					<span style=" font-size: 16px;">Mobility Impaired Status</span>
 					<select ngModel name="is_permanent">
 						<option value="0" selected="selected">Temporary</option>
-						<option value="1">Permanent</option>
+						<option value="1" >Permanent</option>
 					</select>
 				</div>
 			</div>
 			<div class="col s12 l6 m6">
-				<div class="input-field" >
+				<div class="input-field">
 					<span style=" font-size: 16px;">Mobility Impaired Upto</span>
 					<ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
-					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required>
+					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required >
 				</div>
+
 			</div>
 			<div class="col s12 m12 l12">
 				<h6>Assistant Type</h6>
@@ -240,11 +259,138 @@
 
 		<div class="row button-container">
 			<div class="col s12 m12 l12">
-				<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
-				<button class="btn orange waves-light waves-effect" [disabled]="f.invalid">Submit</button>
+				<button class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</button>
+				<button class="btn orange waves-light waves-effect" [disabled]="formMobility.invalid">Submit</button>
 			</div>
 		</div>
 	</div>
+
+
+	</form>
+</div>
+
+<div id="modalUpdateProfile" class="modal">
+
+	<div class="modal-content center" [hidden]="!showModalProdfileLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<form #formProfile="ngForm" (submit)="submitUpdateProfile(formProfile)" [hidden]="showModalProdfileLoader">
+
+		<div class="modal-content">
+			<h5>Update {{viewData.user.first_name+' '+viewData.user.last_name}}'s Profile</h5>
+			<div class="row">
+				<div class="col s12">
+					<label for="firstName">First Name</label>
+					<input type="text" id="firstName" name="first_name" ngModel  required>
+				</div>
+				<div class="col s12">
+					<label for="lastName">Last Name</label>
+					<input type="text" id="lastName" name="last_name" ngModel  required>
+				</div>
+				<div class="col s12">
+					<label for="contactInformation">Contact Information</label>
+					<input type="text" id="contactInformation" ngModel name="contact_information" >
+				</div>
+
+				<input type="text" name="user_id" ngModel required style="visibility: hidden;">
+				<!-- <div class="col s12">
+					<label for="userEmail">Email</label>
+					<input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
+				</div> -->
+			</div>
+
+			<div class="row button-container">
+				<div class="col s12 m12 l12 right-align">
+					<button class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</button>
+					<button class="btn orange waves-light waves-effect" [disabled]="formProfile.invalid">Submit</button>
+				</div>
+			</div>
+		</div>
+
+
+	</form>
+</div>
+
+
+<div id="modalCredentials" class="modal">
+
+	<div class="modal-content center" [hidden]="!showModalCredentialsLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<form #formCredential="ngForm" (submit)="submitCredential(formCredential)" [hidden]="showModalCredentialsLoader">
+
+		<div class="modal-content">
+			<h5>Update {{viewData.user.first_name+' '+viewData.user.last_name}}'s Credential</h5>
+			<div class="row">
+				<div class="col s12">
+					<label for="userEmail">Email</label>
+					<input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
+				</div>
+
+				<div class="col s12">
+
+					<label for="inpPassword">Password
+						<small *ngIf=" inputPassword.value != inputConfirmPassword.value "> *Mismatched </small>
+					</label>
+
+					<input id="inpPassword" type="password" name="password" ngModel #inputPassword="ngModel"
+					[ngClass]="{
+						'invalid' : !inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+					}"
+					required minlength="6" maxlength="150"  >
+					
+				</div>
+
+				<div class="col s12">
+					
+					<label for="confirmPassword"> Confirm password</label>
+
+					<input id="confirmPassword" type="password" ngModel name="confirm_password"
+						ngModel #inputConfirmPassword="ngModel"
+						[ngClass]="{
+							'invalid' : !inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+						}"
+						required minlength="6" maxlength="150" >
+					
+				</div>
+
+				<input type="text" name="user_id" ngModel required style="visibility: hidden;">
+				
+			</div>
+
+			<div class="row button-container">
+				<div class="col s12 m12 l12 right-align">
+					<button class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</button>
+					<button class="btn orange waves-light waves-effect" 
+					[disabled]="
+					formCredential.invalid ||
+					(!inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)) || 
+					(!inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value))">Submit</button>
+				</div>
+			</div>
+		</div>
 
 
 	</form>

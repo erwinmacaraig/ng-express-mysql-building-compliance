@@ -18,10 +18,7 @@ declare var $: any;
     selector: 'app-mobility-impaired',
     templateUrl: './mobility.impaired.component.html',
     styleUrls: ['./mobility.impaired.component.css'],
-    providers : [EncryptDecryptService, UserService, DashboardPreloaderService],
-    host: {
-        '(document:click)': 'onClick($event)'
-    }
+    providers : [EncryptDecryptService, UserService, DashboardPreloaderService]
 })
 export class MobilityImpairedComponent implements OnInit, OnDestroy {
     public peepList = <any>[];
@@ -397,14 +394,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
         }
         this.isShowDatepicker = false;
-    }
-
-    onClick(event){
-        // if(event.target == this.durationDate.nativeElement){
-        //   this.isShowDatepicker = true;
-        // }else if ( !this.durationDate.nativeElement.contains(event.target)  ) {
-        //   this.isShowDatepicker = false;
-        // }
     }
 
     showDatePicker(){
