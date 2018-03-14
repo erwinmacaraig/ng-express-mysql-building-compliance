@@ -4,7 +4,7 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PlatformLocation } from '@angular/common';
 import { Location } from '@angular/common';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 
 declare var $: any;
 @Component({
@@ -120,7 +120,8 @@ export class WardenBenchMarkingComponent implements OnInit, OnDestroy, AfterView
       'crossing_road_required': submittedCrossingOfRoads,
       'assembly_area_wardens_percentage': ($('#additional_wardens')[0].checked) ? submittedAdditionalWardens : '0'
     };
-    this.http.post<any>('https://mycompliancegroup.com/apis/warden_number_calculator/apis/warden_number_calculator/', body)
+
+    this.http.post<any>('http://ec2-13-55-135-227.ap-southeast-2.compute.amazonaws.com/apis/warden_number_calculator/', body)
     .subscribe((data) => {
       console.log(data);
     }, (e) => {
