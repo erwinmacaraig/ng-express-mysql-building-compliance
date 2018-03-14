@@ -18,6 +18,15 @@ export class UserService {
 		this.baseUrl = (platformLocation as any).location.origin;
 	}
 
+	update(formData, callBack){
+		this.http.post(this.baseUrl+"/users/update", formData)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 	uploadProfilePicture(formData, callBack){
 		this.http.post(this.baseUrl+"/users/upload-profile-picture", formData)
 		.subscribe(res => {

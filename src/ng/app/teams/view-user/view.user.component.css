@@ -8,7 +8,7 @@
 	padding: 20px;
 	min-height: 750px;
 	position: relative;
-
+    height: calc(100vh - 140px);
 }
 
 .right-content{
@@ -81,10 +81,13 @@
 }
 
 .left-panel .bottom-buttons .btn{
-	margin-bottom: 20px;
 	height: 80px !important;
 	padding: 0px;
     width: 245px;
+}
+
+.left-panel .bottom-buttons .btn:not(:last-child){
+    margin-bottom: 10px;
 }
 
 .left-panel .bottom-buttons .btn .image{
@@ -112,6 +115,10 @@
 
 .left-panel .bottom-buttons .btn.presonal-emergency .image{
 	background-position: 73% 70%;
+}
+
+.left-panel .bottom-buttons .btn.update-user .image{
+    background-position: 18% 35%;
 }
 
 .col-user-profile{
@@ -301,4 +308,21 @@ ul.list li{
     #modalMobility{
         width: 90%;
     }
+}
+
+input:not([type]):focus:not([readonly]), 
+input[type=text]:not(.browser-default):focus:not([readonly]), 
+input[type=password]:not(.browser-default):focus:not([readonly]), 
+input[type=email]:not(.browser-default):focus:not([readonly]), 
+input[type=url]:not(.browser-default):focus:not([readonly]), 
+input[type=time]:not(.browser-default):focus:not([readonly]),
+input[type=date]:not(.browser-default):focus:not([readonly]), 
+input[type=datetime]:not(.browser-default):focus:not([readonly]), 
+input[type=datetime-local]:not(.browser-default):focus:not([readonly]),
+input[type=tel]:not(.browser-default):focus:not([readonly]),
+input[type=number]:not(.browser-default):focus:not([readonly]),
+input[type=search]:not(.browser-default):focus:not([readonly]), 
+textarea.materialize-textarea:focus:not([readonly]){
+    border-bottom: 0px;
+    box-shadow: 0 1px 0 0 #0089ec;
 }

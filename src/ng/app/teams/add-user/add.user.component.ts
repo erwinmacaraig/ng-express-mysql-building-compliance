@@ -1,15 +1,17 @@
 import { LocationsService } from './../../services/locations';
 import { AuthService } from './../../services/auth.service';
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
-import { ViewChild } from '@angular/core';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { Observable } from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 declare var $: any;
 @Component({
@@ -21,6 +23,7 @@ declare var $: any;
 export class AddUserComponent implements OnInit, OnDestroy {
 	@ViewChild('f') addWardenForm: NgForm;
     @ViewChild('invitefrm') emailInviteForm: NgForm;
+    @ViewChild('modalSearchLocation') modalSearchLocation: ElementRef;
     public userProperty = {
         first_name : '',
         last_name : '',
@@ -54,7 +57,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
     private paramLocIdEnc = '';
     private paramLocId = '';
 
-
+    searchModalLocationSubs;
 
     constructor(
         private authService: AuthService, 
@@ -210,18 +213,27 @@ export class AddUserComponent implements OnInit, OnDestroy {
         this.addedUsers = newList;
     }
 
-    showLocationSelection(user){
+    filterLocationsToDisplayByUserRole(user, data){
+        let resp = [],
+            copy = JSON.parse(JSON.stringify(data));
         if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
             let temp = [];
-            for(let i in this.locations){
-                let innerTemp = JSON.parse(JSON.stringify(this.locations[i]));
+            for(let i in data){
+                let innerTemp = JSON.parse(JSON.stringify(data[i]));
                 innerTemp.sublocations = [];
                 temp.push(innerTemp);
             }
-            this.locations = temp;
+            resp = temp;
         }else{
-            this.locations = this.locationsCopy;
+            resp = copy;
         }
+
+        return resp;
+    }
+
+    showLocationSelection(user){
+
+        this.locations = this.filterLocationsToDisplayByUserRole(user, this.locations);
 
         $('#modalLocations').modal('open');
         this.selectedUser = user;
@@ -320,6 +332,8 @@ export class AddUserComponent implements OnInit, OnDestroy {
     cancelLocationModal(){
         $('#modalLocations').modal('close');
         this.selectedUser = {};
+        this.modalSearchLocation.nativeElement.value = "";
+        this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
     }
 
     ngAfterViewInit(){
@@ -332,13 +346,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         
         this.dragDropFileEvent();
 
-        $('body').off('keyup.keyupemail').on('keyup.keyupemail', 'input[type="email"]', (elem) => {
-        	console.log(this.addWardenForm.controls);
-        });
-    }
-
-    ngOnDestroy(){
-        this.routeSub.unsubscribe();
+        this.onKeyUpSearchModalLocationEvent();
     }
 
     submitUsers(f){
@@ -390,13 +398,13 @@ export class AddUserComponent implements OnInit, OnDestroy {
         this.emailInviteForm.controls.inviteTxtArea.reset();
     }
 
-    public fileChangeEvent(fileInput: any, btnSelectCSV) {
+    fileChangeEvent(fileInput: any, btnSelectCSV) {
         this.CSVFileToUpload = <Array<File>> fileInput.target.files;
         console.log(this.CSVFileToUpload);
         btnSelectCSV.innerHTML = this.CSVFileToUpload[0]['name'];
     };
 
-    public onUploadCSVAction() {
+    onUploadCSVAction() {
         let override = $('#override')[0].checked;
         console.log(override);
         let formData: any = new FormData();
@@ -436,4 +444,67 @@ export class AddUserComponent implements OnInit, OnDestroy {
             });
         }
     }
+
+    onKeyUpSearchModalLocationEvent(){
+        this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
+            .debounceTime(500)
+            .subscribe((event) => {
+            
+            let value = event['target'].value,
+                result = [];
+
+            let findRelatedName = (data, mainParent?) => {
+                for(let i in data){
+                    if(data[i]['sublocations'].length > 0){
+                        if(data[i]['parent_id'] == -1){
+                            findRelatedName(data[i]['sublocations'], data[i]);
+                        }else{
+                            if(mainParent){
+                                findRelatedName(data[i]['sublocations'], mainParent);
+                            }else{
+                                findRelatedName(data[i]['sublocations']);
+                            }
+                        }
+                    }
+
+                    if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+                        let isIn = false,
+                            compareId = (mainParent) ? mainParent['location_id'] : data[i]['location_id'];
+                        for(let x in result){
+                            if(result[x]['location_id'] == compareId){
+                                isIn = true;
+                            }
+                        }
+                        if(mainParent && !isIn){
+                            result.push(mainParent);
+                        }else if(!isIn){
+                            result.push(data[i]);
+                        }
+                    }
+
+                    data[i]['showDropDown'] = true;
+                }
+
+                return result;
+            };
+
+            if(value.length > 0){
+                result = [];
+                findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
+                this.locations = result;
+            }else{
+                this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
+            }
+
+            this.locations = this.filterLocationsToDisplayByUserRole(this.selectedUser, this.locations);
+
+        });
+    }
+
+    ngOnDestroy(){
+        this.routeSub.unsubscribe();
+        this.searchModalLocationSubs.unsubscribe();
+    }
+
+
 }

@@ -1,6 +1,6 @@
 import { LocationsService } from './../../services/locations';
 import { AuthService } from './../../services/auth.service';
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -8,6 +8,9 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { ViewChild } from '@angular/core';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { Observable } from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 
 declare var $: any;
@@ -20,6 +23,7 @@ declare var $: any;
 export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     @ViewChild('f') addWardenForm: NgForm;
     @ViewChild('invitefrm') emailInviteForm: NgForm;
+    @ViewChild('modalSearchLocation') modalSearchLocation: ElementRef;
     public addedUsers = [];
     public userProperty = {
         first_name : '',
@@ -41,6 +45,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     public ecoRoles;
     public ecoDisplayRoles = [];
     public locations = [];
+    public locationsCopy = [];
     public userData = {};
     public selectedUser = {};
     public bulkEmailInvite;
@@ -52,6 +57,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     public routeSub;
     public paramLocIdEnc = '';
     public paramLocId = '';
+
+    searchModalLocationSubs;
 
     constructor(
         private authService: AuthService,
@@ -105,6 +112,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
             if(this.paramLocIdEnc.length > 0){
                 this.locations = this.filterLocationForSelectedValue();
             }
+
+            this.locationsCopy = JSON.parse( JSON.stringify(this.locations) );
         });
     }
 
@@ -114,6 +123,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         });
 
         this.dragDropFileEvent();
+        this.onKeyUpSearchModalLocationEvent();
     }
 
     filterLocationForSelectedValue(){
@@ -344,9 +354,9 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     cancelLocationModal(){
         $('#modalLocations').modal('close');
         this.selectedUser = {};
+        this.modalSearchLocation.nativeElement.value = "";
+        this.locations = this.locationsCopy;
     }
-
-    ngOnDestroy(){}
 
     addBulkWarden() {
         const strWardens = JSON.stringify(this.addedUsers);
@@ -420,8 +430,64 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
       }, (error: HttpErrorResponse) => {
         alert('There was an error.');
       });
+    }
 
+    onKeyUpSearchModalLocationEvent(){
+        this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
+            .debounceTime(500)
+            .subscribe((event) => {
+            
+            let value = event['target'].value,
+                result = [];
 
+            let findRelatedName = (data, mainParent?) => {
+                for(let i in data){
+                    if(data[i]['sublocations'].length > 0){
+                        if(data[i]['parent_id'] == -1){
+                            findRelatedName(data[i]['sublocations'], data[i]);
+                        }else{
+                            if(mainParent){
+                                findRelatedName(data[i]['sublocations'], mainParent);
+                            }else{
+                                findRelatedName(data[i]['sublocations']);
+                            }
+                        }
+                    }
+
+                    if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+                        let isIn = false,
+                            compareId = (mainParent) ? mainParent['location_id'] : data[i]['location_id'];
+                        for(let x in result){
+                            if(result[x]['location_id'] == compareId){
+                                isIn = true;
+                            }
+                        }
+                        if(mainParent && !isIn){
+                            result.push(mainParent);
+                        }else if(!isIn){
+                            result.push(data[i]);
+                        }
+                    }
+
+                    data[i]['showDropDown'] = true;
+                }
+
+                return result;
+            };
+
+            if(value.length > 0){
+                result = [];
+                findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
+                this.locations = result;
+            }else{
+                this.locations = this.locationsCopy;
+            }
+
+        });
+    }
+
+    ngOnDestroy(){
+        this.searchModalLocationSubs.unsubscribe();
     }
 
 }
