@@ -111,12 +111,12 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last EPC meeting held on:</p>
-						<p class="green-text">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted}}</p>
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0" class="green-text">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted}}</p>
 					</div>
 
 					<div class="review">
 						<p>Compliance valid till:</p>
-						<p class="green-text">
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0" class="green-text">
 							<span *ngIf="selectedCompliance.compliance.docs[0] !== null">{{ selectedCompliance.compliance.docs[0].valid_till }}</span>
 							<span *ngIf="selectedCompliance.compliance.docs[0] == null"> 00/00/0000 </span>
 						</p>
@@ -171,7 +171,7 @@
 
 					<div class="review">
 						<p>Compliance valid till:</p>
-						<p class="green-text">
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0" class="green-text">
 							<span *ngIf="selectedCompliance.compliance.docs[0] !== null">{{ selectedCompliance.compliance.docs[0].valid_till }}</span>
 							<span *ngIf="selectedCompliance.compliance.docs[0] == null"> 00/00/0000 </span>
 						</p>
@@ -379,7 +379,7 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last Fire safety review date:</p>
-						<p class="green-text">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted }}</p>
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0" class="green-text">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted }}</p>
 					</div>
 
 					<div class="review">
@@ -886,23 +886,28 @@
           </tr>
         </thead>
         <tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 12">
-          <tr *ngFor="let loc of selectedCompliance['compliance']['location_details']['location']">
-            <td>{{selectedCompliance['compliance']['location_details'][loc].name}}</td>
-            <td>
-              <pre>to do</pre>
-            </td>
-            <td>{{selectedCompliance['compliance']['location_details'][loc].users.length}}</td>
-            <td>
-              {{selectedCompliance['compliance']['location_details'][loc].training.total_passed}}
-            </td>
-            <td>
-              {{selectedCompliance['compliance']['location_details'][loc].training.percentage}}
-            </td>
-            <td>
-              <a href="javascript:void(0)" class="blue-text"> View Warden List </a>
-            </td>
-          </tr>
-
+            <tr *ngFor="let sub of complianceSublocations">
+                <td>{{sub.name}}</td>
+                <td>to do</td>
+                <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                    {{selectedCompliance['compliance']['location_details'][sub['location_id']].users.length}}
+                </td>
+                <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                    {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_passed}}
+                </td>
+                <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
+                    {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
+                </td>
+                <td>
+                    <a href="javascript:void(0)" class="blue-text"> View Warden List </a>
+                </td>
+                <ng-template #noChiefWarden>
+                  <td>0</td>
+                </ng-template>
+                <ng-template #noChiefWardenPercentage>
+                  <td>0%</td>
+                </ng-template>
+              </tr>
         </tbody>
       </table>
     </div>
@@ -953,22 +958,28 @@
 				</tr>
 			</thead>
 			<tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 6">
-				<tr *ngFor="let loc of selectedCompliance['compliance']['location_details']['location']">
-					<td>{{selectedCompliance['compliance']['location_details'][loc].name}}</td>
-					<td>
-						<pre>to do</pre>
-					</td>
-					<td>{{selectedCompliance['compliance']['location_details'][loc].users.length}}</td>
-					<td>
-						{{selectedCompliance['compliance']['location_details'][loc].training.total_passed}}
-					</td>
-					<td>
-						{{selectedCompliance['compliance']['location_details'][loc].training.percentage}}
-					</td>
-					<td>
-						<a href="javascript:void(0)" class="blue-text"> View Warden List </a>
-					</td>
-				</tr>
+          <tr *ngFor="let sub of complianceSublocations">
+              <td>{{sub.name}}</td>
+              <td>to do</td>
+              <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].users.length}}
+              </td>
+              <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_passed}}
+              </td>
+              <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
+                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
+              </td>
+              <td>
+                  <a href="javascript:void(0)" class="blue-text"> View Warden List </a>
+              </td>
+              <ng-template #noChiefWarden>
+                <td>0</td>
+              </ng-template>
+              <ng-template #noChiefWardenPercentage>
+                <td>0%</td>
+              </ng-template>
+            </tr>
 
 			</tbody>
 		</table>
@@ -1045,7 +1056,7 @@
 	</div>
 	<div class="col l8 m12 s12">
 		<div class="diagram-top-of-table">
-			<h5 class="blue-text title">Warden Benchmarking</h5>
+			<h5 class="blue-text title">General Occupant Training</h5>
 		</div>
 		<div class="filter-container row">
 			<div class="col l6 m12 s12">
@@ -1075,24 +1086,28 @@
 					<th style="width: 13%;">Action</th>
 				</tr>
 			</thead>
-			<tbody>
-				<tr>
-					<td>
-						Level 1
-					</td>
-					<td>
-						10
-					</td>
-					<td>
-						7
-					</td>
-					<td>
-						70%
-					</td>
-					<td>
-						<a href="javascript:void(0)" class="blue-text"> View User </a>
-					</td>
-				</tr>
+			<tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 8"></tbody>
+          <tr *ngFor="let sub of complianceSublocations">
+              <td>{{sub.name}}</td>
+              <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].users.length}}
+              </td>
+              <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_passed}}
+              </td>
+              <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
+                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
+              </td>
+              <td>
+                <a href="javascript:void(0)" class="blue-text"> View Warden List </a>
+              </td>
+              <ng-template #noChiefWarden>
+                <td>0</td>
+              </ng-template>
+              <ng-template #noChiefWardenPercentage>
+                <td>0%</td>
+              </ng-template>
+            </tr>
 
 			</tbody>
 		</table>
@@ -1225,21 +1240,17 @@
 							<span>{{k.name}}</span>
 						</td>
 						<td class="with-icon" *ngIf="k.type == 'date'">
-							<div *ngIf="k.compliance.validity_percentage == 0 || k.compliance.valid_till == null" class="image expired"></div>
-							<div *ngIf="k.compliance.validity_percentage > 0 && k.compliance.validity_percentage <= 50" class="image alarm"></div>
-							<div *ngIf="k.compliance.validity_percentage > 50" class="image check"></div>
+							<div *ngIf="k.compliance.validity_status == 'none-exist'" class="image expired"></div>
+							<div *ngIf="k.compliance.validity_status == 'invalid'" class="image alarm"></div>
+							<div *ngIf="k.compliance.validity_status == 'valid'" class="image check"></div>
 
-							<div class="text">
-								<p *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">Valid Till:</p>
-								<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till == null"> --/--/---- </span>
-								<p *ngIf="k.compliance.validity_percentage == 0" class="red-text">
-									<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
-								</p>
-								<div *ngIf="k.compliance.validity_percentage > 0 && k.compliance.validity_percentage <= 50">
-									<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
+							<div class="text"  *ngIf="k.compliance.validity_status != 'none-exist'">
+								<p>Valid Till:</p>
+								<div *ngIf="k.compliance.validity_status == 'invalid'">
+									<span>{{k.compliance.docs[0].valid_till}}</span>
 								</div>
-								<div *ngIf="k.compliance.validity_percentage > 50" class="image check" class="green-text">
-									<span *ngIf="k.compliance.docs.length > 0 && k.compliance.docs[0].valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
+								<div *ngIf="k.compliance.validity_status == 'valid'" class="image check" class="green-text">
+									<span>{{k.compliance.docs[0].valid_till}}</span>
 								</div>
 							</div>
 

@@ -12,24 +12,44 @@ export class AwsRoute extends BaseRoute {
    * @static
    */
   public static create(router: Router) {
-    router.get('/aws-ses/send-to-your/:email', (req: Request, res: Response, next: NextFunction) => {
+    router.get('/aws-ses/send-to-your/:from/:email', (req: Request, res: Response, next: NextFunction) => {
       let thisAwsRoute = new AwsRoute();
 
-      let opts = {
-        from : 'allantaw2@gmail.com',
-        fromName : 'Allan Delfin',
+      const opts = {
+        from : req.params.from,
+        fromName : 'system admin',
         to : [ req.params.email ],
         body : thisAwsRoute.emailSampleHTML(),
         attachments: [],
-        subject : 'Hello world test email'
+        subject : 'Sample Subject'
       };
 
       let email = new EmailSender(opts);
 
       email.send(
-        (data) => { res.send(data); },
-        (err) => { res.send(err); }
+        (data) => {
+          res.send({
+            'message': 'Successful',
+            'from': req.params.from,
+            'to': req.params.email,
+            'data': data
+          });
+        },
+        (err) => {
+          res.send({
+            'message': 'Sending failed',
+            'from': req.params.from,
+            'to': req.params.email,
+            'error': err
+          });
+        }
       );
+    });
+
+    router.get('/aws-ses/list', (req: Request, res: Response, next: NextFunction) => {
+      const email = new EmailSender({});
+      const result = email.getVerifiedList();
+      res.send(result);
     });
   }
 
@@ -46,7 +66,7 @@ export class AwsRoute extends BaseRoute {
 
   public emailSampleHTML(){
     let email = `
-    
+
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml" style="margin: 0px; padding: 0px;">
 
@@ -56,7 +76,7 @@ export class AwsRoute extends BaseRoute {
       </head>
 
       <body>
-        
+
         <table style="margin-left: auto; margin-right: auto; margin-top: 50px; width: 900px; border:1px solid #eee; border-collapse: collapse; font-family:Tahoma; letter-spacing: 0.6px;">
           <tr>
             <td colspan="2" valign="middle" style="text-align: center; font-size:16px; border-bottom: 0px solid #eee; background-color: #607d8b;">
@@ -67,7 +87,7 @@ export class AwsRoute extends BaseRoute {
 
           <tr>
             <td style="padding:20px; background-color: #f9f9f9;">
-              
+
               <table style="border-collapse: collapse;">
                 <tr>
                   <td> <h4 style="margin:0px; font-family:Tahoma; letter-spacing: 0.6px;">Hi Sir!</h4>  </td>
@@ -92,7 +112,7 @@ export class AwsRoute extends BaseRoute {
             </td>
           </tr>
         </table>
-         
+
 
       </body>
 
