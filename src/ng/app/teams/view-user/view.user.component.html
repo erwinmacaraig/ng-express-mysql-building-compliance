@@ -101,6 +101,7 @@
 
 	</div>
 </div>
+
 <div class="inline-block right-content">
 	<div class="row">
 		<div class="col s12 m12 l12">
@@ -112,72 +113,75 @@
 	
 			<div class="grid" id="gridContainer">
 				
-			<!-- 	<div class="grid-item card grey lighten-3" >
-				<div class="top">
-					<div class="image close inline-block"></div>
-					<div class="text inline-block red-text">Not Compliance</div>
-				</div>
-				<div class="middle-image">
-					<div class="image red-image"></div>
-				</div>
-				<div class="middle-text">
-					General Occupant and First Response
-					<p class="blue-text"></p>
-				</div>
-						
-				<div class="buttons">
-					<button class="btn red lighten-1 waves-effect waves-light">Send Invitation</button>
-				</div>
 			</div>
-						
-			<div class="grid-item card grey lighten-3" >
-				<div class="top">
-					<div class="image check inline-block"></div>
-					<div class="text inline-block green-text">Compliance</div>
-				</div>
-				<div class="middle-image">
-					<div class="image green-image"></div>
-				</div>
-				<div class="middle-text">
-					Bomb Threat Training
-					<p class="blue-text">
-						Valid until 24/08/2018
-					</p>
-				</div>
-						
-				<div class="buttons">
-					<button class="btn blue waves-effect waves-light">Download Certificate</button>
-					<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
-				</div>
-			</div>
-						
-			<div class="grid-item card grey lighten-3" >
-				<div class="top">
-					<div class="image check inline-block"></div>
-					<div class="text inline-block green-text">Compliance</div>
-				</div>
-				<div class="middle-image">
-					<div class="image yellow-image"></div>
-				</div>
-				<div class="middle-text">
-					Emergency Control Organization
-					<p class="blue-text">
-						Valid until 24/08/2018
-					</p>
-				</div>
-						
-				<div class="buttons">
-					<button class="btn blue waves-effect waves-light">Download Certificate</button>
-					<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
-				</div>
-			</div> -->
 			
-			</div>
-
 		</div>
 	</div>
-	
 </div>
+
+
+<!-- GRID ITEM TEMPLATE  -->
+<!-- 	<div class="grid-item card grey lighten-3" >
+		<div class="top">
+			<div class="image close inline-block"></div>
+			<div class="text inline-block red-text">Not Compliance</div>
+		</div>
+		<div class="middle-image">
+			<div class="image red-image"></div>
+		</div>
+		<div class="middle-text">
+			General Occupant and First Response
+			<p class="blue-text"></p>
+		</div>
+				
+		<div class="buttons">
+			<button class="btn red lighten-1 waves-effect waves-light">Send Invitation</button>
+		</div>
+	</div>
+				
+	<div class="grid-item card grey lighten-3" >
+		<div class="top">
+			<div class="image check inline-block"></div>
+			<div class="text inline-block green-text">Compliance</div>
+		</div>
+		<div class="middle-image">
+			<div class="image green-image"></div>
+		</div>
+		<div class="middle-text">
+			Bomb Threat Training
+			<p class="blue-text">
+				Valid until 24/08/2018
+			</p>
+		</div>
+				
+		<div class="buttons">
+			<button class="btn blue waves-effect waves-light">Download Certificate</button>
+			<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
+		</div>
+	</div>
+				
+	<div class="grid-item card grey lighten-3" >
+		<div class="top">
+			<div class="image check inline-block"></div>
+			<div class="text inline-block green-text">Compliance</div>
+		</div>
+		<div class="middle-image">
+			<div class="image yellow-image"></div>
+		</div>
+		<div class="middle-text">
+			Emergency Control Organization
+			<p class="blue-text">
+				Valid until 24/08/2018
+			</p>
+		</div>
+				
+		<div class="buttons">
+			<button class="btn blue waves-effect waves-light">Download Certificate</button>
+			<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
+		</div>
+	</div> -->
+
+<!-- END OF GRID ITEM TEMPLATE  -->
 
 <div id="modalRemoveWarden" class="modal">
 	<div class="modal-content center" *ngIf="showModalRemoveWardenLoader">
@@ -300,7 +304,7 @@
 				</div>
 				<div class="col s12">
 					<label for="contactInformation">Contact Information</label>
-					<input type="text" id="contactInformation" ngModel name="contact_information" >
+					<input type="text" id="contactInformation" ngModel name="mobile_number" >
 				</div>
 
 				<input type="text" name="user_id" ngModel required style="visibility: hidden;">
@@ -312,8 +316,8 @@
 
 			<div class="row button-container">
 				<div class="col s12 m12 l12 right-align">
-					<button class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</button>
-					<button class="btn orange waves-light waves-effect" [disabled]="formProfile.invalid">Submit</button>
+					<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+					<button type="submit" class="btn orange waves-light waves-effect" [disabled]="formProfile.invalid">Submit</button>
 				</div>
 			</div>
 		</div>
@@ -382,8 +386,8 @@
 
 			<div class="row button-container">
 				<div class="col s12 m12 l12 right-align">
-					<button class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</button>
-					<button class="btn orange waves-light waves-effect" 
+					<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+					<button type="submit" class="btn orange waves-light waves-effect" 
 					[disabled]="
 					formCredential.invalid ||
 					(!inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)) || 
@@ -395,3 +399,107 @@
 
 	</form>
 </div>
+
+<div id="modalAssignLocations" class="modal">
+	<div class="modal-content">
+		<h5>Assign {{viewData.user.first_name+' '+viewData.user.last_name}} To Locations</h5>
+		
+		<form #formAssignLocation (submit)="submitAssignLocation(formAssignLocation)">
+
+		<table class="table striped">
+			<thead>
+				<tr>
+					<th>Location</th>
+					<th style="width: 30%;">Role</th>
+					<th style="width: 20%;">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let loc of viewData.locations; let i = index;">
+					<td>
+						<span *ngIf="loc.parent_name !== null">{{loc.parent_name}},</span> {{loc.name}}
+						<input type="hidden" name="location_id-{{i}}" ngModel value="loc.location_id">
+					</td>
+					<td>
+						<select name="role_id-{{i}}" ngModel style="display: block;">
+							<option value="1" [selected]="loc.em_roles_id == null && loc.location_role_id == 1">Building Manager</option>
+							<option value="2" [selected]="loc.em_roles_id == null && loc.location_role_id == 2">Tenant</option>
+							<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles"
+							[selected]=" loc.em_roles_id > 0 && loc.em_roles_id == eco.em_roles_id  ">
+								{{eco.role_name}}
+							</option>
+						</select>
+						<!-- <span *ngIf="loc.em_roles_id !== null && loc.em_roles_id > 0">
+							{{getRoleName(loc.em_roles_id)}}
+						</span>
+						<span *ngIf="loc.em_roles_id == null ">
+							{{getRoleName(loc.location_role_id)}}
+						</span> -->
+					</td>
+					<td>
+						<a href="javascipt:void(0)" class="red-text">Delete</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<div class="button-container right-align">
+			<a class="btn grey lighten-1 waves-effect waves-light modal-close" > Cancel </a>
+			<button type="submit" class="btn orange waves-effect waves-light"  > Save </button>
+		</div>
+
+		</form>
+		
+	</div>
+</div>
+
+<!-- <div id="modalLocations" class="modal">
+	<div class="modal-content">
+		
+		
+		<div class="search-container" >
+			<div class="input-container">
+				<input type="text" placeholder="Search Level" #modalSearchLocation  >
+			</div>
+			<div class="icon-container">
+				<img src="assets/images/locations/search_icon.png" alt="">
+			</div>
+		</div>
+		
+		<form #formLoc="ngForm" (submit)="submitSelectLocationModal(formLoc, $event)">
+
+		<div class="list-region" style="overflow-y: auto; height: 340px;">
+			<p *ngIf="locations.length == 0">No location found</p>
+			<ul *ngIf="locations.length > 0">
+				<ng-template #recursiveList let-locations>
+					<li *ngFor="let location of locations" class="list-division" [id]="location.location_id" [ngClass]="{ 'show-drop-down' : (location.showDropDown) ? location.showDropDown : false }">
+						<div class="name-radio-plus">
+							<div class="input">
+								<input ngModel required type="radio" name="selectLocation" [value]="location.location_id" [id]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }" >
+								<label [for]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }"></label>
+								<div class="plus-minus">
+									<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" [checked]="(location.showDropDown) ? location.showDropDown : false" />
+									<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
+									<span *ngIf="location.name.length > 0">{{location.name}}</span>
+									<span *ngIf="location.name.length == 0">{{location.formatted_address}}</span>
+								</div>
+							</div>
+						</div>
+						<ul *ngIf="location.sublocations.length > 0">
+					        <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: location.sublocations }"></ng-container>
+						</ul>
+					</li>
+				</ng-template>
+				<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: locations }"></ng-container>
+    		</ul>
+		</div>
+
+		<div class="button-container center">
+			<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
+			<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLoc.valid" *ngIf="locations.length > 0"> Submit </button>
+		</div>
+
+		</form>
+
+	</div>
+</div> -->
