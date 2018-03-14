@@ -287,7 +287,7 @@ export class TeamRoute extends BaseRoute {
       em_role = '';
       account_role = '';
       const opts = {
-        from : 'allantaw2@gmail.com',
+        from : '',
         fromName : 'EvacConnect',
         to : [],
         cc: [],
@@ -306,8 +306,7 @@ export class TeamRoute extends BaseRoute {
       emailBody += email.getEmailHTMLFooter();
       email.assignOptions({
         body : emailBody,
-        to: [user_invitation_records[i]['Email']],
-        cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
+        to: [user_invitation_records[i]['Email']]
       });
       await email.send((result) => console.log(result),
                  (err) => console.log(err)
@@ -398,7 +397,7 @@ export class TeamRoute extends BaseRoute {
             locText += location['name'];
 
             const opts = {
-              from : 'allantaw2@gmail.com',
+              from : '',
               fromName : 'EvacConnect',
               to : [],
               cc: [],
@@ -492,7 +491,7 @@ export class TeamRoute extends BaseRoute {
             });
 
             const opts = {
-              from : 'allantaw2@gmail.com',
+              from : '',
               fromName : 'EvacConnect',
               to : [],
               cc: [],
@@ -760,7 +759,7 @@ export class TeamRoute extends BaseRoute {
     }
     // email notification here
     const opts = {
-      from : 'allantaw2@gmail.com',
+      from : '',
       fromName : 'EvacConnect',
       to : [],
       cc: [],
@@ -777,13 +776,22 @@ export class TeamRoute extends BaseRoute {
       const token = tokenModel.generateRandomChars(8);
 
       const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
+      const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
       await inviCode.create({
         'invited_by_user': req.user.user_id,
         'email': objEmail[i],
-        'code': token,
         'role_id': 9,
         'account_id': req.user.account_id
       });
+      await tokenModel.create({
+        'token': token,
+        'action': 'invitation',
+        'verified': 0,
+        'expiration_date': expDate,
+        'id': inviCode.ID(),
+        'id_type': 'user_invitations_id'
+      });
+
       let emailBody = email.getEmailHTMLHeader();
       emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
       <h4>You are invited to be a Warden.</h4> <br/>
@@ -900,8 +908,8 @@ export class TeamRoute extends BaseRoute {
             if( allowedUsersId.indexOf(user.user_id) > -1 ){
                 user['locations'] = <any>[];
                 for(let l in locations){
-                    if( 
-                        ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )  
+                    if(
+                        ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )
                         && locations[l]['user_id'] == user.user_id
                         ){
                         user['locations'].push(locations[l]);
@@ -915,7 +923,7 @@ export class TeamRoute extends BaseRoute {
             let locs = user.locations;
             user['roles'] = [];
             let tempUserRoles = {};
-            
+
             for(let loc of locs){
                 let roleName = 'General Occupant',
                     roleId = 8;
@@ -1103,8 +1111,8 @@ export class TeamRoute extends BaseRoute {
         if( allowedUsersId.indexOf(user.user_id) > -1 ){
             user['locations'] = <any>[];
             for(let l in locations){
-                if( 
-                    ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )  
+                if(
+                    ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )
                     && locations[l]['user_id'] == user.user_id
                     ){
                     user['locations'].push(locations[l]);
@@ -1164,7 +1172,7 @@ export class TeamRoute extends BaseRoute {
       whereInvi.push([ 'account_id = '+accountId ]);
       whereInvi.push([ 'mobility_impaired = 1' ]);
       whereInvi.push([ 'was_used = 0' ]);
-      
+
 
     if(!archived){
       whereInvi.push([ 'archived = 0' ]);
