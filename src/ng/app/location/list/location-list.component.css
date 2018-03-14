@@ -405,7 +405,7 @@ td.select-blue{
 }
 
 #modalArchiveBulk,
-#modalArchive{
+#modalArchive,{
     width: 35%;
 }
 
@@ -413,23 +413,37 @@ td.select-blue{
     font-size: 14px;
 }
 
+#modalWardenBenchmarkCalc{
+    top: 2% !important;
+    max-height: 99% !important;
+    width: 40% !important;
+}
+
 @media only screen and (max-width: 1400px) {
     #modalArchiveBulk,
-    #modalArchive{
-        width: 50%;
+    #modalArchive,
+    #modalWardenBenchmarkCalc{
+        width: 50% !important;
     }
 }
 
 @media only screen and (max-width: 1024px) {
     #modalArchiveBulk,
-    #modalArchive{
-        width: 60%;
+    #modalArchive,
+    #modalWardenBenchmarkCalc{
+        width: 60% !important;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    #modalWardenBenchmarkCalc{
+        width: 98% !important;
     }
 }
 
 @media only screen and (max-width: 500px) {
     #modalArchiveBulk,
     #modalArchive{
-        width: 90%;
+        width: 90% !important;
     }
 }
