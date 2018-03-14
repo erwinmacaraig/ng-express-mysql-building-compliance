@@ -150,7 +150,7 @@ const md5 = require('md5');
 	  			// email user that he is validated.
 		        validatedUser.load().then(() => {
 		          const emailOpts = {
-		            'from': 'allantaw2@gmail.com',
+		            'from': '',
 		            'fromName': 'EvacConnect Compliance Management System',
 		            'to': [validatedUser.get('email')],
 		            'subject': 'User Validation Successful',
@@ -383,7 +383,7 @@ const md5 = require('md5');
 
 	private sendEmailForRegistration(userData, req, success, error, bodyEmail?, tokenParam?){
 		let opts = {
-	        from : 'allantaw2@gmail.com',
+	        from : '',
 	        fromName : 'EvacConnect',
 	        to : [],
 	        body : '',
