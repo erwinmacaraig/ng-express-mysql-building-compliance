@@ -129,7 +129,6 @@ export class WardenBenchMarkingComponent implements OnInit, OnDestroy, AfterView
       'assembly_area_wardens_percentage': ($('#additional_wardens')[0].checked) ? submittedAdditionalWardens : '0'
     };
 
-    // /compliance/warden-calculations/
     this.http.post<any>(this.baseUrl + '/compliance/warden-calculations/', body)
     .subscribe((data) => {
       console.log(data);
