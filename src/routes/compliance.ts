@@ -17,7 +17,7 @@ import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { Utils } from '../models/utils.model';
 import { FileUploader } from '../models/upload-file';
 import { TrainingCertification } from './../models/training.certification.model';
-import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_calculator.model';
+// import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_calculator.model';
 import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -109,11 +109,14 @@ import * as S3Zipper from 'aws-s3-zipper';
             'status':  'Cannot query server for calculations'
           });
         }
-
         console.log('body', body);
         console.log(typeof body);
+        let resultObj;
+        resultObj = JSON.parse(body.slice(body.indexOf('{'), body.length));
+
         return res.send({
-          'message': 'Success'
+          'message': 'Success',
+          'data': resultObj
         });
      });
 
