@@ -148,5 +148,9 @@ export class LocationsService {
     return this.http.get<any>(this.baseUrl + '/location/get-sublocations-of-parent/'+parentId, this.options);
   }
 
+  updateLocation(formData){
+    return this.http.post<any>(this.baseUrl + '/location/update', formData, this.options);
+  }
+
 
 }

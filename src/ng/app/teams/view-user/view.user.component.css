@@ -358,6 +358,10 @@ textarea.materialize-textarea:focus:not([readonly]){
     box-shadow: 0 1px 0 0 #0089ec;
 }
 
+.modal table{
+    margin: 15px 0px;
+}
+
 table thead tr th{
     background-color: #2f2f2f;
     color: #fff;
@@ -469,4 +473,8 @@ table tr td .image{
 table tr td .image img{
   max-width: 50px;
   max-height: 50px;
+}
+
+.modal .btn{
+    font-size: 14px !important;
 }
