@@ -1,188 +1,184 @@
 <form>
-  <div class="container">
     <div class="row">
-      <div class="col m12 center-align">
-        <h4 class="title">
-          Warden Calculator
-        </h4>
-        <p class="center-align please-fill-up">
-          Fill up all fields and proceed
-        </p>
-      </div>
-      <div class="col m12">
-        <div class="input-container">
-          <div class="input-field col s12">
-              <select name="location_type" id="location_type" #locationType (click)="showNumOfFloors($event)">
-                <option value="" disabled selected>Choose your option</option>
-                <option value="Floor">Floor</option>
-                <option value="Number of Floors">Number of Floors</option>
-                <option value="Whole Building">Whole Building</option>
-                <option value="Group of Buildings">Group of Buildings</option>
-              </select>
-              <label for="location_type">Are we calculating for a specific area, the building or a group of buildings?</label>
-          </div>
-          <div class="quantity-container col s12" *ngIf="showFloorsToggle">
-            <label for="floors"> How many total floors?</label>
-            <br />
-            <div class="input">
-              <input type="text" [(value)]="numFloors" name="floors" id="floors">
-              <button class="btn-arrow-up waves-effect waves-light" (click)="increaseNumFloors()"><i class="material-icons">arrow_drop_up</i></button>
-              <button class="btn-arrow-down waves-effect waves-light" (click)="subrtractNumFloors()"><i class="material-icons">arrow_drop_down</i></button>
-              </div>
-          </div>
+        <div class="col s12">
+            <h5>Warden Calculator <br> <small>Fill up all fields and proceed</small></h5>
+        </div>
+    </div>
 
-          <div class="quantity-container col s12">
-            <label for="number_of_occupants">
-              Enter the number of occupants
-            </label>
-            <br />
-            <div class="input">
-                <input id="number_of_occupants"
-                name="number_of_occupants"
-                type="text"
-                [(value)]="occupants">
-               <button class="btn-arrow-up waves-effect waves-light" (click)="increaseNumOccupants()"><i class="material-icons">arrow_drop_up</i></button>
-               <button class="btn-arrow-down waves-effect waves-light" (click)="subrtractNumOccupants()"><i class="material-icons">arrow_drop_down</i></button>
+    <div class="all-input-container">
+
+        <div class="row">
+            <div class="col s12">
+
+                <div class="input-field ">
+                    <select name="location_type" id="location_type" #locationType (click)="showNumOfFloors($event)">
+                        <option value="" disabled selected>Choose your option</option>
+                        <option value="Floor">Floor</option>
+                        <option value="Number of Floors">Number of Floors</option>
+                        <option value="Whole Building">Whole Building</option>
+                        <option value="Group of Buildings">Group of Buildings</option>
+                    </select>
+                    <label for="location_type">Are we calculating for a specific area, the building or a group of buildings?</label>
+                </div>
+                
+                <div class="quantity-container" *ngIf="showFloorsToggle">
+                    <label for="floors"> How many total floors?</label>
+                    <br />
+                    <div class="input">
+                        <input type="text" [(value)]="numFloors" name="floors" id="floors">
+                        <button class="btn-arrow-up waves-effect waves-light" (click)="increaseNumFloors()"><i class="material-icons">arrow_drop_up</i></button>
+                        <button class="btn-arrow-down waves-effect waves-light" (click)="subrtractNumFloors()"><i class="material-icons">arrow_drop_down</i></button>
+                    </div>
+                </div>
+
+                <div class="quantity-container">
+                    <label for="number_of_occupants">
+                        Enter the number of occupants
+                    </label>
+                    <br />
+                    <div class="input">
+                        <input id="number_of_occupants"
+                        name="number_of_occupants"
+                        type="text"
+                        [(value)]="occupants">
+                        <button class="btn-arrow-up waves-effect waves-light" (click)="increaseNumOccupants()"><i class="material-icons">arrow_drop_up</i></button>
+                        <button class="btn-arrow-down waves-effect waves-light" (click)="subrtractNumOccupants()"><i class="material-icons">arrow_drop_down</i></button>
+                    </div>
+                </div>
+
+                <div class="quantity-container">
+                    <label for="staff_percentage"> What percentage of occupants are staff? (enter percentage: 100% = all occupants)</label>
+                    <br />
+                    <div class="input">
+                        <input type="text" [(value)]="occupantStaff" name="staff_percentage" id="staff_percentage">
+                        <button class="btn-arrow-up waves-effect waves-light" (click)="increaseOccupantStaff()"><i class="material-icons">arrow_drop_up</i></button>
+                        <button class="btn-arrow-down waves-effect waves-light" (click)="subtractOccupantStaff()"><i class="material-icons">arrow_drop_down</i></button>
+                    </div>
+                </div>
+
+                <!-- end of Enter the number of occupants -->
+
+                <div class="slide-container">
+                    <br />
+                    <label for="facility">Is the site a health care of education</label>
+                    <div class="switch">
+                        <label>
+                            No
+                            <input type="checkbox" id="facility" name="facility" (change)="showPolicy()">
+                            <span class="lever"></span>
+                            Yes
+                        </label>
+                    </div>
+                </div>
+
+                <div *ngIf="showPolicyToggle" class="slide-container">
+                    <label for="all_occupants_are_wardens">Is the policy for all staff to be wardens? </label>
+                    <div class="switch">
+                        <label>
+                            No
+                            <input type="checkbox" id="all_occupants_are_wardens" name="all_occupants_are_wardens">
+                            <span class="lever"></span>
+                            Yes
+                        </label>
+                    </div>
+                </div>
+
+                <br/>
+                <div class="input-field">
+                    <select name="layout_type" id="layout_type">
+                        <option value="" disabled selected>Choose your option</option>
+                        <option value="Wide open space">Wide open space</option>
+                        <option value="Basic floor plan">Basic floor plan</option>
+                        <option value="Average Layout">Average Layout</option>
+                        <option value="Complicated Layout">Complicated Layout</option>
+                    </select>
+                    <label>What best describes the layout of the floor plan for the floor</label>
+                </div>
+
+                <br />
+                <div class="input-field">
+                    <select name="full_time_wardens_percentage" id="full_time_wardens_percentage">
+                        <option value="" disabled selected>Choose your option</option>
+                        <option value="100">100%</option>
+                        <option value="80">80%</option>
+                        <option value="60">60%</option>
+                        <option value="40">40%</option>
+                        <option value="20">20%</option>
+                        <option value="0">0%</option>
+                    </select>
+                    <label>
+                        On average, what percentage of the warden team are located
+                        at the site on a full time basis?
+                    </label>
+                </div>
+
+                <br />
+                <div class="input-field">
+                    <select name="mobility_impaired_percentage" id="mobility_impaired_percentage">
+                        <option value="" disabled selected>Choose your option</option>
+                        <option value="100">All occupants other than wardens</option>
+                        <option value="80">80%</option>
+                        <option value="60">60%</option>
+                        <option value="40">40%</option>
+                        <option value="10">Less than 10%</option>
+                    </select>
+                    <label>
+                        On an average day, what percentage of total occupants would have
+                        mobility impairments
+                    </label>
+                </div>
+
+                <div class="slide-container">
+                    <div class="switch">
+                        <label>Does the egress route to the assembly area
+                            require crossing of roads?
+                        </label>
+                        <br />
+                        <label>
+                            No
+                            <input type="checkbox" id="crossing_road_required" name="crossing_road_required">
+                            <span class="lever"></span>
+                            Yes
+                        </label>
+
+                    </div>
+                </div>
+
+                <div class="slide-container">
+                    <label for="additional_wardens">Are additional wardens required along the egress or at
+                        the assembly area?
+                    </label>
+                    <div class="switch">
+                        <label>
+                            No
+                            <input type="checkbox" id="additional_wardens" name="additional_wardens" (change)="showAdditionalWardens()">
+                            <span class="lever"></span>
+                            Yes
+                        </label>
+                    </div>
+                </div>
+                <br />
+
+                <div class="input-field" [hidden]="showAdditionalWardensToggle" >
+                    <select name="assembly_area_wardens_percentage" id="assembly_area_wardens_percentage">
+                        <option value="" disabled selected>Choose your option</option>
+                        <option value="30">30%</option>
+                        <option value="20">20%</option>
+                        <option value="10">10%</option>
+                    </select>
+                    <label>
+                        How many additional wardens would suffice?
+                    </label>
+                </div>
+
             </div>
-          </div>
-          <!-- end of Enter the number of occupants -->
+        </div>
 
-          <div class="quantity-container col s12">
-              <br />
-            <label for="staff_percentage"> What percentage of occupants are staff? (enter percentage: 100% = all occupants)</label>
-            <br />
-            <div class="input">
-              <input type="text" [(value)]="occupantStaff" name="staff_percentage" id="staff_percentage">
-              <button class="btn-arrow-up waves-effect waves-light" (click)="increaseOccupantStaff()"><i class="material-icons">arrow_drop_up</i></button>
-              <button class="btn-arrow-down waves-effect waves-light" (click)="subtractOccupantStaff()"><i class="material-icons">arrow_drop_down</i></button>
-            </div>
-          </div>
+    </div>
+    
+    <div class="right-align button-container">
+        <button type="button" class="btn waves-effect waves-light modal-close lighten-1 grey" (click)="onCloseSelfSignUp()">Close</button>
+        <button type="button" class="btn waves-effect waves-light btn-submit" (click)="onClickSubmit()">Submit</button>
+    </div>
 
-          <div class="slide-container col s12">
-            <br />
-            <label for="facility">Is the site a health care of education</label>
-            <div class="switch">
-              <label>
-                No
-                <input type="checkbox" id="facility" name="facility" (change)="showPolicy()">
-                <span class="lever"></span>
-                Yes
-              </label>
-            </div>
-          </div>
-
-          <div *ngIf="showPolicyToggle" class="slide-container col s12">
-            <label for="all_occupants_are_wardens">Is the policy for all staff to be wardens? </label>
-            <div class="switch">
-              <label>
-                No
-                <input type="checkbox" id="all_occupants_are_wardens" name="all_occupants_are_wardens">
-                <span class="lever"></span>
-                Yes
-              </label>
-            </div>
-          </div>
-
-          <br/>
-          <div class="input-field col s12">
-            <select name="layout_type" id="layout_type">
-              <option value="" disabled selected>Choose your option</option>
-              <option value="Wide open space">Wide open space</option>
-              <option value="Basic floor plan">Basic floor plan</option>
-              <option value="Average Layout">Average Layout</option>
-              <option value="Complicated Layout">Complicated Layout</option>
-            </select>
-            <label>What best describes the layout of the floor plan for the floor</label>
-          </div>
-
-          <br />
-          <div class="input-field col s12">
-            <select name="full_time_wardens_percentage" id="full_time_wardens_percentage">
-              <option value="" disabled selected>Choose your option</option>
-              <option value="100">100%</option>
-              <option value="80">80%</option>
-              <option value="60">60%</option>
-              <option value="40">40%</option>
-              <option value="20">20%</option>
-              <option value="0">0%</option>
-            </select>
-            <label>
-              On average, what percentage of the warden team are located
-              at the site on a full time basis?
-            </label>
-          </div>
-          <br />
-          <div class="input-field col s12">
-              <select name="mobility_impaired_percentage" id="mobility_impaired_percentage">
-                <option value="" disabled selected>Choose your option</option>
-                <option value="100">All occupants other than wardens</option>
-                <option value="80">80%</option>
-                <option value="60">60%</option>
-                <option value="40">40%</option>
-                <option value="10">Less than 10%</option>
-              </select>
-              <label>
-                On an average day, what percentage of total occupants would have
-                mobility impairments
-              </label>
-          </div>
-
-          <div class="slide-container col s12">
-            <div class="switch">
-                  <label>Does the egress route to the assembly area
-                      require crossing of roads?
-                  </label>
-                  <br />
-                  <label>
-                      No
-                      <input type="checkbox" id="crossing_road_required" name="crossing_road_required">
-                      <span class="lever"></span>
-                      Yes
-                  </label>
-
-              </div>
-          </div>
-
-
-            <div class="slide-container col s12">
-              <label for="additional_wardens">Are additional wardens required along the egress or at
-                the assembly area?
-              </label>
-              <div class="switch">
-                <label>
-                  No
-                  <input type="checkbox" id="additional_wardens" name="additional_wardens" (change)="showAdditionalWardens()">
-                  <span class="lever"></span>
-                  Yes
-                </label>
-              </div>
-            </div>
-            <br />
-
-            <div class="input-field col s12" [hidden]="showAdditionalWardensToggle" >
-              <select name="assembly_area_wardens_percentage" id="assembly_area_wardens_percentage">
-                <option value="" disabled selected>Choose your option</option>
-                <option value="30">30%</option>
-                <option value="20">20%</option>
-                <option value="10">10%</option>
-              </select>
-              <label>
-                  How many additional wardens would suffice?
-              </label>
-            </div>
-            <div class="input-field col m6">
-              <button type="button" class="btn block waves-effect waves-light btn-close lighten-1 grey" (click)="onCloseSelfSignUp()">Close</button>
-           </div>
-           <div class="input-field col m6">
-              <button type="button" class="btn block waves-effect waves-light btn-submit" (click)="onClickSubmit()">Submit</button>
-           </div>
-
-
-        </div> <!-- class input-container -->
-      </div>
-
-
-
-    </div> <!-- class row -->
-  </div>
 </form>

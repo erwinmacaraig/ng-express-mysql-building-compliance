@@ -36,7 +36,16 @@ export class ComplianceDocumentsModel extends BaseClass {
     public getWhere(arrWhere){
         return new Promise((resolve) => {
 
-            let sql = `SELECT * FROM compliance_documents`;
+            let sql = `SELECT compliance_kpis.name,
+                  compliance_documents.*,
+                  DATE_FORMAT(compliance_documents.date_of_activity, "%e/%c/%Y") as date_of_activity_formatted,
+                  compliance_kpis.validity_in_months,
+                  IF (date_of_activity = '0000-00-00', NULL,
+                    DATE_FORMAT(DATE_ADD(date_of_activity, INTERVAL validity_in_months MONTH), "%e/%c/%Y"))as valid_till
+                  FROM
+                    compliance_documents
+                  INNER JOIN
+                    compliance_kpis ON compliance_documents.compliance_kpis_id =  compliance_kpis.compliance_kpis_id`;
             for(let i in arrWhere){
                 if(parseInt(i) == 0){
                     sql += ` WHERE `;
@@ -51,7 +60,6 @@ export class ComplianceDocumentsModel extends BaseClass {
                 if (error) {
                     return console.log(error);
                 }
-
                 this.dbData = results;
                 resolve(results);
             });
@@ -60,6 +68,11 @@ export class ComplianceDocumentsModel extends BaseClass {
         });
     }
 
+    private filterCleanDocs() {
+      return new Promise((resolve, reject) => {
+
+      });
+    }
     public dbUpdate() {
         return new Promise((resolve, reject) => {
             const sql_update = `UPDATE compliance_documents SET
@@ -96,7 +109,7 @@ export class ComplianceDocumentsModel extends BaseClass {
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
-            const sql_update = `INSERT INTO compliance_documents 
+            const sql_update = `INSERT INTO compliance_documents
             ( account_id, building_id, compliance_kpis_id, document_type, file_name, override_document, description, date_of_activity, viewable_by_trp, file_size, file_type, timestamp )
             VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`;
             const param = [
