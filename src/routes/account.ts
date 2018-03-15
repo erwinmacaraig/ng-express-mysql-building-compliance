@@ -59,6 +59,10 @@ const validator = require('validator');
 	   		new AccountRoute().searchByName(req, res);
 	   	});
 
+	   	router.post('/accounts/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().create(req, res);
+	   	});
+
    	}
 
 	/**
@@ -166,6 +170,44 @@ const validator = require('validator');
 		data.unit_no = validator.isEmpty( ''+data['unit_no']+'' ) ? ' ' : data['unit_no'];
 
 		return data;
+	}
+
+	public async create(req: AuthRequest, res: Response){
+		let reqBody = req.body,
+			locationId = reqBody.location_id,
+			response = {
+				status : false,
+				message : '',
+				data : {}
+			},
+			accountModel = new Account(),
+			locationAccountModel = new LocationAccountRelation(),
+			locationModel = new Location();
+
+		let locations = await locationModel.getAncestries(locationId);
+
+		let mainParent = {};
+		for(let i in locations){
+			if(locations[i]['parent_id'] == -1){
+				mainParent = locations[i];
+			}
+		}
+
+		try{
+
+			// await accountModel.create(reqBody);
+			// await locationAccountModel.create({
+			// 	location_id : mainParent['location_id'],
+			// 	account_id : accountModel.ID(),
+			// 	responsibility : 'Tenant'
+			// });
+
+		}catch(e){
+			response.message = e;
+		}
+
+
+		res.send(response);
 	}
 
 	public setupNewAccount(req: AuthRequest, res: Response){

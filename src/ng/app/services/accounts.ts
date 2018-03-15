@@ -72,4 +72,8 @@ export class AccountsDataProviderService {
 	      });
 	}
 
+	update(formData){
+		return this.http.post(this.baseUrl+"/accounts/create", formData, this.options);
+	}
+
 }

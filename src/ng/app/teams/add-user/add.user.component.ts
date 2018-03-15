@@ -86,7 +86,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         this.accountRoles = [
         {
             role_id: 2,
-            role_name: 'Tenant',
+            role_name: 'Tenancy Responsible Personnel',
             selected : (this.paramRole == 'tenant') ? true : false
         }
         ];
