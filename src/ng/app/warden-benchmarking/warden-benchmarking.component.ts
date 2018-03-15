@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, Input } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -21,7 +21,14 @@ export class WardenBenchMarkingComponent implements OnInit, OnDestroy, AfterView
   occupantStaff = 0;
   numFloors = 0;
   occupants = 0;
-  constructor(private location: Location, private http: HttpClient) {}
+  private baseUrl: string;
+
+  @Input() location_id: number;
+
+  constructor(private location: Location, private http: HttpClient,
+              private platformLocation: PlatformLocation) {
+    this.baseUrl = (platformLocation as any).location.origin;
+  }
 
   ngOnInit() {
     $('select').material_select();
@@ -109,6 +116,7 @@ export class WardenBenchMarkingComponent implements OnInit, OnDestroy, AfterView
 
 
     const body = {
+      'location_id': this.location_id,
       'type': submittedLocationType,
       'number_of_floors': submittedNumOfFloors,
       'number_of_occupants': submittedNumOfOccupants,
@@ -121,7 +129,8 @@ export class WardenBenchMarkingComponent implements OnInit, OnDestroy, AfterView
       'assembly_area_wardens_percentage': ($('#additional_wardens')[0].checked) ? submittedAdditionalWardens : '0'
     };
 
-    this.http.post<any>('http://ec2-13-55-135-227.ap-southeast-2.compute.amazonaws.com/apis/warden_number_calculator/', body)
+    // /compliance/warden-calculations/
+    this.http.post<any>(this.baseUrl + '/compliance/warden-calculations/', body)
     .subscribe((data) => {
       console.log(data);
     }, (e) => {
