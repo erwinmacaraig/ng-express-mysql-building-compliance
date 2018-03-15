@@ -34,7 +34,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	private accountData = { account_name : " " };
 	public userData: Object;
 	private mutationOversable;
-
+  locationToApplyActionTo: number;
 	arraySelectedLocs = [];
 	selectedArchive = {
 		length : 0
@@ -223,9 +223,9 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				}
 
 			}else if(val.indexOf('benchmark-') > -1){
-                let locIdEnc = val.replace('benchmark-', '');
+                this.locationToApplyActionTo = this.encryptDecrypt.decrypt(val.replace('benchmark-', ''));
                 $('#modalWardenBenchmarkCalc').modal('open');
-                console.log(' Benchmark location id ' + locIdEnc);
+                console.log(' Benchmark location id ' + this.locationToApplyActionTo);
             }
 
 		});

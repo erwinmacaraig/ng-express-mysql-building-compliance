@@ -17,6 +17,8 @@ import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { Utils } from '../models/utils.model';
 import { FileUploader } from '../models/upload-file';
 import { TrainingCertification } from './../models/training.certification.model';
+import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_calculator.model';
+import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as moment from 'moment';
@@ -25,7 +27,7 @@ const AWSCredential = require('../config/aws-access-credentials.json');
 const defs = require('../config/defs.json');
 const validator = require('validator');
 const md5 = require('md5');
-
+const request = require('request');
 import * as S3Zipper from 'aws-s3-zipper';
 
 /**
@@ -83,6 +85,39 @@ import * as S3Zipper from 'aws-s3-zipper';
           }).catch((e) => {
             return res.status(400).send({'message':  'Change Failed.'});
           });
+    });
+
+    router.post('/compliance/warden-calculations/', (req: Request, res: Response, next: NextFunction) => {
+      // http://ec2-13-55-135-227.ap-southeast-2.compute.amazonaws.com/apis/warden_number_calculator/
+      console.log(req.body);
+      const headers = {
+        'User-Agent': 'Evacconnect-client',
+        'Accept': 'application/json'
+      };
+
+      const options = {
+        url: 'http://ec2-13-55-135-227.ap-southeast-2.compute.amazonaws.com/apis/warden_number_calculator/',
+        method: 'POST',
+        headers: headers,
+        json: true,
+        body: req.body
+      };
+     request(options, (error, response, body) => {
+        if (error) {
+          console.log('error from calling api', error);
+          return res.send({
+            'status':  'Cannot query server for calculations'
+          });
+        }
+
+        console.log('body', body);
+        console.log(typeof body);
+        return res.send({
+          'message': 'Success'
+        });
+     });
+
+
     });
   }
 
