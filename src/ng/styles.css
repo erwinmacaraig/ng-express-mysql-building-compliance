@@ -193,6 +193,10 @@ input::-ms-clear {
     z-index: 0;
 }
 
+.table-list-locations tbody td.select-blue .select-dropdown li span {
+    font-size: 13px !important;
+}
+
 .row-add-mobility-impaired-form .select-field input[type="text"].select-dropdown{
     margin: 0px;
 }

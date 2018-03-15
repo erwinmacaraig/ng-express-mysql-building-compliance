@@ -63,6 +63,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 	showModalCredentialsLoader = false;
 	isPasswordEquals = false;
 
+	locations = [];
+
 	constructor(
 		private auth: AuthService,
         private preloaderService: DashboardPreloaderService,
@@ -84,6 +86,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			
 			this.loadProfile();
 		});
+
+		this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
+			this.locations = response.locations;
+		});
 	}
 
 	loadProfile(callBack?){
@@ -102,7 +108,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			this.preloaderService.hide();
 
 			setTimeout(() => {
-				$('select').material_select();
+				$('.left-panel select').material_select();
 			},300);
 
 			if(callBack){
@@ -154,6 +160,21 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		
 	}
 
+	getRoleName(roleId){
+		if(roleId == 1){
+			return 'Building Manager';
+		}else if(roleId == 2){
+			return 'Tenant';
+		}else{
+			let emRoles = this.viewData.eco_roles;
+			for(let role of emRoles){
+				if(role.em_roles_id == roleId){
+					return role.role_name;
+				}
+			}
+		}
+	}
+
 	selectLocationEvent(){
 		let selectLocation = $('#selectLocation');
 		selectLocation.off('change').on('change', () => {
@@ -167,20 +188,11 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 				}
 			}
 
-			if(selectedLoc.location_role_id == 1){
-				this.viewData.role_text = 'Building Manager';
-			}else if(selectedLoc.location_role_id == 2){
-				this.viewData.role_text = 'Tenant';
+			if(selectedLoc.em_roles_id !== null && selectedLoc.em_roles_id > 0){
+				this.viewData.role_text = this.getRoleName(selectedLoc.em_roles_id);
 			}else{
-				let roleId = 8;
-				if(selectedLoc.em_roles_id !== null && selectedLoc.em_roles_id > 0){
-					roleId = selectedLoc.em_roles_id;
-				}
-
-				for(let role of emRoles){
-					if(role.em_roles_id == roleId){
-						this.viewData.role_text = role.role_name;
-					}
+				if(selectedLoc.location_role_id == 1 || selectedLoc.location_role_id == 2){
+					this.viewData.role_text = this.getRoleName(selectedLoc.location_role_id);
 				}
 			}
 
@@ -318,7 +330,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
             		setTimeout(() => {
 						this.showModalLoader = false;
 						$('#modalMobility').modal('close');
-						$('select').material_select('update');
 
 						setTimeout(() => { 
 							$('#selectLocation').trigger('change');
@@ -340,7 +351,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     		}else if(val == 'credential'){
     			this.showModalCredentials();
     		}else if(val == 'location'){
-
+    			$('#modalAssignLocations').modal('open');
     		}
 
     		selectAction.val('0').material_select('update');
@@ -357,9 +368,9 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     	this.formProfile.controls.last_name.setValue(user.last_name);
 
     	if(user.mobile_number.length > 0){
-    		this.formProfile.controls.contact_information.setValue(user.mobile_number);
+    		this.formProfile.controls.mobile_number.setValue(user.mobile_number);
     	}else{
-    		this.formProfile.controls.contact_information.setValue(user.phone_number);
+    		this.formProfile.controls.mobile_number.setValue(user.phone_number);
     	}
     }
 
@@ -373,7 +384,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
             		setTimeout(() => {
 						this.showModalProdfileLoader = false;
 						$('#modalUpdateProfile').modal('close');
-						$('select').material_select('update');
 
 						setTimeout(() => { 
 							$('#selectLocation').trigger('change');
@@ -409,8 +419,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
             		setTimeout(() => {
 						this.showModalCredentialsLoader = false;
 						$('#modalCredentials').modal('close');
-						$('select').material_select('update');
-
+						
 						setTimeout(() => { 
 							$('#selectLocation').trigger('change');
 						}, 100);

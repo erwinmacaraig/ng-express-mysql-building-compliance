@@ -45,7 +45,7 @@
 							<input type="text" [(ngModel)]="user.last_name" placeholder="Last name" name="last_name{{i}}" required>
 						</td>
 						<td style="position: relative;">
-							<div *ngIf="user.errors"  style=" position: absolute; right: 5px; top: 5px; background-color: #f44336; padding: 1% 3%; color: #fff; border-radius: 5px;">
+							<div *ngIf="user.errors.email_taken || user.errors.blacklisted"  style=" position: absolute; right: 5px; top: 5px; background-color: #f44336; padding: 1% 3%; color: #fff; border-radius: 5px;">
 								<span *ngIf="user.errors.email_taken">Email is taken</span>
 								<span *ngIf="user.errors.blacklisted || user.errors.invalid">Invalid email</span>
 							</div>
