@@ -266,6 +266,7 @@ table.no-borders td{
 .manage-compliance{
     padding: 30px;
     border: 1px solid #d3d3d3;
+    margin-bottom: 20px;
 }
 
 .manage-compliance .btn{
@@ -279,6 +280,11 @@ table.no-borders td{
     color: #c91e2f;
     font-size: 14px;
     font-weight: bold;
+}
+
+.compliacne-rating{
+    color: #c91e2f;
+    font-size: 18px;
 }
 
 
@@ -509,4 +515,34 @@ table tr td .btn{
     padding: 0px 10px;
     max-height: 30px;
     line-height: 29px;
+}
+
+.edit-details{
+    margin: 20px 0px;
+}
+
+.modal .btn {
+    font-size: 15px !important;
+    line-height: 45px;
+}
+
+.add-sublocation-container{
+    line-height: 50px;
+    font-size: 18px;
+}
+
+#modalEditDetails{
+    width: 35%;
+}
+
+@media screen and (max-width: 1024px) {
+    #modalEditDetails{
+        width: 75%;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    #modalEditDetails{
+        width: 90%;
+    }
 }

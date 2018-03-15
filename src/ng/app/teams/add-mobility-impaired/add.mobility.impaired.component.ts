@@ -65,7 +65,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         this.accountRoles = [
         {
             role_id: 2,
-            role_name: 'Tenant'
+            role_name: 'Tenancy Responsible Personnel'
         }
         ];
         this.userRole = this.authService.getHighestRankRole();

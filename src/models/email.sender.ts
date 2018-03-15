@@ -26,9 +26,9 @@ export class EmailSender {
         this.mySecretKey = AWSCredential.AWSSecretKey;
 
         AWS.config.update({
-            'region': 'us-west-2',
-            'accessKeyId': this.myAccessKeyId,
-            'secretAccessKey': this.mySecretKey
+            region:'us-west-2',
+            accessKeyId : this.myAccessKeyId,
+            secretAccessKey : this.mySecretKey
         });
 
         this.assignOptions(opts);
@@ -46,7 +46,7 @@ export class EmailSender {
     private getOptionToIntoString(){
         let text = '',
             counter = 0;
-        for(let i in this.options['to']) {
+        for(let i in this.options['to']){
             text += this.options['to'][i];
             if( (Object.keys(this.options['to']).length - 1) != counter ){
                 text += ';';
@@ -70,9 +70,8 @@ export class EmailSender {
         return text;
     }
 
-    public buildEmail() {
-      console.log(this.getOptionToIntoString());
-        let email = "From: '"+ this.options['fromName'] + "' <" + this.options['from'] + ">\n";
+    public buildEmail(){
+        let email = "From: '"+ this.options['fromName'] +"' <" + this.options['from'] + ">\n";
         email += "To: " + this.getOptionToIntoString() + "\n";
         email += "Subject: "+ this.options['subject'] +"\n";
         email += "MIME-Version: 1.0\n";
@@ -84,16 +83,16 @@ export class EmailSender {
         return email;
     }
 
-    public async send(success, error) {
-
-        const email = this.buildEmail();
-        const params = {
+    public async send(success, error){
+        var
+        email = this.buildEmail(),
+        params = {
             // RawMessage: { Data: new Buffer(email) },
             Destination: {
               ToAddresses: this.options['to'],
+              // ToAddresses : ['adelfin@evacgroup.com.au'],
               CcAddresses: this.options['cc']
             },
-            // Source: "'EvacConnect' <" + this.getOptionToIntoString() + ">'",
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
             Message: {
               Subject: {

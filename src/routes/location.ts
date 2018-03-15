@@ -172,6 +172,10 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
         new LocationRoute().getSublocationsOfParent(req, res)
       });
 
+      router.post('/location/update', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new LocationRoute().updateLocation(req, res);
+      });
+
    	}
 
 
@@ -348,14 +352,14 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
               token = this.generateRandomChars(25);
 
             try{
-              await tokenModel.create({
-                'token' : token,
-                'action' : 'locationverification',
-                'verified' : 0,
-                'expiration_date' : moment().add(6, 'days').format('YYYY-MM-DD'),
-                'id' : dbLocationData.id_of_location,
-                'id_type' : 'location_id'
-              });
+              // await tokenModel.create({
+              //   'token' : token,
+              //   'action' : 'locationverification',
+              //   'verified' : 0,
+              //   'expiration_date' : moment().add(6, 'days').format('YYYY-MM-DD'),
+              //   'id' : dbLocationData.id_of_location,
+              //   'id_type' : 'location_id'
+              // });
 
               let opts = {
                   from : 'allantaw2@gmail.com',
@@ -363,7 +367,7 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
                   to : [],
                   body : '',
                   attachments: [],
-                  subject : 'EvacConnect New Location Verification'
+                  subject : 'EvacConnect New Location Notification'
               };
 
               let email = new EmailSender(opts),
@@ -393,9 +397,9 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
                   emailBody += '</ul>';
               }
 
-              emailBody += '<h5>Action : <a href="'+linkTrue+'" target="_blank" style="text-decoration:none; color:#39a1ff;">Approve</a>  || <a href="'+linkFalse+'" target="_blank" style="text-decoration:none; color:#dc4453;">Decline</a><br/></h5>';
+              // emailBody += '<h5>Action : <a href="'+linkTrue+'" target="_blank" style="text-decoration:none; color:#39a1ff;">Approve</a>  || <a href="'+linkFalse+'" target="_blank" style="text-decoration:none; color:#dc4453;">Decline</a><br/></h5>';
 
-              emailBody += '<h5>Thank you!</h5>';
+              // emailBody += '<h5>Thank you!</h5>';
 
               emailBody += email.getEmailHTMLFooter();
 
@@ -473,6 +477,8 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
             break;
           }
         });
+
+        dbLocationData['admin_verified'] = 1;
 
         const location = new Location();
         let locationAccntUser;
@@ -593,6 +599,7 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
 			subData['name'] = sublocation_name;
 			subData['parent_id'] = parentId;
 			subData['order'] = null;
+      subData['admin_verified'] = 1;
 
             subData['admin_verified'] = 0;
             subData['admin_verified_date'] = null;
@@ -1450,6 +1457,94 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
           response.data = results;
           res.send(response);
         });
+
+    }
+
+    public async updateLocation(req: AuthRequest, res: Response){
+        let
+        location = req.body.location,
+        sublocations = req.body.sublocations,
+        response = {
+          status : false,
+          message : '',
+          data : <any>{
+              location : {},
+              sublocations : []
+          }
+        },
+        locAccntUserModel = new LocationAccountUser();
+
+        try{
+
+            let locModel = new Location(location.location_id);
+            let locData = await locModel.load();
+            let locAccUser = <any>[];
+            try{
+                locAccUser = await locAccntUserModel.getByLocationIdAndUserId(location.location_id, req.user.user_id);
+            }catch(e){  }
+
+
+            for(let i in location){
+                if(i in locData){
+                    locModel.set( i, location[i] );
+                }
+            }
+
+            await locModel.dbUpdate();
+            response.data.location = locModel.getDBData();
+
+            for(let sub of sublocations){
+
+                let subModel = new Location(sub.location_id);
+                try{
+                    let subLocData = await subModel.load();
+                    for(let i in sub){
+                        if(i in subLocData){
+                            subModel.set( i, sub[i] );
+                        }
+                    }
+
+                    await subModel.dbUpdate();
+                    response.data.sublocations.push(subModel.getDBData());
+
+                }catch(e){
+                    let subLocData = JSON.parse(JSON.stringify(locData));
+                    let subModel = new Location();
+                    for(let i in sub){
+                        if(i in subLocData){
+                            subLocData[i] = sub[i];
+                        }
+                    }
+                    subLocData['parent_id'] = locData['location_id'];
+                    delete subLocData['location_id'];
+
+                    await subModel.create(subLocData);
+                    response.data.sublocations.push(subModel.getDBData());
+
+                    let roleId = 0;
+                    for(let i in locAccUser){
+                        if(locAccUser[i]['location_id'] == locData['location_id']){
+                            roleId = locAccUser[i]['role_id'];
+                        }
+                    }
+
+                    let locAccUserModel = new LocationAccountUser();
+                    await locAccUserModel.create({
+                        location_id : subModel.ID(),
+                        account_id : req.user.account_id,
+                        role_id : roleId,
+                        user_id : req.user.user_id
+                    });
+
+                }
+
+            }
+
+        }catch(e){
+            response.message = 'No Location';
+        }
+
+        res.send(response);
 
     }
 

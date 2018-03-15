@@ -149,7 +149,7 @@ hr{
 
 .right-part .right-align{
     position: relative;
-    height: 150px
+    height: 50px
 }
 
 .right-part .right-align .link-remove-sub{
@@ -560,3 +560,35 @@ table tbody tr td .progress .determinate{
 .details-container .image{
     overflow: hidden;
 }
+
+.btn{
+    font-size: 15px !important;
+    line-height: 45px;
+}
+
+#modalAddNewTenant{
+    top: 2% !important;
+    max-height: 100%;
+    width: 35%;
+}
+
+@media only screen and (max-width: 1400px) {
+    #modalAddNewTenant{
+        width: 50% !important;
+    }
+}
+
+@media only screen and (max-width: 1024px) {
+    #modalAddNewTenant{
+        width: 75% !important;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    #modalAddNewTenant{
+        width: 95% !important;
+    }
+}
+
+
+
