@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { PlatformLocation } from '@angular/common';
 import { Location } from '@angular/common';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { MessageService } from '../services/messaging.service';
 
 declare var $: any;
 @Component({
@@ -22,11 +23,12 @@ export class WardenBenchMarkingComponent implements OnInit, OnDestroy, AfterView
   numFloors = 0;
   occupants = 0;
   private baseUrl: string;
-
+  public processing_calculations = false;
   @Input() location_id: number;
 
   constructor(private location: Location, private http: HttpClient,
-              private platformLocation: PlatformLocation) {
+              private platformLocation: PlatformLocation,
+              private messageService: MessageService) {
     this.baseUrl = (platformLocation as any).location.origin;
   }
 
@@ -99,7 +101,7 @@ export class WardenBenchMarkingComponent implements OnInit, OnDestroy, AfterView
   }
 
   onClickSubmit() {
-
+    this.processing_calculations = true;
     const submittedLocationType =  $('#location_type')[0].value;
     const submittedNumOfFloors = ($('#floors')[0]) ? $('#floors')[0].value : '0';
     const submittedNumOfOccupants = $('#number_of_occupants')[0].value;
@@ -132,8 +134,21 @@ export class WardenBenchMarkingComponent implements OnInit, OnDestroy, AfterView
     this.http.post<any>(this.baseUrl + '/compliance/warden-calculations/', body)
     .subscribe((data) => {
       console.log(data);
+      this.processing_calculations = false;
+      this.messageService.sendMessage({
+        'id': 'warden-benchmarking-calculator',
+        'status': 'Success',
+        'warden-benchmarking-calculation-result': data
+      });
+
     }, (e) => {
       console.log(e);
+      this.processing_calculations = false;
+      this.messageService.sendMessage({
+        'id': 'warden-benchmarking-calculator',
+        'status': 'Fail',
+        'warden-benchmarking-calculation-error': e
+      });
     });
     console.log(body);
 

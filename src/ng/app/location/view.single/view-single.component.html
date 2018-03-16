@@ -43,7 +43,7 @@
 							<tr>
 								<td>{{locationData.formatted_address}}</td>
 							</tr>
-							
+
 							<tr>
 								<td>Region : N/A</td>
 							</tr>
@@ -76,7 +76,7 @@
 
 				<div style="clear: both;"></div>
 
-				
+
 			</div>
 
 			<div class="col l12 m12 s12">
@@ -105,10 +105,10 @@
 								<a [routerLink]="['/location/view-sublocation/', sub.location_id]" class="location-name-link" *ngIf="sub.children.length == 0">
 									{{sub.name}}
 								</a>
-								
+
 							</td>
 							<td>
-								0/00
+								{{sub.trained_wardens}} / {{sub.total_wardens}}
 							</td>
 							<td>
 								<span style="margin-right:10px;">0</span> <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', sub.location_id]"> Add tenants </a>
@@ -178,7 +178,7 @@
 				</div>
 				<div class="search-result" style="padding: 20px 0px;" *ngIf="sameSublocation.length > 0">
 				    <h6>Sublocation found in this location <p class="right" style="margin: 15px 0px;"> </p></h6>
-				    
+
 				   	<ul style="margin: 0px; max-height: 275px; overflow-y: auto;">
 					    <li style="border-bottom: 1px solid #ddd;font-size: 16px;padding: 10px 0px;" *ngFor="let sub of sameSublocation">
 						    <span>{{sub.name}}</span>
@@ -228,5 +228,11 @@
 		</div>
 
 	</div>
+</div>
+
+<div id="modalWardenBenchmarkCalc" class="modal">
+  <div class="modal-content" >
+    <app-warden-benchmarking [location_id]=locationToApplyActionTo></app-warden-benchmarking>
+  </div>
 </div>
 

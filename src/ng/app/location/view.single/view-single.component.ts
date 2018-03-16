@@ -11,6 +11,7 @@ import { LocationsService } from '../../services/locations';
 import { DonutService } from '../../services/donut';
 import { Countries } from '../../models/country.model';
 import { Observable } from 'rxjs/Rx';
+import { MessageService } from '../../services/messaging.service';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
@@ -53,6 +54,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     public sameSublocationCopy = [];
     public inpSublocationNameTwoWayData = "";
     public selectedSubLocationFromModal = {};
+    public locationToApplyActionTo;
     @ViewChild('inputSublocation') public inputSublocation: ElementRef;
 
     mutationOversable;
@@ -65,7 +67,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         private route: ActivatedRoute,
         private router: Router,
         private donut: DonutService,
-        private elemRef: ElementRef
+        private elemRef: ElementRef,
+        private messageService: MessageService
         ){
         this.userData = this.auth.getUserData();
 
@@ -83,6 +86,33 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         });
 
         this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
+
+        this.messageService.getMessage().subscribe((msg) => {
+          console.log(msg);
+          if (msg.id === 'warden-benchmarking-calculator') {
+            $('#modalWardenBenchmarkCalc').modal('close');
+            this.preloaderService.show();
+                this.loc_sub = this.locationService.getById(this.locationID, (response) => {
+                    setTimeout(() => {
+                        this.preloaderService.hide();
+                    }, 250);
+                    this.locationData.name = response.location.name;
+                    this.locationData.formatted_address = response.location.formatted_address;
+                    this.locationData.sublocations = response.sublocations;
+                    this.locationData.google_photo_url = response.location.google_photo_url || undefined;
+                    this.locationData.admin_verified = response.location.admin_verified;
+                    if (response.location.parent_id === -1) {
+                        this.isHome = true;
+                    }
+                    this.locationData.parent_id =  this.encryptDecrypt.encrypt(response.location.parent_id).toString();
+
+                    for (let i = 0; i < this.locationData['sublocations'].length; i++) {
+                        this.locationData['sublocations'][i]['location_id']
+                        = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+                    }
+                });
+          }
+        });
     }
 
     ngOnChanges() {
@@ -246,10 +276,15 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 let locIdEnc = val.replace('addtenants-', '');
 
                 this.router.navigate(["/teams/add-user/tenant", locIdEnc]);
-            }else if(val.indexOf('benchmark-') > -1){
+            }else if(val.indexOf('benchmark-') > -1) {
+              /*
                 let locIdEnc = val.replace('benchmark-', '');
 
                 console.log(' Benchmark location id ' + locIdEnc);
+              */
+             this.locationToApplyActionTo = this.encryptDecrypt.decrypt(val.replace('benchmark-', ''));
+                $('#modalWardenBenchmarkCalc').modal('open');
+                console.log(' Benchmark location id ' + this.locationToApplyActionTo);
             }
         });
 
@@ -302,7 +337,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     }
 
 	ngOnDestroy() {
-        
+
         if(typeof this.sub == 'object' && this.sub['unsubsribe']){
             this.sub.unsubsribe();
         }
@@ -310,8 +345,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         if(typeof this.loc_sub == 'object' && this.loc_sub['unsubsribe']){
             this.loc_sub.unsubsribe();
         }
-        
-       
+
+
        this.mutationOversable.disconnect();
     }
 
