@@ -40,6 +40,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
     selectedLocationToArchive = {};
 
     routeSubs;
+    routeQuerySubs;
 
     tenants = [];
 
@@ -52,9 +53,11 @@ export class SublocationComponent implements OnInit, OnDestroy {
     defaultCountry = 'AU';
     defaultTimeZone = 'AEST';
 
+    queryParams = {};
+
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
-        private route: ActivatedRoute,
+        private activeRoute: ActivatedRoute,
         private router: Router,
         private userService : UserService,
         private elemRef: ElementRef,
@@ -75,6 +78,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
         // });
 
         // this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
+        
     }
 
     getLocationData(callBack){
@@ -83,11 +87,11 @@ export class SublocationComponent implements OnInit, OnDestroy {
             this.parentData = response.parent;
             this.locationData = response.location;
             this.encLocId = this.encryptDecrypt.encrypt(this.locationData['location_id']).toString();
-            this.parentData['location_id'] = this.encryptDecrypt.encrypt(this.parentData['location_id']).toString();
+            this.parentData['location_id'] = this.encryptDecrypt.encrypt(this.parentData['location_id']);
             this.parentData['sublocations'] = response.siblings;
 
             for (let i = 0; i < this.parentData['sublocations'].length; i++ ) {
-                this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.parentData['sublocations'][i].location_id).toString();
+                this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.parentData['sublocations'][i].location_id);
             }
             if (this.parentData['name'].length === 0) {
               this.parentData['name'] = this.parentData['formatted_address'];
@@ -99,7 +103,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         // Materialize.updateTextFields();
-        this.routeSubs = this.route.params.subscribe((params) => {
+        this.routeSubs = this.activeRoute.params.subscribe((params) => {
             this.encryptedID = params['encrypted'];
             this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
             this.getLocationData(() => {
@@ -107,6 +111,10 @@ export class SublocationComponent implements OnInit, OnDestroy {
                     this.tenants = tenantsResponse.data;
                 });
             });
+        });
+
+        this.routeQuerySubs = this.activeRoute.queryParams.subscribe((params) => {
+            this.queryParams = params;
         });
     }
 
@@ -127,6 +135,14 @@ export class SublocationComponent implements OnInit, OnDestroy {
         $('body').off('change.timechange').on('change.timechange', 'select.time-zone', (event) => {
             formAddTenant.controls.time_zone.setValue( event.currentTarget.value );
         });
+
+        if('showaddtenant' in this.queryParams){
+            if(this.queryParams['showaddtenant']){
+                setTimeout(() => {
+                    this.addNewTenantClickEvent();
+                }, 500);
+            }
+        }
     }
 
     onClickArchiveLocation(locationData){
@@ -145,7 +161,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
                 this.errorMessageModalSublocation = '';
                 $('#modalArchive').modal('close');
 
-                this.router.navigate(['/location/view', this.encryptDecrypt.encrypt(this.locationData['parent_id']).toString() ]);
+                this.router.navigate(['/location/view', this.encryptDecrypt.encrypt(this.locationData['parent_id']) ]);
             },
             (msg) => {
                 this.showLoaderModalSublocation = false;
@@ -184,6 +200,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
     ngOnDestroy() {
         this.routeSubs.unsubscribe();
+        this.routeQuerySubs.unsubscribe();
         // this.mutationOversable.disconnect();
     }
 

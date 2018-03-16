@@ -118,7 +118,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         this.numbers = Array(1).fill(0).map((x, i) => i);
         this.levels = new FormArray([]);
 
-        this.accountId = this.encryptDecrypt.encrypt(this.authService.userDataItem('accountId')).toString();
+        this.accountId = this.encryptDecrypt.encrypt(this.authService.userDataItem('accountId'));
     }
 
     ngOnInit() {
@@ -245,7 +245,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         this.locationService.searchForLocation(location).subscribe((data) => {
             if (data.count) {
                 for (let i = 0; i < data.result.length; i++) {
-                    data.result[i]['location_id'] = this.encryptDecrypt.encrypt(data.result[i]['location_id']).toString();
+                    data.result[i]['location_id'] = this.encryptDecrypt.encrypt(data.result[i]['location_id']);
                     console.log(data.result[i]['location_id']);
                 }
                 this.results = data.result;
@@ -351,7 +351,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
                 this.showLoaderModalSubLocation = false;
             } else {
                 this.router.navigate(['/location/verify-access',
-                    { 'location_id' : this.encryptDecrypt.encrypt(locId).toString(),
+                    { 'location_id' : this.encryptDecrypt.encrypt(locId),
                     'account_id' : this.accountId
                 }]);
             }

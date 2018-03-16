@@ -109,11 +109,11 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
             if (response.location.parent_id === -1) {
                 this.isHome = true;
             }
-            this.locationData.parent_id =  this.encryptDecrypt.encrypt(response.location.parent_id).toString();
+            this.locationData.parent_id =  this.encryptDecrypt.encrypt(response.location.parent_id);
 
             for (let i = 0; i < this.locationData['sublocations'].length; i++) {
                 this.locationData['sublocations'][i]['location_id']
-                = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+                = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id);
             }
 
             this.toEditLocations = JSON.parse(JSON.stringify(this.locationData));
@@ -165,7 +165,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                         this.locationData.sublocations = response.sublocations;
                         for (let i = 0; i < this.locationData['sublocations'].length; i++) {
                             this.locationData['sublocations'][i]['location_id']
-                            = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+                            = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id);
                         }
                         this.inpSublocationNameTwoWayData = '';
                         this.showLoaderModalSublocation = false;
@@ -188,7 +188,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
 
                         response.data['children'] = [];
 
-                        response.data['location_id'] = this.encryptDecrypt.encrypt(response.data['location_id']).toString();
+                        response.data['location_id'] = this.encryptDecrypt.encrypt(response.data['location_id']);
                         this.locationData['sublocations'].push(response.data);
                         $('#modalAddSublocation').modal('close');
                     },
@@ -260,8 +260,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 this.router.navigate(["/location/view-sublocation/", locIdEnc]);
             }else if(val.indexOf('addtenants-') > -1){
                 let locIdEnc = val.replace('addtenants-', '');
-
-                this.router.navigate(["/teams/add-user/tenant", locIdEnc]);
+                let encId = decodeURIComponent(locIdEnc);
+                this.router.navigate(['/location/view-sublocation/'+encId], {  queryParams: { showaddtenant : 'true' } });
             }else if(val.indexOf('benchmark-') > -1){
                 let locIdEnc = val.replace('benchmark-', '');
 

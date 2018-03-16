@@ -12,7 +12,8 @@ import { Observable, } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import { isArray } from 'util';
-
+import { Countries } from '../../models/country.model';
+import { Timezone } from '../../models/timezone';
 
 declare var $: any;
 @Component({
@@ -25,6 +26,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 	@ViewChild('inpSearchLoc') inpSearchLoc;
 	@ViewChild('tbodyElem') tbodyElem;
+	@ViewChild('formAddTenant') formAddTenant : NgForm;
 
 	locations = [];
 	locationsBackup = [];
@@ -34,7 +36,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	private accountData = { account_name : " " };
 	public userData: Object;
 	private mutationOversable;
-  locationToApplyActionTo: number;
+  	locationToApplyActionTo: number;
 	arraySelectedLocs = [];
 	selectedArchive = {
 		length : 0
@@ -47,6 +49,18 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	modalArchive = {
 		loader : false
 	};
+
+	showModalNewTenantLoader = false;
+	selectedLocation = {
+		name : '',
+		location_id : '',
+		sublocations : []
+	};
+
+	countries = new Countries().getCountries();
+    timezones = new Timezone().get();
+    defaultCountry = 'AU';
+    defaultTimeZone = 'AEST';
 
 	constructor (
 		private platformLocation: PlatformLocation,
@@ -103,7 +117,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
     		this.locations = response.locations;
     		if (this.locations.length > 0) {
     			for (let i = 0; i < this.locations.length; i++) {
-    				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
+    				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
     			}
     		}
     		this.locationsBackup = JSON.parse(JSON.stringify(this.locations));
@@ -125,6 +139,19 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		this.selectRowEvent();
 		this.selectFilteringEvent();
 		this.selectBulkAction();
+
+		let formAddTenant = this.formAddTenant;
+        $('body').off('change.countrychange').on('change.countrychange', 'select.billing-country', (event) => {
+            formAddTenant.controls.billing_country.setValue( event.currentTarget.value );
+        });
+
+        $('body').off('change.timechange').on('change.timechange', 'select.time-zone', (event) => {
+            formAddTenant.controls.time_zone.setValue( event.currentTarget.value );
+        });
+
+        $('body').off('change.locationchange').on('change.locationchange', 'select.location-id', (event) => {
+            formAddTenant.controls.location_id.setValue( event.currentTarget.value );
+        });
 	}
 
 	selectBulkAction(){
@@ -192,6 +219,27 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		}
 	}
 
+	showNewTenant(){
+		this.formAddTenant.reset();
+        this.formAddTenant.controls.billing_country.setValue( this.defaultCountry );
+        this.formAddTenant.controls.time_zone.setValue( this.defaultTimeZone );
+        $('#modalAddNewTenant').modal('open');
+
+        $('#modalAddNewTenant select').material_select('destroy');
+	}
+
+	submitNewTenant(formAddTenant:NgForm){
+        if(formAddTenant.valid){
+            this.showModalNewTenantLoader = true;
+            this.accntService.update(formAddTenant.value).subscribe((response) => {
+                this.getLocationsForListing(() => {
+		    		this.showModalNewTenantLoader = false;
+		    		$('#modalAddNewTenant').modal('close');
+		    	});
+            });
+        }
+    }
+
 	selectRowEvent(){
 
 		$('body').off('change.selectchangeevent').on('change.selectchangeevent', 'select.select-from-row', (e) => {
@@ -205,8 +253,12 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				this.router.navigate(["/location/view/", locIdEnc]);
 			}else if(val.indexOf('addtenants-') > -1){
 				let locIdEnc = val.replace('addtenants-', '');
-
-				this.router.navigate(["/teams/add-user/tenant", locIdEnc]);
+            	for(let i in this.locationsBackup){
+					if(this.locationsBackup[i]['location_id'] == locIdEnc){
+						this.selectedLocation = this.locationsBackup[i];
+					}
+				}
+				this.showNewTenant();
 			}else if(val.indexOf('addwardens-') > -1){
 				let locIdEnc = val.replace('addwardens-', '');
 

@@ -79,14 +79,14 @@ export class ViewSublocationComponent implements OnInit, OnDestroy {
 				this.locationData = response.location;
 				this.parentData = response.parent;
 				this.parentData['sublocations'] = response.siblings;
-				this.parentData.location_id = this.encryptDecrypt.encrypt(this.parentData.location_id).toString();
+				this.parentData.location_id = this.encryptDecrypt.encrypt(this.parentData.location_id);
 				if (response.siblings.length) {
 					for (let i = 0; i < response.siblings.length; i++) {
-						this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(response.siblings[i].location_id).toString();
+						this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(response.siblings[i].location_id);
 					}
 				}
 				for(let i in this.locationData['sublocations']){
-					this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+					this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id);
 				}
 
 				this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
