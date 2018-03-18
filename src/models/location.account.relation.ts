@@ -54,6 +54,22 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
+    public getByWhereInLocationIds(locationIds: String) {
+        return new Promise((resolve, reject) => {
+            const sql_load = 'SELECT * FROM location_account_relation WHERE location_id IN ('+locationIds+')';
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              this.dbData = results;
+              resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
     public getManyByLocationId(locationId: Number) {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_relation WHERE location_id = ?';

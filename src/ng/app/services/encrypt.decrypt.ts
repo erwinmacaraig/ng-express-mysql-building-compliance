@@ -8,10 +8,11 @@ export class EncryptDecryptService {
   }
 
   public encrypt(string) {
-    return CryptoJS.AES.encrypt(''  + string + '', this.password);
+    return CryptoJS.AES.encrypt(''  + string + '', this.password).toString().split('/').join('___');
   }
 
   public decrypt(ecrypted) {
+    ecrypted = ecrypted.split('___').join('/');
     const decrypted = CryptoJS.AES.decrypt(ecrypted, this.password);
     return decrypted.toString(CryptoJS.enc.Utf8);
   }

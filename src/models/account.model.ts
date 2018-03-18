@@ -286,8 +286,6 @@ export class Account extends BaseClass {
             ON
               locations.location_id = LAU.location_id
             WHERE
-              LAU.account_id = ?
-            AND
               locations.archived = ?
               ${user_filter} ${role_filter}
             GROUP BY
@@ -295,7 +293,8 @@ export class Account extends BaseClass {
             ORDER BY
               locations.location_id;
             `;
-            const val = [this.ID(), archived];
+            // const val = [this.ID(), archived];
+            const val = [archived];
             const connection = db.createConnection(dbconfig);
 
             connection.query(sql_get_locations, val, (err, results, fields) => {
