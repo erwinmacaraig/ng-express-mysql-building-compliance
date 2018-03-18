@@ -3,14 +3,14 @@
 		<h5 class="text left">Location List</h5>
 
 		<div class="right table-align">
-			<h5 class="medium-text">Show only not compliant</h5>
+			<!-- <h5 class="medium-text">Show only not compliant</h5>
 			<div class="switch">
 				<input type="checkbox" (change)="showOnlyNotCompliantEvent($event)">
 				<div class="yes">Yes</div>
 				<div class="no">No</div>
 				<div class="highlight"></div>
 				<div class="background"></div>
-			</div>
+			</div>-->
 
 			<a href="#" class="archived" [routerLink]="['/location/archived/list']">
 				<span class="image"></span>
@@ -23,21 +23,21 @@
 </div>
 
 <div class="row filter-container">
-	<div class="col l4 m5 s12">
+	<div class="col l6 m5 s12">
 		<div class="search-field">
 			<input type="text" placeholder="Search location" (keyup)="searchLocationEvent($event)" >
 			<span class="material-icons">search</span>
 		</div>
 	</div>
 
-	<div class="col l3 m4 s6">
+	<!-- <div class="col l3 m4 s6">
 		<select class="filter-by">
 			<option value="0" selected>Filter By (All)</option>
 			<option value="compliance">Compliance</option>
 			<option value="not-compliance">Not Compliance</option>
 			<option value="mobility-impaired">With Mobility</option>
 		</select>
-	</div>
+	</div> -->
 
 	<div class="col l3 m6 s6">
 		<select class="sort-by">
@@ -52,7 +52,7 @@
 			<option value="wardens-desc" >Wardens (Desc)</option>
 		</select>
 	</div>
-	<div class="col l2 m6 s12">
+	<div class="col l3 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Manage Action</option>
 			<option value="archive" >Archive selected</option>
@@ -107,11 +107,13 @@
 						{{location.sublocations.length}}
 					</td>
 					<td>
-						<span style="margin-right:10px;">{{location.num_tenants}}</span> <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', location.location_id]" > Add tenants </a>
+						<span style="margin-right:10px;">{{location.num_tenants}}</span> 
+						<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', location.location_id]" > Add tenants </a> -->
 					</td>
 
 					<td>
-						<span style="margin-right:10px;">{{location.num_wardens}}</span> <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-wardens/', location.location_id]" > Add Wardens </a>
+						<span style="margin-right:10px;">{{location.num_wardens}}</span> 
+						<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-wardens/', location.location_id]" > Add Wardens </a> -->
 					</td>
 					<td>
 						{{location.mobility_impaired}}
@@ -132,7 +134,8 @@
 							<option value="0">Manage</option>
 							<option value="addtenants-{{location.location_id}}">Add Tenants</option>
 							<option value="addwardens-{{location.location_id}}">Add Wardens</option>
-							<option value="view-{{location.location_id}}">View</option>
+							<option value="view-{{location.location_id}}">View Location</option>
+							<option value="compliance-{{location.location_id}}">View Compliance</option>
 							<option value="archive-{{location.location_id}}">Archive</option>
 							<option value="benchmark-{{location.location_id}}">Benchmark</option>
 						</select>

@@ -223,9 +223,21 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				}
 
 			}else if(val.indexOf('benchmark-') > -1){
+                let locIdEnc = val.replace('benchmark-', '');
+
+                console.log(' Benchmark location id ' + locIdEnc);
                 this.locationToApplyActionTo = this.encryptDecrypt.decrypt(val.replace('benchmark-', ''));
                 $('#modalWardenBenchmarkCalc').modal('open');
                 console.log(' Benchmark location id ' + this.locationToApplyActionTo);
+            }else if(val.indexOf('compliance-') > -1){
+            	let locIdEnc = val.replace('compliance-', '');
+
+            	for(let i in this.locationsBackup){
+					if(this.locationsBackup[i]['location_id'] == locIdEnc){
+						this.router.navigate(['/location/compliance/view/', this.locationsBackup[i]['location_id']]);
+					}
+				}
+
             }
 
 		});
@@ -426,15 +438,15 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 	searchLocationEvent(event){
 		let elem = event.target,
-			val = elem.value.toLowerCase(),
+			val = elem.value.toLowerCase().trim(),
 			filtered = [];
 
-		if(val.trim().length == 0){
+		if(val.length == 0){
 			this.locations = this.locationsBackup;
 		}else{
-			for(let i in this.locations){
-				if(this.locations[i]['name'].toLowerCase().indexOf(val) > -1){
-					filtered.push(this.locations[i]);
+			for(let i in this.locationsBackup){
+				if(this.locationsBackup[i]['name'].toLowerCase().indexOf(val) > -1 || this.locationsBackup[i]['formatted_address'].toLowerCase().indexOf(val) > -1){
+					filtered.push(this.locationsBackup[i]);
 				}
 			}
 

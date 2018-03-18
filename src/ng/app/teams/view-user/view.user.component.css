@@ -250,9 +250,26 @@ ul.list li{
     list-style-type: initial;
 }
 
+a.btn{
+    line-height: 45px;
+}
+
 #modalMobility .btn{
     font-size: 15px !important;
     line-height: 43px;
+}
+
+#modalUpdateProfile,
+#modalCredentials{
+    width: 35%;
+}
+
+#modalLocations{
+    width: 70%;
+}
+
+#modalLocations table{
+    margin: 20px 0px;
 }
 
 @media only screen and (max-width: 600px) {
@@ -261,9 +278,12 @@ ul.list li{
     -moz-column-count: 1;
     column-count: 1;
   }
-  #modalRemoveWarden{
+  #modalRemoveWarden,
+  #modalUpdateProfile,
+  #modalCredentials{
     width: 85%;
   }
+
 }
 @media only screen and (min-width: 601px) {
   .masonry-container {
@@ -274,6 +294,11 @@ ul.list li{
   #modalRemoveWarden{
     width: 45%;
   }
+
+    #modalUpdateProfile,
+    #modalCredentials{
+        width: 60%;
+    }
 }
 @media only screen and (min-width: 993px) {
   .masonry-container {
@@ -282,7 +307,9 @@ ul.list li{
     column-count: 3;
   }
 
-  #modalRemoveWarden{
+  #modalRemoveWarden,
+  #modalUpdateProfile,
+  #modalCredentials{
     width: 35%;
   }
 }
@@ -301,6 +328,10 @@ ul.list li{
 
     #modalMobility{
         width : 90%;
+    }
+
+    #modalLocations{
+        width: 95%;
     }
 }
 
@@ -325,4 +356,125 @@ input[type=search]:not(.browser-default):focus:not([readonly]),
 textarea.materialize-textarea:focus:not([readonly]){
     border-bottom: 0px;
     box-shadow: 0 1px 0 0 #0089ec;
+}
+
+.modal table{
+    margin: 15px 0px;
+}
+
+table thead tr th{
+    background-color: #2f2f2f;
+    color: #fff;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: 1px solid #2f2f2f;
+    border-radius: 0px;
+}
+
+table tbody td{
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+table tfoot td{
+    padding: 0px;
+}
+
+table tfoot td button{
+    width: 100%;
+    border-radius: 0px !important;
+    font-size: 14px !important;
+    height: 45px !important;
+    line-height: 35px;
+}
+
+table select{
+    display: block;
+    background-color: inherit;
+    font-size: 14px;
+}
+
+table select:focus{
+    outline: 0px;
+}
+
+table tbody td input{
+    margin: 0px;
+    border: 0px;
+    font-size: 14px;
+}
+
+table tbody td input:focus{
+    border-bottom: 0px;
+    box-shadow: 0 1px 0 0 #0089ec;
+}
+
+table tbody td a{
+    font-size: 14px;
+}
+
+
+table tr td.trainings .percent{
+    width: 35px;
+    text-align: center;
+}
+
+table tr td.trainings .percent, 
+table tr td.trainings .bar {
+    display: inline-block;
+    color: #b71928;
+    font-size: 14px;
+}
+
+table tr td.trainings .bar {
+    background-color: #b71928;
+    width: 70%;
+    height: 11px;
+}
+
+table tr td .checkbox{
+    margin: 0px 10px;
+}
+
+table tr td .checkbox [type="checkbox"]+label{
+    padding-left: 30px;
+    height: 20px;
+    line-height: 20px;
+    color: #333;
+}
+
+table tr td .checkbox [type="checkbox"].filled-in:not(:checked)+label:after{
+    background-color: #fff;
+    border: 1px solid #aaaaaa;
+}
+
+
+table tr td .text{
+    display: inline-block;
+}
+
+table tr td .image-container{
+    width: 50px;
+    height: 50px;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #fff;
+    border-radius: 30px;
+    margin: 0px 10px;
+    overflow: hidden;
+}
+
+table tr td .image{
+    overflow: hidden;
+}
+
+table tr td .image img{
+  max-width: 50px;
+  max-height: 50px;
+}
+
+.modal .btn{
+    font-size: 14px !important;
 }
