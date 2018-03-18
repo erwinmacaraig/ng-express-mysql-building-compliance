@@ -193,14 +193,28 @@ const validator = require('validator');
 			}
 		}
 
+		let assignChildToParent = (child, parentId) => {
+			for(let i in locations){
+				if(locations[i]['location_id'] == parentId){
+					locations[i]['sublocations'].push(child);
+				}
+			}
+		};
+
 		try{
 
-			// await accountModel.create(reqBody);
-			// await locationAccountModel.create({
-			// 	location_id : mainParent['location_id'],
-			// 	account_id : accountModel.ID(),
-			// 	responsibility : 'Tenant'
-			// });
+			await accountModel.create(reqBody);
+
+			for(let i in locations){
+				await locationAccountModel.create({
+					location_id : locations[i]['location_id'],
+					account_id : accountModel.ID(),
+					responsibility : 'Tenant'
+				});
+			}
+
+			response.status = true;
+			response.message = 'Success';
 
 		}catch(e){
 			response.message = e;

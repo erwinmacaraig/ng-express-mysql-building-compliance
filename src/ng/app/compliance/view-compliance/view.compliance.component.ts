@@ -176,14 +176,14 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 			this.locationData = response.location;
 			this.locationData['parentData'] = response.parent;
 			this.locationData.parentData['sublocations'] = response.siblings; console.log(this.locationData.parentData['sublocations']);
-			this.locationData.parentData.location_id = this.encryptDecrypt.encrypt(this.locationData.parentData.location_id).toString();
+			this.locationData.parentData.location_id = this.encryptDecrypt.encrypt(this.locationData.parentData.location_id);
 			if (response.siblings.length) {
 				for (let i = 0; i < response.siblings.length; i++) {
-					this.locationData.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(response.siblings[i].location_id).toString();
+					this.locationData.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(response.siblings[i].location_id);
 				}
 			}
 			for(let i in this.locationData['sublocations']){
-				this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+				this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id);
 			}
 
 			this.complianceService.getKPIS((response) => {

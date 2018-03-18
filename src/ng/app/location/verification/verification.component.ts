@@ -54,9 +54,9 @@ export class VerificationComponent implements OnInit, OnDestroy {
     this.account = this.route.snapshot['params']['account_id'] || 0;
 
 
-     this.location = JSON.parse(this.encryptDecrypt.decrypt(this.location).toString());
+     this.location = JSON.parse(this.encryptDecrypt.decrypt(this.location));
      console.log(this.location);
-     this.account = this.encryptDecrypt.decrypt(this.account).toString();
+     this.account = this.encryptDecrypt.decrypt(this.account);
   }
 
   ngOnInit() {

@@ -103,7 +103,7 @@ export class ArchivedLocationListComponent implements OnInit, OnDestroy {
     		this.locations = response.locations;
     		if (this.locations.length > 0) {
     			for (let i = 0; i < this.locations.length; i++) {
-    				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id).toString();
+    				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
     			}
     		}
     		this.locationsBackup = JSON.parse(JSON.stringify(this.locations));

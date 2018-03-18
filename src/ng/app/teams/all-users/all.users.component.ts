@@ -46,7 +46,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			console.log(this.listData);
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
-				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']).toString();
+				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
 
 				for(let l in this.listData[i]['locations']){
 					if(this.listData[i]['locations'][l]['parent_name'] == null){

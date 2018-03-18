@@ -64,6 +64,44 @@ export class Location extends BaseClass {
 		});
 	}
 
+	public getWhere(arrWhere){
+		return new Promise((resolve, reject) => {
+			let sql_load = `SELECT * FROM locations `;
+			
+			let c = 0;
+			for(let i in arrWhere){
+				if(c == 0){
+					sql_load += ' WHERE ';
+				}else{
+					sql_load += ' AND ';
+				}
+
+				sql_load += arrWhere[i];
+			}
+
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_load, (error, results, fields) => {
+				if (error) {
+					return console.log(error);
+				}
+				if(!results.length){
+					reject('Location not found');
+				}else{
+
+					for(let i in results){
+						results[i]['sublocations'] = [];
+					}
+
+					this.dbData = results;
+					resolve(this.dbData);
+				}
+
+			});
+			connection.end();
+		});
+	}
+
+
 	public getParentLocationByAccountId(accountId: Number){
 		return new Promise((resolve, reject) => {
 			const sql_load = `

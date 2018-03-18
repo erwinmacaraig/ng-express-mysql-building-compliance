@@ -51,7 +51,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
             for(let i in data){
                 data[i]['bg_class'] = this.generateRandomBGClass();
-                data[i]['id_encrypted'] = this.encDecrService.encrypt(data[i]['user_id']).toString();
+                data[i]['id_encrypted'] = this.encDecrService.encrypt(data[i]['user_id']);
                 data[i]['last_login'] = moment(data[i]['last_login']).format('MMM. DD, YYYY hh:mmA');
 
                 for(let r in data[i]['roles']){
