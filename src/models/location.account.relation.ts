@@ -79,7 +79,7 @@ export class LocationAccountRelation extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              this.dbData = results
+              this.dbData = results;
               resolve(this.dbData);
             });
             connection.end();

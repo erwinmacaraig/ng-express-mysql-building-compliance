@@ -464,18 +464,32 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getParentsChildren(parentId, account_id: number = 0) {
+	public getParentsChildren(parentId, role_id:number = 0) {
 		return new Promise((resolve) => {
 
-      let sql = `SELECT * FROM locations WHERE parent_id = ${parentId} AND archived = 0 ORDER BY location_id`;
+      // let sql = `SELECT * FROM locations WHERE parent_id = ${parentId} AND archived = 0 ORDER BY location_id`;
 
+      let sql = `SELECT *
+			FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
+			(SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
+
+      /*
       if (account_id) {
+
         sql = `SELECT DISTINCT locations.* FROM  locations INNER JOIN location_account_relation
                ON locations.location_id = location_account_relation.location_id
                WHERE locations.parent_id = ${parentId}
                AND location_account_relation.account_id = ${account_id}
                AND locations.archived = 0 ORDER BY locations.location_id`;
+
+      if (role_id && role_id < 3) {
+       sql = `SELECT DISTINCT locations.* FROM  locations INNER JOIN location_account_user
+               ON locations.location_id = location_account_user.location_id
+               WHERE locations.parent_id = ${parentId}
+               AND location_account_user.role_id = ${role_id}
+               AND locations.archived = 0 ORDER BY locations.location_id`;
       }
+      */
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql, (err, results, fields) => {
 				if (err) {
@@ -570,19 +584,21 @@ export class Location extends BaseClass {
 		});
   }
 
-  public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number, account_id?:number) {
+  public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number, role_id?:number) {
     return new Promise((resolve, reject) => {
       let location = this.ID();
-      let account = 0;
+      let role_id = 0;
+      let em_role_filter = '';
       if (location_id) {
         location = location_id;
       }
-      if (account_id) {
-        account = account_id;
+      if (em_role_id) {
+        em_role_filter = ` AND user_em_roles_relation.em_role_id = ${em_role_id}`;
       }
       let location_em_roles = {};
       let subLocToEmRoles:{[key: number]: {}} = {};
-      this.getParentsChildren(location, account).then((sublocations) => {
+      // FRP or TRP
+      this.getParentsChildren(location).then((sublocations) => {
         const subIds = [];
         Object.keys(sublocations).forEach((key) => {
           subIds.push(sublocations[key]['location_id']);
@@ -603,7 +619,7 @@ export class Location extends BaseClass {
                   ON
                     locations.location_id = user_em_roles_relation.location_id
                   WHERE
-                  user_em_roles_relation.location_id IN (${subIdstring})
+                  user_em_roles_relation.location_id IN (${subIdstring}) ${em_role_filter}
                   order by em_role_id;`;
         // console.log(sql);
         const connection = db.createConnection(dbconfig);

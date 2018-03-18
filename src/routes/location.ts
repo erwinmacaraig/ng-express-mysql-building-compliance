@@ -13,8 +13,8 @@ import { EmailSender } from '../models/email.sender';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { Token } from '../models/token.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
-
-
+import { TrainingCertification } from '../models/training.certification.model';
+import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calculator.model';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as CryptoJS from 'crypto-js';
@@ -22,8 +22,7 @@ const validator = require('validator');
 const md5 = require('md5');
 const moment = require('moment');
 const url = require('url');
-
-const jaysEmail = 'jmanoharan@evacgroup.com.au';
+const defs = require('../config/defs.json');
 
 /**
  * / route
@@ -225,7 +224,7 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
           statusMsg = (status) ? 'Approved' : 'Declined';
 
           let opts = {
-              from : 'allantaw2@gmail.com',
+              from : '',
               fromName : 'EvacConnect',
               to : [],
               body : '',
@@ -362,7 +361,7 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
               // });
 
               let opts = {
-                  from : 'allantaw2@gmail.com',
+                  from : '',
                   fromName : 'EvacConnect',
                   to : [],
                   body : '',
@@ -409,7 +408,7 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
               });*/
               email.assignOptions({
                 body : emailBody,
-                to: [jaysEmail]
+                to: []
               });
 
 
@@ -978,8 +977,43 @@ const jaysEmail = 'jmanoharan@evacgroup.com.au';
       	await location.load();
 
       	response.location = location.getDBData();
+        const wardenCalc = new WardenBenchmarkingCalculator();
+        sublocations = await location.getSublocations(req.user.user_id, r);
+        let sublocationIdsArray = [];
+        for (let j = 0; j < sublocations.length; j++) {
+          sublocationIdsArray.push(sublocations[j]['location_id']);
+        }
 
-      	sublocations = await location.getSublocations(req.user.user_id, r);
+        // Get nominated and get total no of actual wardens and wardens that passed
+        let nominatedWardensObj;
+        const training = new TrainingCertification();
+        try {
+          const wardenRoles = await location.getEMRolesForThisLocation(defs['em_roles']['WARDEN']);
+          nominatedWardensObj = wardenRoles[defs['em_roles']['WARDEN']];
+
+          const calcResults = await wardenCalc.getBulkBenchmarkingResultOnLocations(sublocationIdsArray);
+
+          for(let i = 0; i < sublocations.length; i++) {
+            if (sublocations[i]['location_id'] in nominatedWardensObj) {
+              sublocations[i]['nominated_wardens'] = (nominatedWardensObj[sublocations[i]['location_id']]['users']).length;
+              const trainingDetailsForLocation = await training.getEMRUserCertifications(nominatedWardensObj[sublocations[i]['location_id']]['users']);
+              sublocations[i]['trained_wardens'] = trainingDetailsForLocation['total_passed'];
+            } else { // there are no nominated wardens
+              sublocations[i]['nominated_wardens'] = 0;
+              sublocations[i]['trained_wardens'] = 0;
+            }
+            if (sublocations[i]['location_id'] in calcResults) {
+              sublocations[i]['total_estimated_wardens'] = calcResults[sublocations[i]['location_id']]['total_estimated_wardens'];
+            } else {
+              sublocations[i]['total_estimated_wardens'] = 0;
+            }
+            sublocations[i]['total_wardens'] = (sublocations[i]['nominated_wardens'] >= sublocations[i]['total_estimated_wardens']) ?
+            sublocations[i]['nominated_wardens'] : sublocations[i]['total_estimated_wardens'];
+          }
+          // console.log(sublocations);
+        } catch(e) {
+          console.log('There are no wardens for this building');
+        }
       	response.sublocations = sublocations;
 	    // get immediate parent
 	    const parentId = <number>location.get('parent_id');
