@@ -20,7 +20,7 @@
                     </select>
                     <label for="location_type">Are we calculating for a specific area, the building or a group of buildings?</label>
                 </div>
-                
+
                 <div class="quantity-container" *ngIf="showFloorsToggle">
                     <label for="floors"> How many total floors?</label>
                     <br />
@@ -175,10 +175,24 @@
         </div>
 
     </div>
-    
+
     <div class="right-align button-container">
         <button type="button" class="btn waves-effect waves-light modal-close lighten-1 grey" (click)="onCloseSelfSignUp()">Close</button>
         <button type="button" class="btn waves-effect waves-light btn-submit" (click)="onClickSubmit()">Submit</button>
     </div>
 
 </form>
+
+<div class="modal-content center" [hidden]="!processing_calculations">
+  <div class="preloader-wrapper active">
+    <div class="spinner-layer spinner-red-only">
+      <div class="circle-clipper left">
+        <div class="circle"></div>
+      </div><div class="gap-patch">
+        <div class="circle"></div>
+      </div><div class="circle-clipper right">
+        <div class="circle"></div>
+      </div>
+    </div>
+  </div>
+</div>

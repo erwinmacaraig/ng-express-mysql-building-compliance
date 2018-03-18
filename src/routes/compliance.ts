@@ -17,7 +17,7 @@ import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { Utils } from '../models/utils.model';
 import { FileUploader } from '../models/upload-file';
 import { TrainingCertification } from './../models/training.certification.model';
-// import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_calculator.model';
+import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_calculator.model';
 import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -87,9 +87,10 @@ import * as S3Zipper from 'aws-s3-zipper';
           });
     });
 
-    router.post('/compliance/warden-calculations/', (req: Request, res: Response, next: NextFunction) => {
+    router.post('/compliance/warden-calculations/',
+        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
       // http://ec2-13-55-135-227.ap-southeast-2.compute.amazonaws.com/apis/warden_number_calculator/
-      console.log(req.body);
+      const createData = req.body;
       const headers = {
         'User-Agent': 'Evacconnect-client',
         'Accept': 'application/json'
@@ -109,14 +110,21 @@ import * as S3Zipper from 'aws-s3-zipper';
             'status':  'Cannot query server for calculations'
           });
         }
-        console.log('body', body);
-        console.log(typeof body);
         let resultObj;
         resultObj = JSON.parse(body.slice(body.indexOf('{'), body.length));
-
-        return res.send({
-          'message': 'Success',
-          'data': resultObj
+        const wardenCalc = new WardenBenchmarkingCalculator();
+        createData['total_estimated_wardens'] = resultObj['total_estimated_wardens']['value'];
+        createData['updated_by'] = req.user.user_id;
+        wardenCalc.create(createData).then(() => {
+          return res.send({
+            'message': 'Success',
+            'data': resultObj
+          });
+        }).catch((e) => {
+          return res.status(400).send({
+            'message': 'Calculation was successful but cannot store results',
+            'error': e
+          });
         });
      });
 
@@ -202,7 +210,7 @@ import * as S3Zipper from 'aws-s3-zipper';
       const training = new TrainingCertification();
       const locationModel = new Location(locationID);
       let emrolesOnThisLocation;
-
+      const wardenCalc = new WardenBenchmarkingCalculator();
       let paths;
       try {
          paths = await utils.s3DownloadFilePathGen(accountID, locationID);
@@ -210,7 +218,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         paths = [];
       }
       try {
-        emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, 0, accountID);
+        emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, 0);
         if ('8' in emrolesOnThisLocation) {
           if (emrolesOnThisLocation['8']['location'].length > 0) {
             let locId;
@@ -224,16 +232,38 @@ import * as S3Zipper from 'aws-s3-zipper';
           }
         }
 
-        if ('9' in emrolesOnThisLocation) {
+        if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation) {
           console.log(emrolesOnThisLocation['9']);
-          if (emrolesOnThisLocation['9']['location'].length > 0) {
+          if (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'].length > 0) {
             let locId;
-            for (let i = 0; i < emrolesOnThisLocation['9']['location'].length; i++) {
-              locId = emrolesOnThisLocation['9']['location'][i].toString();
-              if (emrolesOnThisLocation['9'][locId]['users'].length > 0) {
-                emrolesOnThisLocation['9'][locId]['training'] =
-                   await training.getEMRUserCertifications(emrolesOnThisLocation['9'][locId]['users']);
+            const calcResults = await
+                wardenCalc.getBulkBenchmarkingResultOnLocations(emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location']);
+
+            for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'].length; i++) {
+              locId = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'][i].toString();
+              if (emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].length > 0) {
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training'] =
+                   await training.getEMRUserCertifications(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users']);
               }
+              if (locId in calcResults) {
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens'] =
+                calcResults[locId]['total_estimated_wardens'];
+              } else {
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens'] = 0;
+              }
+              emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] =
+                 (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'] >=
+                    emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens']) ?
+                       emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'] :
+                          emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens'];
+
+              emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
+                Math.round(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] /
+                  emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens']
+               ) * 100;
+
+               emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
+               emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'].toString() + '%';
             }
           } else { // there is no  warden assigned to the selected location
 
