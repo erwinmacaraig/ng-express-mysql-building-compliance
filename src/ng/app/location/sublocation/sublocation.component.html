@@ -199,7 +199,8 @@
 
 	<div class="modal-content" *ngIf="!showModalNewTenantLoader">
 
-		<h5>Add New Tenant</h5>
+		<h5>Add New Tenant </h5>
+		<h6><span *ngIf="parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}}</h6>
 		
 		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)">
 

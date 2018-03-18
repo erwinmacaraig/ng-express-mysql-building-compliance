@@ -888,7 +888,9 @@
         <tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 12">
             <tr *ngFor="let sub of complianceSublocations">
                 <td>{{sub.name}}</td>
-                <td>to do</td>
+                <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_estimated_wardens}}
+                </td>
                 <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
                     {{selectedCompliance['compliance']['location_details'][sub['location_id']].users.length}}
                 </td>
@@ -960,7 +962,9 @@
 			<tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 6">
           <tr *ngFor="let sub of complianceSublocations">
               <td>{{sub.name}}</td>
-              <td>to do</td>
+              <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_estimated_wardens}}
+              </td>
               <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
                   {{selectedCompliance['compliance']['location_details'][sub['location_id']].users.length}}
               </td>

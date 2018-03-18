@@ -67,7 +67,7 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
             for(let i in peep){
                 peep[i]['bg_class'] = this.generateRandomBGClass();
                 if(peep[i]['user_id']){
-                    peep[i]['id_encrypted'] = this.encDecrService.encrypt(peep[i]['user_id']).toString();
+                    peep[i]['id_encrypted'] = this.encDecrService.encrypt(peep[i]['user_id']);
                     peep[i]['last_login'] = moment(peep[i]['last_login']).format('MMM. DD, YYYY hh:mmA');
                 }
             }
