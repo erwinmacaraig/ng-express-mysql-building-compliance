@@ -107,12 +107,12 @@
 						{{location.sublocations.length}}
 					</td>
 					<td>
-						<span style="margin-right:10px;">{{location.num_tenants}}</span> 
+						<span style="margin-right:10px;">{{location.num_tenants}}</span>
 						<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', location.location_id]" > Add tenants </a> -->
 					</td>
 
 					<td>
-						<span style="margin-right:10px;">{{location.num_wardens}}</span> 
+						<span style="margin-right:10px;">{{location.num_wardens}}</span>
 						<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-wardens/', location.location_id]" > Add Wardens </a> -->
 					</td>
 					<td>
@@ -137,7 +137,7 @@
 							<option value="view-{{location.location_id}}">View Location</option>
 							<option value="compliance-{{location.location_id}}">View Compliance</option>
 							<option value="archive-{{location.location_id}}">Archive</option>
-							<option value="benchmark-{{location.location_id}}">Benchmark</option>
+							<!-- <option value="benchmark-{{location.location_id}}">Benchmark</option> -->
 						</select>
 					</td>
 				</tr>
@@ -241,7 +241,7 @@
 
 		<h5>Add New Tenant </h5>
 		<h6><span *ngIf="selectedLocation.name.length > 0">{{selectedLocation.name}}</span>  <span *ngIf="selectedLocation.name.length == 0">{{selectedLocation.formatted_address}}</span> </h6>
-		
+
 		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)">
 
 			<div class="row">
@@ -320,7 +320,7 @@
 			</div>
 
 		</form>
-		
-		
+
+
 	</div>
 </div>
