@@ -18,6 +18,15 @@ export class UserService {
 		this.baseUrl = (platformLocation as any).location.origin;
 	}
 
+	checkUserIsAdmin(userId, callBack){
+		this.http.get(this.baseUrl+"/users/is-admin/"+userId)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 	update(formData, callBack){
 		this.http.post(this.baseUrl+"/users/update", formData)
 		.subscribe(res => {
@@ -56,6 +65,15 @@ export class UserService {
 
 	getUsersByAccountId(accountId, callBack){
 		this.http.get(this.baseUrl+"/users/get-users-by-account-id/"+accountId)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	getUsersByAccountIdNoneAuth(accountId, callBack){
+		this.http.get(this.baseUrl+"/users/get-users-by-account-none-auth/"+accountId)
 		.subscribe(res => {
 			callBack(res);
 		}, err => {

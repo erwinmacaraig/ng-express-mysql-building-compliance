@@ -87,6 +87,34 @@ export class CourseUserRelation extends BaseClass {
     });
   }
 
+  public getWhere(arrWhere): Promise<object> {
+      return new Promise((resolve, reject) => {
+          let sql = `SELECT * FROM course_user_relation `,
+              count = 0;
+          for(let i in arrWhere){
+              if( count == 0 ){
+                  sql += ' WHERE '+arrWhere[i];
+              }else{
+                  sql += ' AND '+arrWhere[i];
+              }
+
+              count++;
+          }
+
+
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql, [this.id], (error, results, fields) => {
+              if (error) {
+                  throw new Error('Error loading course user relation');
+              } else {
+                  this.dbData = results;
+                  resolve(this.dbData);
+              }
+          });
+          connection.end();
+      });
+  }
+
   public create(createData: object) {
     return new Promise((resolve, reject) => {
       Object.keys(createData).forEach((key) => {
