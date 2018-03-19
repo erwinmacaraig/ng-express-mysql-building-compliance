@@ -27,6 +27,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as multer from 'multer';
 const md5 = require('md5');
+const defs = require('./../config/defs.json');
 
 
 export class UsersRoute extends BaseRoute {
@@ -129,11 +130,89 @@ export class UsersRoute extends BaseRoute {
 
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getLocationsTenants(req, res, next);
-	    });
-	}
+      });
 
+      router.post('/users/send-trp-invitation/', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+        console.log(req.body);
+        new UsersRoute().sendTRPInvitation(req, res, next).then(() => {
+          return res.status(200).send({
+            'status': 'Success'
+          })
+        }).catch((e) => {
+          console.log(e);
+          return res.status(400).send({
+            'status': 'Fail'
+          });
+        });
+      });
+  }
+
+  public async sendTRPInvitation(req: Request , res: Response, next: NextFunction) {
+    const inviCode = new UserInvitation();
+    const inviDetails = req.body;
+    inviDetails['account_id'] = req['user'].account_id;
+    inviDetails['role_id'] = defs['Tenant'];
+    inviDetails['invited_by_user'] = req['user'].user_id;
+    const tokenModel = new Token();
+    const token = tokenModel.generateRandomChars(8);
+
+    const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
+    const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+
+    try {
+      console.log(inviDetails);
+      await inviCode.create(inviDetails);
+
+      await tokenModel.create({
+        'token': token,
+        'action': 'invitation',
+        'verified': 0,
+        'expiration_date': expDate,
+        'id': inviCode.ID(),
+        'id_type': 'user_invitations_id'
+      });
+
+      // email notification here
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : [],
+        cc: [],
+        body : '',
+        attachments: [],
+        subject : 'EvacConnect TRP Invitation'
+      };
+      const email = new EmailSender(opts);
+      let emailBody = email.getEmailHTMLHeader();
+        emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+        <h4>You are being assigned as a Tenant.</h4> <br/>
+        <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
+        <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+      emailBody += email.getEmailHTMLFooter();
+      email.assignOptions({
+        body : emailBody,
+        to: [inviDetails['email']],
+        cc: []
+      });
+
+      email.send((data) => {
+        console.log(data);
+        return true;
+      },(err) => {
+        console.log(err);
+        return false;
+      });
+    } catch (e) {
+      console.log(e);
+    }
+
+   return true;
+
+
+  }
 	public async updateUser(req: Request , res: Response, next: NextFunction){
-		let 
+		let
 		response = {
 			status : false,
 			data : {},
@@ -141,7 +220,7 @@ export class UsersRoute extends BaseRoute {
 		};
 
 		try{
-			let 
+			let
 			userModel = new User(req.body.user_id),
 			userData = await userModel.load();
 
@@ -377,8 +456,8 @@ export class UsersRoute extends BaseRoute {
 			if( allowedUsersId.indexOf(user.user_id) > -1 ){
 				user['locations'] = <any>[];
 				for(let l in locations){
-					if( 
-						( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )  
+					if(
+						( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )
 						&& locations[l]['user_id'] == user.user_id
 						){
 						user['locations'].push(locations[l]);
@@ -422,7 +501,7 @@ export class UsersRoute extends BaseRoute {
 						role_name : roleName, role_id : roleId
 					});
 				}
-				
+
 			}
 
 			user['training_applicable'] = true;
@@ -496,7 +575,7 @@ export class UsersRoute extends BaseRoute {
 				arrWhere.push(['user_id = '+userId]);
 				arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
 				locations = await locationAccountUserModel.getMany(arrWhere);
-				
+
 				if( user['mobility_impaired'] == 1 ){
 		        	let mobilityModel = new MobilityImpairedModel(),
 		        		arrWhere = [];
@@ -567,7 +646,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['user_ids']){
 			let userModel = new User(req.body['user_ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 1);
 			await userModel.dbUpdate();
 		}
@@ -587,7 +666,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['user_ids']){
 			let userModel = new User(req.body['user_ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 0);
 			await userModel.dbUpdate();
 		}
@@ -607,7 +686,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['ids']){
 			let userModel = new UserInvitation(req.body['ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 1);
 			await userModel.dbUpdate();
 		}
@@ -627,7 +706,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['ids']){
 			let userModel = new UserInvitation(req.body['ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 0);
 			await userModel.dbUpdate();
 		}
@@ -670,7 +749,7 @@ export class UsersRoute extends BaseRoute {
 		let arrWhere = [];
 			arrWhere.push( ["account_id = "+accountId ] );
 			arrWhere.push( ["archived = "+1 ] );
-			
+
 		let locations = await locationAccountUser.getMany(arrWhere);
 		for(let l in locations){
 			let userModel = new User(locations[l]['user_id']);
@@ -829,7 +908,7 @@ export class UsersRoute extends BaseRoute {
 			}
 
 			if(
-				(emRolesRec[i]['is_warden_role'] == 1) && 
+				(emRolesRec[i]['is_warden_role'] == 1) &&
 				(emRolesRec[i]['location_id'] != locAccUser['location_id']) &&
 				!emRolesRec[i]['deleted']
 				){
@@ -857,7 +936,7 @@ export class UsersRoute extends BaseRoute {
 				'role_id' : 8
 			});
 		}*/
-		
+
 		response.status = true;
 		res.send(response);
 	}
@@ -976,7 +1055,7 @@ export class UsersRoute extends BaseRoute {
 					}
 				}
 				response.data.team = team;
-				
+
 				/*response.data['accntlocations'] = accountsLocations;
 				response.data['emRoles'] = emRoles;
 				response.data['myEmRoles'] = myEmRoles;
@@ -1004,7 +1083,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async requestAsWarden(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1056,7 +1135,7 @@ export class UsersRoute extends BaseRoute {
 				parentLocation = await parentLocationModel.load();
 			}
 
-			const 
+			const
 			opts = {
 				from : 'allantaw2@gmail.com',
 				fromName : 'EvacConnect',
@@ -1071,7 +1150,7 @@ export class UsersRoute extends BaseRoute {
 			declinelink = req.protocol + '://' + req.get('host') + '/token/' + token2;
 
 
-			let 
+			let
 			emailBody = email.getEmailHTMLHeader(),
 			userName = userModel.get('first_name')+' '+userModel.get('last_name'),
 			approverName = approverModel.get('first_name')+' '+approverModel.get('last_name'),
@@ -1086,7 +1165,7 @@ export class UsersRoute extends BaseRoute {
 			emailBody += `<h3 style="text-transform:capitalize;">Hi ${approverName},</h3> <br/>
 			<h4> ${userName} requested to be a warden in location '${locationString}' </h4> <br/>
 			<h5>Click on the link below for corresponding response </h5> <br/>
-			<a href="${approvelink}" target="_blank" style="text-decoration:none; color:#0277bd;">Approve</a> | 
+			<a href="${approvelink}" target="_blank" style="text-decoration:none; color:#0277bd;">Approve</a> |
 			<a href="${declinelink}" target="_blank" style="text-decoration:none; color:#f44336;">Decline</a>
 			<br>`;
 			emailBody += email.getEmailHTMLFooter();
@@ -1104,12 +1183,12 @@ export class UsersRoute extends BaseRoute {
 			response.status = false;
 			response.message = e;
 		}
-		
+
 		res.send(response);
 	}
 
 	public async getWardenRequest(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1123,7 +1202,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async userRequestHandler(req: Request, res: Response, tokenData, fromEmail:boolean){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1229,7 +1308,7 @@ export class UsersRoute extends BaseRoute {
 						}
 					}
 
-					const 
+					const
 					opts = {
 						from : 'allantaw2@gmail.com',
 						fromName : 'EvacConnect',
@@ -1242,7 +1321,7 @@ export class UsersRoute extends BaseRoute {
 					},
 					email = new EmailSender(opts);
 
-					let 
+					let
 					emailBody = email.getEmailHTMLHeader(),
 					userName = userModel.get('first_name')+' '+userModel.get('last_name'),
 					approverName = approverModel.get('first_name')+' '+approverModel.get('last_name'),
@@ -1291,7 +1370,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async resignAsChiefWarden(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1327,7 +1406,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async resignAsWarden(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1364,7 +1443,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async saveMobilityImpairedDetails(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1442,7 +1521,7 @@ export class UsersRoute extends BaseRoute {
 				for(let a in accounts){
 
 					if(accounts[a]['account_id'] == loc.account_id){
-						
+
 						let emRoleModel = new UserEmRoleRelation(),
 							emRoles = <any> [];
 
@@ -1475,7 +1554,7 @@ export class UsersRoute extends BaseRoute {
 			}catch(e){}
 		}
 
-		
+
 		for(let a in accounts){
 			let trpnamesArr = [];
 			for(let x in accounts[a]['trps']){

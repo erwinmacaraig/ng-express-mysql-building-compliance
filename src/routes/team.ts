@@ -803,7 +803,7 @@ export class TeamRoute extends BaseRoute {
     email.assignOptions({
       body : emailBody,
       to: [objEmail[i]],
-      cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
+      cc: []
     });
       email.send((data) => console.log(data),
                  (err) => console.log(err)

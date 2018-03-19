@@ -114,7 +114,7 @@ export class UserInvitation extends BaseClass {
     public getWhere(where:Object){
         return new Promise((resolve, reject) => {
             let sql_load = `
-                SELECT ui.*, l.name as location_name, lp.name as parent_name  
+                SELECT ui.*, l.name as location_name, lp.name as parent_name
                 FROM user_invitations ui INNER JOIN locations l  ON ui.location_id = l.location_id
                 LEFT JOIN locations lp  ON l.parent_id = lp.location_id
             `;
@@ -171,6 +171,7 @@ export class UserInvitation extends BaseClass {
                     role_id = ?,
                     eco_role_id = ?,
                     mobility_impaired = ?,
+                    tenancy_name = ?,
                     contact_number = ?,
                     phone_number = ?,
                     invited_by_user = ?,
@@ -188,6 +189,7 @@ export class UserInvitation extends BaseClass {
                 ('role_id' in this.dbData) ? this.dbData['role_id'] : 0,
                 ('eco_role_id' in this.dbData) ? this.dbData['eco_role_id'] : 0,
                 ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : 0,
+                ('tenancy_name' in this.dbData) ? this.dbData['tenancy_name'] : '',
                 ('contact_number' in this.dbData) ? this.dbData['contact_number'] : '',
                 ('phone_number' in this.dbData) ? this.dbData['phone_number'] : null,
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
@@ -220,12 +222,14 @@ export class UserInvitation extends BaseClass {
                 role_id,
                 eco_role_id,
                 mobility_impaired,
+                tenancy_name,
                 contact_number,
                 phone_number,
                 invited_by_user,
                 was_used,
                 archived
             ) VALUES (
+                ?,
                 ?,
                 ?,
                 ?,
@@ -249,6 +253,7 @@ export class UserInvitation extends BaseClass {
                 ('role_id' in this.dbData) ? this.dbData['role_id'] : 0,
                 ('eco_role_id' in this.dbData) ? this.dbData['eco_role_id'] : 0,
                 ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : 0,
+                ('tenancy_name' in this.dbData) ? this.dbData['tenancy_name'] : '',
                 ('contact_number' in this.dbData) ? this.dbData['contact_number'] : '',
                 ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
                 ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,

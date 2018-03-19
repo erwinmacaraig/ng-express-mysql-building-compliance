@@ -214,6 +214,18 @@ export class UserService {
 		}, err => {
 			callBack( JSON.parse(err.error) );
 		});
-	}
+  }
+
+  sendTRPInvitation(trpInfo: object = {}) {
+    const body = {};
+    body['tenancy_name'] = ('account_name' in trpInfo) ? trpInfo['account_name'] : '';
+    body['email'] = ('email' in trpInfo) ? trpInfo['email'] : '';
+    body['first_name'] = ('key_contact_name' in trpInfo) ? trpInfo['key_contact_name'] : '';
+    body['last_name'] = ('key_contact_lastname' in trpInfo) ? trpInfo['key_contact_lastname'] : '';
+    body['location_id'] = ('location_id' in trpInfo) ? trpInfo['location_id'] : 0;
+
+    return this.http.post<any>(this.baseUrl + '/users/send-trp-invitation/', body);
+
+  }
 
 }
