@@ -53,24 +53,24 @@
 									<td>{{locationData.formatted_address}}</td>
 								</tr>
 								
-								<tr>
+								<!-- <tr>
 									<td>Region : N/A</td>
-								</tr>
+								</tr> -->
 
 							</table>
 						</div>
 					</div>
 
 					<div class="right">
-						<div class="table-align" style="margin-bottom: 30px;">
-							<h5 class="medium-text">Show only not compliant</h5>
+						<div class="right-align" >
+							<!-- <h5 class="medium-text">Show only not compliant</h5>
 							<div class="switch">
 								<input type="checkbox" id="override">
 								<div class="yes">Yes</div>
 								<div class="no">No</div>
 								<div class="highlight"></div>
 								<div class="background"></div>
-							</div>
+							</div> -->
 
 							<a href="#" class="archived" [routerLink]="['/location/list']">
 								<span class="image"></span>
@@ -99,22 +99,31 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr>
+							<tr *ngIf="tenants.length == 0">
+								<td class="center" colspan="6">
+									<strong>No tenants found</strong>
+								</td>
+							</tr>
+							<tr *ngFor="let tenant of tenants">
 								<td>
-									Account name
+									{{tenant.account_name}}
 								</td>
 								<td>
-									Trp Name
+									{{tenant.trp_name}}
 								</td>
 								<td>
-									5/20
+									{{tenant.warden_benchmarking}}
 								</td>
 								<td>
-									5/20
+									{{tenant.wardens}}
 								</td>
-								<td class="compliance">
-									<div class="percent">0%</div>
-									<div class="bar"></div>
+								<td class="with-bar">
+									<div class="text">0%</div>
+									<div class="progress-container">
+										<div class="progress">
+									    	<div class="determinate" style="width: 0%;"></div>
+										</div>
+									</div>
 								</td>
 								<td class="select-blue">
 									<select>
@@ -125,7 +134,7 @@
 							</tr>
 							<tr>
 								<td colspan="6" class="btn-block-holder">
-									<button class="btn blue waves-effect waves-light">+ Add new tenant</button>
+									<a class="btn blue waves-effect waves-light" (click)="addNewTenantClickEvent()">+ Add new tenant</a>
 								</td>
 							</tr>
 						</tbody>
@@ -167,5 +176,103 @@
     		<button class="waves-effect waves-light btn orange btn-flat" (click)="onClickYesArchive()">Yes</button>
 		</div>
 
+	</div>
+</div>
+
+
+<div id="modalAddNewTenant" class="modal">
+	<div class="modal-content" *ngIf="showModalNewTenantLoader">
+		<div class="center-align">
+			<div class="preloader-wrapper active" >
+				<div class="spinner-layer spinner-red-only">
+					<div class="circle-clipper left">
+						<div class="circle"></div>
+					</div><div class="gap-patch">
+						<div class="circle"></div>
+					</div><div class="circle-clipper right">
+						<div class="circle"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-content" *ngIf="!showModalNewTenantLoader">
+
+		<h5>Add New Tenant </h5>
+		<h6><span *ngIf="parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}}</h6>
+		
+		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)">
+
+			<div class="row">
+				<div class="col l12 m12 s12">
+					<div class="input-field">
+	                  	<input id="company_name" type="text" name="account_name" ngModel required>
+						<label for="company_name">Tenant Name</label>
+					</div>
+
+					<div class="input-field" >
+						<input id="key_contact" type="text" name="key_contact" ngModel required>
+						<label for="key_contact"> Key Contact </label>
+					</div>
+
+					<div class="input-field">
+						<input id="building_number" type="text" name="building_number" ngModel required>
+						<label for="building_number">Building Number</label>
+					</div>
+
+					<div class="input-field">
+						<input id="street" type="text" name="billing_street" ngModel required>
+						<label for="street">Street</label>
+					</div>
+
+					<div class="input-field">
+						<input id="city" type="text" name="billing_city" ngModel required >
+						<label for="city">City</label>
+					</div>
+
+					<div class="input-field" >
+						<input id="state" type="text" name="billing_state" ngModel required>
+						<label for="state">State</label>
+					</div>
+
+					<div class="input-field">
+						<input id="postal_code" type="text" name="billing_postal_code" ngModel required>
+						<label for="postal_code">Postal Code</label>
+					</div>
+
+					<div class="select-field"  >
+						<select ngModel  name="billing_country" class="billing-country" required>
+							<option *ngFor="let country of countries;" [value]="country.abbr" >{{country.name}}</option>
+						</select>
+						<label class="select-label">Country</label>
+					</div>
+
+					<div class="select-field" >
+						<select ngModel  name="time_zone" class="time-zone" required>
+							<option *ngFor="let timezone of timezones" [value]="timezone.abbr"  >{{timezone.text}}</option>
+						</select>
+						<label class="select-label">Time-Zone</label>
+					</div>
+
+					<div class="input-field">
+						<input id="domain" type="text" name="account_domain" ngModel required pattern="^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$">
+						<label for="domain">Account Domain name</label>
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col l12 m12 s12">
+					<div class="button-container right-align" >
+						<a href="javascript:void(0)" class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
+			    		<button type="submit" class="waves-effect waves-light btn orange btn-flat" [disabled]="!formAddTenant.valid">Submit</button>
+					</div>
+				</div>
+			</div>
+
+		</form>
+		
+		
 	</div>
 </div>

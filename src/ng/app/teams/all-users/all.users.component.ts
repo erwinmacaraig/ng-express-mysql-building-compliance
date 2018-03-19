@@ -46,7 +46,13 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			console.log(this.listData);
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
-				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']).toString();
+				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
+
+				for(let l in this.listData[i]['locations']){
+					if(this.listData[i]['locations'][l]['parent_name'] == null){
+						this.listData[i]['locations'][l]['parent_name'] = '';
+					}
+				}
 
 				for(let r in this.listData[i]['roles']){
 					if( this.listData[i]['roles'][r]['role_name'] ){
@@ -151,8 +157,9 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			this.listData = this.copyOfList;
 		}else{
 			for(let i in this.copyOfList){
-				let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase();
-				if(name.indexOf(key) > -1){
+				let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase(),
+					email = this.copyOfList[i]['email'];
+				if(name.indexOf(key) > -1 || email.indexOf(key) > -1){
 					temp.push( this.copyOfList[i] );
 				}
 			}
@@ -224,6 +231,19 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			}
 			this.selectedFromList = temp;
 		}
+
+		let checkboxes = $('table tbody input[type="checkbox"]'),
+        countChecked = 0;
+        checkboxes.each((indx, elem) => {
+            if($(elem).prop('checked')){
+                countChecked++;
+            }
+        });
+
+        $('#allLocations').prop('checked', false);
+        if(countChecked == checkboxes.length){
+            $('#allLocations').prop('checked', true);
+        }
 	}
 
 	bulkManageActionEvent(){
@@ -249,6 +269,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		}
 
 		this.userService.archiveUsers(arrIds, (response) => {
+			$('#allLocations').prop('checked', false);
 			this.showModalLoader = false;
 			$('#modalArchiveBulk').modal('close');
 			this.dashboardService.show();

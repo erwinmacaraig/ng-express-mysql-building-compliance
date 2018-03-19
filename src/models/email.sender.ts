@@ -2,6 +2,7 @@ const AWS = require('aws-sdk');
 const AWSCredential = require('../config/aws-access-credentials.json');
 const path = require('path');
 const mime = require('mime-types');
+const defs = require('../config/defs.json');
 
 export class EmailSender {
 
@@ -25,7 +26,7 @@ export class EmailSender {
         this.mySecretKey = AWSCredential.AWSSecretKey;
 
         AWS.config.update({
-            region:'us-east-1',
+            region:'us-west-2',
             accessKeyId : this.myAccessKeyId,
             secretAccessKey : this.mySecretKey
         });
@@ -82,16 +83,17 @@ export class EmailSender {
         return email;
     }
 
-    public send(success, error){
+    public async send(success, error){
         var
         email = this.buildEmail(),
         params = {
             // RawMessage: { Data: new Buffer(email) },
             Destination: {
               ToAddresses: this.options['to'],
+              // ToAddresses : ['adelfin@evacgroup.com.au'],
               CcAddresses: this.options['cc']
             },
-            Source: "'EvacConnect' <" + this.getOptionToIntoString() + ">'",
+            Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
             Message: {
               Subject: {
                 Charset: 'UTF-8',
@@ -116,7 +118,7 @@ export class EmailSender {
             }
         });
         */
-        this.ses.sendEmail(params, function(err, data) {
+        await this.ses.sendEmail(params, function(err, data) {
           if(err) {
               error(err);
           }
@@ -140,6 +142,18 @@ export class EmailSender {
 
     public getEmailHTMLFooter(){
         return `</body></html>`;
+    }
+
+    public getVerifiedList() {
+      this.ses.listVerifiedEmailAddresses((err, data) => {
+        if (err) {
+          console.log(err)
+          return err;
+        } else {
+          console.log(data);
+          return data;
+        }
+      });
     }
 
 

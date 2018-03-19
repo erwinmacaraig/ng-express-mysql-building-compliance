@@ -287,7 +287,7 @@ export class TeamRoute extends BaseRoute {
       em_role = '';
       account_role = '';
       const opts = {
-        from : 'allantaw2@gmail.com',
+        from : '',
         fromName : 'EvacConnect',
         to : [],
         cc: [],
@@ -306,8 +306,7 @@ export class TeamRoute extends BaseRoute {
       emailBody += email.getEmailHTMLFooter();
       email.assignOptions({
         body : emailBody,
-        to: [user_invitation_records[i]['Email']],
-        cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
+        to: [user_invitation_records[i]['Email']]
       });
       await email.send((result) => console.log(result),
                  (err) => console.log(err)
@@ -366,10 +365,10 @@ export class TeamRoute extends BaseRoute {
       } catch (e) {
         if (validator.isEmail(p['email'])) {
 
-          if(new BlacklistedEmails().isEmailBlacklisted(p['email'])){
-            p['errors']['blacklisted'] = true;
-            invalidPeep.push(p);
-          }else{
+          // if(new BlacklistedEmails().isEmailBlacklisted(p['email'])){
+          //   p['errors']['blacklisted'] = true;
+          //   invalidPeep.push(p);
+          // }else{
             p['invited_by_user'] = req.user.user_id;
             p['account_id'] = req.user.account_id;
             const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
@@ -398,7 +397,7 @@ export class TeamRoute extends BaseRoute {
             locText += location['name'];
 
             const opts = {
-              from : 'allantaw2@gmail.com',
+              from : '',
               fromName : 'EvacConnect',
               to : [],
               cc: [],
@@ -441,7 +440,7 @@ export class TeamRoute extends BaseRoute {
             email.send((data) => console.log(data),
                        (err) => console.log(err)
                       );
-          }
+          //}
 
         } else {
           p['errors']['invalid'] = true;
@@ -470,10 +469,10 @@ export class TeamRoute extends BaseRoute {
       } catch (e) {
 
         if (validator.isEmail(warden['email'])) {
-          if(new BlacklistedEmails().isEmailBlacklisted(warden['email'])){
-            warden['errors']['blacklisted'] = true;
-            invalidWarden.push(warden);
-          }else{
+          // if(new BlacklistedEmails().isEmailBlacklisted(warden['email'])){
+          //   warden['errors']['blacklisted'] = true;
+          //   invalidWarden.push(warden);
+          // }else{
             const userInvitation = new UserInvitation();
             const tokenModel = new Token();
             const tokenStr = tokenModel.generateRandomChars(10);
@@ -492,7 +491,7 @@ export class TeamRoute extends BaseRoute {
             });
 
             const opts = {
-              from : 'allantaw2@gmail.com',
+              from : '',
               fromName : 'EvacConnect',
               to : [],
               cc: [],
@@ -517,7 +516,7 @@ export class TeamRoute extends BaseRoute {
             email.send((data) => console.log(data),
                        (err) => console.log(err)
                       );
-          }
+          // }
         } else {
           warden['errors']['invalid'] = true;
           invalidWarden.push(warden);
@@ -760,7 +759,7 @@ export class TeamRoute extends BaseRoute {
     }
     // email notification here
     const opts = {
-      from : 'allantaw2@gmail.com',
+      from : '',
       fromName : 'EvacConnect',
       to : [],
       cc: [],
@@ -777,13 +776,22 @@ export class TeamRoute extends BaseRoute {
       const token = tokenModel.generateRandomChars(8);
 
       const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
+      const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
       await inviCode.create({
         'invited_by_user': req.user.user_id,
         'email': objEmail[i],
-        'code': token,
         'role_id': 9,
         'account_id': req.user.account_id
       });
+      await tokenModel.create({
+        'token': token,
+        'action': 'invitation',
+        'verified': 0,
+        'expiration_date': expDate,
+        'id': inviCode.ID(),
+        'id_type': 'user_invitations_id'
+      });
+
       let emailBody = email.getEmailHTMLHeader();
       emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
       <h4>You are invited to be a Warden.</h4> <br/>
@@ -880,6 +888,11 @@ export class TeamRoute extends BaseRoute {
             arrWhere.push( ["lau.role_id IN ("+allowedRoleIds.join(',')+")" ] );
 
         let locations = await locationAccountUser.getMany(arrWhere);
+        for(let i in locations){
+          if(locations[i]['parent_name'] == null){
+            locations[i]['parent_name'] = '';
+          }
+        }
 
         response['locations'] = locations;
 
@@ -895,8 +908,8 @@ export class TeamRoute extends BaseRoute {
             if( allowedUsersId.indexOf(user.user_id) > -1 ){
                 user['locations'] = <any>[];
                 for(let l in locations){
-                    if( 
-                        ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )  
+                    if(
+                        ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )
                         && locations[l]['user_id'] == user.user_id
                         ){
                         user['locations'].push(locations[l]);
@@ -910,7 +923,7 @@ export class TeamRoute extends BaseRoute {
             let locs = user.locations;
             user['roles'] = [];
             let tempUserRoles = {};
-            
+
             for(let loc of locs){
                 let roleName = 'General Occupant',
                     roleId = 8;
@@ -1018,21 +1031,21 @@ export class TeamRoute extends BaseRoute {
   }*/
 
   public async buildPEEPList(req: AuthRequest, res:Response, archived?){
-      let accountId = req['user']['account_id'],
-        userID = req['user']['user_id'],
-        locationAccountUser = new LocationAccountUser(),
-        response = {
-            data : <any>[],
-            status : false,
-            message : ''
-        },
-        allParents = [],
-        allUsersModel = new User(),
-        allUsers = <any>[],
-        allUsersIds = [],
-        emRolesModel = new UserEmRoleRelation(),
-        emRoles = await emRolesModel.getEmRoles(),
-        emRolesIndexedId = {};
+    let accountId = req['user']['account_id'],
+      userID = req['user']['user_id'],
+      locationAccountUser = new LocationAccountUser(),
+      response = {
+          data : <any>[],
+          status : false,
+          message : ''
+      },
+      allParents = [],
+      allUsersModel = new User(),
+      allUsers = <any>[],
+      allUsersIds = [],
+      emRolesModel = new UserEmRoleRelation(),
+      emRoles = await emRolesModel.getEmRoles(),
+      emRolesIndexedId = {};
 
     if(!archived){ archived = 0; }
 
@@ -1098,8 +1111,8 @@ export class TeamRoute extends BaseRoute {
         if( allowedUsersId.indexOf(user.user_id) > -1 ){
             user['locations'] = <any>[];
             for(let l in locations){
-                if( 
-                    ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )  
+                if(
+                    ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )
                     && locations[l]['user_id'] == user.user_id
                     ){
                     user['locations'].push(locations[l]);
@@ -1116,9 +1129,9 @@ export class TeamRoute extends BaseRoute {
 
         user['roles'] = [];
         arrWhere.push( "user_id = "+user["user_id"] );
-        arrWhere.push( "duration_date > NOW()" );
 
         user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
+
         for(let userMobil of user.mobility_impaired_details){
           userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
         }
@@ -1153,29 +1166,44 @@ export class TeamRoute extends BaseRoute {
         }
     }
 
-    if(!archived){
-      let userInviModel = new UserInvitation(),
+    let userInviModel = new UserInvitation(),
         whereInvi = [];
 
       whereInvi.push([ 'account_id = '+accountId ]);
       whereInvi.push([ 'mobility_impaired = 1' ]);
       whereInvi.push([ 'was_used = 0' ]);
 
-      try{
-        let usersInvited:any = await userInviModel.getWhere(whereInvi);
-        for(let user of usersInvited){
-          user['locations'] = [];
-          user['profile_pic'] = '';
-          user['mobility_impaired_details'] = [];
-          user.locations.push({
-            location_id : user.location_id,
-            name : user.location_name,
-            parent_name : user.parent_name
-          });
-          toSendData.push(user);
-        }
-      }catch(e){}
+
+    if(!archived){
+      whereInvi.push([ 'archived = 0' ]);
+    }else{
+      whereInvi.push([ 'archived = '+archived ]);
     }
+
+    try{
+      let usersInvited:any = await userInviModel.getWhere(whereInvi);
+      for(let user of usersInvited){
+        user['locations'] = [];
+        user['profile_pic'] = '';
+        user['mobility_impaired_details'] = [];
+
+        let arrWhere = [];
+        arrWhere.push( "user_invitations_id = "+user["user_invitations_id"] );
+
+        user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
+        for(let userMobil of user.mobility_impaired_details){
+          userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+        }
+
+        user.locations.push({
+          location_id : user.location_id,
+          name : user.location_name,
+          parent_name : (user.parent_name == null) ? '' : user.parent_name
+        });
+
+        toSendData.push(user);
+      }
+    }catch(e){}
 
 
     response.data = toSendData;

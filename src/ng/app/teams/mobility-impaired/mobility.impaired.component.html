@@ -78,7 +78,7 @@
 				</tr>
 				<tr *ngFor="let peep of peepList; let i = index;">
 					<td>
-						<p class="checkbox" *ngIf="peep.user_id">
+						<p class="checkbox" >
 							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)"  >
 							<label for="location-{{i}}" >
 								<span *ngIf="peep.locations.length > 1">Multiple locations</span>
@@ -87,13 +87,6 @@
 									{{peep.locations[0].name}}
 								</span>
 							</label>
-						</p>
-						<p *ngIf="!peep.user_id">
-							<span *ngIf="peep.locations.length > 1">Multiple locations</span>
-							<span *ngIf="peep.locations.length == 1">
-								<span *ngIf="peep.locations[0].parent_name.trim().length > 0">{{ peep.locations[0].parent_name }}, </span>
-								{{peep.locations[0].name}}
-							</span>
 						</p>
 					</td>
 					<td>
@@ -110,11 +103,11 @@
 						</div>
 					</td>
 					<td class="peep-completion">
-						<span *ngIf="peep.mobility_impaired_details.length > 0 && peep.user_id">
-							<a href="javascipt:void(0)" (click)="clickShowPeepInfo(peep)">View</a>
+						<span *ngIf="peep.mobility_impaired_details.length > 0">
+							<a href="javascipt:void(0)" class="view-peep-link" [attr.user_id]="peep.user_id" [attr.user_invitations_id]="peep.user_invitations_id">View</a>
 						</span>
 						<a href="javascipt:void(0)" (click)="clickCompletePeepInfo(peep)" 
-						*ngIf="peep.mobility_impaired_details.length == 0 && peep.user_id" >Complete peep information</a>
+						*ngIf="peep.mobility_impaired_details.length == 0" >Complete peep information</a>
 						<span *ngIf="!peep.user_id"> Waiting for user validation </span>
 					</td>
 					<!-- <td class="trainings">
@@ -130,10 +123,11 @@
 						<span *ngIf="peep.id_encrypted">{{peep.last_login}}</span>
 					</td>
 					<td>
-						<select (change)="onSelectFromTable($event, peep)" [disabled]="!peep.id_encrypted">
-							<option value="0" class="blue-text" selected >Manage</option>
-							<option value="view" class="blue-text">View</option>
-							<option value="archive" class="blue-text" [hidden]="peep.user_id == userData.userId">Archive</option>
+						<select (change)="onSelectFromTable($event, peep)" >
+							<option value="0" class="blue-text" selected disabled>Manage</option>
+							<option value="view" class="blue-text" *ngIf="peep.id_encrypted">View</option>
+							<option value="archive" class="blue-text" *ngIf="peep.user_id != userData.userId">Archive</option>
+							<option value="archive" class="blue-text" *ngIf="peep.user_invitations_id > 0">Archive</option>
 						</select>
 					</td>
 				</tr>
@@ -237,16 +231,17 @@
 					<span style=" font-size: 16px;">Mobility Impaired Status</span>
 					<select ngModel name="is_permanent">
 						<option value="0" selected="selected">Temporary</option>
-						<option value="1">Permanent</option>
+						<option value="1" >Permanent</option>
 					</select>
 				</div>
 			</div>
 			<div class="col s12 l6 m6">
-				<div class="input-field" >
+				<div class="input-field">
 					<span style=" font-size: 16px;">Mobility Impaired Upto</span>
 					<ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
-					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required>
+					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required >
 				</div>
+
 			</div>
 			<div class="col s12 m12 l12">
 				<h6>Assistant Type</h6>

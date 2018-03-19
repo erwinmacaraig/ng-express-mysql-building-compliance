@@ -69,6 +69,21 @@
 	</div>
 
 	<div class="bottom-buttons">
+
+		<div class="select-field">
+			<select id="selectAction">
+				<option value="0" disabled selected>Select Action</option>
+				<option value="profile">Update Profile</option>
+				<option value="credential">Update Credential</option>
+				<option value="location">Assign Location & Role</option>
+			</select>
+		</div>
+
+		<!-- <button class="btn orange waves-effect waves-light update-user" (click)="updateUserInfo()">
+			<div class="image inline-block"></div>
+			<div class="text inline-block">Update Profile</div>
+		</button> -->
+
 		<button class="btn orange waves-effect waves-light remove" *ngIf="showRemoveWardenButton" (click)="clickRemoveWarden()">
 			<div class="image inline-block"></div>
 			<div class="text inline-block">Remove this user as {{viewData.eco_role}}</div>
@@ -81,8 +96,12 @@
 				<span *ngIf="viewData.user.mobility_impaired_details.user_id">View Emergency Evacuation Plan</span>
 			</div>
 		</button>
+
+
+
 	</div>
 </div>
+
 <div class="inline-block right-content">
 	<div class="row">
 		<div class="col s12 m12 l12">
@@ -94,72 +113,75 @@
 	
 			<div class="grid" id="gridContainer">
 				
-			<!-- 	<div class="grid-item card grey lighten-3" >
-				<div class="top">
-					<div class="image close inline-block"></div>
-					<div class="text inline-block red-text">Not Compliance</div>
-				</div>
-				<div class="middle-image">
-					<div class="image red-image"></div>
-				</div>
-				<div class="middle-text">
-					General Occupant and First Response
-					<p class="blue-text"></p>
-				</div>
-						
-				<div class="buttons">
-					<button class="btn red lighten-1 waves-effect waves-light">Send Invitation</button>
-				</div>
 			</div>
-						
-			<div class="grid-item card grey lighten-3" >
-				<div class="top">
-					<div class="image check inline-block"></div>
-					<div class="text inline-block green-text">Compliance</div>
-				</div>
-				<div class="middle-image">
-					<div class="image green-image"></div>
-				</div>
-				<div class="middle-text">
-					Bomb Threat Training
-					<p class="blue-text">
-						Valid until 24/08/2018
-					</p>
-				</div>
-						
-				<div class="buttons">
-					<button class="btn blue waves-effect waves-light">Download Certificate</button>
-					<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
-				</div>
-			</div>
-						
-			<div class="grid-item card grey lighten-3" >
-				<div class="top">
-					<div class="image check inline-block"></div>
-					<div class="text inline-block green-text">Compliance</div>
-				</div>
-				<div class="middle-image">
-					<div class="image yellow-image"></div>
-				</div>
-				<div class="middle-text">
-					Emergency Control Organization
-					<p class="blue-text">
-						Valid until 24/08/2018
-					</p>
-				</div>
-						
-				<div class="buttons">
-					<button class="btn blue waves-effect waves-light">Download Certificate</button>
-					<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
-				</div>
-			</div> -->
 			
-			</div>
-
 		</div>
 	</div>
-	
 </div>
+
+
+<!-- GRID ITEM TEMPLATE  -->
+<!-- 	<div class="grid-item card grey lighten-3" >
+		<div class="top">
+			<div class="image close inline-block"></div>
+			<div class="text inline-block red-text">Not Compliance</div>
+		</div>
+		<div class="middle-image">
+			<div class="image red-image"></div>
+		</div>
+		<div class="middle-text">
+			General Occupant and First Response
+			<p class="blue-text"></p>
+		</div>
+				
+		<div class="buttons">
+			<button class="btn red lighten-1 waves-effect waves-light">Send Invitation</button>
+		</div>
+	</div>
+				
+	<div class="grid-item card grey lighten-3" >
+		<div class="top">
+			<div class="image check inline-block"></div>
+			<div class="text inline-block green-text">Compliance</div>
+		</div>
+		<div class="middle-image">
+			<div class="image green-image"></div>
+		</div>
+		<div class="middle-text">
+			Bomb Threat Training
+			<p class="blue-text">
+				Valid until 24/08/2018
+			</p>
+		</div>
+				
+		<div class="buttons">
+			<button class="btn blue waves-effect waves-light">Download Certificate</button>
+			<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
+		</div>
+	</div>
+				
+	<div class="grid-item card grey lighten-3" >
+		<div class="top">
+			<div class="image check inline-block"></div>
+			<div class="text inline-block green-text">Compliance</div>
+		</div>
+		<div class="middle-image">
+			<div class="image yellow-image"></div>
+		</div>
+		<div class="middle-text">
+			Emergency Control Organization
+			<p class="blue-text">
+				Valid until 24/08/2018
+			</p>
+		</div>
+				
+		<div class="buttons">
+			<button class="btn blue waves-effect waves-light">Download Certificate</button>
+			<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
+		</div>
+	</div> -->
+
+<!-- END OF GRID ITEM TEMPLATE  -->
 
 <div id="modalRemoveWarden" class="modal">
 	<div class="modal-content center" *ngIf="showModalRemoveWardenLoader">
@@ -181,7 +203,7 @@
 		<h6 class="red-text">{{errorMessageRemoveWarden}}</h6>
 	</div>
 	<div class="modal-footer" *ngIf="!showModalRemoveWardenLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<button class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</button>
 		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="yesRemoveWarden()">Yes</a>
 	</div>
 </div>
@@ -203,7 +225,7 @@
 		</div>
 	</div>
 	
-	<form #f="ngForm" (submit)="modalPeepFormSubmit(f, $event)" [hidden]="showModalLoader">
+	<form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
 
 	<div class="modal-content">
 		<h5>Mobility Impaired Information</h5>
@@ -213,16 +235,17 @@
 					<span style=" font-size: 16px;">Mobility Impaired Status</span>
 					<select ngModel name="is_permanent">
 						<option value="0" selected="selected">Temporary</option>
-						<option value="1">Permanent</option>
+						<option value="1" >Permanent</option>
 					</select>
 				</div>
 			</div>
 			<div class="col s12 l6 m6">
-				<div class="input-field" >
+				<div class="input-field">
 					<span style=" font-size: 16px;">Mobility Impaired Upto</span>
 					<ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
-					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required>
+					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required >
 				</div>
+
 			</div>
 			<div class="col s12 m12 l12">
 				<h6>Assistant Type</h6>
@@ -240,8 +263,8 @@
 
 		<div class="row button-container">
 			<div class="col s12 m12 l12">
-				<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
-				<button class="btn orange waves-light waves-effect" [disabled]="f.invalid">Submit</button>
+				<button class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</button>
+				<button class="btn orange waves-light waves-effect" [disabled]="formMobility.invalid">Submit</button>
 			</div>
 		</div>
 	</div>
@@ -249,3 +272,233 @@
 
 	</form>
 </div>
+
+<div id="modalUpdateProfile" class="modal">
+
+	<div class="modal-content center" [hidden]="!showModalProdfileLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<form #formProfile="ngForm" (submit)="submitUpdateProfile(formProfile)" [hidden]="showModalProdfileLoader">
+
+		<div class="modal-content">
+			<h5>Update {{viewData.user.first_name+' '+viewData.user.last_name}}'s Profile</h5>
+			<div class="row">
+				<div class="col s12">
+					<label for="firstName">First Name</label>
+					<input type="text" id="firstName" name="first_name" ngModel  required>
+				</div>
+				<div class="col s12">
+					<label for="lastName">Last Name</label>
+					<input type="text" id="lastName" name="last_name" ngModel  required>
+				</div>
+				<div class="col s12">
+					<label for="contactInformation">Contact Information</label>
+					<input type="text" id="contactInformation" ngModel name="mobile_number" >
+				</div>
+
+				<input type="text" name="user_id" ngModel required style="visibility: hidden;">
+				<!-- <div class="col s12">
+					<label for="userEmail">Email</label>
+					<input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
+				</div> -->
+			</div>
+
+			<div class="row button-container">
+				<div class="col s12 m12 l12 right-align">
+					<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+					<button type="submit" class="btn orange waves-light waves-effect" [disabled]="formProfile.invalid">Submit</button>
+				</div>
+			</div>
+		</div>
+
+
+	</form>
+</div>
+
+
+<div id="modalCredentials" class="modal">
+
+	<div class="modal-content center" [hidden]="!showModalCredentialsLoader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<form #formCredential="ngForm" (submit)="submitCredential(formCredential)" [hidden]="showModalCredentialsLoader">
+
+		<div class="modal-content">
+			<h5>Update {{viewData.user.first_name+' '+viewData.user.last_name}}'s Credential</h5>
+			<div class="row">
+				<div class="col s12">
+					<label for="userEmail">Email</label>
+					<input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
+				</div>
+
+				<div class="col s12">
+
+					<label for="inpPassword">Password
+						<small *ngIf=" inputPassword.value != inputConfirmPassword.value "> *Mismatched </small>
+					</label>
+
+					<input id="inpPassword" type="password" name="password" ngModel #inputPassword="ngModel"
+					[ngClass]="{
+						'invalid' : !inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+					}"
+					required minlength="6" maxlength="150"  >
+					
+				</div>
+
+				<div class="col s12">
+					
+					<label for="confirmPassword"> Confirm password</label>
+
+					<input id="confirmPassword" type="password" ngModel name="confirm_password"
+						ngModel #inputConfirmPassword="ngModel"
+						[ngClass]="{
+							'invalid' : !inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+						}"
+						required minlength="6" maxlength="150" >
+					
+				</div>
+
+				<input type="text" name="user_id" ngModel required style="visibility: hidden;">
+				
+			</div>
+
+			<div class="row button-container">
+				<div class="col s12 m12 l12 right-align">
+					<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+					<button type="submit" class="btn orange waves-light waves-effect" 
+					[disabled]="
+					formCredential.invalid ||
+					(!inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)) || 
+					(!inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value))">Submit</button>
+				</div>
+			</div>
+		</div>
+
+
+	</form>
+</div>
+
+<div id="modalAssignLocations" class="modal">
+	<div class="modal-content">
+		<h5>Assign {{viewData.user.first_name+' '+viewData.user.last_name}} To Locations</h5>
+		
+		<form #formAssignLocation (submit)="submitAssignLocation(formAssignLocation)">
+
+		<table class="table striped">
+			<thead>
+				<tr>
+					<th>Location</th>
+					<th style="width: 30%;">Role</th>
+					<th style="width: 20%;">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let loc of viewData.locations; let i = index;">
+					<td>
+						<span *ngIf="loc.parent_name !== null">{{loc.parent_name}},</span> {{loc.name}}
+						<input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
+					</td>
+					<td>
+						<select name="role_id[{{i}}]" ngModel style="display: block;">
+							<option value="1" [attr.selected]="loc.em_roles_id == null && loc.location_role_id == 1">Building Manager</option>
+							<option value="2" [attr.selected]="loc.em_roles_id == null && loc.location_role_id == 2">Tenancy Responsible Personnel</option>
+							<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [attr.selected]="loc.em_roles_id != null && loc.em_roles_id == eco.em_roles_id ">
+								{{eco.role_name}}
+							</option>
+						</select>
+						<!-- <span *ngIf="loc.em_roles_id !== null && loc.em_roles_id > 0">
+							{{getRoleName(loc.em_roles_id)}}
+						</span>
+						<span *ngIf="loc.em_roles_id == null ">
+							{{getRoleName(loc.location_role_id)}}
+						</span> -->
+					</td>
+					<td>
+						<a href="javascipt:void(0)" class="red-text">Delete</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<div class="button-container right-align">
+			<a class="btn grey lighten-1 waves-effect waves-light modal-close" > Cancel </a>
+			<button type="submit" class="btn orange waves-effect waves-light"  > Save </button>
+		</div>
+
+		</form>
+		
+	</div>
+</div>
+
+<!-- <div id="modalLocations" class="modal">
+	<div class="modal-content">
+		
+		
+		<div class="search-container" >
+			<div class="input-container">
+				<input type="text" placeholder="Search Level" #modalSearchLocation  >
+			</div>
+			<div class="icon-container">
+				<img src="assets/images/locations/search_icon.png" alt="">
+			</div>
+		</div>
+		
+		<form #formLoc="ngForm" (submit)="submitSelectLocationModal(formLoc, $event)">
+
+		<div class="list-region" style="overflow-y: auto; height: 340px;">
+			<p *ngIf="locations.length == 0">No location found</p>
+			<ul *ngIf="locations.length > 0">
+				<ng-template #recursiveList let-locations>
+					<li *ngFor="let location of locations" class="list-division" [id]="location.location_id" [ngClass]="{ 'show-drop-down' : (location.showDropDown) ? location.showDropDown : false }">
+						<div class="name-radio-plus">
+							<div class="input">
+								<input ngModel required type="radio" name="selectLocation" [value]="location.location_id" [id]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }" >
+								<label [for]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }"></label>
+								<div class="plus-minus">
+									<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" [checked]="(location.showDropDown) ? location.showDropDown : false" />
+									<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
+									<span *ngIf="location.name.length > 0">{{location.name}}</span>
+									<span *ngIf="location.name.length == 0">{{location.formatted_address}}</span>
+								</div>
+							</div>
+						</div>
+						<ul *ngIf="location.sublocations.length > 0">
+					        <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: location.sublocations }"></ng-container>
+						</ul>
+					</li>
+				</ng-template>
+				<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: locations }"></ng-container>
+    		</ul>
+		</div>
+
+		<div class="button-container center">
+			<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
+			<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLoc.valid" *ngIf="locations.length > 0"> Submit </button>
+		</div>
+
+		</form>
+
+	</div>
+</div> -->

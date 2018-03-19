@@ -1,12 +1,15 @@
 import { LocationsService } from './../../services/locations';
 import { AuthService } from './../../services/auth.service';
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { ViewChild } from '@angular/core';
+import { Observable } from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 declare var $: any;
 @Component({
@@ -17,6 +20,7 @@ declare var $: any;
 export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 	@ViewChild('addMobilityImpairedForm') addMobilityImpairedForm: NgForm;
     @ViewChild('invitefrm') emailInviteForm: NgForm;
+    @ViewChild('modalSearchLocation') modalSearchLocation: ElementRef;
     public addedUsers = [];
     public userProperty = {
         first_name : '',
@@ -38,15 +42,20 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     public ecoRoles;
     public ecoDisplayRoles = [];
     public locations = [];
+    public locationsCopy = [];
     public userData = {};
     public selectedUser = {};
 
     public bulkEmailInvite;
     public CSVFileToUpload;
+
+    searchModalLocationSubs;
+
     constructor(
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
-        private locationService : LocationsService
+        private locationService : LocationsService,
+        private router : Router
         ) {
 
         this.userData = this.authService.getUserData();
@@ -56,7 +65,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         this.accountRoles = [
         {
             role_id: 2,
-            role_name: 'Tenant'
+            role_name: 'Tenancy Responsible Personnel'
         }
         ];
         this.userRole = this.authService.getHighestRankRole();
@@ -82,6 +91,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         );
         this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
             this.locations = response.locations;
+
+            this.locationsCopy = JSON.parse( JSON.stringify(this.locations) );
         });
     }
 
@@ -93,6 +104,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 		$('select').material_select();
 
         this.dragDropFileEvent();
+        this.onKeyUpSearchModalLocationEvent();
 	}
 
 	addMoreRow(){
@@ -152,7 +164,26 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         this.addedUsers = newList;
     }
 
+    filterLocationsToDisplayByUserRole(user, data){
+        let resp = [],
+            copy = JSON.parse(JSON.stringify(data));
+        if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
+            let temp = [];
+            for(let i in data){
+                let innerTemp = JSON.parse(JSON.stringify(data[i]));
+                innerTemp.sublocations = [];
+                temp.push(innerTemp);
+            }
+            resp = temp;
+        }else{
+            resp = copy;
+        }
+
+        return resp;
+    }
+
     showLocationSelection(user){
+        this.locations = this.filterLocationsToDisplayByUserRole(user, this.locations);
         $('#modalLocations').modal('open');
         this.selectedUser = user;
     }
@@ -234,6 +265,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
                 this.selectedUser['location_id'] = selectedLocationId;
+            }else if( parseInt(this.selectedUser['account_location_id']) > 0 ){
+                this.selectedUser['location_id'] = this.selectedUser['account_location_id'];
             }
 
             this.selectedUser['location_name'] = '';
@@ -250,6 +283,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     cancelLocationModal(){
         $('#modalLocations').modal('close');
         this.selectedUser = {};
+        this.modalSearchLocation.nativeElement.value = "";
+        this.locations = this.locationsCopy;
     }
 
     public submitPEEP() {
@@ -263,14 +298,14 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         this.dataProvider.addPEEP(strPEEP).subscribe((data) => {
             this.addedUsers = data;
             if(Object.keys(this.addedUsers).length == 0){
-                this.addMoreRow();
+                // this.addMoreRow();
+                
+                this.router.navigate(["/teams/mobility-impaired"]);
             }
         }, (error: HttpErrorResponse) => {
             console.log(error);
         });
     }
-
-	ngOnDestroy(){}
 
     showModalCSV(){
         $('#modaCsvUpload').modal('open');
@@ -350,5 +385,65 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
                 uploadContainer.find('input[type="file"]')[0].files = e.originalEvent.dataTransfer.files;
             });
         }
+    }
+
+    onKeyUpSearchModalLocationEvent(){
+        this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
+            .debounceTime(500)
+            .subscribe((event) => {
+            
+            let value = event['target'].value,
+                result = [];
+
+            let findRelatedName = (data, mainParent?) => {
+                for(let i in data){
+                    if(data[i]['sublocations'].length > 0){
+                        if(data[i]['parent_id'] == -1){
+                            findRelatedName(data[i]['sublocations'], data[i]);
+                        }else{
+                            if(mainParent){
+                                findRelatedName(data[i]['sublocations'], mainParent);
+                            }else{
+                                findRelatedName(data[i]['sublocations']);
+                            }
+                        }
+                    }
+
+                    if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+                        let isIn = false,
+                            compareId = (mainParent) ? mainParent['location_id'] : data[i]['location_id'];
+                        for(let x in result){
+                            if(result[x]['location_id'] == compareId){
+                                isIn = true;
+                            }
+                        }
+                        if(mainParent && !isIn){
+                            result.push(mainParent);
+                        }else if(!isIn){
+                            result.push(data[i]);
+                        }
+                    }
+
+                    data[i]['showDropDown'] = true;
+                }
+
+                return result;
+            };
+
+            if(value.length > 0){
+                result = [];
+                findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
+                this.locations = result;
+            }else{
+                this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
+            }
+
+            this.locations = this.filterLocationsToDisplayByUserRole(this.selectedUser, this.locations);
+
+        });
+    }
+
+    ngOnDestroy(){
+        this.searchModalLocationSubs.unsubscribe();
     }
 }

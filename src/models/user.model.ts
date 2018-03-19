@@ -123,7 +123,7 @@ export class User extends BaseClass {
             }
             const sql_user = `SELECT users.*, token.verified, token.expiration_date, token.action FROM users
                               INNER JOIN token ON users.user_id = token.id `
-                              + whereClause + ` AND password = ? AND token.action = 'verify' 
+                              + whereClause + ` AND password = ? AND token.action = 'verify'
                               AND users.token <> '' AND users.token IS NOT NULL ORDER BY token.token_id DESC`;
             const newPasswd = md5('Ideation' + passwd + 'Max');
             const credential = [username, newPasswd];
@@ -294,6 +294,24 @@ export class User extends BaseClass {
             const param = [ ];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
+    public getAdmins(limit?){
+        return new Promise((resolve, reject) => {
+            let sql_load = "SELECT * FROM users WHERE evac_role = 'admin' AND archived = 0";
+            if(limit){
+                sql_load += " LIMIT "+limit;
+            }
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
                 if (error) {
                     return console.log(error);
                 }

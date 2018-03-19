@@ -11,10 +11,12 @@ import { LocationsService } from '../../services/locations';
 import { DonutService } from '../../services/donut';
 import { Countries } from '../../models/country.model';
 import { Observable } from 'rxjs/Rx';
+import { MessageService } from '../../services/messaging.service';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
 declare var $: any;
+declare var Materialize: any;
 @Component({
     selector: 'app-view-locations-single',
     templateUrl: './view-single.component.html',
@@ -29,6 +31,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     locationID = 0;
     isHome = false;
     locationData = {
+        location_id : 0,
         parent_id: 0 ,
         name : '',
         frp : [],
@@ -38,7 +41,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         country : '',
         google_photo_url: '',
         formatted_address: '',
-        sublocations : []
+        sublocations : [],
+        admin_verified : 0
     };
     private sub;
     private loc_sub;
@@ -52,9 +56,14 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     public sameSublocationCopy = [];
     public inpSublocationNameTwoWayData = "";
     public selectedSubLocationFromModal = {};
+    public locationToApplyActionTo;
     @ViewChild('inputSublocation') public inputSublocation: ElementRef;
 
     mutationOversable;
+
+    showModalEditLoader = false;
+    toEditLocations = [];
+    toEditLocationsBackup = [];
 
     constructor(
         private auth: AuthService,
@@ -64,7 +73,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         private route: ActivatedRoute,
         private router: Router,
         private donut: DonutService,
-        private elemRef: ElementRef
+        private elemRef: ElementRef,
+        private messageService: MessageService
         ){
         this.userData = this.auth.getUserData();
 
@@ -82,11 +92,66 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         });
 
         this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
+
+        this.messageService.getMessage().subscribe((msg) => {
+          console.log(msg);
+          if (msg.id === 'warden-benchmarking-calculator') {
+            $('#modalWardenBenchmarkCalc').modal('close');
+            this.preloaderService.show();
+                this.loc_sub = this.locationService.getById(this.locationID, (response) => {
+                    setTimeout(() => {
+                        this.preloaderService.hide();
+                    }, 250);
+                    this.locationData.name = response.location.name;
+                    this.locationData.formatted_address = response.location.formatted_address;
+                    this.locationData.sublocations = response.sublocations;
+                    this.locationData.google_photo_url = response.location.google_photo_url || undefined;
+                    this.locationData.admin_verified = response.location.admin_verified;
+                    if (response.location.parent_id === -1) {
+                        this.isHome = true;
+                    }
+                    this.locationData.parent_id =  this.encryptDecrypt.encrypt(response.location.parent_id).toString();
+
+                    for (let i = 0; i < this.locationData['sublocations'].length; i++) {
+                        this.locationData['sublocations'][i]['location_id']
+                        = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+                    }
+                });
+          }
+        });
     }
 
     ngOnChanges() {
     }
 
+    getLocationData(callBack){
+        this.loc_sub = this.locationService.getById(this.locationID, (response) => {
+            if ('location' in response === false) {
+                // this.router.navigate(['/location', 'list']);
+            }
+
+            this.locationData.name = response.location.name;
+            this.locationData.location_id = response.locationID;
+            this.locationData.formatted_address = response.location.formatted_address;
+            this.locationData.sublocations = response.sublocations;
+            this.locationData.google_photo_url = response.location.google_photo_url || undefined;
+            this.locationData.admin_verified = response.location.admin_verified;
+            if (response.location.parent_id === -1) {
+                this.isHome = true;
+            }
+            this.locationData.parent_id =  this.encryptDecrypt.encrypt(response.location.parent_id);
+
+            for (let i = 0; i < this.locationData['sublocations'].length; i++) {
+                this.locationData['sublocations'][i]['location_id']
+                = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id);
+            }
+
+            this.toEditLocations = JSON.parse(JSON.stringify(this.locationData));
+            this.toEditLocationsBackup = JSON.parse(JSON.stringify(this.locationData));
+
+            callBack();
+        });
+    }
 
     ngOnInit() {
         $('select').material_select();
@@ -99,27 +164,10 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 this.router.navigate(['/location', 'list']);
             } else {
                 this.preloaderService.show();
-                this.loc_sub = this.locationService.getById(this.locationID, (response) => {
-                    if ('location' in response === false) {
-                        // this.router.navigate(['/location', 'list']);
-                    }
-
+                this.getLocationData(() => {
                     setTimeout(() => {
                         this.preloaderService.hide();
                     }, 250);
-                    this.locationData.name = response.location.name;
-                    this.locationData.formatted_address = response.location.formatted_address;
-                    this.locationData.sublocations = response.sublocations;
-                    this.locationData.google_photo_url = response.location.google_photo_url || undefined;
-                    if (response.location.parent_id === -1) {
-                        this.isHome = true;
-                    }
-                    this.locationData.parent_id =  this.encryptDecrypt.encrypt(response.location.parent_id).toString();
-
-                    for (let i = 0; i < this.locationData['sublocations'].length; i++) {
-                        this.locationData['sublocations'][i]['location_id']
-                        = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
-                    }
                 });
             }
 
@@ -132,6 +180,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         });
 
 		// DONUT update
+        // Donut Service
 		// this.donut.updateDonutChart('#specificChart', 30, true);
 	}
 
@@ -146,7 +195,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                         this.locationData.sublocations = response.sublocations;
                         for (let i = 0; i < this.locationData['sublocations'].length; i++) {
                             this.locationData['sublocations'][i]['location_id']
-                            = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+                            = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id);
                         }
                         this.inpSublocationNameTwoWayData = '';
                         this.showLoaderModalSublocation = false;
@@ -169,7 +218,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
 
                         response.data['children'] = [];
 
-                        response.data['location_id'] = this.encryptDecrypt.encrypt(response.data['location_id']).toString();
+                        response.data['location_id'] = this.encryptDecrypt.encrypt(response.data['location_id']);
                         this.locationData['sublocations'].push(response.data);
                         $('#modalAddSublocation').modal('close');
                     },
@@ -239,6 +288,13 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 let locIdEnc = val.replace('viewsub-', '');
 
                 this.router.navigate(["/location/view-sublocation/", locIdEnc]);
+            }else if(val.indexOf('addtenants-') > -1){
+                let locIdEnc = val.replace('addtenants-', '');
+                this.router.navigate(["/teams/add-user/tenant", locIdEnc]);
+            }else if(val.indexOf('benchmark-') > -1) {
+                this.locationToApplyActionTo = this.encryptDecrypt.decrypt(val.replace('benchmark-', ''));
+                $('#modalWardenBenchmarkCalc').modal('open');
+                console.log(' Benchmark location id ' + this.locationToApplyActionTo);
             }
         });
 
@@ -290,8 +346,62 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         this.selectedSubLocationFromModal = sub;
     }
 
+    cancelEditLocation(formEditLocation){
+        formEditLocation.reset();
+    }
+
+    clickEditDetails(){
+        this.toEditLocations = JSON.parse(JSON.stringify(this.toEditLocationsBackup));
+        $('#modalEditDetails').modal('open');
+        setTimeout(() => {
+            Materialize.updateTextFields();
+        }, 200);
+    }
+
+    submitEditLocation(formEditLocation:NgForm){
+        if(formEditLocation.valid){
+            let formData = {
+                location : {
+                    location_id : this.locationID,
+                    name : formEditLocation.controls.name.value
+                },
+                sublocations : []
+            };
+
+            for(let i in this.toEditLocations['sublocations']){
+                let data = {
+                    name : this.toEditLocations['sublocations'][i]['name'], location_id : 0
+                };
+                if('location_id' in this.toEditLocations['sublocations'][i]){
+                    data.location_id = this.encryptDecrypt.decrypt( this.toEditLocations['sublocations'][i]['location_id'] );
+                }
+
+                formData.sublocations.push(data);
+            }
+
+            this.showModalEditLoader = true;
+
+            this.locationService.updateLocation(formData).subscribe((response) => {
+                this.getLocationData(() => {
+                    this.showModalEditLoader = false;
+                    $('#modalEditDetails').modal('close');
+                });
+            });
+        }
+    }
+
+    addSublocation(){
+        let num = this.toEditLocations['sublocations'].length + 1;
+        this.toEditLocations['sublocations'].push({
+            name : 'Level '+ num
+        });
+        setTimeout(() => {
+            Materialize.updateTextFields();
+        }, 200);
+    }
+
 	ngOnDestroy() {
-        
+
         if(typeof this.sub == 'object' && this.sub['unsubsribe']){
             this.sub.unsubsribe();
         }
@@ -299,8 +409,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         if(typeof this.loc_sub == 'object' && this.loc_sub['unsubsribe']){
             this.loc_sub.unsubsribe();
         }
-        
-       
+
+
        this.mutationOversable.disconnect();
     }
 

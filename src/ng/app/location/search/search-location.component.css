@@ -544,7 +544,8 @@
 }
 
 #modalAddSublocation .button-container .btn,
-#modalArchive .button-container .btn{
+#modalArchive .button-container .btn,
+#modalCreateNewLocation .btn{
   font-size: 14px !important;
   height: 40px !important;
   line-height: 40px !important;
@@ -609,11 +610,16 @@
     margin: 40px 0px;
 }
 
+.modal{
+    max-height: 100%;
+}
+
 @media only screen
 and (max-width: 768px){
     
     #modalAddSublocation,
-    #modalArchive{
+    #modalArchive,
+    #modalCreateNewLocation{
       width: 60% !important;
     }
 
@@ -627,7 +633,8 @@ and (max-width: 768px){
 @media only screen
 and (max-width: 500px){
     #modalAddSublocation,
-    #modalArchive{
+    #modalArchive,
+    #modalCreateNewLocation{
         width: 95% !important;
     }
 }

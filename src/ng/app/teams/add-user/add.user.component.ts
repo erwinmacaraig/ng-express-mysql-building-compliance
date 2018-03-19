@@ -1,26 +1,30 @@
 import { LocationsService } from './../../services/locations';
 import { AuthService } from './../../services/auth.service';
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
-import { ViewChild } from '@angular/core';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { Observable } from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 declare var $: any;
 @Component({
-  selector: 'app-add-user',
-  templateUrl: './add.user.component.html',
-  styleUrls: ['./add.user.component.css'],
-  providers : [DashboardPreloaderService, UserService]
+    selector: 'app-add-user',
+    templateUrl: './add.user.component.html',
+    styleUrls: ['./add.user.component.css'],
+    providers : [DashboardPreloaderService, UserService, EncryptDecryptService]
 })
 export class AddUserComponent implements OnInit, OnDestroy {
 	@ViewChild('f') addWardenForm: NgForm;
     @ViewChild('invitefrm') emailInviteForm: NgForm;
-	public userProperty = {
+    @ViewChild('modalSearchLocation') modalSearchLocation: ElementRef;
+    public userProperty = {
         first_name : '',
         last_name : '',
         email : '',
@@ -42,75 +46,153 @@ export class AddUserComponent implements OnInit, OnDestroy {
     public locationsCopy = [];
     public userData = {};
     public selectedUser = {};
-	public addedUsers = [];
+    public addedUsers = [];
     showLoadingButton = false;
 
     public bulkEmailInvite;
     public CSVFileToUpload;
 
+    public routeSub;
+    private paramRole = '';
+    private paramLocIdEnc = '';
+    private paramLocId = '';
 
+    searchModalLocationSubs;
 
-
-	constructor(
+    constructor(
         private authService: AuthService, 
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService,
         private dashboardPreloaderService : DashboardPreloaderService,
-        private userService : UserService
+        private userService : UserService,
+        private router : Router,
+        private actRoute : ActivatedRoute,
+        private encdecrypt : EncryptDecryptService
         ) {
 
         this.userData = this.authService.getUserData();
+
+        this.routeSub = this.actRoute.params.subscribe((params) => {
+            if('location_id' in params){
+                this.paramLocIdEnc = params.location_id;
+                this.paramLocId = this.encdecrypt.decrypt(params.location_id);
+                this.paramRole = params.role;
+            }
+        });
         
     }
 
-	ngOnInit(){
-		this.accountRoles = [
+    ngOnInit(){
+        this.accountRoles = [
         {
             role_id: 2,
-            role_name: 'Tenant'
+            role_name: 'Tenancy Responsible Personnel',
+            selected : (this.paramRole == 'tenant') ? true : false
         }
         ];
-        console.log('Highest rank role is ' + this.authService.getHighestRankRole());
+
         this.userRole = this.authService.getHighestRankRole();
         if (this.userRole == 1) {
             this.accountRoles.push({
                 role_id: 1,
-                role_name: 'Building Manager'
+                role_name: 'Building Manager',
+                selected : (this.paramRole == 'building manager') ? true : false
             });
         }
-        console.log(this.accountRoles);
 
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
-                this.ecoRoles = roles;
-                for(let i in roles){
-                    this.accountRoles.push({
-                        role_id : roles[i]['em_roles_id'],
-                        role_name : roles[i]['role_name']
-                    });
-                }
-                console.log(this.ecoRoles);
-            }, (err) => {
-                console.log('Server Error. Unable to get the list');
+            this.ecoRoles = roles;
+            for(let i in roles){
+                this.accountRoles.push({
+                    role_id : roles[i]['em_roles_id'],
+                    role_name : roles[i]['role_name']
+                });
             }
+
+            if(this.paramRole.length > 0){
+                let newAccRole = [];
+                for(let i in this.accountRoles){
+                    if(this.accountRoles[i]['selected']){
+                        newAccRole.push(this.accountRoles[i]);
+                    }
+                }
+
+                this.accountRoles = newAccRole;
+            }
+        }, (err) => {
+            console.log('Server Error. Unable to get the list');
+        }
         );
 
         this.dashboardPreloaderService.show();
         this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
             this.locations = response.locations;
+            if(this.paramRole.length > 0){
+                this.locations = this.filterLocationForSelectedValue();
+            }
+
             this.locationsCopy = JSON.parse( JSON.stringify(this.locations) );
             this.dashboardPreloaderService.hide();
-        });
-	}
 
-	addMoreRow(){
+            this.addMoreRow();
+        });
+    }
+
+    addMoreRow(){
 		//a copy
 		let prop = JSON.parse(JSON.stringify(this.userProperty));
-		this.addedUsers.push( prop );
+
+        if(this.paramRole.length > 0){
+            for(let i in this.accountRoles){
+                if(this.accountRoles[i]['selected']){
+                    prop.account_role_id = this.accountRoles[i]['role_id']
+                }
+            }
+        }
+
+        this.addedUsers.push( prop );
 
         setTimeout(() => {
-            $('form table tbody tr:last-child').find('input.first-name').focus();
+            $("form table tbody tr:last-child").find('input.first-name').focus();
         },300);
+    }
+
+    filterLocationForSelectedValue(){
+        let selected = {};
+        let loopAddKey = (data, mainParent?) => {
+            for(let i in data){
+                if(typeof mainParent === 'undefined'){
+                    mainParent = JSON.parse(JSON.stringify(data[i]));
+                }else if(mainParent.location_id != data[i]['location_id'] && data[i]['parent_id'] == -1){
+                    mainParent = JSON.parse(JSON.stringify(data[i]));
+                }
+
+                if(this.paramRole.length > 0){
+                    if(this.paramLocId == data[i]['location_id']){
+                        if('location_id' in mainParent){
+                            selected = mainParent;
+                        }else{
+                            selected = data[i];
+                        }
+                    }
+                }
+
+                if(mainParent){
+                    data[i]['main_parent'] = (mainParent.location_id != data[i]['location_id']) ? mainParent : {};
+                }else{
+                    data[i]['main_parent'] = {};
+                }
+
+                if(data[i]['sublocations'].length > 0){
+                    loopAddKey(data[i]['sublocations'], mainParent);
+                }
+            }
+        };
+
+        loopAddKey(this.locations);
+
+        return [selected];
     }
 
     onChangeDropDown(event){
@@ -131,18 +213,27 @@ export class AddUserComponent implements OnInit, OnDestroy {
         this.addedUsers = newList;
     }
 
-    showLocationSelection(user){
+    filterLocationsToDisplayByUserRole(user, data){
+        let resp = [],
+            copy = JSON.parse(JSON.stringify(data));
         if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
             let temp = [];
-            for(let i in this.locations){
-                let innerTemp = JSON.parse(JSON.stringify(this.locations[i]));
+            for(let i in data){
+                let innerTemp = JSON.parse(JSON.stringify(data[i]));
                 innerTemp.sublocations = [];
                 temp.push(innerTemp);
             }
-            this.locations = temp;
+            resp = temp;
         }else{
-            this.locations = this.locationsCopy;
+            resp = copy;
         }
+
+        return resp;
+    }
+
+    showLocationSelection(user){
+
+        this.locations = this.filterLocationsToDisplayByUserRole(user, this.locations);
 
         $('#modalLocations').modal('open');
         this.selectedUser = user;
@@ -196,9 +287,9 @@ export class AddUserComponent implements OnInit, OnDestroy {
         event.preventDefault();
         if(form.valid){
             let selectedLocationId = form.controls.selectLocation.value,
-                selected = this.searchChildLocation(this.locations, selectedLocationId),
-                parent = this.findParent(this.locations, selected['parent_id']),
-                lastParent = this.getLastParent(selectedLocationId);
+            selected = this.searchChildLocation(this.locations, selectedLocationId),
+            parent = this.findParent(this.locations, selected['parent_id']),
+            lastParent = this.getLastParent(selectedLocationId);
 
             if(typeof parent == 'undefined'){
                 parent = selected;
@@ -206,21 +297,21 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
             switch (parseInt(this.selectedUser['account_role_id']) ) {
                 case 1:
-                    this.selectedUser['account_location_id'] = lastParent.location_id;
-                    break;
+                this.selectedUser['account_location_id'] = lastParent.location_id;
+                break;
                 
                 case 2:
-                    if(parent.parent_id == -1){
-                        this.selectedUser['account_location_id'] = selectedLocationId;
-                    }else{
-                        this.selectedUser['account_location_id'] = parent.location_id;
-                    }
-                    
-                    break;
+                if(parent.parent_id == -1){
+                    this.selectedUser['account_location_id'] = selectedLocationId;
+                }else{
+                    this.selectedUser['account_location_id'] = parent.location_id;
+                }
+
+                break;
 
                 default:
-                    this.selectedUser['account_location_id'] = selectedLocationId;
-                    break;
+                this.selectedUser['account_location_id'] = selectedLocationId;
+                break;
             }
 
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
@@ -241,20 +332,22 @@ export class AddUserComponent implements OnInit, OnDestroy {
     cancelLocationModal(){
         $('#modalLocations').modal('close');
         this.selectedUser = {};
+        this.modalSearchLocation.nativeElement.value = "";
+        this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
     }
 
-	ngAfterViewInit(){
-		$('.modal').modal({
-			dismissible: false
-		});
+    ngAfterViewInit(){
+        $('.modal').modal({
+            dismissible: false
+        });
 
-		$('select').material_select();
+        $('select').material_select();
 
-        this.addMoreRow();
+        
         this.dragDropFileEvent();
-	}
 
-	ngOnDestroy(){}
+        this.onKeyUpSearchModalLocationEvent();
+    }
 
     submitUsers(f){
         if(this.addedUsers.length > 0 && f.valid){
@@ -262,8 +355,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
             this.userService.createBulkUsers(this.addedUsers, (response) => {
                 this.addedUsers = response.data;
                 if(this.addedUsers.length == 0){
-                    let prop = JSON.parse(JSON.stringify(this.userProperty));
-                    this.addedUsers.push( prop );
+                    // let prop = JSON.parse(JSON.stringify(this.userProperty));
+                    // this.addedUsers.push( prop );
+                    
+                    this.router.navigate(["/teams/all-users"]);
                 }
                 this.showLoadingButton = false;
             });
@@ -289,27 +384,27 @@ export class AddUserComponent implements OnInit, OnDestroy {
         const email_regex =
         /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
         for (let x = 0; x < this.bulkEmailInvite.length; x++) {
-          if (email_regex.test(this.bulkEmailInvite[x].trim())) {
-            validEmails.push(this.bulkEmailInvite[x].trim());
-          }
+            if (email_regex.test(this.bulkEmailInvite[x].trim())) {
+                validEmails.push(this.bulkEmailInvite[x].trim());
+            }
         }
         this.dataProvider.sendWardenInvitation(validEmails).subscribe((data) => {
-          console.log(data);
-          $('#modalInvite').modal('close');
+            console.log(data);
+            $('#modalInvite').modal('close');
         }, (e) => {
-          console.log(e);
+            console.log(e);
         }
         );
         this.emailInviteForm.controls.inviteTxtArea.reset();
     }
 
-    public fileChangeEvent(fileInput: any, btnSelectCSV) {
+    fileChangeEvent(fileInput: any, btnSelectCSV) {
         this.CSVFileToUpload = <Array<File>> fileInput.target.files;
         console.log(this.CSVFileToUpload);
         btnSelectCSV.innerHTML = this.CSVFileToUpload[0]['name'];
     };
 
-    public onUploadCSVAction() {
+    onUploadCSVAction() {
         let override = $('#override')[0].checked;
         console.log(override);
         let formData: any = new FormData();
@@ -317,21 +412,21 @@ export class AddUserComponent implements OnInit, OnDestroy {
         formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
         formData.append('override',  override);
         this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
-          console.log(data);
+            console.log(data);
         }, (e) => {
-          console.log(e);
+            console.log(e);
         });
     }
 
     isAdvancedUpload() {
-      var div = document.createElement('div');
-      return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
+        var div = document.createElement('div');
+        return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
     };
 
     dragDropFileEvent(){
         let modal = $('#modaCsvUpload'),
-            uploadContainer = modal.find('.upload-container'),
-            inputFile = uploadContainer.find('input[name="file"]');
+        uploadContainer = modal.find('.upload-container'),
+        inputFile = uploadContainer.find('input[name="file"]');
 
         if(this.isAdvancedUpload()){
             uploadContainer.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
@@ -349,4 +444,67 @@ export class AddUserComponent implements OnInit, OnDestroy {
             });
         }
     }
+
+    onKeyUpSearchModalLocationEvent(){
+        this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
+            .debounceTime(500)
+            .subscribe((event) => {
+            
+            let value = event['target'].value,
+                result = [];
+
+            let findRelatedName = (data, mainParent?) => {
+                for(let i in data){
+                    if(data[i]['sublocations'].length > 0){
+                        if(data[i]['parent_id'] == -1){
+                            findRelatedName(data[i]['sublocations'], data[i]);
+                        }else{
+                            if(mainParent){
+                                findRelatedName(data[i]['sublocations'], mainParent);
+                            }else{
+                                findRelatedName(data[i]['sublocations']);
+                            }
+                        }
+                    }
+
+                    if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+                        let isIn = false,
+                            compareId = (mainParent) ? mainParent['location_id'] : data[i]['location_id'];
+                        for(let x in result){
+                            if(result[x]['location_id'] == compareId){
+                                isIn = true;
+                            }
+                        }
+                        if(mainParent && !isIn){
+                            result.push(mainParent);
+                        }else if(!isIn){
+                            result.push(data[i]);
+                        }
+                    }
+
+                    data[i]['showDropDown'] = true;
+                }
+
+                return result;
+            };
+
+            if(value.length > 0){
+                result = [];
+                findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
+                this.locations = result;
+            }else{
+                this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
+            }
+
+            this.locations = this.filterLocationsToDisplayByUserRole(this.selectedUser, this.locations);
+
+        });
+    }
+
+    ngOnDestroy(){
+        this.routeSub.unsubscribe();
+        this.searchModalLocationSubs.unsubscribe();
+    }
+
+
 }

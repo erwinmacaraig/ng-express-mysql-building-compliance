@@ -22,6 +22,11 @@ import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.compone
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { NavbarComponent } from './navbar/navbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+
+import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
+import { UserDashboardComponent  } from './dashboard/user/user.component';
+
+
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
@@ -49,6 +54,8 @@ import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
 import { VerificationComponent } from './location/verification/verification.component';
+import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
+import { WardenLocationComponent } from './location/waden/warden.location.component';
 
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
@@ -88,6 +95,15 @@ import { TrainingInviteComponent } from './trainings/training-invite/training.in
 
 import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 
+import { ReportsComponent } from './reports/reports.component';
+import { ReportsLocationsComponent  } from './reports/locations/reports.locations.component';
+import { ReportsLocationsSummaryOfComplianceComponent  } from './reports/summary-of-compliance/summary.of.compliance.component';
+import { ReportsLocationsComplianceComponent } from './reports/location-compliance/location.compliance.component';
+import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
+import { ReportsTeamsComponent } from './reports/teams/teams.component';
+import { ReportsTrainingsComponent } from './reports/trainings/trainings.component';
+
+
 @NgModule({
   declarations: [
     SafeHtmlPipe,
@@ -98,6 +114,10 @@ import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchm
     ChangepasswordComponent,
     NavbarComponent,
     DashboardComponent,
+
+    FrpTrpDashboardComponent,
+    UserDashboardComponent,
+
     WardenInvitationFormComponent,
     SignoutComponent,
     CompanyInformationComponent,
@@ -119,6 +139,8 @@ import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchm
     ViewSingleLocation,
     LocationComponent,
     VerificationComponent,
+    ArchivedLocationListComponent,
+    WardenLocationComponent,
     // ViewSublocationComponent
 
     TeamsComponent,
@@ -153,7 +175,15 @@ import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchm
     MyTrainingsComponent,
     TeamTrainingComponent,
     TrainingInviteComponent,
-    WardenBenchMarkingComponent
+    WardenBenchMarkingComponent,
+
+    ReportsComponent,
+    ReportsLocationsComponent,
+    ReportsLocationsSummaryOfComplianceComponent,
+    ReportsLocationsComplianceComponent,
+    ReportsLocationsStatementComplianceComponent,
+    ReportsTeamsComponent,
+    ReportsTrainingsComponent
   ],
   imports: [
     BrowserModule,
@@ -161,7 +191,8 @@ import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchm
     HttpClientModule,
     AppRoutingModule,
     AgmCoreModule.forRoot({
-      apiKey: 'AIzaSyD4QEsIs8QgjTj0bOIizxUZqIk7zVgFxzk',
+      // apiKey: 'AIzaSyDiE9BDUZGheckC5U_yQqbQlVrEBENs9HA',
+      apiKey : 'AIzaSyD4QEsIs8QgjTj0bOIizxUZqIk7zVgFxzk ',
       libraries: ['places']
     }),
     // todo: move to location module

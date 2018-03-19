@@ -82,7 +82,7 @@ export class Account extends BaseClass {
                         location_account_relation lar
                       INNER JOIN accounts a ON lar.account_id = a.account_id
                       WHERE
-                        lar.location_id  IN (SELECT la.location_id FROM location_account_relation la WHERE la.account_id = ?) 
+                        lar.location_id  IN (SELECT la.location_id FROM location_account_relation la WHERE la.account_id = ?)
                         AND a.archived = 0
                       GROUP BY lar.account_id`;
             const param = [accntId];
@@ -100,7 +100,7 @@ export class Account extends BaseClass {
             });
             connection.end();
         });
-       
+
     }
 
     public searchByAccountName(name: String) {
@@ -152,8 +152,8 @@ export class Account extends BaseClass {
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
             ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "1;8;General Occupant,0;9;Warden",
             ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
-            ('trp_code' in this.dbData) ? this.dbData['trp_code'] : null,
-            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : null,
+            ('trp_code' in this.dbData) ? this.dbData['trp_code'] : '',
+            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : '',
             ('key_contact' in this.dbData) ? this.dbData['key_contact'] : "",
             ('time_zone' in this.dbData) ? this.dbData['time_zone'] : "",
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
@@ -219,8 +219,8 @@ export class Account extends BaseClass {
             ('account_code' in this.dbData) ? this.dbData['account_code'] : null,
             ('default_em_role' in this.dbData) ? this.dbData['default_em_role'] : "1;8;General Occupant,0;9;Warden",
             ('epc_committee_on_hq' in this.dbData) ? this.dbData['epc_committee_on_hq'] : 0,
-            ('trp_code' in this.dbData) ? this.dbData['trp_code'] : null,
-            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : null,
+            ('trp_code' in this.dbData) ? this.dbData['trp_code'] : '',
+            ('account_domain' in this.dbData) ? this.dbData['account_domain'] : '',
             ('key_contact' in this.dbData) ? this.dbData['key_contact'] : "",
             ('time_zone' in this.dbData) ? this.dbData['time_zone'] : ""
           ];
@@ -252,42 +252,49 @@ export class Account extends BaseClass {
         });
     }
 
-    public getLocationsOnAccount(user_id?: number, role_id?: number): Promise<Object[]> {
+    public getLocationsOnAccount(user_id?: number, role_id?: number, archived?): Promise<Object[]> {
         return new Promise((resolve, reject) => {
             let user_filter = '';
+            if(archived == undefined){
+              archived = 0;
+            }
             let role_filter = '';
             if (role_id) {
                 role_filter = `AND LAU.role_id = ${role_id}`;
                 if (role_id === 1) {
                     role_filter = `${role_filter} AND locations.parent_id = -1`;
-                } else if (role_id === 2) {
+                } else if (role_id >= 2) {
                     role_filter = `${role_filter} AND locations.parent_id <> -1`;
                 }
+            } else {
+              role_filter = `${role_filter} AND locations.parent_id <> -1 AND locations.is_building = 0`;
             }
             if (user_id) {
                 user_filter = `AND LAU.user_id = ${user_id}`;
             }
             const sql_get_locations = `SELECT
-            locations.parent_id,
-            locations.name,
-            locations.formatted_address,
-            locations.location_id,
-            locations.google_photo_url
+              locations.parent_id,
+              locations.name,
+              locations.formatted_address,
+              locations.location_id,
+              locations.google_photo_url,
+              locations.admin_verified
             FROM
-            locations
+              locations
             INNER JOIN
-            location_account_user LAU
+              location_account_user LAU
             ON
-            locations.location_id = LAU.location_id
+              locations.location_id = LAU.location_id
             WHERE
-            LAU.account_id = ?
-            AND locations.archived = 0
-            ${user_filter} ${role_filter}
-            GROUP BY locations.location_id
+              locations.archived = ?
+              ${user_filter} ${role_filter}
+            GROUP BY
+              locations.location_id
             ORDER BY
-            locations.location_id;
+              locations.location_id;
             `;
-            const val = [this.ID()];
+            // const val = [this.ID(), archived];
+            const val = [archived];
             const connection = db.createConnection(dbconfig);
 
             connection.query(sql_get_locations, val, (err, results, fields) => {

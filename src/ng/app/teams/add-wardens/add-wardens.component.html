@@ -45,11 +45,11 @@
 							<input type="text" [(ngModel)]="user.last_name" placeholder="Last name" name="last_name{{i}}" required>
 						</td>
 						<td style="position: relative;">
-							<div *ngIf="user.errors.email_taken || user.errors.blacklisted || user.errors.invalid"  style=" position: absolute; right: 5px; top: 5px; background-color: #f44336; padding: 1% 3%; color: #fff; border-radius: 5px;">
+							<div *ngIf="user.errors.email_taken || user.errors.blacklisted"  style=" position: absolute; right: 5px; top: 5px; background-color: #f44336; padding: 1% 3%; color: #fff; border-radius: 5px;">
 								<span *ngIf="user.errors.email_taken">Email is taken</span>
 								<span *ngIf="user.errors.blacklisted || user.errors.invalid">Invalid email</span>
 							</div>
-							<input type="text" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" required>
+							<input type="text" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" name="email{{i}}" pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
 						</td>
 						<!-- <td >
 							<select required [(ngModel)]="user.role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">
@@ -58,13 +58,14 @@
 							</select>
 						</td> -->
 						<td >
-							<select [(ngModel)]="user.eco_role_id" name="ecorole{{i}}">
+							<select [(ngModel)]="user.eco_role_id" name="ecorole{{i}}" required pattern="[1-9][0-9]*">
 								<option value="0" selected>Select ECO Role</option>
 								<option *ngFor="let e of ecoDisplayRoles[i]" [value]="e.em_roles_id">{{ e.role_name }}</option>
 							</select>
 						</td>
 						<td >
 							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0 && user.role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
+							<input type="hidden" name="selectedLocation{{i}}" [(ngModel)]="user.account_location_id" required pattern="[1-9][0-9]*">
 						</td>
 						<td class="with-remove">
 							<input type="text" [(ngModel)]="user.contact_number" placeholder="Contact Information" name="mobile{{i}}">
@@ -202,35 +203,37 @@
 
 
 <div id="modalLocations" class="modal modal-sublocations">
-
-
+	
+	
 
 	<div class="modal-content">
 		<h5>Select Location</h5>
-
+		
 		<div class="search-container" >
 			<div class="input-container">
-				<input type="text" placeholder="Search Level" >
+				<input type="text" placeholder="Search Level" #modalSearchLocation  >
 			</div>
 			<div class="icon-container">
 				<img src="assets/images/locations/search_icon.png" alt="">
 			</div>
 		</div>
-
+		
 		<form #formLoc="ngForm" (submit)="submitSelectLocationModal(formLoc, $event)">
 
 		<div class="list-region" style="overflow-y: auto; height: 340px;">
-			<ul>
+			<p *ngIf="locations.length == 0">No location found</p>
+			<ul *ngIf="locations.length > 0">
 				<ng-template #recursiveList let-locations>
-					<li *ngFor="let location of locations" class="list-division" [id]="location.location_id">
+					<li *ngFor="let location of locations" class="list-division" [id]="location.location_id" [ngClass]="{ 'show-drop-down' : (location.showDropDown) ? location.showDropDown : false }">
 						<div class="name-radio-plus">
 							<div class="input">
 								<input ngModel required type="radio" name="selectLocation" [value]="location.location_id" [id]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }" >
 								<label [for]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }"></label>
 								<div class="plus-minus">
-									<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" />
+									<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" [checked]="(location.showDropDown) ? location.showDropDown : false" />
 									<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
-									<span>{{location.name}}</span>
+									<span *ngIf="location.name.length > 0">{{location.name}}</span>
+									<span *ngIf="location.name.length == 0">{{location.formatted_address}}</span>
 								</div>
 							</div>
 						</div>
@@ -245,7 +248,7 @@
 
 		<div class="button-container center">
 			<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
-			<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLoc.valid"> Submit </button>
+			<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLoc.valid" *ngIf="locations.length > 0"> Submit </button>
 		</div>
 
 		</form>

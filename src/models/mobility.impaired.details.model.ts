@@ -63,7 +63,7 @@ export class MobilityImpairedModel extends BaseClass {
 		return new Promise((resolve, reject) => {
 
 			const sql_update = `UPDATE mobility_impaired_details SET
-			user_id = ?, is_permanent = ?, duration_date = ?, assistant_type = ?, equipment_type = ?, evacuation_procedure = ?, date_created = ?
+			user_id = ?, is_permanent = ?, duration_date = ?, assistant_type = ?, equipment_type = ?, evacuation_procedure = ?, date_created = ?, user_invitations_id = ?
 			WHERE mobility_impaired_details_id = ?`;
 			const param = [
 			('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
@@ -73,6 +73,7 @@ export class MobilityImpairedModel extends BaseClass {
 			('equipment_type' in this.dbData) ? this.dbData['equipment_type'] : null,
 			('evacuation_procedure' in this.dbData) ? this.dbData['evacuation_procedure'] : null,
 			('date_created' in this.dbData) ? this.dbData['date_created'] : '',
+			('user_invitations_id' in this.dbData) ? this.dbData['user_invitations_id'] : 0,
 			this.ID() ? this.ID() : 0
 			];
 			
@@ -91,8 +92,8 @@ export class MobilityImpairedModel extends BaseClass {
 	public dbInsert() {
 		return new Promise((resolve, reject) => {
 			const sql_insert = `INSERT INTO mobility_impaired_details 
-			(user_id, is_permanent, duration_date, assistant_type, equipment_type, evacuation_procedure, date_created) 
-			VALUES (?, ?, ?, ?, ?, ?, ?);`;
+			(user_id, is_permanent, duration_date, assistant_type, equipment_type, evacuation_procedure, date_created, user_invitations_id) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?);`;
 			const param = [
 			('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
 			('is_permanent' in this.dbData) ? this.dbData['is_permanent'] : 0,
@@ -100,7 +101,8 @@ export class MobilityImpairedModel extends BaseClass {
 			('assistant_type' in this.dbData) ? this.dbData['assistant_type'] : null,
 			('equipment_type' in this.dbData) ? this.dbData['equipment_type'] : null,
 			('evacuation_procedure' in this.dbData) ? this.dbData['evacuation_procedure'] : null,
-			('date_created' in this.dbData) ? this.dbData['date_created'] : ''
+			('date_created' in this.dbData) ? this.dbData['date_created'] : '',
+			('user_invitations_id' in this.dbData) ? this.dbData['user_invitations_id'] : 0
 			];
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_insert, param, (err, results, fields) => {

@@ -98,6 +98,8 @@
 .box .content .btn{
     font-size: 13px !important;
     margin: 10px 20px;
+    line-height: 14px;
+    padding: 0px 25px;
 }
 
 .box .content ul{
@@ -147,7 +149,7 @@ hr{
 
 .right-part .right-align{
     position: relative;
-    height: 150px
+    height: 50px
 }
 
 .right-part .right-align .link-remove-sub{
@@ -470,6 +472,47 @@ td.btn-block-holder .btn{
     width: 100%;
     border-radius: 0px !important;
     font-size: 14px !important;
+    line-height: 42px;
+}
+
+table tbody tr td.with-bar .text{
+    color: #F44336 !important;
+    margin-right: 12px;
+}
+
+table tbody tr td.with-bar .text,
+table tbody tr td.with-bar .progress-container{
+    display: inline-block;
+}
+
+table tbody tr td.with-bar .progress-container{
+    width: 60%;
+}
+
+table tbody tr td .progress-container p{
+    margin: -1px 0px;
+    font-size: 12px;
+    color: #333;
+}
+
+table tbody tr td .progress{
+    position: relative;
+    height: 10px;
+    display: block;
+    width: 100%;
+    background-color: #dc44534d;
+    border-radius: 2px;
+    margin: 0px;
+    overflow: hidden;
+}
+
+table tbody tr td .progress .determinate{
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background-color: #cb0d20;
+    transition: width .3s linear;
 }
 
 .compliance .percent,
@@ -517,3 +560,35 @@ td.btn-block-holder .btn{
 .details-container .image{
     overflow: hidden;
 }
+
+.btn{
+    font-size: 15px !important;
+    line-height: 45px;
+}
+
+#modalAddNewTenant{
+    top: 2% !important;
+    max-height: 100%;
+    width: 35%;
+}
+
+@media only screen and (max-width: 1400px) {
+    #modalAddNewTenant{
+        width: 50% !important;
+    }
+}
+
+@media only screen and (max-width: 1024px) {
+    #modalAddNewTenant{
+        width: 75% !important;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    #modalAddNewTenant{
+        width: 95% !important;
+    }
+}
+
+
+

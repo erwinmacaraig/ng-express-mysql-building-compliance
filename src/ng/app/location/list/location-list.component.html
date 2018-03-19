@@ -3,16 +3,16 @@
 		<h5 class="text left">Location List</h5>
 
 		<div class="right table-align">
-			<h5 class="medium-text">Show only not compliant</h5>
+			<!-- <h5 class="medium-text">Show only not compliant</h5>
 			<div class="switch">
-				<input type="checkbox" id="override">
+				<input type="checkbox" (change)="showOnlyNotCompliantEvent($event)">
 				<div class="yes">Yes</div>
 				<div class="no">No</div>
 				<div class="highlight"></div>
 				<div class="background"></div>
-			</div>
+			</div>-->
 
-			<a href="#" class="archived" [routerLink]="['/location/list']">
+			<a href="#" class="archived" [routerLink]="['/location/archived/list']">
 				<span class="image"></span>
 				View Archive
 			</a>
@@ -23,26 +23,36 @@
 </div>
 
 <div class="row filter-container">
-	<div class="col l4 m5 s12">
+	<div class="col l6 m5 s12">
 		<div class="search-field">
-			<input type="text" placeholder="Search location"  >
+			<input type="text" placeholder="Search location" (keyup)="searchLocationEvent($event)" >
 			<span class="material-icons">search</span>
 		</div>
 	</div>
 
-	<div class="col l3 m4 s6">
+	<!-- <div class="col l3 m4 s6">
 		<select class="filter-by">
 			<option value="0" selected>Filter By (All)</option>
-			<option value=" " > </option>
+			<option value="compliance">Compliance</option>
+			<option value="not-compliance">Not Compliance</option>
+			<option value="mobility-impaired">With Mobility</option>
 		</select>
-	</div>
+	</div> -->
 
 	<div class="col l3 m6 s6">
 		<select class="sort-by">
 			<option value="0" selected>Sort By</option>
+			<option value="name-asc" >Name (Asc)</option>
+			<option value="name-desc" >Name (Desc)</option>
+			<option value="mobility-asc" >Mobility (Asc)</option>
+			<option value="mobility-desc" >Mobility (Desc)</option>
+			<option value="sublocation-asc" >Sublocations (Asc)</option>
+			<option value="sublocation-desc" >Sublocations (Desc)</option>
+			<option value="wardens-asc" >Wardens (Asc)</option>
+			<option value="wardens-desc" >Wardens (Desc)</option>
 		</select>
 	</div>
-	<div class="col l2 m6 s12">
+	<div class="col l3 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Manage Action</option>
 			<option value="archive" >Archive selected</option>
@@ -59,7 +69,7 @@
 				<tr class="grey darken-4 white-text">
 					<th>
 						<p class="checkbox">
-							<input class="filled-in" id="allSelect" type="checkbox">
+							<input class="filled-in" id="allSelect" type="checkbox" (change)="selectAllChangeEvent($event)">
 							<label for="allSelect">Location Name</label>
 						</p>
 					</th>
@@ -71,16 +81,16 @@
 					<th>Manage</th>
 				</tr>
 			</thead>
-			<tbody  (domChange)="onDomChange($event)">
+			<tbody >
 				<tr *ngIf="locations.length == 0">
 					<td colspan="7" class="center-align">
-						<h6>No records yet</h6>
+						<h6>No records found</h6>
 					</td>
 				</tr>
 				<tr *ngFor="let location of locations; let i = index;"  >
 					<td>
 						<div class="checkbox inline-block" >
-							<input id="location-{{i}}"  class="filled-in" type="checkbox"    >
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" #checkbox [attr.location_id]="location.location_id"  (change)="onChangeTableCheckboxEvent(location, checkbox)"  >
 							<label style="padding-left: 15px; height: 15px;" for="location-{{i}}"></label>
 						</div>
 						<div class="image-container lighten-3 green inline-block" >
@@ -97,26 +107,37 @@
 						{{location.sublocations.length}}
 					</td>
 					<td>
-						<span style="margin-right:10px;">0</span> <button class="btn grey darken-2 waves-effect waves-light"> Add tenants </button>
+						<span style="margin-right:10px;">{{location.num_tenants}}</span>
+						<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', location.location_id]" > Add tenants </a> -->
 					</td>
-					
+
 					<td>
-						<span style="margin-right:10px;">0</span> <button class="btn grey darken-2 waves-effect waves-light"> Add Wardens </button>
+						<span style="margin-right:10px;">{{location.num_wardens}}</span>
+						<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-wardens/', location.location_id]" > Add Wardens </a> -->
 					</td>
 					<td>
-						0
+						{{location.mobility_impaired}}
 					</td>
-					<td class="compliance">
-						<a [routerLink]="['/location/compliance/view/', location.location_id]">
-							<div class="percent">0%</div>
-							<div class="bar"></div>
+					<td class="with-bar">
+						<span *ngIf="location.admin_verified == 0" class="red-text">For verification</span>
+						<a *ngIf="location.admin_verified == 1" [routerLink]="['/location/compliance/view/', location.location_id]">
+							<div class="text">0%</div>
+							<div class="progress-container">
+								<div class="progress">
+							    	<div class="determinate" style="width: 0%;"></div>
+								</div>
+							</div>
 						</a>
 					</td>
 					<td class="select-blue">
-						<select>
+						<select class="select-from-row">
 							<option value="0">Manage</option>
-							<option value="view-{{location.location_id}}">View</option>
-							<option value="archive">Archive</option>
+							<option value="addtenants-{{location.location_id}}">Add Tenants</option>
+							<option value="addwardens-{{location.location_id}}">Add Wardens</option>
+							<option value="view-{{location.location_id}}">View Location</option>
+							<option value="compliance-{{location.location_id}}">View Compliance</option>
+							<option value="archive-{{location.location_id}}">Archive</option>
+							<!-- <option value="benchmark-{{location.location_id}}">Benchmark</option> -->
 						</select>
 					</td>
 				</tr>
@@ -126,3 +147,180 @@
 </div>
 <div preloader></div>
 
+<div id="modalArchive" class="modal">
+	<div class="modal-content center" [hidden]="!modalArchive.loader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="modalArchive.loader">
+		<h5>Confirmation</h5>
+
+		<h5 *ngIf="selectedArchive.length == 0">No location selected</h5>
+		<div *ngIf="selectedArchive.length > 0">
+			<p style="font-size: 16px;">
+				Are you sure you want archive location : {{selectedArchive.name}}?
+			</p>
+		</div>
+	</div>
+	<div class="modal-footer" [hidden]="modalArchive.loader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" *ngIf="selectedArchive.length  > 0" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+	</div>
+</div>
+
+
+<div id="modalArchiveBulk" class="modal">
+	<div class="modal-content center" [hidden]="!modalArchiveBulk.loader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="modalArchiveBulk.loader">
+		<h5>Confirmation</h5>
+
+		<h5 *ngIf="arraySelectedLocs.length == 0">No location selected</h5>
+		<div *ngIf="arraySelectedLocs.length > 0">
+			<p style="font-size: 16px;">
+				Are you sure you want archive the following location?
+			</p>
+			<ul>
+				<li *ngFor="let loc of arraySelectedLocs;">
+					<span>{{loc.name}}</span>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="modal-footer" [hidden]="modalArchiveBulk.loader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+	</div>
+</div>
+
+
+<div id="modalWardenBenchmarkCalc" class="modal">
+    <div class="modal-content" >
+    	<app-warden-benchmarking [location_id]=locationToApplyActionTo></app-warden-benchmarking>
+    </div>
+</div>
+
+<div id="modalAddNewTenant" class="modal">
+	<div class="modal-content" *ngIf="showModalNewTenantLoader">
+		<div class="center-align">
+			<div class="preloader-wrapper active" >
+				<div class="spinner-layer spinner-red-only">
+					<div class="circle-clipper left">
+						<div class="circle"></div>
+					</div><div class="gap-patch">
+						<div class="circle"></div>
+					</div><div class="circle-clipper right">
+						<div class="circle"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-content" *ngIf="!showModalNewTenantLoader">
+
+		<h5>Add New Tenant </h5>
+		<h6><span *ngIf="selectedLocation.name.length > 0">{{selectedLocation.name}}</span>  <span *ngIf="selectedLocation.name.length == 0">{{selectedLocation.formatted_address}}</span> </h6>
+
+		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)">
+
+			<div class="row">
+				<div class="col l12 m12 s12">
+					<div class="select-field"  >
+						<select ngModel  name="location_id" class="location-id" required>
+							<option value="null" disabled>Select Sub Location</option>
+							<option *ngFor="let sub of selectedLocation.sublocations;" [value]="sub.location_id" >{{sub.name}}</option>
+						</select>
+						<label class="select-label">Select Sub Location</label>
+					</div>
+
+					<div class="input-field">
+	                  	<input id="company_name" type="text" name="account_name" ngModel required>
+						<label for="company_name">Tenant Name</label>
+					</div>
+
+					<div class="input-field" >
+						<input id="key_contact" type="text" name="key_contact" ngModel required>
+						<label for="key_contact"> Key Contact </label>
+					</div>
+
+					<div class="input-field">
+						<input id="building_number" type="text" name="building_number" ngModel required>
+						<label for="building_number">Building Number</label>
+					</div>
+
+					<div class="input-field">
+						<input id="street" type="text" name="billing_street" ngModel required>
+						<label for="street">Street</label>
+					</div>
+
+					<div class="input-field">
+						<input id="city" type="text" name="billing_city" ngModel required >
+						<label for="city">City</label>
+					</div>
+
+					<div class="input-field" >
+						<input id="state" type="text" name="billing_state" ngModel required>
+						<label for="state">State</label>
+					</div>
+
+					<div class="input-field">
+						<input id="postal_code" type="text" name="billing_postal_code" ngModel required>
+						<label for="postal_code">Postal Code</label>
+					</div>
+
+					<div class="select-field"  >
+						<select ngModel  name="billing_country" class="billing-country" required>
+							<option *ngFor="let country of countries;" [value]="country.abbr" >{{country.name}}</option>
+						</select>
+						<label class="select-label">Country</label>
+					</div>
+
+					<div class="select-field" >
+						<select ngModel  name="time_zone" class="time-zone" required>
+							<option *ngFor="let timezone of timezones" [value]="timezone.abbr"  >{{timezone.text}}</option>
+						</select>
+						<label class="select-label">Time-Zone</label>
+					</div>
+
+					<div class="input-field">
+						<input id="domain" type="text" name="account_domain" ngModel required pattern="^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$">
+						<label for="domain">Account Domain name</label>
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col l12 m12 s12">
+					<div class="button-container right-align" >
+						<a href="javascript:void(0)" class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
+			    		<button type="submit" class="waves-effect waves-light btn orange btn-flat" [disabled]="!formAddTenant.valid">Submit</button>
+					</div>
+				</div>
+			</div>
+
+		</form>
+
+
+	</div>
+</div>

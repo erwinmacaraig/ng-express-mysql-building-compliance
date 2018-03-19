@@ -48,7 +48,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 
 	userData = {};
-
+  complianceSublocations;
 	selectedComplianceTitle = '';
 	selectedComplianceDescription = '';
 	selectedComplianceClasses = 'green darken-1 epm-icon';
@@ -171,17 +171,19 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	ngOnInit() {
 
 		this.locationService.getById(this.locationID, (response) => {
+      console.log(response);
+      this.complianceSublocations = response.sublocations;
 			this.locationData = response.location;
 			this.locationData['parentData'] = response.parent;
-			this.locationData.parentData['sublocations'] = response.siblings;
-			this.locationData.parentData.location_id = this.encryptDecrypt.encrypt(this.locationData.parentData.location_id).toString();
+			this.locationData.parentData['sublocations'] = response.siblings; console.log(this.locationData.parentData['sublocations']);
+			this.locationData.parentData.location_id = this.encryptDecrypt.encrypt(this.locationData.parentData.location_id);
 			if (response.siblings.length) {
 				for (let i = 0; i < response.siblings.length; i++) {
-					this.locationData.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(response.siblings[i].location_id).toString();
+					this.locationData.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(response.siblings[i].location_id);
 				}
 			}
 			for(let i in this.locationData['sublocations']){
-				this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+				this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id);
 			}
 
 			this.complianceService.getKPIS((response) => {
@@ -190,8 +192,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 				this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
 					this.latestComplianceData = responseCompl.data;
 					this.setKPISdataForDisplay();
-
-          console.log(this.selectedCompliance);
 					setTimeout(() => {
 						$('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
 						this.dashboard.hide();
@@ -210,7 +210,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	clickSelectComplianceFromList(compliance){
-		this.selectedCompliance = compliance;
+    this.selectedCompliance = compliance;
+    console.log(this.selectedCompliance);
 		let attr = compliance.short_code,
 			allTr = $("tr[compliance]"),
 			tr = $("tr[compliance='"+attr+"']");

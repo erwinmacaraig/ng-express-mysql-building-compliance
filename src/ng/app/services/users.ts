@@ -18,6 +18,15 @@ export class UserService {
 		this.baseUrl = (platformLocation as any).location.origin;
 	}
 
+	update(formData, callBack){
+		this.http.post(this.baseUrl+"/users/update", formData)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
 	uploadProfilePicture(formData, callBack){
 		this.http.post(this.baseUrl+"/users/upload-profile-picture", formData)
 		.subscribe(res => {
@@ -74,6 +83,24 @@ export class UserService {
 
 	unArchiveUsers(userIds, callBack){
 		this.http.post(this.baseUrl+"/users/unarchive-users", { user_ids : userIds })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	archiveInvitedUsers(invitedUserIds, callBack){
+		this.http.post(this.baseUrl+"/users/archive-invited-users", { ids : invitedUserIds })
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	unArchiveInvitedUsers(invitedUserIds, callBack){
+		this.http.post(this.baseUrl+"/users/unarchive-invited-users", { ids : invitedUserIds })
 		.subscribe(res => {
 			callBack(res);
 		}, err => {
@@ -173,6 +200,15 @@ export class UserService {
 
 	sendMobilityImpaireInformation(formData, callBack){
 		this.http.post(this.baseUrl+"/users/mobility-impaired-info", formData)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	getTenantsInLocation(locId, callBack){
+		this.http.get(this.baseUrl+"/users/get-tenants/"+locId)
 		.subscribe(res => {
 			callBack(res);
 		}, err => {

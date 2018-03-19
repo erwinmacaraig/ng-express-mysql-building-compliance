@@ -1,0 +1,208 @@
+<div class="row">
+	<div class="col m12">
+		<h5 class="text left">Location Archived List</h5>
+
+		<div class="right table-align">
+			<h5 class="medium-text">Show only not compliant</h5>
+			<div class="switch">
+				<input type="checkbox" (change)="showOnlyNotCompliantEvent($event)">
+				<div class="yes">Yes</div>
+				<div class="no">No</div>
+				<div class="highlight"></div>
+				<div class="background"></div>
+			</div>
+
+			<button [routerLink]="['/location/list']" class="btn grey waves-effect waves-light back-to-list">Back to list</button>
+		</div>
+
+		<div style="clear: both;"></div>
+	</div>
+</div>
+
+<div class="row filter-container">
+	<div class="col l4 m5 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search location" (keyup)="searchLocationEvent($event)" >
+			<span class="material-icons">search</span>
+		</div>
+	</div>
+
+	<div class="col l3 m4 s6">
+		<select class="filter-by">
+			<option value="0" selected>Filter By (All)</option>
+			<option value="compliance">Compliance</option>
+			<option value="not-compliance">Not Compliance</option>
+			<option value="mobility-impaired">With Mobility</option>
+		</select>
+	</div>
+
+	<div class="col l3 m6 s6">
+		<select class="sort-by">
+			<option value="0" selected>Sort By</option>
+			<option value="name-asc" >Name (Asc)</option>
+			<option value="name-desc" >Name (Desc)</option>
+			<option value="mobility-asc" >Mobility (Asc)</option>
+			<option value="mobility-desc" >Mobility (Desc)</option>
+			<option value="sublocation-asc" >Sublocations (Asc)</option>
+			<option value="sublocation-desc" >Sublocations (Desc)</option>
+			<option value="wardens-asc" >Wardens (Asc)</option>
+			<option value="wardens-desc" >Wardens (Desc)</option>
+		</select>
+	</div>
+	<div class="col l2 m6 s12">
+		<select class="bulk-manage">
+			<option value="0" selected disabled>Manage Action</option>
+			<option value="restore" >Restore selected</option>
+		</select>
+	</div>
+
+</div>
+
+<div class="row">
+	<div class="col m12 s12" >
+
+		<table class="highlight striped table-list-locations">
+			<thead>
+				<tr class="grey darken-4 white-text">
+					<th>
+						<p class="checkbox">
+							<input class="filled-in" id="allSelect" type="checkbox" (change)="selectAllChangeEvent($event)">
+							<label for="allSelect">Location Name</label>
+						</p>
+					</th>
+					<th>Sublocations</th>
+					<th>No. of Tenants</th>
+					<th>No. of Wardens</th>
+					<th>Mobility Impaired</th>
+					<th>Compliance</th>
+					<th>Manage</th>
+				</tr>
+			</thead>
+			<tbody >
+				<tr *ngIf="locations.length == 0">
+					<td colspan="7" class="center-align">
+						<h6>No records found</h6>
+					</td>
+				</tr>
+				<tr *ngFor="let location of locations; let i = index;"  >
+					<td>
+						<div class="checkbox inline-block" >
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" #checkbox [attr.location_id]="location.location_id"  (change)="onChangeTableCheckboxEvent(location, checkbox)"  >
+							<label style="padding-left: 15px; height: 15px;" for="location-{{i}}"></label>
+						</div>
+						<div class="image-container lighten-3 green inline-block" >
+							<img src="{{location.google_photo_url}}" alt="">
+						</div>
+						<div class="inline-block">
+							<a [routerLink]="['/location/view/', location.location_id]" class="location-name-link">
+								<span *ngIf="location.name.length > 0"> {{location.name}}</span>
+								<span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+							</a>
+						</div>
+					</td>
+					<td>
+						{{location.sublocations.length}}
+					</td>
+					<td>
+						<span style="margin-right:10px;">{{location.num_tenants}}</span> <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', location.location_id]" > Add tenants </a>
+					</td>
+					
+					<td>
+						<span style="margin-right:10px;">{{location.num_wardens}}</span> <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-wardens/', location.location_id]" > Add Wardens </a>
+					</td>
+					<td>
+						{{location.mobility_impaired}}
+					</td>
+					<td class="with-bar">
+						<span *ngIf="location.admin_verified == 0" class="red-text">For verification</span>
+						<a *ngIf="location.admin_verified == 1" [routerLink]="['/location/compliance/view/', location.location_id]">
+							<div class="text">0%</div>
+							<div class="progress-container">
+								<div class="progress">
+							    	<div class="determinate" style="width: 0%;"></div>
+								</div>
+							</div>
+						</a>
+					</td>
+					<td class="select-blue">
+						<select class="select-from-row">
+							<option value="0">Manage</option>
+							<option value="addtenants-{{location.location_id}}">Add Tenants</option>
+							<option value="addwardens-{{location.location_id}}">Add Wardens</option>
+							<option value="view-{{location.location_id}}">View</option>
+							<option value="restore-{{location.location_id}}">Restore</option>
+						</select>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+<div preloader></div>
+
+<div id="modalArchive" class="modal">
+	<div class="modal-content center" [hidden]="!modalArchive.loader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="modalArchive.loader">
+		<h5>Confirmation</h5>
+		
+		<h5 *ngIf="selectedRestore.length == 0">No location selected</h5>
+		<div *ngIf="selectedRestore.length > 0">
+			<p style="font-size: 16px;">
+				Are you sure you want to restore location : {{selectedRestore.name}}?
+			</p>
+		</div>
+	</div>
+	<div class="modal-footer" [hidden]="modalArchive.loader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" *ngIf="selectedRestore.length  > 0" class="waves-effect waves-blue btn-flat" (click)="restoreClick()">Restore</a>
+	</div>
+</div>
+
+
+<div id="modalArchiveBulk" class="modal">
+	<div class="modal-content center" [hidden]="!modalArchiveBulk.loader">
+		<div class="preloader-wrapper active">
+			<div class="spinner-layer spinner-red-only">
+				<div class="circle-clipper left">
+					<div class="circle"></div>
+				</div><div class="gap-patch">
+					<div class="circle"></div>
+				</div><div class="circle-clipper right">
+					<div class="circle"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-content" [hidden]="modalArchiveBulk.loader">
+		<h5>Confirmation</h5>
+		
+		<h5 *ngIf="arraySelectedLocs.length == 0">No location selected</h5>
+		<div *ngIf="arraySelectedLocs.length > 0">
+			<p style="font-size: 16px;">
+				Are you sure you want restore the following location?
+			</p>
+			<ul>
+				<li *ngFor="let loc of arraySelectedLocs;">
+					<span>{{loc.name}}</span>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="modal-footer" [hidden]="modalArchiveBulk.loader">
+		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a href="javascipt:void(0)" *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkRestoreClick()">Restore</a>
+	</div>
+</div>
+

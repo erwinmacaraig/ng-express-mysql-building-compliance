@@ -59,6 +59,10 @@ const validator = require('validator');
 	   		new AccountRoute().searchByName(req, res);
 	   	});
 
+	   	router.post('/accounts/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new AccountRoute().create(req, res);
+	   	});
+
    	}
 
 	/**
@@ -162,10 +166,62 @@ const validator = require('validator');
 		data.building_number = validator.isEmpty(''+data.building_number+'') ? '' : data.building_number;
 		data.city = this.capitalizeFirstLetter(data.city.toLowerCase());
 		data.state = this.capitalizeFirstLetter(data.state.toLowerCase());
-		data.key_contact = this.capitalizeFirstLetter(data.key_contact.toLowerCase());
+		data.key_contact = (data.key_contact != null) ? this.capitalizeFirstLetter(data.key_contact.toLowerCase()) : '';
 		data.unit_no = validator.isEmpty( ''+data['unit_no']+'' ) ? ' ' : data['unit_no'];
 
 		return data;
+	}
+
+	public async create(req: AuthRequest, res: Response){
+		let reqBody = req.body,
+			locationId = reqBody.location_id,
+			response = {
+				status : false,
+				message : '',
+				data : {}
+			},
+			accountModel = new Account(),
+			locationAccountModel = new LocationAccountRelation(),
+			locationModel = new Location();
+
+		let locations = await locationModel.getAncestries(locationId);
+
+		let mainParent = {};
+		for(let i in locations){
+			if(locations[i]['parent_id'] == -1){
+				mainParent = locations[i];
+			}
+		}
+
+		let assignChildToParent = (child, parentId) => {
+			for(let i in locations){
+				if(locations[i]['location_id'] == parentId){
+					locations[i]['sublocations'].push(child);
+				}
+			}
+		};
+
+		try{
+
+			await accountModel.create(reqBody);
+
+			for(let i in locations){
+				await locationAccountModel.create({
+					location_id : locations[i]['location_id'],
+					account_id : accountModel.ID(),
+					responsibility : 'Tenant'
+				});
+			}
+
+			response.status = true;
+			response.message = 'Success';
+
+		}catch(e){
+			response.message = e;
+		}
+
+
+		res.send(response);
 	}
 
 	public setupNewAccount(req: AuthRequest, res: Response){

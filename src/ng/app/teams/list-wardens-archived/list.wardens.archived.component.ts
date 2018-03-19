@@ -49,7 +49,7 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 
 		      for(let i in data){
 		        data[i]['bg_class'] = this.generateRandomBGClass();
-		        data[i]['id_encrypted'] = this.encDecrService.encrypt(data[i]['user_id']).toString();
+		        data[i]['id_encrypted'] = this.encDecrService.encrypt(data[i]['user_id']);
 		        data[i]['last_login'] = moment(data[i]['last_login']).format('MMM. DD, YYYY hh:mmA');
 
 		        for(let r in data[i]['roles']){
@@ -228,6 +228,19 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 			}
 			this.selectedFromList = temp;
 		}
+
+		let checkboxes = $('table tbody input[type="checkbox"]'),
+        countChecked = 0;
+        checkboxes.each((indx, elem) => {
+            if($(elem).prop('checked')){
+                countChecked++;
+            }
+        });
+
+        $('#allLocations').prop('checked', false);
+        if(countChecked == checkboxes.length){
+            $('#allLocations').prop('checked', true);
+        }
 	}
 
 	bulkManageActionEvent(){
@@ -253,6 +266,7 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 		}
 
 		this.userService.unArchiveUsers(arrIds, (response) => {
+			$('#allLocations').prop('checked', false);
 			this.showModalLoader = false;
 			$('#modalArchiveBulk').modal('close');
 			this.dashboardService.show();

@@ -45,7 +45,13 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 			let tempRoles = {};
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
-				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']).toString();
+				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
+
+				for(let l in this.listData[i]['locations']){
+					if(this.listData[i]['locations'][l]['parent_name'] == null){
+						this.listData[i]['locations'][l]['parent_name'] = '';
+					}
+				}
 
 				for(let r in this.listData[i]['roles']){
 					if( this.listData[i]['roles'][r]['role_name'] ){
@@ -227,6 +233,19 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 			}
 			this.selectedFromList = temp;
 		}
+
+		let checkboxes = $('table tbody input[type="checkbox"]'),
+        countChecked = 0;
+        checkboxes.each((indx, elem) => {
+            if($(elem).prop('checked')){
+                countChecked++;
+            }
+        });
+
+        $('#allLocations').prop('checked', false);
+        if(countChecked == checkboxes.length){
+            $('#allLocations').prop('checked', true);
+        }
 	}
 
 	bulkManageActionEvent(){
@@ -252,6 +271,7 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 		}
 
 		this.userService.unArchiveUsers(arrIds, (response) => {
+			$('#allLocations').prop('checked', false);
 			this.showModalLoader = false;
 			$('#modalArchiveBulk').modal('close');
 			this.dashboardService.show();

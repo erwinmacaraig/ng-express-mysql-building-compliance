@@ -18,10 +18,10 @@ export class LMSRoute extends BaseRoute {
   public static create(router: Router) {
     router.post('/lms/launch-course/', (req: Request, res: Response, next: NextFunction) => {
       new LMSRoute().initializeLRS(req, res, next).then((data) => {
-        console.log(data);
+        // console.log(data);
         return res.render('lms-launcher.hbs', data);
       }).catch((e) => {
-        console.log(e);
+        // console.log(e);
         return res.render('lms-launcher-error.hbs', {});
       });
     });
@@ -38,7 +38,7 @@ export class LMSRoute extends BaseRoute {
     router.get('/lms/getParameter', (req: Request, res: Response, next: NextFunction) => {
       const scorm = new Scorm();
       scorm.getDataModelVal(req.query.relation, req.query.param).then((param) => {
-        console.log('data model', param);
+        // console.log('data model', param);
         return res.status(200).send({
           'value': param
         });
@@ -50,9 +50,26 @@ export class LMSRoute extends BaseRoute {
     router.post('/lms/setParameterValue/', (req: Request, res: Response, next: NextFunction) => {
       const scorm = new Scorm();
       scorm.setDataModelVal(req.body.relation, req.body.param, req.body.value).then((data) => {
-        return res.status(200).send({
-          'status': true
-        });
+        // Scorm 1.1 and Scorm 1.2
+        if (req.body.param == 'cmi.core.lesson_status' && (req.body.value == 'completed' || req.body.value == 'passed')) {
+          const courseUserRelObj = new CourseUserRelation(req.body.relation);
+          courseUserRelObj.updateUserTrainingCourseCertificate().then((result) => {
+            console.log('Update certification');
+            return res.status(200).send({
+              'status': true
+            });
+          }).catch((e) => {
+            console.log(e);
+            return res.status(200).send({
+              'status': true
+            });
+          });
+
+        } else {
+          return res.status(200).send({
+            'status': true
+          });
+        }
       }).catch((e) => {
         return res.status(400).send({
           'status': false
@@ -82,7 +99,7 @@ export class LMSRoute extends BaseRoute {
     try {
       relation = await courseUserRelation.getRelation(req.body.userId, req.body.courseId);
       courseData['course_user_relation_id'] = relation;
-      console.log('relation = ' + relation);
+      // console.log('relation = ' + relation);
     } catch (e) {
       console.log(e);
     }

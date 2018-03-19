@@ -26,6 +26,7 @@ import * as validator from 'validator';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as multer from 'multer';
+const md5 = require('md5');
 
 
 export class UsersRoute extends BaseRoute {
@@ -42,6 +43,10 @@ export class UsersRoute extends BaseRoute {
 
 
 	public static create(router: Router) {
+		router.post('/users/update', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().updateUser(req, res, next);
+	    });
+
 		router.post('/users/upload-profile-picture', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().uploadProfilePicture(req, res, next);
 	    });
@@ -72,6 +77,14 @@ export class UsersRoute extends BaseRoute {
 
 	    router.post('/users/unarchive-users', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().removeUsersFromArchive(req, res, next);
+	    });
+
+	    router.post('/users/archive-invited-users', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().setInvitedUsersToArchive(req, res, next);
+	    });
+
+	    router.post('/users/unarchive-invited-users', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().removeInvitedUsersFromArchive(req, res, next);
 	    });
 
 	    router.get('/users/get-archived-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -113,6 +126,46 @@ export class UsersRoute extends BaseRoute {
 	    router.post('/users/mobility-impaired-info', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().saveMobilityImpairedDetails(req, res, next);
 	    });
+
+	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getLocationsTenants(req, res, next);
+	    });
+	}
+
+	public async updateUser(req: Request , res: Response, next: NextFunction){
+		let 
+		response = {
+			status : false,
+			data : {},
+			message : ''
+		};
+
+		try{
+			let 
+			userModel = new User(req.body.user_id),
+			userData = await userModel.load();
+
+			for(let i in userData){
+				if(i in req.body){
+					if(i == 'password'){
+						req.body[i] = md5('Ideation'+req.body[i]+'Max');
+					}
+					userData[i] = req.body[i];
+				}
+			}
+
+			userModel.setID(req.body.user_id);
+
+			await userModel.dbUpdate();
+
+			response.status = true;
+			response.data = userData;
+		}catch(e){
+			response.message = 'No user found';
+		}
+
+
+		res.send(response);
 	}
 
 	public uploadProfilePicture(req: Request, res: Response, next: NextFunction){
@@ -406,7 +459,8 @@ export class UsersRoute extends BaseRoute {
 		fileModel = new Files(),
 		user = {},
 		emRolesModel = new UserEmRoleRelation(),
-		emRoles = await emRolesModel.getEmRoles();
+		emRoles = await emRolesModel.getEmRoles(),
+		mobilityModel = new MobilityImpairedModel();
 
 		response.data.eco_roles = emRoles;
 
@@ -461,6 +515,15 @@ export class UsersRoute extends BaseRoute {
 		                user['profilePic'] = '';
 		            }
 		        );
+
+
+				user['mobility_impaired_details'] = <any> await mobilityModel.getMany([ [ "user_id = "+userId] ]);
+
+				for(let i in user['mobility_impaired_details']){
+					user['mobility_impaired_details'][i]['date_created_formatted'] = moment(user['mobility_impaired_details'][i]['date_created']).format('MMM. DD, YYYY');
+					user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
+				}
+
 			}
 
 			response.data.locations = locations;
@@ -523,6 +586,46 @@ export class UsersRoute extends BaseRoute {
 
 		for(let i in req.body['user_ids']){
 			let userModel = new User(req.body['user_ids'][i]);
+			await userModel.load();
+			
+			userModel.set('archived', 0);
+			await userModel.dbUpdate();
+		}
+
+		response.message = 'Success';
+		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async setInvitedUsersToArchive(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : true,
+			data : <any>[],
+			message : ''
+		};
+
+		for(let i in req.body['ids']){
+			let userModel = new UserInvitation(req.body['ids'][i]);
+			await userModel.load();
+			
+			userModel.set('archived', 1);
+			await userModel.dbUpdate();
+		}
+
+		response.message = 'Success';
+		res.statusCode = 200;
+		res.send(response);
+	}
+
+	public async removeInvitedUsersFromArchive(req: Request, res: Response, next: NextFunction){
+		let response = {
+			status : true,
+			data : <any>[],
+			message : ''
+		};
+
+		for(let i in req.body['ids']){
+			let userModel = new UserInvitation(req.body['ids'][i]);
 			await userModel.load();
 			
 			userModel.set('archived', 0);
@@ -617,8 +720,8 @@ export class UsersRoute extends BaseRoute {
 			users[i]['errors'] = {};
 
 			if(isEmailValid){
-				isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
-				if(!isBlackListedEmail){
+				// isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
+				// if(!isBlackListedEmail){
 					await userModel.getByEmail(users[i]['email']).then(
 						() => {
 							console.log(userModel.getDBData());
@@ -627,10 +730,10 @@ export class UsersRoute extends BaseRoute {
 						},
 						() => {}
 					);
-				}else{
-					users[i]['errors']['blacklisted'] = true;
-					hasError = true;
-				}
+				// }else{
+				// 	users[i]['errors']['blacklisted'] = true;
+				// 	hasError = true;
+				// }
 			}else{
 				users[i]['errors']['invalid'] = true;
 				hasError = true;
@@ -1265,21 +1368,127 @@ export class UsersRoute extends BaseRoute {
 		response = <any>{
 			status : true, data : [], message : ''
 		},
-		userId = req.body.user_id,
 		mobilityImpairedModel = new MobilityImpairedModel();
 
-		await mobilityImpairedModel.create({
-			'user_id' : userId,
+		let saveData = {
 			'is_permanent' : req.body.is_permanent,
-			'duration_date' : req.body.duration_date,
 			'assistant_type' : req.body.assistant_type,
 			'equipment_type' : req.body.equipment_type,
-			'evacuation_procedure' : req.body.evacuation_procedure,
-			'date_created' : moment().format('YYYY-MM-DD HH:mm:00')
-		});
+			'duration_date' : '',
+			'evacuation_procedure' : req.body.evacuation_procedure
+		};
 
+		if('mobility_impaired_details_id' in req.body){
+			saveData['mobility_impaired_details_id'] = req.body.mobility_impaired_details_id;
+		}
+
+		if(saveData['is_permanent'] == 0){
+			saveData['duration_date'] = req.body.duration_date;
+		}
+
+		if('user_id' in req.body){
+			saveData['user_id'] = req.body.user_id;
+			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+		}else if('user_invitations_id' in req.body){
+			saveData['user_invitations_id'] = req.body.user_invitations_id;
+			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+		}
+
+		await mobilityImpairedModel.create(saveData);
 
 		res.send(response);
+	}
+
+	public async getLocationsTenants(req: Request, res: Response, next: NextFunction){
+		let response = {
+			data : <any>[],
+			message : ''
+		},
+		locId = req.params.location_id,
+		locationAccModel = new LocationAccountRelation(),
+		returnData = [];
+
+		let tenantsAccount = await locationAccModel.getTenantsOfLocationId(locId),
+			accountIds = [],
+			accounts = [];
+		for(let i in tenantsAccount){
+			let accountModel = new Account(tenantsAccount[i]['account_id']);
+
+			try{
+				let acc = await accountModel.load();
+				acc['users'] = [];
+				acc['trps'] = [];
+				acc['trp_name'] = '';
+				acc['warden_benchmarking'] = '0/00';
+				acc['wardens'] = '0/00';
+				acc['wardens_trained'] = 0;
+				accounts.push( acc );
+			}catch(e){}
+
+			accountIds.push(tenantsAccount[i]['account_id']);
+		}
+
+		let locAccUserModel = new LocationAccountUser(),
+			locAccUserData = await locAccUserModel.getByLocationIdAndAccountId(locId, accountIds.join(',')),
+			users = [];
+
+		for(let i in locAccUserData){
+			let loc = locAccUserData[i],
+				userModel = new User(loc.user_id);
+
+			try{
+				let user = <any> await userModel.load();
+
+				for(let a in accounts){
+
+					if(accounts[a]['account_id'] == loc.account_id){
+						
+						let emRoleModel = new UserEmRoleRelation(),
+							emRoles = <any> [];
+
+						try{
+							emRoles = await emRoleModel.getEmRolesByUserId(user.user_id);
+						}catch(e){ }
+
+						if(loc.role_id == 2){
+							accounts[a]['trps'].push({
+								first_name : user.first_name,
+								last_name : user.last_name,
+								user_id : user.user_id
+							});
+						}
+
+						accounts[a]['users'].push({
+							role_id : loc.role_id,
+							first_name : user.first_name,
+							last_name : user.last_name,
+							user_id : user.user_id,
+							em_roles : emRoles
+						});
+					}
+
+
+
+				}
+
+				users.push( user );
+			}catch(e){}
+		}
+
+		
+		for(let a in accounts){
+			let trpnamesArr = [];
+			for(let x in accounts[a]['trps']){
+				trpnamesArr.push( accounts[a]['trps'][x]['first_name'] +' '+ accounts[a]['trps'][x]['last_name'] );
+			}
+
+			accounts[a]['trp_name'] = trpnamesArr.join(', ');
+		}
+
+		response.data = accounts;
+
+		res.send(response);
+
 	}
 
 }

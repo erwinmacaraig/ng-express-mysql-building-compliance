@@ -1,6 +1,10 @@
 <div class="row">
 	<div class="col l12 m12 s12" style="position: relative;">
 		<h4>All Archived Users</h4>
+		<a href="#" class="archived" [routerLink]="['/teams/all-users']">
+			<span class="image"></span>
+			View Active List
+		</a>
 	</div>
 </div>
 
@@ -44,8 +48,8 @@
 				<tr>
 					<th>
 						<p class="checkbox">
-							<input id="allSelect" (change)="selectAllCheckboxEvent($event)" class="filled-in" type="checkbox">
-							<label for="allSelect">Locations</label>
+							<input id="allLocations" (change)="selectAllCheckboxEvent($event)" class="filled-in" type="checkbox">
+							<label for="allLocations">Locations</label>
 						</p>
 					</th>
 					<th>Name</th>

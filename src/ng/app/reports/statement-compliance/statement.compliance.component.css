@@ -1,0 +1,102 @@
+thead th{
+	border-radius: 0px;
+	font-weight: normal;
+	background-color: #3d3d3d !important;
+	padding: 20px;
+	font-size: 15px;
+}
+
+table>thead>tr,
+table>tbody>tr {
+    border-bottom: 1px solid #d3d3d3;
+}
+
+table tr td{
+	padding: 20px;
+	font-size: 14px;
+	line-height: 27px;
+}
+
+table tr td a:hover{
+	text-decoration: underline;
+}
+
+table tr td .material-icons{
+	vertical-align: bottom;
+}
+
+.right-buttons{
+	display: table;
+}
+
+.right-buttons > *{
+	display: table-cell;
+}
+
+.right-buttons > *:not(:last-child){
+	padding-right: 30px;
+}
+
+.right-buttons .text{
+	font-size: 15px;
+	display: inline-block;
+}
+
+.right-buttons .image{
+	width: 35px;
+	height: 35px;
+	background-image: url(/assets/images/sprite_report.png);
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.right-buttons a{
+	color: #666;
+}
+
+.image.pdf{
+	background-position: 74% 68%;
+}
+
+.image.excel{
+	background-position: 59% 91%;
+}
+
+.image.print{
+	background-position: 59% 67%;
+}
+
+.col-buttons{
+	margin: 20px 0px;
+}
+
+.col-buttons .btn{
+    font-size: 14px !important;
+    line-height: 5px;
+    height: 50px !important;
+    margin-bottom: 20px;
+}
+
+.col-buttons .btn:not(:last-child){
+	margin-right: 10px;
+}
+
+.btn-compliance-rating{
+	pointer-events: none;
+}
+
+.btn-compliance-rating > div{
+	display: inline-block;
+}
+
+.btn-compliance-rating .white{
+    height: 40px;
+    width: 80px;
+    vertical-align: middle;
+    color: #666;
+    border-radius: 5px;
+    line-height: 40px;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0px 5px;
+}

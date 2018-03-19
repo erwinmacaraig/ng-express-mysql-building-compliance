@@ -1,0 +1,114 @@
+.left-nav{
+	position: relative;
+	padding: 35px;
+}
+
+.buttons .btn{
+	width: 100%;
+    font-size: 15px !important;
+    height: 80px !important;
+    margin: 5px 0px;
+}
+
+.buttons .btn .image{
+	display: inline-block;
+	width: 35px;
+	height: 35px;
+	background-image: url(/assets/images/team_icons.png);
+	vertical-align: middle;
+}
+
+.reassign .image{
+	background-position: 63% 70%;
+}
+
+.peep .image{
+	background-position: 73% 70%;
+}
+
+.buttons .btn .text{
+	display: inline-block;
+    vertical-align: middle;
+    width: 155px;
+    line-height: 20px;
+    text-align: left;
+}
+
+.image-container{
+	margin: 20px 0px;
+    height: 250px;
+    position: relative;
+}
+
+.image-container img{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	max-height: 250px;
+}
+
+.label-par{
+	font-size: 15px;
+	margin: 25px 0px;
+}
+
+.label-par p{
+	font-size: 20px;
+    margin: 5px 0px;
+}
+
+.right-container{
+	padding: 30px !important;
+}
+
+.profile-pic-container .label{
+	font-size: .8rem;
+    color: #9e9e9e;
+}
+
+.profile-pic-container .pic-bg{
+	height: 90px;
+    width: 90px;
+    border-radius: 90px;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    overflow: hidden;
+}
+
+.profile-pic-container .pic-bg img{
+    position: absolute;
+    max-width: 90px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.profile-pic-container .pic-bg .initials{
+	position: absolute;
+    font-size: 28px;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.profile-pic-container .user-details{
+	display: inline-block;
+	padding: 0px 20px;
+	vertical-align: top;
+}
+
+@media only screen and (min-width: 993px){
+	.left-nav{
+		height: calc(100vh - 70px);
+	}
+
+	.buttons{
+	    position: absolute;
+	    bottom: 20px;
+	    left: 0px;
+	    width: 100%;
+	    padding: 0px 30px;
+	}
+}

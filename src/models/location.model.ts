@@ -64,6 +64,44 @@ export class Location extends BaseClass {
 		});
 	}
 
+	public getWhere(arrWhere){
+		return new Promise((resolve, reject) => {
+			let sql_load = `SELECT * FROM locations `;
+			
+			let c = 0;
+			for(let i in arrWhere){
+				if(c == 0){
+					sql_load += ' WHERE ';
+				}else{
+					sql_load += ' AND ';
+				}
+
+				sql_load += arrWhere[i];
+			}
+
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql_load, (error, results, fields) => {
+				if (error) {
+					return console.log(error);
+				}
+				if(!results.length){
+					reject('Location not found');
+				}else{
+
+					for(let i in results){
+						results[i]['sublocations'] = [];
+					}
+
+					this.dbData = results;
+					resolve(this.dbData);
+				}
+
+			});
+			connection.end();
+		});
+	}
+
+
 	public getParentLocationByAccountId(accountId: Number){
 		return new Promise((resolve, reject) => {
 			const sql_load = `
@@ -132,9 +170,13 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getByInIds(ids){
+	public getByInIds(ids, archived?){
 		return new Promise((resolve) => {
-			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = 0`;
+			if(archived == undefined){
+				archived = 0;
+			}
+
+			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived;
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
 				if (error) {
@@ -183,7 +225,7 @@ export class Location extends BaseClass {
 			postal_code = ?, country = ?, formatted_address = ?,
 			lat = ?, lng = ?,time_zone = ?, \`order\` = ?,
 			is_building = ?, location_directory_name = ?, archived = ?,
-			google_place_id = ?, google_photo_url = ?
+			google_place_id = ?, google_photo_url = ?, admin_verified = ?, admin_verified_date = ?, admin_id = ?
 			WHERE location_id = ?`;
 			const param = [
 			('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
@@ -200,11 +242,13 @@ export class Location extends BaseClass {
 			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
 			('order' in this.dbData) ? this.dbData['order'] : null,
 			('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
-			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] :
-                                                       (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
+			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
 			('archived' in this.dbData) ? this.dbData['archived'] : 0,
 			('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
 			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null,
+			('admin_verified' in this.dbData) ? this.dbData['admin_verified'] : 0,
+			('admin_verified_date' in this.dbData) ? this.dbData['admin_verified_date'] : null,
+			('admin_id' in this.dbData) ? this.dbData['admin_id'] : 0,
 			this.ID() ? this.ID() : 0
 			];
 
@@ -240,8 +284,11 @@ export class Location extends BaseClass {
 			location_directory_name,
 			archived,
 			google_place_id,
-			google_photo_url)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+			google_photo_url,
+			admin_verified,
+			admin_verified_date,
+			admin_id)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 			const param = [
 			('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
 			('name' in this.dbData) ? this.dbData['name'] : '',
@@ -256,12 +303,14 @@ export class Location extends BaseClass {
 			('lng' in this.dbData) ? this.dbData['lng'] : null,
 			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
 			('order' in this.dbData) ? this.dbData['order'] : null,
-      ('is_building' in this.dbData) ? this.dbData['is_building'] : 1,
-      ('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] :
-                            (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
+      		('is_building' in this.dbData) ? this.dbData['is_building'] : 1,
+      		('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
 			('archived' in this.dbData) ? this.dbData['archived'] : 0,
 			('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
-			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null
+			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null,
+			('admin_verified' in this.dbData) ? this.dbData['admin_verified'] : 0,
+			('admin_verified_date' in this.dbData) ? this.dbData['admin_verified_date'] : null,
+			('admin_id' in this.dbData) ? this.dbData['admin_id'] : 0,
 			];
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_insert, param, (err, results, fields) => {
@@ -415,10 +464,32 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getParentsChildren(parentId){
+	public getParentsChildren(parentId, role_id:number = 0) {
 		return new Promise((resolve) => {
 
-			let sql = `SELECT * FROM locations WHERE parent_id = ${parentId} AND archived = 0 ORDER BY location_id`;
+      // let sql = `SELECT * FROM locations WHERE parent_id = ${parentId} AND archived = 0 ORDER BY location_id`;
+
+      let sql = `SELECT *
+			FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
+			(SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
+
+      /*
+      if (account_id) {
+
+        sql = `SELECT DISTINCT locations.* FROM  locations INNER JOIN location_account_relation
+               ON locations.location_id = location_account_relation.location_id
+               WHERE locations.parent_id = ${parentId}
+               AND location_account_relation.account_id = ${account_id}
+               AND locations.archived = 0 ORDER BY locations.location_id`;
+
+      if (role_id && role_id < 3) {
+       sql = `SELECT DISTINCT locations.* FROM  locations INNER JOIN location_account_user
+               ON locations.location_id = location_account_user.location_id
+               WHERE locations.parent_id = ${parentId}
+               AND location_account_user.role_id = ${role_id}
+               AND locations.archived = 0 ORDER BY locations.location_id`;
+      }
+      */
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql, (err, results, fields) => {
 				if (err) {
@@ -511,6 +582,108 @@ export class Location extends BaseClass {
 				connection.end();
 			});
 		});
-	}
+  }
+
+  public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number, role_id?:number) {
+    return new Promise((resolve, reject) => {
+      let location = this.ID();
+      let role_id = 0;
+      let em_role_filter = '';
+      if (location_id) {
+        location = location_id;
+      }
+      if (em_role_id) {
+        em_role_filter = ` AND user_em_roles_relation.em_role_id = ${em_role_id}`;
+      }
+      let location_em_roles = {};
+      let subLocToEmRoles:{[key: number]: {}} = {};
+      // FRP or TRP
+      this.getParentsChildren(location).then((sublocations) => {
+        const subIds = [];
+        Object.keys(sublocations).forEach((key) => {
+          subIds.push(sublocations[key]['location_id']);
+        });
+        const subIdstring = subIds.join(',');
+        const sql = `SELECT
+                    user_em_roles_relation.*,
+                    em_roles.role_name,
+                    locations.name
+                  FROM
+                    user_em_roles_relation
+                  INNER JOIN
+                    em_roles
+                  ON
+                    em_roles.em_roles_id = user_em_roles_relation.em_role_id
+                  INNER JOIN
+                    locations
+                  ON
+                    locations.location_id = user_em_roles_relation.location_id
+                  WHERE
+                  user_em_roles_relation.location_id IN (${subIdstring}) ${em_role_filter}
+                  order by em_role_id;`;
+
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [], (error, results, fields) => {
+          if (error) {
+            console.log('location.model.getEMRolesForThisLocation', error, sql);
+            throw new Error('There was an error getting the EM Roles for this location');
+          }
+          if (!results.length) {
+            reject('There are no EM Roles for this location id - ' + location);
+          } else {
+            // console.log('Roles from db are ', results);
+            for (let i = 0; i < results.length; i++) {
+              if (results[i]['em_role_id'] in location_em_roles) {
+                location_em_roles[results[i]['em_role_id']]['count'] = location_em_roles[results[i]['em_role_id']]['count'] + 1;
+                (location_em_roles[results[i]['em_role_id']]['users']).push(results[i]['user_id']);
+                if ((location_em_roles[results[i]['em_role_id']]['location']).indexOf(results[i]['location_id']) == -1) {
+                  (location_em_roles[results[i]['em_role_id']]['location']).push(results[i]['location_id']);
+                }
+                // (location_em_roles[results[i]['em_role_id']][results[i]['location_id']]).push(results[i]['user_id']);
+                let loc = results[i]['location_id'];
+                loc = loc.toString();
+
+                if (loc in  location_em_roles[results[i]['em_role_id']]) {
+                  (location_em_roles[results[i]['em_role_id']][loc]['users']).push(results[i]['user_id']);
+                } else {
+                  location_em_roles[results[i]['em_role_id']][loc] = {
+                    'users': [],
+                    'name': ''
+                  }
+                  location_em_roles[results[i]['em_role_id']][loc]['users'].push(results[i]['user_id']);
+                  location_em_roles[results[i]['em_role_id']][loc]['name'] = results[i]['name']
+                }
+              }
+              else {
+                let keyIndex = results[i]['em_role_id'];
+                let loc = results[i]['location_id'].toString();
+                location_em_roles[keyIndex] = {
+                  'name': results[i]['role_name'],
+                  'count': 1,
+                  'users': [results[i]['user_id']],
+                  'location': [results[i]['location_id']]
+                };
+                location_em_roles[results[i]['em_role_id']][loc] = {
+                  'users': [],
+                  'name': ''
+                }
+                location_em_roles[keyIndex][loc]['users'].push(results[i]['user_id']);
+                location_em_roles[keyIndex][loc]['name'] = results[i]['name']
+
+
+              }
+
+            }
+            resolve(location_em_roles);
+          }
+
+        });
+        connection.end();
+      });
+    }).catch((e) => {
+    	return [];
+    });
+
+  }
 
 }
