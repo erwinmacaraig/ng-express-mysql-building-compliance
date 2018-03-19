@@ -621,7 +621,7 @@ export class Location extends BaseClass {
                   WHERE
                   user_em_roles_relation.location_id IN (${subIdstring}) ${em_role_filter}
                   order by em_role_id;`;
-        // console.log(sql);
+
         const connection = db.createConnection(dbconfig);
         connection.query(sql, [], (error, results, fields) => {
           if (error) {
@@ -679,7 +679,9 @@ export class Location extends BaseClass {
 
         });
         connection.end();
-        });
+      });
+    }).catch((e) => {
+    	return [];
     });
 
   }
