@@ -145,9 +145,65 @@ export class UsersRoute extends BaseRoute {
           });
         });
       });
+      
+      router.get('/tenant/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
+          new UsersRoute().retrieveTenantInvitationInfo(req, res, next).then((info) => {
+	    return res.status(200).send({
+	      'status': 'Success',
+	      'data': info
+	    });
+          }).catch((e) => {
+	    return res.status(400).send({
+	      'status': 'Fail',
+	      'message': 'Unable to retrieve tenant invitation info'
+	    });
+          });
+      
+      });
   }
 
-  public async sendTRPInvitation(req: Request , res: Response, next: NextFunction) {
+  public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
+    const tokenModel = new Token();
+    let dbData;
+    let userInvitation;
+    let locationModel;
+    let locationParent;
+    const token = req.params.token;
+    console.log(token);
+    try {
+      const tokenDbData = await tokenModel.getByToken(token);
+      if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
+	userInvitation = new UserInvitation(tokenDbData['id']);
+	dbData = await userInvitation.load();
+	
+	// get parent location 
+	locationModel = new Location(dbData['location_id']);
+	await locationModel.load();
+	let parentId = locationModel.get('parent_id');
+	while (parentId !== -1) {
+	  locationParent = new Location(parentId);
+	  await locationParent.load();
+	  parentId = locationParent.get('parent_id');
+	}
+	dbData['parent_location_name'] = locationParent.get('name');
+	dbData['parent_location_id'] = locationParent.ID();
+	dbData['sub_location_name'] = locationModel.get('name');
+	dbData['sub_location_id'] = locationModel.ID();
+	return dbData;
+	
+      } else {
+	throw new Error('Invalid token');
+      }
+    } catch(e) {
+      console.log(e);
+      throw new Error('Cannot get invitation data');
+    
+    }
+    
+    
+    
+  }
+  public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
     const inviCode = new UserInvitation();
     const inviDetails = req.body;
     inviDetails['account_id'] = req['user'].account_id;
