@@ -501,13 +501,13 @@ const defs = require('../config/defs.json');
           parent_id = location.ID();
           dbLocationData["id_of_location"] = location.ID();
 
-          /* 
+          /*
           locationAccnt = new LocationAccountRelation();
           await locationAccnt.create({
             'location_id': parent_id,
             'account_id': req.user.account_id,
             'responsibility': roles_text[r]
-          }); 
+          });
           */
           dbLocationData['parent_id'] = parent_id;
           locationAccntUser = new LocationAccountUser();
@@ -532,7 +532,7 @@ const defs = require('../config/defs.json');
             copyDbLocationData['name'] = req.body.sublevels[i];
             await subLevel.create(copyDbLocationData);
 
-            /* 
+            /*
             await locationAccnt.create({
               'location_id': subLevel.ID(),
               'account_id': req.user.account_id,
@@ -612,7 +612,7 @@ const defs = require('../config/defs.json');
 				await locationSub.create(subData);
 				subData['location_id'] = locationSub.ID();
 
-				/* 
+				/*
         await locationAccnt.create({
 					'location_id': subData['location_id'],
 					'account_id': req.user.account_id,
@@ -995,7 +995,7 @@ const defs = require('../config/defs.json');
             }
         }
 
-        
+
         for (let j = 0; j < sublocations.length; j++) {
           sublocationIdsArray.push(sublocations[j]['location_id']);
         }
@@ -1037,7 +1037,7 @@ const defs = require('../config/defs.json');
 
             sub['num_tenants'] = locAcc.length;
         }
-        
+
       	response.sublocations = sublocations;
 	    // get immediate parent
 	    const parentId = <number>location.get('parent_id');
@@ -1110,7 +1110,7 @@ const defs = require('../config/defs.json');
 
     public addChildrenLocationToParent(data){
         for(let i in data){
-            
+
             for(let x in data){
                 if(data[x]['parent_id'] == data[i]['location_id']){
                     if('sublocations' in data[i] == false){
@@ -1146,7 +1146,7 @@ const defs = require('../config/defs.json');
 	    let locationsOnAccount = [];
 	    let location;
         let data;
-     
+
         let userRoleRel;
         let roles;
         try {
@@ -1165,13 +1165,13 @@ const defs = require('../config/defs.json');
             locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r, archived);
             switch(r) {
                 case 1:
-                    
+
                     let toResponse = {
                         'locations' : []
                     };
                     for (let loc of locationsOnAccount) {
                         let allSubLocationIds = [];
-                        
+
                         allSubLocationIds.push(loc.location_id);
 
                         let deepLocModel = new Location(),
@@ -1189,7 +1189,10 @@ const defs = require('../config/defs.json');
                         loc['num_tenants'] = locAcc.length;
 
                         let locAccUserModel = new LocationAccountUser(),
-                        locAccUser = <any> await locAccUserModel.getWardensByAccountIdWhereInLocationId(accountId, allSubLocationIds.join(',') );
+                        locAccUser = <any> await locAccUserModel.getWardensByAccountIdWhereInLocationId(accountId, allSubLocationIds.join(',') ); // <- to remove
+
+                        const emrolesOnThisLocation = await deepLocModel.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], loc.location_id);
+
 
                         let impairedCount = 0 ;
                         for(let x in locAccUser){
@@ -1197,8 +1200,9 @@ const defs = require('../config/defs.json');
                               impairedCount++;
                             }
                         }
-                        
-                        loc['num_wardens'] = locAccUser.length;
+
+                        loc['num_wardens'] = locAccUser.length; // <- to remove
+                        loc['num_wardens'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
                         loc['mobility_impaired'] = impairedCount;
                         loc['compliance'] = 0;
 
@@ -1254,7 +1258,7 @@ const defs = require('../config/defs.json');
                               impairedCount++;
                             }
                         }
-                        
+
                         loc['num_wardens'] = locAccUser.length;
                         loc['mobility_impaired'] = impairedCount;
                         loc['compliance'] = 0;
