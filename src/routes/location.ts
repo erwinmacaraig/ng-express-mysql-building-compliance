@@ -974,12 +974,28 @@ const defs = require('../config/defs.json');
       		}
       	}
 
-      	await location.load();
+      	let locData = <any> await location.load();
 
       	response.location = location.getDBData();
         const wardenCalc = new WardenBenchmarkingCalculator();
-        sublocations = await location.getSublocations(req.user.user_id, r);
+
         let sublocationIdsArray = [];
+        if(locData.parent_id == -1){
+            sublocations = await location.getSublocations(req.user.user_id, r);
+        }else{
+            let ancestriesModel = new Location(),
+                ancestries = <any> await ancestriesModel.getAncestries(locData.location_id);
+
+
+            for(let i in ancestries){
+                if(ancestries[i]['parent_id'] == -1){
+                    location.setID(ancestries[i]['location_id']);
+                    sublocations = await location.getSublocations(req.user.user_id, r);
+                }
+            }
+        }
+
+        
         for (let j = 0; j < sublocations.length; j++) {
           sublocationIdsArray.push(sublocations[j]['location_id']);
         }
@@ -1014,6 +1030,14 @@ const defs = require('../config/defs.json');
         } catch(e) {
           console.log('There are no wardens for this building');
         }
+
+        for(let sub of sublocations){
+            let locAccModel = new LocationAccountRelation(),
+            locAcc = <any> await locAccModel.getByWhereInLocationIds( sub.location_id );
+
+            sub['num_tenants'] = locAcc.length;
+        }
+        
       	response.sublocations = sublocations;
 	    // get immediate parent
 	    const parentId = <number>location.get('parent_id');
@@ -1025,7 +1049,6 @@ const defs = require('../config/defs.json');
 	    const parentLocation = new Location(parentId);
 	    await parentLocation.load();
 	    siblings = await parentLocation.getSublocations(req.user.user_id, r);
-
 	    response.parent = parentLocation.getDBData();
 	    response.siblings = siblings;
 
