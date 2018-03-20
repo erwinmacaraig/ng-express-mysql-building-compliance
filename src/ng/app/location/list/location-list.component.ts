@@ -61,6 +61,10 @@ export class LocationListComponent implements OnInit, OnDestroy {
     timezones = new Timezone().get();
     defaultCountry = 'AU';
     defaultTimeZone = 'AEST';
+    public account_name;
+    public key_contact_name;
+    public key_contact_lastname;
+    public emailTaken = false;
 
 	constructor (
 		private platformLocation: PlatformLocation,
@@ -141,6 +145,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		this.selectBulkAction();
 
 		let formAddTenant = this.formAddTenant;
+       /*
         $('body').off('change.countrychange').on('change.countrychange', 'select.billing-country', (event) => {
             formAddTenant.controls.billing_country.setValue( event.currentTarget.value );
         });
@@ -148,6 +153,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
         $('body').off('change.timechange').on('change.timechange', 'select.time-zone', (event) => {
             formAddTenant.controls.time_zone.setValue( event.currentTarget.value );
         });
+        */
 
         $('body').off('change.locationchange').on('change.locationchange', 'select.location-id', (event) => {
             formAddTenant.controls.location_id.setValue( event.currentTarget.value );
@@ -221,8 +227,10 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 	showNewTenant(){
 		this.formAddTenant.reset();
+        /*
         this.formAddTenant.controls.billing_country.setValue( this.defaultCountry );
         this.formAddTenant.controls.time_zone.setValue( this.defaultTimeZone );
+        */
         $('#modalAddNewTenant').modal('open');
 
         $('#modalAddNewTenant select').material_select('destroy');

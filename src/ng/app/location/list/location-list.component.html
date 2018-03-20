@@ -253,10 +253,35 @@
 						</select>
 						<label class="select-label">Select Sub Location</label>
 					</div>
+					<div class="input-field">
+	          			<input id="company_name" type="text" name="account_name" ngModel required>
+						<label for="company_name">Tenancy Name</label>
+					</div>
+          
+
+					<div class="input-field" >
+						<input id="key_contact_name" type="text" name="key_contact_name" ngModel required>
+						<label for="key_contact_name"> Name </label>
+					</div>
+
+					<div class="input-field" >
+						<input id="key_contact_lastname" type="text" name="key_contact_lastname" ngModel required>
+						<label for="key_contact_lastname"> Last Name </label>
+					</div>
+
+					<div class="input-field">
+						<input id="email" type="email" name="email" ngModel #email="ngModel" email pattern="[a-zA-Z0-9.-_]{1,}@[a-zA-Z.-]{2,}[.]{1}[a-zA-Z]{2,}" required>
+						<label for="email">Email
+						<small *ngIf=" !email.valid && email.dirty ">Invalid email address</small>
+					    <span *ngIf="emailTaken" email-taken class="red-text"> *Email taken </span>
+						</label>
+					</div>
+
+<!--					
 
 					<div class="input-field">
 	                  	<input id="company_name" type="text" name="account_name" ngModel required>
-						<label for="company_name">Tenant Name</label>
+						<label for="company_name">Tenancy Name</label>
 					</div>
 
 					<div class="input-field" >
@@ -307,6 +332,7 @@
 						<input id="domain" type="text" name="account_domain" ngModel required pattern="^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$">
 						<label for="domain">Account Domain name</label>
 					</div>
+					-->
 				</div>
 			</div>
 
