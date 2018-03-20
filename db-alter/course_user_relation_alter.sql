@@ -1,0 +1,1 @@
+ALTER TABLE `course_user_relation` ADD `disabled` TINYINT(1) NOT NULL DEFAULT '0'
