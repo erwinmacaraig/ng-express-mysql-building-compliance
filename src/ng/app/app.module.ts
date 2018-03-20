@@ -34,6 +34,8 @@ import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
 import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
+import { TenantInvitationFormComponent } from './signup/trp-invite/tenant-invite.component'
+
 
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
@@ -120,6 +122,7 @@ import { AssignCoursesComponent } from './assign-courses/assign.courses.componen
     UserDashboardComponent,
 
     WardenInvitationFormComponent,
+    TenantInvitationFormComponent,
     SignoutComponent,
     CompanyInformationComponent,
     SetupCompanyComponent,
