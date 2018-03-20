@@ -145,7 +145,7 @@ export class UsersRoute extends BaseRoute {
           });
         });
       });
-      
+
       router.get('/tenant/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
           new UsersRoute().retrieveTenantInvitationInfo(req, res, next).then((info) => {
 	    return res.status(200).send({
@@ -158,10 +158,77 @@ export class UsersRoute extends BaseRoute {
 	      'message': 'Unable to retrieve tenant invitation info'
 	    });
           });
-      
+
+      });
+
+      router.post('/tenant/process-invitation-form/', (req: Request, res: Response, next: NextFunction) => {
+        new UsersRoute().processTenantInvitationForm(req, res, next).then(() => {
+          return res.status(200).send({
+            'status': 'Success'
+          });
+        }).catch((e) => {
+          return res.status(400).send({
+            'status': 'Fail'
+          });
+        });
       });
   }
 
+  public async processTenantInvitationForm(req: Request, res: Response, next: NextFunction){
+    const encryptedPassword = md5('Ideation' + req.body.str_password + 'Max');
+    let user;
+    let invitation;
+    let account;
+    let locAccntUser;
+    try {
+      user = new User();
+      const tokenObj = new Token();
+      const tokenDbData = await tokenObj.getByToken(req.body.token);
+      invitation = new UserInvitation(tokenDbData['id']);
+      const userInvitation = await invitation.load();
+      account = new Account();
+      locAccntUser = new LocationAccountUser();
+      await account.create({
+        'account_name': req.body.account_name,
+        'building_number': req.body.building_number,
+        'account_domain': req.body.account_domain,
+        'billing_city': req.body.billing_city,
+        'billing_country': req.body.billing_country,
+        'billing_postal_code': req.body.billing_postal_code,
+        'billing_street': req.body.billing_street,
+        'billing_state': req.body.billing_state
+      });
+      await user.create({
+        'first_name': req.body.first_name,
+        'last_name': req.body.last_name,
+        'password': encryptedPassword,
+        'email': req.body.email,
+        'token': req.body.token,
+        'account_id': account.ID(),
+        'invited_by_user': userInvitation['invited_by_user'],
+        'can_login': 1,
+      });
+      await tokenObj.create({
+        'action': 'verify',
+        'verified': 1,
+        'id': user.ID(),
+        'id_type': 'user_id'
+      });
+      await invitation.create({
+        'was_used': 1
+      });
+      await locAccntUser.create({
+        'location_id': invitation.get('location_id'),
+        'account_id': account.ID(),
+        'user_id': user.ID(),
+        'role_id': defs['Tenant'],
+      });
+      return true;
+    } catch(e) {
+      console.log(e);
+      throw new Error('There was a problem processing tenant information');
+    }
+  }
   public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
     const tokenModel = new Token();
     let dbData;
@@ -175,8 +242,8 @@ export class UsersRoute extends BaseRoute {
       if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
 	userInvitation = new UserInvitation(tokenDbData['id']);
 	dbData = await userInvitation.load();
-	
-	// get parent location 
+
+	// get parent location
 	locationModel = new Location(dbData['location_id']);
 	await locationModel.load();
 	let parentId = locationModel.get('parent_id');
@@ -185,23 +252,24 @@ export class UsersRoute extends BaseRoute {
 	  await locationParent.load();
 	  parentId = locationParent.get('parent_id');
 	}
-	dbData['parent_location_name'] = locationParent.get('name');
+	dbData['parent_location_name'] = (locationParent.get('name').toString().length > 0) ?
+  locationParent.get('name') : locationParent.get('formatted_address');
 	dbData['parent_location_id'] = locationParent.ID();
-	dbData['sub_location_name'] = locationModel.get('name');
+  dbData['sub_location_name'] = locationModel.get('name');
 	dbData['sub_location_id'] = locationModel.ID();
 	return dbData;
-	
+
       } else {
 	throw new Error('Invalid token');
       }
     } catch(e) {
       console.log(e);
       throw new Error('Cannot get invitation data');
-    
+
     }
-    
-    
-    
+
+
+
   }
   public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
     const inviCode = new UserInvitation();
