@@ -137,8 +137,17 @@ export class UsersRoute extends BaseRoute {
 	    });
 
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().getLocationsTenants(req, res, next);
-	    });
+        new  UsersRoute().getLocationsTenants(req, res, next).then((data) => {
+          res.status(200).send({
+            'data': data
+          });
+        }).catch((e) => {
+          console.log(e);
+          res.status(400).send({
+            'status': 'Fail'
+          })
+        });
+      });
 
 		router.post('/users/send-trp-invitation/', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 			console.log(req.body);
