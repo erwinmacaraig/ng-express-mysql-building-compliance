@@ -92,7 +92,7 @@
 							<tr class="grey darken-4 white-text">
 								<th>Tenants</th>
 								<th>TRP</th>
-								<th>Warden Benchmarking</th>
+								<!-- <th>Warden Benchmarking</th> -->
 								<th>Wardens</th>
 								<th>Wardens Trained</th>
 								<th>Action</th>
@@ -109,19 +109,23 @@
 									{{tenant.account_name}}
 								</td>
 								<td>
-									{{tenant.trp_name}}
+                  <span *ngFor="let t of tenant['trp']">
+                      {{ t }}
+                  </span>
 								</td>
-								<td>
+                <!--
+                <td>
 									{{tenant.warden_benchmarking}}
-								</td>
+                </td>
+              -->
 								<td>
-									{{tenant.wardens}}
+									{{tenant.total_wardens}}
 								</td>
 								<td class="with-bar">
-									<div class="text">0%</div>
+									<div class="text">{{tenant.trained_wardens.percentage}}</div>
 									<div class="progress-container">
 										<div class="progress">
-									    	<div class="determinate" style="width: 0%;"></div>
+									    	<div class="determinate" [ngStyle]="{'width': tenant.trained_wardens.percentage}"></div>
 										</div>
 									</div>
 								</td>

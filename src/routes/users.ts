@@ -1,3 +1,4 @@
+import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
 
 import { BaseRoute } from './route';
@@ -129,7 +130,16 @@ export class UsersRoute extends BaseRoute {
 	    });
 
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().getLocationsTenants(req, res, next);
+	    	new  UsersRoute().getLocationsTenants(req, res, next).then((data) => {
+          res.status(200).send({
+            'data': data
+          });
+        }).catch((e) => {
+          console.log(e);
+          res.status(400).send({
+            'status': 'Fail'
+          })
+        });
       });
 
       router.post('/users/send-trp-invitation/', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -1261,10 +1271,10 @@ export class UsersRoute extends BaseRoute {
 
 			const
 			opts = {
-				from : 'allantaw2@gmail.com',
+				from : '',
 				fromName : 'EvacConnect',
 				to : [ approverModel.get('email') ],
-				cc: ['erwin.macaraig@gmail.com'],
+				cc: [],
 				body : '',
 				attachments: [],
 				subject : 'EvacConnect Warden Request'
@@ -1434,10 +1444,9 @@ export class UsersRoute extends BaseRoute {
 
 					const
 					opts = {
-						from : 'allantaw2@gmail.com',
+						from : '',
 						fromName : 'EvacConnect',
-						// to : [ userModel.get('email') ],
-						to : [ 'adelfin@evacgroup.com.au' ],
+						to : [ userModel.get('email') ],
 						cc: [],
 						body : '',
 						attachments: [],
@@ -1566,7 +1575,7 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async saveMobilityImpairedDetails(req: Request, res: Response, next: NextFunction){
+	public async saveMobilityImpairedDetails(req: AuthRequest, res: Response, next: NextFunction){
 		let
 		response = <any>{
 			status : true, data : [], message : ''
@@ -1602,95 +1611,43 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async getLocationsTenants(req: Request, res: Response, next: NextFunction){
-		let response = {
-			data : <any>[],
-			message : ''
-		},
-		locId = req.params.location_id,
-		locationAccModel = new LocationAccountRelation(),
-		returnData = [];
+	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction){
+    const location_id = req.params.location_id;
+    const locationAccountUserObj = new LocationAccountUser();
+    // listing of roles is implemented here because we are only listing roles on a sub location
+    const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
+    const canLoginTenantArr = [];
 
-		let tenantsAccount = await locationAccModel.getTenantsOfLocationId(locId),
-			accountIds = [],
-			accounts = [];
-		for(let i in tenantsAccount){
-			let accountModel = new Account(tenantsAccount[i]['account_id']);
+    Object.keys(canLoginTenants).forEach((key) => {
+      canLoginTenantArr.push(canLoginTenants[key]);
+    });
 
-			try{
-				let acc = await accountModel.load();
-				acc['users'] = [];
-				acc['trps'] = [];
-				acc['trp_name'] = '';
-				acc['warden_benchmarking'] = '0/00';
-				acc['wardens'] = '0/00';
-				acc['wardens_trained'] = 0;
-				accounts.push( acc );
-			}catch(e){}
+    for (let i = 0; i < canLoginTenantArr.length; i++) {
+      // get all wardens for this location on this account
+      const EMRole = new UserEmRoleRelation();
+      const trainingCert = new TrainingCertification();
+      const temp =
+        await EMRole.getEMRolesOnAccountOnLocation(
+          defs['em_roles']['WARDEN'],
+          canLoginTenantArr[i]['account_id'],
+          location_id
+      );
+      canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
+      canLoginTenantArr[i]['wardens'] = temp['raw'];
 
-			accountIds.push(tenantsAccount[i]['account_id']);
-		}
-
-		let locAccUserModel = new LocationAccountUser(),
-			locAccUserData = await locAccUserModel.getByLocationIdAndAccountId(locId, accountIds.join(',')),
-			users = [];
-
-		for(let i in locAccUserData){
-			let loc = locAccUserData[i],
-				userModel = new User(loc.user_id);
-
-			try{
-				let user = <any> await userModel.load();
-
-				for(let a in accounts){
-
-					if(accounts[a]['account_id'] == loc.account_id){
-
-						let emRoleModel = new UserEmRoleRelation(),
-							emRoles = <any> [];
-
-						try{
-							emRoles = await emRoleModel.getEmRolesByUserId(user.user_id);
-						}catch(e){ }
-
-						if(loc.role_id == 2){
-							accounts[a]['trps'].push({
-								first_name : user.first_name,
-								last_name : user.last_name,
-								user_id : user.user_id
-							});
-						}
-
-						accounts[a]['users'].push({
-							role_id : loc.role_id,
-							first_name : user.first_name,
-							last_name : user.last_name,
-							user_id : user.user_id,
-							em_roles : emRoles
-						});
-					}
+      // get trained wardens
+      canLoginTenantArr[i]['trained_wardens'] = await
+           trainingCert.getEMRUserCertifications(temp['users']);
+    }
+    console.log(canLoginTenantArr);
 
 
 
-				}
 
-				users.push( user );
-			}catch(e){}
-		}
+    return canLoginTenantArr;
 
 
-		for(let a in accounts){
-			let trpnamesArr = [];
-			for(let x in accounts[a]['trps']){
-				trpnamesArr.push( accounts[a]['trps'][x]['first_name'] +' '+ accounts[a]['trps'][x]['last_name'] );
-			}
 
-			accounts[a]['trp_name'] = trpnamesArr.join(', ');
-		}
-
-		response.data = accounts;
-
-		res.send(response);
 
 	}
 

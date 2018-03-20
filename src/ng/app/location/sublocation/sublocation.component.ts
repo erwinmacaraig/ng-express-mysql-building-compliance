@@ -54,7 +54,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
     defaultTimeZone = 'AEST';
 
     queryParams = {};
-
+    public subLocationsArr;
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
         private activeRoute: ActivatedRoute,
@@ -109,6 +109,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
             this.getLocationData(() => {
                 this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
                     this.tenants = tenantsResponse.data;
+                    console.log(this.tenants);
+
                 });
             });
         });
