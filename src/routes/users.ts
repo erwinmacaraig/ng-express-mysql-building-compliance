@@ -1,3 +1,4 @@
+import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
 
 import { BaseRoute } from './route';
@@ -44,10 +45,6 @@ export class UsersRoute extends BaseRoute {
 
 
 	public static create(router: Router) {
-		router.get('/users/is-admin/:user_id',  (req: Request, res: Response) => {
-			new UsersRoute().checkIfAdmin(req, res);
-		});
-
 		router.post('/users/update', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().updateUser(req, res, next);
 	    });
@@ -66,10 +63,6 @@ export class UsersRoute extends BaseRoute {
 
 	    router.get('/users/get-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getUsersByAccountId(req, res, next);
-	    });
-
-	    router.get('/users/get-users-by-account-none-auth/:account_id', (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().getUsersByAccountIdNoneAuth(req, res);
 	    });
 
 	    router.get('/users/get-user-locations-trainings-ecoroles/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -137,7 +130,7 @@ export class UsersRoute extends BaseRoute {
 	    });
 
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-        new  UsersRoute().getLocationsTenants(req, res, next).then((data) => {
+	    	new  UsersRoute().getLocationsTenants(req, res, next).then((data) => {
           res.status(200).send({
             'data': data
           });
@@ -149,154 +142,209 @@ export class UsersRoute extends BaseRoute {
         });
       });
 
-		router.post('/users/send-trp-invitation/', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-			console.log(req.body);
-			new UsersRoute().sendTRPInvitation(req, res, next).then(() => {
-				return res.status(200).send({
-					'status': 'Success'
-				})
-			}).catch((e) => {
-				console.log(e);
-				return res.status(400).send({
-				'status': 'Fail'
-				});
-			});
-		});
+      router.post('/users/send-trp-invitation/', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+        console.log(req.body);
+        new UsersRoute().sendTRPInvitation(req, res, next).then(() => {
+          return res.status(200).send({
+            'status': 'Success'
+          })
+        }).catch((e) => {
+          console.log(e);
+          return res.status(400).send({
+            'status': 'Fail'
+          });
+        });
+      });
 
-		router.get('/tenant/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
-			new UsersRoute().retrieveTenantInvitationInfo(req, res, next).then((info) => {
-				return res.status(200).send({
-				  'status': 'Success',
-				  'data': info
-				});
-			}).catch((e) => {
-				return res.status(400).send({
-					'status': 'Fail',
-					'message': 'Unable to retrieve tenant invitation info'
-				});
-			});
-		});
-  	}
+      router.get('/tenant/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
+          new UsersRoute().retrieveTenantInvitationInfo(req, res, next).then((info) => {
+	    return res.status(200).send({
+	      'status': 'Success',
+	      'data': info
+	    });
+          }).catch((e) => {
+	    return res.status(400).send({
+	      'status': 'Fail',
+	      'message': 'Unable to retrieve tenant invitation info'
+	    });
+          });
 
+      });
 
-  	public async checkIfAdmin(req: Request , res: Response){
-		let userModel = new User(req.params.user_id),
-			response = {
-				status : false, message : ''
-			};
+      router.post('/tenant/process-invitation-form/', (req: Request, res: Response, next: NextFunction) => {
+        new UsersRoute().processTenantInvitationForm(req, res, next).then(() => {
+          return res.status(200).send({
+            'status': 'Success'
+          });
+        }).catch((e) => {
+          return res.status(400).send({
+            'status': 'Fail'
+          });
+        });
+      });
+  }
 
-		try{
-			let user = await userModel.load();
-			if(user['evac_role'] == 'admin'){
-				response.status = true;
-			}
-		}catch(e){}
+  public async processTenantInvitationForm(req: Request, res: Response, next: NextFunction){
+    const encryptedPassword = md5('Ideation' + req.body.str_password + 'Max');
+    let user;
+    let invitation;
+    let account;
+    let locAccntUser;
+    try {
+      user = new User();
+      const tokenObj = new Token();
+      const tokenDbData = await tokenObj.getByToken(req.body.token);
+      invitation = new UserInvitation(tokenDbData['id']);
+      const userInvitation = await invitation.load();
+      account = new Account();
+      locAccntUser = new LocationAccountUser();
+      await account.create({
+        'account_name': req.body.account_name,
+        'building_number': req.body.building_number,
+        'account_domain': req.body.account_domain,
+        'billing_city': req.body.billing_city,
+        'billing_country': req.body.billing_country,
+        'billing_postal_code': req.body.billing_postal_code,
+        'billing_street': req.body.billing_street,
+        'billing_state': req.body.billing_state
+      });
+      await user.create({
+        'first_name': req.body.first_name,
+        'last_name': req.body.last_name,
+        'password': encryptedPassword,
+        'email': req.body.email,
+        'token': req.body.token,
+        'account_id': account.ID(),
+        'invited_by_user': userInvitation['invited_by_user'],
+        'can_login': 1,
+      });
+      await tokenObj.create({
+        'action': 'verify',
+        'verified': 1,
+        'id': user.ID(),
+        'id_type': 'user_id'
+      });
+      await invitation.create({
+        'was_used': 1
+      });
+      await locAccntUser.create({
+        'location_id': invitation.get('location_id'),
+        'account_id': account.ID(),
+        'user_id': user.ID(),
+        'role_id': defs['Tenant'],
+      });
+      return true;
+    } catch(e) {
+      console.log(e);
+      throw new Error('There was a problem processing tenant information');
+    }
+  }
+  public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
+    const tokenModel = new Token();
+    let dbData;
+    let userInvitation;
+    let locationModel;
+    let locationParent;
+    const token = req.params.token;
+    console.log(token);
+    try {
+      const tokenDbData = await tokenModel.getByToken(token);
+      if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
+	userInvitation = new UserInvitation(tokenDbData['id']);
+	dbData = await userInvitation.load();
 
-		res.send(response);
+	// get parent location
+	locationModel = new Location(dbData['location_id']);
+	await locationModel.load();
+	let parentId = locationModel.get('parent_id');
+	while (parentId !== -1) {
+	  locationParent = new Location(parentId);
+	  await locationParent.load();
+	  parentId = locationParent.get('parent_id');
+	}
+	dbData['parent_location_name'] = (locationParent.get('name').toString().length > 0) ?
+  locationParent.get('name') : locationParent.get('formatted_address');
+	dbData['parent_location_id'] = locationParent.ID();
+  dbData['sub_location_name'] = locationModel.get('name');
+	dbData['sub_location_id'] = locationModel.ID();
+	return dbData;
+
+      } else {
+	throw new Error('Invalid token');
+      }
+    } catch(e) {
+      console.log(e);
+      throw new Error('Cannot get invitation data');
 
     }
 
-	public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
-		const tokenModel = new Token();
-		let dbData;
-		let userInvitation;
-		let locationModel;
-		let locationParent;
-		const token = req.params.token;
-		console.log(token);
-		try {
-			const tokenDbData = await tokenModel.getByToken(token);
-			if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
-				userInvitation = new UserInvitation(tokenDbData['id']);
-				dbData = await userInvitation.load();
 
-				// get parent location
-				locationModel = new Location(dbData['location_id']);
-				await locationModel.load();
-				let parentId = locationModel.get('parent_id');
-				while (parentId !== -1) {
-				  locationParent = new Location(parentId);
-				  await locationParent.load();
-				  parentId = locationParent.get('parent_id');
-				}
-				dbData['parent_location_name'] = locationParent.get('name');
-				dbData['parent_location_id'] = locationParent.ID();
-				dbData['sub_location_name'] = locationModel.get('name');
-				dbData['sub_location_id'] = locationModel.ID();
-				return dbData;
-			} else {
-				throw new Error('Invalid token');
-			}
-		} catch(e) {
-			console.log(e);
-			throw new Error('Cannot get invitation data');
-		}
-	}
 
-  	public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
+  }
+  public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
+    const inviCode = new UserInvitation();
+    const inviDetails = req.body;
+    inviDetails['account_id'] = req['user'].account_id;
+    inviDetails['role_id'] = defs['Tenant'];
+    inviDetails['invited_by_user'] = req['user'].user_id;
+    const tokenModel = new Token();
+    const token = tokenModel.generateRandomChars(8);
 
-		const inviCode = new UserInvitation();
-		const inviDetails = req.body;
-		inviDetails['account_id'] = req['user'].account_id;
-		inviDetails['role_id'] = defs['Tenant'];
-		inviDetails['invited_by_user'] = req['user'].user_id;
-		const tokenModel = new Token();
-		const token = tokenModel.generateRandomChars(8);
+    const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
+    const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
 
-		const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
-		const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+    try {
+      console.log(inviDetails);
+      await inviCode.create(inviDetails);
 
-		try {
-			console.log(inviDetails);
-			await inviCode.create(inviDetails);
+      await tokenModel.create({
+        'token': token,
+        'action': 'invitation',
+        'verified': 0,
+        'expiration_date': expDate,
+        'id': inviCode.ID(),
+        'id_type': 'user_invitations_id'
+      });
 
-			await tokenModel.create({
-				'token': token,
-				'action': 'invitation',
-				'verified': 0,
-				'expiration_date': expDate,
-				'id': inviCode.ID(),
-				'id_type': 'user_invitations_id'
-			});
+      // email notification here
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : [],
+        cc: [],
+        body : '',
+        attachments: [],
+        subject : 'EvacConnect TRP Invitation'
+      };
+      const email = new EmailSender(opts);
+      let emailBody = email.getEmailHTMLHeader();
+        emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+        <h4>You are being assigned as a Tenant.</h4> <br/>
+        <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
+        <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
 
-			// email notification here
-			const opts = {
-				from : '',
-				fromName : 'EvacConnect',
-				to : [],
-				cc: [],
-				body : '',
-				attachments: [],
-				subject : 'EvacConnect TRP Invitation'
-			};
-			const email = new EmailSender(opts);
-			let emailBody = email.getEmailHTMLHeader();
-			emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
-			<h4>You are being assigned as a Tenant.</h4> <br/>
-			<h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
-			<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+      emailBody += email.getEmailHTMLFooter();
+      email.assignOptions({
+        body : emailBody,
+        to: [inviDetails['email']],
+        cc: []
+      });
 
-			emailBody += email.getEmailHTMLFooter();
-			email.assignOptions({
-				body : emailBody,
-				to: [inviDetails['email']],
-				cc: []
-			});
+      email.send((data) => {
+        console.log(data);
+        return true;
+      },(err) => {
+        console.log(err);
+        return false;
+      });
+    } catch (e) {
+      console.log(e);
+    }
 
-			email.send((data) => {
-				console.log(data);
-				return true;
-			},(err) => {
-				console.log(err);
-				return false;
-			});
-		} catch (e) {
-			console.log(e);
-		}
+   return true;
 
-		return true;
-  	}
 
+  }
 	public async updateUser(req: Request , res: Response, next: NextFunction){
 		let
 		response = {
@@ -461,18 +509,6 @@ export class UsersRoute extends BaseRoute {
 				});
 			}
 		);
-	}
-
-	public async getUsersByAccountIdNoneAuth(req: Request, res: Response){
-		let accountId = req.params.account_id,
-			userModel = new User();
-
-		res.send({
-			status : true,
-			data : await userModel.getByAccountId(accountId),
-			message : ''
-		});
-
 	}
 
 	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction, archived?){
@@ -1235,10 +1271,10 @@ export class UsersRoute extends BaseRoute {
 
 			const
 			opts = {
-				from : 'allantaw2@gmail.com',
+				from : '',
 				fromName : 'EvacConnect',
 				to : [ approverModel.get('email') ],
-				cc: ['erwin.macaraig@gmail.com'],
+				cc: [],
 				body : '',
 				attachments: [],
 				subject : 'EvacConnect Warden Request'
@@ -1408,10 +1444,9 @@ export class UsersRoute extends BaseRoute {
 
 					const
 					opts = {
-						from : 'allantaw2@gmail.com',
+						from : '',
 						fromName : 'EvacConnect',
-						// to : [ userModel.get('email') ],
-						to : [ 'adelfin@evacgroup.com.au' ],
+						to : [ userModel.get('email') ],
 						cc: [],
 						body : '',
 						attachments: [],
@@ -1540,7 +1575,7 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async saveMobilityImpairedDetails(req: Request, res: Response, next: NextFunction){
+	public async saveMobilityImpairedDetails(req: AuthRequest, res: Response, next: NextFunction){
 		let
 		response = <any>{
 			status : true, data : [], message : ''
@@ -1576,7 +1611,7 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async getLocationsTenants(req: Request, res: Response, next: NextFunction){
+	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction){
     const location_id = req.params.location_id;
     const locationAccountUserObj = new LocationAccountUser();
     // listing of roles is implemented here because we are only listing roles on a sub location
@@ -1610,6 +1645,8 @@ export class UsersRoute extends BaseRoute {
 
 
     return canLoginTenantArr;
+
+
 
 
 	}

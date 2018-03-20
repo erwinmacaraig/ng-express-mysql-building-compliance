@@ -85,8 +85,12 @@ export class SignupService {
   signWardenUp(wardenProfile: object) {
     return this.http.post<any>(this.baseUrl + '/team/process-warden-invitation', wardenProfile);
   }
-  
+
   retrieveTenantInvitationInfo(token: string) {
-       return this.http.get(this.baseUrl + '/tenant/invitation-filled-form/' + token + '/', this.options);
+    return this.http.get(this.baseUrl + '/tenant/invitation-filled-form/' + token + '/', this.options);
+  }
+
+  signTenantUp(tenantProfile: object) {
+    return this.http.post<any>(this.baseUrl + '/tenant/process-invitation-form/', tenantProfile);
   }
 }
