@@ -1577,6 +1577,39 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async getLocationsTenants(req: Request, res: Response, next: NextFunction){
+    const location_id = req.params.location_id;
+    const locationAccountUserObj = new LocationAccountUser();
+    // listing of roles is implemented here because we are only listing roles on a sub location
+    const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
+    const canLoginTenantArr = [];
+
+    Object.keys(canLoginTenants).forEach((key) => {
+      canLoginTenantArr.push(canLoginTenants[key]);
+    });
+
+    for (let i = 0; i < canLoginTenantArr.length; i++) {
+      // get all wardens for this location on this account
+      const EMRole = new UserEmRoleRelation();
+      const trainingCert = new TrainingCertification();
+      const temp =
+        await EMRole.getEMRolesOnAccountOnLocation(
+          defs['em_roles']['WARDEN'],
+          canLoginTenantArr[i]['account_id'],
+          location_id
+      );
+      canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
+      canLoginTenantArr[i]['wardens'] = temp['raw'];
+
+      // get trained wardens
+      canLoginTenantArr[i]['trained_wardens'] = await
+           trainingCert.getEMRUserCertifications(temp['users']);
+    }
+    console.log(canLoginTenantArr);
+
+
+
+
+    return canLoginTenantArr;
 
 
 	}
