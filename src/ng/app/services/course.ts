@@ -46,4 +46,10 @@ export class CourseService {
         });
     }
 
+    disableUsersFromCourses(data, callBack){
+        this.http.post('/courses/disable-users-from-courses', data).subscribe((res) => {
+            callBack(res);
+        });
+    }
+
 }

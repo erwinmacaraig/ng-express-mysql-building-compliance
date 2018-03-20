@@ -31,6 +31,10 @@ export class CourseRoute extends BaseRoute {
 	   	router.post('/courses/save-account-courses', (req: Request, res: Response) => {
 	   		new CourseRoute().saveAccountCourses(req, res);
 	   	});
+
+	   	router.post('/courses/disable-users-from-courses', (req: Request, res: Response) => {
+	   		new CourseRoute().disableUsersFromCourses(req, res);
+	   	});
    	}
 
    	response = {
@@ -41,6 +45,43 @@ export class CourseRoute extends BaseRoute {
 
 	constructor() {
 		super();
+	}
+
+	public async disableUsersFromCourses(req: Request, res: Response){
+		let accountId = req.body.account_id,
+			courseId = req.body.course_id,
+			trainingRequirementId = req.body.training_requirement_id,
+			userIds = req.body.user_ids;
+
+		for(let i in userIds){
+			let courseUserRelationModel = new CourseUserRelation(),
+				arrWhere = [];
+
+			arrWhere.push( 'user_id = '+userIds[i] );
+			arrWhere.push( 'course_id = '+courseId );
+			arrWhere.push( 'training_requirement_id = '+trainingRequirementId );
+
+			let users = <any> await courseUserRelationModel.getWhere(arrWhere);
+
+			for(let user of users){
+				let saveCourseUserRelationModel = new CourseUserRelation(user['course_user_relation_id']);
+
+				for(let n in user){
+					saveCourseUserRelationModel.set(n, user[n]);
+				}
+
+				saveCourseUserRelationModel.set('disabled', 1);
+
+				await saveCourseUserRelationModel.dbUpdate();
+			}
+		}
+
+
+		res.send({
+			status : true,
+			data : [],
+			message : 'success'
+		});
 	}
 
 	public async saveAccountCourses(req: Request, res: Response){
@@ -66,6 +107,17 @@ export class CourseRoute extends BaseRoute {
 					'course_id' : courseId,
 					'training_requirement_id' : trainingRequirementId
 				});
+			}else{
+				for(let i in data){
+					let saveCourseUserRelationModel = new CourseUserRelation();
+					for(let n in data[i]){
+						saveCourseUserRelationModel.set(n, data[i][n]);
+					}
+					saveCourseUserRelationModel.set('disabled', 0);
+					saveCourseUserRelationModel.setID(data[i]['course_user_relation_id']);
+
+					await saveCourseUserRelationModel.dbUpdate();
+				}
 			}
 
 		}

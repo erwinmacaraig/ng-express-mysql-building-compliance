@@ -39,12 +39,14 @@ export class CourseUserRelation extends BaseClass {
       const sql_insert = `INSERT INTO course_user_relation (
         user_id,
         course_id,
-        training_requirement_id
-      ) VALUES (?, ?, ?)`;
+        training_requirement_id,
+        disabled
+      ) VALUES (?, ?, ?, ?)`;
       const param = [
         ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
         ('course_id' in this.dbData) ? this.dbData['course_id'] : 0,
-        ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0
+        ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
+        ('disabled' in this.dbData) ? this.dbData['disabled'] : 0
       ];
       const connection = db.createConnection(dbconfig);
       connection.query(sql_insert, param, (error, results, fields) => {
@@ -65,7 +67,8 @@ export class CourseUserRelation extends BaseClass {
       const sql_update = `UPDATE course_user_relation SET
                             user_id = ?,
                             course_id = ?,
-                            training_requirement_id = ?
+                            training_requirement_id = ?,
+                            disabled = ?
                           WHERE
                             course_user_relation_id = ?
       `;
@@ -73,6 +76,7 @@ export class CourseUserRelation extends BaseClass {
         ('user_id' in this.dbData) ? this.dbData['user_id'] : null,
         ('course_id' in this.dbData) ? this.dbData['course_id'] : null,
         ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
+        ('disabled' in this.dbData) ? this.dbData['disabled'] : 0,
         this.ID() ? this.ID() : 0
       ];
       const connection = db.createConnection(dbconfig);

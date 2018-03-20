@@ -305,8 +305,40 @@ export class AssignCoursesComponent implements OnInit {
 				}, 1000);
 			});
 		}
+	}
+
+	disableAction(accntId, btn){
+		let data = this.allFormsContainer[accntId],
+			errs = 0;
+		
+		if(data.training_requirement_id == 0){
+			errs++;
+		}
+
+		if(data.course_id == 0){
+			errs++;
+		}
+
+		if(data.user_ids.length == 0){
+			errs++;
+		}
 
 		console.log(data);
+
+		if(errs == 0){
+			btn.disabled = true;
+			btn.innerHTML = 'Sending';
+
+			this.courseService.disableUsersFromCourses(data, (response) => {
+				btn.innerHTML = 'Success';
+				setTimeout(() => {
+					btn.innerHTML = 'Disable';
+					btn.disabled = false;
+				}, 1000);
+			});
+		}
+
+		
 	}
 
 	ngOnDestroy(){
