@@ -82,6 +82,9 @@ import { ReportsLocationsStatementComplianceComponent } from './reports/statemen
 import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent  } from './reports/trainings/trainings.component';
 
+import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
+
+
 // To delete
 import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 const appRoutes: Routes = [
@@ -187,6 +190,9 @@ const appRoutes: Routes = [
       { path : 'teams', component : ReportsTeamsComponent },
       { path : 'trainings', component : ReportsTrainingsComponent }
     ]
+  },
+  {
+    path : 'assign-courses', canActivate: [AuthGuard], component : AssignCoursesComponent
   }
 ];
 

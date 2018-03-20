@@ -105,6 +105,7 @@ import { ReportsLocationsStatementComplianceComponent } from './reports/statemen
 import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent } from './reports/trainings/trainings.component';
 
+import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
 @NgModule({
   declarations: [
@@ -186,7 +187,9 @@ import { ReportsTrainingsComponent } from './reports/trainings/trainings.compone
     ReportsLocationsComplianceComponent,
     ReportsLocationsStatementComplianceComponent,
     ReportsTeamsComponent,
-    ReportsTrainingsComponent
+    ReportsTrainingsComponent,
+
+    AssignCoursesComponent
   ],
   imports: [
     BrowserModule,

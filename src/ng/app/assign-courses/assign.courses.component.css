@@ -1,0 +1,24 @@
+select:not(.to-materialize){
+	display: block;
+}
+
+.inline-block{
+	display: inline-block;
+}
+
+[type="checkbox"].filled-in:not(:checked)+label:after,
+[type="checkbox"].filled-in:checked+label:after,
+[type="checkbox"].filled-in:not(:checked)+label:before,
+[type="checkbox"].filled-in:checked+label:before{
+	top: 13px;
+}
+
+.container-box{
+	margin: 20px 0px;
+	border: 1px solid #eee;
+	padding: 25px;
+}
+
+.account-name{
+	font-size: 20px;
+}

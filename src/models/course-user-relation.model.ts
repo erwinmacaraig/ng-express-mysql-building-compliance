@@ -39,12 +39,14 @@ export class CourseUserRelation extends BaseClass {
       const sql_insert = `INSERT INTO course_user_relation (
         user_id,
         course_id,
-        training_requirement_id
-      ) VALUES (?, ?, ?)`;
+        training_requirement_id,
+        disabled
+      ) VALUES (?, ?, ?, ?)`;
       const param = [
         ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
         ('course_id' in this.dbData) ? this.dbData['course_id'] : 0,
-        ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0
+        ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
+        ('disabled' in this.dbData) ? this.dbData['disabled'] : 0
       ];
       const connection = db.createConnection(dbconfig);
       connection.query(sql_insert, param, (error, results, fields) => {
@@ -65,7 +67,8 @@ export class CourseUserRelation extends BaseClass {
       const sql_update = `UPDATE course_user_relation SET
                             user_id = ?,
                             course_id = ?,
-                            training_requirement_id = ?
+                            training_requirement_id = ?,
+                            disabled = ?
                           WHERE
                             course_user_relation_id = ?
       `;
@@ -73,6 +76,7 @@ export class CourseUserRelation extends BaseClass {
         ('user_id' in this.dbData) ? this.dbData['user_id'] : null,
         ('course_id' in this.dbData) ? this.dbData['course_id'] : null,
         ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
+        ('disabled' in this.dbData) ? this.dbData['disabled'] : 0,
         this.ID() ? this.ID() : 0
       ];
       const connection = db.createConnection(dbconfig);
@@ -85,6 +89,34 @@ export class CourseUserRelation extends BaseClass {
       });
       connection.end();
     });
+  }
+
+  public getWhere(arrWhere): Promise<object> {
+      return new Promise((resolve, reject) => {
+          let sql = `SELECT * FROM course_user_relation `,
+              count = 0;
+          for(let i in arrWhere){
+              if( count == 0 ){
+                  sql += ' WHERE '+arrWhere[i];
+              }else{
+                  sql += ' AND '+arrWhere[i];
+              }
+
+              count++;
+          }
+
+
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql, [this.id], (error, results, fields) => {
+              if (error) {
+                  throw new Error('Error loading course user relation');
+              } else {
+                  this.dbData = results;
+                  resolve(this.dbData);
+              }
+          });
+          connection.end();
+      });
   }
 
   public create(createData: object) {
