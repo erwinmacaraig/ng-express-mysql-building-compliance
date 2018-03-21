@@ -270,3 +270,25 @@ td.select-blue ul li > span{
 td.select-blue .dropdown-content li{
     min-height: 10px;
 }
+
+.select-wrapper.report-box{
+    padding: 5px 15px;
+    background-color: #fff;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.select-wrapper.report-box > input[type="text"]{
+    margin-bottom: 0px;
+    border-bottom: 0px;
+}
+
+.select-wrapper.report-box span.caret{
+    right: 10px;
+}
+
+.select-wrapper.report-box ul{
+    top: 2px !important;
+    left: 2px !important;
+    width: 206px !important;
+}

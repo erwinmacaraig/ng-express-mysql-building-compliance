@@ -8,6 +8,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { UserService } from '../../services/users';
+import { CourseService } from '../../services/course';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as enLocale from 'date-fns/locale/en';
 
@@ -18,7 +19,7 @@ declare var moment: any;
   selector: 'app-view-user-component',
   templateUrl: './view.user.component.html',
   styleUrls: ['./view.user.component.css'],
-  providers: [DashboardPreloaderService, EncryptDecryptService, UserService]
+  providers: [DashboardPreloaderService, EncryptDecryptService, UserService, CourseService]
 })
 export class ViewUserComponent implements OnInit, OnDestroy {
 	@ViewChild('formMobility') formMobility : NgForm;
@@ -38,6 +39,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		eco_roles : [],
 		locations : [],
 		trainings : [],
+		certificates : [],
 		badge_class : ''
 	};
 	showRemoveWardenButton = false;
@@ -76,6 +78,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         private encryptDecrypt: EncryptDecryptService,
         private route: ActivatedRoute,
         private router: Router,
+        private courseService : CourseService,
         private userService: UserService
 		){
 
@@ -103,6 +106,25 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			this.viewData.eco_roles = response.data.eco_roles;
 			this.viewData.locations = response.data.locations;
 			this.viewData.trainings = response.data.trainings;
+			this.viewData.certificates = response.data.certificates;
+
+			for(let i in this.viewData.trainings){
+				this.viewData.trainings[i]['certificates'] = {
+					pass : 0,
+					status : 'expired',
+					expiry_date_formatted : ''
+				};
+				for(let x in this.viewData.certificates){
+					this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
+
+					if(
+						this.viewData.trainings[i]['training_requirement_id'] ==
+						this.viewData.certificates[x]['training_requirement_id']
+						){
+						this.viewData.trainings['certificates'] = this.viewData.certificates[x];
+					}
+				}
+			}
 
 			for(let loc of this.viewData.locations){
 				let role_id = 0;
@@ -130,7 +152,9 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	ngOnInit(){}
+	ngOnInit(){
+
+	}
 
 	ngAfterViewInit(){
 		$('.modal').modal({

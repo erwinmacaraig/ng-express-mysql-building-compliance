@@ -75,13 +75,14 @@ import { TeamTrainingComponent } from './trainings/team-training/team.training.c
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
 
 import { ReportsComponent } from './reports/reports.component';
+import { ChooseReportComponent } from './reports/choose.report/choose.report.component';
 import { ReportsLocationsComponent  } from './reports/locations/reports.locations.component';
 import { ReportsLocationsSummaryOfComplianceComponent  } from './reports/summary-of-compliance/summary.of.compliance.component';
 import { ReportsLocationsComplianceComponent } from './reports/location-compliance/location.compliance.component';
 import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
 import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent  } from './reports/trainings/trainings.component';
-
+import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
 
@@ -103,7 +104,7 @@ const appRoutes: Routes = [
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-user-password/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
-  { path: 'dashboard',  component: DashboardComponent, children: [
+  { path: 'dashboard', component: DashboardComponent, children: [
       { path: 'main', component : FrpTrpDashboardComponent },
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
@@ -183,12 +184,14 @@ const appRoutes: Routes = [
   {
     path : 'reports', component : ReportsComponent,
     children : [
-      {  path : 'locations', component : ReportsLocationsComponent },
-      { path : 'locations/summary-of-compliance', component : ReportsLocationsSummaryOfComplianceComponent },
-      { path : 'locations/location-compliance', component : ReportsLocationsComplianceComponent },
-      { path : 'locations/statement-compliance', component : ReportsLocationsStatementComplianceComponent },
+      { path : 'choose', component : ChooseReportComponent },
+      { path : 'locations', component : ReportsLocationsComponent },
+      { path : 'summary-of-compliance', component : ReportsLocationsSummaryOfComplianceComponent },
+      { path : 'location-compliance', component : ReportsLocationsComplianceComponent },
+      { path : 'statement-compliance', component : ReportsLocationsStatementComplianceComponent },
       { path : 'teams', component : ReportsTeamsComponent },
-      { path : 'trainings', component : ReportsTrainingsComponent }
+      { path : 'trainings', component : ReportsTrainingsComponent },
+      { path : 'activity-log', component : ReportsActivityLogComponent }
     ]
   },
   {

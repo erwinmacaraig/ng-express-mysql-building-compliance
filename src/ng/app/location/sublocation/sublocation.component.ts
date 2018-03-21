@@ -54,7 +54,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
     defaultTimeZone = 'AEST';
 
     queryParams = {};
-
+    public subLocationsArr;
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
         private activeRoute: ActivatedRoute,
@@ -109,6 +109,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
             this.getLocationData(() => {
                 this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
                     this.tenants = tenantsResponse.data;
+                    console.log(this.tenants);
+
                 });
             });
         });
@@ -186,7 +188,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
             this.showModalNewTenantLoader = true;
             let formData = formAddTenant.value;
             formData['location_id'] = this.locationID;
-            console.log(formData);
+            console.log('formData', formData);
             this.userService.sendTRPInvitation(formData).subscribe(() => {
               this.getLocationData(() => {
                 this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
@@ -197,6 +199,11 @@ export class SublocationComponent implements OnInit, OnDestroy {
               });
             }, (e) => {
               console.log(e);
+              this.showModalNewTenantLoader = false;
+              $('#modalAddNewTenant').modal('close');
+              const errorObject = JSON.parse(e.error);
+              alert(errorObject.message);
+
             });
 
             /*

@@ -1,3 +1,4 @@
+import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
 
 import { BaseRoute } from './route';
@@ -20,6 +21,8 @@ import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { EmailSender } from './../models/email.sender';
 import { UserRequest } from '../models/user.request.model';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
+import { CourseUserRelation } from '../models/course-user-relation.model';
+
 
 import * as moment from 'moment';
 import * as validator from 'validator';
@@ -137,40 +140,63 @@ export class UsersRoute extends BaseRoute {
 	    });
 
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().getLocationsTenants(req, res, next);
+	    	new  UsersRoute().getLocationsTenants(req, res, next).then((data) => {
+          res.status(200).send({
+            'data': data
+          });
+        }).catch((e) => {
+          console.log(e);
+          res.status(400).send({
+            'status': 'Fail'
+          })
+        });
+      });
+
+      router.post('/users/send-trp-invitation/', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+        console.log('==============',req.body,'=================');
+        new UsersRoute().sendTRPInvitation(req, res, next).then(() => {
+          return res.status(200).send({
+            'status': 'Success'
+          })
+        }).catch((e) => {
+          console.log(e);
+          console.log(typeof e);
+          return res.status(400).send({
+            'status': 'Fail',
+            'message': e.toString()
+          });
+        });
+      });
+
+      router.get('/tenant/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
+          new UsersRoute().retrieveTenantInvitationInfo(req, res, next).then((info) => {
+	    return res.status(200).send({
+	      'status': 'Success',
+	      'data': info
 	    });
+          }).catch((e) => {
+	    return res.status(400).send({
+	      'status': 'Fail',
+	      'message': 'Unable to retrieve tenant invitation info'
+	    });
+          });
 
-		router.post('/users/send-trp-invitation/', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-			console.log(req.body);
-			new UsersRoute().sendTRPInvitation(req, res, next).then(() => {
-				return res.status(200).send({
-					'status': 'Success'
-				})
-			}).catch((e) => {
-				console.log(e);
-				return res.status(400).send({
-				'status': 'Fail'
-				});
-			});
-		});
-      
-		router.get('/tenant/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
-			new UsersRoute().retrieveTenantInvitationInfo(req, res, next).then((info) => {
-				return res.status(200).send({
-				  'status': 'Success',
-				  'data': info
-				});
-			}).catch((e) => {
-				return res.status(400).send({
-					'status': 'Fail',
-					'message': 'Unable to retrieve tenant invitation info'
-				});
-			});
-		});
-  	}
+      });
 
+      router.post('/tenant/process-invitation-form/', (req: Request, res: Response, next: NextFunction) => {
+        new UsersRoute().processTenantInvitationForm(req, res, next).then(() => {
+          return res.status(200).send({
+            'status': 'Success'
+          });
+        }).catch((e) => {
+          return res.status(400).send({
+            'status': 'Fail'
+          });
+        });
+      });
+  }
 
-  	public async checkIfAdmin(req: Request , res: Response){
+  public async checkIfAdmin(req: Request , res: Response){
 		let userModel = new User(req.params.user_id),
 			response = {
 				status : false, message : ''
@@ -187,107 +213,185 @@ export class UsersRoute extends BaseRoute {
 
     }
 
-	public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
-		const tokenModel = new Token();
-		let dbData;
-		let userInvitation;
-		let locationModel;
-		let locationParent;
-		const token = req.params.token;
-		console.log(token);
-		try {
-			const tokenDbData = await tokenModel.getByToken(token);
-			if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
-				userInvitation = new UserInvitation(tokenDbData['id']);
-				dbData = await userInvitation.load();
+  public async processTenantInvitationForm(req: Request, res: Response, next: NextFunction){
+    const encryptedPassword = md5('Ideation' + req.body.str_password + 'Max');
+    let user;
+    let invitation;
+    let account;
+    let locAccntUser;
+    try {
+      user = new User();
+      const tokenObj = new Token();
+      const tokenDbData = await tokenObj.getByToken(req.body.token);
+      invitation = new UserInvitation(tokenDbData['id']);
+      const userInvitation = await invitation.load();
+      account = new Account();
+      locAccntUser = new LocationAccountUser();
+      await account.create({
+        'account_name': req.body.account_name,
+        'building_number': req.body.building_number,
+        'account_domain': req.body.account_domain,
+        'billing_city': req.body.billing_city,
+        'billing_country': req.body.billing_country,
+        'billing_postal_code': req.body.billing_postal_code,
+        'billing_street': req.body.billing_street,
+        'billing_state': req.body.billing_state
+      });
+      await user.create({
+        'first_name': req.body.first_name,
+        'last_name': req.body.last_name,
+        'password': encryptedPassword,
+        'email': req.body.email,
+        'token': req.body.token,
+        'account_id': account.ID(),
+        'invited_by_user': userInvitation['invited_by_user'],
+        'can_login': 1,
+      });
+      await tokenObj.create({
+        'action': 'verify',
+        'verified': 1,
+        'id': user.ID(),
+        'id_type': 'user_id'
+      });
+      await invitation.create({
+        'was_used': 1
+      });
+      await locAccntUser.create({
+        'location_id': invitation.get('location_id'),
+        'account_id': account.ID(),
+        'user_id': user.ID(),
+        'role_id': defs['Tenant'],
+      });
+      return true;
+    } catch(e) {
+      console.log(e);
+      throw new Error('There was a problem processing tenant information');
+    }
+  }
+  public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
+    const tokenModel = new Token();
+    let dbData;
+    let userInvitation;
+    let locationModel;
+    let locationParent;
+    const token = req.params.token;
+    console.log(token);
+    try {
+      const tokenDbData = await tokenModel.getByToken(token);
+      if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
+	userInvitation = new UserInvitation(tokenDbData['id']);
+	dbData = await userInvitation.load();
 
-				// get parent location 
-				locationModel = new Location(dbData['location_id']);
-				await locationModel.load();
-				let parentId = locationModel.get('parent_id');
-				while (parentId !== -1) {
-				  locationParent = new Location(parentId);
-				  await locationParent.load();
-				  parentId = locationParent.get('parent_id');
-				}
-				dbData['parent_location_name'] = locationParent.get('name');
-				dbData['parent_location_id'] = locationParent.ID();
-				dbData['sub_location_name'] = locationModel.get('name');
-				dbData['sub_location_id'] = locationModel.ID();
-				return dbData;
-			} else {
-				throw new Error('Invalid token');
-			}
-		} catch(e) {
-			console.log(e);
-			throw new Error('Cannot get invitation data');
-		}
+	// get parent location
+	locationModel = new Location(dbData['location_id']);
+	await locationModel.load();
+	let parentId = locationModel.get('parent_id');
+	while (parentId !== -1) {
+	  locationParent = new Location(parentId);
+	  await locationParent.load();
+	  parentId = locationParent.get('parent_id');
 	}
+	dbData['parent_location_name'] = (locationParent.get('name').toString().length > 0) ?
+  locationParent.get('name') : locationParent.get('formatted_address');
+	dbData['parent_location_id'] = locationParent.ID();
+  dbData['sub_location_name'] = locationModel.get('name');
+	dbData['sub_location_id'] = locationModel.ID();
+	return dbData;
 
-  	public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
+      } else {
+	throw new Error('Invalid token');
+      }
+    } catch(e) {
+      console.log(e);
+      throw new Error('Cannot get invitation data');
 
-		const inviCode = new UserInvitation();
-		const inviDetails = req.body;
-		inviDetails['account_id'] = req['user'].account_id;
-		inviDetails['role_id'] = defs['Tenant'];
-		inviDetails['invited_by_user'] = req['user'].user_id;
-		const tokenModel = new Token();
-		const token = tokenModel.generateRandomChars(8);
+    }
 
-		const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
-		const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
 
-		try {
-			console.log(inviDetails);
-			await inviCode.create(inviDetails);
 
-			await tokenModel.create({
-				'token': token,
-				'action': 'invitation',
-				'verified': 0,
-				'expiration_date': expDate,
-				'id': inviCode.ID(),
-				'id_type': 'user_invitations_id'
-			});
+  }
+  public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
 
-			// email notification here
-			const opts = {
-				from : '',
-				fromName : 'EvacConnect',
-				to : [],
-				cc: [],
-				body : '',
-				attachments: [],
-				subject : 'EvacConnect TRP Invitation'
-			};
-			const email = new EmailSender(opts);
-			let emailBody = email.getEmailHTMLHeader();
-			emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
-			<h4>You are being assigned as a Tenant.</h4> <br/>
-			<h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
-			<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+    // check first if email is existing
+    let dbData = {};
+    try {
+      const user = new User();
+      dbData = await user.getByEmail(req.body.email);
+    } catch(e) {
 
-			emailBody += email.getEmailHTMLFooter();
-			email.assignOptions({
-				body : emailBody,
-				to: [inviDetails['email']],
-				cc: []
-			});
+    }
 
-			email.send((data) => {
-				console.log(data);
-				return true;
-			},(err) => {
-				console.log(err);
-				return false;
-			});
-		} catch (e) {
-			console.log(e);
-		}
+    if (Object.keys(dbData).length > 0) {
+      throw Error('Email taken');
+    } else {
+      console.log('Checkpoint catch');
+      const inviCode = new UserInvitation();
+      const inviDetails = req.body;
+      inviDetails['account_id'] = req['user'].account_id;
+      inviDetails['role_id'] = defs['Tenant'];
+      inviDetails['invited_by_user'] = req['user'].user_id;
+      const tokenModel = new Token();
+      const token = tokenModel.generateRandomChars(8);
 
-		return true;
-  	}
+      const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
+      const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
 
+      try {
+        console.log(inviDetails);
+        await inviCode.create(inviDetails);
+
+        await tokenModel.create({
+          'token': token,
+          'action': 'invitation',
+          'verified': 0,
+          'expiration_date': expDate,
+          'id': inviCode.ID(),
+          'id_type': 'user_invitations_id'
+        });
+
+        // email notification here
+        const opts = {
+          from : '',
+          fromName : 'EvacConnect',
+          to : [],
+          cc: [],
+          body : '',
+          attachments: [],
+          subject : 'EvacConnect TRP Invitation'
+        };
+        const email = new EmailSender(opts);
+        let emailBody = email.getEmailHTMLHeader();
+          emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+          <h4>You are being assigned as a Tenant.</h4> <br/>
+          <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
+          <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+        emailBody += email.getEmailHTMLFooter();
+        email.assignOptions({
+          body : emailBody,
+          to: [inviDetails['email']],
+          cc: []
+        });
+
+        email.send((data) => {
+          console.log(data);
+          return true;
+        },(err) => {
+          console.log(err);
+          return false;
+        });
+      } catch (e) {
+        console.log(e);
+        return false;
+      }
+
+    }
+
+
+
+
+
+  }
 	public async updateUser(req: Request , res: Response, next: NextFunction){
 		let
 		response = {
@@ -617,6 +721,7 @@ export class UsersRoute extends BaseRoute {
 				user : {},
 				locations : {},
 				trainings : <any>[],
+				certificates : <any>[],
 				eco_roles : <any>[]
 			},
 			message : ''
@@ -700,6 +805,22 @@ export class UsersRoute extends BaseRoute {
 		}catch(e){
 			response.status = false;
 		}
+
+		try{
+
+			let courseModel = new CourseUserRelation(),
+				trainings = await courseModel.getAllCourseForUser(userId);
+			response.data.trainings = trainings;
+
+		}catch(e){}
+
+		try{
+
+			let userModel = new User(userId),
+				certificates = await userModel.getAllCertifications();
+			response.data.certificates = certificates;
+
+		}catch(e){}
 
 		res.statusCode = 200;
 		res.send(response);
@@ -1226,10 +1347,10 @@ export class UsersRoute extends BaseRoute {
 
 			const
 			opts = {
-				from : 'allantaw2@gmail.com',
+				from : '',
 				fromName : 'EvacConnect',
 				to : [ approverModel.get('email') ],
-				cc: ['erwin.macaraig@gmail.com'],
+				cc: [],
 				body : '',
 				attachments: [],
 				subject : 'EvacConnect Warden Request'
@@ -1399,10 +1520,9 @@ export class UsersRoute extends BaseRoute {
 
 					const
 					opts = {
-						from : 'allantaw2@gmail.com',
+						from : '',
 						fromName : 'EvacConnect',
-						// to : [ userModel.get('email') ],
-						to : [ 'adelfin@evacgroup.com.au' ],
+						to : [ userModel.get('email') ],
 						cc: [],
 						body : '',
 						attachments: [],
@@ -1531,7 +1651,7 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async saveMobilityImpairedDetails(req: Request, res: Response, next: NextFunction){
+	public async saveMobilityImpairedDetails(req: AuthRequest, res: Response, next: NextFunction){
 		let
 		response = <any>{
 			status : true, data : [], message : ''
@@ -1567,95 +1687,43 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async getLocationsTenants(req: Request, res: Response, next: NextFunction){
-		let response = {
-			data : <any>[],
-			message : ''
-		},
-		locId = req.params.location_id,
-		locationAccModel = new LocationAccountRelation(),
-		returnData = [];
+	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction){
+    const location_id = req.params.location_id;
+    const locationAccountUserObj = new LocationAccountUser();
+    // listing of roles is implemented here because we are only listing roles on a sub location
+    const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
+    const canLoginTenantArr = [];
 
-		let tenantsAccount = await locationAccModel.getTenantsOfLocationId(locId),
-			accountIds = [],
-			accounts = [];
-		for(let i in tenantsAccount){
-			let accountModel = new Account(tenantsAccount[i]['account_id']);
+    Object.keys(canLoginTenants).forEach((key) => {
+      canLoginTenantArr.push(canLoginTenants[key]);
+    });
 
-			try{
-				let acc = await accountModel.load();
-				acc['users'] = [];
-				acc['trps'] = [];
-				acc['trp_name'] = '';
-				acc['warden_benchmarking'] = '0/00';
-				acc['wardens'] = '0/00';
-				acc['wardens_trained'] = 0;
-				accounts.push( acc );
-			}catch(e){}
+    for (let i = 0; i < canLoginTenantArr.length; i++) {
+      // get all wardens for this location on this account
+      const EMRole = new UserEmRoleRelation();
+      const trainingCert = new TrainingCertification();
+      const temp =
+        await EMRole.getEMRolesOnAccountOnLocation(
+          defs['em_roles']['WARDEN'],
+          canLoginTenantArr[i]['account_id'],
+          location_id
+      );
+      canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
+      canLoginTenantArr[i]['wardens'] = temp['raw'];
 
-			accountIds.push(tenantsAccount[i]['account_id']);
-		}
-
-		let locAccUserModel = new LocationAccountUser(),
-			locAccUserData = await locAccUserModel.getByLocationIdAndAccountId(locId, accountIds.join(',')),
-			users = [];
-
-		for(let i in locAccUserData){
-			let loc = locAccUserData[i],
-				userModel = new User(loc.user_id);
-
-			try{
-				let user = <any> await userModel.load();
-
-				for(let a in accounts){
-
-					if(accounts[a]['account_id'] == loc.account_id){
-
-						let emRoleModel = new UserEmRoleRelation(),
-							emRoles = <any> [];
-
-						try{
-							emRoles = await emRoleModel.getEmRolesByUserId(user.user_id);
-						}catch(e){ }
-
-						if(loc.role_id == 2){
-							accounts[a]['trps'].push({
-								first_name : user.first_name,
-								last_name : user.last_name,
-								user_id : user.user_id
-							});
-						}
-
-						accounts[a]['users'].push({
-							role_id : loc.role_id,
-							first_name : user.first_name,
-							last_name : user.last_name,
-							user_id : user.user_id,
-							em_roles : emRoles
-						});
-					}
+      // get trained wardens
+      canLoginTenantArr[i]['trained_wardens'] = await
+           trainingCert.getEMRUserCertifications(temp['users']);
+    }
+    console.log(canLoginTenantArr);
 
 
 
-				}
 
-				users.push( user );
-			}catch(e){}
-		}
+    return canLoginTenantArr;
 
 
-		for(let a in accounts){
-			let trpnamesArr = [];
-			for(let x in accounts[a]['trps']){
-				trpnamesArr.push( accounts[a]['trps'][x]['first_name'] +' '+ accounts[a]['trps'][x]['last_name'] );
-			}
 
-			accounts[a]['trp_name'] = trpnamesArr.join(', ');
-		}
-
-		response.data = accounts;
-
-		res.send(response);
 
 	}
 

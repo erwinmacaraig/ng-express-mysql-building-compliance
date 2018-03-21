@@ -77,7 +77,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		'name' : '',
 		'parentData' : <any>{ location_id : 0 }
 	};
-
+  public tenants;
 	latestComplianceData = <any>[];
   public totalPercentage;
 	constructor(
@@ -206,7 +206,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 	ngAfterViewInit(){
 		$('.workspace.container').css('position', 'relative');
-		this.dashboard.show();
+    this.dashboard.show();
+
+    $('.modal').modal({
+      dismissible: false
+    });
 	}
 
 	clickSelectComplianceFromList(compliance){
@@ -299,6 +303,15 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         this.selectedCompliance.compliance.docs[0].viewable_by_trp = temp;
         console.log(error);
       });
+  }
+
+  public viewWardenList(location_id:number = 0) {
+    this.userService.getTenantsInLocation(location_id, (tenantsResponse) => {
+      this.tenants = tenantsResponse.data;
+      // this.showModalNewTenantLoader = false;
+      $('#modalWardenList').modal('open');
+      console.log(this.tenants);
+  });
   }
 
 }

@@ -12,6 +12,9 @@ import { TrainingRequirements } from '../models/training.requirements';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 
+import * as moment from 'moment';
+
+
 export class CourseRoute extends BaseRoute {
 
 	public static create(router: Router) {
@@ -35,6 +38,10 @@ export class CourseRoute extends BaseRoute {
 	   	router.post('/courses/disable-users-from-courses', (req: Request, res: Response) => {
 	   		new CourseRoute().disableUsersFromCourses(req, res);
 	   	});
+
+	   	router.get('/courses/my-courses/:user_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new CourseRoute().getMyCourses(req, res);
+	   	});
    	}
 
    	response = {
@@ -45,6 +52,23 @@ export class CourseRoute extends BaseRoute {
 
 	constructor() {
 		super();
+	}
+
+	public async getMyCourses(req: AuthRequest, res: Response){
+		let userId = req.params.user_id,
+		response = {
+			status : false, data : [], message : ''
+		},
+		courseUserRelation = new CourseUserRelation();
+
+		let courses = <any> await courseUserRelation.getAllCourseForUser(userId);
+		for(let cor of courses){
+			cor['timestamp_formatted'] = moment(cor['dtTimeStamp']).format('MMM. DD, YYYY');
+		}
+		response.status = true;
+		response.data = courses;
+
+		res.send(response);
 	}
 
 	public async disableUsersFromCourses(req: Request, res: Response){
@@ -99,6 +123,7 @@ export class CourseRoute extends BaseRoute {
 			arrWhere.push( 'training_requirement_id = '+trainingRequirementId );
 
 			let data = <any> await courseUserRelationModel.getWhere(arrWhere);
+
 			if(data.length == 0){
 				let saveCourseUserRelationModel = new CourseUserRelation();
 
@@ -107,7 +132,9 @@ export class CourseRoute extends BaseRoute {
 					'course_id' : courseId,
 					'training_requirement_id' : trainingRequirementId
 				});
+
 			}else{
+
 				for(let i in data){
 					let saveCourseUserRelationModel = new CourseUserRelation();
 					for(let n in data[i]){
