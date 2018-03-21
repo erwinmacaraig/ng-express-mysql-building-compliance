@@ -99,6 +99,7 @@ export class CourseRoute extends BaseRoute {
 			arrWhere.push( 'training_requirement_id = '+trainingRequirementId );
 
 			let data = <any> await courseUserRelationModel.getWhere(arrWhere);
+
 			if(data.length == 0){
 				let saveCourseUserRelationModel = new CourseUserRelation();
 
@@ -107,7 +108,9 @@ export class CourseRoute extends BaseRoute {
 					'course_id' : courseId,
 					'training_requirement_id' : trainingRequirementId
 				});
+
 			}else{
+
 				for(let i in data){
 					let saveCourseUserRelationModel = new CourseUserRelation();
 					for(let n in data[i]){
