@@ -69,21 +69,18 @@
 							<th>Location</th>
 							<th>Compliance</th>
 							<th>Training Licences</th>
-							<th></th>
+							<!-- <th></th> -->
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
-							<td>Jaka Building</td>
-							<td>Self Manage</td>
-							<td> 0/0 </td>
-							<td> <button class="btn light-blue waves-effect waves-light">Shop</button> </td>
+						<tr *ngIf="locations.length == 0">
+							<td colspan="4" class="center">No plans found</td>
 						</tr>
-						<tr>
-							<td>Nugee Road</td>
-							<td>Value Compliance</td>
+						<tr *ngFor="let loc of locations">
+							<td>{{loc.name}}</td>
+							<td></td>
 							<td> 0/0 </td>
-							<td> <button class="btn light-blue waves-effect waves-light">Shop</button> </td>
+							<!--<td>  <button class="btn light-blue waves-effect waves-light">Shop</button>  </td>-->
 						</tr>
 					</tbody>
 				</table>
