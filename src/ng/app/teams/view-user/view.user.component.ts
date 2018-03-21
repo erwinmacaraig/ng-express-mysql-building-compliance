@@ -8,6 +8,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { UserService } from '../../services/users';
+import { CourseService } from '../../services/course';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as enLocale from 'date-fns/locale/en';
 
@@ -18,7 +19,7 @@ declare var moment: any;
   selector: 'app-view-user-component',
   templateUrl: './view.user.component.html',
   styleUrls: ['./view.user.component.css'],
-  providers: [DashboardPreloaderService, EncryptDecryptService, UserService]
+  providers: [DashboardPreloaderService, EncryptDecryptService, UserService, CourseService]
 })
 export class ViewUserComponent implements OnInit, OnDestroy {
 	@ViewChild('formMobility') formMobility : NgForm;
@@ -65,6 +66,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 	locations = [];
 
+	courses = [];
+
 	constructor(
 		private auth: AuthService,
         private preloaderService: DashboardPreloaderService,
@@ -72,6 +75,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         private encryptDecrypt: EncryptDecryptService,
         private route: ActivatedRoute,
         private router: Router,
+        private courseService : CourseService,
         private userService: UserService
 		){
 
@@ -117,7 +121,11 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	ngOnInit(){}
+	ngOnInit(){
+		this.courseService.myCourses(this.userData['userId'], (response) => {
+			this.courses = response.data;
+		});
+	}
 
 	ngAfterViewInit(){
 		$('.modal').modal({
