@@ -39,6 +39,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		eco_roles : [],
 		locations : [],
 		trainings : [],
+		certificates : [],
 		badge_class : ''
 	};
 	showRemoveWardenButton = false;
@@ -65,8 +66,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 	isPasswordEquals = false;
 
 	locations = [];
-
-	courses = [];
 
 	constructor(
 		private auth: AuthService,
@@ -103,6 +102,25 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			this.viewData.eco_roles = response.data.eco_roles;
 			this.viewData.locations = response.data.locations;
 			this.viewData.trainings = response.data.trainings;
+			this.viewData.certificates = response.data.certificates;
+
+			for(let i in this.viewData.trainings){
+				this.viewData.trainings[i]['certificates'] = {
+					pass : 0,
+					status : 'expired',
+					expiry_date_formatted : ''
+				};
+				for(let x in this.viewData.certificates){
+					this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
+
+					if(
+						this.viewData.trainings[i]['training_requirement_id'] ==
+						this.viewData.certificates[x]['training_requirement_id']
+						){
+						this.viewData.trainings['certificates'] = this.viewData.certificates[x];
+					}
+				}
+			}
 
 
 			if(this.viewData.user.last_login.length > 0 ){
@@ -122,9 +140,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
-		this.courseService.myCourses(this.userData['userId'], (response) => {
-			this.courses = response.data;
-		});
+
 	}
 
 	ngAfterViewInit(){
