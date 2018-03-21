@@ -33,7 +33,7 @@ const defs = require('../config/defs.json');
 	/**
    	* Create the routes.
    	*
-   	* @class AccountRoute
+   	* @class LocationRoute
    	* @method create
    	* @static
    	*/
