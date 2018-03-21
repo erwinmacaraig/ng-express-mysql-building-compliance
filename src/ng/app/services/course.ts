@@ -52,4 +52,10 @@ export class CourseService {
         });
     }
 
+    myCourses(userId, callBack){
+        this.http.get('/courses/my-courses/'+userId).subscribe((res) => {
+            callBack(res);
+        });
+    }
+
 }

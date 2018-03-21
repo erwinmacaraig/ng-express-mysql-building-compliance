@@ -161,26 +161,33 @@ export class CourseUserRelation extends BaseClass {
     });
   }
 
-  public getAllCourseForUser(user: number = 0): Promise<Array<object>> {
+  public getAllCourseForUser(user: number = 0, disabled?): Promise<Array<object>> {
     return new Promise((resolve, reject) => {
+      if(disabled == undefined){
+        disabled = 0;
+      }
       const sql = `SELECT
                       course_user_relation.*,
                       scorm_course.*,
-                      scorm.parameter_value as lesson_status
+                      scorm.parameter_value as lesson_status,
+                      tr.training_requirement_name
                   FROM
                     course_user_relation
                   INNER JOIN
                     scorm_course
                   ON
                     course_user_relation.course_id = scorm_course.course_id
+                  INNER JOIN
+                    training_requirement tr ON course_user_relation.training_requirement_id = tr.training_requirement_id
                   LEFT JOIN
                     scorm
                   ON (course_user_relation.course_user_relation_id = scorm.course_user_relation_id
                       AND scorm.parameter_name = 'cmi.core.lesson_status')
                   WHERE
-                    course_user_relation.user_id = ?`;
+                    course_user_relation.user_id = ? AND course_user_relation.disabled = ?
+                  ORDER BY course_user_relation.dtTimeStamp DESC`;
       const connection = db.createConnection(dbconfig);
-      connection.query(sql, [user], (error, results, fields) => {
+      connection.query(sql, [user, disabled], (error, results, fields) => {
         if (error) {
           console.log('course-user-relation.model.getAllCourseForUser', error, sql);
           throw new Error('There was a problem retrieving all courses for this user - ' + user);
