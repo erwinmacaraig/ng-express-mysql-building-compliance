@@ -21,6 +21,8 @@ import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { EmailSender } from './../models/email.sender';
 import { UserRequest } from '../models/user.request.model';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
+import { CourseUserRelation } from '../models/course-user-relation.model';
+
 
 import * as moment from 'moment';
 import * as validator from 'validator';
@@ -719,6 +721,7 @@ export class UsersRoute extends BaseRoute {
 				user : {},
 				locations : {},
 				trainings : <any>[],
+				certificates : <any>[],
 				eco_roles : <any>[]
 			},
 			message : ''
@@ -802,6 +805,22 @@ export class UsersRoute extends BaseRoute {
 		}catch(e){
 			response.status = false;
 		}
+
+		try{
+
+			let courseModel = new CourseUserRelation(),
+				trainings = await courseModel.getAllCourseForUser(userId);
+			response.data.trainings = trainings;
+
+		}catch(e){}
+
+		try{
+
+			let userModel = new User(userId),
+				certificates = await userModel.getAllCertifications();
+			response.data.certificates = certificates;
+
+		}catch(e){}
 
 		res.statusCode = 200;
 		res.send(response);
