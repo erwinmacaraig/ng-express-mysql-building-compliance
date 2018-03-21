@@ -1,3 +1,4 @@
+
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
@@ -360,5 +361,55 @@ export class User extends BaseClass {
             connection.end();
         });
     }
+
+  public getAllCertifications(filter: object = {}, user_id: number = 0) {
+    return new Promise((resolve, reject) => {
+      let uid = this.ID();
+      if (user_id) {
+        uid = user_id;
+      }
+      let filterStr = '';
+      Object.keys(filter).forEach((key) => {
+        switch (key) {
+          case 'pass':
+            filterStr += ` AND certifications.pass = ${filter[key]}`;
+          break;
+          case 'training_requirement_id':
+            filterStr += ` AND certifications.training_requirement_id = ${filter[key]}`;
+          break;
+        }
+      });
+      const sql_certifications = `SELECT
+        training_requirement.training_requirement_name,
+        certifications.*,
+        training_requirement.num_months_valid,
+        DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
+        IF (DATE_ADD(certifications.certification_date,
+          INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
+        FROM
+          certifications
+        INNER JOIN
+         training_requirement
+        ON
+          training_requirement.training_requirement_id = certifications.training_requirement_id
+        WHERE
+          certifications.user_id = ? ${filterStr}`;
+
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_certifications, [uid], (error, results, fields) => {
+        if (error) {
+          console.log('user.model.getAllCertifications',  error, sql_certifications);
+          throw Error('There was a problem with getting the certification records for this user');
+        }
+        if (results.length > 0) {
+          resolve(results);
+        } else {
+          reject('There are no certifications for this user');
+        }
+      });
+      connection.end();
+
+    });
+  }
 
 }
