@@ -45,6 +45,10 @@ export class UsersRoute extends BaseRoute {
 
 
 	public static create(router: Router) {
+		router.get('/users/is-admin/:user_id',  (req: Request, res: Response) => {
+			new UsersRoute().checkIfAdmin(req, res);
+		});
+
 		router.post('/users/update', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().updateUser(req, res, next);
 	    });
@@ -63,6 +67,10 @@ export class UsersRoute extends BaseRoute {
 
 	    router.get('/users/get-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getUsersByAccountId(req, res, next);
+	    });
+
+	    router.get('/users/get-users-by-account-none-auth/:account_id', (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getUsersByAccountIdNoneAuth(req, res);
 	    });
 
 	    router.get('/users/get-user-locations-trainings-ecoroles/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -183,6 +191,23 @@ export class UsersRoute extends BaseRoute {
         });
       });
   }
+
+  public async checkIfAdmin(req: Request , res: Response){
+		let userModel = new User(req.params.user_id),
+			response = {
+				status : false, message : ''
+			};
+
+		try{
+			let user = await userModel.load();
+			if(user['evac_role'] == 'admin'){
+				response.status = true;
+			}
+		}catch(e){}
+
+		res.send(response);
+
+    }
 
   public async processTenantInvitationForm(req: Request, res: Response, next: NextFunction){
     const encryptedPassword = md5('Ideation' + req.body.str_password + 'Max');
@@ -509,6 +534,18 @@ export class UsersRoute extends BaseRoute {
 				});
 			}
 		);
+	}
+
+	public async getUsersByAccountIdNoneAuth(req: Request, res: Response){
+		let accountId = req.params.account_id,
+			userModel = new User();
+
+		res.send({
+			status : true,
+			data : await userModel.getByAccountId(accountId),
+			message : ''
+		});
+
 	}
 
 	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction, archived?){
