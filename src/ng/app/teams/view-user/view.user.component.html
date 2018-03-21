@@ -112,7 +112,40 @@
 			<h4 *ngIf="viewData.trainings.length == 0">No training record found</h4>
 	
 			<div class="grid" id="gridContainer">
-				
+
+				<div class="grid-item card grey lighten-3" *ngFor="let tr of viewData.trainings">
+					<div class="top" >
+						<div *ngIf=" tr.certificates.status == 'expired' ">
+							<div class="image close inline-block" ></div>
+							<div class="text inline-block red-text">Not Compliance</div>
+						</div>
+						
+						<div *ngIf=" tr.certificates.pass == 1 && tr.certificates.status == 'valid'">
+							<div class="image check inline-block"></div>
+							<div class="text inline-block green-text">Compliance</div>
+						</div>
+					</div>
+
+					<div class="middle-image">
+						<div class="image red-image"></div>
+					</div>
+					<div class="middle-text">
+						{{tr.training_requirement_name}}
+						<p class="blue-text">
+							<span *ngIf="tr.certificates.expiry_date_formatted">{{tr.certificates.expiry_date_formatted}}</span>
+						</p>
+					</div>
+							
+					<div class="buttons" *ngIf=" tr.certificates.status == 'expired'">
+						<button class="btn red lighten-1 waves-effect waves-light">Send Invitation</button>
+					</div>
+
+					<div class="buttons" *ngIf=" tr.certificates.pass == 1 && tr.certificates.status == 'valid'">
+						<button class="btn blue waves-effect waves-light">Download Certificate</button>
+						<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
+					</div>
+				</div>
+
 			</div>
 			
 		</div>
