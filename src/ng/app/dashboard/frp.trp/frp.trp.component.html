@@ -162,62 +162,44 @@
 		<div class="col l3 m6 s12">
 			<h5 class="orange-text">My Trainings</h5>
 
-			<ul class="my-trainings list-border-bottom-grey margin-bottom-30">
-				<li>
-					<div class="display-table width100">
-						<div class="cell">
-							<div class="image expired"></div>
-						</div>
-						<div class="cell">
-							<p class="font-size-20">Active Shooter Response Procedures</p>
-						</div>
-					</div>
+			<div *ngIf="courses.length == 0">
+				<h5 class="grey-text">No Trainings Available Yet</h5>
+			</div>
 
-					<div class="right align-right">
-						<div class="display-table">
-							<a href="javascipt:void(0)">
-								<div class="cell blue-text font-size-16">
-									Take Course
-								</div>
-								<div class="cell">
-									<div class="black-arrow-right"> > </div>
-								</div>
-							</a>
+			<div *ngIf="courses.length > 0">
+				<ul class="my-trainings list-border-bottom-grey margin-bottom-30">
+					<li *ngFor="let course of courses; let i = index;" [hidden]="i > 1">
+						<div class="display-table width100">
+							<div class="cell">
+								<div class="image expired" *ngIf="['failed', 'not attempted', 'incomplete', 'browsed', null].indexOf(course.lesson_status) > -1"></div>
+								<div class="image check" *ngIf="['passed'].indexOf(course.lesson_status) > -1"></div>
+							</div>
+							<div class="cell">
+								<p class="font-size-20">{{course.training_requirement_name}}</p>
+							</div>
 						</div>
-					</div>
 
-					<div class="clearfix"></div>
-				</li>
-
-				<li>
-					<div class="display-table width100">
-						<div class="cell">
-							<div class="image check"></div>
+						<div class="right align-right">
+							<div class="display-table">
+								<a href="javascipt:void(0)" [routerLink]="['/trainings/my-training']">
+									<div class="cell blue-text font-size-16">
+										Take Course
+									</div>
+									<div class="cell">
+										<div class="black-arrow-right"> > </div>
+									</div>
+								</a>
+							</div>
 						</div>
-						<div class="cell">
-							<p class="font-size-20">Active Shooter Response Procedures</p>
-						</div>
-					</div>
 
-					<div class="right align-right">
-						<div class="display-table">
-							<a href="javascipt:void(0)">
-								<div class="cell blue-text font-size-16">
-									Take Course
-								</div>
-								<div class="cell">
-									<div class="black-arrow-right"> > </div>
-								</div>
-							</a>
-						</div>
-					</div>
+						<div class="clearfix"></div>
+					</li>
+				</ul>
 
-					<div class="clearfix"></div>
-				</li>
-			</ul>
+				<a href="javascipt:void(0)" class="blue-text font-size-16 right" [routerLink]="['/trainings/my-training']">View all ></a>
+				<div class="clearfix"></div>
+			</div>
 
-			<a href="javascipt:void(0)" class="blue-text font-size-16 right">View all ></a>
-			<div class="clearfix"></div>
 		</div>
 
 		<div class="col l3 m6 s12">
@@ -226,7 +208,7 @@
 			<ul class="quick-links list-border-bottom-grey margin-bottom-30">
 				<li>
 					<div class="display-table width100">
-						<a href="javascipt:void(0)">
+						<a href="javascipt:void(0)" [routerLink]="['/teams/list-wardens']">
 							<div class="cell">
 								<div class="cell blue-text font-size-20 black-text">
 									Update Warden List
@@ -240,8 +222,8 @@
 				</li>
 
 				<li>
-					<div class="display-table width100">
-						<a href="javascipt:void(0)">
+					<div class="display-table width100" >
+						<a href="javascipt:void(0)" [routerLink]="['/teams/mobility-impaired']">
 							<div class="cell">
 								<div class="cell blue-text font-size-20 black-text">
 									Review PEEP
@@ -256,10 +238,10 @@
 
 				<li>
 					<div class="display-table width100">
-						<a href="javascipt:void(0)">
+						<a href="javascipt:void(0)" [routerLink]="['/trainings/my-training']">
 							<div class="cell">
 								<div class="cell blue-text font-size-20 black-text">
-									Warden Benchmarking
+									Trainings
 								</div>
 							</div>
 							<div class="cell align-right">
@@ -271,10 +253,10 @@
 
 				<li>
 					<div class="display-table width100">
-						<a href="javascipt:void(0)">
+						<a href="javascipt:void(0)" [routerLink]="['/location/list']">
 							<div class="cell">
 								<div class="cell blue-text font-size-20 black-text">
-									Download Reports
+									Locations
 								</div>
 							</div>
 							<div class="cell align-right">
@@ -295,30 +277,34 @@
 			<div class="resources-container">
 				<ul>
 					<li>
+						<a href="https://s3.amazonaws.com/allan-delfin/manuals/EvacConnect+for+Facility+Responsible+Persons.pdf" target="_blank">
 						<div class="display-table">
 							<div class="cell">
 								<img src="/assets/images/pdf.png" alt="">
 							</div>
 							<div class="cell font-size-16">
-								Bomb and Telephone Threat Checklist
+								Facility Responsible Persons User Guide
 							</div>
 						</div>
+						</a>
 					</li>
 
 					<li>
+						<a href="https://s3.amazonaws.com/allan-delfin/manuals/EvacConnect+for+Tenant+Responsible+Persons.pdf" target="_blank">
 						<div class="display-table">
 							<div class="cell">
 								<img src="/assets/images/pdf.png" alt="">
 							</div>
 							<div class="cell font-size-16">
-								Offender Description
+								Tenant Responsible Persons User Guide
 							</div>
 						</div>
+						</a>
 					</li>
 				</ul>
 
-				<a href="javascipt:void(0)" class="blue-text font-size-16 right">View all ></a>
-				<div class="clearfix"></div>
+				<!-- <a href="javascipt:void(0)" class="blue-text font-size-16 right">View all ></a>
+				<div class="clearfix"></div> -->
 			</div>
 		</div>
 

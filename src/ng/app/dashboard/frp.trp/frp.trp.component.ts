@@ -8,6 +8,7 @@ import { AccountsDataProviderService } from '../../services/accounts';
 import { UserService } from '../../services/users';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { CourseService } from '../../services/course';
 import { Router, NavigationEnd  } from '@angular/router';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -21,19 +22,26 @@ declare var $: any;
 	selector: 'app-frptrp-dashboard',
 	templateUrl: './frp.trp.component.html',
 	styleUrls: ['./frp.trp.component.css'],
-	providers: [AccountsDataProviderService, AuthService, LocationsService, DashboardPreloaderService, UserService, DonutService]
+	providers: [AccountsDataProviderService, AuthService, LocationsService, DashboardPreloaderService, UserService, DonutService, CourseService]
 })
 
 export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	userData = {};
 
+	courses = [];
+
 	constructor(
 		private authService : AuthService,
-		private donut : DonutService
+		private donut : DonutService,
+		private courseService : CourseService
 		){
 
 		this.userData = this.authService.getUserData();
+
+		this.courseService.myCourses(this.userData['userId'], (response) => {
+			this.courses = response.data;
+		});
 
 	}
 
