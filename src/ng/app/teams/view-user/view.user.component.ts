@@ -65,6 +65,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 	locations = [];
 
+	toEditLocations = [];
+
+	showLocationSelection = false;
+
 	constructor(
 		private auth: AuthService,
         private preloaderService: DashboardPreloaderService,
@@ -99,6 +103,15 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			this.viewData.eco_roles = response.data.eco_roles;
 			this.viewData.locations = response.data.locations;
 			this.viewData.trainings = response.data.trainings;
+
+			for(let loc of this.viewData.locations){
+				let role_id = 0;
+				if(loc.em_roles_id == null && loc.location_role_id == 1){
+					
+				}
+			}
+
+			this.toEditLocations = JSON.parse( JSON.stringify(response.data.locations) );
 
 
 			if(this.viewData.user.last_login.length > 0 ){
@@ -352,6 +365,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     			this.showModalCredentials();
     		}else if(val == 'location'){
     			$('#modalAssignLocations').modal('open');
+    			this.toEditLocations = JSON.parse( JSON.stringify(this.viewData.locations) );
     		}
 
     		selectAction.val('0').material_select('update');
@@ -428,6 +442,14 @@ export class ViewUserComponent implements OnInit, OnDestroy {
             	});
     		});
     	}
+    }
+
+    assignNewClickEvent(){
+    	this.toEditLocations.push({
+    		location_id : 0,
+    		location_role_id : 0,
+    		em_roles_id : 0
+    	});
     }
 
     ngOnDestroy(){

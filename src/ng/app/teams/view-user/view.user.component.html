@@ -401,8 +401,11 @@
 </div>
 
 <div id="modalAssignLocations" class="modal">
-	<div class="modal-content">
-		<h5>Assign {{viewData.user.first_name+' '+viewData.user.last_name}} To Locations</h5>
+	<div class="modal-content" [hidden]="showLocationSelection">
+		<h5>Assign {{viewData.user.first_name+' '+viewData.user.last_name}} To Locations
+			<a href="javascipt:void(0)" class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
+		</h5>
+		
 		
 		<form #formAssignLocation (submit)="submitAssignLocation(formAssignLocation)">
 
@@ -415,16 +418,18 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr *ngFor="let loc of viewData.locations; let i = index;">
+				<tr *ngFor="let loc of toEditLocations; let i = index;">
 					<td>
-						<span *ngIf="loc.parent_name !== null">{{loc.parent_name}},</span> {{loc.name}}
+						<a href="javascript:void(0)" class="blue-text change-location">
+							<span *ngIf="loc.parent_name !== null">{{loc.parent_name}},</span> {{loc.name}}
+						</a>
 						<input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
 					</td>
 					<td>
-						<select name="role_id[{{i}}]" ngModel style="display: block;">
-							<option value="1" [attr.selected]="loc.em_roles_id == null && loc.location_role_id == 1">Building Manager</option>
-							<option value="2" [attr.selected]="loc.em_roles_id == null && loc.location_role_id == 2">Tenancy Responsible Personnel</option>
-							<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [attr.selected]="loc.em_roles_id != null && loc.em_roles_id == eco.em_roles_id ">
+						<select name="role_id[{{i}}]" style="display: block;">
+							<option value="1" [selected]="loc.em_roles_id == null && loc.location_role_id == 1">Building Manager</option>
+							<option value="2" [selected]="loc.em_roles_id == null && loc.location_role_id == 2">Tenancy Responsible Personnel</option>
+							<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [selected]="loc.em_roles_id != null && loc.em_roles_id == eco.em_roles_id ">
 								{{eco.role_name}}
 							</option>
 						</select>
@@ -436,7 +441,7 @@
 						</span> -->
 					</td>
 					<td>
-						<a href="javascipt:void(0)" class="red-text">Delete</a>
+						<a href="javascipt:void(0)" class="red-text delete">Delete</a>
 					</td>
 				</tr>
 			</tbody>
@@ -448,7 +453,13 @@
 		</div>
 
 		</form>
-		
+	</div>
+
+
+	<div class="modal-content" [hidden]="!showLocationSelection">
+		<h5>Select Location for {{viewData.user.first_name+' '+viewData.user.last_name}}
+			<a href="javascipt:void(0)" class="red-text right" style="font-size: 18px;" (click)="showLocationSelection = false">Cancel</a>
+		</h5>
 	</div>
 </div>
 
