@@ -143,15 +143,17 @@ export class UsersRoute extends BaseRoute {
       });
 
       router.post('/users/send-trp-invitation/', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-        console.log(req.body);
+        console.log('==============',req.body,'=================');
         new UsersRoute().sendTRPInvitation(req, res, next).then(() => {
           return res.status(200).send({
             'status': 'Success'
           })
         }).catch((e) => {
           console.log(e);
+          console.log(typeof e);
           return res.status(400).send({
-            'status': 'Fail'
+            'status': 'Fail',
+            'message': e.toString()
           });
         });
       });
@@ -282,66 +284,84 @@ export class UsersRoute extends BaseRoute {
 
   }
   public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
-    const inviCode = new UserInvitation();
-    const inviDetails = req.body;
-    inviDetails['account_id'] = req['user'].account_id;
-    inviDetails['role_id'] = defs['Tenant'];
-    inviDetails['invited_by_user'] = req['user'].user_id;
-    const tokenModel = new Token();
-    const token = tokenModel.generateRandomChars(8);
 
-    const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
-    const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
-
+    // check first if email is existing
+    let dbData = {};
     try {
-      console.log(inviDetails);
-      await inviCode.create(inviDetails);
+      const user = new User();
+      dbData = await user.getByEmail(req.body.email);
+    } catch(e) {
 
-      await tokenModel.create({
-        'token': token,
-        'action': 'invitation',
-        'verified': 0,
-        'expiration_date': expDate,
-        'id': inviCode.ID(),
-        'id_type': 'user_invitations_id'
-      });
-
-      // email notification here
-      const opts = {
-        from : '',
-        fromName : 'EvacConnect',
-        to : [],
-        cc: [],
-        body : '',
-        attachments: [],
-        subject : 'EvacConnect TRP Invitation'
-      };
-      const email = new EmailSender(opts);
-      let emailBody = email.getEmailHTMLHeader();
-        emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
-        <h4>You are being assigned as a Tenant.</h4> <br/>
-        <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
-        <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
-
-      emailBody += email.getEmailHTMLFooter();
-      email.assignOptions({
-        body : emailBody,
-        to: [inviDetails['email']],
-        cc: []
-      });
-
-      email.send((data) => {
-        console.log(data);
-        return true;
-      },(err) => {
-        console.log(err);
-        return false;
-      });
-    } catch (e) {
-      console.log(e);
     }
 
-   return true;
+    if (Object.keys(dbData).length > 0) {
+      throw Error('Email taken');
+    } else {
+      console.log('Checkpoint catch');
+      const inviCode = new UserInvitation();
+      const inviDetails = req.body;
+      inviDetails['account_id'] = req['user'].account_id;
+      inviDetails['role_id'] = defs['Tenant'];
+      inviDetails['invited_by_user'] = req['user'].user_id;
+      const tokenModel = new Token();
+      const token = tokenModel.generateRandomChars(8);
+
+      const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
+      const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+
+      try {
+        console.log(inviDetails);
+        await inviCode.create(inviDetails);
+
+        await tokenModel.create({
+          'token': token,
+          'action': 'invitation',
+          'verified': 0,
+          'expiration_date': expDate,
+          'id': inviCode.ID(),
+          'id_type': 'user_invitations_id'
+        });
+
+        // email notification here
+        const opts = {
+          from : '',
+          fromName : 'EvacConnect',
+          to : [],
+          cc: [],
+          body : '',
+          attachments: [],
+          subject : 'EvacConnect TRP Invitation'
+        };
+        const email = new EmailSender(opts);
+        let emailBody = email.getEmailHTMLHeader();
+          emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+          <h4>You are being assigned as a Tenant.</h4> <br/>
+          <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
+          <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+        emailBody += email.getEmailHTMLFooter();
+        email.assignOptions({
+          body : emailBody,
+          to: [inviDetails['email']],
+          cc: []
+        });
+
+        email.send((data) => {
+          console.log(data);
+          return true;
+        },(err) => {
+          console.log(err);
+          return false;
+        });
+      } catch (e) {
+        console.log(e);
+        return false;
+      }
+
+    }
+
+
+
 
 
   }

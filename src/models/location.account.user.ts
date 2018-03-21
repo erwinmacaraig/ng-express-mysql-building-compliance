@@ -412,7 +412,7 @@ export class LocationAccountUser extends BaseClass {
             LAU.location_id = ?
           ${role_filter}
             `;
-        console.log(sql_get_list);
+        // console.log(sql_get_list);
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_list, [location_id], (error, results, fields) => {
           if (error) {

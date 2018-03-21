@@ -79,6 +79,7 @@ export class User extends BaseClass {
                 }
 
                 if (!results.length) {
+                    console.log('Call to user.model.getByEmail - No email found.');
                     reject('No user found');
                 } else {
                     this.dbData = results[0];

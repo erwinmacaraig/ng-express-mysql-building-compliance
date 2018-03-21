@@ -221,7 +221,7 @@
 </div>
 
 <div id="modalAddNewTenant" class="modal">
-	<div class="modal-content" *ngIf="showModalNewTenantLoader">
+	<div class="modal-content" [hidden]="!showModalNewTenantLoader">
 		<div class="center-align">
 			<div class="preloader-wrapper active" >
 				<div class="spinner-layer spinner-red-only">
@@ -237,7 +237,7 @@
 		</div>
 	</div>
 
-	<div class="modal-content" *ngIf="!showModalNewTenantLoader">
+	<div class="modal-content" [hidden]="showModalNewTenantLoader">
 
 		<h5>Add New Tenant </h5>
 		<h6><span *ngIf="selectedLocation.name.length > 0">{{selectedLocation.name}}</span>  <span *ngIf="selectedLocation.name.length == 0">{{selectedLocation.formatted_address}}</span> </h6>
@@ -257,7 +257,7 @@
 	          			<input id="company_name" type="text" name="account_name" ngModel required>
 						<label for="company_name">Tenancy Name</label>
 					</div>
-          
+
 
 					<div class="input-field" >
 						<input id="key_contact_name" type="text" name="key_contact_name" ngModel required>
@@ -277,7 +277,7 @@
 						</label>
 					</div>
 
-<!--					
+<!--
 
 					<div class="input-field">
 	                  	<input id="company_name" type="text" name="account_name" ngModel required>
