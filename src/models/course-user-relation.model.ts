@@ -40,12 +40,14 @@ export class CourseUserRelation extends BaseClass {
         user_id,
         course_id,
         training_requirement_id,
+        dtTimeStamp,
         disabled
-      ) VALUES (?, ?, ?, ?)`;
+      ) VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?) ON DUPLICATE KEY UPDATE disabled = ?`;
       const param = [
         ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
         ('course_id' in this.dbData) ? this.dbData['course_id'] : 0,
         ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
+        ('disabled' in this.dbData) ? this.dbData['disabled'] : 0,
         ('disabled' in this.dbData) ? this.dbData['disabled'] : 0
       ];
       const connection = db.createConnection(dbconfig);
