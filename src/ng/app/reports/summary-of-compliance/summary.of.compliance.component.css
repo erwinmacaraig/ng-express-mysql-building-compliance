@@ -23,6 +23,8 @@ table tr td a:hover{
 
 .right-buttons{
 	display: table;
+	position: relative;
+    top: 16px;
 }
 
 .right-buttons > *{
@@ -30,7 +32,7 @@ table tr td a:hover{
 }
 
 .right-buttons > *:not(:last-child){
-	padding-right: 30px;
+	padding-right: 15px;
 }
 
 .right-buttons .text{
@@ -39,11 +41,12 @@ table tr td a:hover{
 }
 
 .right-buttons .image{
-	width: 35px;
-	height: 35px;
-	background-image: url(/assets/images/sprite_report.png);
-	display: inline-block;
-	vertical-align: middle;
+	width: 30px;
+    height: 30px;
+    background-image: url(/assets/images/sprite_report.png);
+    display: inline-block;
+    vertical-align: middle;
+    background-size: 1380%;
 }
 
 .right-buttons a{
@@ -51,15 +54,15 @@ table tr td a:hover{
 }
 
 .image.pdf{
-	background-position: 74% 68%;
+	background-position: 56% 69%;
 }
 
 .image.excel{
-	background-position: 59% 91%;
+	background-position: 46% 92%;
 }
 
 .image.print{
-	background-position: 59% 67%;
+	background-position: 45.5% 68%;
 }
 
 .col-buttons{
