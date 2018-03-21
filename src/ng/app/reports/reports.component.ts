@@ -28,6 +28,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
 		this.userData = this.authService.getUserData();
 
+		/**
 		this.routerSubs = this.router.events.subscribe((events) => {
 			if(events instanceof NavigationEnd){
 				let url = events.url;
@@ -42,6 +43,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
 			}
 		});
+		**/
 
 	}
 
@@ -54,7 +56,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(){
-		this.routerSubs.unsubscribe();
+		// this.routerSubs.unsubscribe();
 	}
 
 }

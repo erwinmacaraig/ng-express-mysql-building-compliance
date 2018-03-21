@@ -98,13 +98,14 @@ import { TrainingInviteComponent } from './trainings/training-invite/training.in
 import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 
 import { ReportsComponent } from './reports/reports.component';
+import { ChooseReportComponent } from './reports/choose.report/choose.report.component';
 import { ReportsLocationsComponent  } from './reports/locations/reports.locations.component';
 import { ReportsLocationsSummaryOfComplianceComponent  } from './reports/summary-of-compliance/summary.of.compliance.component';
 import { ReportsLocationsComplianceComponent } from './reports/location-compliance/location.compliance.component';
 import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
 import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent } from './reports/trainings/trainings.component';
-
+import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
 @NgModule({
@@ -182,13 +183,14 @@ import { AssignCoursesComponent } from './assign-courses/assign.courses.componen
     WardenBenchMarkingComponent,
 
     ReportsComponent,
+    ChooseReportComponent,
     ReportsLocationsComponent,
     ReportsLocationsSummaryOfComplianceComponent,
     ReportsLocationsComplianceComponent,
     ReportsLocationsStatementComplianceComponent,
     ReportsTeamsComponent,
     ReportsTrainingsComponent,
-
+    ReportsActivityLogComponent,
     AssignCoursesComponent
   ],
   imports: [
