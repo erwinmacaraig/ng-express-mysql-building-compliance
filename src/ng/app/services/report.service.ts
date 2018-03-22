@@ -7,18 +7,22 @@ import 'rxjs/add/operator/catch';
 
 @Injectable()
 export class ReportService {
-  private headers: Object;
-  private options: Object;
-  private baseUrl: String;
+    private headers: Object;
+    private options: Object;
+    private baseUrl: String;
 
-  constructor(private http: HttpClient,
-              platformLocation: PlatformLocation) {
-    this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-    this.options = { headers : this.headers };
-    this.baseUrl = (platformLocation as any).location.origin;
-  }
+    constructor(private http: HttpClient,
+        platformLocation: PlatformLocation) {
+        this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
+        this.options = { headers : this.headers };
+        this.baseUrl = (platformLocation as any).location.origin;
+    }
 
-  public getParentLocationsForReporting() {
-    return this.http.get(this.baseUrl + '/reports/list-locations/', this.options);
-  }
+    public getParentLocationsForReporting() {
+        return this.http.get(this.baseUrl + '/reports/list-locations/', this.options);
+    }
+
+    public getLocationTrainingReport(formData){
+        return this.http.post(this.baseUrl + '/reports/location-trainings', formData, this.options);
+    }
 }

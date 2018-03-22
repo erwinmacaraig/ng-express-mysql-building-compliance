@@ -251,4 +251,41 @@ export class TrainingCertification extends BaseClass {
     });
   }
 
+  public getCertificatesByInUsersId(userIds){
+    return new Promise((resolve) => {
+
+      let sql = `
+        SELECT
+          training_requirement.training_requirement_name,
+          certifications.*,
+          training_requirement.num_months_valid,
+          DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
+          IF (DATE_ADD(certifications.certification_date,
+            INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
+          FROM
+            certifications
+          INNER JOIN
+           training_requirement
+          ON
+            training_requirement.training_requirement_id = certifications.training_requirement_id
+          WHERE
+            certifications.user_id IN (`+userIds+`)
+      `,
+        connection = db.createConnection(dbconfig);
+
+      connection.query(sql, (error, results, fields) => {
+
+        if(error){
+          throw new Error("Error getting certification by user ids");
+        }
+
+        this.dbData = results;
+        resolve(results);
+
+      });
+      connection.end();
+
+    });
+  }
+
 }

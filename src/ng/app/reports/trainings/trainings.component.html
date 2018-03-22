@@ -6,15 +6,16 @@
 
 			<div class="left filter-container">
 				<div class="select-container">
-					<select class="select-location">
-						<option value="0" selected disabled>Select Location</option>
+					<select class="select-location" id="selectLocation">
+						<option value="null" selected disabled>Select Location</option>
+						<option value="{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb">{{loc.name}}</option>
 					</select>
 				</div>
 
 				<div class="select-container">
-					<select class="select-location">
-						<option value="0" selected disabled>Select Option</option>
-						<option value="face">Face to Face</option>
+					<select class="select-location" id="selectFilter">
+						<option value="null" selected>Filter</option>
+						<option value="offline">Face to Face</option>
 						<option value="online">Online Training</option>
 					</select>
 				</div>
@@ -30,7 +31,7 @@
 					<div class="image excel"></div>
 				</a>
 
-				<a href="javascript:void(0)">
+				<a href="javascript:void(0)" (click)="printResult()">
 					<div class="text">Print</div>
 					<div class="image print"></div>
 				</a>
@@ -45,46 +46,31 @@
 
 	<div class="row">
 		
-		<div class="col l12 m12 s12">
+		<div class="col l12 m12 s12" id="printContainer">
 			<table class="striped">
 				<thead>
 					<tr class="grey darken-5 white-text">
-						<th>Course</th>
+						<th>User</th>
+						<th>Training Name</th>
 						<th>Training Date</th>
 						<th>Status</th>
-						<th>Register</th>
 					</tr>
 				</thead>
 				<tbody>
-					<tr>
-						<td>
-							<span class="blue-text">Chief Warden</span>
-						</td>
-						<td>
-							00/00/0000
-						</td>
-						<td>
-							Compliant
-						</td>
-						<td>
-							<a href="javascript:void(0)" class="blue-text">Documents</a>
+					<tr *ngIf="results.length == 0">
+						<td colspan="4" class="center">
+							<h6>No result found</h6>
 						</td>
 					</tr>
-					<tr>
+					<tr *ngFor="let re of results">
+						<td>{{re.first_name}} {{re.last_name}}</td>
+						<td>{{re.training_requirement_name}}</td>
+						<td>{{re.certification_date_formatted}}</td>
 						<td>
-							<span class="blue-text"> Warden</span>
-						</td>
-						<td>
-							00/00/0000
-						</td>
-						<td>
-							Not Compliant
-						</td>
-						<td>
-							<a href="javascript:void(0)" class="blue-text">Documents</a>
+							<span *ngIf="re.status == 'valid' && re.pass == 1 ">Compliance</span>
+							<span *ngIf="re.status != 'valid' || re.pass == 0 ">Not Compliance</span>
 						</td>
 					</tr>
-					
 				</tbody>
 			</table>
 		</div>
