@@ -186,12 +186,12 @@ const appRoutes: Routes = [
     children : [
       { path : 'choose', component : ChooseReportComponent },
       { path : 'locations', component : ReportsLocationsComponent },
-      { path : 'summary-of-compliance', component : ReportsLocationsSummaryOfComplianceComponent },
-      { path : 'location-compliance', component : ReportsLocationsComplianceComponent },
-      { path : 'statement-compliance', component : ReportsLocationsStatementComplianceComponent },
-      { path : 'teams', component : ReportsTeamsComponent },
+      { path : 'summary-of-compliance/:location', component : ReportsLocationsSummaryOfComplianceComponent },
+      { path : 'location-compliance/:location', component : ReportsLocationsComplianceComponent },
+      { path : 'statement-compliance/:location', component : ReportsLocationsStatementComplianceComponent },
+      { path : 'teams/:location', component : ReportsTeamsComponent },
       { path : 'trainings/:locationId', component : ReportsTrainingsComponent },
-      { path : 'activity-log', component : ReportsActivityLogComponent }
+      { path : 'activity-log/:location', component : ReportsActivityLogComponent }
     ]
   },
   {

@@ -4,7 +4,7 @@ import { AuthService } from '../../services/auth.service';
 import { MessageService } from '../../services/messaging.service';
 import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
-import { DashboardPreloaderService } from '../../services/dashboard.preloader'
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
 declare var $ : any;
 

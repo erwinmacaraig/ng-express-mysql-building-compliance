@@ -153,7 +153,7 @@ export class UsersRoute extends BaseRoute {
       });
 
       router.post('/users/send-trp-invitation/', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-        console.log('==============',req.body,'=================');
+
         new UsersRoute().sendTRPInvitation(req, res, next).then(() => {
           return res.status(200).send({
             'status': 'Success'

@@ -1,3 +1,4 @@
+
 import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -17,6 +18,12 @@ declare var $ : any;
 export class ChooseReportComponent implements OnInit, OnDestroy {
 
     userData = {};
+    // 0 means all locations
+    public selectedLocationForTrainingReport = 0;
+    public selectedLocationForTeamReport = 0;
+    public selectedLocationForActivityLogReport = 0;
+    public selectedLocationForPortfolioReport = 0;
+    public selectedLocationForSummaryComplianceReport = 0;
     public rootLocationsFromDb = [];
     constructor(
         private router: Router,
@@ -44,7 +51,7 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
     }
 
     ngAfterViewInit(){
-        $('select').material_select();
+      $('select').material_select();
     }
 
     clickTrainingReport(){
@@ -55,8 +62,14 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
         }
     }
 
-    ngOnDestroy(){
+    public generateTeamReport() {
+        this.selectedLocationForTeamReport = $('#summaryTeam')[0].value;
+        console.log(`selected location is ${this.selectedLocationForTeamReport}`);
+        const locIdEncrypted = this.encryptDecrypt.encrypt(this.selectedLocationForTeamReport);
+        this.router.navigate(['/reports/teams', locIdEncrypted]);
+    }
 
+    ngOnDestroy(){
     }
 
 }
