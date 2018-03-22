@@ -16,6 +16,12 @@ declare var $ : any;
 export class ChooseReportComponent implements OnInit, OnDestroy {
 
   userData = {};
+  // 0 means all locations
+  public selectedLocationForTrainingReport = 0;
+  public selectedLocationForTeamReport = 0;
+  public selectedLocationForActivityLogReport = 0;
+  public selectedLocationForPortfolioReport = 0;
+  public selectedLocationForSummaryComplianceReport = 0;
   public rootLocationsFromDb = [];
   constructor(
     private router: Router,
