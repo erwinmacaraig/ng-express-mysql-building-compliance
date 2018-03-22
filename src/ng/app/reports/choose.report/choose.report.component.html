@@ -13,12 +13,12 @@
 
 			<div class="select-container">
 				<select class="report-box" ngModel name="summaryCompliance" id="summaryCompliance">
-		          <option value="0">Select Location</option>
+		          <option value="0">All Location</option>
 		          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
 				</select>
 			</div>
 
-			<button class="btn blue waves-effect waves-light" [routerLink]="['/reports/summary-of-compliance']" >Summary of Compliance</button>
+			<button class="btn blue waves-effect waves-light" (click)="clickSummaryOfComplianceReport()"   >Summary of Compliance</button>
 
 		</div>
 
