@@ -8,14 +8,14 @@ import 'rxjs/add/operator/catch';
 @Injectable()
 export class UserService {
 
-	private headers: Object;
-  	private options: Object;
-	private baseUrl: String;
+  private headers: Object;
+  private options: Object;
+  private baseUrl: String;
 
 	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
-		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-    	this.options = { headers : this.headers };
-		this.baseUrl = (platformLocation as any).location.origin;
+    this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
+    this.options = { headers : this.headers };
+    this.baseUrl = (platformLocation as any).location.origin;
 	}
 
 	checkUserIsAdmin(userId, callBack){

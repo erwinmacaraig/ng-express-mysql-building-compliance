@@ -41,7 +41,7 @@ export class Account extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-             
+
               this.dbData = results;
               resolve(this.dbData);
             });
@@ -271,7 +271,7 @@ export class Account extends BaseClass {
     public getLocationsOnAccount(user_id?: number, role_id?: number, archived?): Promise<Object[]> {
         return new Promise((resolve, reject) => {
             let user_filter = '';
-            if(archived == undefined){
+            if (archived == undefined) {
               archived = 0;
             }
             let role_filter = '';
@@ -288,6 +288,7 @@ export class Account extends BaseClass {
             if (user_id) {
                 user_filter = `AND LAU.user_id = ${user_id}`;
             }
+
             const sql_get_locations = `SELECT
               locations.parent_id,
               locations.name,
@@ -447,7 +448,7 @@ export class Account extends BaseClass {
             )
          `;
         if(archived){
-          sql_get_peep += ' AND lau.archived = '+archived;
+          sql_get_peep += ' AND lau.archived = '+ archived;
         }else{
           sql_get_peep += ' AND lau.archived = 0';
         }
@@ -505,5 +506,57 @@ export class Account extends BaseClass {
 
     }
 
+  /**
+   * @getRootLocationsOnAccount
+   * Get all parent locations irregardless of role of user
+   */
+  public getRootLocationsOnAccount(user_id: number = 0, archived: number = 0) {
+    return new Promise((resolve, reject) => {
+
+      const sql_get_locations = `SELECT
+        locations.parent_id,
+        locations.name,
+        locations.formatted_address,
+        locations.location_id,
+        locations.google_photo_url,
+        locations.admin_verified
+      FROM
+        locations
+      INNER JOIN
+        location_account_user LAU
+      ON
+        locations.location_id = LAU.location_id
+      WHERE
+        locations.archived = ?
+      AND
+        LAU.user_id = ?
+      AND
+        locations.parent_id = -1
+      GROUP BY
+        locations.location_id
+      ORDER BY
+        locations.location_id;
+      `;
+      // const val = [this.ID(), archived];
+      console.log(sql_get_locations);
+      const val = [archived, user_id];
+      const connection = db.createConnection(dbconfig);
+
+      connection.query(sql_get_locations, val, (err, results, fields) => {
+          if (err) {
+              console.log(err);
+              console.log(sql_get_locations);
+              throw new Error('Internal problem. There was a problem processing your query');
+          }
+          if (results.length) {
+              this.dbData = results;
+              resolve(results);
+          } else {
+              reject(`No location found for this account ${this.ID()}`);
+          }
+      });
+      connection.end();
+    });
+  }
 
 }

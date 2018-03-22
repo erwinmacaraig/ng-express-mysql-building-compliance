@@ -6,14 +6,17 @@
 
 <div class="row">
 	<div class="col s12">
-		
+
 		<div class="box">
-			
+
 			<div class="image summary-of-compliance"></div>
 
 			<div class="select-container">
-				<select class="report-box">
-					<option value="0">Select Location</option>
+				<select class="report-box" ngModel name="summaryCompliance" id="summaryCompliance">
+          <option value="0">Select Location</option>
+          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">
+            {{i.name}}
+          </option>
 				</select>
 			</div>
 
@@ -22,12 +25,15 @@
 		</div>
 
 		<div class="box">
-			
+
 			<div class="image summary-of-portfolio"></div>
 
 			<div class="select-container">
-				<select class="report-box">
-					<option value="0">Select Location</option>
+				<select class="report-box" ngModel name="summaryPortfolio" id="summaryPortfolio">
+          <option value="0">Select Location</option>
+          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">
+            {{i.name}}
+          </option>
 				</select>
 			</div>
 
@@ -36,12 +42,15 @@
 		</div>
 
 		<div class="box">
-			
+
 			<div class="image activity-log"></div>
 
 			<div class="select-container">
-				<select class="report-box">
-					<option value="0">Select Location</option>
+				<select class="report-box" ngModel name="summaryActivityLog" id="summaryActivityLog">
+          <option value="0">Select Location</option>
+          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">
+            {{i.name}}
+          </option>
 				</select>
 			</div>
 
@@ -50,12 +59,15 @@
 		</div>
 
 		<div class="box">
-			
+
 			<div class="image team"></div>
 
 			<div class="select-container">
-				<select class="report-box">
-					<option value="0">Select Location</option>
+				<select class="report-box" ngModel name="summaryTeam" id="summaryTeam">
+          <option value="0">Select Location</option>
+          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">
+            {{i.name}}
+          </option>
 				</select>
 			</div>
 
@@ -64,12 +76,15 @@
 		</div>
 
 		<div class="box">
-			
+
 			<div class="image training"></div>
 
 			<div class="select-container">
-				<select class="report-box">
-					<option value="0">Select Location</option>
+				<select class="report-box" ngModel name="summaryTraining" id="summaryTraining">
+          <option value="0">Select Location</option>
+          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">
+            {{i.name}}
+          </option>
 				</select>
 			</div>
 
@@ -77,6 +92,6 @@
 
 		</div>
 
-		 
+
 	</div>
 </div>
