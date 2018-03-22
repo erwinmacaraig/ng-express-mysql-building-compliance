@@ -558,5 +558,77 @@ export class Account extends BaseClass {
       connection.end();
     });
   }
+  public generateReportPEEPList(sublocations = []) {
+    return new Promise((resolve, reject) => {
+      if (!sublocations.length) {
+        reject('Cannot generate list without locations');
+        return;
+      }
+      const sublocationStr = sublocations.join(',');
+      const peepDataResultObj = {};
+      const sql = `SELECT
+          accounts.account_id,
+          accounts.account_name,
+          accounts.key_contact,
+          locations.parent_id,
+          locations.name,
+          locations.formatted_address,
+          LAU.location_id,
+          LAU.user_id,
+          LAU.role_id,
+          users.first_name,
+          users.last_name,
+          users.phone_number,
+          users.mobile_number,
+          users.email
+        FROM
+            location_account_user LAU
+        INNER JOIN
+          accounts
+        ON
+             accounts.account_id = LAU.account_id
+        INNER JOIN
+          locations
+        ON
+          locations.location_id = LAU.location_id
+        INNER JOIN
+          users
+        ON
+          users.user_id = LAU.user_id
+        WHERE
+           locations.location_id IN (${sublocationStr})
+        AND
+          users.mobility_impaired = 1
+        ORDER BY
+          accounts.account_name`;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql, [], (error, results, fields) => {
+        if (error) {
+          console.log('account.model.generateReportPEEPList', error, sql);
+          throw Error('There was a problem generating report');
+        }
+        if (!results.length) {
+          reject(`There are no records found for ${sublocationStr}`);
+        } else {
+          for (let i = 0; i < results.length; i++) {
+            if (results[i]['account_id'] in peepDataResultObj) {
+              (peepDataResultObj[results[i]['account_id']]['users']).push(results[i]['user_id']);
+              peepDataResultObj[results[i]['account_id']]['total'] = (peepDataResultObj[results[i]['account_id']]['users']).length;
+            } else {
+              peepDataResultObj[results[i]['account_id']] = {
+                'name': results[i]['account_name'],
+                'users': [results[i]['user_id']],
+                'location': results[i]['location_id'],
+                'account_id': results[i]['account_id'],
+                'total': 1
+              };
+            }
+          }
+          resolve(peepDataResultObj);
+        }
+      });
+      connection.end();
+    });
+  }
 
 }

@@ -111,9 +111,22 @@ const defs = require('../config/defs.json');
         Object.keys(resultSet).forEach((key) => {
           resultSetArr.push(resultSet[key]);
         });
+        let peepData;
+        try {
+          console.log(sublocs);
+          peepData = await new Account().generateReportPEEPList(sublocs);
+        } catch (e) {
+          peepData = {};
+        }
+        console.log(peepData);
         for (let j = 0; j < resultSetArr.length; j++) {
-          console.log(resultSetArr[j]['account_id']);
-          console.log(resultSetArr[j]['location_id']);
+          if (resultSetArr[j]['account_id'].toString() in peepData) {
+            console.log('I am here');
+            resultSetArr[j]['peep_total'] = peepData[resultSetArr[j]['account_id']]['total'];
+          } else {
+            resultSetArr[j]['peep_total'] = 0;
+            console.log(resultSetArr[j]['account_id'].toString());
+          }
           try {
             const temp = await EMRole.getEMRolesOnAccountOnLocation(
               defs['em_roles']['WARDEN'],
@@ -127,10 +140,7 @@ const defs = require('../config/defs.json');
             resultSetArr[j]['wardens'] = [];
           }
         }
-
-
         return resultSetArr;
-
      }
 
  }
