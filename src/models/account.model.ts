@@ -538,7 +538,7 @@ export class Account extends BaseClass {
         locations.location_id;
       `;
       // const val = [this.ID(), archived];
-      console.log(sql_get_locations);
+
       const val = [archived, user_id];
       const connection = db.createConnection(dbconfig);
 

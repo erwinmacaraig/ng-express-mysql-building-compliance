@@ -446,4 +446,63 @@ export class LocationAccountUser extends BaseClass {
       });
     }
 
+    /**
+     * @method getAllAccountsInSublocations
+     * @param locations
+     * retrieve all accounts under the given list of
+     * sub locations on which the roles are TRP ONLY
+     */
+  public getAllAccountsInSublocations(locations = []) {
+    return new Promise((resolve, reject) => {
+      const locationsStr = locations.join(',');
+      const sql = `SELECT
+        accounts.account_id,
+        accounts.account_name,
+        locations.location_id,
+        locations.name,
+        locations.formatted_address,
+        LAU.user_id,
+        LAU.role_id,
+        users.first_name,
+        users.last_name,
+        users.phone_number,
+        users.mobile_number,
+        users.email
+      FROM
+        location_account_user LAU
+      INNER JOIN
+        accounts
+      ON
+        accounts.account_id = LAU.account_id
+      INNER JOIN
+        locations
+      ON
+        locations.location_id = LAU.location_id
+      INNER JOIN
+        users
+      ON
+        users.user_id = LAU.user_id
+      WHERE
+        locations.location_id IN (${locationsStr})
+      AND
+        LAU.role_id = 2
+      ORDER BY
+        accounts.account_name`;
+
+    const connection = db.createConnection(dbconfig);
+    connection.query(sql, [], (error, results, fields) => {
+      if (error) {
+        console.log('location.account.user.model.getAllAccountsInSublocations', error, sql);
+        throw Error('Cannot process request');
+      }
+      if (results.length > 0) {
+        resolve(results);
+      } else {
+        reject('There are no records to be retrieve');
+      }
+    });
+  });
+  }
+
+
 }

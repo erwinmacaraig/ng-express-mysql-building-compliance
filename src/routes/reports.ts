@@ -15,6 +15,7 @@ import { Token } from '../models/token.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { TrainingCertification } from '../models/training.certification.model';
 import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calculator.model';
+
 import * as fs from 'fs';
 import * as path from 'path';
 import * as CryptoJS from 'crypto-js';
@@ -65,6 +66,71 @@ const defs = require('../config/defs.json');
                 });
               });
        });
+
+       /**
+        * @route
+        * generate list for team
+        */
+       router.get('/reports/team/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+         new ReportsRoute().generateTeamReport(req, res, next).then((data) => {
+           console.log(data);
+           return res.status(200).send({
+             'status': 'Success',
+             'data': data
+           });
+         }).catch((e) => {
+           console.log(e);
+           return res.status(400).send({
+             'status': 'Fail',
+             'error': e
+           });
+         });
+       });
+     }
+
+     /**
+      * @generateTeamReport
+      * process reporting info for a given root location
+      */
+     public async generateTeamReport(req: AuthRequest, res: Response, next: NextFunction) {
+        // console.log(req.query.location_id);
+        // create location object reference
+        const location = new Location(req.query.location_id);
+        // generate all sublocation from the given parent
+        const sublocationsDbData = await location.getDeepLocationsByParentId(req.query.location_id);
+        const sublocs = [];
+        const EMRole = new UserEmRoleRelation();
+        Object.keys(sublocationsDbData).forEach((i) => {
+          sublocs.push(sublocationsDbData[i]['location_id']);
+        });
+
+        const locAcctUser = new LocationAccountUser();
+        const resultSet = await locAcctUser.getAllAccountsInSublocations(sublocs);
+        const resultSetArr = [];
+
+        Object.keys(resultSet).forEach((key) => {
+          resultSetArr.push(resultSet[key]);
+        });
+        for (let j = 0; j < resultSetArr.length; j++) {
+          console.log(resultSetArr[j]['account_id']);
+          console.log(resultSetArr[j]['location_id']);
+          try {
+            const temp = await EMRole.getEMRolesOnAccountOnLocation(
+              defs['em_roles']['WARDEN'],
+              resultSetArr[j]['account_id'],
+              resultSetArr[j]['location_id']
+            );
+            resultSetArr[j]['total_wardens'] = temp['users'].length;
+            resultSetArr[j]['wardens'] = temp['raw'];
+          } catch (e) {
+            resultSetArr[j]['total_wardens'] = 0;
+            resultSetArr[j]['wardens'] = [];
+          }
+        }
+
+
+        return resultSetArr;
+
      }
 
  }

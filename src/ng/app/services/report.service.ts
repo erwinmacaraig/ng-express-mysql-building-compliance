@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -20,5 +20,11 @@ export class ReportService {
 
   public getParentLocationsForReporting() {
     return this.http.get(this.baseUrl + '/reports/list-locations/', this.options);
+  }
+
+  public generateTeamReportingOnLocation(location_id = -1) {
+    const httpParams = new HttpParams().set('location_id', location_id.toString());
+    this.options['params'] = httpParams;
+    return this.http.get(this.baseUrl + '/reports/team/', this.options);
   }
 }

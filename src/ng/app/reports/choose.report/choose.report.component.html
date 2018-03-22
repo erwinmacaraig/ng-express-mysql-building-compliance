@@ -64,14 +64,13 @@
 
 			<div class="select-container">
 				<select class="report-box" ngModel name="summaryTeam" id="summaryTeam">
-          <option value="0">Select Location</option>
+          <option value="-1">Select Location</option>
           <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">
             {{i.name}}
           </option>
 				</select>
 			</div>
-
-			<button class="btn blue waves-effect waves-light" [routerLink]="['/reports/teams']">Team</button>
+			<button class="btn blue waves-effect waves-light" (click)="generateTeamReport()">Team</button>
 
 		</div>
 
