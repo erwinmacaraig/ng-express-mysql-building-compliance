@@ -91,13 +91,17 @@ export class ReportsRoute extends BaseRoute {
        router.post('/reports/location-trainings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ReportsRoute().locationTrainings(req, res);
         });
+
+       router.post('/reports/get-compliance-summary', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+         new ReportsRoute().getComplianceSummary(req, res);
+       });
      }
 
      /**
       * @generateTeamReport
       * process reporting info for a given root location
       */
-     public async generateTeamReport(req: AuthRequest, res: Response, next: NextFunction) {
+    public async generateTeamReport(req: AuthRequest, res: Response, next: NextFunction) {
         // console.log(req.query.location_id);
         // create location object reference
         const location = new Location(req.query.location_id);
@@ -242,6 +246,52 @@ export class ReportsRoute extends BaseRoute {
         }catch(e){
             response.message = 'No location found';
         }
+
+        res.send(response);
+    }
+
+
+    public async getComplianceSummary(req: AuthRequest, res: Response){
+        let location_id = req.body.location_id,
+            response = {
+                status : true, data : {
+                    locations : [],
+                    compliance_rating : '0/0'
+                }, message : ''
+            },
+            locations = [],
+            locationModel = new Location(location_id);
+
+        if(location_id == 0){
+
+            const account = new Account(req.user.account_id);
+            locations = <any> await account.getRootLocationsOnAccount(req.user.user_id).catch((e) => {  });
+
+        }else{
+
+            try{
+                let location = await locationModel.load();
+                locations.push(location);
+            }catch(e){
+                response.status = false;
+                response.message = 'No location found';
+            }
+
+        }
+
+        for(let loc of locations){
+            let sublocationModel = new Location();
+            let deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(loc.location_id);
+
+            loc['name'] = (loc['name'].length == 0) ? loc['formatted_address'] : loc['name'];
+
+            loc['number_of_sublocations'] = deepLocations.length;
+            loc['compliance_rating'] = '0/0';
+            loc['status'] = 'Not Compliant';
+        }
+
+
+        response.data.locations = locations;
 
         res.send(response);
     }

@@ -54,6 +54,16 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
       $('select').material_select();
     }
 
+    clickSummaryOfComplianceReport(){
+        let val = $('#summaryCompliance').val();
+        if(val == null){
+            val = 0;
+        }
+
+        let locId = this.encryptDecrypt.encrypt(val);
+        this.router.navigate(['/reports/summary-of-compliance', locId]);
+    }
+
     clickTrainingReport(){
         let val = $('#summaryTraining').val();
         if(val != null){

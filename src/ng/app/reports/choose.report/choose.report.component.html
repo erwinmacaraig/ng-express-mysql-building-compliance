@@ -12,13 +12,13 @@
 			<div class="image summary-of-compliance"></div>
 
 			<div class="select-container">
-				<select class="report-box" ngModel name="summaryCompliance" id="summaryCompliance">
+				<select class="report-box" ngModel name="summaryPortfolio" id="summaryPortfolio">
 		          <option value="0">Select Location</option>
 		          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
 				</select>
 			</div>
 
-			<button class="btn blue waves-effect waves-light" [routerLink]="['/reports/summary-of-compliance']" >Summary of Compliance</button>
+			<button class="btn blue waves-effect waves-light"  [routerLink]="['/reports/statement-compliance/0']"  >Statement of Compliance</button>
 
 		</div>
 
@@ -27,13 +27,13 @@
 			<div class="image summary-of-portfolio"></div>
 
 			<div class="select-container">
-				<select class="report-box" ngModel name="summaryPortfolio" id="summaryPortfolio">
-		          <option value="0">Select Location</option>
+				<select class="report-box" ngModel name="summaryCompliance" id="summaryCompliance">
+		          <option value="0">All Location</option>
 		          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
 				</select>
 			</div>
 
-			<button class="btn blue waves-effect waves-light" [routerLink]="['/reports/statement-compliance']" >Summary of Portfolio Compliance</button>
+			<button class="btn blue waves-effect waves-light"  (click)="clickSummaryOfComplianceReport()" >Summary of Portfolio Compliance</button>
 
 		</div>
 

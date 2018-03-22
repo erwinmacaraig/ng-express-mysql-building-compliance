@@ -32,4 +32,8 @@ export class ReportService {
         return this.http.get(this.baseUrl + '/reports/team/', this.options);
     }
 
+    public getComplianceSummary(formData){
+        return this.http.post(this.baseUrl + '/reports/get-compliance-summary', formData, this.options);
+    }
+
 }
