@@ -153,11 +153,13 @@
 }
 
 .grid .grid-item{
-	margin-right: 20px;
-    max-width: 260px;
-    position: absolute;
+    width: 260px;
     box-shadow: none;
     border-radius: 10px;
+    float: left;
+    margin: 10px;
+    height: 350px;
+    position: relative;
 }
 
 .grid-item .top{
@@ -191,13 +193,16 @@
 }
 
 .grid-item .buttons{
-	text-align: center;
-	margin: 0px 0px 15px 0px;
+    position: absolute;
+    bottom: 15px;
+    width: 100%;
 }
 
 .grid-item .buttons .btn{
-	width: 80% !important;
-	margin-bottom: 10px;
+    width: 235px !important;
+    margin: 0px auto;
+    display: block;
+    margin-bottom: 5px;
 }
 
 

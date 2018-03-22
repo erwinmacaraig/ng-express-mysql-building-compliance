@@ -79,7 +79,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         private route: ActivatedRoute,
         private router: Router,
         private courseService : CourseService,
-        private userService: UserService
+        private userService: UserService,
+        private elemRef: ElementRef
 		){
 
 		this.userData = this.auth.getUserData();
@@ -108,29 +109,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			this.viewData.trainings = response.data.trainings;
 			this.viewData.certificates = response.data.certificates;
 
-			for(let i in this.viewData.trainings){
-				this.viewData.trainings[i]['certificates'] = {
-					pass : 0,
-					status : 'expired',
-					expiry_date_formatted : ''
-				};
-				for(let x in this.viewData.certificates){
-					this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
-
-					if(
-						this.viewData.trainings[i]['training_requirement_id'] ==
-						this.viewData.certificates[x]['training_requirement_id']
-						){
-						this.viewData.trainings['certificates'] = this.viewData.certificates[x];
-					}
-				}
-			}
-
-			for(let loc of this.viewData.locations){
-				let role_id = 0;
-				if(loc.em_roles_id == null && loc.location_role_id == 1){
-					
-				}
+			for(let x in this.viewData.certificates){
+				this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
 			}
 
 			this.toEditLocations = JSON.parse( JSON.stringify(response.data.locations) );
@@ -157,17 +137,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 	}
 
 	ngAfterViewInit(){
+
 		$('.modal').modal({
 			dismissible: false
 		});
 
-
-		this.gridEvent();
-		this.renderGrid();
-
 		this.preloaderService.show();
 		
-
 		$('#modalMobility select[name="is_permanent"]').off('change').on('change', () => {
             if($('#modalMobility select[name="is_permanent"]').val() == '1'){
                 this.isShowDatepicker = false;
@@ -191,7 +167,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		}, 1000);
 		setTimeout(() => { 
 			$('#selectLocation').trigger('change');
-		}, 100);
+		}, 1000);
 
 		this.selectActionEvent();
 		
@@ -240,37 +216,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	gridEvent(){
-		window.addEventListener("load", this.renderGrid, false);
-		window.addEventListener("resize", this.renderGrid, false);
-	}
-
-	renderGrid(){
-		let containerWidth = document.querySelector('#gridContainer')['offsetWidth'];
-		let blocks = document.querySelectorAll('#gridContainer .grid-item');
-		let pad = 30, cols = Math.floor( containerWidth / 300 ), newleft, newtop;
-		
-		for(let x = 1; x < blocks.length; x++){
-			blocks[x]['style'].left = null;
-			blocks[x]['style'].top = null;
-		}
-
-		setTimeout(() => {
-			for(let i = 1; i < blocks.length; i++){
-				if(i % cols == 0){
-					newtop = (blocks[i-cols]['offsetTop'] + blocks[i-cols]['offsetHeight']) + pad;
-					blocks[i]['style'].top = newtop+"px";
-				}else{
-					if(blocks[i-cols]){
-						newtop = (blocks[i-cols]['offsetTop'] + blocks[i-cols]['offsetHeight']) + pad;
-						blocks[i]['style'].top = newtop+"px";
-					}
-					newleft = (blocks[i-1]['offsetLeft'] + blocks[i-1]['offsetWidth']) + pad;
-					blocks[i]['style'].left = newleft+"px";
-				}
-			}
-		}, 100);
-	}
 
 	getInitials(fullName){
 		if(fullName){
