@@ -182,7 +182,7 @@ export class CourseRoute extends BaseRoute {
 		let relations = <any> await courseUserRelationModel.getWhere([]);
 		this.response.status = true;
 		let allUsersData = [];
-		
+
 		for(let i in relations){
 			relations[i]['user'] = {};
 

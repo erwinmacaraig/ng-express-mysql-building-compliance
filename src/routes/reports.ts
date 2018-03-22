@@ -38,6 +38,33 @@ const defs = require('../config/defs.json');
       * @static
       */
      public static create(router: Router) {
-       router.get('/reports/')
+       /**
+        * @route
+        * getting the list of parent locations for this user under his account
+        */
+       router.get('/reports/list-locations/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+          // get all parent locations
+          const account = new Account(req.user.account_id);
+          account.getRootLocationsOnAccount(req.user.user_id)
+              .then((locations) => {
+                Object.keys(locations).forEach((i) => {
+                  if (locations[i]['name'].length === 0) {
+                    locations[i]['name'] = locations[i]['formatted_address'];
+                  }
+                });
+                console.log(locations);
+                return res.status(200).send({
+                  'status': 'Success',
+                  'data': locations
+                });
+              }).catch((e) => {
+                console.log(e);
+                return res.status(400).send({
+                  'status': 'Fail',
+                  'error': e
+                });
+              });
+       });
      }
+
  }
