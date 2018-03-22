@@ -52,7 +52,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 	}
 
 	ngAfterViewInit(){
-
+		$('li.nav-list-report').addClass('active');
 	}
 
 	ngOnDestroy(){

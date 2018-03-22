@@ -30,7 +30,7 @@ const defs = require('../config/defs.json');
  * @class ReportsRoute
  */
 
- export class ReportsRoute extends BaseRoute {
+export class ReportsRoute extends BaseRoute {
      /**
       * Create the routes
       *
@@ -38,12 +38,12 @@ const defs = require('../config/defs.json');
       * @method create
       * @static
       */
-     public static create(router: Router) {
-       /**
+    public static create(router: Router) {
+        /**
         * @route
         * getting the list of parent locations for this user under his account
         */
-       router.get('/reports/list-locations/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+        router.get('/reports/list-locations/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
           // get all parent locations
           const account = new Account(req.user.account_id);
           account.getRootLocationsOnAccount(req.user.user_id)
@@ -53,7 +53,6 @@ const defs = require('../config/defs.json');
                     locations[i]['name'] = locations[i]['formatted_address'];
                   }
                 });
-                console.log(locations);
                 return res.status(200).send({
                   'status': 'Success',
                   'data': locations
@@ -65,7 +64,8 @@ const defs = require('../config/defs.json');
                   'error': e
                 });
               });
-       });
+
+        });
 
        /**
         * @route
@@ -86,6 +86,10 @@ const defs = require('../config/defs.json');
            });
          });
        });
+
+       router.post('/reports/location-trainings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new ReportsRoute().locationTrainings(req, res);
+        });
      }
 
      /**
@@ -133,4 +137,96 @@ const defs = require('../config/defs.json');
 
      }
 
- }
+    private mergeToParent(data){
+
+        for(let p in data){
+            let parent = data[p];
+
+            if(parent.sublocations === undefined){
+                parent['sublocations'] = [];
+            }
+
+            for(let c in data){
+                let child = data[c];
+                if('is_here' in child){
+                  if(child.parent_id == parent.location_id && child.is_here === true){
+                    parent.sublocations.push(child);
+                  }
+                }else{
+                      if(child.parent_id == parent.location_id){
+                          parent.sublocations.push(child);
+                      }
+                }
+            }
+        }
+
+        let finalData = [];
+        for(let i in data){
+            if(data[i]['parent_id'] == -1){
+                finalData.push(data[i]);
+            }
+        }
+
+        return finalData;
+    }
+
+
+    public async locationTrainings(req: AuthRequest, res: Response){
+        let response = {
+            status : false, data : {
+                location : {},
+                sublocations : []
+            }, message : ''
+        },
+        location_id = req.body.location_id,
+        locationModel = new Location(location_id),
+        sublocationModel = new Location();
+
+        try{
+            let location = await locationModel.load(),
+                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(location_id),
+                allLocationIds = [location_id],
+                allLocations = [location];
+
+            location['name'] = (location['name'].length === 0) ? location['formatted_address'] : location['name'];
+
+            for(let loc of deepLocations){
+                allLocationIds.push(loc.location_id);
+                allLocations.push(loc);
+                loc['name'] = (loc['name'].length === 0) ? loc['formatted_address'] : loc['name'];
+            }
+
+            let locAccUser = new LocationAccountUser(),
+                users = <any> await locAccUser.getUsersInLocationId( allLocationIds.join(',') ),
+                allUserIds = [];
+            
+            for(let user of users){
+                if(allUserIds.indexOf(user.user_id) == -1){
+                    allUserIds.push(user.user_id);
+                }
+            }
+
+            let trainCertModel = new TrainingCertification(),
+                certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(',') );
+
+            for(let cert of certificates){
+                for(let user of users){
+                    if(user.user_id == cert.user_id){
+                        cert['first_name'] = user.first_name;
+                        cert['last_name'] = user.last_name;
+                        cert['email'] = user.email;
+                    }
+                }
+
+                cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
+            }
+
+            response.data = certificates;
+
+        }catch(e){
+            response.message = 'No location found';
+        }
+
+        res.send(response);
+    }
+}
