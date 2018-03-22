@@ -73,10 +73,11 @@ export class ReportsRoute extends BaseRoute {
         */
        router.get('/reports/team/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
          new ReportsRoute().generateTeamReport(req, res, next).then((data) => {
-           console.log(data);
+           // console.log(data);
            return res.status(200).send({
              'status': 'Success',
-             'data': data
+             'data': data[0],
+             'total_warden': data[1]
            });
          }).catch((e) => {
            console.log(e);
@@ -111,25 +112,30 @@ export class ReportsRoute extends BaseRoute {
         const locAcctUser = new LocationAccountUser();
         const resultSet = await locAcctUser.getAllAccountsInSublocations(sublocs);
         const resultSetArr = [];
+        let wardenInTheWholeBuilding = 0;
+        try {
+          const temp = await location.getEMRolesForThisLocation(defs['em_roles']['WARDEN']);
+          wardenInTheWholeBuilding = temp[defs['em_roles']['WARDEN']]['count'];
+        } catch (e) {
+          console.log(e);
+          wardenInTheWholeBuilding = 0;
+        }
+
 
         Object.keys(resultSet).forEach((key) => {
           resultSetArr.push(resultSet[key]);
         });
         let peepData;
         try {
-          console.log(sublocs);
           peepData = await new Account().generateReportPEEPList(sublocs);
         } catch (e) {
           peepData = {};
         }
-        console.log(peepData);
         for (let j = 0; j < resultSetArr.length; j++) {
           if (resultSetArr[j]['account_id'].toString() in peepData) {
-            console.log('I am here');
             resultSetArr[j]['peep_total'] = peepData[resultSetArr[j]['account_id']]['total'];
           } else {
             resultSetArr[j]['peep_total'] = 0;
-            console.log(resultSetArr[j]['account_id'].toString());
           }
           try {
             const temp = await EMRole.getEMRolesOnAccountOnLocation(
@@ -144,7 +150,7 @@ export class ReportsRoute extends BaseRoute {
             resultSetArr[j]['wardens'] = [];
           }
         }
-        return resultSetArr;
+        return [resultSetArr, wardenInTheWholeBuilding];
      }
 
     private mergeToParent(data){
@@ -209,7 +215,7 @@ export class ReportsRoute extends BaseRoute {
             let locAccUser = new LocationAccountUser(),
                 users = <any> await locAccUser.getUsersInLocationId( allLocationIds.join(',') ),
                 allUserIds = [];
-            
+
             for(let user of users){
                 if(allUserIds.indexOf(user.user_id) == -1){
                     allUserIds.push(user.user_id);

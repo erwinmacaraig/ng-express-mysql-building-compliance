@@ -22,6 +22,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
   private sub: any;
   public locationIdDecrypted;
   rootLocationsFromDb = [];
+  totalWardensForLocation = 0;
   constructor (
     private router: Router,
     private authService: AuthService,
@@ -46,6 +47,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         .subscribe((response) => {
           console.log(response);
           this.reportData = response['data'];
+          this.totalWardensForLocation = response['total_warden'];
 
           this.dashboardPreloader.hide();
         }, (e) => {
