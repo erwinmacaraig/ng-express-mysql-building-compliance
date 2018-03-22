@@ -105,7 +105,7 @@
 <div class="inline-block right-content">
 	<div class="row">
 		<div class="col s12 m12 l12">
-			<h5>Assigned Trainnings</h5>
+			<h5>Assigned Trainings</h5>
 		</div>
 		<div class="col s12 m12 l12">
 
@@ -115,15 +115,8 @@
 
 				<div class="grid-item card grey lighten-3" *ngFor="let tr of viewData.trainings">
 					<div class="top" >
-						<div *ngIf=" tr.certificates.status == 'expired' ">
-							<div class="image close inline-block" ></div>
-							<div class="text inline-block red-text">Not Compliance</div>
-						</div>
-						
-						<div *ngIf=" tr.certificates.pass == 1 && tr.certificates.status == 'valid'">
-							<div class="image check inline-block"></div>
-							<div class="text inline-block green-text">Compliance</div>
-						</div>
+						<div class="image close inline-block" ></div>
+						<div class="text inline-block red-text">Not Compliance</div>
 					</div>
 
 					<div class="middle-image">
@@ -132,17 +125,58 @@
 					<div class="middle-text">
 						{{tr.training_requirement_name}}
 						<p class="blue-text">
-							<span *ngIf="tr.certificates.expiry_date_formatted">{{tr.certificates.expiry_date_formatted}}</span>
 						</p>
 					</div>
-							
-					<div class="buttons" *ngIf=" tr.certificates.status == 'expired'">
-						<button class="btn red lighten-1 waves-effect waves-light">Send Invitation</button>
+
+					<div class="buttons">
+						<button class="btn red lighten-1 waves-effect waves-light" [routerLink]="['/trainings/my-training']">Go To Training</button>
+					</div>
+				</div>
+
+			</div>
+			
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col s12 m12 l12">
+			<h5>Previous Trainings</h5>
+		</div>
+		<div class="col s12 m12 l12">
+
+			<h4 *ngIf="viewData.certificates.length == 0">No previous trainings record found</h4>
+	
+			<div class="grid" id="gridContainer">
+
+				<div class="grid-item card grey lighten-3" *ngFor="let cert of viewData.certificates">
+					<div class="top" >
+						<div class="image inline-block" [ngClass]="{
+							'close' : cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired',
+							'check' : cert.status == 'valid' && cert.pass == 1
+						}"> </div>
+
+						<div class="text inline-block" [ngClass]="{
+							'red-text' : cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired',
+							'green-text' : cert.status == 'valid' && cert.pass == 1
+						}">
+							<span *ngIf="cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired'">Not Compliance</span>
+							<span *ngIf="cert.status == 'valid' && cert.pass == 1">Compliance</span>
+						</div>
+
+					<div class="middle-image">
+						<div class="image" [ngClass]="{
+							'red-image' : cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired',
+							'green-image' : cert.status == 'valid' && cert.pass == 1
+						}"></div>
+					</div>
+					<div class="middle-text">
+						{{cert.training_requirement_name}}
+						<p class="blue-text"> {{cert.expiry_date_formatted}} </p>
 					</div>
 
-					<div class="buttons" *ngIf=" tr.certificates.pass == 1 && tr.certificates.status == 'valid'">
+					<div class="buttons">
 						<button class="btn blue waves-effect waves-light">Download Certificate</button>
-						<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
+						<button class="btn orange lighten-1 waves-effect waves-light">Email Certificate</button>
 					</div>
 				</div>
 
@@ -151,70 +185,6 @@
 		</div>
 	</div>
 </div>
-
-
-<!-- GRID ITEM TEMPLATE  -->
-<!-- 	<div class="grid-item card grey lighten-3" >
-		<div class="top">
-			<div class="image close inline-block"></div>
-			<div class="text inline-block red-text">Not Compliance</div>
-		</div>
-		<div class="middle-image">
-			<div class="image red-image"></div>
-		</div>
-		<div class="middle-text">
-			General Occupant and First Response
-			<p class="blue-text"></p>
-		</div>
-				
-		<div class="buttons">
-			<button class="btn red lighten-1 waves-effect waves-light">Send Invitation</button>
-		</div>
-	</div>
-				
-	<div class="grid-item card grey lighten-3" >
-		<div class="top">
-			<div class="image check inline-block"></div>
-			<div class="text inline-block green-text">Compliance</div>
-		</div>
-		<div class="middle-image">
-			<div class="image green-image"></div>
-		</div>
-		<div class="middle-text">
-			Bomb Threat Training
-			<p class="blue-text">
-				Valid until 24/08/2018
-			</p>
-		</div>
-				
-		<div class="buttons">
-			<button class="btn blue waves-effect waves-light">Download Certificate</button>
-			<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
-		</div>
-	</div>
-				
-	<div class="grid-item card grey lighten-3" >
-		<div class="top">
-			<div class="image check inline-block"></div>
-			<div class="text inline-block green-text">Compliance</div>
-		</div>
-		<div class="middle-image">
-			<div class="image yellow-image"></div>
-		</div>
-		<div class="middle-text">
-			Emergency Control Organization
-			<p class="blue-text">
-				Valid until 24/08/2018
-			</p>
-		</div>
-				
-		<div class="buttons">
-			<button class="btn blue waves-effect waves-light">Download Certificate</button>
-			<button class="btn red lighten-1 waves-effect waves-light">Email Certificate</button>
-		</div>
-	</div> -->
-
-<!-- END OF GRID ITEM TEMPLATE  -->
 
 <div id="modalRemoveWarden" class="modal">
 	<div class="modal-content center" *ngIf="showModalRemoveWardenLoader">
@@ -434,8 +404,11 @@
 </div>
 
 <div id="modalAssignLocations" class="modal">
-	<div class="modal-content">
-		<h5>Assign {{viewData.user.first_name+' '+viewData.user.last_name}} To Locations</h5>
+	<div class="modal-content" [hidden]="showLocationSelection">
+		<h5>Assign {{viewData.user.first_name+' '+viewData.user.last_name}} To Locations
+			<a href="javascipt:void(0)" class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
+		</h5>
+		
 		
 		<form #formAssignLocation (submit)="submitAssignLocation(formAssignLocation)">
 
@@ -448,28 +421,24 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr *ngFor="let loc of viewData.locations; let i = index;">
+				<tr *ngFor="let loc of toEditLocations; let i = index;">
 					<td>
-						<span *ngIf="loc.parent_name !== null">{{loc.parent_name}},</span> {{loc.name}}
+						<a href="javascript:void(0)" class="blue-text change-location">
+							<span *ngIf="loc.parent_name !== null">{{loc.parent_name}},</span> {{loc.name}}
+						</a>
 						<input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
 					</td>
 					<td>
-						<select name="role_id[{{i}}]" ngModel style="display: block;">
-							<option value="1" [attr.selected]="loc.em_roles_id == null && loc.location_role_id == 1">Building Manager</option>
-							<option value="2" [attr.selected]="loc.em_roles_id == null && loc.location_role_id == 2">Tenancy Responsible Personnel</option>
-							<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [attr.selected]="loc.em_roles_id != null && loc.em_roles_id == eco.em_roles_id ">
+						<select name="role_id[{{i}}]" style="display: block;">
+							<option value="1" [selected]="loc.em_roles_id == null && loc.location_role_id == 1">Building Manager</option>
+							<option value="2" [selected]="loc.em_roles_id == null && loc.location_role_id == 2">Tenancy Responsible Personnel</option>
+							<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [selected]="loc.em_roles_id != null && loc.em_roles_id == eco.em_roles_id ">
 								{{eco.role_name}}
 							</option>
 						</select>
-						<!-- <span *ngIf="loc.em_roles_id !== null && loc.em_roles_id > 0">
-							{{getRoleName(loc.em_roles_id)}}
-						</span>
-						<span *ngIf="loc.em_roles_id == null ">
-							{{getRoleName(loc.location_role_id)}}
-						</span> -->
 					</td>
 					<td>
-						<a href="javascipt:void(0)" class="red-text">Delete</a>
+						<a href="javascipt:void(0)" class="red-text delete">Delete</a>
 					</td>
 				</tr>
 			</tbody>
@@ -481,7 +450,13 @@
 		</div>
 
 		</form>
-		
+	</div>
+
+
+	<div class="modal-content" [hidden]="!showLocationSelection">
+		<h5>Select Location for {{viewData.user.first_name+' '+viewData.user.last_name}}
+			<a href="javascipt:void(0)" class="red-text right" style="font-size: 18px;" (click)="showLocationSelection = false">Cancel</a>
+		</h5>
 	</div>
 </div>
 

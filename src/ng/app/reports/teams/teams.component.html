@@ -6,16 +6,17 @@
 
 			<div class="left filter-container">
 				<div class="select-container">
-					<select class="select-location">
-						<option value="0" selected disabled>Select Location</option>
+					<select class="select-location" id="selectLocation">
+						<option value="null" selected disabled>Select Location</option>
+						<option value="{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb">{{loc.name}}</option>
 					</select>
 				</div>
 
-				<div class="select-container">
+				<!-- <div class="select-container">
 					<select class="select-role">
 						<option value="0" selected disabled>Select Role</option>
 					</select>
-				</div>
+				</div> -->
 			</div>
 
 			<div class="right right-buttons">
@@ -28,7 +29,7 @@
 					<div class="image excel"></div>
 				</a>
 
-				<a href="javascript:void(0)">
+				<a href="javascript:void(0)" (click)="printResult()">
 					<div class="text">Print</div>
 					<div class="image print"></div>
 				</a>
@@ -41,64 +42,71 @@
 
 	</div>
 
-	<div class="row">
+	<div id="printContainer">
 
-		<div class="col l12 m12 s12">
-			<table class="striped">
-				<thead>
-					<tr class="grey darken-5 white-text">
-						<th>Company</th>
-						<th>Sub Location</th>
-						<th>Contact Person</th>
-						<th>Tel no</th>
-						<th>Email</th>
-						<th>Warden</th>
-						<th>P.E.E.P</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr *ngFor="let field of reportData">
-						<td>
-							{{field['account_name']}}
-						</td>
-						<td>
-							{{field['name']}}
-						</td>
-						<td>
-							{{field['first_name']}} {{field['last_name']}}
-						</td>
-						<td>
-							{{field['mobile_number']}}
-						</td>
-						<td>
-							{{field['email']}}
-						</td>
-						<td>
-							<span class="blue-text">{{field['total_wardens']}}</span>
-						</td>
-						<td>
-							<span class="blue-text">--</span>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+		<div class="row" >
 
-	</div>
-
-	<div class="row">
-		<div class="col l12 m12 s12 col-buttons right-align">
-
-			<button class="btn orange btn-compliance-rating">
-				<div class="text">
-					Total no. of Wardens
-				</div>
-				<div class="white center">
-					0
-				</div>
-			</button>
+			<div class="col l12 m12 s12" >
+				<table class="striped">
+					<thead>
+						<tr class="grey darken-5 white-text">
+							<th>Company</th>
+							<th>Sub Location</th>
+							<th>Contact Person</th>
+							<th>Tel no</th>
+							<th>Email</th>
+							<th>Warden</th>
+							<th>P.E.E.P</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngIf="reportData.length == 0">
+							<td colspan="7" class="center">No record found</td>
+						</tr>
+						<tr *ngFor="let field of reportData">
+							<td>
+								{{field['account_name']}}
+							</td>
+							<td>
+								{{field['name']}}
+							</td>
+							<td>
+								{{field['first_name']}} {{field['last_name']}}
+							</td>
+							<td>
+								{{field['mobile_number']}}
+							</td>
+							<td>
+								{{field['email']}}
+							</td>
+							<td>
+								<span class="blue-text">{{field['total_wardens']}}</span>
+							</td>
+							<td>
+								<span class="blue-text">--</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 
 		</div>
+
+		<div class="row">
+			<div class="col l12 m12 s12 col-buttons right-align">
+
+				<button class="btn orange btn-compliance-rating">
+					<div class="text">
+						Total no. of Wardens
+					</div>
+					<div class="white center">
+						0
+					</div>
+				</button>
+
+			</div>
+		</div>
+
 	</div>
 
 </div>

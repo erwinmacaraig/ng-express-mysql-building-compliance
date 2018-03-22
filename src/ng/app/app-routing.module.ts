@@ -190,7 +190,7 @@ const appRoutes: Routes = [
       { path : 'location-compliance/:location', component : ReportsLocationsComplianceComponent },
       { path : 'statement-compliance/:location', component : ReportsLocationsStatementComplianceComponent },
       { path : 'teams/:location', component : ReportsTeamsComponent },
-      { path : 'trainings/:location', component : ReportsTrainingsComponent },
+      { path : 'trainings/:locationId', component : ReportsTrainingsComponent },
       { path : 'activity-log/:location', component : ReportsActivityLogComponent }
     ]
   },
