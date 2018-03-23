@@ -94,6 +94,7 @@ import { TrainingsComponent } from './trainings/trainings.component';
 import { MyTrainingsComponent } from './trainings/my-training/mytraining.component';
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
+import { TrainingProfile } from './trainings/training-profile/training.profile.component';
 
 import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 
@@ -180,6 +181,7 @@ import { AssignCoursesComponent } from './assign-courses/assign.courses.componen
     MyTrainingsComponent,
     TeamTrainingComponent,
     TrainingInviteComponent,
+    TrainingProfile,
     WardenBenchMarkingComponent,
 
     ReportsComponent,

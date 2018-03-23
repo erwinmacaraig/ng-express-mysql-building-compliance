@@ -119,7 +119,7 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getEmRolesFilterBy(filter: object = {}) {
+    public getEmRolesFilterBy(filter: object = {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         let whereClause = 'WHERE 1=1';
         if ('user_id' in filter) {
@@ -127,6 +127,7 @@ export class UserEmRoleRelation extends BaseClass {
         }
         if ('location_id' in  filter) {
           whereClause += ` AND location_id = ${filter['location_id']}`;
+
         }
         const sql_get_roles = `SELECT em_role_id FROM user_em_roles_relation ${whereClause}`;
         const connection = db.createConnection(dbconfig);

@@ -675,7 +675,7 @@ export class TeamRoute extends BaseRoute {
       throw new Error('Internal Error');
     }
     // create a record em-role-user-location
-    if(parseInt(req.body.em_role) > 2){
+    if(parseInt(req.body.em_role) > 2) {
       const EMRoleUserRole = new UserEmRoleRelation();
       await EMRoleUserRole.create({
         'user_id': user.ID(),

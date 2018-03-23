@@ -73,6 +73,7 @@ import { TrainingsComponent } from './trainings/trainings.component';
 import { MyTrainingsComponent } from './trainings/my-training/mytraining.component';
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
+import { TrainingProfile } from './trainings/training-profile/training.profile.component';
 
 import { ReportsComponent } from './reports/reports.component';
 import { ChooseReportComponent } from './reports/choose.report/choose.report.component';
@@ -85,9 +86,6 @@ import { ReportsTrainingsComponent  } from './reports/trainings/trainings.compon
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
-
-// To delete
-import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -175,11 +173,9 @@ const appRoutes: Routes = [
     children : [
       { path : 'my-training', component : MyTrainingsComponent },
       { path : 'team-training', component : TeamTrainingComponent },
-      { path : 'training-invite', component : TrainingInviteComponent }
+      { path : 'training-invite', component : TrainingInviteComponent },
+      { path : 'my-training-profile/:encrypted', component: TrainingProfile }
     ]
-  },
-  {
-    path: 'warden-benchmarking', component: WardenBenchMarkingComponent
   },
   {
     path : 'reports', component : ReportsComponent,

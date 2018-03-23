@@ -736,8 +736,10 @@ export class UsersRoute extends BaseRoute {
 		mobilityModel = new MobilityImpairedModel();
 
 		response.data.eco_roles = emRoles;
+    const training_requirements = await new TrainingCertification().getRequiredTrainings();
+    console.log(training_requirements);
+		try {
 
-		try{
 			let user = await userModel.load(),
 				locations = <any>[];
 
@@ -769,7 +771,6 @@ export class UsersRoute extends BaseRoute {
 				arrWhere.push(['user_id = '+userId]);
 				arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
 				locations = await locationAccountUserModel.getMany(arrWhere);
-
 				if( user['mobility_impaired'] == 1 ){
 		        	let mobilityModel = new MobilityImpairedModel(),
 		        		arrWhere = [];
@@ -797,15 +798,21 @@ export class UsersRoute extends BaseRoute {
 					user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
 				}
 
-			}
+      }
+      Object.keys(locations).forEach((key) => {
+        if ('em_roles_id' in locations[key]) {
+          locations[key]['training_requirement_name'] = training_requirements[locations[key]['em_roles_id'].toString()]['training_requirement_name'];
+          locations[key]['training_requirement_id'] = training_requirements[locations[key]['em_roles_id'].toString()]['training_requirement_id'];
+        }
+      });
+      console.log(locations);
 
 			response.data.locations = locations;
 			response.data.user = user;
 			response.status = true;
 		}catch(e){
 			response.status = false;
-		}
-
+    }
 		try{
 
 			let courseModel = new CourseUserRelation(),

@@ -251,7 +251,7 @@ export class TrainingCertification extends BaseClass {
     });
   }
 
-  public getCertificatesByInUsersId(userIds){
+  public getCertificatesByInUsersId(userIds) {
     return new Promise((resolve) => {
 
       let sql = `
@@ -285,6 +285,47 @@ export class TrainingCertification extends BaseClass {
       });
       connection.end();
 
+    });
+  }
+
+  public getRequiredTrainings() {
+    return new Promise((resolve, reject) => {
+      const resultSet = {};
+      const sql = `
+        SELECT em_role_training_requirements.*,
+          training_requirement.training_requirement_name,
+          training_requirement.num_months_valid
+        FROM
+          em_role_training_requirements
+        INNER JOIN
+          training_requirement
+        ON
+          training_requirement.training_requirement_id = em_role_training_requirements.training_requirement_id;`;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql, [], (error, results, fields) => {
+        if (error) {
+          console.log('training.certifications.model.getRequiredTrainings', sql, error);
+          throw Error('Cannot retrieve required training fields');
+        }
+        if (!results.length) {
+          resolve('There are no required certifications');
+        } else {
+          for (let i = 0; i < results.length; i++) {
+            if (results[i]['em_role_id'] in resultSet) {
+              (resultSet[results[i]['em_role_id']]['training_requirement_name']).push(results[i]['training_requirement_name']);
+              (resultSet[results[i]['em_role_id']]['training_requirement_id']).push(results[i]['training_requirement_id']);
+            } else {
+              resultSet[results[i]['em_role_id']] = {
+                'training_requirement_name': [results[i]['training_requirement_name']],
+                'training_requirement_id': [results[i]['training_requirement_id']]
+              };
+
+            }
+          }
+          resolve(resultSet);
+        }
+
+      });
     });
   }
 
