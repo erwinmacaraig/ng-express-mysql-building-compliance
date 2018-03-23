@@ -187,7 +187,7 @@ const appRoutes: Routes = [
       { path : 'choose', component : ChooseReportComponent },
       { path : 'locations', component : ReportsLocationsComponent },
       { path : 'summary-of-compliance/:locationId', component : ReportsLocationsSummaryOfComplianceComponent },
-      { path : 'statement-compliance/:location', component : ReportsLocationsStatementComplianceComponent },
+      { path : 'statement-compliance/:locationId', component : ReportsLocationsStatementComplianceComponent },
       { path : 'teams/:location', component : ReportsTeamsComponent },
       { path : 'trainings/:locationId', component : ReportsTrainingsComponent },
       { path : 'activity-log/:location', component : ReportsActivityLogComponent }

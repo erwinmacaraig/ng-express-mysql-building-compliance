@@ -270,6 +270,7 @@ export class TrainingCertification extends BaseClass {
             training_requirement.training_requirement_id = certifications.training_requirement_id
           WHERE
             certifications.user_id IN (`+userIds+`)
+          ORDER BY certifications.certification_date DESC
       `,
         connection = db.createConnection(dbconfig);
 

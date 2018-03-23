@@ -1,5 +1,6 @@
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
+import { Location } from './location.model';
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
@@ -530,8 +531,6 @@ export class Account extends BaseClass {
         locations.archived = ?
       AND
         LAU.user_id = ?
-      AND
-        locations.parent_id = -1
       GROUP BY
         locations.location_id
       ORDER BY
@@ -542,18 +541,16 @@ export class Account extends BaseClass {
       const val = [archived, user_id];
       const connection = db.createConnection(dbconfig);
 
+      let res = <any> {};
+
       connection.query(sql_get_locations, val, (err, results, fields) => {
           if (err) {
               console.log(err);
               console.log(sql_get_locations);
               throw new Error('Internal problem. There was a problem processing your query');
           }
-          if (results.length) {
-              this.dbData = results;
-              resolve(results);
-          } else {
-              reject(`No location found for this account ${this.ID()}`);
-          }
+          this.dbData = results;
+          resolve(results);
       });
       connection.end();
     });

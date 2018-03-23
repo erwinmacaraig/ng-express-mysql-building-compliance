@@ -36,4 +36,8 @@ export class ReportService {
         return this.http.post(this.baseUrl + '/reports/get-compliance-summary', formData, this.options);
     }
 
+    public getStatementOfCompliance(locId){
+        return this.http.get(this.baseUrl + '/reports/get-statement-of-compliance/'+locId, this.options);
+    }
+
 }
