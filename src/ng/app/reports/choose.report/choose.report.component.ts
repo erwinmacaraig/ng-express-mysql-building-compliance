@@ -25,6 +25,10 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
     public selectedLocationForPortfolioReport = 0;
     public selectedLocationForSummaryComplianceReport = 0;
     public rootLocationsFromDb = [];
+
+    isFrp = false;
+    isTrp = false;
+
     constructor(
         private router: Router,
         private authService: AuthService,
@@ -34,6 +38,14 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
         ) {
 
         this.userData = this.authService.getUserData();
+        let roles = this.userData['roles'];
+        for(let ro of roles){
+            if(ro.role_id == 1){
+                this.isFrp = true;
+            }else if(ro.role_id == 2){
+                this.isTrp = true;
+            }
+        }
 
     }
 
@@ -52,6 +64,14 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
 
     ngAfterViewInit(){
       $('select').material_select();
+    }
+
+    clickStatementOfComplianceReport(){
+        let val = $('#statementOfCompliance').val();
+        if(val != null){
+            let locId = this.encryptDecrypt.encrypt(val);
+            this.router.navigate(['/reports/statement-compliance', locId]);
+        }
     }
 
     clickSummaryOfComplianceReport(){

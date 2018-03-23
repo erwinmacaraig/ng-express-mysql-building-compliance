@@ -1151,9 +1151,7 @@ const defs = require('../config/defs.json');
         let roles;
         try {
             userRoleRel = new UserRoleRelation();
-            console.log('userRoleRel', userRoleRel);
             roles = await userRoleRel.getByUserId(req.user.user_id);
-            console.log('roles', roles);
 
             let r = 100;
             for (let i = 0; i < roles.length; i++) {
@@ -1191,8 +1189,11 @@ const defs = require('../config/defs.json');
                         let locAccUserModel = new LocationAccountUser(),
                         locAccUser = <any> await locAccUserModel.getWardensByAccountIdWhereInLocationId(accountId, allSubLocationIds.join(',') ); // <- to remove
 
-                        const emrolesOnThisLocation = await deepLocModel.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], loc.location_id);
-
+                        loc['num_wardens'] = 0;
+                        try{
+                            const emrolesOnThisLocation = <any> await deepLocModel.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], loc.location_id);
+                            loc['num_wardens'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
+                        }catch(e){}
 
                         let impairedCount = 0 ;
                         for(let x in locAccUser){
@@ -1202,7 +1203,7 @@ const defs = require('../config/defs.json');
                         }
 
                         loc['num_wardens'] = locAccUser.length; // <- to remove
-                        loc['num_wardens'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
+                       
                         loc['mobility_impaired'] = impairedCount;
                         loc['compliance'] = 0;
 

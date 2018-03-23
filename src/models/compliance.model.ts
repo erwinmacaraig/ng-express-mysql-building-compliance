@@ -134,6 +134,54 @@ export class ComplianceModel extends BaseClass {
         });
     }
 
+    public getLocationCompliance(locId, accntId, roles?){
+        return new Promise((resolve) => {
+            if(roles == 'undefined'){
+                roles = 'Manager, Tenant';
+            }
+            let sql = `
+                SELECT
+                  c.compliance_id,
+                  c.compliance_kpis_id,
+                  c.compliance_status,
+                  c.building_id,
+                  c.account_id,
+                  c.valid_till,
+                  c.required,
+                  c.account_role,
+                  ck.name,
+                  ck.directory_name,
+                  ck.measurement,
+                  ck.validity_in_months,
+                  ck.has_primary_document,
+                  ck.ER_id,
+                  ck.training_id,
+                  c.override_by_evac
+                FROM compliance_kpis ck
+                INNER JOIN compliance c ON ck.compliance_kpis_id = c.compliance_kpis_id
+                WHERE c.building_id = ?
+                AND c.account_id = ?
+                AND c.account_role IN (?)
+                AND ck.description IS NOT NULL
+                ORDER BY c.compliance_id DESC
+            `;
+
+            let param = [locId, accntId, roles];
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+
+        });
+    }
+
 
 
 }

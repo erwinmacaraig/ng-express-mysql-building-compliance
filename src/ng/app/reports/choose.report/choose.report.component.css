@@ -1,10 +1,19 @@
+.boxes-container{
+    margin: 0px auto;
+    display: table;
+}
+
+.box-wrapper{
+    display: table-cell;
+    width: 26%;
+}
+
 .box{
     height: 400px;
     background-color: #efefef;
     width: 250px;
     margin: 40px;
     padding: 20px;
-    float: left;
     position: relative;
 }
 
@@ -57,3 +66,4 @@
     bottom: 100px;
     width: 210px;
 }
+
