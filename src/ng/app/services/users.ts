@@ -8,14 +8,23 @@ import 'rxjs/add/operator/catch';
 @Injectable()
 export class UserService {
 
-	private headers: Object;
-  	private options: Object;
-	private baseUrl: String;
+  private headers: Object;
+  private options: Object;
+  private baseUrl: String;
 
 	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
-		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-    	this.options = { headers : this.headers };
-		this.baseUrl = (platformLocation as any).location.origin;
+    this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
+    this.options = { headers : this.headers };
+    this.baseUrl = (platformLocation as any).location.origin;
+	}
+
+	checkUserIsAdmin(userId, callBack){
+		this.http.get(this.baseUrl+"/users/is-admin/"+userId)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
 	}
 
 	update(formData, callBack){
@@ -56,6 +65,15 @@ export class UserService {
 
 	getUsersByAccountId(accountId, callBack){
 		this.http.get(this.baseUrl+"/users/get-users-by-account-id/"+accountId)
+		.subscribe(res => {
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	getUsersByAccountIdNoneAuth(accountId, callBack){
+		this.http.get(this.baseUrl+"/users/get-users-by-account-none-auth/"+accountId)
 		.subscribe(res => {
 			callBack(res);
 		}, err => {
@@ -214,6 +232,18 @@ export class UserService {
 		}, err => {
 			callBack( JSON.parse(err.error) );
 		});
-	}
+  }
+
+  sendTRPInvitation(trpInfo: object = {}) {
+    const body = {};
+    body['tenancy_name'] = ('account_name' in trpInfo) ? trpInfo['account_name'] : '';
+    body['email'] = ('email' in trpInfo) ? trpInfo['email'] : '';
+    body['first_name'] = ('key_contact_name' in trpInfo) ? trpInfo['key_contact_name'] : '';
+    body['last_name'] = ('key_contact_lastname' in trpInfo) ? trpInfo['key_contact_lastname'] : '';
+    body['location_id'] = ('location_id' in trpInfo) ? trpInfo['location_id'] : 0;
+
+    return this.http.post<any>(this.baseUrl + '/users/send-trp-invitation/', body);
+
+  }
 
 }

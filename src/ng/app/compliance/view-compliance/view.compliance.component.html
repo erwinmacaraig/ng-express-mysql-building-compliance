@@ -901,7 +901,7 @@
                     {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
                 </td>
                 <td>
-                    <a href="javascript:void(0)" class="blue-text"> View Warden List </a>
+                    <a href="javascript:void(0)" (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
                 </td>
                 <ng-template #noChiefWarden>
                   <td>0</td>
@@ -975,7 +975,7 @@
                   {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
               </td>
               <td>
-                  <a href="javascript:void(0)" class="blue-text"> View Warden List </a>
+                  <a href="javascript:void(0)" (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
               </td>
               <ng-template #noChiefWarden>
                 <td>0</td>
@@ -984,9 +984,8 @@
                 <td>0%</td>
               </ng-template>
             </tr>
-
 			</tbody>
-		</table>
+    </table>
 	</div>
 </ng-template>
 
@@ -1117,7 +1116,7 @@
 		</table>
 	</div>
 </ng-template>
-
+<!--
 <ng-template #warden_listTableTemplate>
 	<div class="col l12 m12 s12">
 		<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
@@ -1182,7 +1181,7 @@
 		</table>
 	</div>
 </ng-template>
-
+-->
 
 <div class="top-gray">
 	<h6 class="title">
@@ -1296,5 +1295,54 @@
 
 </div>
 
+<div id="modalWardenList" class="modal">
+  <div class="modal-content">
+    <table class="striped table">
+			<thead>
+				<tr>
+					<!-- <th>Date</th> -->
+					<th>Account</th>
+          <th>TRP Name</th>
+          <th>No of wardens</th>
+          <th>Wardens</th>
+          <!--
+					<th style="width: 10%;">No of new wardens added</th>
+          <th style="width: 10%;">Action</th>
+          -->
+				</tr>
+			</thead>
+			<tbody *ngIf="tenants">
+				<tr *ngFor="let tenant of tenants">
+					<!-- <td>n/a</td> -->
+					<td>
+						<span class="blue-text">{{tenant.account_name}}</span>
+					</td>
+					<td>
+					  <span *ngFor="let t of tenant.trp">{{t}}<br /></span>
+					</td>
+					<td>
+						{{tenant.wardens.length}}
+          </td>
+          <td>
+              <span *ngFor="let warden of tenant.wardens">{{warden.first_name}} {{warden.last_name}}<br /></span>
+          </td>
+          <!--
+					<td style="padding: 2px;">
+						<a href="javascript:void(0)" class=" ">
+							<img src="/assets/images/download_ico_blue.png"  >
+            </a>
+
+          </td>
+           -->
+				</tr>
+			</tbody>
+    </table>
+    <br />
+    <div class="button-container right-align" >
+        <a href="javascript:void(0)" class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Close</a>
+    </div>
+  </div>
+
+</div>
 
 <div preloader></div>

@@ -63,6 +63,10 @@ const validator = require('validator');
 	   		new AccountRoute().create(req, res);
 	   	});
 
+	   	router.get('/accounts/get-all', (req: Request, res: Response) => {
+	   		new AccountRoute().getAll(req, res);
+	   	});
+
    	}
 
 	/**
@@ -73,6 +77,18 @@ const validator = require('validator');
 	*/
 	constructor() {
 		super();
+	}
+
+	public async getAll(req: Request, res: Response){
+		let  response = {
+			status : true,
+			message : '',
+			data : []
+		},
+		account = new Account();
+
+		response.data = <any> await account.getAll();
+		res.send(response);
 	}
 
 	public getAccountByUserId(req: AuthRequest, res: Response){

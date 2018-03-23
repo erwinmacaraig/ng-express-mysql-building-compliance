@@ -1,5 +1,6 @@
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
+import { Location } from './location.model';
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
@@ -28,6 +29,22 @@ export class Account extends BaseClass {
                 this.setID(results[0]['account_id']);
                 resolve(this.dbData);
               }
+            });
+            connection.end();
+        });
+    }
+
+    public getAll() {
+        return new Promise((resolve, reject) => {
+            const sql_load = 'SELECT * FROM accounts WHERE archived = 0';
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+
+              this.dbData = results;
+              resolve(this.dbData);
             });
             connection.end();
         });
@@ -255,7 +272,7 @@ export class Account extends BaseClass {
     public getLocationsOnAccount(user_id?: number, role_id?: number, archived?): Promise<Object[]> {
         return new Promise((resolve, reject) => {
             let user_filter = '';
-            if(archived == undefined){
+            if (archived == undefined) {
               archived = 0;
             }
             let role_filter = '';
@@ -272,6 +289,7 @@ export class Account extends BaseClass {
             if (user_id) {
                 user_filter = `AND LAU.user_id = ${user_id}`;
             }
+
             const sql_get_locations = `SELECT
               locations.parent_id,
               locations.name,
@@ -431,7 +449,7 @@ export class Account extends BaseClass {
             )
          `;
         if(archived){
-          sql_get_peep += ' AND lau.archived = '+archived;
+          sql_get_peep += ' AND lau.archived = '+ archived;
         }else{
           sql_get_peep += ' AND lau.archived = 0';
         }
@@ -489,5 +507,125 @@ export class Account extends BaseClass {
 
     }
 
+  /**
+   * @getRootLocationsOnAccount
+   * Get all parent locations irregardless of role of user
+   */
+  public getRootLocationsOnAccount(user_id: number = 0, archived: number = 0) {
+    return new Promise((resolve, reject) => {
+
+      const sql_get_locations = `SELECT
+        locations.parent_id,
+        locations.name,
+        locations.formatted_address,
+        locations.location_id,
+        locations.google_photo_url,
+        locations.admin_verified
+      FROM
+        locations
+      INNER JOIN
+        location_account_user LAU
+      ON
+        locations.location_id = LAU.location_id
+      WHERE
+        locations.archived = ?
+      AND
+        LAU.user_id = ?
+      GROUP BY
+        locations.location_id
+      ORDER BY
+        locations.location_id;
+      `;
+      // const val = [this.ID(), archived];
+
+      const val = [archived, user_id];
+      const connection = db.createConnection(dbconfig);
+
+      let res = <any> {};
+
+      connection.query(sql_get_locations, val, (err, results, fields) => {
+          if (err) {
+              console.log(err);
+              console.log(sql_get_locations);
+              throw new Error('Internal problem. There was a problem processing your query');
+          }
+          this.dbData = results;
+          resolve(results);
+      });
+      connection.end();
+    });
+  }
+  public generateReportPEEPList(sublocations = []) {
+    return new Promise((resolve, reject) => {
+      if (!sublocations.length) {
+        reject('Cannot generate list without locations');
+        return;
+      }
+      const sublocationStr = sublocations.join(',');
+      const peepDataResultObj = {};
+      const sql = `SELECT
+          accounts.account_id,
+          accounts.account_name,
+          accounts.key_contact,
+          locations.parent_id,
+          locations.name,
+          locations.formatted_address,
+          LAU.location_id,
+          LAU.user_id,
+          LAU.role_id,
+          users.first_name,
+          users.last_name,
+          users.phone_number,
+          users.mobile_number,
+          users.email
+        FROM
+            location_account_user LAU
+        INNER JOIN
+          accounts
+        ON
+             accounts.account_id = LAU.account_id
+        INNER JOIN
+          locations
+        ON
+          locations.location_id = LAU.location_id
+        INNER JOIN
+          users
+        ON
+          users.user_id = LAU.user_id
+        WHERE
+           locations.location_id IN (${sublocationStr})
+        AND
+          users.mobility_impaired = 1
+        ORDER BY
+          accounts.account_name`;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql, [], (error, results, fields) => {
+        if (error) {
+          console.log('account.model.generateReportPEEPList', error, sql);
+          throw Error('There was a problem generating report');
+        }
+        if (!results.length) {
+          reject(`There are no records found for ${sublocationStr}`);
+        } else {
+          for (let i = 0; i < results.length; i++) {
+            if (results[i]['account_id'] in peepDataResultObj) {
+              (peepDataResultObj[results[i]['account_id']]['users']).push(results[i]['user_id']);
+              peepDataResultObj[results[i]['account_id']]['total'] = (peepDataResultObj[results[i]['account_id']]['users']).length;
+            } else {
+              peepDataResultObj[results[i]['account_id']] = {
+                'name': results[i]['account_name'],
+                'users': [results[i]['user_id']],
+                'location': results[i]['location_id'],
+                'account_id': results[i]['account_id'],
+                'total': 1
+              };
+            }
+          }
+          resolve(peepDataResultObj);
+        }
+      });
+      connection.end();
+    });
+  }
 
 }

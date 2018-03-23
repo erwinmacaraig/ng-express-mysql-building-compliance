@@ -119,7 +119,7 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getEmRolesFilterBy(filter: object = {}) {
+    public getEmRolesFilterBy(filter: object = {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         let whereClause = 'WHERE 1=1';
         if ('user_id' in filter) {
@@ -127,6 +127,7 @@ export class UserEmRoleRelation extends BaseClass {
         }
         if ('location_id' in  filter) {
           whereClause += ` AND location_id = ${filter['location_id']}`;
+
         }
         const sql_get_roles = `SELECT em_role_id FROM user_em_roles_relation ${whereClause}`;
         const connection = db.createConnection(dbconfig);
@@ -219,4 +220,52 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
+    public getEMRolesOnAccountOnLocation(em_role: number = 0, account_id: number = 0, location_id: number = 0) {
+      return new Promise((resolve, reject) => {
+        let role_filter = '';
+        if (em_role) {
+          role_filter = ` AND em_role_id = ${em_role}`;
+        }
+        if (!account_id || !location_id) {
+          reject('Missing data to retrieve record (account id or location id)');
+        }
+        const sql = `SELECT
+                    users.user_id,
+                    location_id,
+                    em_role_id,
+                    users.first_name,
+                    users.last_name
+                FROM
+                  user_em_roles_relation
+                INNER JOIN
+                  users
+                ON
+                  user_em_roles_relation.user_id = users.user_id
+                WHERE
+                  users.account_id = ?
+                AND
+                  location_id = ?
+                ${role_filter}`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [account_id, location_id], (error, results, fields) => {
+          if (error) {
+            console.log('user.em.role.relation.getEMRolesOnAccountOnLocation', sql, error);
+            throw new Error('Cannot retrieve the role(s) on location');
+          }
+          const users = [];
+          if (results.length > 0) {
+            for (let i = 0; i < results.length; i++) {
+              users.push(results[0]['user_id']);
+            }
+            resolve({
+              'raw': results,
+              'users': users
+            });
+          } else {
+            reject('No records can be retrieve.');
+          }
+        });
+        connection.end();
+      });
+    }
 }

@@ -8,6 +8,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { UserService } from '../../services/users';
+import { CourseService } from '../../services/course';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as enLocale from 'date-fns/locale/en';
 
@@ -18,7 +19,7 @@ declare var moment: any;
   selector: 'app-view-user-component',
   templateUrl: './view.user.component.html',
   styleUrls: ['./view.user.component.css'],
-  providers: [DashboardPreloaderService, EncryptDecryptService, UserService]
+  providers: [DashboardPreloaderService, EncryptDecryptService, UserService, CourseService]
 })
 export class ViewUserComponent implements OnInit, OnDestroy {
 	@ViewChild('formMobility') formMobility : NgForm;
@@ -38,6 +39,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		eco_roles : [],
 		locations : [],
 		trainings : [],
+		certificates : [],
 		badge_class : ''
 	};
 	showRemoveWardenButton = false;
@@ -65,6 +67,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 	locations = [];
 
+	toEditLocations = [];
+
+	showLocationSelection = false;
+
 	constructor(
 		private auth: AuthService,
         private preloaderService: DashboardPreloaderService,
@@ -72,7 +78,9 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         private encryptDecrypt: EncryptDecryptService,
         private route: ActivatedRoute,
         private router: Router,
-        private userService: UserService
+        private courseService : CourseService,
+        private userService: UserService,
+        private elemRef: ElementRef
 		){
 
 		this.userData = this.auth.getUserData();
@@ -99,6 +107,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			this.viewData.eco_roles = response.data.eco_roles;
 			this.viewData.locations = response.data.locations;
 			this.viewData.trainings = response.data.trainings;
+			this.viewData.certificates = response.data.certificates;
+
+			for(let x in this.viewData.certificates){
+				this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
+			}
+
+			this.toEditLocations = JSON.parse( JSON.stringify(response.data.locations) );
 
 
 			if(this.viewData.user.last_login.length > 0 ){
@@ -117,20 +132,18 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	ngOnInit(){}
+	ngOnInit(){
+
+	}
 
 	ngAfterViewInit(){
+
 		$('.modal').modal({
 			dismissible: false
 		});
 
-
-		this.gridEvent();
-		this.renderGrid();
-
 		this.preloaderService.show();
 		
-
 		$('#modalMobility select[name="is_permanent"]').off('change').on('change', () => {
             if($('#modalMobility select[name="is_permanent"]').val() == '1'){
                 this.isShowDatepicker = false;
@@ -154,7 +167,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		}, 1000);
 		setTimeout(() => { 
 			$('#selectLocation').trigger('change');
-		}, 100);
+		}, 1000);
 
 		this.selectActionEvent();
 		
@@ -203,37 +216,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	gridEvent(){
-		window.addEventListener("load", this.renderGrid, false);
-		window.addEventListener("resize", this.renderGrid, false);
-	}
-
-	renderGrid(){
-		let containerWidth = document.querySelector('#gridContainer')['offsetWidth'];
-		let blocks = document.querySelectorAll('#gridContainer .grid-item');
-		let pad = 30, cols = Math.floor( containerWidth / 300 ), newleft, newtop;
-		
-		for(let x = 1; x < blocks.length; x++){
-			blocks[x]['style'].left = null;
-			blocks[x]['style'].top = null;
-		}
-
-		setTimeout(() => {
-			for(let i = 1; i < blocks.length; i++){
-				if(i % cols == 0){
-					newtop = (blocks[i-cols]['offsetTop'] + blocks[i-cols]['offsetHeight']) + pad;
-					blocks[i]['style'].top = newtop+"px";
-				}else{
-					if(blocks[i-cols]){
-						newtop = (blocks[i-cols]['offsetTop'] + blocks[i-cols]['offsetHeight']) + pad;
-						blocks[i]['style'].top = newtop+"px";
-					}
-					newleft = (blocks[i-1]['offsetLeft'] + blocks[i-1]['offsetWidth']) + pad;
-					blocks[i]['style'].left = newleft+"px";
-				}
-			}
-		}, 100);
-	}
 
 	getInitials(fullName){
 		if(fullName){
@@ -352,6 +334,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     			this.showModalCredentials();
     		}else if(val == 'location'){
     			$('#modalAssignLocations').modal('open');
+    			this.toEditLocations = JSON.parse( JSON.stringify(this.viewData.locations) );
     		}
 
     		selectAction.val('0').material_select('update');
@@ -428,6 +411,14 @@ export class ViewUserComponent implements OnInit, OnDestroy {
             	});
     		});
     	}
+    }
+
+    assignNewClickEvent(){
+    	this.toEditLocations.push({
+    		location_id : 0,
+    		location_role_id : 0,
+    		em_roles_id : 0
+    	});
     }
 
     ngOnDestroy(){

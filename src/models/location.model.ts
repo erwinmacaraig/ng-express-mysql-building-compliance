@@ -506,56 +506,17 @@ export class Location extends BaseClass {
 
 	public getAncestryIds(sublocId){
 		return new Promise((resolve) => {
-			let sqlDrop = 'DROP FUNCTION IF EXISTS GetAncestry;';
-			const connDrop = db.createConnection(dbconfig);
-			connDrop.query(sqlDrop, (err, results, fields) => {
+			let sql = `SELECT location_id, GetAncestry(${sublocId}) as ids FROM locations WHERE location_id = ${sublocId};`;
+
+			const connection = db.createConnection(dbconfig);
+			connection.query(sql, (err, results, fields) => {
 				if (err) {
+					console.log(err);
 					throw new Error(err);
 				}
-
-				let sqlFnx = `CREATE FUNCTION GetAncestry (GivenID INT) RETURNS VARCHAR(1024)
-					DETERMINISTIC
-					BEGIN
-					    DECLARE rv VARCHAR(1024);
-					    DECLARE cm CHAR(1);
-					    DECLARE ch INT;
-
-					    SET rv = '';
-					    SET cm = '';
-					    SET ch = GivenID;
-					    WHILE ch > 0 DO
-					        SELECT IFNULL(parent_id,-1) INTO ch FROM
-					        (SELECT parent_id FROM locations WHERE location_id = ch) A;
-					        IF ch > 0 THEN
-					            SET rv = CONCAT(rv,cm,ch);
-					            SET cm = ',';
-					        END IF;
-					    END WHILE;
-					    RETURN rv;
-					END;`;
-				const connFnx = db.createConnection(dbconfig);
-				connFnx.query(sqlFnx, (err, results, fields) => {
-					if (err) {
-						throw new Error(err);
-					}
-
-					let sql = `SELECT location_id, GetAncestry(${sublocId}) as ids FROM locations WHERE location_id = ${sublocId};`;
-
-					const connection = db.createConnection(dbconfig);
-					connection.query(sql, (err, results, fields) => {
-						if (err) {
-							console.log(err);
-							throw new Error(err);
-						}
-						console.log(results);
-						resolve(results);
-					});
-					connection.end();
-
-				});
-				connFnx.end();
+				resolve(results);
 			});
-			connDrop.end();
+			connection.end();
 		});
 	}
 

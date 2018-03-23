@@ -25,36 +25,45 @@ declare var $: any;
 })
 export class TrainingsComponent implements OnInit, OnDestroy{
 
-	userData = {};
+  userData = {};
+  private EMRoles = [9, 10, 11, 15, 16, 18]; // need to improve this at a later time by getting these values from db
+  routeSubs;
 
-	routeSubs;
-
-	thisRouteUrl = '';
+  public isWarden = false;
+  thisRouteUrl = '';
+  user_id_encrypted;
 
 	constructor(
-		private router : Router,
-		private route: ActivatedRoute,
-		private authService : AuthService,
-		private userService: UserService,
-		private locationService: LocationsService,
-        private signupServices: SignupService,
-        private productService: ProductService,
-        private encryptDecrypt : EncryptDecryptService,
-        private preloaderService: DashboardPreloaderService,
-        private messageService : MessageService
-		){
+    private router: Router,
+    private route: ActivatedRoute,
+    private authService: AuthService,
+    private userService: UserService,
+    private locationService: LocationsService,
+    private signupServices: SignupService,
+    private productService: ProductService,
+    private encryptDecrypt: EncryptDecryptService,
+    private preloaderService: DashboardPreloaderService,
+    private messageService: MessageService
+  ) {
 
 		this.userData = this.authService.getUserData();
 
 		this.routeSubs = this.router.events.subscribe((event) => {
-            if(event instanceof NavigationEnd ){
+            if(event instanceof NavigationEnd ) {
                 this.thisRouteUrl = event.url;
             }
         });
 	}
 
-	ngOnInit(){
-	}
+  ngOnInit() {
+    for (let i = 0; i < this.userData['roles'].length; i++) {
+      if (this.EMRoles.indexOf(this.userData['roles'][i]['role_id']) !== -1) {
+        this.isWarden = true;
+        break;
+      }
+    }
+    this.user_id_encrypted = this.encryptDecrypt.encrypt(this.userData['userId']);
+  }
 
 	ngAfterViewInit(){
 		// this.preloaderService.show();
@@ -72,4 +81,4 @@ export class TrainingsComponent implements OnInit, OnDestroy{
 		this.routeSubs.unsubscribe();
 	}
 
-} 
+}

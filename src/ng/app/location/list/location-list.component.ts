@@ -14,6 +14,7 @@ import 'rxjs/add/operator/catch';
 import { isArray } from 'util';
 import { Countries } from '../../models/country.model';
 import { Timezone } from '../../models/timezone';
+import { UserService } from '../../services/users';
 
 declare var $: any;
 @Component({
@@ -61,22 +62,27 @@ export class LocationListComponent implements OnInit, OnDestroy {
     timezones = new Timezone().get();
     defaultCountry = 'AU';
     defaultTimeZone = 'AEST';
+    public account_name;
+    public key_contact_name;
+    public key_contact_lastname;
+    public emailTaken = false;
 
-	constructor (
-		private platformLocation: PlatformLocation,
-		private http: HttpClient,
-		private auth: AuthService,
-		private preloaderService: DashboardPreloaderService,
-		private locationService: LocationsService,
-		private accntService: AccountsDataProviderService,
-	    private encryptDecrypt: EncryptDecryptService,
-	    private router: Router,
-	    private elemRef : ElementRef
-	) {
-		this.baseUrl = (platformLocation as any).location.origin;
-		this.options = { headers : this.headers };
-		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-		this.userData = this.auth.getUserData();
+  constructor (
+      private platformLocation: PlatformLocation,
+      private http: HttpClient,
+      private auth: AuthService,
+      private preloaderService: DashboardPreloaderService,
+      private locationService: LocationsService,
+      private accntService: AccountsDataProviderService,
+      private encryptDecrypt: EncryptDecryptService,
+      private router: Router,
+      private elemRef : ElementRef,
+      private userService : UserService
+  ) {
+      this.baseUrl = (platformLocation as any).location.origin;
+      this.options = { headers : this.headers };
+      this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
+      this.userData = this.auth.getUserData();
 
     	this.accntService.getById(this.userData['accountId'], (response) => {
 	      	this.accountData = response.data;
@@ -141,6 +147,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		this.selectBulkAction();
 
 		let formAddTenant = this.formAddTenant;
+       /*
         $('body').off('change.countrychange').on('change.countrychange', 'select.billing-country', (event) => {
             formAddTenant.controls.billing_country.setValue( event.currentTarget.value );
         });
@@ -148,6 +155,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
         $('body').off('change.timechange').on('change.timechange', 'select.time-zone', (event) => {
             formAddTenant.controls.time_zone.setValue( event.currentTarget.value );
         });
+        */
 
         $('body').off('change.locationchange').on('change.locationchange', 'select.location-id', (event) => {
             formAddTenant.controls.location_id.setValue( event.currentTarget.value );
@@ -220,9 +228,11 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	}
 
 	showNewTenant(){
-		this.formAddTenant.reset();
+        /*
+        this.formAddTenant.reset();
         this.formAddTenant.controls.billing_country.setValue( this.defaultCountry );
         this.formAddTenant.controls.time_zone.setValue( this.defaultTimeZone );
+        */
         $('#modalAddNewTenant').modal('open');
 
         $('#modalAddNewTenant select').material_select('destroy');
@@ -231,12 +241,32 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	submitNewTenant(formAddTenant:NgForm){
         if(formAddTenant.valid){
             this.showModalNewTenantLoader = true;
+            /*
+            console.log(formAddTenant.value);
+            console.log(formAddTenant.value.location_id);
+            */
+            this.userService.sendTRPInvitation(formAddTenant.value).subscribe(() => {
+              this.getLocationsForListing(() => {
+                this.showModalNewTenantLoader = false;
+                $('#modalAddNewTenant').modal('close');
+                this.formAddTenant.reset();
+              });
+            }, (e) => {
+              this.showModalNewTenantLoader = false;
+              $('#modalAddNewTenant').modal('close');
+              console.log(e);
+              const errorObject = JSON.parse(e.error);
+              alert(errorObject.message);
+            });
+
+            /*
             this.accntService.update(formAddTenant.value).subscribe((response) => {
                 this.getLocationsForListing(() => {
-		    		this.showModalNewTenantLoader = false;
-		    		$('#modalAddNewTenant').modal('close');
-		    	});
+		    	    	  this.showModalNewTenantLoader = false;
+		    	    	  $('#modalAddNewTenant').modal('close');
+		        	});
             });
+          */
         }
     }
 

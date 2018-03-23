@@ -52,7 +52,7 @@
 								<tr>
 									<td>{{locationData.formatted_address}}</td>
 								</tr>
-								
+
 								<!-- <tr>
 									<td>Region : N/A</td>
 								</tr> -->
@@ -92,14 +92,14 @@
 							<tr class="grey darken-4 white-text">
 								<th>Tenants</th>
 								<th>TRP</th>
-								<th>Warden Benchmarking</th>
+								<!-- <th>Warden Benchmarking</th> -->
 								<th>Wardens</th>
 								<th>Wardens Trained</th>
 								<th>Action</th>
 							</tr>
 						</thead>
 						<tbody>
-							<tr *ngIf="tenants.length == 0">
+							<tr *ngIf="tenants && tenants.length == 0">
 								<td class="center" colspan="6">
 									<strong>No tenants found</strong>
 								</td>
@@ -109,19 +109,23 @@
 									{{tenant.account_name}}
 								</td>
 								<td>
-									{{tenant.trp_name}}
+                  <span *ngFor="let t of tenant['trp']">
+                      {{ t }}
+                  </span>
 								</td>
-								<td>
+                <!--
+                <td>
 									{{tenant.warden_benchmarking}}
-								</td>
+                </td>
+              -->
 								<td>
-									{{tenant.wardens}}
+									{{tenant.total_wardens}}
 								</td>
 								<td class="with-bar">
-									<div class="text">0%</div>
+									<div class="text">{{tenant.trained_wardens.percentage}}</div>
 									<div class="progress-container">
 										<div class="progress">
-									    	<div class="determinate" style="width: 0%;"></div>
+									    	<div class="determinate" [ngStyle]="{'width': tenant.trained_wardens.percentage}"></div>
 										</div>
 									</div>
 								</td>
@@ -201,16 +205,34 @@
 
 		<h5>Add New Tenant </h5>
 		<h6><span *ngIf="parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}}</h6>
-		
+
 		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)">
 
 			<div class="row">
 				<div class="col l12 m12 s12">
 					<div class="input-field">
-	                  	<input id="company_name" type="text" name="account_name" ngModel required>
-						<label for="company_name">Tenant Name</label>
+	          <input id="company_name" type="text" name="account_name" ngModel required>
+						<label for="company_name">Tenancy Name</label>
+					</div>
+          <div>
+            <h5>Tenancy Contact</h5>
+          </div>
+          <div class="input-field" >
+						<input id="key_contact_name" type="text" name="key_contact_name" ngModel required>
+						<label for="key_contact_name"> Name </label>
 					</div>
 
+					<div class="input-field" >
+						<input id="key_contact_lastname" type="text" name="key_contact_lastname" ngModel required>
+						<label for="key_contact_lastname"> Last Name </label>
+					</div>
+
+					<div class="input-field">
+						<input id="email" type="text" name="email" ngModel required>
+						<label for="email">Email</label>
+					</div>
+
+          <!--
 					<div class="input-field" >
 						<input id="key_contact" type="text" name="key_contact" ngModel required>
 						<label for="key_contact"> Key Contact </label>
@@ -258,7 +280,8 @@
 					<div class="input-field">
 						<input id="domain" type="text" name="account_domain" ngModel required pattern="^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$">
 						<label for="domain">Account Domain name</label>
-					</div>
+          </div>
+        -->
 				</div>
 			</div>
 
@@ -272,7 +295,7 @@
 			</div>
 
 		</form>
-		
-		
+
+
 	</div>
 </div>

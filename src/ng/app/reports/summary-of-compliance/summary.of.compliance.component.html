@@ -1,5 +1,5 @@
-<div class="container">
-	<div class="row">
+<div class="container" >
+	<div class="row" style="margin-top: 35px;">
 
 		<div class="col l12 m12 s12">
 			<h5 class="left">Summary of Compliance</h5>
@@ -14,7 +14,7 @@
 					<div class="image excel"></div>
 				</a>
 
-				<a href="javascript:void(0)">
+				<a href="javascript:void(0)" (click)="printResult()">
 					<div class="text">Print</div>
 					<div class="image print"></div>
 				</a>
@@ -27,68 +27,66 @@
 
 	</div>
 
-	<div class="row">
+	<div id="printContainer">
 		
-		<div class="col l12 m12 s12">
-			<table class="striped">
-				<thead>
-					<tr class="grey darken-5 white-text">
-						<th>Locations</th>
-						<th>Number of Locations</th>
-						<th>Compliance Rating</th>
-						<th>Status</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>
-							<a [routerLink]="['/reports/locations/location-compliance']" class="blue-text">Location name</a>
-						</td>
-						<td>
-							1
-						</td>
-						<td>
-							0/0
-						</td>
-						<td>
-							<span class="blue-text">Compliant</span>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<a [routerLink]="['/reports/locations/location-compliance']" class="blue-text">Location name</a>
-						</td>
-						<td>
-							1
-						</td>
-						<td>
-							0/0
-						</td>
-						<td>
-							<span class="blue-text">Compliant</span>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-
-	</div>
-
-
-	<div class="row">
-		<div class="col l12 m12 s12 col-buttons right-align">
+		<div class="row" >
 			
-			<button class="btn blue waves-effect waves-light">Compliance Document</button>
-
-			<button class="btn orange btn-compliance-rating">
-				<div class="text">
-					Compliance Rating
-				</div>
-				<div class="white center">
-					0/0
-				</div>
-			</button>
+			<div class="col l12 m12 s12">
+				<table class="striped">
+					<thead>
+						<tr class="grey darken-5 white-text">
+							<th>Locations</th>
+							<th>Number of Locations</th>
+							<th>Compliance Rating</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngIf="reportData.locations.length == 0">
+							<td colspan="4" class="center">
+								No record found
+							</td>
+						</tr>
+						<tr *ngFor="let loc of reportData.locations">
+							<td>
+								<a [routerLink]="['/reports/statement-compliance', loc.locIdEnc]" class="blue-text">{{loc.name}}</a>
+							</td>
+							<td>
+								{{loc.number_of_sublocations}}
+							</td>
+							<td>
+								{{loc.compliance_rating}}
+							</td>
+							<td>
+								<span class="blue-text">{{loc.status}}</span>
+							</td>
+						</tr>
+						
+					</tbody>
+				</table>
+			</div>
 
 		</div>
+
+
+		<div class="row">
+			<div class="col l12 m12 s12 col-buttons right-align">
+				
+				<button class="btn blue waves-effect waves-light no-print">Compliance Document</button>
+
+				<button class="btn orange btn-compliance-rating">
+					<div class="text">
+						Compliance Rating
+					</div>
+					<div class="white center">
+						{{reportData.totalComplianceRating}}
+					</div>
+				</button>
+
+			</div>
+		</div>
+
+		
 	</div>
+
 </div>

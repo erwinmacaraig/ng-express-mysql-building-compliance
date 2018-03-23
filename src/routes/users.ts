@@ -1,3 +1,4 @@
+import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
 
 import { BaseRoute } from './route';
@@ -20,6 +21,8 @@ import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { EmailSender } from './../models/email.sender';
 import { UserRequest } from '../models/user.request.model';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
+import { CourseUserRelation } from '../models/course-user-relation.model';
+
 
 import * as moment from 'moment';
 import * as validator from 'validator';
@@ -27,6 +30,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as multer from 'multer';
 const md5 = require('md5');
+const defs = require('./../config/defs.json');
 
 
 export class UsersRoute extends BaseRoute {
@@ -43,6 +47,10 @@ export class UsersRoute extends BaseRoute {
 
 
 	public static create(router: Router) {
+		router.get('/users/is-admin/:user_id',  (req: Request, res: Response) => {
+			new UsersRoute().checkIfAdmin(req, res);
+		});
+
 		router.post('/users/update', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().updateUser(req, res, next);
 	    });
@@ -61,6 +69,10 @@ export class UsersRoute extends BaseRoute {
 
 	    router.get('/users/get-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getUsersByAccountId(req, res, next);
+	    });
+
+	    router.get('/users/get-users-by-account-none-auth/:account_id', (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getUsersByAccountIdNoneAuth(req, res);
 	    });
 
 	    router.get('/users/get-user-locations-trainings-ecoroles/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -128,12 +140,260 @@ export class UsersRoute extends BaseRoute {
 	    });
 
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().getLocationsTenants(req, res, next);
-	    });
-	}
+	    	new  UsersRoute().getLocationsTenants(req, res, next).then((data) => {
+          res.status(200).send({
+            'data': data
+          });
+        }).catch((e) => {
+          console.log(e);
+          res.status(400).send({
+            'status': 'Fail'
+          })
+        });
+      });
 
+      router.post('/users/send-trp-invitation/', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+
+        new UsersRoute().sendTRPInvitation(req, res, next).then(() => {
+          return res.status(200).send({
+            'status': 'Success'
+          })
+        }).catch((e) => {
+          console.log(e);
+          console.log(typeof e);
+          return res.status(400).send({
+            'status': 'Fail',
+            'message': e.toString()
+          });
+        });
+      });
+
+      router.get('/tenant/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
+          new UsersRoute().retrieveTenantInvitationInfo(req, res, next).then((info) => {
+	    return res.status(200).send({
+	      'status': 'Success',
+	      'data': info
+	    });
+          }).catch((e) => {
+	    return res.status(400).send({
+	      'status': 'Fail',
+	      'message': 'Unable to retrieve tenant invitation info'
+	    });
+          });
+
+      });
+
+      router.post('/tenant/process-invitation-form/', (req: Request, res: Response, next: NextFunction) => {
+        new UsersRoute().processTenantInvitationForm(req, res, next).then(() => {
+          return res.status(200).send({
+            'status': 'Success'
+          });
+        }).catch((e) => {
+          return res.status(400).send({
+            'status': 'Fail'
+          });
+        });
+      });
+  }
+
+  public async checkIfAdmin(req: Request , res: Response){
+		let userModel = new User(req.params.user_id),
+			response = {
+				status : false, message : ''
+			};
+
+		try{
+			let user = await userModel.load();
+			if(user['evac_role'] == 'admin'){
+				response.status = true;
+			}
+		}catch(e){}
+
+		res.send(response);
+
+    }
+
+  public async processTenantInvitationForm(req: Request, res: Response, next: NextFunction){
+    const encryptedPassword = md5('Ideation' + req.body.str_password + 'Max');
+    let user;
+    let invitation;
+    let account;
+    let locAccntUser;
+    try {
+      user = new User();
+      const tokenObj = new Token();
+      const tokenDbData = await tokenObj.getByToken(req.body.token);
+      invitation = new UserInvitation(tokenDbData['id']);
+      const userInvitation = await invitation.load();
+      account = new Account();
+      locAccntUser = new LocationAccountUser();
+      await account.create({
+        'account_name': req.body.account_name,
+        'building_number': req.body.building_number,
+        'account_domain': req.body.account_domain,
+        'billing_city': req.body.billing_city,
+        'billing_country': req.body.billing_country,
+        'billing_postal_code': req.body.billing_postal_code,
+        'billing_street': req.body.billing_street,
+        'billing_state': req.body.billing_state
+      });
+      await user.create({
+        'first_name': req.body.first_name,
+        'last_name': req.body.last_name,
+        'password': encryptedPassword,
+        'email': req.body.email,
+        'token': req.body.token,
+        'account_id': account.ID(),
+        'invited_by_user': userInvitation['invited_by_user'],
+        'can_login': 1,
+      });
+      await tokenObj.create({
+        'action': 'verify',
+        'verified': 1,
+        'id': user.ID(),
+        'id_type': 'user_id'
+      });
+      await invitation.create({
+        'was_used': 1
+      });
+      await locAccntUser.create({
+        'location_id': invitation.get('location_id'),
+        'account_id': account.ID(),
+        'user_id': user.ID(),
+        'role_id': defs['Tenant'],
+      });
+      return true;
+    } catch(e) {
+      console.log(e);
+      throw new Error('There was a problem processing tenant information');
+    }
+  }
+  public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
+    const tokenModel = new Token();
+    let dbData;
+    let userInvitation;
+    let locationModel;
+    let locationParent;
+    const token = req.params.token;
+    console.log(token);
+    try {
+      const tokenDbData = await tokenModel.getByToken(token);
+      if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
+	userInvitation = new UserInvitation(tokenDbData['id']);
+	dbData = await userInvitation.load();
+
+	// get parent location
+	locationModel = new Location(dbData['location_id']);
+	await locationModel.load();
+	let parentId = locationModel.get('parent_id');
+	while (parentId !== -1) {
+	  locationParent = new Location(parentId);
+	  await locationParent.load();
+	  parentId = locationParent.get('parent_id');
+	}
+	dbData['parent_location_name'] = (locationParent.get('name').toString().length > 0) ?
+  locationParent.get('name') : locationParent.get('formatted_address');
+	dbData['parent_location_id'] = locationParent.ID();
+  dbData['sub_location_name'] = locationModel.get('name');
+	dbData['sub_location_id'] = locationModel.ID();
+	return dbData;
+
+      } else {
+	throw new Error('Invalid token');
+      }
+    } catch(e) {
+      console.log(e);
+      throw new Error('Cannot get invitation data');
+
+    }
+
+
+
+  }
+  public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
+
+    // check first if email is existing
+    let dbData = {};
+    try {
+      const user = new User();
+      dbData = await user.getByEmail(req.body.email);
+    } catch(e) {
+
+    }
+
+    if (Object.keys(dbData).length > 0) {
+      throw Error('Email taken');
+    } else {
+      console.log('Checkpoint catch');
+      const inviCode = new UserInvitation();
+      const inviDetails = req.body;
+      inviDetails['account_id'] = req['user'].account_id;
+      inviDetails['role_id'] = defs['Tenant'];
+      inviDetails['invited_by_user'] = req['user'].user_id;
+      const tokenModel = new Token();
+      const token = tokenModel.generateRandomChars(8);
+
+      const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
+      const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+
+      try {
+        console.log(inviDetails);
+        await inviCode.create(inviDetails);
+
+        await tokenModel.create({
+          'token': token,
+          'action': 'invitation',
+          'verified': 0,
+          'expiration_date': expDate,
+          'id': inviCode.ID(),
+          'id_type': 'user_invitations_id'
+        });
+
+        // email notification here
+        const opts = {
+          from : '',
+          fromName : 'EvacConnect',
+          to : [],
+          cc: [],
+          body : '',
+          attachments: [],
+          subject : 'EvacConnect TRP Invitation'
+        };
+        const email = new EmailSender(opts);
+        let emailBody = email.getEmailHTMLHeader();
+          emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+          <h4>You are being assigned as a Tenant.</h4> <br/>
+          <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
+          <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+        emailBody += email.getEmailHTMLFooter();
+        email.assignOptions({
+          body : emailBody,
+          to: [inviDetails['email']],
+          cc: []
+        });
+
+        email.send((data) => {
+          console.log(data);
+          return true;
+        },(err) => {
+          console.log(err);
+          return false;
+        });
+      } catch (e) {
+        console.log(e);
+        return false;
+      }
+
+    }
+
+
+
+
+
+  }
 	public async updateUser(req: Request , res: Response, next: NextFunction){
-		let 
+		let
 		response = {
 			status : false,
 			data : {},
@@ -141,7 +401,7 @@ export class UsersRoute extends BaseRoute {
 		};
 
 		try{
-			let 
+			let
 			userModel = new User(req.body.user_id),
 			userData = await userModel.load();
 
@@ -298,6 +558,18 @@ export class UsersRoute extends BaseRoute {
 		);
 	}
 
+	public async getUsersByAccountIdNoneAuth(req: Request, res: Response){
+		let accountId = req.params.account_id,
+			userModel = new User();
+
+		res.send({
+			status : true,
+			data : await userModel.getByAccountId(accountId),
+			message : ''
+		});
+
+	}
+
 	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction, archived?){
 		let accountId = req.params.account_id,
 			userID = req['user']['user_id'],
@@ -377,8 +649,8 @@ export class UsersRoute extends BaseRoute {
 			if( allowedUsersId.indexOf(user.user_id) > -1 ){
 				user['locations'] = <any>[];
 				for(let l in locations){
-					if( 
-						( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )  
+					if(
+						( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )
 						&& locations[l]['user_id'] == user.user_id
 						){
 						user['locations'].push(locations[l]);
@@ -422,7 +694,7 @@ export class UsersRoute extends BaseRoute {
 						role_name : roleName, role_id : roleId
 					});
 				}
-				
+
 			}
 
 			user['training_applicable'] = true;
@@ -449,6 +721,7 @@ export class UsersRoute extends BaseRoute {
 				user : {},
 				locations : {},
 				trainings : <any>[],
+				certificates : <any>[],
 				eco_roles : <any>[]
 			},
 			message : ''
@@ -463,8 +736,10 @@ export class UsersRoute extends BaseRoute {
 		mobilityModel = new MobilityImpairedModel();
 
 		response.data.eco_roles = emRoles;
+    const training_requirements = await new TrainingCertification().getRequiredTrainings();
+    console.log(training_requirements);
+		try {
 
-		try{
 			let user = await userModel.load(),
 				locations = <any>[];
 
@@ -496,7 +771,6 @@ export class UsersRoute extends BaseRoute {
 				arrWhere.push(['user_id = '+userId]);
 				arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
 				locations = await locationAccountUserModel.getMany(arrWhere);
-				
 				if( user['mobility_impaired'] == 1 ){
 		        	let mobilityModel = new MobilityImpairedModel(),
 		        		arrWhere = [];
@@ -524,14 +798,36 @@ export class UsersRoute extends BaseRoute {
 					user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
 				}
 
-			}
+      }
+      Object.keys(locations).forEach((key) => {
+        if ('em_roles_id' in locations[key]) {
+          locations[key]['training_requirement_name'] = training_requirements[locations[key]['em_roles_id'].toString()]['training_requirement_name'];
+          locations[key]['training_requirement_id'] = training_requirements[locations[key]['em_roles_id'].toString()]['training_requirement_id'];
+        }
+      });
+      console.log(locations);
 
 			response.data.locations = locations;
 			response.data.user = user;
 			response.status = true;
 		}catch(e){
 			response.status = false;
-		}
+    }
+		try{
+
+			let courseModel = new CourseUserRelation(),
+				trainings = await courseModel.getAllCourseForUser(userId);
+			response.data.trainings = trainings;
+
+		}catch(e){}
+
+		try{
+
+			let userModel = new User(userId),
+				certificates = await userModel.getAllCertifications();
+			response.data.certificates = certificates;
+
+		}catch(e){}
 
 		res.statusCode = 200;
 		res.send(response);
@@ -567,7 +863,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['user_ids']){
 			let userModel = new User(req.body['user_ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 1);
 			await userModel.dbUpdate();
 		}
@@ -587,7 +883,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['user_ids']){
 			let userModel = new User(req.body['user_ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 0);
 			await userModel.dbUpdate();
 		}
@@ -607,7 +903,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['ids']){
 			let userModel = new UserInvitation(req.body['ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 1);
 			await userModel.dbUpdate();
 		}
@@ -627,7 +923,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['ids']){
 			let userModel = new UserInvitation(req.body['ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 0);
 			await userModel.dbUpdate();
 		}
@@ -670,7 +966,7 @@ export class UsersRoute extends BaseRoute {
 		let arrWhere = [];
 			arrWhere.push( ["account_id = "+accountId ] );
 			arrWhere.push( ["archived = "+1 ] );
-			
+
 		let locations = await locationAccountUser.getMany(arrWhere);
 		for(let l in locations){
 			let userModel = new User(locations[l]['user_id']);
@@ -829,7 +1125,7 @@ export class UsersRoute extends BaseRoute {
 			}
 
 			if(
-				(emRolesRec[i]['is_warden_role'] == 1) && 
+				(emRolesRec[i]['is_warden_role'] == 1) &&
 				(emRolesRec[i]['location_id'] != locAccUser['location_id']) &&
 				!emRolesRec[i]['deleted']
 				){
@@ -857,7 +1153,7 @@ export class UsersRoute extends BaseRoute {
 				'role_id' : 8
 			});
 		}*/
-		
+
 		response.status = true;
 		res.send(response);
 	}
@@ -976,7 +1272,7 @@ export class UsersRoute extends BaseRoute {
 					}
 				}
 				response.data.team = team;
-				
+
 				/*response.data['accntlocations'] = accountsLocations;
 				response.data['emRoles'] = emRoles;
 				response.data['myEmRoles'] = myEmRoles;
@@ -1004,7 +1300,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async requestAsWarden(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1056,12 +1352,12 @@ export class UsersRoute extends BaseRoute {
 				parentLocation = await parentLocationModel.load();
 			}
 
-			const 
+			const
 			opts = {
-				from : 'allantaw2@gmail.com',
+				from : '',
 				fromName : 'EvacConnect',
 				to : [ approverModel.get('email') ],
-				cc: ['erwin.macaraig@gmail.com'],
+				cc: [],
 				body : '',
 				attachments: [],
 				subject : 'EvacConnect Warden Request'
@@ -1071,7 +1367,7 @@ export class UsersRoute extends BaseRoute {
 			declinelink = req.protocol + '://' + req.get('host') + '/token/' + token2;
 
 
-			let 
+			let
 			emailBody = email.getEmailHTMLHeader(),
 			userName = userModel.get('first_name')+' '+userModel.get('last_name'),
 			approverName = approverModel.get('first_name')+' '+approverModel.get('last_name'),
@@ -1086,7 +1382,7 @@ export class UsersRoute extends BaseRoute {
 			emailBody += `<h3 style="text-transform:capitalize;">Hi ${approverName},</h3> <br/>
 			<h4> ${userName} requested to be a warden in location '${locationString}' </h4> <br/>
 			<h5>Click on the link below for corresponding response </h5> <br/>
-			<a href="${approvelink}" target="_blank" style="text-decoration:none; color:#0277bd;">Approve</a> | 
+			<a href="${approvelink}" target="_blank" style="text-decoration:none; color:#0277bd;">Approve</a> |
 			<a href="${declinelink}" target="_blank" style="text-decoration:none; color:#f44336;">Decline</a>
 			<br>`;
 			emailBody += email.getEmailHTMLFooter();
@@ -1104,12 +1400,12 @@ export class UsersRoute extends BaseRoute {
 			response.status = false;
 			response.message = e;
 		}
-		
+
 		res.send(response);
 	}
 
 	public async getWardenRequest(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1123,7 +1419,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async userRequestHandler(req: Request, res: Response, tokenData, fromEmail:boolean){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1229,12 +1525,11 @@ export class UsersRoute extends BaseRoute {
 						}
 					}
 
-					const 
+					const
 					opts = {
-						from : 'allantaw2@gmail.com',
+						from : '',
 						fromName : 'EvacConnect',
-						// to : [ userModel.get('email') ],
-						to : [ 'adelfin@evacgroup.com.au' ],
+						to : [ userModel.get('email') ],
 						cc: [],
 						body : '',
 						attachments: [],
@@ -1242,7 +1537,7 @@ export class UsersRoute extends BaseRoute {
 					},
 					email = new EmailSender(opts);
 
-					let 
+					let
 					emailBody = email.getEmailHTMLHeader(),
 					userName = userModel.get('first_name')+' '+userModel.get('last_name'),
 					approverName = approverModel.get('first_name')+' '+approverModel.get('last_name'),
@@ -1291,7 +1586,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async resignAsChiefWarden(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1327,7 +1622,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async resignAsWarden(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1363,8 +1658,8 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async saveMobilityImpairedDetails(req: Request, res: Response, next: NextFunction){
-		let 
+	public async saveMobilityImpairedDetails(req: AuthRequest, res: Response, next: NextFunction){
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1399,95 +1694,43 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async getLocationsTenants(req: Request, res: Response, next: NextFunction){
-		let response = {
-			data : <any>[],
-			message : ''
-		},
-		locId = req.params.location_id,
-		locationAccModel = new LocationAccountRelation(),
-		returnData = [];
+	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction){
+    const location_id = req.params.location_id;
+    const locationAccountUserObj = new LocationAccountUser();
+    // listing of roles is implemented here because we are only listing roles on a sub location
+    const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
+    const canLoginTenantArr = [];
 
-		let tenantsAccount = await locationAccModel.getTenantsOfLocationId(locId),
-			accountIds = [],
-			accounts = [];
-		for(let i in tenantsAccount){
-			let accountModel = new Account(tenantsAccount[i]['account_id']);
+    Object.keys(canLoginTenants).forEach((key) => {
+      canLoginTenantArr.push(canLoginTenants[key]);
+    });
 
-			try{
-				let acc = await accountModel.load();
-				acc['users'] = [];
-				acc['trps'] = [];
-				acc['trp_name'] = '';
-				acc['warden_benchmarking'] = '0/00';
-				acc['wardens'] = '0/00';
-				acc['wardens_trained'] = 0;
-				accounts.push( acc );
-			}catch(e){}
+    for (let i = 0; i < canLoginTenantArr.length; i++) {
+      // get all wardens for this location on this account
+      const EMRole = new UserEmRoleRelation();
+      const trainingCert = new TrainingCertification();
+      const temp =
+        await EMRole.getEMRolesOnAccountOnLocation(
+          defs['em_roles']['WARDEN'],
+          canLoginTenantArr[i]['account_id'],
+          location_id
+      );
+      canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
+      canLoginTenantArr[i]['wardens'] = temp['raw'];
 
-			accountIds.push(tenantsAccount[i]['account_id']);
-		}
-
-		let locAccUserModel = new LocationAccountUser(),
-			locAccUserData = await locAccUserModel.getByLocationIdAndAccountId(locId, accountIds.join(',')),
-			users = [];
-
-		for(let i in locAccUserData){
-			let loc = locAccUserData[i],
-				userModel = new User(loc.user_id);
-
-			try{
-				let user = <any> await userModel.load();
-
-				for(let a in accounts){
-
-					if(accounts[a]['account_id'] == loc.account_id){
-						
-						let emRoleModel = new UserEmRoleRelation(),
-							emRoles = <any> [];
-
-						try{
-							emRoles = await emRoleModel.getEmRolesByUserId(user.user_id);
-						}catch(e){ }
-
-						if(loc.role_id == 2){
-							accounts[a]['trps'].push({
-								first_name : user.first_name,
-								last_name : user.last_name,
-								user_id : user.user_id
-							});
-						}
-
-						accounts[a]['users'].push({
-							role_id : loc.role_id,
-							first_name : user.first_name,
-							last_name : user.last_name,
-							user_id : user.user_id,
-							em_roles : emRoles
-						});
-					}
+      // get trained wardens
+      canLoginTenantArr[i]['trained_wardens'] = await
+           trainingCert.getEMRUserCertifications(temp['users']);
+    }
+    console.log(canLoginTenantArr);
 
 
 
-				}
 
-				users.push( user );
-			}catch(e){}
-		}
+    return canLoginTenantArr;
 
-		
-		for(let a in accounts){
-			let trpnamesArr = [];
-			for(let x in accounts[a]['trps']){
-				trpnamesArr.push( accounts[a]['trps'][x]['first_name'] +' '+ accounts[a]['trps'][x]['last_name'] );
-			}
 
-			accounts[a]['trp_name'] = trpnamesArr.join(', ');
-		}
 
-		response.data = accounts;
-
-		res.send(response);
 
 	}
 

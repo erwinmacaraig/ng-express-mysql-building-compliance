@@ -26,6 +26,8 @@ import { PaymentRoute } from './routes/payment';
 import { TeamRoute } from './routes/team';
 import { ProductRoute } from './routes/product';
 import { LMSRoute } from './routes/lms';
+import { CourseRoute } from './routes/course';
+import { ReportsRoute } from './routes/reports';
 
 import * as cors from 'cors';
 
@@ -170,6 +172,12 @@ export class Server {
 
       // Learning Management System Route
       LMSRoute.create(router);
+
+      // CourseRoute
+      CourseRoute.create(router);
+
+      // ReportsRoute
+      ReportsRoute.create(router);
 
       this.app.use('/api/v1', router);
 

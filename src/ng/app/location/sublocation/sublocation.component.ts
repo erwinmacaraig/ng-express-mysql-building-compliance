@@ -54,7 +54,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
     defaultTimeZone = 'AEST';
 
     queryParams = {};
-
+    public subLocationsArr;
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
         private activeRoute: ActivatedRoute,
@@ -78,7 +78,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
         // });
 
         // this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
-        
+
     }
 
     getLocationData(callBack){
@@ -109,6 +109,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
             this.getLocationData(() => {
                 this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
                     this.tenants = tenantsResponse.data;
+                    console.log(this.tenants);
+
                 });
             });
         });
@@ -126,7 +128,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
         $('select').material_select();
         $('.modal').modal({ dismissible: false });
-
+        /*
         let formAddTenant = this.formAddTenant;
         $('body').off('change.countrychange').on('change.countrychange', 'select.billing-country', (event) => {
             formAddTenant.controls.billing_country.setValue( event.currentTarget.value );
@@ -135,7 +137,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
         $('body').off('change.timechange').on('change.timechange', 'select.time-zone', (event) => {
             formAddTenant.controls.time_zone.setValue( event.currentTarget.value );
         });
-
+        */
         if('showaddtenant' in this.queryParams){
             if(this.queryParams['showaddtenant']){
                 setTimeout(() => {
@@ -175,9 +177,9 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
     addNewTenantClickEvent(){
         this.formAddTenant.reset();
-        this.formAddTenant.controls.billing_country.setValue( this.defaultCountry );
-        this.formAddTenant.controls.time_zone.setValue( this.defaultTimeZone );
-        $('#modalAddNewTenant select').material_select('update');
+        // this.formAddTenant.controls.billing_country.setValue( this.defaultCountry );
+        // this.formAddTenant.controls.time_zone.setValue( this.defaultTimeZone );
+        // $('#modalAddNewTenant select').material_select('update');
         $('#modalAddNewTenant').modal('open');
     }
 
@@ -186,6 +188,25 @@ export class SublocationComponent implements OnInit, OnDestroy {
             this.showModalNewTenantLoader = true;
             let formData = formAddTenant.value;
             formData['location_id'] = this.locationID;
+            console.log('formData', formData);
+            this.userService.sendTRPInvitation(formData).subscribe(() => {
+              this.getLocationData(() => {
+                this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
+                    this.tenants = tenantsResponse.data;
+                    this.showModalNewTenantLoader = false;
+                    $('#modalAddNewTenant').modal('close');
+                });
+              });
+            }, (e) => {
+              console.log(e);
+              this.showModalNewTenantLoader = false;
+              $('#modalAddNewTenant').modal('close');
+              const errorObject = JSON.parse(e.error);
+              alert(errorObject.message);
+
+            });
+
+            /*
             this.accountService.update(formData).subscribe((response) => {
                 this.getLocationData(() => {
                     this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
@@ -195,6 +216,9 @@ export class SublocationComponent implements OnInit, OnDestroy {
                     });
                 });
             });
+            */
+
+
         }
     }
 

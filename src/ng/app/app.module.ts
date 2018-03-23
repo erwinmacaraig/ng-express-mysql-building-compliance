@@ -34,6 +34,8 @@ import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 
 import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
+import { TenantInvitationFormComponent } from './signup/trp-invite/tenant-invite.component'
+
 
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
 import { WardenSignupComponent } from './warden-signup/warden-signup.component';
@@ -92,17 +94,20 @@ import { TrainingsComponent } from './trainings/trainings.component';
 import { MyTrainingsComponent } from './trainings/my-training/mytraining.component';
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
+import { TrainingProfile } from './trainings/training-profile/training.profile.component';
 
 import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 
 import { ReportsComponent } from './reports/reports.component';
+import { ChooseReportComponent } from './reports/choose.report/choose.report.component';
 import { ReportsLocationsComponent  } from './reports/locations/reports.locations.component';
 import { ReportsLocationsSummaryOfComplianceComponent  } from './reports/summary-of-compliance/summary.of.compliance.component';
 import { ReportsLocationsComplianceComponent } from './reports/location-compliance/location.compliance.component';
 import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
 import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent } from './reports/trainings/trainings.component';
-
+import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
+import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
 @NgModule({
   declarations: [
@@ -119,6 +124,7 @@ import { ReportsTrainingsComponent } from './reports/trainings/trainings.compone
     UserDashboardComponent,
 
     WardenInvitationFormComponent,
+    TenantInvitationFormComponent,
     SignoutComponent,
     CompanyInformationComponent,
     SetupCompanyComponent,
@@ -175,15 +181,19 @@ import { ReportsTrainingsComponent } from './reports/trainings/trainings.compone
     MyTrainingsComponent,
     TeamTrainingComponent,
     TrainingInviteComponent,
+    TrainingProfile,
     WardenBenchMarkingComponent,
 
     ReportsComponent,
+    ChooseReportComponent,
     ReportsLocationsComponent,
     ReportsLocationsSummaryOfComplianceComponent,
     ReportsLocationsComplianceComponent,
     ReportsLocationsStatementComplianceComponent,
     ReportsTeamsComponent,
-    ReportsTrainingsComponent
+    ReportsTrainingsComponent,
+    ReportsActivityLogComponent,
+    AssignCoursesComponent
   ],
   imports: [
     BrowserModule,

@@ -57,15 +57,15 @@ export class LocationAccountUser extends BaseClass {
             sqlWhere = '',
             count = 0;
 
-            sql_load = ` SELECT l.formatted_address, l.name, l.location_id, l.parent_id, 
+            sql_load = ` SELECT l.formatted_address, l.name, l.location_id, l.parent_id,
             lau.user_id, lau.account_id, lau.role_id as location_role_id, urr.role_id, lau.location_account_user_id, lau.archived,
-            er.role_name as er_role_name, DATEDIFF(NOW(), u.last_login) AS days, 
+            er.role_name as er_role_name, DATEDIFF(NOW(), u.last_login) AS days,
             u.last_login, er.em_roles_id, u.mobility_impaired, lp.name as parent_name
-            FROM location_account_user lau 
+            FROM location_account_user lau
             INNER JOIN locations l ON l.location_id = lau.location_id
             INNER JOIN users u ON lau.user_id = u.user_id
             LEFT JOIN user_role_relation urr ON urr.user_id = u.user_id
-            LEFT JOIN user_em_roles_relation uer ON uer.user_id = lau.user_id AND uer.location_id = lau.location_id  
+            LEFT JOIN user_em_roles_relation uer ON uer.user_id = lau.user_id AND uer.location_id = lau.location_id
             LEFT JOIN em_roles er ON er.em_roles_id = uer.em_role_id
             LEFT JOIN locations lp ON lp.location_id = l.parent_id
             `;
@@ -151,8 +151,8 @@ export class LocationAccountUser extends BaseClass {
 
     public getByLocationIdAndUserId(locationIds, userId) {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM location_account_user WHERE location_id IN (?) AND user_id = ?';
-            const param = [locationIds, userId];
+            const sql_load = 'SELECT * FROM location_account_user WHERE location_id IN ('+locationIds+') AND user_id = ?';
+            const param = [userId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
                 if (error) {
@@ -171,10 +171,27 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
+    public getUsersInLocationId(locationIds) {
+        return new Promise((resolve, reject) => {
+            const sql_load = 'SELECT lau.*, u.first_name, u.last_name, u.email FROM location_account_user lau INNER JOIN users u ON lau.user_id = u.user_id WHERE lau.location_id IN ('+locationIds+') ';
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+
+                this.dbData = results;
+                resolve(this.dbData);
+
+            });
+            connection.end();
+        });
+    }
+
     public getByLocationIdAndAccountId(locationIds, accntId) {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM location_account_user WHERE location_id IN (?) AND account_id IN (?)';
-            const param = [locationIds, accntId];
+            const sql_load = 'SELECT * FROM location_account_user WHERE location_id IN ('+locationIds+') AND account_id IN (?)';
+            const param = [accntId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
                 if (error) {
@@ -374,12 +391,135 @@ export class LocationAccountUser extends BaseClass {
                 if (error) {
                     return console.log(error);
                 }
-                this.dbData = results
+                this.dbData = results;
                 resolve(this.dbData);
 
             });
             connection.end();
         });
     }
+
+    public listRolesOnLocation(role: number = 0, location_id: number = 0) {
+      return new Promise((resolve, reject) => {
+        const resultSetObj = {};
+        let role_filter = '';
+        const seenAccountsArr = [];
+        if (role) {
+          role_filter = ` AND LAU.role_id = ${role}`;
+        }
+        if (!location_id) {
+          reject('Cannot get info without location id');
+        }
+        const sql_get_list = `SELECT
+              accounts.account_name,
+              users.first_name,
+              users.last_name,
+              LAU.*
+          FROM
+              location_account_user LAU
+          INNER JOIN
+              accounts
+          ON
+              LAU.account_id = accounts.account_id
+          INNER JOIN
+              users
+          ON
+              (users.user_id = LAU.user_id AND users.account_id = LAU.account_id)
+          WHERE
+            LAU.location_id = ?
+          ${role_filter}
+            `;
+        // console.log(sql_get_list);
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_get_list, [location_id], (error, results, fields) => {
+          if (error) {
+            console.log('location.account.user.listRolesOnLocation', error, sql_get_list);
+            throw new Error('Cannot generate list');
+          }
+          if (!results.length) {
+            reject('There are no role(s) for this location');
+          } else {
+            for (let i = 0; i < results.length; i++) {
+              if (results[i]['account_id'] in resultSetObj) {
+                (resultSetObj[results[i]['account_id']]['trp']).push(results[i]['first_name'] + ' ' + results[i]['last_name']);
+                (resultSetObj[results[i]['account_id']]['user_id']).push(results[i]['user_id']);
+              } else {
+                resultSetObj[results[i]['account_id']] = {
+                  'account_name': results[i]['account_name'],
+                  'trp': [results[i]['first_name'] + ' ' + results[i]['last_name'] ],
+                  'user_id': [results[i]['user_id']],
+                  'account_id': results[i]['account_id'],
+                  'location_id': results[i]['location_id']
+                };
+              }
+              if (seenAccountsArr.indexOf(results[i]['account_id']) === -1) {
+                seenAccountsArr.push(results[i]['account_id']);
+              }
+            }
+            resolve(resultSetObj);
+          }
+        });
+        connection.end();
+      });
+    }
+
+    /**
+     * @method getAllAccountsInSublocations
+     * @param locations
+     * retrieve all accounts under the given list of
+     * sub locations on which the roles are TRP ONLY
+     */
+  public getAllAccountsInSublocations(locations = []) {
+    return new Promise((resolve, reject) => {
+      const locationsStr = locations.join(',');
+      const sql = `SELECT
+        accounts.account_id,
+        accounts.account_name,
+        locations.location_id,
+        locations.name,
+        locations.formatted_address,
+        LAU.user_id,
+        LAU.role_id,
+        users.first_name,
+        users.last_name,
+        users.phone_number,
+        users.mobile_number,
+        users.email
+      FROM
+        location_account_user LAU
+      INNER JOIN
+        accounts
+      ON
+        accounts.account_id = LAU.account_id
+      INNER JOIN
+        locations
+      ON
+        locations.location_id = LAU.location_id
+      INNER JOIN
+        users
+      ON
+        users.user_id = LAU.user_id
+      WHERE
+        locations.location_id IN (${locationsStr})
+      AND
+        LAU.role_id = 2
+      ORDER BY
+        accounts.account_name`;
+
+    const connection = db.createConnection(dbconfig);
+    connection.query(sql, [], (error, results, fields) => {
+      if (error) {
+        console.log('location.account.user.model.getAllAccountsInSublocations', error, sql);
+        throw Error('Cannot process request');
+      }
+      if (results.length > 0) {
+        resolve(results);
+      } else {
+        reject('There are no records to be retrieve');
+      }
+    });
+  });
+  }
+
 
 }

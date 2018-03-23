@@ -32,6 +32,34 @@ export class Course extends BaseClass {
     });
   } // end load
 
+  public getWhere(arrWhere): Promise<object> {
+      return new Promise((resolve, reject) => {
+          let sql = `SELECT * FROM scorm_course `,
+              count = 0;
+          for(let i in arrWhere){
+              if( count == 0 ){
+                  sql += ' WHERE '+arrWhere[i];
+              }else{
+                  sql += ' AND '+arrWhere[i];
+              }
+
+              count++;
+          }
+
+
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql, [this.id], (error, results, fields) => {
+              if (error) {
+                  throw new Error('Error loading scorm course');
+              } else {
+                  this.dbData = results;
+                  resolve(this.dbData);
+              }
+          });
+          connection.end();
+      });
+  }
+
   public dbInsert() {
     return new Promise((resolve, reject) => {
       const sql_insert = `INSERT INTO scorm_course (

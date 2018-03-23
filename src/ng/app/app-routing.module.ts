@@ -19,6 +19,7 @@ import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
+import { TenantInvitationFormComponent } from './signup/trp-invite/tenant-invite.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
 import { AuthGuard } from './services/auth-guard.service';
@@ -72,17 +73,19 @@ import { TrainingsComponent } from './trainings/trainings.component';
 import { MyTrainingsComponent } from './trainings/my-training/mytraining.component';
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
+import { TrainingProfile } from './trainings/training-profile/training.profile.component';
 
 import { ReportsComponent } from './reports/reports.component';
+import { ChooseReportComponent } from './reports/choose.report/choose.report.component';
 import { ReportsLocationsComponent  } from './reports/locations/reports.locations.component';
 import { ReportsLocationsSummaryOfComplianceComponent  } from './reports/summary-of-compliance/summary.of.compliance.component';
 import { ReportsLocationsComplianceComponent } from './reports/location-compliance/location.compliance.component';
 import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
 import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent  } from './reports/trainings/trainings.component';
+import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
+import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
-// To delete
-import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -90,7 +93,8 @@ const appRoutes: Routes = [
         { path : '', component : SignupSelectRoleComponent  },
         { path : 'user', component : SignupUserInfoComponent  },
         { path: 'warden-signup', component: WardenSignupComponent },
-        { path: 'warden-profile-completion/:token', component: WardenInvitationFormComponent }
+        { path: 'warden-profile-completion/:token', component: WardenInvitationFormComponent },
+        { path: 'tenant-profile-completion/:token', component: TenantInvitationFormComponent }
       ]
   },
   { path: 'no-email', component: NoemailComponent },
@@ -98,7 +102,7 @@ const appRoutes: Routes = [
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-user-password/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
-  { path: 'dashboard',  component: DashboardComponent, children: [
+  { path: 'dashboard', component: DashboardComponent, children: [
       { path: 'main', component : FrpTrpDashboardComponent },
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
@@ -169,22 +173,24 @@ const appRoutes: Routes = [
     children : [
       { path : 'my-training', component : MyTrainingsComponent },
       { path : 'team-training', component : TeamTrainingComponent },
-      { path : 'training-invite', component : TrainingInviteComponent }
+      { path : 'training-invite', component : TrainingInviteComponent },
+      { path : 'my-training-profile/:encrypted', component: TrainingProfile }
     ]
-  },
-  {
-    path: 'warden-benchmarking', component: WardenBenchMarkingComponent
   },
   {
     path : 'reports', component : ReportsComponent,
     children : [
-      {  path : 'locations', component : ReportsLocationsComponent },
-      { path : 'locations/summary-of-compliance', component : ReportsLocationsSummaryOfComplianceComponent },
-      { path : 'locations/location-compliance', component : ReportsLocationsComplianceComponent },
-      { path : 'locations/statement-compliance', component : ReportsLocationsStatementComplianceComponent },
-      { path : 'teams', component : ReportsTeamsComponent },
-      { path : 'trainings', component : ReportsTrainingsComponent }
+      { path : 'choose', component : ChooseReportComponent },
+      { path : 'locations', component : ReportsLocationsComponent },
+      { path : 'summary-of-compliance/:locationId', component : ReportsLocationsSummaryOfComplianceComponent },
+      { path : 'statement-compliance/:locationId', component : ReportsLocationsStatementComplianceComponent },
+      { path : 'teams/:location', component : ReportsTeamsComponent },
+      { path : 'trainings/:locationId', component : ReportsTrainingsComponent },
+      { path : 'activity-log/:location', component : ReportsActivityLogComponent }
     ]
+  },
+  {
+    path : 'assign-courses', canActivate: [AuthGuard], component : AssignCoursesComponent
   }
 ];
 

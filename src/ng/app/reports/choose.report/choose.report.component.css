@@ -1,0 +1,69 @@
+.boxes-container{
+    margin: 0px auto;
+    display: table;
+}
+
+.box-wrapper{
+    display: table-cell;
+    width: 26%;
+}
+
+.box{
+    height: 400px;
+    background-color: #efefef;
+    width: 250px;
+    margin: 40px;
+    padding: 20px;
+    position: relative;
+}
+
+.box .image{
+    height: 180px;
+    position: relative;
+    top: 20px;
+    width: 180px;
+    background: url(/assets/images/sprite_report.png);
+    background-size: 410%;
+    margin: 0px auto;
+}
+
+.summary-of-compliance{
+	background-position: 1.7% 10% !important;
+}
+
+.summary-of-portfolio{
+	background-position: 32.7% 10% !important;
+}
+
+.activity-log{
+	background-position: 66.7% 10% !important;
+}
+
+.team{
+	background-position: 97.5% 10% !important;
+}
+
+.training{
+	background-position: 97.5% 99% !important;
+}
+
+.box .btn{
+    position: absolute;
+    bottom: 20px;
+    padding: 0px 16px;
+    width: 210px;
+}
+
+.btn{
+    font-size: 15px !important;
+    line-height: 18px;
+    color: #fff !important;
+    height: 63px !important;
+}
+
+.select-container{
+	position: absolute;
+    bottom: 100px;
+    width: 210px;
+}
+

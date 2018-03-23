@@ -675,7 +675,7 @@ export class TeamRoute extends BaseRoute {
       throw new Error('Internal Error');
     }
     // create a record em-role-user-location
-    if(parseInt(req.body.em_role) > 2){
+    if(parseInt(req.body.em_role) > 2) {
       const EMRoleUserRole = new UserEmRoleRelation();
       await EMRoleUserRole.create({
         'user_id': user.ID(),
@@ -803,7 +803,7 @@ export class TeamRoute extends BaseRoute {
     email.assignOptions({
       body : emailBody,
       to: [objEmail[i]],
-      cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
+      cc: []
     });
       email.send((data) => console.log(data),
                  (err) => console.log(err)

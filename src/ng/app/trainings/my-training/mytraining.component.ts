@@ -82,6 +82,7 @@ export class MyTrainingsComponent implements OnInit, OnDestroy {
       this.courses = [];
     });
 
+
   }
 
   ngAfterViewInit () {
