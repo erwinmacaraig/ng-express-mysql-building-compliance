@@ -18,8 +18,8 @@ export class FileUploader {
     public filename;
     public extname = '';
     private uploadDir = this.getUploadDir();
-    // private DIR = '/home/ubuntu/EvacPlatform/evacconnect/uploads/';
-    private DIR = './uploads/';
+    private DIR = '/home/ubuntu/EvacConnectPlatform/evacconnect/uploads/';
+    // private DIR = './uploads/';
 
     constructor(req: Request, res: Response, next: NextFunction) {
       this.req = req;

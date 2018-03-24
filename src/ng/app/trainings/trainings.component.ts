@@ -26,7 +26,7 @@ declare var $: any;
 export class TrainingsComponent implements OnInit, OnDestroy{
 
   userData = {};
-  private EMRoles = [9, 10, 11, 15, 16, 18]; // need to improve this at a later time by getting these values from db
+  private EMRoles = [8, 9, 10, 11, 12, 13, 14, 15, 16, 18]; // need to improve this at a later time by getting these values from db
   routeSubs;
 
   public isWarden = false;
