@@ -12,7 +12,7 @@ API.LMSFinish = function() {
 API.LMSGetValue =  function(parameter) {
     var result = 0;
     $.ajax({
-        url: 'http://ec2-52-64-253-171.ap-southeast-2.compute.amazonaws.com/lms/getParameter/',
+        url: 'http://ec2-13-211-146-134.ap-southeast-2.compute.amazonaws.com/lms/getParameter/',
         data: {
             "param": parameter,
             "relation": user_course_relation
@@ -36,7 +36,7 @@ API.LMSSetValue = function(element, value) {
     // console.log(element, value);
     $.ajax({
         type: "POST",
-        url: "http://ec2-52-64-253-171.ap-southeast-2.compute.amazonaws.com/lms/setParameterValue/",
+        url: "http://ec2-13-211-146-134.ap-southeast-2.compute.amazonaws.com/lms/setParameterValue/",
         data: {
            "param": element,
            "value": value,
