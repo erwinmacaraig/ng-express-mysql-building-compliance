@@ -1,3 +1,4 @@
+
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
@@ -67,7 +68,7 @@ export class Location extends BaseClass {
 	public getWhere(arrWhere){
 		return new Promise((resolve, reject) => {
 			let sql_load = `SELECT * FROM locations `;
-			
+
 			let c = 0;
 			for(let i in arrWhere){
 				if(c == 0){
@@ -644,7 +645,6 @@ export class Location extends BaseClass {
     }).catch((e) => {
     	return [];
     });
-
   }
 
 }

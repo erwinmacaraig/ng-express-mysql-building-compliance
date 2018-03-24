@@ -2,6 +2,7 @@ import * as db from 'mysql2';
 import * as Promise from 'promise';
 import * as csv from 'fast-csv';
 import * as fs from 'fs';
+import { Location } from './location.model';
 
 const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
@@ -255,7 +256,7 @@ export class Utils {
         connection.end();
       });
     }
-
+/*
     public deployQuestions(account_id: number,
           location_id: number,
           user_id: number,
@@ -319,7 +320,7 @@ export class Utils {
         }
       });
     }
-
+*/
     public processCSVUpload(filename: string) {
       return new Promise((resolve, reject) => {
 

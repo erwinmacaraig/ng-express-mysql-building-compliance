@@ -20,13 +20,22 @@ declare var $: any;
 })
 export class WardenLocationComponent implements OnInit, OnDestroy {
 
-	userData: Object;
-	userInitials = "";
-	roleName = "";
+  userData: Object;
+  userInitials = "";
+  roleName = "";
 
-	routeSubs;
-	routeParamsSubsc;
-	routeParams = {};
+  routeSubs;
+  routeParamsSubsc;
+  routeParams = {};
+  locationsFromDb = [];
+  mainLocation = {
+    'main_address': '',
+    'parent_name': '',
+    'my_location_name': '',
+    'photo': '/assets/images/locations/default_profile_location.png',
+  };
+
+  choseRoleId;
 
 	constructor(
 		private auth: AuthService,
@@ -41,13 +50,16 @@ export class WardenLocationComponent implements OnInit, OnDestroy {
 
 		this.userInitials = this.getInitials( this.userData['name'] );
 
-		for(let i in this.userData['roles']){
-			let role = this.userData['roles'][i];
-			if('role_name' in role){
-				this.roleName = role.role_name;
-			}
-		}
+    for(let i in this.userData['roles']){
+      let role = this.userData['roles'][i];
+      if('role_name' in role){
+        this.roleName = role.role_name;
+        this.choseRoleId = role.role_id;
+      }
+    }
 
+
+/*
 		let trp = false,
 			frp = false;
 		for(let i in this.userData['roles']){
@@ -73,12 +85,27 @@ export class WardenLocationComponent implements OnInit, OnDestroy {
 
 		this.routeParamsSubsc = this.activatedRoute.params.subscribe((params) => {
 			this.routeParams = params;
-		});
+    });
+*/
 	}
 
 	ngOnInit(){
 		$('select').material_select();
-		console.log(this.routeParams);
+    // console.log(this.routeParams);
+    this.userService.getAllLocationsForUser().subscribe((response) => {
+      console.log(response);
+      this.locationsFromDb = response['locations'];
+      console.log(this.locationsFromDb);
+      this.mainLocation['main_address'] = this.locationsFromDb[0]['main_address'];
+      this.mainLocation['parent_name'] = this.locationsFromDb[0]['root_parent_name'];
+      this.mainLocation['my_location_name'] = this.locationsFromDb[0]['name'];
+      this.mainLocation['photo'] = (this.locationsFromDb[0]['google_photo_url'] != null) ?
+       this.locationsFromDb[0]['google_photo_url'] : '/assets/images/locations/default_profile_location.png';
+      console.log(this.mainLocation);
+    }, (e) => {
+      console.log(e);
+
+    });
 	}
 
 	ngAfterViewInit(){
