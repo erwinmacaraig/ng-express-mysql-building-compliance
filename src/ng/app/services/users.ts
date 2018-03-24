@@ -246,4 +246,8 @@ export class UserService {
 
   }
 
+  getAllLocationsForUser() {
+    return this.http.get(this.baseUrl + '/users/get-all-locations/', this.options);
+  }
+
 }

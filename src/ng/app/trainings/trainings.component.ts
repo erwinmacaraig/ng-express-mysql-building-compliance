@@ -26,10 +26,9 @@ declare var $: any;
 export class TrainingsComponent implements OnInit, OnDestroy{
 
   userData = {};
-  private EMRoles = [8, 9, 10, 11, 12, 13, 14, 15, 16, 18]; // need to improve this at a later time by getting these values from db
   routeSubs;
 
-  public isWarden = false;
+  public isNormalUser = false;
   thisRouteUrl = '';
   user_id_encrypted;
 
@@ -57,9 +56,12 @@ export class TrainingsComponent implements OnInit, OnDestroy{
 
   ngOnInit() {
     for (let i = 0; i < this.userData['roles'].length; i++) {
-      if (this.EMRoles.indexOf(this.userData['roles'][i]['role_id']) !== -1) {
-        this.isWarden = true;
-        break;
+      // to improve
+      // 1 - FRP
+      // 2 - TRP
+      // any role greate than 2 is a normal user
+      if (this.userData['roles'][i]['role_id'] > 2) {
+        this.isNormalUser = true;
       }
     }
     this.user_id_encrypted = this.encryptDecrypt.encrypt(this.userData['userId']);

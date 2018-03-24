@@ -1,6 +1,9 @@
 
+
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
+import { UtilsSync } from './util.sync';
+
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
@@ -408,7 +411,52 @@ export class User extends BaseClass {
         }
       });
       connection.end();
+    });
+  }
+  /**
+   * @author Erwin Macaraig
+   * @description
+   * Get all locations tag to this user whether whatever their role(s) are
+   * @param user_id
+   * @returns array
+   */
+  public getAllMyLocations(user_id: number = 0) {
+    return new Promise((resolve, reject) => {
+      let userId = this.ID();
+      if (user_id) {
+        userId = user_id;
+      }
+      const sql = `SELECT
+          locations.location_id,
+          locations.parent_id,
+          locations.name,
+          LAU.role_id
+        FROM
+          location_account_user LAU
+        INNER JOIN
+          locations
+        ON
+          LAU.location_id = locations.location_id
+        WHERE LAU.user_id = ?
+      `;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql, [userId], (error, results, fields) => {
+        if (error) {
+          console.log('user.model.getAllMyLocations', error, sql, userId);
+          throw Error('Internal error. Cannot retrieve records');
+        }
+        if (results.length > 0) {
+          console.log(results);
+          const utils = new UtilsSync();
+          utils.getRootParent(results).then((set) => {
+            console.log(set);
+            resolve(set);
+          });
+        } else {
+          resolve([]);
+        }
 
+      });
     });
   }
 

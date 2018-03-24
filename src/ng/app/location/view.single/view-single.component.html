@@ -92,7 +92,7 @@
 							<th>Sub Location</th>
 							<th>Warden Benchmarking</th>
 							<th>No. of Tenants</th>
-							<th>Compliance</th>
+							<!-- <th>Compliance</th> -->
 							<th>Manage</th>
 						</tr>
 					</thead>
@@ -119,17 +119,19 @@
 							<td>
 								<span style="margin-right:10px;">{{sub.num_tenants}}</span>
 								<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', sub.location_id]"> Add tenants </a> -->
-							</td>
-							<td class="with-bar">
-								<span *ngIf="locationData.admin_verified == 0" class="red-text">For Verification</span>
+              </td>
 
+							<td class="with-bar">
+                <!--
+								<span *ngIf="locationData.admin_verified == 0" class="red-text">For Verification</span>
 								<div *ngIf="locationData.admin_verified > 0" class="text">0%</div>
 								<div *ngIf="locationData.admin_verified > 0" class="progress-container">
 									<div class="progress">
 								    	<div class="determinate" style="width: 0%;"></div>
 									</div>
-								</div>
-							</td>
+                </div>
+                -- >
+              </td>
 							<td class="select-blue">
 								<select>
 									<option value="0">Manage</option>

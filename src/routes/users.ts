@@ -194,6 +194,16 @@ export class UsersRoute extends BaseRoute {
           });
         });
       });
+
+      router.get('/users/get-all-locations/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+        const user = new User(req.user.user_id);
+        user.getAllMyLocations().then((locations) => {
+          return res.status(200).send({
+            'locations': locations
+          });
+        });
+
+      });
   }
 
   public async checkIfAdmin(req: Request , res: Response){

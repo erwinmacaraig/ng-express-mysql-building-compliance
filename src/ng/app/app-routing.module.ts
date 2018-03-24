@@ -37,7 +37,7 @@ import { LocationComponent } from './location/location.component';
 import { SublocationComponent } from './location/sublocation/sublocation.component';
 import { VerificationComponent } from './location/verification/verification.component';
 import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
-import { WardenLocationComponent } from './location/waden/warden.location.component';
+import { WardenLocationComponent } from './location/warden/warden.location.component';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 
@@ -116,7 +116,7 @@ const appRoutes: Routes = [
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
   /*{ path: '**', redirectTo: '/dashboard'},*/
-  { path: 'location', component: LocationComponent, children: [
+  { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
     { path: 'archived/list', component: ArchivedLocationListComponent },
     { path: 'search', component: SearchLocationComponent },
@@ -178,7 +178,7 @@ const appRoutes: Routes = [
     ]
   },
   {
-    path : 'reports', component : ReportsComponent,
+    path : 'reports', canActivate: [AuthGuard], component : ReportsComponent,
     children : [
       { path : 'choose', component : ChooseReportComponent },
       { path : 'locations', component : ReportsLocationsComponent },
