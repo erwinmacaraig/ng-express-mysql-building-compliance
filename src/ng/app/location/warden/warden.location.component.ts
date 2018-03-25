@@ -125,7 +125,7 @@ export class WardenLocationComponent implements OnInit, OnDestroy {
 
 	ngOnDestroy(){
 		$('.workspace.container').css('padding', '1% 2%');
-		this.routeSubs.unsubscribe();
+		// this.routeSubs.unsubscribe();
 	}
 
 }
