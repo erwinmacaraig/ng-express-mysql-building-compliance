@@ -753,7 +753,7 @@ export class UsersRoute extends BaseRoute {
 			let user = await userModel.load(),
 				locations = <any>[];
 
-			if( Object.keys(user).length > 0 ){
+			if( Object.keys(user).length > 0 ) {
 				user['mobility_impaired_details'] = [];
 
 				let sqlInLocation = ` (
@@ -787,57 +787,71 @@ export class UsersRoute extends BaseRoute {
 
 		        	arrWhere.push( ["user_id = " + userId] );
 		        	arrWhere.push( "duration_date > NOW()" );
-		        	let mobilityDetails = await mobilityModel.getMany( arrWhere );
-		        	user['mobility_impaired_details'] = mobilityDetails;
+              try {
+                let mobilityDetails = await mobilityModel.getMany( arrWhere );
+		        	  user['mobility_impaired_details'] = mobilityDetails;
+              } catch (e) {
+                console.log(e);
+                user['mobility_impaired_details'] = [];
+              }
+
 		        }
+          try {
+            await fileModel.getByUserIdAndType(userId, 'profile').then(
+              (fileData) => {
+                  user['profilePic'] = fileData[0].url;
+              },
+              () => {
+                  user['profilePic'] = '';
+              }
+          );
+          }catch(e) {
+            console.log(e);
+          }
 
-				await fileModel.getByUserIdAndType(userId, 'profile').then(
-		            (fileData) => {
-		                user['profilePic'] = fileData[0].url;
-		            },
-		            () => {
-		                user['profilePic'] = '';
-		            }
-		        );
+        try {
+          user['mobility_impaired_details'] = <any> await mobilityModel.getMany([ [ "user_id = "+userId] ]);
 
-
-				user['mobility_impaired_details'] = <any> await mobilityModel.getMany([ [ "user_id = "+userId] ]);
-
-				for(let i in user['mobility_impaired_details']){
-					user['mobility_impaired_details'][i]['date_created_formatted'] = moment(user['mobility_impaired_details'][i]['date_created']).format('MMM. DD, YYYY');
-					user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
-				}
-
+  				for(let i in user['mobility_impaired_details']) {
+  					user['mobility_impaired_details'][i]['date_created_formatted'] = moment(user['mobility_impaired_details'][i]['date_created']).format('MMM. DD, YYYY');
+  					user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
+  				}
+        } catch(e) {
+          console.log(e);
+        }
       }
       Object.keys(locations).forEach((key) => {
-        if ('em_roles_id' in locations[key]) {
-          locations[key]['training_requirement_name'] = training_requirements[locations[key]['em_roles_id'].toString()]['training_requirement_name'];
-          locations[key]['training_requirement_id'] = training_requirements[locations[key]['em_roles_id'].toString()]['training_requirement_id'];
+        if ('em_roles_id' in locations[key] && locations[key]['em_roles_id']) {
+          locations[key]['training_requirement_name'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_name'];
+          locations[key]['training_requirement_id'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_id'];
         }
       });
-      console.log(locations);
+
 
 			response.data.locations = locations;
-			response.data.user = user;
+			// response.data.user = user;
 			response.status = true;
 		}catch(e){
-			response.status = false;
+      response.status = false;
+      console.log(e);
     }
 		try{
 
 			let courseModel = new CourseUserRelation(),
 				trainings = await courseModel.getAllCourseForUser(userId);
-			response.data.trainings = trainings;
+		  	response.data.trainings = trainings;
 
 		}catch(e){}
 
 		try{
 
-			let userModel = new User(userId),
+      let userModel = new User(userId),
 				certificates = await userModel.getAllCertifications();
-			response.data.certificates = certificates;
+        response.data.certificates = certificates;
 
-		}catch(e){}
+        response.data.user = await userModel.load();
+
+		} catch(e){}
 
 		res.statusCode = 200;
 		res.send(response);

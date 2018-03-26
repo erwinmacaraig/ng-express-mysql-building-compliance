@@ -83,21 +83,15 @@ export class TrainingProfile implements OnInit, OnDestroy {
         private elemRef: ElementRef
 		){
 
-		this.userData = this.auth.getUserData();
+
 		this.datepickerModel = new Date();
     	this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 
-		this.route.params.subscribe((params) => {
-			this.encryptedID = params['encrypted'];
-			this.decryptedID = this.encryptDecrypt.decrypt(params['encrypted']);
-
-
-			this.loadProfile();
-		});
-
+    /*
 		this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
 			this.locations = response.locations;
-		});
+    });
+    */
 	}
 
 	loadProfile(callBack?){
@@ -105,9 +99,18 @@ export class TrainingProfile implements OnInit, OnDestroy {
 			this.viewData.user = response.data.user;
 			this.viewData.role_text = response.data.role_text;
 			this.viewData.eco_roles = response.data.eco_roles;
-			this.viewData.locations = response.data.locations;
+			// this.viewData.locations = response.data.locations;
 			this.viewData.trainings = response.data.trainings;
 			this.viewData.certificates = response.data.certificates;
+
+      /* Filter out locations so locations will contain locations with EM Role */
+      for(let i = 0; i < response.data.locations.length; i++) {
+        if (response.data.locations[i]['em_roles_id'] !== null) {
+          this.viewData.locations.push(response.data.locations[i]);
+        }
+      }
+
+      console.log(this.viewData.locations);
 
 			for(let x in this.viewData.certificates){
 				this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
@@ -132,9 +135,15 @@ export class TrainingProfile implements OnInit, OnDestroy {
 		});
 	}
 
-	ngOnInit(){
-
-	}
+  ngOnInit() {
+    this.route.params.subscribe((params) => {
+      this.encryptedID = params['encrypted'];
+      this.decryptedID = this.encryptDecrypt.decrypt(params['encrypted']);
+      this.loadProfile();
+    });
+    this.userData = this.auth.getUserData();
+    console.log(this.userData);
+  }
 
 	ngAfterViewInit(){
 
