@@ -30,9 +30,12 @@ export class UtilsSync {
         await loc.load();
         tempParentId = +loc.get('parent_id');
       }
-      records[i]['root_parent_name'] = (loc.get('name').toString().length > 0) ? loc.get('name').toString() :
-        loc.get('formatted_address');
-      records[i]['main_address'] = loc.get('formatted_address').toString();
+      if (loc.get('name') && loc.get('name').toString().length > 0) {
+        records[i]['root_parent_name'] = loc.get('name').toString();
+      } else if (loc.get('formatted_address')) {
+        records[i]['root_parent_name'] = loc.get('formatted_address')
+      }
+      records[i]['main_address'] = loc.get('formatted_address');
       records[i]['root_parent_loc_id'] = loc.ID();
       records[i]['google_photo_url'] = loc.get('google_photo_url');
     }
