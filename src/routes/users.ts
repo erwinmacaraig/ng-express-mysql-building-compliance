@@ -1269,7 +1269,7 @@ export class UsersRoute extends BaseRoute {
 
 				let deepLocation = new Location(),
 					subLocations = await deepLocation.getDeepLocationsByParentId(mainParentLocationId),
-					subLocationsIds = [];
+					subLocationsIds = [0];
 
 				response.data['subLocations'] = subLocations;
 

@@ -44,6 +44,7 @@ export class UserEmRoleRelation extends BaseClass {
                       er.em_roles_id,
                       l.name as location_name,
                       l.parent_id,
+                      l.location_id,
                       l.formatted_address,
                       l.google_place_id,
                       l.google_photo_url
