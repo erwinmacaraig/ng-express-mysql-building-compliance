@@ -14,6 +14,12 @@
     font-size: 11px;
     letter-spacing: 0.2px;
     background-color: #5dcdff !important;
+    position: fixed;
+    width: 100%;
+}
+
+.beta-nav{
+    top: 29px;
 }
 
 body {
