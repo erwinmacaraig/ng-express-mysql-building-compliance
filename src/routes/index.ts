@@ -44,6 +44,10 @@ export class IndexRoute extends BaseRoute {
     router.get('/test/location', (req: Request, res: Response, next: NextFunction) => {
     	new IndexRoute().displaySearchLocation(req, res, next);
     });
+
+    router.get('/health/', (req: AuthRequest, res: Response) => {
+      return res.status(200).send('OK');
+    });
   }
 
   /**

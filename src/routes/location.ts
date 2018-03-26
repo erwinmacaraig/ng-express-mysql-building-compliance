@@ -979,19 +979,16 @@ const defs = require('../config/defs.json');
       	response.location = location.getDBData();
         const wardenCalc = new WardenBenchmarkingCalculator();
 
-        let sublocationIdsArray = [];
+        let sublocationIdsArray = [0];
         if(locData.parent_id == -1){
             sublocations = await location.getSublocations(req.user.user_id, r);
         }else{
             let ancestriesModel = new Location(),
                 ancestries = <any> await ancestriesModel.getAncestries(locData.location_id);
 
-
             for(let i in ancestries){
-                if(ancestries[i]['parent_id'] == -1){
-                    location.setID(ancestries[i]['location_id']);
-                    sublocations = await location.getSublocations(req.user.user_id, r);
-                }
+                location.setID(ancestries[i]['location_id']);
+                sublocations = await location.getSublocations(req.user.user_id, r);
             }
         }
 
@@ -1368,6 +1365,7 @@ const defs = require('../config/defs.json');
         for (let loc of locationsOnAccount) {
             let locAncestriesModel = new Location();
             let ancetries = await locAncestriesModel.getAncestries(loc.location_id);
+
             for(let i in ancetries){
                 allAncestries.push(ancetries[i]);
             }
@@ -1389,8 +1387,26 @@ const defs = require('../config/defs.json');
         }
 
 
+        let finalLocs = [];
+        for(let loc of filteredLocs){
+          let deepLocs = new Location(),
+            locations = await deepLocs.getDeepLocationsByParentId(loc.location_id),
+            toMerge = [ JSON.parse(JSON.stringify(loc)) ];
+
+          for(let i in locations){
+            toMerge.push(  JSON.parse(JSON.stringify(locations[i])) );
+          }
+
+          let merged = this.mergeToParent(toMerge);
+          if(merged.length > 0){
+            finalLocs.push( merged[0]  );
+          }
+
+        }
+
+
         res.send( {
-            locations : filteredLocs
+            locations : finalLocs
         });
     }
 

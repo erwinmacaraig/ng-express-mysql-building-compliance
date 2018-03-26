@@ -107,6 +107,20 @@ h1,h2{
   margin: 75px auto;
 }
 
+.logo-beta{
+    width: 400px;
+    height: 94px;
+    background: url(/assets/images/beta/logo.png) no-repeat;
+    background-size: contain;
+    margin: 30px auto;
+}
+
+.beta-message{
+    width: 800px;
+    text-align: center;
+    margin: 25px auto;
+}
+
 .login-block {
   position: relative !important;
   width: 670px !important;
