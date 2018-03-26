@@ -1107,6 +1107,9 @@ const defs = require('../config/defs.json');
 
     public addChildrenLocationToParent(data){
         for(let i in data){
+            if('sublocations' in data[i] == false){
+                data[i]['sublocations'] = [];
+            }
 
             for(let x in data){
                 if(data[x]['parent_id'] == data[i]['location_id']){

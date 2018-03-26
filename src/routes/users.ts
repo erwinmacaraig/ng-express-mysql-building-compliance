@@ -746,8 +746,8 @@ export class UsersRoute extends BaseRoute {
 		mobilityModel = new MobilityImpairedModel();
 
 		response.data.eco_roles = emRoles;
-    const training_requirements = await new TrainingCertification().getRequiredTrainings();
-    console.log(training_requirements);
+        const training_requirements = await new TrainingCertification().getRequiredTrainings();
+        console.log(training_requirements);
 		try {
 
 			let user = await userModel.load(),
@@ -850,6 +850,19 @@ export class UsersRoute extends BaseRoute {
         response.data.certificates = certificates;
 
         response.data.user = await userModel.load();
+
+            try {
+                await fileModel.getByUserIdAndType(userId, 'profile').then(
+                  (fileData) => {
+                      response.data.user['profilePic'] = fileData[0].url;
+                  },
+                  () => {
+                      response.data.user['profilePic'] = '';
+                  }
+                );
+            }catch(e) {
+                console.log(e);
+            }
 
 		} catch(e){}
 
