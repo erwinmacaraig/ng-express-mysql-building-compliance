@@ -305,7 +305,7 @@ export class Account extends BaseClass {
               locations.location_id = LAU.location_id
             WHERE
               locations.archived = ?
-              ${user_filter} ${role_filter}
+              ${user_filter} 
             GROUP BY
               locations.location_id
             ORDER BY
