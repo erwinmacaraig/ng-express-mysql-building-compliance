@@ -26,9 +26,9 @@ export class PaymentRoute extends BaseRoute {
 
 
   public static async create(router: Router) {
-   let config;
-    const gateway = new Gateway(); 
-   try{
+    let config;
+    const gateway = new Gateway();
+    try{
       config = await gateway.getActiveConfig();
       if (config['gateway_code'] === 'paypal') {
         const paypal_config = {
