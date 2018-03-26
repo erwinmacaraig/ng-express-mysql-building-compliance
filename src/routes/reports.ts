@@ -192,7 +192,7 @@ export class ReportsRoute extends BaseRoute {
 
         for(let loc of locations){
             if(allParentIds.indexOf(loc.parent_id) == -1){
-                allParentIds.push(loc.parent_id);
+                allParentIds.push(loc.location_id);
             }
             allLocations.push(loc);
         }
