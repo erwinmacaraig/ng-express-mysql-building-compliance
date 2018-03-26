@@ -9,6 +9,10 @@
   height: 65px !important;
 }
 
+.navbar-fixed.beta{
+    height: 95px !important;
+}
+
 .beta-message{
     padding: 7px;
     font-size: 11px;
