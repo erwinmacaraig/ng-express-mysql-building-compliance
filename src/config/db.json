@@ -1,6 +1,6 @@
 {
-  "host": "evac-prod-aws.cz6acz8q5poj.ap-southeast-2.rds.amazonaws.com",
+  "host": "evac-new-dev-aws.cz6acz8q5poj.ap-southeast-2.rds.amazonaws.com",
   "user": "admin",
-  "password": "myAllah1",
+  "password": "Abbas2016",
   "database": "evacos"
 }
