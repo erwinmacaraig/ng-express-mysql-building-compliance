@@ -1,6 +1,8 @@
 
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
+import { UtilsSync } from './util.sync';
+
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
@@ -418,6 +420,8 @@ export class Location extends BaseClass {
 			} else {
 				sublocationQuery = `SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id  DESC`;
 			}
+
+			sublocationQuery = `SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id  DESC`;
 			const sql_get_subloc = `
 			SELECT location_id, name, parent_id FROM (${sublocationQuery}) sublocations, (SELECT @pv := ?)
 			initialisation WHERE find_in_set(parent_id, @pv) > 0 AND @pv := concat(@pv, ',', location_id) ORDER BY location_id;`;
@@ -506,8 +510,12 @@ export class Location extends BaseClass {
 	}
 
 	public getAncestryIds(sublocId){
+
 		return new Promise((resolve) => {
-			let sql = `SELECT location_id, GetAncestry(${sublocId}) as ids FROM locations WHERE location_id = ${sublocId};`;
+			let sql = `SELECT @pi as ids FROM ( SELECT * FROM locations WHERE archived = 0 AND location_id <= ${sublocId} ) sublocations ,
+						(SELECT @pi := parent_id FROM locations WHERE location_id = ${sublocId} ) parent 
+					    WHERE FIND_IN_SET(location_id, @pi) > 0 AND @pi := concat(@pi, ',', parent_id)
+					    ORDER BY location_id DESC`;
 
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql, (err, results, fields) => {
@@ -515,15 +523,33 @@ export class Location extends BaseClass {
 					console.log(err);
 					throw new Error(err);
 				}
-				resolve(results);
+
+				if(results.length > 0){
+					resolve([
+						{
+							ids : results[ results.length - 1 ]['ids']
+						}
+					]);
+				}else{
+					resolve([ {
+						ids : '0'
+					} ]);
+				}
+
+				
 			});
 			connection.end();
 		});
 	}
 
 	public getAncestries(sublocId){
+
 		return new Promise( (resolve) => {
 			this.getAncestryIds(sublocId).then((resultsIds) => {
+
+				if(sublocId.length == 0){
+					sublocId = '0';
+				}
 
 				let sql = `SELECT * FROM locations WHERE location_id IN (` + sublocId + `)`;
 
@@ -539,7 +565,6 @@ export class Location extends BaseClass {
 					}
 
 					resolve(results);
-
 				});
 				connection.end();
 			});
@@ -559,13 +584,16 @@ export class Location extends BaseClass {
       }
       let location_em_roles = {};
       let subLocToEmRoles:{[key: number]: {}} = {};
-      // FRP or TRP
+      // FRP or TRP 
+      
       this.getParentsChildren(location).then((sublocations) => {
         const subIds = [];
         Object.keys(sublocations).forEach((key) => {
           subIds.push(sublocations[key]['location_id']);
         });
-        const subIdstring = subIds.join(',');
+        let subIdstring = subIds.join(',');
+        subIdstring = (subIdstring.length == 0) ? '0' : subIdstring;
+
         const sql = `SELECT
                     user_em_roles_relation.*,
                     em_roles.role_name,

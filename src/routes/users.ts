@@ -1195,9 +1195,9 @@ export class UsersRoute extends BaseRoute {
 
 			response.data['myEmRoles'] = myEmRoles;
 
-			const accountsLocations = await locationAccountUser.getMany([
+			/*const accountsLocations = await locationAccountUser.getMany([
 				[ "account_id = "+req['user']['account_id'] ]
-			]);
+			]);*/
 
 			let myEmRoleRecord = {};
 			for(let i in myEmRoles){
@@ -1208,6 +1208,7 @@ export class UsersRoute extends BaseRoute {
 
 			if(myEmRoleRecord['location_id']){
 				myEmRoleRecord['related_locations'] = await locationModel.getAncestries(myEmRoleRecord['location_id']);
+
 				response.data.location = {
 					'location_id' : myEmRoleRecord['location_id'],
 					'parent_id' : myEmRoleRecord['parent_id'],
@@ -1221,6 +1222,7 @@ export class UsersRoute extends BaseRoute {
 
 				let mainParentLocationId,
 					mainParent = {};
+
 				for(let i in myEmRoleRecord['related_locations']){
 					if(myEmRoleRecord['related_locations'][i]['parent_id'] == -1){
 						mainParent = myEmRoleRecord['related_locations'][i];
@@ -1248,11 +1250,14 @@ export class UsersRoute extends BaseRoute {
 					subLocationsIds.push(subLocations[i]['location_id']);
 				}
 
-				console.log(subLocationsIds);
-
 				let userEmRoleRelationTeam = new UserEmRoleRelation(),
 					teamEmRoles = <any>[];
 
+                console.log( req['user']['account_id'], subLocationsIds.join(',') );
+
+                teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], subLocationsIds.join(','));
+
+                /*
 				if(  roleId == 11 || roleId == 15 || roleId == 16 || roleId == 18 ){
 					//Chief Wardens //Deputy Chief Warden //Building Warden //Deputy Building Warden
 					teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], subLocationsIds.join(','));
@@ -1262,6 +1267,7 @@ export class UsersRoute extends BaseRoute {
 				}else{
 
 				}
+                */
 
 				response.data['teamEmRoles'] = teamEmRoles;
 
@@ -1704,44 +1710,43 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
+
+    //////
+    // For Enhancement //
+    // This is for listing Tenants(Accounts) in a location
+    // Current : We only listing who have TRP in the account
+    //////
 	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction){
-    const location_id = req.params.location_id;
-    const locationAccountUserObj = new LocationAccountUser();
-    // listing of roles is implemented here because we are only listing roles on a sub location
-    const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
-    const canLoginTenantArr = [];
+        const location_id = req.params.location_id;
+        const locationAccountUserObj = new LocationAccountUser();
+        // listing of roles is implemented here because we are only listing roles on a sub location
+        const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
+        const canLoginTenantArr = [];
 
-    Object.keys(canLoginTenants).forEach((key) => {
-      canLoginTenantArr.push(canLoginTenants[key]);
-    });
+        Object.keys(canLoginTenants).forEach((key) => {
+          canLoginTenantArr.push(canLoginTenants[key]);
+        });
 
-    for (let i = 0; i < canLoginTenantArr.length; i++) {
-      // get all wardens for this location on this account
-      const EMRole = new UserEmRoleRelation();
-      const trainingCert = new TrainingCertification();
-      const temp =
-        await EMRole.getEMRolesOnAccountOnLocation(
-          defs['em_roles']['WARDEN'],
-          canLoginTenantArr[i]['account_id'],
-          location_id
-      );
-      canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
-      canLoginTenantArr[i]['wardens'] = temp['raw'];
+        for (let i = 0; i < canLoginTenantArr.length; i++) {
+          // get all wardens for this location on this account
+          const EMRole = new UserEmRoleRelation();
+          const trainingCert = new TrainingCertification();
+          const temp =
+            await EMRole.getEMRolesOnAccountOnLocation(
+              defs['em_roles']['WARDEN'],
+              canLoginTenantArr[i]['account_id'],
+              location_id
+          );
+          canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
+          canLoginTenantArr[i]['wardens'] = temp['raw'];
 
-      // get trained wardens
-      canLoginTenantArr[i]['trained_wardens'] = await
-           trainingCert.getEMRUserCertifications(temp['users']);
-    }
-    console.log(canLoginTenantArr);
+          // get trained wardens
+          canLoginTenantArr[i]['trained_wardens'] = await
+               trainingCert.getEMRUserCertifications(temp['users']);
+        }
+        console.log(canLoginTenantArr);
 
-
-
-
-    return canLoginTenantArr;
-
-
-
-
+        return canLoginTenantArr;
 	}
 
 }
