@@ -7,7 +7,7 @@
 
 .search-container{
     background-color: #f0f0f0;
-    padding: 0px 20px;
+    padding: 3px 15px;
     border-radius: 10px;
     width: 100% !important;
 }
@@ -15,7 +15,7 @@
 .search-container .input-container{
     display: inline-block;
     vertical-align: middle;
-    width: 94%;
+    width: 93%;
 }
 
 .search-container .input-container input{
