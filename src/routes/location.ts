@@ -501,14 +501,14 @@ const defs = require('../config/defs.json');
           parent_id = location.ID();
           dbLocationData["id_of_location"] = location.ID();
 
-          /*
+          
           locationAccnt = new LocationAccountRelation();
           await locationAccnt.create({
             'location_id': parent_id,
             'account_id': req.user.account_id,
             'responsibility': roles_text[r]
           });
-          */
+          
           dbLocationData['parent_id'] = parent_id;
           locationAccntUser = new LocationAccountUser();
           await locationAccntUser.create({
@@ -531,14 +531,13 @@ const defs = require('../config/defs.json');
             let copyDbLocationData = JSON.parse( JSON.stringify(dbLocationData) );
             copyDbLocationData['name'] = req.body.sublevels[i];
             await subLevel.create(copyDbLocationData);
-
-            /*
+            
             await locationAccnt.create({
               'location_id': subLevel.ID(),
               'account_id': req.user.account_id,
               'responsibility': roles_text[r]
             });
-            */
+            
             locationAccntUser = new LocationAccountUser();
             await locationAccntUser.create({
               location_id:  subLevel.ID(),

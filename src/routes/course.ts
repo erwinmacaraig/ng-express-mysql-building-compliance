@@ -8,6 +8,8 @@ import { LocationAccountUser } from '../models/location.account.user';
 import { Course } from '../models/course.model';
 import { CourseUserRelation } from '../models/course-user-relation.model';
 import { TrainingRequirements } from '../models/training.requirements';
+import { UserEmRoleRelation } from '../models/user.em.role.relation';
+import { TrainingCertification } from '../models/training.certification.model';
 
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
@@ -41,6 +43,10 @@ export class CourseRoute extends BaseRoute {
 
 	   	router.get('/courses/my-courses/:user_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 	   		new CourseRoute().getMyCourses(req, res);
+	   	});
+
+	   	router.get('/courses/counts-account-trainings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+	   		new CourseRoute().getCountsAccountTrainings(req, res);
 	   	});
    	}
 
@@ -199,6 +205,77 @@ export class CourseRoute extends BaseRoute {
 		this.response.data = relations;
 
 		res.send(this.response);
+	}
+
+	public async getCountsAccountTrainings(req: AuthRequest, res: Response){
+		let response = {
+			data : {
+				users : <any> [],
+				emUserCerts : <any> [],
+				requiredTrainings : <any> [],
+				number_required_trainings : 0,
+				number_course_finished : 0
+			},
+			message : ''
+		},
+		accountId = req.user.account_id,
+		emRoleModel = new UserEmRoleRelation(),
+		users = <any> await emRoleModel.getUsersByAccountId(accountId),
+		certModel = new TrainingCertification(),
+		requiredTrainings = <any> await certModel.getRequiredTrainings(),
+		emUserCerts = <any> [],
+		arrUserIds = [],
+		trainingsIds = {};
+
+		for(let user of users){
+			if(arrUserIds.indexOf(user.user_id) == -1){
+				arrUserIds.push(user.user_id);
+			}
+		}
+		
+		try{
+			emUserCerts = <any> await certModel.getEMRUserCertifications(arrUserIds);
+		}catch(e){}
+
+		for(let i in requiredTrainings){
+			let idsArr = requiredTrainings[i]['training_requirement_id'];
+			for(let x in idsArr){
+				if( trainingsIds[ idsArr[x] ] == undefined){
+					trainingsIds[ idsArr[x] ] = {
+						taken : false
+					};
+				}
+			}
+		}
+		response.data['trainingsIds'] = trainingsIds;
+
+		/*for(let i in requiredTrainings){
+
+			if('taken' in requiredTrainings[i] === false){
+				requiredTrainings[i]['taken'] = false;
+			}
+
+			if('passed' in emUserCerts){
+				for(let p of emUserCerts.passed){
+					if(  requiredTrainings[i]['training_requirement_id'].indexOf( p.training_requirement_id ) > -1){
+						req['taken'] = true;
+					}
+				}
+			}
+		}
+
+		for(let req of requiredTrainings){
+			if(req.taken){
+				response.data.number_course_finished++;
+			}
+		}*/
+
+		response.data.number_required_trainings = Object.keys(requiredTrainings).length;
+		response.data.requiredTrainings = requiredTrainings;
+		response.data.users = users;
+		response.data.emUserCerts = emUserCerts;
+
+		res.send(response);
 	}
 
 }

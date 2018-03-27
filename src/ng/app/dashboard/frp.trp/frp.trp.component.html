@@ -61,8 +61,7 @@
 
 		<div class="col l6 m12 s12">
 			<h5 class="orange-text margin-bottom-30">My Plans</h5>
-			
-			<div class="grey lighten-5 table-container">
+			<div class="grey lighten-5 table-container" >
 				<table class="table striped">
 					<thead>
 						<tr class="grey darken-4 white-text">
@@ -72,11 +71,33 @@
 							<!-- <th></th> -->
 						</tr>
 					</thead>
-					<tbody>
+					<tbody *ngIf="showPlansLoader">
+						<tr>
+							<td colspan="4" class="center">
+								<div class="preloader-wrapper small active center">
+									<div class="spinner-layer spinner-blue-only">
+										<div class="circle-clipper left">
+											<div class="circle">
+											</div>
+										</div>
+										<div class="gap-patch">
+											<div class="circle">
+											</div>
+										</div>
+										<div class="circle-clipper right">
+											<div class="circle">
+											</div>
+										</div>
+									</div>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+					<tbody *ngIf="!showPlansLoader">
 						<tr *ngIf="locations.length == 0">
 							<td colspan="4" class="center">No plans found</td>
 						</tr>
-						<tr *ngFor="let loc of locations">
+						<tr *ngFor="let loc of locations" >
 							<td>{{loc.name}}</td>
 							<td></td>
 							<td> 0/0 </td>
@@ -117,8 +138,28 @@
 		<div class="col l3 m6 s12">
 			<h5 class="orange-text margin-bottom-30">Account Trainings</h5>
 			
-			<div class="account-trainings-container display-table margin-bottom-30">
-				<div id="specificChart" class="donut-size cell">
+			<div class="width100 display-table margin-bottom-30" >
+				<div class="loader-div" *ngIf="showAccountTrainingLoader">
+					<div class="preloader-wrapper big active center">
+						<div class="spinner-layer spinner-blue-only">
+							<div class="circle-clipper left">
+								<div class="circle">
+								</div>
+							</div>
+							<div class="gap-patch">
+								<div class="circle">
+								</div>
+							</div>
+							<div class="circle-clipper right">
+								<div class="circle">
+								</div>
+							</div>
+						</div>
+					</div>
+					<h6>Fetching...</h6>
+				</div>
+
+				<div id="specificChart" class="donut-size cell" *ngIf="!showAccountTrainingLoader">
 					<div class="pie-wrapper">
 						<span class="label">
 							<span class="num"> 00 </span><span class="smaller">%</span>
@@ -131,7 +172,7 @@
 					</div>
 				</div>
 				
-				<div class="cell">
+				<div class="cell" *ngIf="!showAccountTrainingLoader">
 					<h5>200 Required Training Course</h5>
 					<p class="font-size-16 blue-text">
 						180 Course Finished
