@@ -501,14 +501,14 @@ const defs = require('../config/defs.json');
           parent_id = location.ID();
           dbLocationData["id_of_location"] = location.ID();
 
-          /*
+          
           locationAccnt = new LocationAccountRelation();
           await locationAccnt.create({
             'location_id': parent_id,
             'account_id': req.user.account_id,
             'responsibility': roles_text[r]
           });
-          */
+          
           dbLocationData['parent_id'] = parent_id;
           locationAccntUser = new LocationAccountUser();
           await locationAccntUser.create({
@@ -531,14 +531,13 @@ const defs = require('../config/defs.json');
             let copyDbLocationData = JSON.parse( JSON.stringify(dbLocationData) );
             copyDbLocationData['name'] = req.body.sublevels[i];
             await subLevel.create(copyDbLocationData);
-
-            /*
+            
             await locationAccnt.create({
               'location_id': subLevel.ID(),
               'account_id': req.user.account_id,
               'responsibility': roles_text[r]
             });
-            */
+            
             locationAccntUser = new LocationAccountUser();
             await locationAccntUser.create({
               location_id:  subLevel.ID(),
@@ -1141,207 +1140,113 @@ const defs = require('../config/defs.json');
     }
 
 	public async getParentLocationsByAccount(req: AuthRequest, res: Response, archived?) {
-	    const accountId = req.user.account_id;
-	    const account = new Account(accountId);
-	    let locationsOnAccount = [];
-	    let location;
-        let data;
+	    const accountId = req.user.account_id,
+            account = new Account(accountId);
 
-        let userRoleRel;
-        let roles;
+	    let locationsOnAccount = [],
+            locations = <any> [],
+            roles = <any> [],
+            response = {
+                locations : <any> []
+            };
+
         try {
-            userRoleRel = new UserRoleRelation();
-            roles = await userRoleRel.getByUserId(req.user.user_id);
+            // FRP & TRP
+            let userRoleModel = new UserRoleRelation(),
+                roles = await userRoleModel.getByUserId(req.user.user_id);
 
-            let r = 100;
-            for (let i = 0; i < roles.length; i++) {
-                if(r > parseInt(roles[i]['role_id'], 10)) {
-                    r = roles[i]['role_id'];
-                }
-            }
-
-            locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r, archived);
-            switch(r) {
-                case 1:
-
-                    let toResponse = {
-                        'locations' : []
-                    };
-                    for (let loc of locationsOnAccount) {
-                        let allSubLocationIds = [];
-
-                        allSubLocationIds.push(loc.location_id);
-
-                        let deepLocModel = new Location(),
-                            deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
-
-                        for(let sub of deepLocations){
-                            if(sub.parent_id == loc.location_id){
-                                allSubLocationIds.push(sub.location_id);
-                            }
-                        }
-
-                        let locAccModel = new LocationAccountRelation(),
-                        locAcc = <any> await locAccModel.getByWhereInLocationIds( allSubLocationIds.join(',') );
-
-                        loc['num_tenants'] = locAcc.length;
-
-                        let locAccUserModel = new LocationAccountUser(),
-                        locAccUser = <any> await locAccUserModel.getWardensByAccountIdWhereInLocationId(accountId, allSubLocationIds.join(',') ); // <- to remove
-
-                        loc['num_wardens'] = 0;
-                        try{
-                            const emrolesOnThisLocation = <any> await deepLocModel.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], loc.location_id);
-                            loc['num_wardens'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
-                        }catch(e){}
-
-                        let impairedCount = 0 ;
-                        for(let x in locAccUser){
-                            if(locAccUser[x]['mobility_impaired'] == 1){
-                              impairedCount++;
-                            }
-                        }
-
-                        loc['num_wardens'] = locAccUser.length; // <- to remove
-                       
-                        loc['mobility_impaired'] = impairedCount;
-                        loc['compliance'] = 0;
-
-                        deepLocations.push(loc);
-                        loc = this.addChildrenLocationToParent(deepLocations);
-                    }
-
-                    toResponse.locations = locationsOnAccount;
-
-                    return toResponse;
-                case 2:
-
-                    let allParentIds = [];
-                    for(let loc of locationsOnAccount){
-                        if(allParentIds.indexOf(loc.parent_id) === -1){
-                            allParentIds.push(loc.parent_id);
-                        }
-                    }
-
-                    let parentLocationsModel = new Location(),
-                        parents = <any> await parentLocationsModel.getWhere([' location_id IN ('+allParentIds.join(',')+')' ]);
-
-                    let mergedLocations = [];
-                    for(let i in parents){
-                        mergedLocations.push(parents[i]);
-                    }
-
-                    for(let i in locationsOnAccount){
-                        mergedLocations.push(locationsOnAccount[i]);
-                    }
-
-                    let newMergedLocations = this.addChildrenLocationToParent(mergedLocations);
-
-                    for(let loc of newMergedLocations){
-                        let allSubLocationIds = [];
-                        for(let sub of loc.sublocations){
-                            if(allSubLocationIds.indexOf(sub.location_id) == -1){
-                                allSubLocationIds.push(sub.location_id);
-                            }
-                        }
-
-                        let locAccModel = new LocationAccountRelation(),
-                        locAcc = <any> await locAccModel.getByWhereInLocationIds( allSubLocationIds.join(',') );
-
-                        loc['num_tenants'] = locAcc.length;
-
-                        let locAccUserModel = new LocationAccountUser(),
-                        locAccUser = <any> await locAccUserModel.getWardensByAccountIdWhereInLocationId(accountId, allSubLocationIds.join(',') );
-
-                        let impairedCount = 0 ;
-                        for(let x in locAccUser){
-                            if(locAccUser[x]['mobility_impaired'] == 1){
-                              impairedCount++;
-                            }
-                        }
-
-                        loc['num_wardens'] = locAccUser.length;
-                        loc['mobility_impaired'] = impairedCount;
-                        loc['compliance'] = 0;
-                    }
-
-                    return { 'locations':  newMergedLocations, 'locationsOnAccount' : locationsOnAccount };
+            locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 1, archived);
+            
+            for (let loc of locationsOnAccount) {
+                locations.push(loc);
             }
 
         } catch (e) {
-            userRoleRel = new UserEmRoleRelation();
-
-            locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 0, archived);
-
-
-            let results;
-
-            let objectOfSubs:{[key: number]: any[]} = {};
-            let seenParents = []; // these are the parent ids
-            let rootParents = [];
-            let pId = 0;
-            for (let loc of locationsOnAccount) {
-                objectOfSubs[loc.parent_id] = [];
-            }
-
-            for (let loc of locationsOnAccount) {
-                objectOfSubs[loc.parent_id].push(loc);
-
-                if ((seenParents.indexOf(loc.parent_id)*1)  === -1) {
-
-                seenParents.push(loc.parent_id);
-                    let parentId = loc.parent_id;
-                    while (parentId !== -1) {
-                        location = new Location(parentId);
-                        await location.load();
-                        parentId = location.get('parent_id');
-                    }
-
-                    rootParents.push(location.getDBData());
-                    location.set('desc', loc.parent_id);
-                    location = undefined;
-                }
-            }
-
-            let seenRoots = [];
-            let processedRootParents = [];
-            for (let r of rootParents) {
-                if(seenRoots.indexOf(r['location_id']) == -1) {
-                    r['sublocations'] = [];
-                    r['sublocations'] = objectOfSubs[r['desc']];
-                    r['sublocations']['total'] = 0;
-                    r['total_subs'] = objectOfSubs[r['desc']].length;
-                    seenRoots.push(r['location_id']);
-                    processedRootParents.push(r);
-                }
-            }
-
-            for(let i in processedRootParents) {
-                let locAccModel = new LocationAccountRelation(),
-                locAcc = <any> await locAccModel.getManyByLocationId(processedRootParents[i]['location_id']);
-
-                let locAccUserModel = new LocationAccountUser(),
-                locAccUser = <any> await locAccUserModel.getWardensByAccountIdLocationId(accountId, processedRootParents[i]['location_id']);
-                console.log(accountId); console.log(processedRootParents[i]['location_id']);
-                let impairedCount = 0 ;
-                for(let x in locAccUser){
-                    if(locAccUser[x]['mobility_impaired'] == 1){
-                        impairedCount++;
-                    }
+            // Warden or Users
+            try{
+                let userEmRole = new UserEmRoleRelation(),
+                emRoles = <any> await userEmRole.getEmRolesByUserId(req.user.user_id);
+                
+                for (let em of emRoles) {
+                    locations.push(em);
                 }
 
-                processedRootParents[i]['num_tenants'] = locAcc.length;
-                processedRootParents[i]['num_wardens'] = locAccUser.length;
-                processedRootParents[i]['mobility_impaired'] = impairedCount;
-                processedRootParents[i]['compliance'] = 0;
-            }
-
-            return {
-                'locations':  processedRootParents
-            };
+            }catch(e){  }
         }
 
-  		return locationsOnAccount;
+        for (let loc of locations) {
+            let allSubLocationIds = [0],
+                deepLocModel = new Location(),
+                deepLocations = <any> [];
+            
+            if(loc.parent_id == -1){
+                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+            }else{
+                let ancLocModel = new Location(),
+                    ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
+
+                for(let anc of ancestores){
+                    if(anc.parent_id == -1){
+                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                    }
+                }
+            }
+
+            for(let sub of deepLocations){
+                if(sub.parent_id > -1){
+                    allSubLocationIds.push(sub.location_id);
+                }
+            }
+
+            let locAccModel = new LocationAccountRelation(),
+                locAccTenant = <any> await locAccModel.getByWhereInLocationIds( allSubLocationIds.join(',') ),
+                numTenants = 0,
+                tenantsIds = [];
+
+            for(let ten of locAccTenant){
+                if(tenantsIds.indexOf( ten.account_id ) == -1){
+                    numTenants++;
+                    tenantsIds.push( ten.account_id );
+                }
+            }
+
+            loc['num_tenants'] = numTenants;
+            
+            let locAccUserModel = new LocationAccountUser(),
+            locAccUser = <any> await locAccUserModel.getWardensByAccountIdWhereInLocationId(accountId, allSubLocationIds.join(',') ); // <- to remove
+
+            loc['num_wardens'] = 0;
+            try{
+                const emrolesOnThisLocation = <any> await deepLocModel.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], loc.location_id);
+                loc['num_wardens'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
+            }catch(e){}
+
+            let impairedCount = 0 ;
+            for(let x in locAccUser){
+                if(locAccUser[x]['mobility_impaired'] == 1){
+                  impairedCount++;
+                }
+            }
+
+            loc['num_wardens'] = locAccUser.length; // <- to remove
+           
+            loc['mobility_impaired'] = impairedCount;
+            loc['compliance'] = 0;
+
+            deepLocations.push(loc);
+            loc = this.addChildrenLocationToParent(deepLocations);
+        }
+
+        let parentLoc = [];
+        for(let loc of locationsOnAccount){
+            if(loc['parent_id'] == -1){
+                parentLoc.push(loc);
+            }
+        }
+
+        response.locations = parentLoc;
+
+  		res.send(response);
 	}
 
     public async getLocationsHierarchyByAccount(req: AuthRequest, res: Response){

@@ -32,6 +32,10 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
 	courses = [];
 	locations = [];
+	accountTrainings = <any> {};
+
+	showAccountTrainingLoader = true;
+	showPlansLoader = true;
 
 	constructor(
 		private authService : AuthService,
@@ -55,7 +59,12 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
     				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
     			}
     		}
-			this.dashboardService.hide();
+			this.showPlansLoader = false;
+		});
+
+		this.courseService.getCountsAccountTrainings((response) => {
+			this.accountTrainings = response.data;
+			this.showAccountTrainingLoader = false;
 		});
 
 	}
@@ -65,14 +74,14 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 	}
 
 	ngAfterViewInit(){
-		this.dashboardService.show();
+		// this.dashboardService.show();
 
 		$('.workspace.container').css('padding', '2% 5%');
 		$('select').material_select();
 
 		// DONUT update
         // Donut Service
-		this.donut.updateDonutChart('#specificChart', 30, true);
+		// this.donut.updateDonutChart('#specificChart', 30, true);
 	}
 
 	ngOnDestroy(){
