@@ -748,46 +748,46 @@ export class UsersRoute extends BaseRoute {
 		response.data.eco_roles = emRoles;
         const training_requirements = await new TrainingCertification().getRequiredTrainings();
         console.log(training_requirements);
-		try {
+        try {
 
-			let user = await userModel.load(),
-				locations = <any>[];
+            let user = await userModel.load(),
+            locations = <any>[];
 
-			if( Object.keys(user).length > 0 ) {
-				user['mobility_impaired_details'] = [];
+            if( Object.keys(user).length > 0 ) {
+                user['mobility_impaired_details'] = [];
 
-				let sqlInLocation = ` (
-		              SELECT
-		                locations.location_id
-		              FROM
-		                locations
-		              INNER JOIN
-		                location_account_user LAU
-		              ON
-		                locations.location_id = LAU.location_id
-		              WHERE
-		                LAU.account_id = `+user['account_id']+`
-		              AND
-		                locations.archived = 0
-		              AND
-		                LAU.user_id = `+req['user']['user_id']+`
-		              AND LAU.archived = 0
-		              GROUP BY
-		                locations.location_id
-		              ORDER BY
-		                locations.location_id
-		            )`;
-				let arrWhere = [];
-				arrWhere.push(['user_id = '+userId]);
-				arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
-				locations = await locationAccountUserModel.getMany(arrWhere);
+                let sqlInLocation = ` (
+                SELECT
+                locations.location_id
+                FROM
+                locations
+                INNER JOIN
+                location_account_user LAU
+                ON
+                locations.location_id = LAU.location_id
+                WHERE
+                LAU.account_id = `+user['account_id']+`
+                AND
+                locations.archived = 0
+                AND
+                LAU.user_id = `+req['user']['user_id']+`
+                AND LAU.archived = 0
+                GROUP BY
+                locations.location_id
+                ORDER BY
+                locations.location_id
+                )`;
+                let arrWhere = [];
+                arrWhere.push(['user_id = '+userId]);
+                arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
+                locations = await locationAccountUserModel.getMany(arrWhere);
 
-				if( user['mobility_impaired'] == 1 ){
-		        	let mobilityModel = new MobilityImpairedModel(),
-		        		arrWhere = [];
+                if( user['mobility_impaired'] == 1 ){
+                    let mobilityModel = new MobilityImpairedModel(),
+                    arrWhere = [];
 
-		        	arrWhere.push( ["user_id = " + userId] );
-		        	arrWhere.push( "duration_date > NOW()" );
+                    arrWhere.push( ["user_id = " + userId] );
+                    arrWhere.push( "duration_date > NOW()" );
                     try {
                         let mobilityDetails = await mobilityModel.getMany( arrWhere );
                         user['mobility_impaired_details'] = mobilityDetails;
@@ -795,7 +795,7 @@ export class UsersRoute extends BaseRoute {
                         console.log(e);
                         user['mobility_impaired_details'] = [];
                     }
-		        }
+                }
 
                 try {
                     await fileModel.getByUserIdAndType(userId, 'profile').then(
@@ -830,7 +830,7 @@ export class UsersRoute extends BaseRoute {
             });
 
 
-			response.data.locations = locations;
+            response.data.locations = locations;
 			// response.data.user = user;
 			response.status = true;
 		}catch(e){
@@ -838,15 +838,15 @@ export class UsersRoute extends BaseRoute {
             console.log(e);
         }
         
-		try{
+        try{
 
-			let courseModel = new CourseUserRelation(),
-				trainings = await courseModel.getAllCourseForUser(userId);
-		  	response.data.trainings = trainings;
+            let courseModel = new CourseUserRelation(),
+            trainings = await courseModel.getAllCourseForUser(userId);
+            response.data.trainings = trainings;
 
-		}catch(e){}
+        }catch(e){}
 
-		try{
+        try{
 
             let userModel = new User(userId),
             certificates = await userModel.getAllCertifications();
@@ -869,9 +869,9 @@ export class UsersRoute extends BaseRoute {
 
         } catch(e){}
 
-		res.statusCode = 200;
-		res.send(response);
-	}
+        res.statusCode = 200;
+        res.send(response);
+    }
 
 	public async setLocationAccountUserToArchive(req: Request, res: Response, next: NextFunction){
 		let response = {
