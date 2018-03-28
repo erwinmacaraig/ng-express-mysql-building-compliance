@@ -64,4 +64,39 @@ import { NextFunction, Request, Response } from 'express';
       var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       return re.test(email);
     }
+
+    public addChildrenLocationToParent(data){
+        for(let i in data){
+            if('sublocations' in data[i] == false){
+                data[i]['sublocations'] = [];
+            }
+
+            for(let x in data){
+                if(data[x]['parent_id'] == data[i]['location_id']){
+                    if('sublocations' in data[i] == false){
+                        data[i]['sublocations'] = [];
+                    }
+
+                    let d = {};
+                    for(let l in data[x]){
+                        if(l.indexOf('@pi') == -1){
+                            d[l] = data[x][l];
+                        }
+                    }
+
+                    data[i]['sublocations'].push(d);
+                }
+            }
+
+        }
+
+        let finalData = [];
+        for(let i in data){
+            if(data[i]['parent_id'] == -1){
+                finalData.push( data[i] );
+            }
+        }
+
+        return finalData;
+    }
 }

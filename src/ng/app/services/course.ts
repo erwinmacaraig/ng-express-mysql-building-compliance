@@ -58,8 +58,8 @@ export class CourseService {
         });
     }
 
-    getCountsAccountTrainings(callBack){
-        this.http.get('/courses/counts-account-trainings').subscribe((res) => {
+    getCountsBuildingTrainings(callBack){
+        this.http.get('/courses/counts-building-trainings').subscribe((res) => {
             callBack(res);
         });
     }

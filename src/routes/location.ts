@@ -1104,40 +1104,6 @@ const defs = require('../config/defs.json');
 		);
 	}
 
-    public addChildrenLocationToParent(data){
-        for(let i in data){
-            if('sublocations' in data[i] == false){
-                data[i]['sublocations'] = [];
-            }
-
-            for(let x in data){
-                if(data[x]['parent_id'] == data[i]['location_id']){
-                    if('sublocations' in data[i] == false){
-                        data[i]['sublocations'] = [];
-                    }
-
-                    let d = {};
-                    for(let l in data[x]){
-                        if(l.indexOf('@pi') == -1){
-                            d[l] = data[x][l];
-                        }
-                    }
-
-                    data[i]['sublocations'].push(d);
-                }
-            }
-
-        }
-
-        let finalData = [];
-        for(let i in data){
-            if(data[i]['parent_id'] == -1){
-                finalData.push( data[i] );
-            }
-        }
-
-        return finalData;
-    }
 
 	public async getParentLocationsByAccount(req: AuthRequest, res: Response, archived?) {
 	    const accountId = req.user.account_id,

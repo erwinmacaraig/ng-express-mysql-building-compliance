@@ -32,9 +32,14 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
 	courses = [];
 	locations = [];
-	accountTrainings = <any> {};
+	accountTrainings = <any> {
+		total_users : 0,
+		total_users_trained : 0,
+		em_roles : {},
+		em_roles_array : []
+	};
 
-	showAccountTrainingLoader = true;
+	showBuildingTrainingLoader = true;
 	showPlansLoader = true;
 
 	constructor(
@@ -60,11 +65,26 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
     			}
     		}
 			this.showPlansLoader = false;
+
+			setTimeout(() => {
+				$('select').material_select();
+			}, 500);
 		});
 
-		this.courseService.getCountsAccountTrainings((response) => {
-			this.accountTrainings = response.data;
-			this.showAccountTrainingLoader = false;
+		this.courseService.getCountsBuildingTrainings((response) => {
+			this.accountTrainings.total_users = response.data.total_users;
+			this.accountTrainings.total_users_trained = response.data.total_users_trained;
+			this.accountTrainings.em_roles = response.data.em_roles;
+			this.showBuildingTrainingLoader = false;
+
+			for(let i in this.accountTrainings.em_roles){
+				this.accountTrainings.em_roles_array.push( this.accountTrainings.em_roles[i] );
+			}
+
+			setTimeout(() => {
+				let piePercent = ( (this.accountTrainings.total_users_trained / this.accountTrainings.total_users) * 100 ).toFixed(2);
+				this.donut.updateDonutChart('#specificChart', parseFloat(piePercent), true);
+			},300);
 		});
 
 	}
@@ -77,7 +97,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 		// this.dashboardService.show();
 
 		$('.workspace.container').css('padding', '2% 5%');
-		$('select').material_select();
+		
 
 		// DONUT update
         // Donut Service
