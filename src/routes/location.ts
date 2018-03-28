@@ -1175,6 +1175,8 @@ const defs = require('../config/defs.json');
             }catch(e){  }
         }
 
+        response['locations_db'] = locations;
+
         let parentLoc = [];
         for (let loc of locations) {
             let allSubLocationIds = [0],
