@@ -253,6 +253,7 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){  }
         }
 
+        let parentLoc = [];
         for (let loc of locations) {
             let allSubLocationIds = [0],
                 deepLocModel = new Location(),
@@ -260,13 +261,15 @@ export class ReportsRoute extends BaseRoute {
             
             if(loc.parent_id == -1){
                 deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                deepLocations.push(loc);
             }else{
                 let ancLocModel = new Location(),
                     ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
 
                 for(let anc of ancestores){
                     if(anc.parent_id == -1){
-                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
+                        deepLocations.push(anc);
                     }
                 }
             }
@@ -290,14 +293,18 @@ export class ReportsRoute extends BaseRoute {
             }
 
 
-            deepLocations.push(loc);
-            loc = this.addChildrenLocationToParent(deepLocations);
-        }
+            let locMerged = this.addChildrenLocationToParent(deepLocations),
+                respLoc = (locMerged[0]) ? locMerged[0] : locMerged;
+            
+            let alreadyHave = false;
+            for(let parent of parentLoc){
+                if(parent.location_id == respLoc.location_id){
+                    alreadyHave = true;
+                }
+            }
 
-        let parentLoc = [];
-        for(let loc of locationsOnAccount){
-            if(loc['parent_id'] == -1){
-                parentLoc.push(loc);
+            if(!alreadyHave){
+                parentLoc.push(respLoc);
             }
         }
 

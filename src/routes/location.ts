@@ -1104,40 +1104,6 @@ const defs = require('../config/defs.json');
 		);
 	}
 
-    public addChildrenLocationToParent(data){
-        for(let i in data){
-            if('sublocations' in data[i] == false){
-                data[i]['sublocations'] = [];
-            }
-
-            for(let x in data){
-                if(data[x]['parent_id'] == data[i]['location_id']){
-                    if('sublocations' in data[i] == false){
-                        data[i]['sublocations'] = [];
-                    }
-
-                    let d = {};
-                    for(let l in data[x]){
-                        if(l.indexOf('@pi') == -1){
-                            d[l] = data[x][l];
-                        }
-                    }
-
-                    data[i]['sublocations'].push(d);
-                }
-            }
-
-        }
-
-        let finalData = [];
-        for(let i in data){
-            if(data[i]['parent_id'] == -1){
-                finalData.push( data[i] );
-            }
-        }
-
-        return finalData;
-    }
 
 	public async getParentLocationsByAccount(req: AuthRequest, res: Response, archived?) {
 	    const accountId = req.user.account_id,
@@ -1147,7 +1113,8 @@ const defs = require('../config/defs.json');
             locations = <any> [],
             roles = <any> [],
             response = {
-                locations : <any> []
+                locations : <any> [],
+                deepLocations : <any> []
             };
 
         try {
@@ -1174,6 +1141,9 @@ const defs = require('../config/defs.json');
             }catch(e){  }
         }
 
+        response['locations_db'] = locations;
+
+        let parentLoc = [];
         for (let loc of locations) {
             let allSubLocationIds = [0],
                 deepLocModel = new Location(),
@@ -1181,16 +1151,21 @@ const defs = require('../config/defs.json');
             
             if(loc.parent_id == -1){
                 deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                deepLocations.push(loc);
             }else{
                 let ancLocModel = new Location(),
                     ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
 
                 for(let anc of ancestores){
                     if(anc.parent_id == -1){
-                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
+                        deepLocations.push(anc);
                     }
                 }
             }
+
+            let locMerged = this.addChildrenLocationToParent(deepLocations),
+                respLoc = (locMerged[0]) ? locMerged[0] : locMerged;
 
             for(let sub of deepLocations){
                 if(sub.parent_id > -1){
@@ -1210,15 +1185,15 @@ const defs = require('../config/defs.json');
                 }
             }
 
-            loc['num_tenants'] = numTenants;
+            respLoc['num_tenants'] = numTenants;
             
             let locAccUserModel = new LocationAccountUser(),
             locAccUser = <any> await locAccUserModel.getWardensByAccountIdWhereInLocationId(accountId, allSubLocationIds.join(',') ); // <- to remove
 
-            loc['num_wardens'] = 0;
+            respLoc['num_wardens'] = 0;
             try{
-                const emrolesOnThisLocation = <any> await deepLocModel.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], loc.location_id);
-                loc['num_wardens'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
+                const emrolesOnThisLocation = <any> await deepLocModel.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], respLoc.location_id);
+                respLoc['num_wardens'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
             }catch(e){}
 
             let impairedCount = 0 ;
@@ -1228,19 +1203,20 @@ const defs = require('../config/defs.json');
                 }
             }
 
-            loc['num_wardens'] = locAccUser.length; // <- to remove
+            respLoc['num_wardens'] = locAccUser.length; // <- to remove
            
-            loc['mobility_impaired'] = impairedCount;
-            loc['compliance'] = 0;
+            respLoc['mobility_impaired'] = impairedCount;
+            respLoc['compliance'] = 0;
 
-            deepLocations.push(loc);
-            loc = this.addChildrenLocationToParent(deepLocations);
-        }
+            let alreadyHave = false;
+            for(let parent of parentLoc){
+                if(parent.location_id == respLoc.location_id){
+                    alreadyHave = true;
+                }
+            }
 
-        let parentLoc = [];
-        for(let loc of locationsOnAccount){
-            if(loc['parent_id'] == -1){
-                parentLoc.push(loc);
+            if(!alreadyHave){
+                parentLoc.push(respLoc);
             }
         }
 
