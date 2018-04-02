@@ -403,61 +403,104 @@
 	</form>
 </div>
 
-<div id="modalAssignLocations" class="modal">
-	<div class="modal-content" [hidden]="showLocationSelection">
-		<h5>Assign {{viewData.user.first_name+' '+viewData.user.last_name}} To Locations
-			<a href="javascipt:void(0)" class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
-		</h5>
-		
-		
-		<form #formAssignLocation (submit)="submitAssignLocation(formAssignLocation)">
+<div id="modalAssignLocations" class="modal modal-sublocations">
+	
+	<div [hidden]="showSelectLocation">
+		<div class="modal-content"  >
+			<h5>Assign {{viewData.user.first_name+' '+viewData.user.last_name}} To Locations
+				<a href="javascipt:void(0)" class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
+			</h5>
+			
+			
+			<form #formAssignLocation (submit)="submitAssignLocation(formAssignLocation)">
 
-		<table class="table striped">
-			<thead>
-				<tr>
-					<th>Location</th>
-					<th style="width: 30%;">Role</th>
-					<th style="width: 20%;">Action</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr *ngFor="let loc of toEditLocations; let i = index;">
-					<td>
-						<a href="javascript:void(0)" class="blue-text change-location">
-							<span *ngIf="loc.parent_name !== null">{{loc.parent_name}},</span> {{loc.name}}
-						</a>
-						<input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
-					</td>
-					<td>
-						<select name="role_id[{{i}}]" style="display: block;">
-							<option value="1" [selected]="loc.em_roles_id == null && loc.location_role_id == 1">Building Manager</option>
-							<option value="2" [selected]="loc.em_roles_id == null && loc.location_role_id == 2">Tenancy Responsible Personnel</option>
-							<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [selected]="loc.em_roles_id != null && loc.em_roles_id == eco.em_roles_id ">
-								{{eco.role_name}}
-							</option>
-						</select>
-					</td>
-					<td>
-						<a href="javascipt:void(0)" class="red-text delete">Delete</a>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+			<table class="table striped">
+				<thead>
+					<tr>
+						<th>Location</th>
+						<th style="width: 30%;">Role</th>
+						<th style="width: 9%;">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let loc of toEditLocations; let i = index;">
+						<td>
+							<a href="javascript:void(0)" class="blue-text change-location" (click)="clickSelectLocation(loc)" *ngIf="loc.location_id > 0">
+								<span [innerHTML]="generateLocationName(loc.location_id)"></span>
+							</a>
 
-		<div class="button-container right-align">
-			<a class="btn grey lighten-1 waves-effect waves-light modal-close" > Cancel </a>
-			<button type="submit" class="btn orange waves-effect waves-light"  > Save </button>
+							<a href="javascript:void(0)" class="blue-text change-location" (click)="clickSelectLocation(loc)" *ngIf="loc.location_id == 0">
+								Select Location
+							</a>
+
+							<input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
+						</td>
+						<td>
+							<select name="role_id[{{i}}]" style="display: block;" (change)="onChangeSelectRole(loc, $event.currentTarget.value)" >
+								<option value="1" [selected]="loc.em_roles_id == null && loc.location_role_id == 1">Building Manager</option>
+								<option value="2" [selected]="loc.em_roles_id == null && loc.location_role_id == 2">Tenancy Responsible Personnel</option>
+								<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [selected]="loc.em_roles_id != null && loc.em_roles_id == eco.em_roles_id ">
+									{{eco.role_name}}
+								</option>
+							</select>
+						</td>
+						<td>
+							<a href="javascipt:void(0)" class="red-text delete">Delete</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div class="button-container right-align">
+				<a class="btn grey lighten-1 waves-effect waves-light modal-close" > Cancel </a>
+				<button type="submit" class="btn orange waves-effect waves-light"  (click)="saveLocationAssignments($event)" > Save </button>
+			</div>
+
+			</form>
+		</div>
+	</div>
+
+	<div [hidden]="!showSelectLocation">
+		<div class="modal-content">
+			<h5>Select Location for {{viewData.user.first_name+' '+viewData.user.last_name}}</h5>
+			<form #formLoc="ngForm" (submit)="submitSelectLocationModal(formLoc, $event)">
+
+			<div class="list-region" style="overflow-y: auto; height: 340px;">
+				<p *ngIf="locations.length == 0">No location found</p>
+				<ul *ngIf="locations.length > 0">
+					<ng-template #recursiveList let-locations>
+						<li *ngFor="let location of locations" class="list-division" [id]="location.location_id" [ngClass]="{ 'show-drop-down' : (location.showDropDown) ? location.showDropDown : false }">
+							<div class="name-radio-plus">
+								<div class="input">
+									<input ngModel required type="radio" name="selectLocation" [value]="location.location_id" [id]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }" >
+									<label [for]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }"></label>
+									<div class="plus-minus">
+										<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" [checked]="(location.showDropDown) ? location.showDropDown : false" />
+										<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
+										<span *ngIf="location.name.length > 0">{{location.name}}</span>
+										<span *ngIf="location.name.length == 0">{{location.formatted_address}}</span>
+									</div>
+								</div>
+							</div>
+							<ul *ngIf="location.sublocations.length > 0">
+						        <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: location.sublocations }"></ng-container>
+							</ul>
+						</li>
+					</ng-template>
+					<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: locations }"></ng-container>
+	    		</ul>
+			</div>
+
+			<div class="button-container">
+				<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
+				<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLoc.valid" *ngIf="locations.length > 0"> Submit </button>
+			</div>
+
+			</form>
 		</div>
 
-		</form>
 	</div>
 
-
-	<div class="modal-content" [hidden]="!showLocationSelection">
-		<h5>Select Location for {{viewData.user.first_name+' '+viewData.user.last_name}}
-			<a href="javascipt:void(0)" class="red-text right" style="font-size: 18px;" (click)="showLocationSelection = false">Cancel</a>
-		</h5>
-	</div>
 </div>
 
 <!-- <div id="modalLocations" class="modal">
@@ -473,40 +516,7 @@
 			</div>
 		</div>
 		
-		<form #formLoc="ngForm" (submit)="submitSelectLocationModal(formLoc, $event)">
-
-		<div class="list-region" style="overflow-y: auto; height: 340px;">
-			<p *ngIf="locations.length == 0">No location found</p>
-			<ul *ngIf="locations.length > 0">
-				<ng-template #recursiveList let-locations>
-					<li *ngFor="let location of locations" class="list-division" [id]="location.location_id" [ngClass]="{ 'show-drop-down' : (location.showDropDown) ? location.showDropDown : false }">
-						<div class="name-radio-plus">
-							<div class="input">
-								<input ngModel required type="radio" name="selectLocation" [value]="location.location_id" [id]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }" >
-								<label [for]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }"></label>
-								<div class="plus-minus">
-									<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" [checked]="(location.showDropDown) ? location.showDropDown : false" />
-									<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
-									<span *ngIf="location.name.length > 0">{{location.name}}</span>
-									<span *ngIf="location.name.length == 0">{{location.formatted_address}}</span>
-								</div>
-							</div>
-						</div>
-						<ul *ngIf="location.sublocations.length > 0">
-					        <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: location.sublocations }"></ng-container>
-						</ul>
-					</li>
-				</ng-template>
-				<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: locations }"></ng-container>
-    		</ul>
-		</div>
-
-		<div class="button-container center">
-			<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
-			<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLoc.valid" *ngIf="locations.length > 0"> Submit </button>
-		</div>
-
-		</form>
+		
 
 	</div>
 </div> -->

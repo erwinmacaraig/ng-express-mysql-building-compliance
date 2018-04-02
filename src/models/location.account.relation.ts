@@ -157,7 +157,7 @@ export class LocationAccountRelation extends BaseClass {
             return console.log(error);
           }
           if (!results.length) {
-            reject('Record not found');
+            reject('Record not found '+JSON.stringify(filter));
           } else {
             resolve(results);
           }

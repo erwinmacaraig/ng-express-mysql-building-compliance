@@ -257,7 +257,7 @@ export class CourseRoute extends BaseRoute {
                 emRoleModel = new UserEmRoleRelation(),
                 trainingCertModel = new TrainingCertification(),
                 deepLocations = <any> [],
-                userIds = [];
+                userIds = [0];
             
             if(loc.parent_id == -1){
                 deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);

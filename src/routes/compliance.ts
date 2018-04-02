@@ -201,11 +201,6 @@ import * as S3Zipper from 'aws-s3-zipper';
 			complianceDocsModel = new ComplianceDocumentsModel(),
 			arrWhereKPIS = [],
 			arrWhereCompliance = [],
-			locAcc = await locAccModel.getLocationAccountRelation({
-				'location_id' : locationID,
-				'account_id' : accountID
-			}),
-            responsibility = '',
             emrolesOnThisLocation,
             paths;
 
@@ -272,15 +267,15 @@ import * as S3Zipper from 'aws-s3-zipper';
                 }
             }
 
-            if ('11' in emrolesOnThisLocation) {
-                console.log(emrolesOnThisLocation['11']);
-                if (emrolesOnThisLocation['11']['location'].length > 0) {
+            if ('12' in emrolesOnThisLocation) {
+                console.log(emrolesOnThisLocation['12']);
+                if (emrolesOnThisLocation['12']['location'].length > 0) {
                     let locId;
-                    for (let i = 0; i < emrolesOnThisLocation['11']['location'].length; i++) {
-                        locId = emrolesOnThisLocation['11']['location'][i].toString();
-                        if (emrolesOnThisLocation['11'][locId]['users'].length > 0) {
-                            emrolesOnThisLocation['11'][locId]['training'] =
-                            await training.getEMRUserCertifications(emrolesOnThisLocation['11'][locId]['users']);
+                    for (let i = 0; i < emrolesOnThisLocation['12']['location'].length; i++) {
+                        locId = emrolesOnThisLocation['12']['location'][i].toString();
+                        if (emrolesOnThisLocation['12'][locId]['users'].length > 0) {
+                            emrolesOnThisLocation['12'][locId]['training'] =
+                            await training.getEMRUserCertifications(emrolesOnThisLocation['12'][locId]['users']);
                         }
                     }
                 } else {
@@ -292,12 +287,6 @@ import * as S3Zipper from 'aws-s3-zipper';
         } catch (e) {
             console.log(e);
             emrolesOnThisLocation = {};
-        }
-
-        for ( const i in locAcc) {
-            if (locAcc[i]['location_id'] == locationID) {
-                responsibility = locAcc[i]['responsibility'];
-            }
         }
 
         arrWhereKPIS.push([' description IS NOT NULL ']);
@@ -313,7 +302,6 @@ import * as S3Zipper from 'aws-s3-zipper';
         arrWhereCompliance.push(['compliance_kpis_id IN (' + kpisIds.join(',') + ')']);
         arrWhereCompliance.push(['building_id = ' + locationID]);
         arrWhereCompliance.push(['account_id = ' + accountID]);
-        arrWhereCompliance.push(['account_role = "' + responsibility + '"']);
 
         let compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
 
@@ -334,7 +322,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                     'account_id': accountID,
                     'valid_till': null,
                     'required': 1,
-                    'account_role': responsibility,
+                    'account_role': '',
                     'override_by_evac': 0
                 };
                 await createComplianceModel.create(compObj);
@@ -385,14 +373,14 @@ import * as S3Zipper from 'aws-s3-zipper';
 
             compliances[c]['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
             
+            compliances[c]['validity_status'] = 'none-exist';
             if (m === 'Traffic' || m === 'evac') {
                 if (compliances[c]['docs'][0] && validTillMoment.diff(today, 'days') > 0) {
                     compliances[c]['validity_status'] = 'valid';
                 } else if (compliances[c]['docs'][0] && validTillMoment.diff(today, 'days') <= 0) {
                     compliances[c]['validity_status'] = 'invalid';
-                } else if (compliances[c]['docs'].length === 0) {
-                    compliances[c]['validity_status'] = 'none-exist';
-                }
+                } 
+
             } else if (m === 'Percent') {
                 // 6 Warden Training
                 // 8 General Occupant
@@ -407,7 +395,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 'failed': []
             };
             compliances[c]['percentage'] = '0%';
-
+            
             switch(compliances[c]['compliance_kpis_id']) {
                 case 6:
                     // Warden Training
@@ -455,11 +443,11 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                 case 12:
                     // Chief Warden Training
-                    if ('11' in emrolesOnThisLocation) {
-                        compliances[c]['total_personnel'] =  compliances[c]['chief_warden_total'] = emrolesOnThisLocation['11']['count'];
+                    if ('12' in emrolesOnThisLocation) {
+                        compliances[c]['total_personnel'] =  compliances[c]['chief_warden_total'] = emrolesOnThisLocation['12']['count'];
                         compliances[c]['location_details'] = emrolesOnThisLocation[11];
                         try {
-                            compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['11']['users']);
+                            compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['12']['users']);
                             tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
                             compliances[c]['percentage'] = tempPercetage + '%';
                         } catch (e) {
@@ -475,17 +463,18 @@ import * as S3Zipper from 'aws-s3-zipper';
                 break;
 
                 default:
-                    /*
-                    compliances[c]['total_personnel'] = 0;
-                    compliances[c]['total_personnel_trained'] = {
-                    'total_passed' : 0,
-                    'passed': [],
-                    'failed': []
-                    };
-                    compliances[c]['percentage'] = '0%';
-                    */
+                    
+                    // compliances[c]['total_personnel'] = 0;
+                    // compliances[c]['total_personnel_trained'] = {
+                    // 'total_passed' : 0,
+                    // 'passed': [],
+                    // 'failed': []
+                    // };
+                    // compliances[c]['percentage'] = '0%';
+                     
                 break;
             }
+
         }
 
 
