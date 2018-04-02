@@ -747,7 +747,7 @@ export class UsersRoute extends BaseRoute {
 
 		response.data.eco_roles = emRoles;
         const training_requirements = await new TrainingCertification().getRequiredTrainings();
-        console.log(training_requirements);
+        // console.log(training_requirements);
         try {
 
             let user = await userModel.load(),
@@ -837,7 +837,7 @@ export class UsersRoute extends BaseRoute {
             response.status = false;
             console.log(e);
         }
-        
+
         try{
 
             let courseModel = new CourseUserRelation(),
