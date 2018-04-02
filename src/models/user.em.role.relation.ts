@@ -44,6 +44,7 @@ export class UserEmRoleRelation extends BaseClass {
                       er.em_roles_id,
                       l.name as location_name,
                       l.parent_id,
+                      l.location_id,
                       l.formatted_address,
                       l.google_place_id,
                       l.google_photo_url
@@ -268,4 +269,55 @@ export class UserEmRoleRelation extends BaseClass {
         connection.end();
       });
     }
+
+    public getUsersByAccountId(accountId, archived?){
+        archived = (archived) ? archived : 0;
+
+        return new Promise((resolve, reject) => {
+            let sql_load = `
+                SELECT 
+                    u.*, em.em_role_id, er.role_name
+                FROM user_em_roles_relation em
+                INNER JOIN users u ON em.user_id = u.user_id
+                INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
+                WHERE u.account_id = ? AND u.archived = ?
+            `;
+            const param = [accountId, archived];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
+    public getUsersInLocationIds(locationIds, archived?){
+        archived = (archived) ? archived : 0;
+
+        return new Promise((resolve, reject) => {
+            let sql_load = `
+                SELECT 
+                    u.*, em.em_role_id, er.role_name
+                FROM user_em_roles_relation em
+                INNER JOIN users u ON em.user_id = u.user_id
+                INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
+                WHERE em.location_id IN (`+locationIds+`) AND u.archived = `+archived+`
+            `;
+ 
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
 }

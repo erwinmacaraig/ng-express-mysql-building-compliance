@@ -483,3 +483,96 @@ table tr td .image img{
 .modal .btn{
     font-size: 14px !important;
 }
+
+.modal.modal-sublocations .search-container{
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 10px;
+    width: 100% !important;
+}
+
+.modal.modal-sublocations .search-container .input-container{
+    display: inline-block;
+    vertical-align: middle;
+    width: 94%;
+}
+
+.modal.modal-sublocations .search-container .input-container input{
+    margin-bottom: 0px;
+    border-bottom: 0px !important;
+}
+
+.modal.modal-sublocations .search-container .input-container input:focus{
+    border-bottom: 0px !important;
+    box-shadow: none !important;
+}
+
+.modal.modal-sublocations .search-container .icon-container{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.modal.modal-sublocations .list-region ul li{
+    font-size: 16px;
+}
+
+.modal.modal-sublocations .list-region ul:not(:first-child){
+    padding-left: 25px;
+}
+
+.modal.modal-sublocations .list-region ul li:not(.show-drop-down) > ul{
+    display: none;
+}
+
+.modal.modal-sublocations .list-region ul li.show-drop-down > ul{
+    display: block;
+}
+
+.modal.modal-sublocations .name-radio-plus .input,
+.modal.modal-sublocations .name-radio-plus .plus-minus,
+.modal.modal-sublocations .name-radio-plus .name{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus{
+    vertical-align: super;
+    position: relative;
+    text-align: center;
+}
+
+.modal.modal-sublocations .name-radio-plus .minus{
+    display: none;
+}
+
+.modal.modal-sublocations .name-radio-plus input[type="radio"]{
+    position: static;
+    pointer-events: all;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]{
+    pointer-events: all;
+    width: 100%;
+    position: absolute;
+    top: 7px;
+    opacity: 0;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]+.sign:after{
+    content: '+';
+    font-size: 18px;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]:checked+.sign:after{
+    content: '-';
+    font-size: 18px;
+}
+
+.modal.modal-sublocations [type="checkbox"]+label{
+    height: 22px;
+    padding-left: 20px;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]+.sign{
+    padding: 0px 5px;
+}

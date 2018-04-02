@@ -70,45 +70,49 @@ export class TrainingProfile implements OnInit, OnDestroy {
 	toEditLocations = [];
 
 	showLocationSelection = false;
-
+  seenRequiredTrainings = [];
 	constructor(
-		private auth: AuthService,
-        private preloaderService: DashboardPreloaderService,
-        private locationService: LocationsService,
-        private encryptDecrypt: EncryptDecryptService,
-        private route: ActivatedRoute,
-        private router: Router,
-        private courseService : CourseService,
-        private userService: UserService,
-        private elemRef: ElementRef
+    private auth: AuthService,
+    private preloaderService: DashboardPreloaderService,
+    private locationService: LocationsService,
+    private encryptDecrypt: EncryptDecryptService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private courseService : CourseService,
+    private userService: UserService,
+    private elemRef: ElementRef
 		){
 
-		this.userData = this.auth.getUserData();
+
 		this.datepickerModel = new Date();
     	this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 
-		this.route.params.subscribe((params) => {
-			this.encryptedID = params['encrypted'];
-			this.decryptedID = this.encryptDecrypt.decrypt(params['encrypted']);
-
-
-			this.loadProfile();
-		});
-
-		this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
-			this.locations = response.locations;
-		});
 	}
 
-	loadProfile(callBack?){
+	loadProfile(callBack?) {
 		this.userService.getUserLocationTrainingsEcoRoles(this.decryptedID, (response) => {
 			this.viewData.user = response.data.user;
 			this.viewData.role_text = response.data.role_text;
 			this.viewData.eco_roles = response.data.eco_roles;
-			this.viewData.locations = response.data.locations;
 			this.viewData.trainings = response.data.trainings;
 			this.viewData.certificates = response.data.certificates;
 
+      /* Filter out locations so locations will contain locations with EM Role */
+      for(let i = 0; i < response.data.locations.length; i++) {
+        if (response.data.locations[i]['em_roles_id'] !== null) {
+          this.viewData.locations.push(response.data.locations[i]);
+        }
+        if (response.data.locations[i]['training_requirement_name']) {
+          for (let j = 0; j < response.data.locations[i]['training_requirement_name'].length; j++) {
+            if (this.seenRequiredTrainings.indexOf(response.data.locations[i]['training_requirement_name'][i]) === -1) {
+              this.seenRequiredTrainings.push(response.data.locations[i]['training_requirement_name'][i]);
+            }
+          }
+        }
+
+      }
+      // console.log(this.viewData.locations);
+      // console.log(this.seenRequiredTrainings);
 			for(let x in this.viewData.certificates){
 				this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
 			}
@@ -132,9 +136,15 @@ export class TrainingProfile implements OnInit, OnDestroy {
 		});
 	}
 
-	ngOnInit(){
-
-	}
+  ngOnInit() {
+    this.route.params.subscribe((params) => {
+      this.encryptedID = params['encrypted'];
+      this.decryptedID = this.encryptDecrypt.decrypt(params['encrypted']);
+      this.loadProfile();
+    });
+    this.userData = this.auth.getUserData();
+    this.viewData.role_text = this.userData['roles'].join(", ");
+  }
 
 	ngAfterViewInit(){
 

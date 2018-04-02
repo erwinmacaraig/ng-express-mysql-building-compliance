@@ -94,7 +94,15 @@ export class WardenLocationComponent implements OnInit, OnDestroy {
     // console.log(this.routeParams);
     this.userService.getAllLocationsForUser().subscribe((response) => {
       console.log(response);
-      this.locationsFromDb = response['locations'];
+      // this.locationsFromDb = response['locations'];
+
+      /* Filter out locations so locations will contain locations with EM Role */
+      for (let i = 0; i < response['locations'].length; i++) {
+        if (response['locations'][i]['role_id'] !== 0 && response['locations'][i]['role_id'] > 2) {
+          this.locationsFromDb.push(response['locations'][i]);
+        }
+      }
+
       console.log(this.locationsFromDb);
       this.mainLocation['main_address'] = this.locationsFromDb[0]['main_address'];
       this.mainLocation['parent_name'] = this.locationsFromDb[0]['root_parent_name'];
@@ -125,7 +133,7 @@ export class WardenLocationComponent implements OnInit, OnDestroy {
 
 	ngOnDestroy(){
 		$('.workspace.container').css('padding', '1% 2%');
-		this.routeSubs.unsubscribe();
+		// this.routeSubs.unsubscribe();
 	}
 
 }

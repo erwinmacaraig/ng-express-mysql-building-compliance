@@ -61,8 +61,7 @@
 
 		<div class="col l6 m12 s12">
 			<h5 class="orange-text margin-bottom-30">My Plans</h5>
-			
-			<div class="grey lighten-5 table-container">
+			<div class="grey lighten-5 table-container" >
 				<table class="table striped">
 					<thead>
 						<tr class="grey darken-4 white-text">
@@ -72,11 +71,33 @@
 							<!-- <th></th> -->
 						</tr>
 					</thead>
-					<tbody>
+					<tbody *ngIf="showPlansLoader">
+						<tr>
+							<td colspan="4" class="center">
+								<div class="preloader-wrapper small active center">
+									<div class="spinner-layer spinner-blue-only">
+										<div class="circle-clipper left">
+											<div class="circle">
+											</div>
+										</div>
+										<div class="gap-patch">
+											<div class="circle">
+											</div>
+										</div>
+										<div class="circle-clipper right">
+											<div class="circle">
+											</div>
+										</div>
+									</div>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+					<tbody *ngIf="!showPlansLoader">
 						<tr *ngIf="locations.length == 0">
 							<td colspan="4" class="center">No plans found</td>
 						</tr>
-						<tr *ngFor="let loc of locations">
+						<tr *ngFor="let loc of locations" >
 							<td>{{loc.name}}</td>
 							<td></td>
 							<td> 0/0 </td>
@@ -90,35 +111,52 @@
 		</div>
 
 		<div class="col l3 m12 s12">
+			<!-- BLOGS
 			<h5 class="orange-text margin-bottom-30">Community</h5>
 			
 			<div class="blog">
 				<img src="/assets/images/blog.png"  >
-
+			
 				<div class="content">
 					<h5>Facility Manager Strategies to Achieve Safety</h5>
-
+			
 					<h6 class="grey-text">By Dalton | August 4th, 2017</h6>
-
+			
 					<p style="font-size: 16px;">
 						A facility Manage plays a key role to maintain and enchance compliance in life safety of the building
 					</p>
 				</div>
-
+			
 				<a href="javascipt:void(0)" class="blue-text font-size-16">View all ></a>
+			</div> 
+			-->
+
+			<h5 class="orange-text margin-bottom-30">Building Trainings</h5>
+
+			<div class="width100" *ngIf="showBuildingTrainingLoader">
+				<div class="loader-div" >
+					<div class="preloader-wrapper big active center">
+						<div class="spinner-layer spinner-blue-only">
+							<div class="circle-clipper left">
+								<div class="circle">
+								</div>
+							</div>
+							<div class="gap-patch">
+								<div class="circle">
+								</div>
+							</div>
+							<div class="circle-clipper right">
+								<div class="circle">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 
-		</div>
-
-	</div>
-
-	<div class="row">
-		
-		<div class="col l3 m6 s12">
-			<h5 class="orange-text margin-bottom-30">Account Trainings</h5>
 			
-			<div class="account-trainings-container display-table margin-bottom-30">
-				<div id="specificChart" class="donut-size cell">
+			<div class="width100 display-table" *ngIf="!showBuildingTrainingLoader">
+				<div id="specificChart" class="donut-size cell" >
 					<div class="pie-wrapper">
 						<span class="label">
 							<span class="num"> 00 </span><span class="smaller">%</span>
@@ -131,28 +169,63 @@
 					</div>
 				</div>
 				
-				<div class="cell">
-					<h5>200 Required Training Course</h5>
+				<div class="cell" >
+					<h5>{{accountTrainings.total_users}} Total Users</h5>
 					<p class="font-size-16 blue-text">
-						180 Course Finished
+						{{accountTrainings.total_users_trained}} User Finished Course
 					</p>
 				</div>
-
 			</div>
 
+			<div class="width100 margin-bottom-30" *ngIf="!showBuildingTrainingLoader">
+				<ul>
+					<li *ngFor="let em of accountTrainings.em_roles_array">
+						<h6>{{em.total}} - {{em.role_name}}</h6>
+					</li>
+				</ul>
+			</div>
 
-			<h5 class="orange-text margin-bottom-30">
+		</div>
+
+	</div>
+
+	<div class="row">
+		
+		<div class="col l3 m6 s12">
+			<h5 class="orange-text margin-bottom-30" >
 				Training License
 			</h5>
 
-			<div class="training-license-container margin-bottom-30">
+			<div class="training-license-container margin-bottom-30" *ngIf="!showPlansLoader">
 				<div class="filter-container">
 					<select>
 						<option value="0" disabled selected>Select location</option>
+						<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
 					</select>
 				</div>
 
 				<p class="font-size-16 blue-text">Remaining License: --</p>
+			</div>
+
+			<div class="training-license-container margin-bottom-30 " *ngIf="showPlansLoader">
+				<div class="loader-div">
+					<div class="preloader-wrapper big active center">
+						<div class="spinner-layer spinner-blue-only">
+							<div class="circle-clipper left">
+								<div class="circle">
+								</div>
+							</div>
+							<div class="gap-patch">
+								<div class="circle">
+								</div>
+							</div>
+							<div class="circle-clipper right">
+								<div class="circle">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 

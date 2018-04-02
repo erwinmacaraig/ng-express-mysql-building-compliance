@@ -26,20 +26,26 @@ export class PaymentRoute extends BaseRoute {
 
 
   public static async create(router: Router) {
+    let config;
     const gateway = new Gateway();
-    const config = await gateway.getActiveConfig();
-    if (config['gateway_code'] === 'paypal') {
-      const paypal_config = {
-        'port': 5000,
-        'api': {
-          'host': config['gateway_url'],
-          'port': '',
-          'client_id': config['gateway_username'],
-          'client_secret': config['gateway_password']
-        }
-      };
-      paypal.configure(paypal_config.api);
+    try{
+      config = await gateway.getActiveConfig();
+      if (config['gateway_code'] === 'paypal') {
+        const paypal_config = {
+          'port': 5000,
+          'api': {
+            'host': config['gateway_url'],
+            'port': '',
+            'client_id': config['gateway_username'],
+            'client_secret': config['gateway_password']
+          }
+        };
+        paypal.configure(paypal_config.api);
+      }
+    }catch(e){
+      console.log(e);
     }
+    
     router.get('/payment/shopping-cart/', new MiddlewareAuth().authenticate, (req, res, next) => {
       if (!req['session']['cart']) {
         return res.status(400).send({

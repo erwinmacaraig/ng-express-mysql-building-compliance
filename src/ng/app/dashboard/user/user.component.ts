@@ -47,7 +47,7 @@ export class UserDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
 
 		// DONUT update
         // Donut Service
-		this.donut.updateDonutChart('#specificChart', 30, true);
+		// this.donut.updateDonutChart('#specificChart', 30, true);
 	}
 
 	ngOnDestroy(){

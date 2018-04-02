@@ -41,6 +41,15 @@
     display: none;
 }
 
+.documents-container .document .text-containe{
+    width: 70%;
+}
+
+.row-diagram-details .documents-container .document .text-container{
+    width: 60%;
+}
+
+
 .row-table-content{
     margin-top: 5%;
     position: absolute;

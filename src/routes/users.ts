@@ -746,102 +746,132 @@ export class UsersRoute extends BaseRoute {
 		mobilityModel = new MobilityImpairedModel();
 
 		response.data.eco_roles = emRoles;
-    const training_requirements = await new TrainingCertification().getRequiredTrainings();
-    console.log(training_requirements);
-		try {
+        const training_requirements = await new TrainingCertification().getRequiredTrainings();
+        // console.log(training_requirements);
+        try {
 
-			let user = await userModel.load(),
-				locations = <any>[];
+            let user = await userModel.load(),
+            locations = <any>[];
 
-			if( Object.keys(user).length > 0 ){
-				user['mobility_impaired_details'] = [];
+            if( Object.keys(user).length > 0 ) {
+                user['mobility_impaired_details'] = [];
 
-				let sqlInLocation = ` (
-		              SELECT
-		                locations.location_id
-		              FROM
-		                locations
-		              INNER JOIN
-		                location_account_user LAU
-		              ON
-		                locations.location_id = LAU.location_id
-		              WHERE
-		                LAU.account_id = `+user['account_id']+`
-		              AND
-		                locations.archived = 0
-		              AND
-		                LAU.user_id = `+req['user']['user_id']+`
-		              AND LAU.archived = 0
-		              GROUP BY
-		                locations.location_id
-		              ORDER BY
-		                locations.location_id
-		            )`;
-				let arrWhere = [];
-				arrWhere.push(['user_id = '+userId]);
-				arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
-				locations = await locationAccountUserModel.getMany(arrWhere);
-				if( user['mobility_impaired'] == 1 ){
-		        	let mobilityModel = new MobilityImpairedModel(),
-		        		arrWhere = [];
+                let sqlInLocation = ` (
+                SELECT
+                locations.location_id
+                FROM
+                locations
+                INNER JOIN
+                location_account_user LAU
+                ON
+                locations.location_id = LAU.location_id
+                WHERE
+                LAU.account_id = `+user['account_id']+`
+                AND
+                locations.archived = 0
+                AND
+                LAU.user_id = `+req['user']['user_id']+`
+                AND LAU.archived = 0
+                GROUP BY
+                locations.location_id
+                ORDER BY
+                locations.location_id
+                )`;
+                let arrWhere = [];
+                arrWhere.push(['user_id = '+userId]);
+                arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
+                locations = await locationAccountUserModel.getMany(arrWhere);
 
-		        	arrWhere.push( ["user_id = " + userId] );
-		        	arrWhere.push( "duration_date > NOW()" );
-		        	let mobilityDetails = await mobilityModel.getMany( arrWhere );
-		        	user['mobility_impaired_details'] = mobilityDetails;
-		        }
+                if( user['mobility_impaired'] == 1 ){
+                    let mobilityModel = new MobilityImpairedModel(),
+                    arrWhere = [];
 
-				await fileModel.getByUserIdAndType(userId, 'profile').then(
-		            (fileData) => {
-		                user['profilePic'] = fileData[0].url;
-		            },
-		            () => {
-		                user['profilePic'] = '';
-		            }
-		        );
+                    arrWhere.push( ["user_id = " + userId] );
+                    arrWhere.push( "duration_date > NOW()" );
+                    try {
+                        let mobilityDetails = await mobilityModel.getMany( arrWhere );
+                        user['mobility_impaired_details'] = mobilityDetails;
+                    } catch (e) {
+                        console.log(e);
+                        user['mobility_impaired_details'] = [];
+                    }
+                }
+
+                try {
+                    await fileModel.getByUserIdAndType(userId, 'profile').then(
+                        (fileData) => {
+                            user['profilePic'] = fileData[0].url;
+                        },
+                        () => {
+                            user['profilePic'] = '';
+                        }
+                        );
+                }catch(e) {
+                    console.log(e);
+                }
+
+                try {
+                    user['mobility_impaired_details'] = <any> await mobilityModel.getMany([ [ "user_id = "+userId] ]);
+
+                    for(let i in user['mobility_impaired_details']) {
+                        user['mobility_impaired_details'][i]['date_created_formatted'] = moment(user['mobility_impaired_details'][i]['date_created']).format('MMM. DD, YYYY');
+                        user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
+                    }
+                } catch(e) {
+                    console.log(e);
+                }
+            }
+
+            Object.keys(locations).forEach((key) => {
+                if ('em_roles_id' in locations[key] && locations[key]['em_roles_id']) {
+                    locations[key]['training_requirement_name'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_name'];
+                    locations[key]['training_requirement_id'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_id'];
+                }
+            });
 
 
-				user['mobility_impaired_details'] = <any> await mobilityModel.getMany([ [ "user_id = "+userId] ]);
-
-				for(let i in user['mobility_impaired_details']){
-					user['mobility_impaired_details'][i]['date_created_formatted'] = moment(user['mobility_impaired_details'][i]['date_created']).format('MMM. DD, YYYY');
-					user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
-				}
-
-      }
-      Object.keys(locations).forEach((key) => {
-        if ('em_roles_id' in locations[key]) {
-          locations[key]['training_requirement_name'] = training_requirements[locations[key]['em_roles_id'].toString()]['training_requirement_name'];
-          locations[key]['training_requirement_id'] = training_requirements[locations[key]['em_roles_id'].toString()]['training_requirement_id'];
-        }
-      });
-      console.log(locations);
-
-			response.data.locations = locations;
-			response.data.user = user;
+            response.data.locations = locations;
+			// response.data.user = user;
 			response.status = true;
 		}catch(e){
-			response.status = false;
+            response.status = false;
+            console.log(e);
+        }
+
+        try{
+
+            let courseModel = new CourseUserRelation(),
+            trainings = await courseModel.getAllCourseForUser(userId);
+            response.data.trainings = trainings;
+
+        }catch(e){}
+
+        try{
+
+            let userModel = new User(userId),
+            certificates = await userModel.getAllCertifications();
+            response.data.certificates = certificates;
+
+            response.data.user = await userModel.load();
+
+            try {
+                await fileModel.getByUserIdAndType(userId, 'profile').then(
+                    (fileData) => {
+                        response.data.user['profilePic'] = fileData[0].url;
+                    },
+                    () => {
+                        response.data.user['profilePic'] = '';
+                    }
+                    );
+            }catch(e) {
+                console.log(e);
+            }
+
+        } catch(e){}
+
+        res.statusCode = 200;
+        res.send(response);
     }
-		try{
-
-			let courseModel = new CourseUserRelation(),
-				trainings = await courseModel.getAllCourseForUser(userId);
-			response.data.trainings = trainings;
-
-		}catch(e){}
-
-		try{
-
-			let userModel = new User(userId),
-				certificates = await userModel.getAllCertifications();
-			response.data.certificates = certificates;
-
-		}catch(e){}
-
-		res.statusCode = 200;
-		res.send(response);
-	}
 
 	public async setLocationAccountUserToArchive(req: Request, res: Response, next: NextFunction){
 		let response = {
@@ -1195,9 +1225,9 @@ export class UsersRoute extends BaseRoute {
 
 			response.data['myEmRoles'] = myEmRoles;
 
-			const accountsLocations = await locationAccountUser.getMany([
+			/*const accountsLocations = await locationAccountUser.getMany([
 				[ "account_id = "+req['user']['account_id'] ]
-			]);
+			]);*/
 
 			let myEmRoleRecord = {};
 			for(let i in myEmRoles){
@@ -1208,6 +1238,7 @@ export class UsersRoute extends BaseRoute {
 
 			if(myEmRoleRecord['location_id']){
 				myEmRoleRecord['related_locations'] = await locationModel.getAncestries(myEmRoleRecord['location_id']);
+
 				response.data.location = {
 					'location_id' : myEmRoleRecord['location_id'],
 					'parent_id' : myEmRoleRecord['parent_id'],
@@ -1221,6 +1252,7 @@ export class UsersRoute extends BaseRoute {
 
 				let mainParentLocationId,
 					mainParent = {};
+
 				for(let i in myEmRoleRecord['related_locations']){
 					if(myEmRoleRecord['related_locations'][i]['parent_id'] == -1){
 						mainParent = myEmRoleRecord['related_locations'][i];
@@ -1240,7 +1272,7 @@ export class UsersRoute extends BaseRoute {
 
 				let deepLocation = new Location(),
 					subLocations = await deepLocation.getDeepLocationsByParentId(mainParentLocationId),
-					subLocationsIds = [];
+					subLocationsIds = [0];
 
 				response.data['subLocations'] = subLocations;
 
@@ -1248,11 +1280,14 @@ export class UsersRoute extends BaseRoute {
 					subLocationsIds.push(subLocations[i]['location_id']);
 				}
 
-				console.log(subLocationsIds);
-
 				let userEmRoleRelationTeam = new UserEmRoleRelation(),
 					teamEmRoles = <any>[];
 
+                console.log( req['user']['account_id'], subLocationsIds.join(',') );
+
+                teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], subLocationsIds.join(','));
+
+                /*
 				if(  roleId == 11 || roleId == 15 || roleId == 16 || roleId == 18 ){
 					//Chief Wardens //Deputy Chief Warden //Building Warden //Deputy Building Warden
 					teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], subLocationsIds.join(','));
@@ -1262,6 +1297,7 @@ export class UsersRoute extends BaseRoute {
 				}else{
 
 				}
+                */
 
 				response.data['teamEmRoles'] = teamEmRoles;
 
@@ -1704,44 +1740,43 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
+
+    //////
+    // For Enhancement //
+    // This is for listing Tenants(Accounts) in a location
+    // Current : We only listing who have TRP in the account
+    //////
 	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction){
-    const location_id = req.params.location_id;
-    const locationAccountUserObj = new LocationAccountUser();
-    // listing of roles is implemented here because we are only listing roles on a sub location
-    const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
-    const canLoginTenantArr = [];
+        const location_id = req.params.location_id;
+        const locationAccountUserObj = new LocationAccountUser();
+        // listing of roles is implemented here because we are only listing roles on a sub location
+        const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
+        const canLoginTenantArr = [];
 
-    Object.keys(canLoginTenants).forEach((key) => {
-      canLoginTenantArr.push(canLoginTenants[key]);
-    });
+        Object.keys(canLoginTenants).forEach((key) => {
+          canLoginTenantArr.push(canLoginTenants[key]);
+        });
 
-    for (let i = 0; i < canLoginTenantArr.length; i++) {
-      // get all wardens for this location on this account
-      const EMRole = new UserEmRoleRelation();
-      const trainingCert = new TrainingCertification();
-      const temp =
-        await EMRole.getEMRolesOnAccountOnLocation(
-          defs['em_roles']['WARDEN'],
-          canLoginTenantArr[i]['account_id'],
-          location_id
-      );
-      canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
-      canLoginTenantArr[i]['wardens'] = temp['raw'];
+        for (let i = 0; i < canLoginTenantArr.length; i++) {
+          // get all wardens for this location on this account
+          const EMRole = new UserEmRoleRelation();
+          const trainingCert = new TrainingCertification();
+          const temp =
+            await EMRole.getEMRolesOnAccountOnLocation(
+              defs['em_roles']['WARDEN'],
+              canLoginTenantArr[i]['account_id'],
+              location_id
+          );
+          canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
+          canLoginTenantArr[i]['wardens'] = temp['raw'];
 
-      // get trained wardens
-      canLoginTenantArr[i]['trained_wardens'] = await
-           trainingCert.getEMRUserCertifications(temp['users']);
-    }
-    console.log(canLoginTenantArr);
+          // get trained wardens
+          canLoginTenantArr[i]['trained_wardens'] = await
+               trainingCert.getEMRUserCertifications(temp['users']);
+        }
+        console.log(canLoginTenantArr);
 
-
-
-
-    return canLoginTenantArr;
-
-
-
-
+        return canLoginTenantArr;
 	}
 
 }
