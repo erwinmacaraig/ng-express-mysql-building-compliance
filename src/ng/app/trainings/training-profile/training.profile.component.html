@@ -71,7 +71,7 @@
 
           <div class="grid" id="gridContainer">
 
-            <div [ngStyle]="{'height': '250px'}" class="grid-item card grey lighten-3" *ngFor="let t of viewData['locations']">
+            <div [ngStyle]="{'height': '250px'}" class="grid-item card grey lighten-3" *ngFor="let t of seenRequiredTrainings">
               <div class="top" >
                 <div class="image inline-block"> </div>
 
@@ -82,7 +82,7 @@
                 <div class="image red-image"></div>
               </div>
               <div class="middle-text">
-                {{t.training_requirement_name[0]}}
+                {{t}}
                 <p class="blue-text"></p>
               </div>
 

@@ -184,51 +184,131 @@ export class ReportsRoute extends BaseRoute {
         return finalData;
     }
 
-    public async getRootLocationsOnAccount(accountId, userId){
-        const account = new Account(accountId);
-        let locations = <any> await account.getRootLocationsOnAccount(userId),
-            allParentIds = [],
-            allLocations = [];
-
-        for(let loc of locations){
-            if(allParentIds.indexOf(loc.parent_id) == -1){
-                allParentIds.push(loc.location_id);
+    public addChildrenLocationToParent(data){
+        for(let i in data){
+            if('sublocations' in data[i] == false){
+                data[i]['sublocations'] = [];
             }
-            allLocations.push(loc);
-        }
 
+            for(let x in data){
+                if(data[x]['parent_id'] == data[i]['location_id']){
+                    if('sublocations' in data[i] == false){
+                        data[i]['sublocations'] = [];
+                    }
 
-        for(let loc of allLocations){
-            if( loc.parent_id != -1 ){
-                let parentModel = new Location(loc.parent_id);
-                try{
-                    loc = await parentModel.load();
-                    allLocations.push(loc);
-                }catch(e){
+                    let d = {};
+                    for(let l in data[x]){
+                        if(l.indexOf('@pi') == -1){
+                            d[l] = data[x][l];
+                        }
+                    }
 
+                    data[i]['sublocations'].push(d);
                 }
             }
+
         }
 
-        let indexedIdData = {};
-        for(let id of allParentIds){
-            indexedIdData[id] = {};
-        }
-        for( let loc of allLocations ){
-            if( indexedIdData[loc.location_id] ){
-                indexedIdData[loc.location_id] = loc;
+        let finalData = [];
+        for(let i in data){
+            if(data[i]['parent_id'] == -1){
+                finalData.push( data[i] );
             }
         }
 
-        let final = [];
-        for(let i in indexedIdData){
-            if( Object.keys(indexedIdData[i]).length > 0 ){
-                final.push(indexedIdData[i]);
+        return finalData;
+    }
+
+    public async getRootLocationsOnAccount(accountId, userId){
+        const account = new Account(accountId);
+
+        let locationsOnAccount = [],
+            locations = <any> [],
+            roles = <any> [],
+            response = {
+                locations : <any> []
+            };
+
+        try {
+            // FRP & TRP
+            let userRoleModel = new UserRoleRelation(),
+                roles = await userRoleModel.getByUserId(userId);
+
+            locationsOnAccount = await account.getLocationsOnAccount(userId, 1, 0);
+            
+            for (let loc of locationsOnAccount) {
+                locations.push(loc);
+            }
+
+        } catch (e) {
+            // Warden or Users
+            try{
+                let userEmRole = new UserEmRoleRelation(),
+                emRoles = <any> await userEmRole.getEmRolesByUserId(userId);
+                
+                for (let em of emRoles) {
+                    locations.push(em);
+                }
+
+            }catch(e){  }
+        }
+
+        let parentLoc = [];
+        for (let loc of locations) {
+            let allSubLocationIds = [0],
+                deepLocModel = new Location(),
+                deepLocations = <any> [];
+            
+            if(loc.parent_id == -1){
+                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                deepLocations.push(loc);
+            }else{
+                let ancLocModel = new Location(),
+                    ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
+
+                for(let anc of ancestores){
+                    if(anc.parent_id == -1){
+                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
+                        deepLocations.push(anc);
+                    }
+                }
+            }
+
+            for(let sub of deepLocations){
+                if(sub.parent_id > -1){
+                    allSubLocationIds.push(sub.location_id);
+                }
+            }
+
+            let locAccModel = new LocationAccountRelation(),
+                locAccTenant = <any> await locAccModel.getByWhereInLocationIds( allSubLocationIds.join(',') ),
+                numTenants = 0,
+                tenantsIds = [];
+
+            for(let ten of locAccTenant){
+                if(tenantsIds.indexOf( ten.account_id ) == -1){
+                    numTenants++;
+                    tenantsIds.push( ten.account_id );
+                }
+            }
+
+
+            let locMerged = this.addChildrenLocationToParent(deepLocations),
+                respLoc = (locMerged[0]) ? locMerged[0] : locMerged;
+            
+            let alreadyHave = false;
+            for(let parent of parentLoc){
+                if(parent.location_id == respLoc.location_id){
+                    alreadyHave = true;
+                }
+            }
+
+            if(!alreadyHave){
+                parentLoc.push(respLoc);
             }
         }
 
-        return final;
-
+        return parentLoc;
     }
 
     public async locationTrainings(req: AuthRequest, res: Response){

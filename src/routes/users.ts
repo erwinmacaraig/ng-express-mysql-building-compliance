@@ -747,128 +747,131 @@ export class UsersRoute extends BaseRoute {
 
 		response.data.eco_roles = emRoles;
         const training_requirements = await new TrainingCertification().getRequiredTrainings();
-        console.log(training_requirements);
-		try {
-
-			let user = await userModel.load(),
-				locations = <any>[];
-
-			if( Object.keys(user).length > 0 ) {
-				user['mobility_impaired_details'] = [];
-
-				let sqlInLocation = ` (
-		              SELECT
-		                locations.location_id
-		              FROM
-		                locations
-		              INNER JOIN
-		                location_account_user LAU
-		              ON
-		                locations.location_id = LAU.location_id
-		              WHERE
-		                LAU.account_id = `+user['account_id']+`
-		              AND
-		                locations.archived = 0
-		              AND
-		                LAU.user_id = `+req['user']['user_id']+`
-		              AND LAU.archived = 0
-		              GROUP BY
-		                locations.location_id
-		              ORDER BY
-		                locations.location_id
-		            )`;
-				let arrWhere = [];
-				arrWhere.push(['user_id = '+userId]);
-				arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
-				locations = await locationAccountUserModel.getMany(arrWhere);
-				if( user['mobility_impaired'] == 1 ){
-		        	let mobilityModel = new MobilityImpairedModel(),
-		        		arrWhere = [];
-
-		        	arrWhere.push( ["user_id = " + userId] );
-		        	arrWhere.push( "duration_date > NOW()" );
-              try {
-                let mobilityDetails = await mobilityModel.getMany( arrWhere );
-		        	  user['mobility_impaired_details'] = mobilityDetails;
-              } catch (e) {
-                console.log(e);
-                user['mobility_impaired_details'] = [];
-              }
-
-		        }
-          try {
-            await fileModel.getByUserIdAndType(userId, 'profile').then(
-              (fileData) => {
-                  user['profilePic'] = fileData[0].url;
-              },
-              () => {
-                  user['profilePic'] = '';
-              }
-          );
-          }catch(e) {
-            console.log(e);
-          }
-
+        // console.log(training_requirements);
         try {
-          user['mobility_impaired_details'] = <any> await mobilityModel.getMany([ [ "user_id = "+userId] ]);
 
-  				for(let i in user['mobility_impaired_details']) {
-  					user['mobility_impaired_details'][i]['date_created_formatted'] = moment(user['mobility_impaired_details'][i]['date_created']).format('MMM. DD, YYYY');
-  					user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
-  				}
-        } catch(e) {
-          console.log(e);
-        }
-      }
-      Object.keys(locations).forEach((key) => {
-        if ('em_roles_id' in locations[key] && locations[key]['em_roles_id']) {
-          locations[key]['training_requirement_name'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_name'];
-          locations[key]['training_requirement_id'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_id'];
-        }
-      });
+            let user = await userModel.load(),
+            locations = <any>[];
+
+            if( Object.keys(user).length > 0 ) {
+                user['mobility_impaired_details'] = [];
+
+                let sqlInLocation = ` (
+                SELECT
+                locations.location_id
+                FROM
+                locations
+                INNER JOIN
+                location_account_user LAU
+                ON
+                locations.location_id = LAU.location_id
+                WHERE
+                LAU.account_id = `+user['account_id']+`
+                AND
+                locations.archived = 0
+                AND
+                LAU.user_id = `+req['user']['user_id']+`
+                AND LAU.archived = 0
+                GROUP BY
+                locations.location_id
+                ORDER BY
+                locations.location_id
+                )`;
+                let arrWhere = [];
+                arrWhere.push(['user_id = '+userId]);
+                arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
+                locations = await locationAccountUserModel.getMany(arrWhere);
+
+                if( user['mobility_impaired'] == 1 ){
+                    let mobilityModel = new MobilityImpairedModel(),
+                    arrWhere = [];
+
+                    arrWhere.push( ["user_id = " + userId] );
+                    arrWhere.push( "duration_date > NOW()" );
+                    try {
+                        let mobilityDetails = await mobilityModel.getMany( arrWhere );
+                        user['mobility_impaired_details'] = mobilityDetails;
+                    } catch (e) {
+                        console.log(e);
+                        user['mobility_impaired_details'] = [];
+                    }
+                }
+
+                try {
+                    await fileModel.getByUserIdAndType(userId, 'profile').then(
+                        (fileData) => {
+                            user['profilePic'] = fileData[0].url;
+                        },
+                        () => {
+                            user['profilePic'] = '';
+                        }
+                        );
+                }catch(e) {
+                    console.log(e);
+                }
+
+                try {
+                    user['mobility_impaired_details'] = <any> await mobilityModel.getMany([ [ "user_id = "+userId] ]);
+
+                    for(let i in user['mobility_impaired_details']) {
+                        user['mobility_impaired_details'][i]['date_created_formatted'] = moment(user['mobility_impaired_details'][i]['date_created']).format('MMM. DD, YYYY');
+                        user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
+                    }
+                } catch(e) {
+                    console.log(e);
+                }
+            }
+
+            Object.keys(locations).forEach((key) => {
+                if ('em_roles_id' in locations[key] && locations[key]['em_roles_id']) {
+                    locations[key]['training_requirement_name'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_name'];
+                    locations[key]['training_requirement_id'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_id'];
+                }
+            });
 
 
-			response.data.locations = locations;
+            response.data.locations = locations;
 			// response.data.user = user;
 			response.status = true;
 		}catch(e){
-      response.status = false;
-      console.log(e);
-    }
-		try{
+            response.status = false;
+            console.log(e);
+        }
 
-			let courseModel = new CourseUserRelation(),
-				trainings = await courseModel.getAllCourseForUser(userId);
-		  	response.data.trainings = trainings;
+        try{
 
-		}catch(e){}
+            let courseModel = new CourseUserRelation(),
+            trainings = await courseModel.getAllCourseForUser(userId);
+            response.data.trainings = trainings;
 
-		try{
+        }catch(e){}
 
-      let userModel = new User(userId),
-				certificates = await userModel.getAllCertifications();
-        response.data.certificates = certificates;
+        try{
 
-        response.data.user = await userModel.load();
+            let userModel = new User(userId),
+            certificates = await userModel.getAllCertifications();
+            response.data.certificates = certificates;
+
+            response.data.user = await userModel.load();
 
             try {
                 await fileModel.getByUserIdAndType(userId, 'profile').then(
-                  (fileData) => {
-                      response.data.user['profilePic'] = fileData[0].url;
-                  },
-                  () => {
-                      response.data.user['profilePic'] = '';
-                  }
-                );
+                    (fileData) => {
+                        response.data.user['profilePic'] = fileData[0].url;
+                    },
+                    () => {
+                        response.data.user['profilePic'] = '';
+                    }
+                    );
             }catch(e) {
                 console.log(e);
             }
 
-		} catch(e){}
+        } catch(e){}
 
-		res.statusCode = 200;
-		res.send(response);
-	}
+        res.statusCode = 200;
+        res.send(response);
+    }
 
 	public async setLocationAccountUserToArchive(req: Request, res: Response, next: NextFunction){
 		let response = {
@@ -1269,7 +1272,7 @@ export class UsersRoute extends BaseRoute {
 
 				let deepLocation = new Location(),
 					subLocations = await deepLocation.getDeepLocationsByParentId(mainParentLocationId),
-					subLocationsIds = [];
+					subLocationsIds = [0];
 
 				response.data['subLocations'] = subLocations;
 

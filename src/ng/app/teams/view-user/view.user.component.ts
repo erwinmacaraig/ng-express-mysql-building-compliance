@@ -60,16 +60,18 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 	selectedPeep = {};
 
+	selectedLocationData = {};
+	showSelectLocation = false;
+
 	showModalProdfileLoader = false;
 
 	showModalCredentialsLoader = false;
 	isPasswordEquals = false;
 
 	locations = [];
+	locationsBackup = [];
 
 	toEditLocations = [];
-
-	showLocationSelection = false;
 
 	constructor(
 		private auth: AuthService,
@@ -96,9 +98,44 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		});
 
 		this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
+			for(let loc of response.locations){
+				loc['id'] = this.generateRandomChars(20);
+			}
 			this.locations = response.locations;
+			this.locationsBackup = JSON.parse( JSON.stringify( this.locations ) );
 		});
 	}
+
+	generateLocationName(locId){
+		let name = '',
+			searchedId = locId,
+		searchChild = (data) => {
+			for(let d of data){
+				if(d.location_id == searchedId){
+					name = (name.length > 0) ? d.name + ', '+ name : d.name;
+					searchedId = d.parent_id;
+					searchChild(this.locations);
+				}else if(d.sublocations.length > 0){
+					searchChild(d.sublocations);
+				}
+			}
+		};
+
+		searchChild(this.locations);
+		return name;
+	}
+
+	generateRandomChars(length){
+        let chars = 'ABCDEFGHIJKKLMNOPQRSTUVWXYZ0987654321',
+        len = (typeof length == 'number') ? length : 15,
+        responseCode = '';
+
+        for(let i=0; i<=len; i++){
+           responseCode += chars[ Math.floor(Math.random() * chars.length) ];
+        }
+
+        return responseCode;
+    }
 
 	loadProfile(callBack?){
 		this.userService.getUserLocationTrainingsEcoRoles(this.decryptedID, (response) => {
@@ -333,8 +370,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     		}else if(val == 'credential'){
     			this.showModalCredentials();
     		}else if(val == 'location'){
-    			$('#modalAssignLocations').modal('open');
     			this.toEditLocations = JSON.parse( JSON.stringify(this.viewData.locations) );
+    			setTimeout(() => {
+    				$('#modalAssignLocations').modal('open');
+    			}, 200);
     		}
 
     		selectAction.val('0').material_select('update');
@@ -417,8 +456,78 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     	this.toEditLocations.push({
     		location_id : 0,
     		location_role_id : 0,
-    		em_roles_id : 0
+    		em_roles_id : 0,
+    		role_id : 0,
+    		id : this.generateRandomChars(20)
     	});
+
+    	setTimeout(() => {
+    		$('#modalAssignLocations').scrollTop( $('#modalAssignLocations .button-container').position().top );
+    	}, 200);
+    }
+
+    onChangeSelectRole(location, roleId){
+    	if(roleId in [1,2]){
+    		location.role_id = roleId;
+    		location.location_role_id = roleId;
+    		location.em_roles_id = 0;
+    	}else{
+    		location.role_id = 0;
+    		location.location_role_id = roleId;
+    		location.em_roles_id = roleId;
+    	}
+    }
+
+    onChangeDropDown(event){
+        if(event.currentTarget.checked){
+            $( $(event.currentTarget).parents('.list-division')[0] ).addClass('show-drop-down');
+        }else{
+            $( $(event.currentTarget).parents('.list-division')[0] ).removeClass('show-drop-down');
+        }
+    }
+
+    clickSelectLocation(loc){
+
+    	if(loc.location_role_id == 1 ){
+    		let filterLocs = [];
+    		for(let i in this.locationsBackup){
+    			if( this.locationsBackup[i]['parent_id'] == -1 ){
+    				let dLoc = JSON.parse( JSON.stringify(this.locationsBackup[i]) );
+    				dLoc.sublocations = [];
+    				filterLocs.push( dLoc  );
+    			}
+    		}
+
+    		this.locations = filterLocs;
+    	}else{
+    		this.locations = this.locationsBackup;
+    	}
+
+    	this.selectedLocationData = loc;
+    	this.showSelectLocation = true;
+    }
+
+    submitSelectLocationModal(formLoc, event){
+    	if(formLoc.valid){
+    		let locId = formLoc.value.selectLocation;
+    		this.selectedLocationData['location_id'] = locId;
+
+    		for(let loc of this.toEditLocations){
+
+    		}
+
+    		this.showSelectLocation = false;
+    	}
+    }
+
+    cancelLocationModal(){
+    	this.showSelectLocation = false;
+    	this.toEditLocations = JSON.parse( JSON.stringify(this.viewData.locations) );
+    }
+
+    saveLocationAssignments(event){
+    	event.preventDefault();
+    	console.log( this.toEditLocations );
     }
 
     ngOnDestroy(){

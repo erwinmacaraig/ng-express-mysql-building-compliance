@@ -171,7 +171,7 @@ export class TrainingCertification extends BaseClass {
             ON
               (certifications.training_requirement_id  =  training_requirement.training_requirement_id AND
                 user_em_roles_relation.user_id = certifications.user_id)
-            WHERE user_em_roles_relation.user_id IN (${users_string});`;
+            WHERE user_em_roles_relation.user_id IN (${users_string}) ORDER BY expiry_date DESC;`;
       connection.query(sql, [], (error, results, fields) => {
         if (error) {
           console.log('training.certification.model.getEMRUserCertifications', error, sql);
@@ -195,6 +195,37 @@ export class TrainingCertification extends BaseClass {
         resolve(outcome);
       });
       connection.end();
+    });
+  }
+
+  public getCertificationsInUserIds(userIds){
+    return new Promise((resolve, reject) => {
+
+      let sql = `SELECT
+                  c.training_requirement_id,
+                  c.course_method,
+                  c.certification_date,
+                  c.pass,
+                  c.user_id,
+                  DATE_ADD(c.certification_date, INTERVAL tr.num_months_valid MONTH) as expiry_date,
+                  IF (c.certification_date IS NOT NULL,
+                      IF(DATE_ADD(c.certification_date, INTERVAL tr.num_months_valid MONTH) > NOW(), 'active', 'expired'), 
+                  'not taken') as validity
+                FROM certifications c
+                INNER JOIN training_requirement tr ON c.training_requirement_id = tr.training_requirement_id
+                WHERE c.user_id IN (`+userIds+`) ORDER BY c.certification_date DESC`;
+
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql, [], (error, results, fields) => {
+        if (error) {
+          throw new Error('Error on fetching certifications on getCertificationsInUserIds');
+        }
+
+        this.dbData = results;
+        resolve(results);
+      });
+      connection.end();
+
     });
   }
 

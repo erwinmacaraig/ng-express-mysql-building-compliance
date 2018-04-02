@@ -234,3 +234,13 @@ table tr td .btn{
     border: 0.1em solid #e0e5e8;
     border-radius: 50%;
 }
+
+.account-trainings-container{
+    width: 100%;
+}
+
+.loader-div{
+    width: 80px;
+    margin: 0px auto;
+    display: block;
+}
