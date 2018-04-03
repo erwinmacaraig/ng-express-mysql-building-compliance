@@ -76,10 +76,10 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
-
+		this.dashboardService.show();
 		this.getListData(() => { 
-			this.dashboardService.hide(); 
 			setTimeout(() => {
+				this.dashboardService.hide(); 
 				$('.row.filter-container select').material_select();
 			}, 500);
 		});
@@ -92,8 +92,6 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		});
 
 		$('.row.filter-container select').material_select();
-
-		this.dashboardService.show();
 
 		this.filterByEvent();
 		this.sortByEvent();

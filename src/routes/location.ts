@@ -18,6 +18,7 @@ import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calc
 import * as fs from 'fs';
 import * as path from 'path';
 import * as CryptoJS from 'crypto-js';
+import * as session from 'express-session';
 const validator = require('validator');
 const md5 = require('md5');
 const moment = require('moment');
@@ -1187,14 +1188,14 @@ const defs = require('../config/defs.json');
 
             respLoc['num_tenants'] = numTenants;
             
-            let locAccUserModel = new LocationAccountUser(),
-            locAccUser = <any> await locAccUserModel.getWardensByAccountIdWhereInLocationId(accountId, allSubLocationIds.join(',') ); // <- to remove
+            let emRoleModel = new UserEmRoleRelation(),
+            locAccUser = <any> await emRoleModel.getUsersInLocationIds( allSubLocationIds.join(',') );
 
             respLoc['num_wardens'] = 0;
-            try{
-                const emrolesOnThisLocation = <any> await deepLocModel.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], respLoc.location_id);
-                respLoc['num_wardens'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
-            }catch(e){}
+            // try{
+            //     const emrolesOnThisLocation = <any> await deepLocModel.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], respLoc.location_id);
+            //     respLoc['num_wardens'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
+            // }catch(e){}
 
             let impairedCount = 0 ;
             for(let x in locAccUser){
@@ -1228,6 +1229,8 @@ const defs = require('../config/defs.json');
     public async getLocationsHierarchyByAccount(req: AuthRequest, res: Response){
         const accountId = req.user.account_id;
         const account = new Account(accountId);
+
+
         
         let locationsOnAccount = [],
             location,
