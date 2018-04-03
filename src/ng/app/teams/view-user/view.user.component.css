@@ -167,6 +167,10 @@
     margin: 10px 0px;
 }
 
+.grid .grid-item.no-buttons .top{
+    margin: 35px 0px;
+}
+
 .grid-item .top .image{
     width: 30px;
     height: 30px;

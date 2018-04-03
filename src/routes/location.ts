@@ -96,6 +96,7 @@ const defs = require('../config/defs.json');
             new LocationRoute().getLocationsHierarchyByAccount(req, res).then((data) => {
                 return res.status(200).send(data);
             }).catch((err) => {
+                console.log(err);
                 return res.status(400).send({
                     locations : [],
                     message: err
@@ -501,14 +502,14 @@ const defs = require('../config/defs.json');
           parent_id = location.ID();
           dbLocationData["id_of_location"] = location.ID();
 
-          
+
           locationAccnt = new LocationAccountRelation();
           await locationAccnt.create({
             'location_id': parent_id,
             'account_id': req.user.account_id,
             'responsibility': roles_text[r]
           });
-          
+
           dbLocationData['parent_id'] = parent_id;
           locationAccntUser = new LocationAccountUser();
           await locationAccntUser.create({
@@ -531,13 +532,13 @@ const defs = require('../config/defs.json');
             let copyDbLocationData = JSON.parse( JSON.stringify(dbLocationData) );
             copyDbLocationData['name'] = req.body.sublevels[i];
             await subLevel.create(copyDbLocationData);
-            
+
             await locationAccnt.create({
               'location_id': subLevel.ID(),
               'account_id': req.user.account_id,
               'responsibility': roles_text[r]
             });
-            
+
             locationAccntUser = new LocationAccountUser();
             await locationAccntUser.create({
               location_id:  subLevel.ID(),
@@ -1123,7 +1124,7 @@ const defs = require('../config/defs.json');
                 roles = await userRoleModel.getByUserId(req.user.user_id);
 
             locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 1, archived);
-            
+
             for (let loc of locationsOnAccount) {
                 locations.push(loc);
             }
@@ -1133,7 +1134,7 @@ const defs = require('../config/defs.json');
             try{
                 let userEmRole = new UserEmRoleRelation(),
                 emRoles = <any> await userEmRole.getEmRolesByUserId(req.user.user_id);
-                
+
                 for (let em of emRoles) {
                     locations.push(em);
                 }
@@ -1148,7 +1149,7 @@ const defs = require('../config/defs.json');
             let allSubLocationIds = [0],
                 deepLocModel = new Location(),
                 deepLocations = <any> [];
-            
+
             if(loc.parent_id == -1){
                 deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
                 deepLocations.push(loc);
@@ -1186,7 +1187,7 @@ const defs = require('../config/defs.json');
             }
 
             respLoc['num_tenants'] = numTenants;
-            
+
             let locAccUserModel = new LocationAccountUser(),
             locAccUser = <any> await locAccUserModel.getWardensByAccountIdWhereInLocationId(accountId, allSubLocationIds.join(',') ); // <- to remove
 
@@ -1204,7 +1205,7 @@ const defs = require('../config/defs.json');
             }
 
             respLoc['num_wardens'] = locAccUser.length; // <- to remove
-           
+
             respLoc['mobility_impaired'] = impairedCount;
             respLoc['compliance'] = 0;
 
@@ -1231,24 +1232,42 @@ const defs = require('../config/defs.json');
         let locationsOnAccount = [];
         let location;
         let data;
-
-        const userRoleRel = new UserRoleRelation();
-        const roles = await userRoleRel.getByUserId(req.user.user_id);
-
         let r = 100;
-        for (let i = 0; i < roles.length; i++) {
+        const userRoleRel = new UserRoleRelation();
+        try {
+          const roles = await userRoleRel.getByUserId(req.user.user_id);
+          for (let i = 0; i < roles.length; i++) {
             if(r > parseInt(roles[i]['role_id'], 10)) {
                 r = roles[i]['role_id'];
             }
+          }
+        } catch(e) {
+          console.log(e, 'LocationRoute.getLocationsHierarchyByAccount');
         }
-        locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r);
+
+
+
+
+        try {
+          locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r);
+        } catch(e) {
+          console.log('locationRoute.getLocationsHierarchyByAccount', e);
+          locationsOnAccount = [];
+        }
+
 
         let response = [],
         allAncestries = [];
 
         for (let loc of locationsOnAccount) {
             let locAncestriesModel = new Location();
-            let ancetries = await locAncestriesModel.getAncestries(loc.location_id);
+            let ancetries;
+            try {
+              ancetries = await locAncestriesModel.getAncestries(loc.location_id);
+            } catch(e) {
+              console.log('Error getting ancestries via getAncentries method, LocationRoute.getLocationsHierarchyByAccount');
+              ancetries = {};
+            }
 
             for(let i in ancetries){
                 allAncestries.push(ancetries[i]);
@@ -1274,8 +1293,14 @@ const defs = require('../config/defs.json');
         let finalLocs = [];
         for(let loc of filteredLocs){
           let deepLocs = new Location(),
-            locations = await deepLocs.getDeepLocationsByParentId(loc.location_id),
+            locations,
             toMerge = [ JSON.parse(JSON.stringify(loc)) ];
+          try {
+            locations = await deepLocs.getDeepLocationsByParentId(loc.location_id);
+          } catch(e) {
+            console.log(e, 'LocationRoute.getLocationsHierarchyByAccount');
+            locations = {};
+          }
 
           for(let i in locations){
             toMerge.push(  JSON.parse(JSON.stringify(locations[i])) );
