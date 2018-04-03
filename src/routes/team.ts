@@ -453,77 +453,81 @@ export class TeamRoute extends BaseRoute {
   }
 
   public async addBulkWardenByForm(req: AuthRequest, res: Response) {
-    const wardens = JSON.parse(req.body.wardens);
-    const userRoleRel = new UserRoleRelation();
-    const invalidWarden = [];
-    const role = await userRoleRel.getByUserId(req.user.user_id, true);
+    const wardens = JSON.parse(req.body.wardens),
+        userRoleRel = new UserRoleRelation(),
+        invalidWarden = [],
+        role = await userRoleRel.getByUserId(req.user.user_id, true),
+        accountId = req.user.account_id,
+        accountModel = new Account(accountId);
 
-    for (const warden of wardens) {
-      const user = new User();
-      warden['errors'] = {};
+    try{
+        let account = await accountModel.load();
+        for (const warden of wardens) {
+            const user = new User();
+            warden['errors'] = {};
 
-      try {
-        const dbData = await user.getByEmail(warden['email']);
-        warden['errors']['email_taken'] = true;
-        invalidWarden.push(warden);
-      } catch (e) {
+            try {
+                const dbData = await user.getByEmail(warden['email']);
+                warden['errors']['email_taken'] = true;
+                invalidWarden.push(warden);
+            } catch (e) {
 
-        if (validator.isEmail(warden['email'])) {
-          // if(new BlacklistedEmails().isEmailBlacklisted(warden['email'])){
-          //   warden['errors']['blacklisted'] = true;
-          //   invalidWarden.push(warden);
-          // }else{
-            const userInvitation = new UserInvitation();
-            const tokenModel = new Token();
-            const tokenStr = tokenModel.generateRandomChars(10);
-            warden['invited_by_user'] = req.user.user_id;
-            warden['account_id'] = req.user.account_id;
+                if (validator.isEmail(warden['email'])) {
+                    const userInvitation = new UserInvitation();
+                    const tokenModel = new Token();
+                    const tokenStr = tokenModel.generateRandomChars(10);
+                    warden['invited_by_user'] = req.user.user_id;
+                    warden['account_id'] = req.user.account_id;
 
-            const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
-            await userInvitation.create(warden);
-            await tokenModel.create({
-              'token': tokenStr,
-              'action': 'invitation',
-              'verified': 0,
-              'expiration_date': expDate,
-              'id': userInvitation.ID(),
-              'id_type': 'user_invitations_id'
-            });
+                    const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+                    await userInvitation.create(warden);
+                    await tokenModel.create({
+                        'token': tokenStr,
+                        'action': 'invitation',
+                        'verified': 0,
+                        'expiration_date': expDate,
+                        'id': userInvitation.ID(),
+                        'id_type': 'user_invitations_id'
+                    });
 
-            const opts = {
-              from : '',
-              fromName : 'EvacConnect',
-              to : [],
-              cc: [],
-              body : '',
-              attachments: [],
-              subject : 'EvacConnect Warden Nomination'
-            };
-            const email = new EmailSender(opts);
-            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
-            let emailBody = email.getEmailHTMLHeader();
-            emailBody += `<h3 style="text-transform:capitalize;">Hi ${warden['first_name']} ${warden['last_name']},</h3> <br/>
-            <h4>You are nominated to be a Warden.</h4> <br/>
-            <h5>Click on the link below to setup your password.</h5> <br/>
-            <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+                    const opts = {
+                        from : '',
+                        fromName : 'EvacConnect',
+                        to : [],
+                        cc: [],
+                        body : '',
+                        attachments: [],
+                        subject : 'EvacConnect Warden Nomination'
+                    };
+                    const email = new EmailSender(opts);
+                    const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+                    let emailBody = email.getEmailHTMLHeader();
+                    emailBody += `<h3 style="text-transform:capitalize;">Hi ${warden['first_name']} ${warden['last_name']},</h3> <br/>
+                    <h4>You are nominated to be a Warden.</h4> <br/>
+                    <h5>Click on the link below to setup your password.</h5> <br/>
+                    <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
 
-            emailBody += email.getEmailHTMLFooter();
-            email.assignOptions({
-              body : emailBody,
-              to: [warden['email']],
-              cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
-            });
-            email.send((data) => console.log(data),
-                       (err) => console.log(err)
-                      );
-          // }
-        } else {
-          warden['errors']['invalid'] = true;
-          invalidWarden.push(warden);
+                    emailBody += email.getEmailHTMLFooter();
+                    email.assignOptions({
+                        body : emailBody,
+                        to: [warden['email']],
+                        cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
+                    });
+                    email.send((data) => console.log(data),
+                        (err) => console.log(err)
+                        );
+                } else {
+                    warden['errors']['invalid'] = true;
+                    invalidWarden.push(warden);
+                }
+
+            }
         }
+    }catch(e){
 
-      }
     }
+
+
     return invalidWarden;
   }
   public async retrieveWardenInvationInfo(req: Request, res: Response, next: NextFunction) {
@@ -688,6 +692,7 @@ export class TeamRoute extends BaseRoute {
     await locationAcctUser.create({
       'location_id': req.body.sublocation,
       'account_id': req.body.account_id,
+      
       'user_id': user.ID(),
       'role_id': (req.body.role_id == 1 || req.body.role_id == 2) ? req.body.role_id : req.body.em_role
     });

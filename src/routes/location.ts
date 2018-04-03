@@ -1228,9 +1228,14 @@ const defs = require('../config/defs.json');
     public async getLocationsHierarchyByAccount(req: AuthRequest, res: Response){
         const accountId = req.user.account_id;
         const account = new Account(accountId);
-        let locationsOnAccount = [];
-        let location;
-        let data;
+        
+        let locationsOnAccount = [],
+            location,
+            data,
+            allAncestries = [],
+            response = {
+                locations : []
+            };
 
         const userRoleRel = new UserRoleRelation();
         const roles = await userRoleRel.getByUserId(req.user.user_id);
@@ -1243,36 +1248,20 @@ const defs = require('../config/defs.json');
         }
         locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r);
 
-        let response = [],
-        allAncestries = [];
-
         for (let loc of locationsOnAccount) {
             let locAncestriesModel = new Location();
             let ancetries = await locAncestriesModel.getAncestries(loc.location_id);
 
             for(let i in ancetries){
-                allAncestries.push(ancetries[i]);
-            }
-        }
-
-        let mergedLocs = this.mergeToParent(allAncestries),
-        filteredLocs = [];
-
-        for(let i in mergedLocs){
-            let isIn = false;
-            for(let x in filteredLocs){
-              if(filteredLocs[x]['location_id'] == mergedLocs[i]['location_id']){
-                  isIn = true;
-              }
-            }
-            if(!isIn){
-              filteredLocs.push(mergedLocs[i]);
+                if(ancetries[i].parent_id == -1){
+                    allAncestries.push(ancetries[i]);
+                }
             }
         }
 
 
         let finalLocs = [];
-        for(let loc of filteredLocs){
+        for(let loc of allAncestries){
           let deepLocs = new Location(),
             locations = await deepLocs.getDeepLocationsByParentId(loc.location_id),
             toMerge = [ JSON.parse(JSON.stringify(loc)) ];
@@ -1286,12 +1275,12 @@ const defs = require('../config/defs.json');
             finalLocs.push( merged[0]  );
           }
 
+          response.locations = merged;
+
         }
 
 
-        res.send( {
-            locations : finalLocs
-        });
+        res.send( response );
     }
 
 	public getDeepLocationsById(req: AuthRequest, res: Response){
