@@ -365,7 +365,7 @@ export class User extends BaseClass {
         });
     }
 
-  public getAllCertifications(filter: object = {}, user_id: number = 0) {
+  public getAllCertifications(filter: object = {}, user_id: number = 0): Promise<Array<object>> {
     return new Promise((resolve, reject) => {
       let uid = this.ID();
       if (user_id) {
@@ -380,10 +380,14 @@ export class User extends BaseClass {
           case 'training_requirement_id':
             filterStr += ` AND certifications.training_requirement_id = ${filter[key]}`;
           break;
+          case 'certifications_id':
+            filterStr += ` AND certifications.certifications_id = ${filter[key]}`;
+          break;
         }
       });
       const sql_certifications = `SELECT
         training_requirement.training_requirement_name,
+        training_requirement.scorm_course_id,
         certifications.*,
         training_requirement.num_months_valid,
         DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
@@ -462,11 +466,11 @@ export class User extends BaseClass {
 
   public getWithoutToken(){
     return new Promise((resolve, reject) => {
-     
+
       const sql = ` SELECT * FROM users WHERE user_id NOT IN (SELECT id FROM token WHERE id_type = 'user_id' AND verified = 0) `;
       const connection = db.createConnection(dbconfig);
       connection.query(sql,  (error, results, fields) => {
-        
+
         resolve(results);
 
       });

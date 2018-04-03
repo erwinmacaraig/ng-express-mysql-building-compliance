@@ -167,8 +167,9 @@
 					</div>
 
 					<div class="buttons">
-						<button class="btn blue waves-effect waves-light">Download Certificate</button>
-						<button class="btn orange lighten-1 waves-effect waves-light">Email Certificate</button>
+            <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{cert.scorm_course_id}}&amp;c={{cert.certifications_id}}"
+            target="_blank" class="btn blue waves-effect waves-light">Download Certificate</a>
+						<button (click)="emailThisCertificate(cert.user_id, cert.certifications_id)" class="btn orange lighten-1 waves-effect waves-light">Email Certificate</button>
 					</div>
 				</div>
 

@@ -251,4 +251,11 @@ export class UserService {
     return this.http.get(this.baseUrl + '/users/get-all-locations/', this.options);
   }
 
+  emailCertificate(userId = 0, certId = 0) {
+    return this.http.post<any>(this.baseUrl + '/users/email-certificate/',{
+      'userId': userId,
+      'certId': certId
+    });
+  }
+
 }

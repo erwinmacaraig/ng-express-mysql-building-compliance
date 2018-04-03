@@ -15,7 +15,7 @@ export class TrainingCertification extends BaseClass {
   }
   public load(): Promise<object> {
     return new Promise((resolve, reject) => {
-      const sql = `SELECT * FROM certifications`;
+      const sql = `SELECT * FROM certifications WHERE certifications_id = ?`;
       const connection = db.createConnection(dbconfig);
       connection.query(sql, [this.id], (error, results, fields) => {
         if (error) {
@@ -209,7 +209,7 @@ export class TrainingCertification extends BaseClass {
                   c.user_id,
                   DATE_ADD(c.certification_date, INTERVAL tr.num_months_valid MONTH) as expiry_date,
                   IF (c.certification_date IS NOT NULL,
-                      IF(DATE_ADD(c.certification_date, INTERVAL tr.num_months_valid MONTH) > NOW(), 'active', 'expired'), 
+                      IF(DATE_ADD(c.certification_date, INTERVAL tr.num_months_valid MONTH) > NOW(), 'active', 'expired'),
                   'not taken') as validity
                 FROM certifications c
                 INNER JOIN training_requirement tr ON c.training_requirement_id = tr.training_requirement_id
@@ -358,6 +358,66 @@ export class TrainingCertification extends BaseClass {
         }
 
       });
+    });
+  }
+
+  /**
+   * @method getNumberOfTrainings
+   * this gets the total REQUIRED trainings
+   * @param userIds
+   * Array that contains the user ids to which we assign the total number of trainings
+   * @param filter
+   * filter used for querying the database
+   * @description
+   * This method will give you the total number of required trainings only for a given user
+   */
+  public getNumberOfTrainings(userIds = [], filter = {}) {
+    return new Promise((resolve, reject) => {
+      const user_trainings = {};
+      if (!userIds.length) {
+        resolve({});
+      } else {
+        const userIdString = userIds.join(',');
+        let filterString = '';
+
+        filterString += ('pass' in filter) ? ' AND pass = ' + filter['pass'] : ' AND pass = 1';
+
+        const sql = `SELECT
+                      user_id
+                    FROM
+                        certifications
+                    INNER JOIN
+                       training_requirement
+                    ON
+                        training_requirement.training_requirement_id = certifications.training_requirement_id
+                    WHERE
+                        certifications.user_id IN (${userIdString})
+                      ${filterString}
+                    ORDER BY user_id`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [], (error, results, fields) => {
+          if (error) {
+            console.log('training.certification.model.getNumberOfTrainings', error, sql);
+            throw Error('There was a problem getting the number of trainings');
+          }
+          if (!results.length) {
+            reject({});
+          } else {
+            for (let i = 0; i < results.length; i++) {
+              if (results[i]['user_id'] in user_trainings) {
+                user_trainings[results[i]['user_id']]['count'] = user_trainings[results[i]['user_id']]['count'] + 1;
+              } else {
+                user_trainings[results[i]['user_id']] = {
+                  'count': 1
+                };
+              }
+            }
+            resolve(user_trainings);
+          }
+        });
+        connection.end();
+      }
+
     });
   }
 
