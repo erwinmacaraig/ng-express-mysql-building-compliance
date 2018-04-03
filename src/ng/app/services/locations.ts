@@ -98,8 +98,13 @@ export class LocationsService {
   }
 
 	getParentLocationsForListing(accountid, callBack){
+    if( localStorage.getItem('parentLocationsForListing') !== null ){
+      callBack(JSON.parse( localStorage.getItem('parentLocationsForListing') ));
+      return true;
+    }
 		this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/', this.options)
 	      .subscribe(res => {
+          localStorage.setItem('parentLocationsForListing', JSON.stringify(res));
 	        callBack(res);
 	      }, err => {
 	        callBack( JSON.parse(err.error) );
@@ -107,8 +112,13 @@ export class LocationsService {
 	}
 
   getArchivedParentLocationsForListing(accountid, callBack){
+    if( localStorage.getItem('archivedParentLocationsForListing') !== null ){
+      callBack(JSON.parse( localStorage.getItem('archivedParentLocationsForListing') ));
+      return true;
+    }
     this.http.get(this.baseUrl + '/location/get-archived-parent-locations-by-account-id/', this.options)
         .subscribe(res => {
+          localStorage.setItem('archivedParentLocationsForListing', JSON.stringify(res));
           callBack(res);
         }, err => {
           callBack( JSON.parse(err.error) );
@@ -116,8 +126,14 @@ export class LocationsService {
   }
 
   getLocationsHierarchyByAccountId(accountid, callBack){
+    if( localStorage.getItem('locationHierarchy') !== null ){
+      callBack(JSON.parse( localStorage.getItem('locationHierarchy') ));
+      return true;
+    }
+
     this.http.get(this.baseUrl + '/location/get-locations-hierarchy-by-account-id', this.options)
         .subscribe(res => {
+          localStorage.setItem('locationHierarchy', JSON.stringify(res));
           callBack(res);
         }, err => {
           callBack( JSON.parse(err.error) );

@@ -133,7 +133,8 @@ export class TeamRoute extends BaseRoute {
     router.get('/team/list/peep', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new TeamRoute().buildPEEPList(req, res).then((peep) => {
         return res.status(200).send(peep);
-      }).catch(() => {
+      }).catch((e) => {
+          console.log(e);
         return res.status(400).send({
           message: 'Internal Error. Cannot build peep list'
         });
@@ -344,188 +345,312 @@ export class TeamRoute extends BaseRoute {
            */
   }
 
-  public async addMobilityImpairedPersons(req: AuthRequest, res: Response) {
-    console.log(JSON.parse(req.body.peep));
-    const peep = JSON.parse(req.body.peep);
-    const invalidPeep = [];
-    for (const p of peep) {
-      p['errors'] = {};
-      const userInvitation = new UserInvitation();
-      const tokenModel = new Token();
-      const tokenStr = tokenModel.generateRandomChars(10);
-      const user = new User();
-      const locModel = new Location();
-      const parentLocModel = new Location();
-      const userEmRole = new UserEmRoleRelation();
-      const emRoles = await userEmRole.getEmRoles();
-      try {
-        const dbData = await user.getByEmail(p['email']);
-        p['errors']['email_taken'] = true;
-        invalidPeep.push(p);
-      } catch (e) {
-        if (validator.isEmail(p['email'])) {
+    public async addMobilityImpairedPersons(req: AuthRequest, res: Response) {
+        console.log(JSON.parse(req.body.peep));
+        const peep = JSON.parse(req.body.peep);
+        const invalidPeep = [];
 
-          // if(new BlacklistedEmails().isEmailBlacklisted(p['email'])){
-          //   p['errors']['blacklisted'] = true;
-          //   invalidPeep.push(p);
-          // }else{
-            p['invited_by_user'] = req.user.user_id;
-            p['account_id'] = req.user.account_id;
-            const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
-            await userInvitation.create(p);
-            await tokenModel.create({
-              'token': tokenStr,
-              'action': 'invitation',
-              'verified': 0,
-              'expiration_date': expDate,
-              'id': userInvitation.ID(),
-              'id_type': 'user_invitations_id'
-            });
+        let accountId = req.user.account_id,
+        account = {},
+        accountModel = new Account(accountId),
+        isAccountEmailExempt = false;
 
-            locModel.setID(p.location_id);
-            let location = await locModel.load();
-            let parentName = '';
-            if(location['parent_id'] > -1){
-              parentLocModel.setID(location['parent_id']);
-              await parentLocModel.load();
-              parentName = <string>parentLocModel.get('name');
-            }
-            let locText = '';
-            if(parentName.length > 0){
-              locText += parentName+', ';
-            }
-            locText += location['name'];
+        try{
+            let account = <any> await accountModel.load();
+            isAccountEmailExempt = (account.email_add_user_exemption == 1) ? true : false;
+        }catch(e){
 
-            const opts = {
-              from : '',
-              fromName : 'EvacConnect',
-              to : [],
-              cc: [],
-              body : '',
-              attachments: [],
-              subject : 'EvacConnect Warden Nomination'
-            };
-            const email = new EmailSender(opts);
-            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
-            let emailBody = email.getEmailHTMLHeader();
-
-            let roleText = ``;
-            if(p.role_id == 1){
-              roleText += ' FRP '
-            }else if(p.role_id == 2){
-              roleText += ' TRP '
-            }
-
-            if(p.eco_role_id >= 8){
-              let emRole = '';
-              for(let i in emRoles){
-                if(emRoles[i]['em_roles_id'] == p.eco_role_id){
-                  emRole = emRoles[i]['role_name'];
-                }
-              }
-              roleText += ' AND '+emRole;
-            }
-
-            emailBody += `<h3 style="text-transform:capitalize;">Hi ${p['first_name']} ${p['last_name']},</h3> <br/>
-            <h4>You are invited to be ${roleText} in ${locText}.</h4> <br/>
-            <h5>Click on the link below to setup your password.</h5> <br/>
-            <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
-
-            emailBody += email.getEmailHTMLFooter();
-            email.assignOptions({
-              body : emailBody,
-              to: [p['email']],
-              cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
-            });
-            email.send((data) => console.log(data),
-                       (err) => console.log(err)
-                      );
-          //}
-
-        } else {
-          p['errors']['invalid'] = true;
-          invalidPeep.push(p);
         }
-      }
-    }
 
-    return invalidPeep;
-  }
-
-  public async addBulkWardenByForm(req: AuthRequest, res: Response) {
-    const wardens = JSON.parse(req.body.wardens);
-    const userRoleRel = new UserRoleRelation();
-    const invalidWarden = [];
-    const role = await userRoleRel.getByUserId(req.user.user_id, true);
-
-    for (const warden of wardens) {
-      const user = new User();
-      warden['errors'] = {};
-
-      try {
-        const dbData = await user.getByEmail(warden['email']);
-        warden['errors']['email_taken'] = true;
-        invalidWarden.push(warden);
-      } catch (e) {
-
-        if (validator.isEmail(warden['email'])) {
-          // if(new BlacklistedEmails().isEmailBlacklisted(warden['email'])){
-          //   warden['errors']['blacklisted'] = true;
-          //   invalidWarden.push(warden);
-          // }else{
+        for (const p of peep) {
+            p['errors'] = {};
             const userInvitation = new UserInvitation();
             const tokenModel = new Token();
             const tokenStr = tokenModel.generateRandomChars(10);
-            warden['invited_by_user'] = req.user.user_id;
-            warden['account_id'] = req.user.account_id;
+            const userEmail = new User();
+            const locModel = new Location();
+            const parentLocModel = new Location();
+            const userEmRole = new UserEmRoleRelation();
+            const emRoles = await userEmRole.getEmRoles();
+            try {
+                const dbData = await userEmail.getByEmail(p['email']);
+                p['errors']['email_taken'] = true;
+                invalidPeep.push(p);
+            } catch (e) {
+                if (validator.isEmail(p['email'])) {
 
-            const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
-            await userInvitation.create(warden);
-            await tokenModel.create({
-              'token': tokenStr,
-              'action': 'invitation',
-              'verified': 0,
-              'expiration_date': expDate,
-              'id': userInvitation.ID(),
-              'id_type': 'user_invitations_id'
-            });
+                    p['invited_by_user'] = req.user.user_id;
+                    p['account_id'] = accountId;
+                    p['was_used'] = (isAccountEmailExempt) ? 1 : 0;
+                    const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+                    await userInvitation.create(p);
 
-            const opts = {
-              from : '',
-              fromName : 'EvacConnect',
-              to : [],
-              cc: [],
-              body : '',
-              attachments: [],
-              subject : 'EvacConnect Warden Nomination'
-            };
-            const email = new EmailSender(opts);
-            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
-            let emailBody = email.getEmailHTMLHeader();
-            emailBody += `<h3 style="text-transform:capitalize;">Hi ${warden['first_name']} ${warden['last_name']},</h3> <br/>
-            <h4>You are nominated to be a Warden.</h4> <br/>
-            <h5>Click on the link below to setup your password.</h5> <br/>
-            <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+                    if(isAccountEmailExempt){
+                        let user  = new User(),
+                        encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max');
 
-            emailBody += email.getEmailHTMLFooter();
-            email.assignOptions({
-              body : emailBody,
-              to: [warden['email']],
-              cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
-            });
-            email.send((data) => console.log(data),
-                       (err) => console.log(err)
-                      );
-          // }
-        } else {
-          warden['errors']['invalid'] = true;
-          invalidWarden.push(warden);
+                        await user.create({
+                            'first_name': p['first_name'],
+                            'last_name': p['last_name'],
+                            'password': encryptedPassword,
+                            'email': p['email'],
+                            'token': tokenStr,
+                            'account_id': accountId,
+                            'invited_by_user': req['user']['user_id'],
+                            'can_login': 1,
+                            'mobile_number': p['contact_number'],
+                            'mobility_impaired' : 1
+                        });
+
+                        let tokenModel = new Token();
+                        await tokenModel.create({
+                            'token' : tokenStr,
+                            'action' : 'verify',
+                            'id' : user.ID(),
+                            'id_type' : 'user_id',
+                            'verified' : 1
+                        });
+
+                        let locationAcctUser = new LocationAccountUser();
+                        await locationAcctUser.create({
+                            'location_id': p['location_id'],
+                            'account_id': accountId,
+                            'user_id': user.ID(),
+                            'role_id': p['eco_role_id']
+                        });
+
+                        if(parseInt(p['role_id']) == 1 || parseInt(p['role_id']) == 2){
+                            const userRoleRel = new UserRoleRelation();
+                            await userRoleRel.create({
+                                'user_id': user.ID(),
+                                'role_id': p['role_id']
+                            });
+                        }else{
+                            const EMRoleUserRole = new UserEmRoleRelation();
+                            await EMRoleUserRole.create({
+                                'user_id': user.ID(),
+                                'em_role_id': p['eco_role_id'],
+                                'location_id': p['location_id']
+                            });
+                        }
+
+                    }
+
+                    if(isAccountEmailExempt == false){ 
+                        await tokenModel.create({
+                            'token': tokenStr,
+                            'action': 'invitation',
+                            'verified': 0,
+                            'expiration_date': expDate,
+                            'id': userInvitation.ID(),
+                            'id_type': 'user_invitations_id'
+                        });
+
+                        locModel.setID(p.location_id);
+                        let location = await locModel.load();
+                        let parentName = '';
+                        if(location['parent_id'] > -1){
+                            parentLocModel.setID(location['parent_id']);
+                            await parentLocModel.load();
+                            parentName = <string>parentLocModel.get('name');
+                        }
+                        let locText = '';
+                        if(parentName.length > 0){
+                            locText += parentName+', ';
+                        }
+                        locText += location['name'];
+
+                        const opts = {
+                            from : '',
+                            fromName : 'EvacConnect',
+                            to : [],
+                            cc: [],
+                            body : '',
+                            attachments: [],
+                            subject : 'EvacConnect Warden Nomination'
+                        };
+                        const email = new EmailSender(opts);
+                        const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+                        let emailBody = email.getEmailHTMLHeader();
+
+                        let roleText = ``;
+                        if(p.role_id == 1){
+                            roleText += ' FRP '
+                        }else if(p.role_id == 2){
+                            roleText += ' TRP '
+                        }
+
+                        if(p.eco_role_id >= 8){
+                            let emRole = '';
+                            for(let i in emRoles){
+                                if(emRoles[i]['em_roles_id'] == p.eco_role_id){
+                                    emRole = emRoles[i]['role_name'];
+                                }
+                            }
+                            roleText += ' AND '+emRole;
+                        }
+
+                        emailBody += `<h3 style="text-transform:capitalize;">Hi ${p['first_name']} ${p['last_name']},</h3> <br/>
+                        <h4>You are invited to be ${roleText} in ${locText}.</h4> <br/>
+                        <h5>Click on the link below to setup your password.</h5> <br/>
+                        <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+                        emailBody += email.getEmailHTMLFooter();
+                        email.assignOptions({
+                            body : emailBody,
+                            to: [p['email']],
+                            cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
+                        });
+                        email.send((data) => console.log(data),
+                            (err) => console.log(err)
+                            );
+                        
+                    }
+
+
+
+                } else {
+                    p['errors']['invalid'] = true;
+                    invalidPeep.push(p);
+                }
+            }
         }
 
-      }
+        return invalidPeep;
     }
-    return invalidWarden;
-  }
+
+    public async addBulkWardenByForm(req: AuthRequest, res: Response) {
+        let wardens = JSON.parse(req.body.wardens),
+        userRoleRel = new UserRoleRelation(),
+        invalidWarden = [],
+        role = await userRoleRel.getByUserId(req.user.user_id, true),
+        accountId = req.user.account_id,
+        account = {},
+        accountModel = new Account(accountId),
+        isAccountEmailExempt = false;
+
+        try{
+            let account = <any> await accountModel.load();
+            isAccountEmailExempt = (account.email_add_user_exemption == 1) ? true : false;
+        }catch(e){
+
+        }
+
+        try{
+            for (const warden of wardens) {
+                const user = new User();
+                warden['errors'] = {};
+
+                try {
+                    const dbData = await user.getByEmail(warden['email']);
+                    warden['errors']['email_taken'] = true;
+                    invalidWarden.push(warden);
+                } catch (e) {
+
+                    if (validator.isEmail(warden['email'])) {
+                        const userInvitation = new UserInvitation();
+                        const tokenModel = new Token();
+                        const tokenStr = tokenModel.generateRandomChars(10);
+                        warden['invited_by_user'] = req.user.user_id;
+                        warden['account_id'] = accountId;
+
+                        const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+                        await userInvitation.create(warden);
+
+                        if(isAccountEmailExempt){
+                            let user  = new User(),
+                            encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max');
+
+                            await user.create({
+                                'first_name': warden['first_name'],
+                                'last_name': warden['last_name'],
+                                'password': encryptedPassword,
+                                'email': warden['email'],
+                                'token': tokenStr,
+                                'account_id': accountId,
+                                'invited_by_user': req['user']['user_id'],
+                                'can_login': 1,
+                                'mobile_number': warden['contact_number']
+                            });
+
+                            let tokenModel = new Token();
+                            await tokenModel.create({
+                                'token' : tokenStr,
+                                'action' : 'verify',
+                                'id' : user.ID(),
+                                'id_type' : 'user_id',
+                                'verified' : 1
+                            });
+
+                            let locationAcctUser = new LocationAccountUser();
+                            await locationAcctUser.create({
+                                'location_id': warden['location_id'],
+                                'account_id': accountId,
+                                'user_id': user.ID(),
+                                'role_id': warden['eco_role_id']
+                            });
+
+                            const EMRoleUserRole = new UserEmRoleRelation();
+                            await EMRoleUserRole.create({
+                                'user_id': user.ID(),
+                                'em_role_id': warden['eco_role_id'],
+                                'location_id': warden['location_id']
+                            });
+                        }
+
+                        if(isAccountEmailExempt == false){ 
+                            await tokenModel.create({
+                                'token': tokenStr,
+                                'action': 'invitation',
+                                'verified': 0,
+                                'expiration_date': expDate,
+                                'id': userInvitation.ID(),
+                                'id_type': 'user_invitations_id'
+                            });
+
+                            const opts = {
+                                from : '',
+                                fromName : 'EvacConnect',
+                                to : [],
+                                cc: [],
+                                body : '',
+                                attachments: [],
+                                subject : 'EvacConnect Warden Nomination'
+                            };
+                            const email = new EmailSender(opts);
+                            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+                            let emailBody = email.getEmailHTMLHeader();
+                            emailBody += `<h3 style="text-transform:capitalize;">Hi ${warden['first_name']} ${warden['last_name']},</h3> <br/>
+                            <h4>You are nominated to be a Warden.</h4> <br/>
+                            <h5>Click on the link below to setup your password.</h5> <br/>
+                            <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+                            emailBody += email.getEmailHTMLFooter();
+                            email.assignOptions({
+                                body : emailBody,
+                                to: [warden['email']],
+                                cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
+                            });
+                            email.send((data) => console.log(data),
+                                (err) => console.log(err)
+                                );
+                        }
+
+                    } else {
+                        warden['errors']['invalid'] = true;
+                        invalidWarden.push(warden);
+                    }
+
+                }
+            }
+        }catch(e){
+
+        }
+
+
+        return invalidWarden;
+    }
+
   public async retrieveWardenInvationInfo(req: Request, res: Response, next: NextFunction) {
 
     let locationsOnAccount = [];
@@ -822,8 +947,8 @@ export class TeamRoute extends BaseRoute {
     }
   }
 
-  public async buildWardenList(req: AuthRequest, res: Response, archived?){
-      let accountId = req['user']['account_id'],
+    public async buildWardenList(req: AuthRequest, res: Response, archived?){
+        let accountId = req.user.account_id,
             userID = req['user']['user_id'],
             locationAccountUser = new LocationAccountUser(),
             response = {
@@ -832,16 +957,66 @@ export class TeamRoute extends BaseRoute {
                 message : ''
             },
             allParents = [],
-            allUsersModel = new User(),
+            allUsersModel = new UserEmRoleRelation(),
             allUsers = <any>[],
             allUsersIds = [],
             emRolesModel = new UserEmRoleRelation(),
             emRoles = await emRolesModel.getEmRoles(),
-            emRolesIndexedId = {};
+            emRolesIndexedId = {},
+            accountModel = new Account();
 
         if(!archived){ archived = 0; }
 
-        allUsers = await allUsersModel.getByAccountId(accountId, archived);
+        let allowedRoleIds = [0,1,2];
+        for(let i in emRoles){
+            allowedRoleIds.push(emRoles[i]['em_roles_id']);
+            emRolesIndexedId[ emRoles[i]['em_roles_id'] ] = emRoles[i];
+        }
+
+        let locationsOnAccount = await accountModel.getLocationsOnAccount(userID, 1, archived),
+            locations = <any> [];
+        
+        for (let loc of locationsOnAccount) {
+            locations.push(loc);
+        }
+
+        let locationsData = [];
+        for (let loc of locations) {
+            let
+                deepLocModel = new Location(),
+                deepLocations = <any> [];
+            
+            if(loc.parent_id == -1){
+                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                deepLocations.push(loc);
+            }else{
+                let ancLocModel = new Location(),
+                    ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
+
+                for(let anc of ancestores){
+                    if(anc.parent_id == -1){
+                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
+                        deepLocations.push(anc);
+                    }
+                }
+            }
+
+            let isIn = false;
+            for(let dl of deepLocations){
+                for(let ld of locationsData){
+                    if(dl.location_id == ld.location_id){
+                        isIn = true;
+                    }
+                }
+
+                if(!isIn){
+                    locationsData.push(dl);
+                }
+            }
+        }
+
+        allUsers = await allUsersModel.getUsersByAccountId(accountId, archived);
+        // response['allUsers'] = allUsers;
 
         for(let user of allUsers){
             allUsersIds.push(user.user_id);
@@ -852,78 +1027,48 @@ export class TeamRoute extends BaseRoute {
             }catch(e){
                 user['profile_pic'] = '';
             }
-        }
 
-        let allowedRoleIds = [0];
-        for(let i in emRoles){
-            allowedRoleIds.push(emRoles[i]['em_roles_id']);
-            emRolesIndexedId[ emRoles[i]['em_roles_id'] ] = emRoles[i];
-        }
-
-        let sqlInLocation = ` (
-              SELECT
-                locations.location_id
-              FROM
-                locations
-              INNER JOIN
-                location_account_user LAU
-              ON
-                locations.location_id = LAU.location_id
-              WHERE
-                LAU.account_id = ${accountId}
-              AND
-                locations.archived = 0
-              AND
-                LAU.user_id = ${userID}
-              AND LAU.archived = 0
-              GROUP BY
-                locations.location_id
-              ORDER BY
-                locations.location_id
-            )`;
-
-        let arrWhere = [];
-            arrWhere.push( ["account_id = "+accountId ] );
-            arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
-            arrWhere.push( ["lau.role_id IN ("+allowedRoleIds.join(',')+")" ] );
-
-        let locations = await locationAccountUser.getMany(arrWhere);
-        for(let i in locations){
-          if(locations[i]['parent_name'] == null){
-            locations[i]['parent_name'] = '';
-          }
-        }
-
-        response['locations'] = locations;
-
-        let allowedUsersId = [];
-        for(let i in locations){
-            if( allowedUsersId.indexOf( locations[i]['user_id'] ) == -1  ){
-                allowedUsersId.push(locations[i]['user_id']);
-            }
+            user['locations'] = [];
+            user['roles'] = [];
         }
 
         let toSendData = [];
         for(let user of allUsers){
-            if( allowedUsersId.indexOf(user.user_id) > -1 ){
-                user['locations'] = <any>[];
-                for(let l in locations){
-                    if(
-                        ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )
-                        && locations[l]['user_id'] == user.user_id
-                        ){
-                        user['locations'].push(locations[l]);
+            let userLocData = {
+                    user_id : user.user_id,
+                    location_id : 0,
+                    name : '',
+                    parent_id : -1,
+                    parent_name : '',
+                    location_role_id : 0
+                };
+
+            for(let loc of locationsData){
+                if(loc.location_id == user.location_id){
+                    userLocData.location_id = loc.location_id;
+                    userLocData.name = loc.name;
+                    userLocData.parent_id = loc.parent_id;
+                    userLocData.location_role_id = user.em_role_id;
+                    
+                    if(loc.parent_id > -1){
+                        for(let par of locationsData){
+                            if(par.location_id == loc.parent_id){
+                                userLocData.parent_name = par.name;
+                            }
+                        }
                     }
                 }
-                toSendData.push(user);
             }
+
+            user['locations'].push(userLocData);
+            toSendData.push(user);
         }
+
 
         for(let user of toSendData){
             let locs = user.locations;
-            user['roles'] = [];
+            
             let tempUserRoles = {};
-
             for(let loc of locs){
                 let roleName = 'General Occupant',
                     roleId = 8;
@@ -931,34 +1076,21 @@ export class TeamRoute extends BaseRoute {
                 if( emRolesIndexedId[ loc.location_role_id ] ){
                     roleName = emRolesIndexedId[ loc.location_role_id ]['role_name'];
                     roleId = loc.location_role_id;
-                }else if( emRolesIndexedId[ loc.em_roles_id ] ){
-                    roleName = emRolesIndexedId[ loc.em_roles_id ]['role_name'];
-                    roleId = loc.em_roles_id;
                 }
 
-                if(!tempUserRoles[roleId]){
-                    tempUserRoles[roleId] = roleId;
-                    user['roles'].push({
-                        role_name : roleName, role_id : roleId
-                    });
-                }
-            }
+                user['roles'].push({
+                    role_name : roleName, role_id : roleId
+                });
 
-            user['training_applicable'] = true;
-            for(let role of user['roles']){
-                if(role.em_roles_id == 12 || role.em_roles_id == 13){
-                    if(user['roles'].length == 1){
-                        user['training_applicable'] = false;
-                    }
-                }
             }
         }
 
         response.data = toSendData;
+        // response['locations'] = locationsData;
         response.status = true;
         res.statusCode = 200;
         res.send(response);
-  }
+    }
 
   /*public async buildWardenList(req: AuthRequest, res: Response, archived?) {
 
@@ -1030,187 +1162,177 @@ export class TeamRoute extends BaseRoute {
     return newWardenResponse;
   }*/
 
-  public async buildPEEPList(req: AuthRequest, res:Response, archived?){
-    let accountId = req['user']['account_id'],
-      userID = req['user']['user_id'],
-      locationAccountUser = new LocationAccountUser(),
-      response = {
-          data : <any>[],
-          status : false,
-          message : ''
-      },
-      allParents = [],
-      allUsersModel = new User(),
-      allUsers = <any>[],
-      allUsersIds = [],
-      emRolesModel = new UserEmRoleRelation(),
-      emRoles = await emRolesModel.getEmRoles(),
-      emRolesIndexedId = {};
+    public async buildPEEPList(req: AuthRequest, res:Response, archived?){
+        let accountId = req['user']['account_id'],
+            userID = req['user']['user_id'],
+            locationAccountUser = new LocationAccountUser(),
+            response = {
+                data : <any>[],
+                status : false,
+                message : ''
+            },
+            allParents = [],
+            allUsersModel = new User(),
+            allUsers = <any>[],
+            allUsersIds = [],
+            emRolesModel = new UserEmRoleRelation(),
+            emRoles = await emRolesModel.getEmRoles(),
+            emRolesIndexedId = {},
+            accountModel = new Account();
 
-    if(!archived){ archived = 0; }
+        if(!archived){ archived = 0; }
 
-    allUsers = await allUsersModel.getImpairedByAccountId(accountId, archived);
-
-    for(let user of allUsers){
-        allUsersIds.push(user.user_id);
-        let filesModel = new Files();
-        try{
-            let profRec = await filesModel.getByUserIdAndType( user.user_id, 'profile' );
-            user['profile_pic'] = profRec[0]['url'];
-        }catch(e){
-            user['profile_pic'] = '';
+        let locationsOnAccount = await accountModel.getLocationsOnAccount(req.user.user_id, 1, archived),
+            locations = <any> [];
+        
+        for (let loc of locationsOnAccount) {
+            locations.push(loc);
         }
-    }
 
-    let allowedRoleIds = [0,1,2];
-    for(let i in emRoles){
-        allowedRoleIds.push(emRoles[i]['em_roles_id']);
-        emRolesIndexedId[ emRoles[i]['em_roles_id'] ] = emRoles[i];
-    }
+        let locationsData = [];
+        for (let loc of locations) {
+            let
+                deepLocModel = new Location(),
+                deepLocations = <any> [];
+            
+            if(loc.parent_id == -1){
+                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                deepLocations.push(loc);
+            }else{
+                let ancLocModel = new Location(),
+                    ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
 
-    let sqlInLocation = ` (
-          SELECT
-            locations.location_id
-          FROM
-            locations
-          INNER JOIN
-            location_account_user LAU
-          ON
-            locations.location_id = LAU.location_id
-          WHERE
-            LAU.account_id = ${accountId}
-          AND
-            locations.archived = 0
-          AND
-            LAU.user_id = ${userID}
-          AND LAU.archived = 0
-          GROUP BY
-            locations.location_id
-          ORDER BY
-            locations.location_id
-        )`;
-
-    let arrWhere = [];
-        arrWhere.push( ["account_id = "+accountId ] );
-        arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
-        arrWhere.push( ["lau.role_id IN ("+allowedRoleIds.join(',')+")" ] );
-
-    let locations = await locationAccountUser.getMany(arrWhere);
-
-    response['locations'] = locations;
-
-    let allowedUsersId = [];
-    for(let i in locations){
-        if( allowedUsersId.indexOf( locations[i]['user_id'] ) == -1  ){
-            allowedUsersId.push(locations[i]['user_id']);
-        }
-    }
-
-    let toSendData = [];
-    for(let user of allUsers){
-        if( allowedUsersId.indexOf(user.user_id) > -1 ){
-            user['locations'] = <any>[];
-            for(let l in locations){
-                if(
-                    ( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )
-                    && locations[l]['user_id'] == user.user_id
-                    ){
-                    user['locations'].push(locations[l]);
+                for(let anc of ancestores){
+                    if(anc.parent_id == -1){
+                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
+                        deepLocations.push(anc);
+                    }
                 }
             }
+
+            let isIn = false;
+            for(let dl of deepLocations){
+                for(let ld of locationsData){
+                    if(dl.location_id == ld.location_id){
+                        isIn = true;
+                    }
+                }
+
+                if(!isIn){
+                    locationsData.push(dl);
+                }
+            }
+        }
+
+        // response['locations'] = locationsData;
+
+        allUsers = await allUsersModel.getImpairedByAccountId(accountId, archived);
+
+        // response['allUsers'] = allUsers;
+
+        for(let user of allUsers){
+            allUsersIds.push(user.user_id);
+            
+            let filesModel = new Files(),
+                arrWhere = [];
+
+            try{
+                let profRec = await filesModel.getByUserIdAndType( user.user_id, 'profile' );
+                user['profile_pic'] = profRec[0]['url'];
+            }catch(e){
+                user['profile_pic'] = '';
+            }
+
+            arrWhere.push( "user_id = "+user["user_id"] );
+
+            user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
+
+            for(let userMobil of user.mobility_impaired_details){
+                userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+            }
+
+            user['locations'] = [];
+        }
+
+        let toSendData = [];
+        for(let user of allUsers){
+            let locAccUserModel = new LocationAccountUser(),
+                usersLocsMap = <any> await locAccUserModel.getByUserId(user.user_id),
+                userLocData = {
+                    user_id : user.user_id,
+                    location_id : 0,
+                    name : '',
+                    parent_id : -1,
+                    parent_name : ''
+                };
+
+            for(let map of usersLocsMap){
+                for(let loc of locationsData){
+                    if(loc.location_id == map.location_id){
+                        userLocData.location_id = loc.location_id;
+                        userLocData.name = loc.name;
+                        userLocData.parent_id = loc.parent_id;
+                        
+                        if(loc.parent_id > -1){
+                            for(let par of locationsData){
+                                if(par.location_id == loc.parent_id){
+                                    userLocData.parent_name = par.name;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            user['locations'].push(userLocData);
             toSendData.push(user);
         }
-    }
 
-    for(let user of toSendData){
-        let locs = user.locations,
-          tempUserRoles = {},
-          arrWhere = [];
 
-        user['roles'] = [];
-        arrWhere.push( "user_id = "+user["user_id"] );
-
-        user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
-
-        for(let userMobil of user.mobility_impaired_details){
-          userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
-        }
-
-        for(let loc of locs){
-            let roleName = 'General Occupant',
-                roleId = 8;
-
-            if( emRolesIndexedId[ loc.location_role_id ] ){
-                roleName = emRolesIndexedId[ loc.location_role_id ]['role_name'];
-                roleId = loc.location_role_id;
-            }else if( emRolesIndexedId[ loc.em_roles_id ] ){
-                roleName = emRolesIndexedId[ loc.em_roles_id ]['role_name'];
-                roleId = loc.em_roles_id;
-            }
-
-            if(!tempUserRoles[roleId]){
-                tempUserRoles[roleId] = roleId;
-                user['roles'].push({
-                    role_name : roleName, role_id : roleId
-                });
-            }
-        }
-
-        user['training_applicable'] = true;
-        for(let role of user['roles']){
-            if(role.em_roles_id == 12 || role.em_roles_id == 13){
-                if(user['roles'].length == 1){
-                    user['training_applicable'] = false;
-                }
-            }
-        }
-    }
-
-    let userInviModel = new UserInvitation(),
+        let userInviModel = new UserInvitation(),
         whereInvi = [];
 
-      whereInvi.push([ 'account_id = '+accountId ]);
-      whereInvi.push([ 'mobility_impaired = 1' ]);
-      whereInvi.push([ 'was_used = 0' ]);
+        whereInvi.push([ 'account_id = '+accountId ]);
+        whereInvi.push([ 'mobility_impaired = 1' ]);
+        whereInvi.push([ 'was_used = 0' ]);
 
-
-    if(!archived){
-      whereInvi.push([ 'archived = 0' ]);
-    }else{
-      whereInvi.push([ 'archived = '+archived ]);
-    }
-
-    try{
-      let usersInvited:any = await userInviModel.getWhere(whereInvi);
-      for(let user of usersInvited){
-        user['locations'] = [];
-        user['profile_pic'] = '';
-        user['mobility_impaired_details'] = [];
-
-        let arrWhere = [];
-        arrWhere.push( "user_invitations_id = "+user["user_invitations_id"] );
-
-        user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
-        for(let userMobil of user.mobility_impaired_details){
-          userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+        if(!archived){
+        whereInvi.push([ 'archived = 0' ]);
+        }else{
+        whereInvi.push([ 'archived = '+archived ]);
         }
 
-        user.locations.push({
-          location_id : user.location_id,
-          name : user.location_name,
-          parent_name : (user.parent_name == null) ? '' : user.parent_name
-        });
+        try{
+            let usersInvited:any = await userInviModel.getWhere(whereInvi);
+            for(let user of usersInvited){
+                user['locations'] = [];
+                user['profile_pic'] = '';
+                user['mobility_impaired_details'] = [];
 
-        toSendData.push(user);
-      }
-    }catch(e){}
+                let arrWhere = [];
+                arrWhere.push( "user_invitations_id = "+user["user_invitations_id"] );
+
+                user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
+                for(let userMobil of user.mobility_impaired_details){
+                    userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+                }
+
+                user.locations.push({
+                    location_id : user.location_id,
+                    name : user.location_name,
+                    parent_name : (user.parent_name == null) ? '' : user.parent_name
+                });
+
+                toSendData.push(user);
+            }
+        }catch(e){}
 
 
-    response.data = toSendData;
-    response.status = true;
-    res.statusCode = 200;
-    res.send(response);
-  }
+        response.data = toSendData;
+        response.status = true;
+        res.statusCode = 200;
+        res.send(response);
+    }
 
   /**
   public async buildPEEPList(req: AuthRequest, res: Response, archived?) {

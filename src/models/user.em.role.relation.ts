@@ -276,7 +276,7 @@ export class UserEmRoleRelation extends BaseClass {
         return new Promise((resolve, reject) => {
             let sql_load = `
                 SELECT 
-                    u.*, em.em_role_id, er.role_name
+                    u.*, em.em_role_id, em.location_id, er.role_name
                 FROM user_em_roles_relation em
                 INNER JOIN users u ON em.user_id = u.user_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
@@ -288,6 +288,7 @@ export class UserEmRoleRelation extends BaseClass {
                 if (error) {
                     return console.log(error);
                 }
+
                 this.dbData = results;
                 resolve(results);
             });

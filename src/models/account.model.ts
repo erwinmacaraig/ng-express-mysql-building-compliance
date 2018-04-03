@@ -146,7 +146,7 @@ export class Account extends BaseClass {
                 location_id = ?, account_type = ?, account_directory_name = ?,
                 archived = ?, block_access = ?, account_code = ?,
                 default_em_role = ?, epc_committee_on_hq = ?, trp_code = ?, account_domain = ?,
-                key_contact = ?, time_zone = ?
+                key_contact = ?, time_zone = ?, email_add_user_exemption = ?
                 WHERE account_id = ? `;
           const param = [
             ('lead' in this.dbData) ? this.dbData['lead'] : 0,
@@ -173,6 +173,7 @@ export class Account extends BaseClass {
             ('account_domain' in this.dbData) ? this.dbData['account_domain'] : '',
             ('key_contact' in this.dbData) ? this.dbData['key_contact'] : "",
             ('time_zone' in this.dbData) ? this.dbData['time_zone'] : "",
+            ('email_add_user_exemption' in this.dbData) ? this.dbData['email_add_user_exemption'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             this.ID() ? this.ID() : 0
           ];
@@ -212,8 +213,9 @@ export class Account extends BaseClass {
             trp_code,
             account_domain,
             key_contact,
-            time_zone
-          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            time_zone,
+            email_add_user_exemption
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
           `;
           const param = [
             ('lead' in this.dbData) ? this.dbData['lead'] : 0,
@@ -239,7 +241,8 @@ export class Account extends BaseClass {
             ('trp_code' in this.dbData) ? this.dbData['trp_code'] : '',
             ('account_domain' in this.dbData) ? this.dbData['account_domain'] : '',
             ('key_contact' in this.dbData) ? this.dbData['key_contact'] : "",
-            ('time_zone' in this.dbData) ? this.dbData['time_zone'] : ""
+            ('time_zone' in this.dbData) ? this.dbData['time_zone'] : "",
+            ('email_add_user_exemption' in this.dbData) ? this.dbData['email_add_user_exemption'] : 0
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_insert, param, (err, results, fields) => {

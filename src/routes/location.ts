@@ -18,6 +18,7 @@ import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calc
 import * as fs from 'fs';
 import * as path from 'path';
 import * as CryptoJS from 'crypto-js';
+import * as session from 'express-session';
 const validator = require('validator');
 const md5 = require('md5');
 const moment = require('moment');
@@ -1165,6 +1166,10 @@ const defs = require('../config/defs.json');
                 }
             }
 
+            for(let deep of deepLocations){
+                deep['sublocations'] = [];
+            }
+
             let locMerged = this.addChildrenLocationToParent(deepLocations),
                 respLoc = (locMerged[0]) ? locMerged[0] : locMerged;
 
@@ -1187,15 +1192,15 @@ const defs = require('../config/defs.json');
             }
 
             respLoc['num_tenants'] = numTenants;
-
-            let locAccUserModel = new LocationAccountUser(),
-            locAccUser = <any> await locAccUserModel.getWardensByAccountIdWhereInLocationId(accountId, allSubLocationIds.join(',') ); // <- to remove
+            
+            let emRoleModel = new UserEmRoleRelation(),
+            locAccUser = <any> await emRoleModel.getUsersInLocationIds( allSubLocationIds.join(',') );
 
             respLoc['num_wardens'] = 0;
-            try{
-                const emrolesOnThisLocation = <any> await deepLocModel.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], respLoc.location_id);
-                respLoc['num_wardens'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
-            }catch(e){}
+            // try{
+            //     const emrolesOnThisLocation = <any> await deepLocModel.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], respLoc.location_id);
+            //     respLoc['num_wardens'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
+            // }catch(e){}
 
             let impairedCount = 0 ;
             for(let x in locAccUser){
@@ -1227,96 +1232,84 @@ const defs = require('../config/defs.json');
 	}
 
     public async getLocationsHierarchyByAccount(req: AuthRequest, res: Response){
-        const accountId = req.user.account_id;
-        const account = new Account(accountId);
-        let locationsOnAccount = [];
-        let location;
-        let data;
-        let r = 100;
-        const userRoleRel = new UserRoleRelation();
-        try {
-          const roles = await userRoleRel.getByUserId(req.user.user_id);
-          for (let i = 0; i < roles.length; i++) {
-            if(r > parseInt(roles[i]['role_id'], 10)) {
-                r = roles[i]['role_id'];
-            }
-          }
-        } catch(e) {
-          console.log(e, 'LocationRoute.getLocationsHierarchyByAccount');
-        }
+        const accountId = req.user.account_id,
+            account = new Account(accountId);
 
-
-
+        let locationsOnAccount = [],
+            locations = <any> [],
+            roles = <any> [],
+            response = {
+                locations : <any> [],
+                deepLocations : <any> []
+            };
 
         try {
-          locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, r);
-        } catch(e) {
-          console.log('locationRoute.getLocationsHierarchyByAccount', e);
-          locationsOnAccount = [];
-        }
+            // FRP & TRP
+            let userRoleModel = new UserRoleRelation(),
+                roles = await userRoleModel.getByUserId(req.user.user_id);
 
+            locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 1);
 
-        let response = [],
-        allAncestries = [];
-
-        for (let loc of locationsOnAccount) {
-            let locAncestriesModel = new Location();
-            let ancetries;
-            try {
-              ancetries = await locAncestriesModel.getAncestries(loc.location_id);
-            } catch(e) {
-              console.log('Error getting ancestries via getAncentries method, LocationRoute.getLocationsHierarchyByAccount');
-              ancetries = {};
+            for (let loc of locationsOnAccount) {
+                locations.push(loc);
             }
 
-            for(let i in ancetries){
-                allAncestries.push(ancetries[i]);
+        } catch (e) {
+            // Warden or Users
+            try{
+                let userEmRole = new UserEmRoleRelation(),
+                emRoles = <any> await userEmRole.getEmRolesByUserId(req.user.user_id);
+
+                for (let em of emRoles) {
+                    locations.push(em);
+                }
+
+            }catch(e){  }
+        }
+
+        let parentLoc = [];
+        for (let loc of locations) {
+            let 
+                deepLocModel = new Location(),
+                deepLocations = <any> [];
+
+            if(loc.parent_id == -1){
+                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                deepLocations.push(loc);
+            }else{
+                let ancLocModel = new Location(),
+                    ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
+
+                for(let anc of ancestores){
+                    if(anc.parent_id == -1){
+                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
+                        deepLocations.push(anc);
+                    }
+                }
+            }
+
+            for(let deep of deepLocations){
+                deep['sublocations'] = [];
+            }
+
+            let locMerged = this.addChildrenLocationToParent(deepLocations),
+                respLoc = (locMerged[0]) ? locMerged[0] : locMerged;
+
+            let alreadyHave = false;
+            for(let parent of parentLoc){
+                if(parent.location_id == respLoc.location_id){
+                    alreadyHave = true;
+                }
+            }
+
+            if(!alreadyHave){
+                parentLoc.push(respLoc);
             }
         }
 
-        let mergedLocs = this.mergeToParent(allAncestries),
-        filteredLocs = [];
+        response.locations = parentLoc;
 
-        for(let i in mergedLocs){
-            let isIn = false;
-            for(let x in filteredLocs){
-              if(filteredLocs[x]['location_id'] == mergedLocs[i]['location_id']){
-                  isIn = true;
-              }
-            }
-            if(!isIn){
-              filteredLocs.push(mergedLocs[i]);
-            }
-        }
-
-
-        let finalLocs = [];
-        for(let loc of filteredLocs){
-          let deepLocs = new Location(),
-            locations,
-            toMerge = [ JSON.parse(JSON.stringify(loc)) ];
-          try {
-            locations = await deepLocs.getDeepLocationsByParentId(loc.location_id);
-          } catch(e) {
-            console.log(e, 'LocationRoute.getLocationsHierarchyByAccount');
-            locations = {};
-          }
-
-          for(let i in locations){
-            toMerge.push(  JSON.parse(JSON.stringify(locations[i])) );
-          }
-
-          let merged = this.mergeToParent(toMerge);
-          if(merged.length > 0){
-            finalLocs.push( merged[0]  );
-          }
-
-        }
-
-
-        res.send( {
-            locations : finalLocs
-        });
+        res.send(response);
     }
 
 	public getDeepLocationsById(req: AuthRequest, res: Response){
