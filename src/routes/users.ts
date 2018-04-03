@@ -204,6 +204,58 @@ export class UsersRoute extends BaseRoute {
         });
 
       });
+
+      router.post('/users/email-certificate/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+          const user = new User(req.body.userId);
+          const userDbData = await user.load();
+          const certDbData = await user.getAllCertifications({
+            'certifications_id': req.body.certId
+          });
+
+          const link = `https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s=${certDbData[0]['scorm_course_id']}&amp;c=${req.body.certId}`;
+          const opts = {
+            from : '',
+            fromName : 'EvacConnect',
+            to : [],
+            cc: [],
+            body : '',
+            attachments: [],
+            subject : 'EvacConnect Training Certificate'
+          };
+          const email = new EmailSender(opts);
+          let emailBody = email.getEmailHTMLHeader();
+          emailBody += `<h3 style="text-transform:capitalize;">Hi ${userDbData['first_name']} ${userDbData['last_name']},</h3> <br/>
+            <h4>Please click on the link below to access your certificate.</h4> <br/>
+
+            Access your ${certDbData[0]['training_requirement_name']} certificate <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">here</a> <br/>`;
+
+          emailBody += email.getEmailHTMLFooter();
+          email.assignOptions({
+            body : emailBody,
+            to : [userDbData['email']],
+            cc: [],
+          });
+          email.send((data) => {
+            return res.status(200).send({
+              'status': 'Success',
+              'msg': 'Certificate sent successfully'
+            });
+          },(err) => {
+            console.log(err, 'UsersRoute.email-certificate. Error sending certificate via email');
+            res.status(400).send({
+              'status': 'Fail',
+              'msg': 'Problem sending certificate'
+            });
+          });
+        } catch(e) {
+          console.log(e, 'UsersRoute.email-certificate');
+          res.status(400).send({
+            'status': 'Fail',
+            'msg': 'Problem sending certificate'
+          });
+        }
+      });
   }
 
   public async checkIfAdmin(req: Request , res: Response){
@@ -881,7 +933,7 @@ export class UsersRoute extends BaseRoute {
         try{
 
             let userModel = new User(userId),
-            certificates = await userModel.getAllCertifications();
+            certificates = await userModel.getAllCertifications({'pass': 1});
             response.data.certificates = certificates;
 
             response.data.user = await userModel.load();
