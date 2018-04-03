@@ -15,7 +15,7 @@ export class TrainingCertification extends BaseClass {
   }
   public load(): Promise<object> {
     return new Promise((resolve, reject) => {
-      const sql = `SELECT * FROM certifications`;
+      const sql = `SELECT * FROM certifications WHERE certifications_id = ?`;
       const connection = db.createConnection(dbconfig);
       connection.query(sql, [this.id], (error, results, fields) => {
         if (error) {

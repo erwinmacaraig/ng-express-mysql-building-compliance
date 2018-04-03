@@ -111,7 +111,7 @@ export class TrainingProfile implements OnInit, OnDestroy {
         }
 
       }
-      // console.log(this.viewData.locations);
+
       // console.log(this.seenRequiredTrainings);
 			for(let x in this.viewData.certificates){
 				this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
@@ -436,5 +436,14 @@ export class TrainingProfile implements OnInit, OnDestroy {
 
     ngOnDestroy(){
 
+    }
+
+    emailThisCertificate(userId=0, certId=0) {
+    this.userService.emailCertificate(userId, certId).subscribe(() => {
+      alert('Certificate sent successfully!');
+    },
+    (e) => {
+      alert('There was a problem sending certificate.');
+    });
     }
 }
