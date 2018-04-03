@@ -60,22 +60,25 @@ export class CourseRoute extends BaseRoute {
 	constructor() {
 		super();
 	}
-	public async getMyCourses(req: AuthRequest, res: Response){
-		let userId = req.params.user_id,
-		response = {
-			status : false, data : [], message : ''
-		},
-		courseUserRelation = new CourseUserRelation();
-
-		let courses = <any> await courseUserRelation.getAllCourseForUser(userId);
-		for(let cor of courses){
-			cor['timestamp_formatted'] = moment(cor['dtTimeStamp']).format('MMM. DD, YYYY');
-		}
-		response.status = true;
-		response.data = courses;
-
-		res.send(response);
-	}
+  public async getMyCourses(req: AuthRequest, res: Response){
+    const userId = req.params.user_id;
+    const response = {
+      status : false, data : [], message : ''
+    };
+    const courseUserRelation = new CourseUserRelation();
+    try {
+      const courses = <any> await courseUserRelation.getAllCourseForUser(userId);
+      for(const cor of courses){
+        cor['timestamp_formatted'] = moment(cor['dtTimeStamp']).format('MMM. DD, YYYY');
+      }
+      response.status = true;
+      response.data = courses;
+    } catch(e) {
+      console.log('course.ts', e, 'getMyCourses');
+      response.data = [];
+    }
+    res.send(response);
+  }
 
 	public async disableUsersFromCourses(req: Request, res: Response){
 		let accountId = req.body.account_id,
@@ -225,14 +228,14 @@ export class CourseRoute extends BaseRoute {
 		locationsOnAccount = <any> [],
 		locations = <any> [],
 		responseLocations = [];
-		
+
 		try {
             // FRP & TRP
             let userRoleModel = new UserRoleRelation(),
                 roles = await userRoleModel.getByUserId(req.user.user_id);
 
             locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 1);
-            
+
             for (let loc of locationsOnAccount) {
                 locations.push(loc);
             }
@@ -242,7 +245,7 @@ export class CourseRoute extends BaseRoute {
                 let userEmRole = new UserEmRoleRelation(),
                 emRoles = <any> await userEmRole.getEmRolesByUserId(req.user.user_id);
 
-                
+
                 for (let em of emRoles) {
                     locations.push(em);
                 }
@@ -257,7 +260,7 @@ export class CourseRoute extends BaseRoute {
                 trainingCertModel = new TrainingCertification(),
                 deepLocations = <any> [],
                 userIds = [0];
-            
+
             if(loc.parent_id == -1){
                 deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
                 deepLocations.push(loc);

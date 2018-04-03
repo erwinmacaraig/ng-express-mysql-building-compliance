@@ -653,8 +653,30 @@ export class UsersRoute extends BaseRoute {
 				allowedUsersId.push(locations[i]['user_id']);
 			}
 		}
+    const userIds = [];
+    let toSendData = [];
+    const userCourseRel = new CourseUserRelation();
+    // get assigned trainings
+    for (let user of allUsers) {
+      userIds.push(user.user_id);
+    }
+    let user_course_total;
+    let user_training_total;
+    // get trainings from certifications table
+    const training = new TrainingCertification();
+    try {
+      user_course_total = await userCourseRel.getNumberOfAssignedCourses(userIds);
 
-		let toSendData = [];
+    } catch (e) {
+      user_course_total = {};
+    }
+    try {
+      user_training_total = await training.getNumberOfTrainings(userIds);
+    } catch(e) {
+      user_training_total = {};
+    }
+
+
 		for(let user of allUsers){
 			if( allowedUsersId.indexOf(user.user_id) > -1 ){
 				user['locations'] = <any>[];
@@ -665,7 +687,17 @@ export class UsersRoute extends BaseRoute {
 						){
 						user['locations'].push(locations[l]);
 					}
-				}
+        }
+        if (user.user_id in user_course_total) {
+          user['assigned_courses'] = user_course_total[user.user_id]['count'];
+        } else {
+          user['assigned_courses'] = 0;
+        }
+        if (user.user_id in user_training_total) {
+          user['trainings'] = user_training_total[user.user_id]['count'];
+        } else {
+          user['trainings'] = 0;
+        }
 				toSendData.push(user);
 			}
 		}

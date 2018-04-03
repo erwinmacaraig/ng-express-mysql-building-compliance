@@ -43,13 +43,13 @@
 			<option value="archive" >Archive selected</option>
 		</select>
 	</div>
-	
+
 </div>
 
 
 <div class="row">
 	<div class="col l12 m12 s12">
-		
+
 		<table class="table striped table-peep">
 			<thead>
 				<tr>
@@ -103,9 +103,9 @@
 					<td class="with-image role-name">
 						<div *ngIf="list.mobility_impaired == 1" class="impaired"></div>
 						<span *ngFor="let role of list.roles; let ri = index;" class="name">
-							{{role.role_name}}<i *ngIf=" list.roles.length - 1 != ri ">,</i> 
+							{{role.role_name}}<i *ngIf=" list.roles.length - 1 != ri ">,</i>
 						</span>
-						<!-- 
+						<!--
 						<div class="image frp" *ngIf="list.role_id == 1 && list.user_info.mobility_impaired == 0"></div>
 						<div class="image trp" *ngIf="list.role_id == 2 && list.user_info.mobility_impaired == 0"></div>
 						<div class="image user" *ngIf="list.role_id != 1 && list.role_id != 2 && list.user_info.mobility_impaired == 0"></div>
@@ -119,7 +119,7 @@
 						-->
 					</td>
 					<td>
-						<span class="red-text">0/0</span>
+						<span class="red-text">{{list.assigned_courses}}/{{list.trainings}}</span>
 					</td>
 					<td>
 						<select (change)="onSelectFromTable($event, list)">
@@ -153,7 +153,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want archive 
+			Are you sure you want archive
 			<span *ngIf="selectedToArchive.locations.length > 1">Multiple locations</span>
 			<span *ngIf="selectedToArchive.locations.length == 1">
 				<span *ngIf="selectedToArchive.locations[0].parent_name.trim().length > 0">{{ selectedToArchive.locations[0].parent_name }}, </span>

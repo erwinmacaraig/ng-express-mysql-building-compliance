@@ -228,5 +228,68 @@ export class CourseUserRelation extends BaseClass {
     });
   }
 
+  /**
+   * @method getNumberOfAssignedCourses
+   * You passed in an array of user ids and then query the db
+   * processing the results rather than having to query
+   * the database one by one by user id
+   * @param user
+   * Array of user id
+   * The user(s) on which to query the number of assigned courses
+   * @param disabled
+   * filter for active assigned courses or disabled for this user
+   * @description
+   * Method to call to get the total assigned courses to a specific user(s)
+   */
+  public getNumberOfAssignedCourses(user = [], disabled?) {
+    return new Promise((resolve, reject) => {
+      const user_course_total = {};
+      let userIdString;
+      if (disabled === undefined) {
+        disabled = 0;
+      }
+      if (!user.length) {
+        reject({});
+      } else {
+        userIdString = user.join(',');
+        const sql_get = `SELECT user_id, course_user_relation_id
+        FROM
+          course_user_relation
+        INNER JOIN
+          scorm_course
+        ON
+          course_user_relation.course_id = scorm_course.course_id
+        WHERE
+          course_user_relation.user_id IN (${userIdString}) AND course_user_relation.disabled = ?
+        ORDER BY
+          user_id`;
+
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_get, [disabled], (error, results, fields) => {
+        if (error) {
+          console.log('course-user-relation.getNumberOfAssignedCourses', error, sql_get);
+          throw Error('Cannot query database');
+        }
+        if (!results.length) {
+          resolve({});
+        } else {
+          for (let i = 0; i < results.length; i++) {
+            if (results[i]['user_id'] in user_course_total) {
+              user_course_total[results[i]['user_id']]['count'] = user_course_total[results[i]['user_id']]['count'] + 1;
+            } else {
+              user_course_total[results[i]['user_id']] = {
+                'count': 1
+              };
+            }
+          }
+          resolve(user_course_total);
+        }
+      });
+      connection.end();
+      }
+
+    });
+  }
+
 
 }
