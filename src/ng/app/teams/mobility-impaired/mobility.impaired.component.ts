@@ -57,6 +57,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(){
+        this.dashboardService.show();
         this.dataProvider.buildPeepList().subscribe((response) => {
 
             let tempRoles = {},

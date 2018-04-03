@@ -232,7 +232,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
 
             if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation) {
-                console.log(emrolesOnThisLocation['9']);
+                // console.log(emrolesOnThisLocation['9']);
                
                 if (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'].length > 0) {
                     let locId;
@@ -268,7 +268,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
 
             if ('12' in emrolesOnThisLocation) {
-                console.log(emrolesOnThisLocation['12']);
+                // console.log(emrolesOnThisLocation['12']);
                 if (emrolesOnThisLocation['12']['location'].length > 0) {
                     let locId;
                     for (let i = 0; i < emrolesOnThisLocation['12']['location'].length; i++) {

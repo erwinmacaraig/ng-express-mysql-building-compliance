@@ -88,14 +88,6 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	      	this.accountData = response.data;
     	});
 
-    	this.getLocationsForListing(() => {
-    		this.preloaderService.hide();
-
-	        if (localStorage.getItem('showemailverification') !== null) {
-	          this.router.navigate(['/location', 'search']);
-	        }
-    	});
-
 		this.mutationOversable = new MutationObserver((mutationsList) => {
 			mutationsList.forEach((mutation) => {
 				if(mutation.target.nodeName != '#text'){
@@ -114,7 +106,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
   	}
 
 	ngOnInit(){
-		this.preloaderService.show();
+		
 	}
 
 	getLocationsForListing(callback){
@@ -133,6 +125,14 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	}
 
 	ngAfterViewInit(){
+		this.preloaderService.show();
+		this.getLocationsForListing(() => {
+    		this.preloaderService.hide();
+
+	        if (localStorage.getItem('showemailverification') !== null) {
+	          this.router.navigate(['/location', 'search']);
+	        }
+    	});
 		$('.nav-list-locations').addClass('active');
 		$('.location-navigation .active').removeClass('active');
 		$('.location-navigation .view-location').addClass('active');
@@ -579,9 +579,6 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				break;
 		}
 
-
-
-		console.log(this.arraySelectedLocs);
 	}
 
 	ngOnDestroy(){

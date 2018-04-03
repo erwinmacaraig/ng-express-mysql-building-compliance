@@ -1,0 +1,1 @@
+ALTER TABLE `accounts` ADD `email_add_user_exemption` TINYINT(1) NOT NULL DEFAULT '0'

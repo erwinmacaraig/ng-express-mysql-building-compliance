@@ -341,8 +341,6 @@ export class AddUserComponent implements OnInit, OnDestroy {
             dismissible: false
         });
 
-        $('select').material_select();
-
         
         this.dragDropFileEvent();
 
