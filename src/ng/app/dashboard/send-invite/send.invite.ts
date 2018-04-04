@@ -44,7 +44,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 	private selectUserType = Object.keys(this.UserType).map((key) => { return this.UserType[key]; });
 	private formToShow = '';
 	private allLocationIds = [];
-	private showSendInvitationField = true;
+	public showSendInvitationField = true;
 	private showSpecificLevel = true;
 
 	modalLoaderElem;
@@ -75,8 +75,8 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 	};
 
 	constructor(
-		private platformLocation: PlatformLocation, 
-		private http: HttpClient, 
+		private platformLocation: PlatformLocation,
+		private http: HttpClient,
 		private auth: AuthService,
 		private accountDataProviderService: AccountsDataProviderService,
 		private locationsService: LocationsService,
@@ -105,7 +105,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 			this.modalLoaderElem = $('#modalLoader');
 			this.modalLoaderElem.modal({
 				dismissible: false,
-				startingTop: '0%', 
+				startingTop: '0%',
 				endingTop: '5%'
 			});
 
@@ -141,7 +141,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 	}
 
 	getLocations(){
-		this.locationsService.getParentLocationsForListing( this.userData['accountId'], 
+		this.locationsService.getParentLocationsForListing( this.userData['accountId'],
 			(resLocation) => {
 				this.locations = resLocation.data;
 				this.allLocationIds = this.getAllLocationIds(resLocation.data);
@@ -251,8 +251,8 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 				uiSelect.material_select();
 				this.selectedLocation = uiSelect.val();
 				this.childLocations = this.getDeepChildren(uiSelect.val());
-				
-				setTimeout(() => { 
+
+				setTimeout(() => {
 					$('select').material_select();
 				}, 300);
 			});
@@ -346,8 +346,8 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 				this.emailBlacklisted = true;
 			}
 		}
-		setTimeout(()=>{ 
-			this.modalLoaderElem.modal('close'); 
+		setTimeout(()=>{
+			this.modalLoaderElem.modal('close');
 		}, 2000);
 	}
 
@@ -364,7 +364,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 						location_id : subLocationId
 					});
 				}
-			}else if(i.indexOf('sublocation') > -1){				
+			}else if(i.indexOf('sublocation') > -1){
 				if($('select[name="sublocation"]').val() == null){
 					f.controls[i].setValue( this.childLocations[0]['location_id'] );
 					$('select[name="sublocation"]').val( this.childLocations[0]['location_id'] )
@@ -383,7 +383,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 		f.controls.user_role_id.setValue( this.selectedUseRole );
 		f.controls.location.markAsDirty();
 		f.controls.location.setValue( this.selectedLocation );
-		
+
 		this.emailTaken = false;
 		let formValues = {
 			sublocations : []
@@ -402,7 +402,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 			this.modalLoader.showMessage = false;
 			this.modalLoaderElem.modal('open');
 
-			this.accountDataProviderService.sendUserInvitation( formValues, 
+			this.accountDataProviderService.sendUserInvitation( formValues,
 				(response) => {
 					this.submitInviteResponse(response, f);
 				}
@@ -426,7 +426,7 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 			this.modalLoaderElem.modal('open');
 			this.wardenInvitationCodeData.code = f.controls.code.value.trim();
 			this.accountDataProviderService.saveAccountInvitationCode(
-				this.wardenInvitationCodeData, 
+				this.wardenInvitationCodeData,
 				(response) => {
 					this.modalLoader.showLoader = false;
 					this.modalLoader.showMessage = true;
@@ -440,8 +440,8 @@ export class SendInviteComponent implements OnInit, AfterViewInit {
 						this.modalLoader.iconColor = 'red';
 						this.modalLoader.message = response.message;
 					}
-					setTimeout(()=>{ 
-						this.modalLoaderElem.modal('close'); 
+					setTimeout(()=>{
+						this.modalLoaderElem.modal('close');
 					}, 2000);
 				}
 			);

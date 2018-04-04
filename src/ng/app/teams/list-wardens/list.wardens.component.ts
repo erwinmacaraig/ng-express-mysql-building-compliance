@@ -26,7 +26,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     userData = {};
     showModalLoader = false;
     selectedToArchive = {
-        first_name : '', last_name : '', parent_data : {},  locations : []
+        first_name : '', last_name : '', parent_data : {},  locations : [], parent_name: '', name: ''
     };
     selectedFromList = [];
 
@@ -203,7 +203,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             this.dashboardService.show();
             this.ngOnInit();
             this.selectedToArchive = {
-                first_name : '', last_name : '', parent_data : {}, locations : []
+                first_name : '', last_name : '', parent_data : {}, locations : [], parent_name: '', name: ''
             };
         });
     }

@@ -31,9 +31,14 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 	decryptedID = '';
 	viewData = {
 		user : {
-			profilePic : '',
-			last_login : '',
-			mobility_impaired_details : {}
+      profilePic : '',
+      last_name: '',
+      first_name: '',
+      last_login : '',
+      mobility_impaired_details : {},
+      mobility_impaired: 0,
+      mobile_number: '',
+      email: ''
 		},
 		role_text : '',
 		eco_roles : [],
@@ -540,5 +545,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
       (e) => {
         alert('There was a problem sending certificate.');
       });
+    }
+
+    // todo
+    submitAssignLocation(f: NgForm) {
+
     }
 }

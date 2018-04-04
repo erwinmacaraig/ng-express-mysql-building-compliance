@@ -8,7 +8,9 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AgmCoreModule } from '@agm/core';
 
 @NgModule({
-  declarations: [SetupLocationComponent],
+  declarations: [
+    // SetupLocationComponent
+  ],
   imports: [
     CommonModule,
     FormsModule,
