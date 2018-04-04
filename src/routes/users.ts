@@ -734,7 +734,10 @@ export class UsersRoute extends BaseRoute {
             user_course_total = {};
         }
         try {
-            user_training_total = await training.getNumberOfTrainings(userIds);
+            user_training_total = await training.getNumberOfTrainings(userIds, {
+              'pass': 1,
+              'current': 1
+            });
         } catch(e) {
             user_training_total = {};
         }
