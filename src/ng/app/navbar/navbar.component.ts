@@ -23,7 +23,9 @@ declare var navigator: any;
 export class NavbarComponent implements OnInit, AfterViewInit {
 	@ViewChild('formFile') formFile: NgForm;
 
-	public userData: Object;
+	public userData = {
+    name: '',
+  };
 	public userRoles;
 	public showUpgradePremium: boolean = true;
 	public usersImageURL: String;
@@ -265,7 +267,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 		this.elems['btnChoose'].hide();
 		this.elems['btnRetake'].hide();
 
-		let 
+		let
 		src = this.elems['imgHolder'].attr('src'),
 		block = src.split(";"),
 		contentType = block[0].split(":")[1],
@@ -391,7 +393,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 	ngAfterViewInit() {
 		this.mySubscription = this.messageService.getMessage().subscribe((message) => {
 
-			if(message.person_first_name){	
+			if(message.person_first_name){
 				this.username = message.person_first_name + ' ' + message.person_last_name;
 				this.usersInitial = this.getInitials(this.username);
 			}

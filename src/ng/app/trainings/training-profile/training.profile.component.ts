@@ -31,7 +31,9 @@ export class TrainingProfile implements OnInit, OnDestroy {
 	decryptedID = '';
 	viewData = {
 		user : {
-			profilePic : '',
+      profilePic : '',
+      last_name: '',
+      first_name: '',
 			last_login : '',
 			mobility_impaired_details : {}
 		},

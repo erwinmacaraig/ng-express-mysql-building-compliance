@@ -2,7 +2,7 @@
 	<div class="row">
 		<div class="col l12 m12 s12 col-user-profile">
 			<h5>User Profile</h5>
-			
+
 			<div class="image-container">
 				<p class="initials" *ngIf="viewData.user.profilePic.length == 0">
 					{{getInitials(viewData.user.first_name+' '+viewData.user.last_name)}}
@@ -16,7 +16,7 @@
 				<h5 class="name blue-text">{{viewData.user.first_name+' '+viewData.user.last_name}}</h5>
 				<p *ngIf="viewData.user.last_login.length > 0">Last Login {{viewData.user.last_login}}</p>
 			</div>
-		</div>	
+		</div>
 	</div>
 	<div class="row">
 		<div class="col l12 m12 s12">
@@ -53,7 +53,7 @@
 				</label>
 			</div>
 		</div>
-		
+
 		<div class="col l12 m12 s12">
 			<div class="input-field">
 				<input id="contactInfo" type="text" value="{{viewData.user.mobile_number}}" readonly>
@@ -110,7 +110,7 @@
 		<div class="col s12 m12 l12">
 
 			<h4 *ngIf="viewData.trainings.length == 0">No training record found</h4>
-	
+
 			<div class="grid" id="gridContainer">
 
 				<div class="grid-item card no-buttons grey lighten-3" *ngFor="let tr of viewData.trainings">
@@ -134,7 +134,7 @@
 				</div>
 
 			</div>
-			
+
 		</div>
 	</div>
 
@@ -145,7 +145,7 @@
 		<div class="col s12 m12 l12">
 
 			<h4 *ngIf="viewData.certificates.length == 0">No previous trainings record found</h4>
-	
+
 			<div class="grid" id="gridContainer">
 
 				<div class="grid-item card grey lighten-3" *ngFor="let cert of viewData.certificates">
@@ -175,13 +175,13 @@
 					</div>
 
 					<div class="buttons">
-						<button class="btn blue waves-effect waves-light">Download Certificate</button>
-						<button class="btn orange lighten-1 waves-effect waves-light">Email Certificate</button>
+						<!-- <button class="btn blue waves-effect waves-light">Download Certificate</button> -->
+						<button (click)="emailThisCertificate(cert.user_id, cert.certifications_id)" class="btn orange lighten-1 waves-effect waves-light">Email Certificate</button>
 					</div>
 				</div>
 
 			</div>
-			
+
 		</div>
 	</div>
 </div>
@@ -227,7 +227,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
 
 	<div class="modal-content">
@@ -291,7 +291,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<form #formProfile="ngForm" (submit)="submitUpdateProfile(formProfile)" [hidden]="showModalProdfileLoader">
 
 		<div class="modal-content">
@@ -345,7 +345,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<form #formCredential="ngForm" (submit)="submitCredential(formCredential)" [hidden]="showModalCredentialsLoader">
 
 		<div class="modal-content">
@@ -367,11 +367,11 @@
 						'invalid' : !inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
 					}"
 					required minlength="6" maxlength="150"  >
-					
+
 				</div>
 
 				<div class="col s12">
-					
+
 					<label for="confirmPassword"> Confirm password</label>
 
 					<input id="confirmPassword" type="password" ngModel name="confirm_password"
@@ -380,20 +380,20 @@
 							'invalid' : !inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
 						}"
 						required minlength="6" maxlength="150" >
-					
+
 				</div>
 
 				<input type="text" name="user_id" ngModel required style="visibility: hidden;">
-				
+
 			</div>
 
 			<div class="row button-container">
 				<div class="col s12 m12 l12 right-align">
 					<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
-					<button type="submit" class="btn orange waves-light waves-effect" 
+					<button type="submit" class="btn orange waves-light waves-effect"
 					[disabled]="
 					formCredential.invalid ||
-					(!inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)) || 
+					(!inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)) ||
 					(!inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value))">Submit</button>
 				</div>
 			</div>
@@ -404,14 +404,14 @@
 </div>
 
 <div id="modalAssignLocations" class="modal modal-sublocations">
-	
+
 	<div [hidden]="showSelectLocation">
 		<div class="modal-content"  >
-			<h5>Assign {{viewData.user.first_name+' '+viewData.user.last_name}} To Locations
+			<h5>Assign {{ viewData.user.first_name + ' ' + viewData.user.last_name}} To Locations
 				<a href="javascipt:void(0)" class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
 			</h5>
-			
-			
+
+
 			<form #formAssignLocation (submit)="submitAssignLocation(formAssignLocation)">
 
 			<table class="table striped">
@@ -505,8 +505,8 @@
 
 <!-- <div id="modalLocations" class="modal">
 	<div class="modal-content">
-		
-		
+
+
 		<div class="search-container" >
 			<div class="input-container">
 				<input type="text" placeholder="Search Level" #modalSearchLocation  >
@@ -515,8 +515,8 @@
 				<img src="assets/images/locations/search_icon.png" alt="">
 			</div>
 		</div>
-		
-		
+
+
 
 	</div>
 </div> -->

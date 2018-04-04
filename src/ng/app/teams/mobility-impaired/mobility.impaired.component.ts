@@ -29,7 +29,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     userData = {};
     showModalLoader = false;
     selectedToArchive = {
-        first_name : '', last_name : '', parent_data : {}, locations : []
+        first_name : '', last_name : '', parent_data : {}, locations : [], parent_name: '', name: ''
     };
     selectedFromList = [];
 
@@ -270,7 +270,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         }else if('user_invitations_id' in this.selectedToArchive){
             id = this.selectedToArchive['user_invitations_id'];
             this.userService.archiveInvitedUsers([id], cb);
-        } 
+        }
     }
 
     selectAllCheckboxEvent(event){
@@ -414,7 +414,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         }
 
         this.selectedPeep = peep;
-        
+
         $('#modalMobility').modal('open');
     }
 
@@ -453,7 +453,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             if(this.selectedPeep['mobility_impaired_details'].length > 0){
                 paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
             }
-            
+
             paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
 
             this.showModalLoader = true;

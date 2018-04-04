@@ -20,7 +20,10 @@ declare var $: any;
 })
 export class WardenLocationComponent implements OnInit, OnDestroy {
 
-  userData: Object;
+  userData = {
+    profilePic: '',
+    name: ''
+  };
   userInitials = "";
   roleName = "";
 
