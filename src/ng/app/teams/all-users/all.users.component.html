@@ -136,6 +136,24 @@
 
 </div>
 
+<div class="row">
+	<div class="col l12 m12 s12 center pagination">
+		<div class="inline-block">
+			<button class="btn blue" (click)="limit - 1" > Prev </button>
+		</div>
+
+		<div class="inline-block select">
+			<select #selectPage ngModel>
+				<option></option>
+			</select>
+		</div>
+
+		<div class="inline-block">
+			<button class="btn blue" (click)="limit + 1" > Next </button>
+		</div>
+	</div>
+</div>
+
 <div id="modalArchive" class="modal">
 	<div class="modal-content center" [hidden]="!showModalLoader">
 		<div class="preloader-wrapper active">

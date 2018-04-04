@@ -28,6 +28,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 	filters = [];
 
+	limit = 0;
+
 	constructor(
 		private userService : UserService,
 		private authService : AuthService,
@@ -39,6 +41,20 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	getListData(callBack?){
+		let queries = {
+			roles : 'frp,trp,users',
+			impaired : true,
+			type : 'client',
+			limit :  '0,10',
+			archived : 0,
+			account_id : this.userData['accountId'],
+			count_no_limit : true
+		};
+
+		this.userService.queryUsers(queries, (response) => {
+
+		});
+
 		this.userService.getUsersByAccountId(this.userData['accountId'], (response) => {
 			this.listData = response.data;
 
@@ -275,4 +291,5 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			this.getListData(() => { this.dashboardService.hide(); });
 		});
 	}
+
 }

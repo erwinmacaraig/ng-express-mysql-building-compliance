@@ -47,6 +47,10 @@ export class UsersRoute extends BaseRoute {
 
 
 	public static create(router: Router) {
+        router.get('/users/query',  (req: Request, res: Response) => {
+            new UsersRoute().queryUsers(req, res);
+        });
+
 		router.get('/users/is-admin/:user_id',  (req: Request, res: Response) => {
 			new UsersRoute().checkIfAdmin(req, res);
 		});
@@ -100,7 +104,7 @@ export class UsersRoute extends BaseRoute {
 	    });
 
 	    router.get('/users/get-archived-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().getUsersByAccountId(req, res, next, 1);
+	    	new  UsersRoute().getUsersByAccountId(req, res, next);
 	    });
 
 	    router.post('/users/unarchive-location-account-user', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -620,6 +624,69 @@ export class UsersRoute extends BaseRoute {
 		);
 	}
 
+    public async queryUsers(req: Request, res: Response){
+        let 
+        query = req.query,
+        response = {
+            status : true,
+            data : <any>{},
+            message : ''
+        },
+        userModel = new User(),
+        countUserModel = new User(),
+        modelQueries = {
+            select : <any>{},
+            where : [],
+            joins : [],
+            limit : '10',
+            order : 'u.user_id ASC',
+            group : false
+        },
+        archived : 0;
+
+        if(query.archived){
+            archived = query.archived;
+        }
+
+        modelQueries.where.push('u.archived = '+archived);
+
+        if(query.impaired){
+            if(query.impaired == 1){
+                modelQueries.where.push('u.mobility_impaired = 1');
+            }
+        }
+        
+        if(query.type){
+            switch (query.type) {
+                case "client":
+                    modelQueries.where.push('u.evac_role = "Client"');
+                    break;
+                
+                case "admin":
+                    modelQueries.where.push('u.evac_role = "admin"');
+                    break;
+            }
+        }
+
+
+
+        if(query.account_id){
+            modelQueries.where.push('u.account_id = '+query.account_id);
+        }
+
+        response.data['users'] = await userModel.query(modelQueries);
+
+        if(query.count_no_limit){
+            response.data['users_count'] = await countUserModel.query({
+                select : { count : true },
+                where : modelQueries.where,
+                joins : modelQueries.joins
+            });
+        }
+        
+        res.send(response);
+    }
+
 	public async getUsersByAccountIdNoneAuth(req: Request, res: Response){
 		let accountId = req.params.account_id,
 			userModel = new User();
@@ -629,12 +696,12 @@ export class UsersRoute extends BaseRoute {
 			data : await userModel.getByAccountId(accountId),
 			message : ''
 		});
-
 	}
 
-	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction, archived?){
+	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction){
 		let accountId = req.params.account_id,
 			userID = req['user']['user_id'],
+            query = req.query,
 			locationAccountUser = new LocationAccountUser(),
 			response = {
 				data : <any>[],
@@ -650,7 +717,15 @@ export class UsersRoute extends BaseRoute {
 			emRolesIndexedId = {},
             accountModel = new Account();
 
-		if(!archived){ archived = 0; }
+        let limit,
+            archived;
+        if(query.limit){
+            limit = query.limit;
+        }
+
+        if(query.archived){
+            archived = query.archived;
+        }
 
         let allowedRoleIds = [0,1,2];
         for(let i in emRoles){
@@ -700,7 +775,7 @@ export class UsersRoute extends BaseRoute {
             }
         }
 
-		allUsers = await allUsersModel.getByAccountId(accountId, archived);
+		allUsers = await allUsersModel.getByAccountId(accountId, archived, limit);
 
 		for(let user of allUsers){
 			allUsersIds.push(user.user_id);

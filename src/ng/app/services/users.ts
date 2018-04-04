@@ -63,10 +63,31 @@ export class UserService {
 		});
 	}
 
-	getUsersByAccountId(accountId, callBack){
-		this.http.get(this.baseUrl+"/users/get-users-by-account-id/"+accountId)
+	queryUsers(queries, callBack){
+		let params = '',
+			count = 0;
+		if(typeof queries == 'object'){
+			for(let i in queries){
+				if( count == 0 ){
+					params += '?'+i+'='+queries[i];
+				}else{
+					params += '&'+i+'='+queries[i];
+				}
+				count++;
+			}
+		}
+
+		this.http.get(this.baseUrl+"/users/query"+params,)
 		.subscribe(res => {
-			localStorage.setItem('usersByAccountId', JSON.stringify(res))
+			callBack(res);
+		}, err => {
+			callBack( JSON.parse(err.error) );
+		});
+	}
+
+	getUsersByAccountId(accountId, callBack){
+		this.http.get(this.baseUrl+"/users/get-users-by-account-id/"+accountId,)
+		.subscribe(res => {
 			callBack(res);
 		}, err => {
 			callBack( JSON.parse(err.error) );
