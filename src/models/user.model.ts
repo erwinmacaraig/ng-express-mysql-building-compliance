@@ -552,9 +552,7 @@ export class User extends BaseClass {
                 groupQuery = 'GROUP BY '+queries.group;
             }
 
-            let sql_load = `
-                SELECT ${selectQuery} FROM users ${joinsQuery} ${whereQuery} ${groupQuery} ${orderQuery} ${limitQuery}
-            `;
+            let sql_load = 'SELECT '+selectQuery+' FROM users '+joinsQuery+' '+whereQuery+' '+groupQuery+' '+orderQuery+' '+limitQuery;
             // console.log(sql_load);
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {

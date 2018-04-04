@@ -7,6 +7,9 @@ import { UserService } from '../../services/users';
 import { AuthService } from '../../services/auth.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import * as Rx from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 declare var $: any;
 @Component({
@@ -43,8 +46,11 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		archived : 0,
 		pagination : true,
 		user_training : true,
-		users_locations : true
+		users_locations : true,
+		search : ''
 	};
+
+	searchMemberInput;
 
 	constructor(
 		private userService : UserService,
@@ -109,7 +115,6 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 				$('.row.filter-container select').material_select();
 			}, 100);
 		});
-
 	}
 
 	ngAfterViewInit(){
@@ -122,6 +127,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		this.filterByEvent();
 		this.sortByEvent();
 		this.bulkManageActionEvent();
+		this.searchMemberEvent();
 	}
 
 	filterByEvent(){
@@ -172,22 +178,22 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	searchMemberEvent(event){
-		let key = event.target.value,
-			temp = [];
-
-		if(key.length == 0){
-			this.listData = this.copyOfList;
-		}else{
-			for(let i in this.copyOfList){
-				let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase(),
-					email = this.copyOfList[i]['email'];
-				if(name.indexOf(key) > -1 || email.indexOf(key) > -1){
-					temp.push( this.copyOfList[i] );
-				}
-			}
-			this.listData = temp;
-		}
+	searchMemberEvent(){
+		this.searchMemberInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberInput'), 'input');
+		this.searchMemberInput.debounceTime(800)
+			.map(event => event.target.value)
+			.subscribe((value) => {
+				this.queries.search = value;
+				this.queries.offset = 0;
+				this.loadingTable = true;
+				this.pagination.selection = [];
+				this.getListData(() => { 
+					for(let i = 1; i<=this.pagination.pages; i++){
+						this.pagination.selection.push({ 'number' : i });
+					}
+					this.loadingTable = false;
+				});
+			});
 	}
 
 	ngOnDestroy(){}

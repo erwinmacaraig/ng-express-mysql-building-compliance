@@ -640,7 +640,7 @@ export class UsersRoute extends BaseRoute {
             where : [],
             orWhere : [],
             joins : [],
-            limit : '0,10',
+            limit : <any> 10,
             order : 'users.user_id ASC',
             group : false
         },
@@ -649,7 +649,7 @@ export class UsersRoute extends BaseRoute {
         userIds = [0],
         emRolesDef = defs.em_roles;
 
-        modelQueries.select['users'] = ['first_name', 'last_name', 'account_id', 'user_id', 'user_name', 'email', 'mobile_number', 'phone_number', 'mobility_impaired', 'last_login'];
+        modelQueries.select['users'] = ['first_name', 'last_name', 'account_id', 'user_id', 'user_name', 'email', 'mobile_number', 'phone_number', 'mobility_impaired', 'last_login', 'archived'];
 
         if(query.archived){
             archived = query.archived;
@@ -686,7 +686,7 @@ export class UsersRoute extends BaseRoute {
                 modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_role_relation) ');
             }
             if( queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1) == true ){
-                modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation) ');
+                modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1) ');
                 modelQueries.orWhere.push(' AND users.archived = '+archived);
                 modelQueries.orWhere.push(' AND users.account_id = '+accountId);
                 if(query.impaired){
@@ -699,7 +699,18 @@ export class UsersRoute extends BaseRoute {
                     }
                 }
             }else if(queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') == -1 && queryRoles.indexOf('trp') == -1) == true){
-                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation) ');
+                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 ) ');
+            }
+        }
+
+        if(query.search){
+            if(query.search.trim().length > 0){
+                modelQueries.where.push( ' CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" ' );
+                if(modelQueries.orWhere.length == 0){
+                    modelQueries.orWhere.push( ' OR users.email LIKE "%'+query.search+'%" ' );
+                }else{
+                    modelQueries.orWhere.push( ' AND users.email LIKE "%'+query.search+'%" ' );
+                }
             }
         }
 
@@ -714,6 +725,7 @@ export class UsersRoute extends BaseRoute {
         }
 
         response.data['users'] = await userModel.query(modelQueries);
+
         for(let user of response.data['users']){
             userIds.push(user.user_id);
 
@@ -722,6 +734,31 @@ export class UsersRoute extends BaseRoute {
                 user.last_login = lastLoginMoment.format('DD/MM/YYYY hh:mma');
             }else{
                 user.last_login = '';
+            }
+
+            user['mobility_impaired_details'] = [];
+
+            if(query.impaired){
+                if(query.impaired > -1){
+                    if( user['mobility_impaired'] == 1 ){
+                        let mobilityModel = new MobilityImpairedModel(),
+                        arrWhere = [];
+
+                        arrWhere.push( ["user_id = " + user.user_id] );
+                        arrWhere.push( "duration_date > NOW()" );
+                        try {
+                            let mobilityDetails = await mobilityModel.getMany( arrWhere );
+                            user['mobility_impaired_details'] = mobilityDetails;
+                            for(let userMobil of user.mobility_impaired_details){
+                                userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+                            }
+
+                        } catch (e) {
+                            console.log(e);
+                            user['mobility_impaired_details'] = [];
+                        }
+                    }
+                }
             }
         }
 
@@ -769,12 +806,8 @@ export class UsersRoute extends BaseRoute {
                 }
             }
 
-            // response.data['locationsData'] = locationsData;
-
             let locAccUserModel = new LocationAccountUser(),
                 usersLocsMap = <any> await locAccUserModel.getManyLocationsByAccountIdAndUserIds(accountId, userIds.join(','));
-
-            // response.data['usersLocsMap'] = usersLocsMap;
 
             for(let map of usersLocsMap){
                 for(let user of response.data['users']){
@@ -820,6 +853,7 @@ export class UsersRoute extends BaseRoute {
 
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
+                if('locations' in user == false){ user['locations'] = []; }
                 
                 for(let loc of user.locations){
                     let role = {
@@ -863,17 +897,21 @@ export class UsersRoute extends BaseRoute {
                 user_training_total,
                 training = new TrainingCertification(),
                 userCourseRel = new CourseUserRelation();
+
             try {
                 user_course_total = await userCourseRel.getNumberOfAssignedCourses(userIds);
+
             } catch (e) {
                 user_course_total = {};
             }
             try {
-                user_training_total = await training.getNumberOfTrainings(userIds);
+                user_training_total = await training.getNumberOfTrainings(userIds, {
+                  'pass': 1,
+                  'current': 1
+                });
             } catch(e) {
                 user_training_total = {};
             }
-
 
             for(let user of response.data['users']){
                 if (user.user_id in user_course_total) {
@@ -886,6 +924,49 @@ export class UsersRoute extends BaseRoute {
                 } else {
                     user['trainings'] = 0;
                 }
+            }
+        }
+
+        if(query.impaired && queryRoles.indexOf('users') > -1){
+            if(query.impaired > -1){
+
+                let userInviModel = new UserInvitation(),
+                whereInvi = [];
+
+                whereInvi.push([ 'account_id = '+accountId ]);
+                whereInvi.push([ 'mobility_impaired = 1' ]);
+                whereInvi.push([ 'was_used = 0' ]);
+
+                if(!archived){
+                    whereInvi.push([ 'archived = 0' ]);
+                }else{
+                    whereInvi.push([ 'archived = '+archived ]);
+                }
+
+                try{
+                    let usersInvited = <any> await userInviModel.getWhere(whereInvi);
+                    for(let user of usersInvited){
+                        user['locations'] = [];
+                        user['profile_pic'] = '';
+                        user['mobility_impaired_details'] = [];
+
+                        let arrWhere = [];
+                        arrWhere.push( "user_invitations_id = "+user["user_invitations_id"] );
+
+                        user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
+                        for(let userMobil of user.mobility_impaired_details){
+                            userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+                        }
+
+                        user.locations.push({
+                            location_id : user.location_id,
+                            name : user.location_name,
+                            parent_name : (user.parent_name == null) ? '' : user.parent_name
+                        });
+
+                        response.data['users'].push(user);
+                    }
+                }catch(e){}
             }
         }
 
@@ -916,6 +997,10 @@ export class UsersRoute extends BaseRoute {
                 pagination.pages = totalpages;
             }
             
+            if(pagination.pages == 0 && pagination.total <= limit && pagination.total > 0){
+                pagination.pages = 1;
+            }
+
             response.data['pagination'] = pagination; 
         }
 

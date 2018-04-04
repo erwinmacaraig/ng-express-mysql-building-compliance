@@ -10,6 +10,9 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { UserService } from '../../services/users';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import * as moment from 'moment';
+import * as Rx from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 
 declare var $: any;
@@ -47,8 +50,11 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         archived : 0,
         pagination : true,
         user_training : true,
-        users_locations : true
+        users_locations : true,
+        search : ''
     };
+
+    searchMemberInput;
 
     constructor(
         private authService : AuthService,
@@ -128,6 +134,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         this.sortByEvent();
         this.dashboardService.show();
         this.bulkManageActionEvent();
+        this.searchMemberEvent();
     }
 
     generateRandomBGClass(){
@@ -203,22 +210,22 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         });
     }
 
-    searchMemberEvent(event){
-        let key = event.target.value,
-        temp = [];
-
-        if(key.length == 0){
-            this.wardenArr = this.copyOfList;
-        }else{
-            for(let i in this.copyOfList){
-                let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase(),
-                email = this.copyOfList[i]['email'];
-                if(name.indexOf(key) > -1 || email.indexOf(key) > -1){
-                    temp.push( this.copyOfList[i] );
-                }
-            }
-            this.wardenArr = temp;
-        }
+    searchMemberEvent(){
+        this.searchMemberInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberInput'), 'input');
+        this.searchMemberInput.debounceTime(800)
+            .map(event => event.target.value)
+            .subscribe((value) => {
+                this.queries.search = value;
+                this.queries.offset = 0;
+                this.loadingTable = true;
+                this.pagination.selection = [];
+                this.getListData(() => { 
+                    for(let i = 1; i<=this.pagination.pages; i++){
+                        this.pagination.selection.push({ 'number' : i });
+                    }
+                    this.loadingTable = false;
+                });
+            });
     }
 
     onSelectFromTable(event, warden){
