@@ -335,6 +335,39 @@ export class Account extends BaseClass {
         });
     }
 
+    public getLocationsByAccountId(accountId){
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT
+              locations.parent_id,
+              locations.name,
+              locations.formatted_address,
+              locations.location_id,
+              locations.google_photo_url,
+              locations.admin_verified
+            FROM
+              locations
+            INNER JOIN
+              location_account_user LAU
+            ON
+              locations.location_id = LAU.location_id
+            WHERE
+              LAU.account_id = ? GROUP BY LAU.location_id
+            `;
+            const val = [accountId];
+            const connection = db.createConnection(dbconfig);
+
+            connection.query(sql, val, (err, results, fields) => {
+                if (err) {
+                    console.log(err);
+                    throw new Error('Internal problem. There was a problem processing your query');
+                }
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
     public buildWardenList(user_id: number, archived?) {
       return new Promise((resolve, reject) => {
         if(!archived){ archived = 0; }

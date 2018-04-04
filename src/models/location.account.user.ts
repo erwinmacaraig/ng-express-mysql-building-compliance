@@ -149,6 +149,22 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
+    public getManyLocationsByAccountIdAndUserIds(accountId, userIds) {
+        return new Promise((resolve, reject) => {
+            const sql_load = 'SELECT * FROM location_account_user WHERE account_id = ? AND user_id IN ('+userIds+')';
+            const param = [accountId];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
     public getByLocationIdAndUserId(locationIds, userId) {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_user WHERE location_id IN ('+locationIds+') AND user_id = ?';

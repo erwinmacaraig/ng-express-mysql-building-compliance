@@ -7,6 +7,9 @@ import { UserService } from '../../services/users';
 import { AuthService } from '../../services/auth.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import * as Rx from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 declare var $: any;
 @Component({
@@ -28,6 +31,27 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 
 	filters = [];
 
+	loadingTable = false;
+
+	pagination = {
+		pages : 0, total : 0, currentPage : 0, selection : []
+	};
+
+	queries = {
+		roles : 'frp,trp,users',
+		impaired : null,
+		type : 'client',
+		offset :  0,
+		limit : 10,
+		archived : 1,
+		pagination : true,
+		user_training : true,
+		users_locations : true,
+		search : ''
+	};
+
+	searchMemberInput;
+
 	constructor(
 		private userService : UserService,
 		private authService : AuthService,
@@ -39,8 +63,11 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 	}
 
 	getListData(callBack?){
-		this.userService.getArchivedUsersByAccountId(this.userData['accountId'], (response) => {
-			this.listData = response.data;
+
+		this.userService.queryUsers(this.queries, (response) => {
+			this.pagination.total = response.data.pagination.total;
+			this.pagination.pages = response.data.pagination.pages;
+			this.listData = response.data.users;
 
 			let tempRoles = {};
 			for(let i in this.listData){
@@ -65,8 +92,8 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 					}
 				}
 			}
-			
 			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
+
 			if(callBack){
 				callBack();
 			}
@@ -74,12 +101,19 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
-
+		this.dashboardService.show();
 		this.getListData(() => { 
-			this.dashboardService.hide(); 
+			if(this.pagination.pages > 0){
+				this.pagination.currentPage = 1;
+			}
+
+			for(let i = 1; i<=this.pagination.pages; i++){
+				this.pagination.selection.push({ 'number' : i });
+			}
 			setTimeout(() => {
+				this.dashboardService.hide(); 
 				$('.row.filter-container select').material_select();
-			}, 500);
+			}, 100);
 		});
 
 	}
@@ -96,6 +130,7 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 		this.filterByEvent();
 		this.sortByEvent();
 		this.bulkManageActionEvent();
+		this.searchMemberEvent();
 	}
 
 	filterByEvent(){
@@ -147,21 +182,22 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	searchMemberEvent(event){
-		let key = event.target.value,
-			temp = [];
-
-		if(key.length == 0){
-			this.listData = this.copyOfList;
-		}else{
-			for(let i in this.copyOfList){
-				let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase();
-				if(name.indexOf(key) > -1){
-					temp.push( this.copyOfList[i] );
-				}
-			}
-			this.listData = temp;
-		}
+	searchMemberEvent(){
+		this.searchMemberInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberInput'), 'input');
+		this.searchMemberInput.debounceTime(800)
+			.map(event => event.target.value)
+			.subscribe((value) => {
+				this.queries.search = value;
+				this.queries.offset = 0;
+				this.loadingTable = true;
+				this.pagination.selection = [];
+				this.getListData(() => { 
+					for(let i = 1; i<=this.pagination.pages; i++){
+						this.pagination.selection.push({ 'number' : i });
+					}
+					this.loadingTable = false;
+				});
+			});
 	}
 
 	ngOnDestroy(){}
@@ -283,6 +319,34 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 				}, 500);
 			});
 
+		});
+	}
+
+	pageChange(type){
+
+		switch (type) {
+			case "prev":
+				if(this.pagination.currentPage > 1){
+					this.pagination.currentPage = this.pagination.currentPage - 1;
+				}
+				break;
+
+			case "next":
+				if(this.pagination.currentPage < this.pagination.pages){
+					this.pagination.currentPage = this.pagination.currentPage + 1;
+				}
+				break;
+			
+			default:
+				this.pagination.currentPage = type;
+				break;
+		}
+
+		let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+		this.queries.offset = offset;
+		this.loadingTable = true;
+		this.getListData(() => { 
+			this.loadingTable = false;
 		});
 	}
 }
