@@ -21,6 +21,8 @@ import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
+import { CourseUserRelation } from '../models/course-user-relation.model';
+import { TrainingCertification } from './../models/training.certification.model';
 
 const md5 = require('md5');
 const defs = require('../config/defs');
@@ -436,7 +438,7 @@ export class TeamRoute extends BaseRoute {
 
                     }
 
-                    if(isAccountEmailExempt == false){ 
+                    if(isAccountEmailExempt == false){
                         await tokenModel.create({
                             'token': tokenStr,
                             'action': 'invitation',
@@ -504,7 +506,7 @@ export class TeamRoute extends BaseRoute {
                         email.send((data) => console.log(data),
                             (err) => console.log(err)
                             );
-                        
+
                     }
 
 
@@ -598,7 +600,7 @@ export class TeamRoute extends BaseRoute {
                             });
                         }
 
-                        if(isAccountEmailExempt == false){ 
+                        if(isAccountEmailExempt == false){
                             await tokenModel.create({
                                 'token': tokenStr,
                                 'action': 'invitation',
@@ -975,7 +977,7 @@ export class TeamRoute extends BaseRoute {
 
         let locationsOnAccount = await accountModel.getLocationsOnAccount(userID, 1, archived),
             locations = <any> [];
-        
+
         for (let loc of locationsOnAccount) {
             locations.push(loc);
         }
@@ -985,7 +987,7 @@ export class TeamRoute extends BaseRoute {
             let
                 deepLocModel = new Location(),
                 deepLocations = <any> [];
-            
+
             if(loc.parent_id == -1){
                 deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
                 deepLocations.push(loc);
@@ -1031,8 +1033,31 @@ export class TeamRoute extends BaseRoute {
             user['locations'] = [];
             user['roles'] = [];
         }
-
+        const userIds = [];
         let toSendData = [];
+        const userCourseRel = new CourseUserRelation();
+        // get assigned trainings
+        for (let user of allUsers) {
+            userIds.push(user.user_id);
+        }
+        let user_course_total;
+        let user_training_total;
+        // get trainings from certifications table
+        const training = new TrainingCertification();
+        try {
+            user_course_total = await userCourseRel.getNumberOfAssignedCourses(userIds);
+
+        } catch (e) {
+            user_course_total = {};
+        }
+        try {
+            user_training_total = await training.getNumberOfTrainings(userIds, {
+              'pass': 1,
+              'current': 1
+            });
+        } catch(e) {
+            user_training_total = {};
+        }
         for(let user of allUsers){
             let userLocData = {
                     user_id : user.user_id,
@@ -1043,13 +1068,24 @@ export class TeamRoute extends BaseRoute {
                     location_role_id : 0
                 };
 
+              if (user.user_id in user_course_total) {
+                  user['assigned_courses'] = user_course_total[user.user_id]['count'];
+              } else {
+                  user['assigned_courses'] = 0;
+              }
+              if (user.user_id in user_training_total) {
+                  user['trainings'] = user_training_total[user.user_id]['count'];
+              } else {
+                  user['trainings'] = 0;
+              }
+
             for(let loc of locationsData){
                 if(loc.location_id == user.location_id){
                     userLocData.location_id = loc.location_id;
                     userLocData.name = loc.name;
                     userLocData.parent_id = loc.parent_id;
                     userLocData.location_role_id = user.em_role_id;
-                    
+
                     if(loc.parent_id > -1){
                         for(let par of locationsData){
                             if(par.location_id == loc.parent_id){
@@ -1067,7 +1103,7 @@ export class TeamRoute extends BaseRoute {
 
         for(let user of toSendData){
             let locs = user.locations;
-            
+
             let tempUserRoles = {};
             for(let loc of locs){
                 let roleName = 'General Occupant',
@@ -1184,7 +1220,7 @@ export class TeamRoute extends BaseRoute {
 
         let locationsOnAccount = await accountModel.getLocationsOnAccount(req.user.user_id, 1, archived),
             locations = <any> [];
-        
+
         for (let loc of locationsOnAccount) {
             locations.push(loc);
         }
@@ -1194,7 +1230,7 @@ export class TeamRoute extends BaseRoute {
             let
                 deepLocModel = new Location(),
                 deepLocations = <any> [];
-            
+
             if(loc.parent_id == -1){
                 deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
                 deepLocations.push(loc);
@@ -1232,7 +1268,7 @@ export class TeamRoute extends BaseRoute {
 
         for(let user of allUsers){
             allUsersIds.push(user.user_id);
-            
+
             let filesModel = new Files(),
                 arrWhere = [];
 
@@ -1272,7 +1308,7 @@ export class TeamRoute extends BaseRoute {
                         userLocData.location_id = loc.location_id;
                         userLocData.name = loc.name;
                         userLocData.parent_id = loc.parent_id;
-                        
+
                         if(loc.parent_id > -1){
                             for(let par of locationsData){
                                 if(par.location_id == loc.parent_id){

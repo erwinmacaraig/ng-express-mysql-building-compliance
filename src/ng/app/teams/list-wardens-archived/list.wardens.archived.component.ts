@@ -19,11 +19,11 @@ declare var $: any;
   providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService]
 })
 export class ListArchivedWardensComponent implements OnInit, OnDestroy {
-	
+
 	userData = {};
 	wardenArr = <any>[];
 	selectedToArchive = {
-		first_name : '', last_name : '', parent_data : {}, locations : []
+		first_name : '', last_name : '', parent_data : {}, locations : [], parent_name: '', name: ''
 	};
 	showModalLoader = false;
 	copyOfList = [];
@@ -75,7 +75,7 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 
 	ngOnInit(){
 
-		this.getwardenArr(() => { 
+		this.getwardenArr(() => {
 			this.dashboardService.hide();
 			setTimeout(() => {
 		        $('.row.filter-container select').material_select();
@@ -122,13 +122,13 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 	        this.wardenArr = this.copyOfList;
 	      }
 	    });
-		
+
 	}
 
 	sortByEvent(){
 		$('select.sort-by').on('change', () => {
 			let selected = $('select.sort-by').val();
-			
+
 			if(selected == 'user-name-asc'){
 				this.wardenArr.sort((a, b) => {
 					if(a.first_name < b.first_name) return -1;
@@ -191,7 +191,7 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 			this.dashboardService.show();
 			this.getwardenArr(() => { this.dashboardService.hide(); });
 			this.selectedToArchive = {
-				first_name : '', last_name : '', parent_data : {}, locations : []
+				first_name : '', last_name : '', parent_data : {}, locations : [], name: '', parent_name: ''
 			};
 		});
 	}

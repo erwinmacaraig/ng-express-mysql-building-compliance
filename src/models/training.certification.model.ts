@@ -381,7 +381,8 @@ export class TrainingCertification extends BaseClass {
         let filterString = '';
 
         filterString += ('pass' in filter) ? ' AND pass = ' + filter['pass'] : ' AND pass = 1';
-
+        filterString +=
+        ('current' in filter) ? ` AND DATE_ADD(certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()` : '';
         const sql = `SELECT
                       user_id
                     FROM

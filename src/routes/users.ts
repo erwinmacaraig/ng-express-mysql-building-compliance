@@ -660,7 +660,7 @@ export class UsersRoute extends BaseRoute {
 
         let locationsOnAccount = await accountModel.getLocationsOnAccount(userID, 1, archived),
             locations = <any> [];
-        
+
         for (let loc of locationsOnAccount) {
             locations.push(loc);
         }
@@ -670,7 +670,7 @@ export class UsersRoute extends BaseRoute {
             let
                 deepLocModel = new Location(),
                 deepLocations = <any> [];
-            
+
             if(loc.parent_id == -1){
                 deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
                 deepLocations.push(loc);
@@ -734,7 +734,10 @@ export class UsersRoute extends BaseRoute {
             user_course_total = {};
         }
         try {
-            user_training_total = await training.getNumberOfTrainings(userIds);
+            user_training_total = await training.getNumberOfTrainings(userIds, {
+              'pass': 1,
+              'current': 1
+            });
         } catch(e) {
             user_training_total = {};
         }
@@ -758,7 +761,7 @@ export class UsersRoute extends BaseRoute {
                         userLocData.name = loc.name;
                         userLocData.parent_id = loc.parent_id;
                         userLocData.location_role_id = map.role_id;
-                        
+
                         if(loc.parent_id > -1){
                             for(let par of locationsData){
                                 if(par.location_id == loc.parent_id){
@@ -788,7 +791,7 @@ export class UsersRoute extends BaseRoute {
 
 		for(let user of toSendData){
 			let locs = user.locations;
-			
+
 			let tempUserRoles = {};
 			for(let loc of locs){
 				let roleName = 'General Occupant',
@@ -939,30 +942,35 @@ export class UsersRoute extends BaseRoute {
             trainings = await courseModel.getAllCourseForUser(userId);
             response.data.trainings = trainings;
 
-        }catch(e){}
+        }catch(e){
+          console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
+        }
 
+
+        try {
+          const userModel = new User(userId)
+          response.data.user = await userModel.load();
+        } catch(e) {
+          console.log(e, ' Cannot load user.', 'UsersRoute.getUserLocationsTrainingsEcoRoles');
+        }
+        try {
+          await fileModel.getByUserIdAndType(userId, 'profile').then(
+              (fileData) => {
+                  response.data.user['profilePic'] = fileData[0].url;
+              },
+              () => {
+                  response.data.user['profilePic'] = '';
+              }
+              );
+        } catch(e) {
+          console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
+        }
         try{
-
-            let userModel = new User(userId),
-            certificates = await userModel.getAllCertifications({'pass': 1});
+            let certificates = await userModel.getAllCertifications({'pass': 1});
             response.data.certificates = certificates;
-
-            response.data.user = await userModel.load();
-
-            try {
-                await fileModel.getByUserIdAndType(userId, 'profile').then(
-                    (fileData) => {
-                        response.data.user['profilePic'] = fileData[0].url;
-                    },
-                    () => {
-                        response.data.user['profilePic'] = '';
-                    }
-                    );
-            }catch(e) {
-                console.log(e);
-            }
-
-        } catch(e){}
+        } catch(e){
+          console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
+        }
 
         res.statusCode = 200;
         res.send(response);
@@ -1202,7 +1210,7 @@ export class UsersRoute extends BaseRoute {
 
 				let invitation = new UserInvitation();
 				await invitation.create(saveData);
-                
+
                 if(isAccountEmailExempt){
 
                     let user  = new User(),
@@ -1252,7 +1260,7 @@ export class UsersRoute extends BaseRoute {
                         });
                     }
                 }
-                
+
 
                 if(isAccountEmailExempt == false){
 

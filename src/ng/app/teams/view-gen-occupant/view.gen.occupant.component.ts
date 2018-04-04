@@ -28,7 +28,7 @@ export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 			name : '',
 			parent_location : { name : '' }
 		},
-		eco_role : { role_name : '' }
+		eco_role : { role_name : '', em_roles_id: 0 }
 	};
 	showModalRequestWardenLoader = false;
 	approvers = [];
@@ -54,7 +54,7 @@ export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 				this.hasRequest = true;
 			}
 		});
-		
+
 		this.userService.getMyWardenTeam({
 			role_id : 8
 		}, (response) => {

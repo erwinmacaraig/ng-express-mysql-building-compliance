@@ -10,7 +10,7 @@ import { MessageService } from '../services/messaging.service';
 declare var $: any;
 @Component({
   selector: 'app-warden-benchmarking',
-  templateUrl: '/warden-benchmarking.component.html',
+  templateUrl: './warden-benchmarking.component.html',
   styleUrls: ['./warden-benchmarking.component.css']
 })
 export class WardenBenchMarkingComponent implements OnInit, OnDestroy, AfterViewInit {

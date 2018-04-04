@@ -29,9 +29,16 @@ export class SublocationComponent implements OnInit, OnDestroy {
     userData: Object;
     encryptedID;
     locationID = 0;
-    locationData = {};
+    locationData = {
+      google_photo_url: '',
+      formatted_address: '',
+      name: ''
+
+    };
     public parentData = {
-        name : ''
+        name : '',
+        sublocations: [],
+        location_id: 0
     };
     encLocId = '';
 

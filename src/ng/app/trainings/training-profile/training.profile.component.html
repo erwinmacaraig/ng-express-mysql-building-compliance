@@ -403,7 +403,7 @@
 		</h5>
 
 
-		<form #formAssignLocation (submit)="submitAssignLocation(formAssignLocation)">
+		<form #formAssignLocation>
 
 		<table class="table striped">
 			<thead>
@@ -447,7 +447,7 @@
 
 
 	<div class="modal-content" [hidden]="!showLocationSelection">
-		<h5>Select Location for {{viewData.user.first_name+' '+viewData.user.last_name}}
+		<h5>Select Location for {{viewData.user.first_name + ' ' + viewData.user.last_name}}
 			<a href="javascipt:void(0)" class="red-text right" style="font-size: 18px;" (click)="showLocationSelection = false">Cancel</a>
 		</h5>
 	</div>
