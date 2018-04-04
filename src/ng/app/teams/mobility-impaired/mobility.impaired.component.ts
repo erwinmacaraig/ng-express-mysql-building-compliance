@@ -43,6 +43,24 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     datepickerModelFormatted = '';
     selectedPeep = {};
 
+    loadingTable = false;
+
+    pagination = {
+        pages : 0, total : 0, currentPage : 0, selection : []
+    };
+
+    queries = {
+        roles : 'trp,frp,users',
+        impaired : 1,
+        type : 'client',
+        offset :  0,
+        limit : 10,
+        archived : 0,
+        pagination : true,
+        user_training : true,
+        users_locations : true
+    };
+
     constructor(
         private authService : AuthService,
         private router : Router,
@@ -56,28 +74,47 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
     }
 
-    ngOnInit(){
-        this.dashboardService.show();
-        this.dataProvider.buildPeepList().subscribe((response) => {
+    getListData(callBack?){
 
-            let tempRoles = {},
-                peep = response['data'];
-            for(let i in peep){
-                peep[i]['bg_class'] = this.generateRandomBGClass();
-                if(peep[i]['user_id']){
-                    peep[i]['id_encrypted'] = this.encDecrService.encrypt(peep[i]['user_id']);
-                    peep[i]['last_login'] = moment(peep[i]['last_login']).format('MMM. DD, YYYY hh:mmA');
+        this.userService.queryUsers(this.queries, (response) => {
+            this.pagination.total = response.data.pagination.total;
+            this.pagination.pages = response.data.pagination.pages;
+            this.peepList = response.data.users;
+
+            let tempRoles = {};
+            for(let i in this.peepList){
+                this.peepList[i]['bg_class'] = this.generateRandomBGClass();
+                this.peepList[i]['id_encrypted'] = this.encDecrService.encrypt(this.peepList[i]['user_id']);
+
+                for(let l in this.peepList[i]['locations']){
+                    if(this.peepList[i]['locations'][l]['parent_name'] == null){
+                        this.peepList[i]['locations'][l]['parent_name'] = '';
+                    }
                 }
             }
-            this.peepList = peep;
-            this.copyOfList = JSON.parse(JSON.stringify(peep));
+            this.copyOfList = JSON.parse( JSON.stringify(this.peepList) );
 
+            if(callBack){
+                callBack();
+            }
+        });
+    }
+
+    ngOnInit(){
+        this.dashboardService.show();
+        this.getListData(() => { 
+            if(this.pagination.pages > 0){
+                this.pagination.currentPage = 1;
+            }
+
+            for(let i = 1; i<=this.pagination.pages; i++){
+                this.pagination.selection.push({ 'number' : i });
+            }
             setTimeout(() => {
+                this.dashboardService.hide(); 
                 $('.row.filter-container select').material_select();
-                this.dashboardService.hide();
-            }, 500);
-
-        }, (err: HttpErrorResponse) => {});
+            }, 100);
+        });
     }
 
     ngAfterViewInit(){
@@ -431,6 +468,34 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
             });
         }
+    }
+
+    pageChange(type){
+
+        switch (type) {
+            case "prev":
+                if(this.pagination.currentPage > 1){
+                    this.pagination.currentPage = this.pagination.currentPage - 1;
+                }
+                break;
+
+            case "next":
+                if(this.pagination.currentPage < this.pagination.pages){
+                    this.pagination.currentPage = this.pagination.currentPage + 1;
+                }
+                break;
+            
+            default:
+                this.pagination.currentPage = type;
+                break;
+        }
+
+        let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+        this.queries.offset = offset;
+        this.loadingTable = true;
+        this.getListData(() => { 
+            this.loadingTable = false;
+        });
     }
 
     ngOnDestroy(){}

@@ -70,7 +70,7 @@
 					<th>Action</th>
 				</tr>
 			</thead>
-			<tbody>
+			<tbody [hidden]="loadingTable">
 				<tr *ngIf="peepList.length == 0">
 					<td colspan="6" class="center">
 						<h6>No record found</h6>
@@ -132,10 +132,35 @@
 					</td>
 				</tr>
 			</tbody>
+			<tbody [hidden]="!loadingTable">
+				<tr>
+					<td colspan="7" class="center-align">
+						<h6>Fetching records..</h6>
+					</td>
+				</tr>
+			</tbody>
 		</table>
 
 	</div>
 
+</div>
+
+<div class="row">
+	<div class="col l12 m12 s12 center pagination" [hidden]="wardenArr.length == 0">
+		<div class="inline-block">
+			<button class="btn blue" (click)="pageChange('prev')" > Prev </button>
+		</div>
+
+		<div class="inline-block select">
+			<select #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+				<option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+			</select>
+		</div>
+
+		<div class="inline-block">
+			<button class="btn blue" (click)="pageChange('next')" > Next </button>
+		</div>
+	</div>
 </div>
 
 

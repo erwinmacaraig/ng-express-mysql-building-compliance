@@ -28,7 +28,23 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 	filters = [];
 
-	limit = 0;
+	loadingTable = false;
+
+	pagination = {
+		pages : 0, total : 0, currentPage : 0, selection : []
+	};
+
+	queries = {
+		roles : 'frp,trp,users',
+		impaired : null,
+		type : 'client',
+		offset :  0,
+		limit : 10,
+		archived : 0,
+		pagination : true,
+		user_training : true,
+		users_locations : true
+	};
 
 	constructor(
 		private userService : UserService,
@@ -41,25 +57,13 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	getListData(callBack?){
-		let queries = {
-			roles : 'frp,trp,users',
-			impaired : true,
-			type : 'client',
-			limit :  '0,10',
-			archived : 0,
-			account_id : this.userData['accountId'],
-			count_no_limit : true
-		};
 
-		this.userService.queryUsers(queries, (response) => {
-
-		});
-
-		this.userService.getUsersByAccountId(this.userData['accountId'], (response) => {
-			this.listData = response.data;
+		this.userService.queryUsers(this.queries, (response) => {
+			this.pagination.total = response.data.pagination.total;
+			this.pagination.pages = response.data.pagination.pages;
+			this.listData = response.data.users;
 
 			let tempRoles = {};
-			console.log(this.listData);
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
 				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
@@ -82,9 +86,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 					}
 				}
 			}
-
-			console.log(this.listData);
 			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
+
 			if(callBack){
 				callBack();
 			}
@@ -94,10 +97,17 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	ngOnInit(){
 		this.dashboardService.show();
 		this.getListData(() => { 
+			if(this.pagination.pages > 0){
+				this.pagination.currentPage = 1;
+			}
+
+			for(let i = 1; i<=this.pagination.pages; i++){
+				this.pagination.selection.push({ 'number' : i });
+			}
 			setTimeout(() => {
 				this.dashboardService.hide(); 
 				$('.row.filter-container select').material_select();
-			}, 500);
+			}, 100);
 		});
 
 	}
@@ -137,8 +147,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			}else{
 				this.listData = this.copyOfList;
 			}
-		});
-		
+		});	
 	}
 
 	sortByEvent(){
@@ -289,6 +298,34 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			this.dashboardService.show();
 			this.selectedFromList = [];
 			this.getListData(() => { this.dashboardService.hide(); });
+		});
+	}
+
+	pageChange(type){
+
+		switch (type) {
+			case "prev":
+				if(this.pagination.currentPage > 1){
+					this.pagination.currentPage = this.pagination.currentPage - 1;
+				}
+				break;
+
+			case "next":
+				if(this.pagination.currentPage < this.pagination.pages){
+					this.pagination.currentPage = this.pagination.currentPage + 1;
+				}
+				break;
+			
+			default:
+				this.pagination.currentPage = type;
+				break;
+		}
+
+		let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+		this.queries.offset = offset;
+		this.loadingTable = true;
+		this.getListData(() => { 
+			this.loadingTable = false;
 		});
 	}
 

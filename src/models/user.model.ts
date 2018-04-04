@@ -327,14 +327,9 @@ export class User extends BaseClass {
         });
     }
 
-    public getByAccountId(accountId, archived?, limit?) {
-        let limitString = '';
-        if(limit){
-            limitString = 'LIMIT '+limit;
-        }
-
+    public getByAccountId(accountId, archived?) {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? '+limitString;
+            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? ';
             if(!archived){
                 archived = 0;
             }
@@ -485,33 +480,53 @@ export class User extends BaseClass {
     public query(queries){
         
         return new Promise((resolve, reject) => {
-            let selectQuery = 'u.*';
+            let selectQuery = 'users.*';
             if(queries.select){
                 if( Object.keys(queries.select).length > 0 ){
                     selectQuery = '';
+
+                    for(let i in queries.select){
+                        let arrSel = queries.select[i];
+                        let c = 0;
+                        for(let n in arrSel){
+                            if(c > 0 || selectQuery.trim().length > 0){
+                                selectQuery += ', ';
+                            }
+
+                            if(i !== 'custom'){
+                                selectQuery += i + '.' + arrSel[n] +' ';
+                            }else{
+                                selectQuery += arrSel[n]+' ';
+                            }
+
+                            c++;
+                        }
+                    }
+
                 }
 
-                if(queries.select.user){
-                    for(let i in queries.select.user){
-                        selectQuery += ' u.'+queries.select.user[i];
-                    }
-                }
             }
 
             if(queries.select.count){
-                selectQuery = ' COUNT(u.user_id) as count';
+                selectQuery = ' COUNT(users.user_id) as count';
             }
 
-            let whereQuery = '';
+            let whereQuery = '',
+                whereCount = 0;
             if(queries.where){
-                let c = 0;
                 for(let i in queries.where){
-                    if(c == 0){
+                    if(whereCount == 0){
                         whereQuery += ' WHERE '+queries.where[i];
                     }else{
                         whereQuery += ' AND '+queries.where[i];
                     }
-                    c++;
+                    whereCount++;
+                }
+            }
+
+            if(queries.orWhere){
+                for(let i in queries.orWhere){
+                    whereQuery += ' '+queries.orWhere[i]+' ';
                 }
             }
 
@@ -538,13 +553,13 @@ export class User extends BaseClass {
             }
 
             let sql_load = `
-                SELECT ${selectQuery} FROM users u ${joinsQuery} ${whereQuery} ${groupQuery} ${orderQuery} ${limitQuery}
+                SELECT ${selectQuery} FROM users ${joinsQuery} ${whereQuery} ${groupQuery} ${orderQuery} ${limitQuery}
             `;
-
-            console.log(sql_load);
+            // console.log(sql_load);
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
+                    console.log(sql_load);
                     return console.log(error);
                 }
                 this.dbData = results;
