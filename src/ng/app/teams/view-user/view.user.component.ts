@@ -93,7 +93,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			this.encryptedID = params['encrypted'];
 			this.decryptedID = this.encryptDecrypt.decrypt(params['encrypted']);
 
-			
+
 			this.loadProfile();
 		});
 
@@ -180,7 +180,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		});
 
 		this.preloaderService.show();
-		
+
 		$('#modalMobility select[name="is_permanent"]').off('change').on('change', () => {
             if($('#modalMobility select[name="is_permanent"]').val() == '1'){
                 this.isShowDatepicker = false;
@@ -199,15 +199,15 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         });
 
 		this.selectLocationEvent();
-		setTimeout(() => { 
+		setTimeout(() => {
 			Materialize.updateTextFields();
 		}, 1000);
-		setTimeout(() => { 
+		setTimeout(() => {
 			$('#selectLocation').trigger('change');
 		}, 1000);
 
 		this.selectActionEvent();
-		
+
 	}
 
 	getRoleName(roleId){
@@ -246,7 +246,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 				}
 			}
 
-			setTimeout(() => { 
+			setTimeout(() => {
 				Materialize.updateTextFields();
 			}, 100);
 
@@ -305,7 +305,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         }
 
         this.selectedPeep = peep;
-        
+
         $('#modalMobility').modal('open');
 	}
 
@@ -338,7 +338,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
             if(this.selectedPeep['mobility_impaired_details'].length > 0){
                 paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
             }
-            
+
             paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
 
             this.showModalLoader = true;
@@ -350,7 +350,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 						this.showModalLoader = false;
 						$('#modalMobility').modal('close');
 
-						setTimeout(() => { 
+						setTimeout(() => {
 							$('#selectLocation').trigger('change');
 						}, 100);
 
@@ -407,7 +407,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 						this.showModalProdfileLoader = false;
 						$('#modalUpdateProfile').modal('close');
 
-						setTimeout(() => { 
+						setTimeout(() => {
 							$('#selectLocation').trigger('change');
 						}, 100);
 
@@ -441,8 +441,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
             		setTimeout(() => {
 						this.showModalCredentialsLoader = false;
 						$('#modalCredentials').modal('close');
-						
-						setTimeout(() => { 
+
+						setTimeout(() => {
 							$('#selectLocation').trigger('change');
 						}, 100);
 
@@ -532,5 +532,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(){
 
+    }
+    emailThisCertificate(userId=0, certId=0) {
+      this.userService.emailCertificate(userId, certId).subscribe(() => {
+        alert('Certificate sent successfully!');
+      },
+      (e) => {
+        alert('There was a problem sending certificate.');
+      });
     }
 }
