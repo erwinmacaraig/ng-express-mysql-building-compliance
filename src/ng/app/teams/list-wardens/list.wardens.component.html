@@ -88,7 +88,7 @@
 					<td>
 						<!-- <p class="checkbox">
 							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)">
-							<label for="location-{{i}}" > 
+							<label for="location-{{i}}" >
 								{{warden['parent_name']}} - {{warden['name']}}
 							</label>
 						</p> -->
@@ -120,13 +120,12 @@
 							<!-- <div class="image"></div> -->
 							<div *ngIf="warden.mobility_impaired == 1" class="impaired"></div>
 							<span *ngFor="let role of warden.roles; let ri = index;" class="name">
-								{{role.role_name}}<i *ngIf=" warden.roles.length - 1 != ri ">,</i> 
+								{{role.role_name}}<i *ngIf=" warden.roles.length - 1 != ri ">,</i>
 							</span>
 						</div>
 					</td>
 					<td>
-						<span *ngIf="warden.training_applicable == false">N/A</span>
-						<span *ngIf="warden.training_applicable == true" class="over red-text">0/0</span>
+						<span class="over red-text">{{warden.assigned_courses}}/{{warden.trainings}}</span>
 					</td>
 					<td>
 						{{warden['last_login']}}
@@ -164,10 +163,10 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want archive 
+			Are you sure you want archive
 			<span *ngIf="selectedToArchive.parent_name">
-				{{ selectedToArchive.parent_name }}, 
-			</span> 
+				{{ selectedToArchive.parent_name }},
+			</span>
 			<span>{{selectedToArchive.name}} </span>
 			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
 		</p>
@@ -200,9 +199,9 @@
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
 				<span *ngIf="list.parent_name">
-					{{ list.parent_name }}, 
-				</span> 
-				<span>{{list.name}}</span> 
+					{{ list.parent_name }},
+				</span>
+				<span>{{list.name}}</span>
 				<span class="blue-text">{{list.first_name}} {{list.last_name}}</span>
 			</li>
 		</ul>
