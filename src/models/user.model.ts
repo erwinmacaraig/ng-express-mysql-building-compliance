@@ -365,104 +365,101 @@ export class User extends BaseClass {
         });
     }
 
-    public getAllCertifications(filter: object = {}, user_id: number = 0): Promise<Array<object>> {
-        return new Promise((resolve, reject) => {
-            let uid = this.ID();
-            if (user_id) {
-                uid = user_id;
-            }
-            let filterStr = '';
-            Object.keys(filter).forEach((key) => {
-                switch (key) {
-                    case 'pass':
-                    filterStr += ` AND certifications.pass = ${filter[key]}`;
-                    break;
-                    case 'training_requirement_id':
-                    filterStr += ` AND certifications.training_requirement_id = ${filter[key]}`;
-                    break;
-                    case 'certifications_id':
-                    filterStr += ` AND certifications.certifications_id = ${filter[key]}`;
-                    break;
-                }
-            });
-            const sql_certifications = `SELECT
-            training_requirement.training_requirement_name,
-            training_requirement.scorm_course_id,
-            certifications.*,
-            training_requirement.num_months_valid,
-            DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
-            IF (DATE_ADD(certifications.certification_date,
-            INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
-            FROM
-            certifications
-            INNER JOIN
-            training_requirement
-            ON
-            training_requirement.training_requirement_id = certifications.training_requirement_id
-            WHERE
-            certifications.user_id = ? ${filterStr}`;
+  public getAllCertifications(filter: object = {}, user_id: number = 0): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      let uid = this.ID();
+      if (user_id) {
+        uid = user_id;
+      }
+      let filterStr = '';
+      Object.keys(filter).forEach((key) => {
+        switch (key) {
+          case 'pass':
+            filterStr += ` AND certifications.pass = ${filter[key]}`;
+          break;
+          case 'training_requirement_id':
+            filterStr += ` AND certifications.training_requirement_id = ${filter[key]}`;
+          break;
+          case 'certifications_id':
+            filterStr += ` AND certifications.certifications_id = ${filter[key]}`;
+          break;
+        }
+      });
+      const sql_certifications = `SELECT
+        training_requirement.training_requirement_name,
+        training_requirement.scorm_course_id,
+        certifications.*,
+        training_requirement.num_months_valid,
+        DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
+        IF (DATE_ADD(certifications.certification_date,
+          INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
+        FROM
+          certifications
+        INNER JOIN
+         training_requirement
+        ON
+          training_requirement.training_requirement_id = certifications.training_requirement_id
+        WHERE
+          certifications.user_id = ? ${filterStr}`;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_certifications, [uid], (error, results, fields) => {
-                if (error) {
-                    console.log('user.model.getAllCertifications',  error, sql_certifications);
-                    throw Error('There was a problem with getting the certification records for this user');
-                }
-                if (results.length > 0) {
-                    resolve(results);
-                } else {
-                    reject('There are no certifications for this user');
-                }
-            });
-            connection.end();
-        });
-    }
-
-    /**
-    * @author Erwin Macaraig
-    * @description
-    * Get all locations tag to this user whether whatever their role(s) are
-    * @param user_id
-    * @returns array
-    */
-    public getAllMyLocations(user_id: number = 0) {
-        return new Promise((resolve, reject) => {
-            let userId = this.ID();
-            if (user_id) {
-                userId = user_id;
-            }
-            const sql = `SELECT
-            locations.location_id,
-            locations.parent_id,
-            locations.name,
-            LAU.role_id
-            FROM
-            location_account_user LAU
-            INNER JOIN
-            locations
-            ON
-            LAU.location_id = locations.location_id
-            WHERE LAU.user_id = ?
-            `;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, [userId], (error, results, fields) => {
-                if (error) {
-                    console.log('user.model.getAllMyLocations', error, sql, userId);
-                    throw Error('Internal error. Cannot retrieve records');
-                }
-                if (results.length > 0) {
-                    console.log(results);
-                    const utils = new UtilsSync();
-                    utils.getRootParent(results).then((set) => {
-                        console.log(set);
-                        resolve(set);
-                    });
-                } else {
-                    resolve([]);
-                }
-
-            });
-        });
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_certifications, [uid], (error, results, fields) => {
+        if (error) {
+          console.log('user.model.getAllCertifications',  error, sql_certifications);
+          throw Error('There was a problem with getting the certification records for this user');
+        }
+        if (results.length > 0) {
+          resolve(results);
+        } else {
+          reject('There are no certifications for this user');
+        }
+      });
+      connection.end();
+    });
+  }
+  /**
+  * @author Erwin Macaraig
+  * @description
+  * Get all locations tag to this user whether whatever their role(s) are
+  * @param user_id
+  * @returns array
+  */
+  public getAllMyLocations(user_id: number = 0) {
+      return new Promise((resolve, reject) => {
+          let userId = this.ID();
+          if (user_id) {
+              userId = user_id;
+          }
+          const sql = `SELECT
+          locations.location_id,
+          locations.parent_id,
+          locations.name
+          FROM
+          location_account_user LAU
+          INNER JOIN
+          locations
+          ON
+          LAU.location_id = locations.location_id
+          WHERE LAU.user_id = ?
+          `;
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql, [userId], (error, results, fields) => {
+              if (error) {
+                  console.log('user.model.getAllMyLocations', error, sql, userId);
+                  throw Error('Internal error. Cannot retrieve records');
+              }
+              if (results.length > 0) {
+                  console.log(results);
+                  const utils = new UtilsSync();
+                  utils.getRootParent(results).then((set) => {
+                      console.log(set);
+                      resolve(set);
+                  });
+              } else {
+                  resolve([]);
+              }
+          });
+      });
     }
 
     public getWithoutToken(){
@@ -478,7 +475,7 @@ export class User extends BaseClass {
     }
 
     public query(queries){
-        
+
         return new Promise((resolve, reject) => {
             let selectQuery = 'users.*';
             if(queries.select){

@@ -91,15 +91,16 @@ export class Utils {
             u.last_name,
             u.email,
             lau.account_id,
-            lau.role_id AS role_id_location,
+            user_role_relation.role_id AS role_id_location,
             urr.role_id AS role_id_account
           FROM
             location_account_user lau
-            INNER JOIN users u ON u.user_id = lau.user_id
+          INNER JOIN users u ON u.user_id = lau.user_id
+          INNER JOIN user_role_relation ON lau.user_id = user_role_relation.user_id
             RIGHT JOIN user_role_relation urr ON u.user_id = urr.user_id
           WHERE
-            lau.location_id IN (`+location+`) AND
-            lau.role_id = 2 AND
+            lau.location_id IN (`+ location +`) AND
+            user_role_relation.role_id = 2 AND
             u.token IS NOT NULL AND
             u.user_id <> `+user_id+` AND
             u.token <> ''
@@ -116,7 +117,7 @@ export class Utils {
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_trp, (error, results, fields) => {
           if (error) {
-            return console.log(error);
+            return console.log(error, 'utils.models.');
           }
           if (!results.length) {
             reject('No TRP found');
