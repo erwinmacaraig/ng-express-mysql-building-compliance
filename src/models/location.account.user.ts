@@ -418,28 +418,22 @@ export class LocationAccountUser extends BaseClass {
         let role_filter = '';
         const seenAccountsArr = [];
         if (role) {
-          // role_filter = ` AND LAU.role_id = ${role}`;
+           role_filter = ` AND user_role_relation.role_id = ${role}`;
         }
         if (!location_id) {
           reject('Cannot get info without location id');
         }
         const sql_get_list = `SELECT
-              accounts.account_name,
-              users.first_name,
-              users.last_name,
-              LAU.*
-          FROM
-              location_account_user LAU
-          INNER JOIN
-              accounts
-          ON
-              LAU.account_id = accounts.account_id
-          INNER JOIN
-              users
-          ON
-              (users.user_id = LAU.user_id AND users.account_id = LAU.account_id)
+        accounts.account_name,
+                      users.first_name,
+                      users.last_name,
+                      location_account_user.*
+         from location_account_user
+        INNER JOIN user_role_relation ON user_role_relation.user_id = location_account_user.user_id
+        INNER JOIN users ON users.user_id = location_account_user.user_id
+        INNER JOIN accounts ON accounts.account_id = users.account_id
           WHERE
-            LAU.location_id = ?
+          location_account_user.location_id = ?
           ${role_filter}
             `;
         // console.log(sql_get_list);
