@@ -275,7 +275,7 @@ export class UserEmRoleRelation extends BaseClass {
 
         return new Promise((resolve, reject) => {
             let sql_load = `
-                SELECT 
+                SELECT
                     u.*, em.em_role_id, em.location_id, er.role_name
                 FROM user_em_roles_relation em
                 INNER JOIN users u ON em.user_id = u.user_id
@@ -301,14 +301,14 @@ export class UserEmRoleRelation extends BaseClass {
 
         return new Promise((resolve, reject) => {
             let sql_load = `
-                SELECT 
+                SELECT
                     u.*, em.em_role_id, er.role_name
                 FROM user_em_roles_relation em
                 INNER JOIN users u ON em.user_id = u.user_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
                 WHERE em.location_id IN (`+locationIds+`) AND u.archived = `+archived+`
             `;
- 
+
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
@@ -316,6 +316,122 @@ export class UserEmRoleRelation extends BaseClass {
                 }
                 this.dbData = results;
                 resolve(results);
+            });
+            connection.end();
+        });
+    }
+
+   /**
+     * @author Erwin Macaraig
+     * @param users
+     * array of user ids
+     * @param location
+     * array of location ids
+     * @description
+     * return an object that has the location_id as the key and data as an array that holds user id, em role id and role name
+     * hence r[location_id] = {data[{user_id: 0, em_role_id: 9, 'em_role_name': 'Warden'}]}
+     *
+     * This does not handle reject, only resolve that is why you do not have to have it in try-catch clause
+     */
+    public getEmergencyRolesOfUsersInLocations(users = [],  location = []) {
+      return new Promise((resolve, reject) => {
+        let usersStr = '';
+        let locationStr = '';
+        const r = {};
+        if (!users.length) {
+          resolve({});
+          return;
+        }
+        if (!location.length) {
+          resolve({});
+          return;
+        }
+        usersStr = users.join(',');
+        locationStr = location.join(',');
+
+        const sql = `SELECT
+                      user_id,
+                      em_role_id,
+                      location_id,
+                      role_name
+                    FROM
+                      user_em_roles_relation
+                    INNER JOIN
+                      em_roles
+                    ON
+                      user_em_roles_relation.em_role_id = em_roles.em_roles_id
+                    WHERE location_id IN (${locationStr}) AND user_id IN (${usersStr});`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [], (error, results, fields) => {
+          if (error) {
+            console.log(error, 'user.em.role.relation.getEmergencyRolesOfUsersInLocations', sql);
+            throw Error('Cannot perform query');
+          }
+          if (!results.length) {
+            resolve({});
+          } else {
+            for (let i = 0; i <  results.length; i++) {
+              if (results[i]['location_id'] in r) {
+                (r[results[i]['user_id']]['data']).push({
+                  'em_role_id': results[i]['em_role_id'],
+                  'user_id': results[i]['user_id'],
+                  'em_role_name': results[i]['role_name']
+                });
+              } else {
+                r[results[i]['location_id']] = {
+                  'data': [{
+                    'em_role_id': results[i]['em_role_id'],
+                    'user_id': results[i]['user_id'],
+                    'em_role_name': results[i]['role_name']
+                  }]
+                };
+              }
+            }
+            resolve(r);
+          }
+        });
+        connection.end();
+      });
+
+    }
+    public getManyByUserIds(userIds) {
+      return new Promise((resolve, reject) => {
+          const sql_load = 'SELECT em.*, er.role_name  FROM user_em_roles_relation em INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id WHERE em.user_id IN ('+userIds+')';
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql_load, (error, results, fields) => {
+              if (error) {
+                  return console.log(error);
+              }
+              this.dbData = results;
+              resolve(this.dbData);
+          });
+          connection.end();
+      });
+    }
+
+    public getLocationsByUserIds(userIds) {
+        return new Promise((resolve, reject) => {
+            const sql_load = `SELECT
+                    uemr.user_id,
+                    uemr.em_role_id as role_id,
+                    l.name,
+                    l.parent_id,
+                    l.location_id,
+                    l.formatted_address,
+                    l.google_place_id,
+                    l.google_photo_url
+                    FROM user_em_roles_relation uemr
+                    INNER JOIN locations l ON l.location_id = uemr.location_id
+                    WHERE uemr.user_id IN (`+userIds+`)`;
+
+            const connection = db.createConnection(dbconfig);
+
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
             });
             connection.end();
         });

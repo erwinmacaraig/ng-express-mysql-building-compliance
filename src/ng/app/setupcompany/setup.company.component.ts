@@ -162,7 +162,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 			this.elems['modalLoader'].modal('close');
 
 			let userdata = this.auth.getUserData();
-			userdata.accountId = res.data.account.account_id;
+			userdata['accountId'] = res.data.account.dbData.account_id;
       		this.auth.setUserData(userdata);
 	      	setTimeout(() => {
 	       	// location.replace(location.origin + '/dashboard/company-information'); }, 500);
@@ -170,13 +170,27 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 	        }, 100);
 
       	} else {
+
 			this.modalLoader.iconColor = 'red';
 			this.modalLoader.icon = 'clear';
 			for(let i in res.data){
 				f.controls[i].markAsDirty();
 			}
 
+			if('error' in res){
+      			if(res.error == "Not Authenticated"){
+      				this.modalLoader.message = 'Authentication was removed. Redirecting to login page';
+      				setTimeout(() => { this.router.navigate(["/login"]); }, 1500);
+      				return false;
+      			}
+      		}
+
 			this.modalLoader.message = 'There\'s an invalid field, please review your form again.';
+
+			if(res.message == "User already have a company"){
+				this.modalLoader.message = 'User already have a company';
+				setTimeout(() => { this.router.navigate(["/login"]); }, 1500);
+      		}
 			setTimeout(() => {
 				this.elems['modalLoader'].modal('close');
 				this.elems['modalSignup'].modal('open');
