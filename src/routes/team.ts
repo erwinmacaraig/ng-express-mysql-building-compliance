@@ -653,221 +653,218 @@ export class TeamRoute extends BaseRoute {
         return invalidWarden;
     }
 
-  public async retrieveWardenInvationInfo(req: Request, res: Response, next: NextFunction) {
+    public async retrieveWardenInvationInfo(req: Request, res: Response, next: NextFunction) {
 
-    let locationsOnAccount = [];
-    let location;
-    let userInvitation;
-    let token = '';
-    let dbData;
-    if (req.params.token) {
-      token = req.params.token;
-    }
-    const tokenModel = new Token();
-    const tokenDbData = await tokenModel.getByToken(token);
+        let locationsOnAccount = [],
+            location,
+            userInvitation,
+            token = '',
+            dbData;
 
-    if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
-      userInvitation = new UserInvitation(tokenDbData['id']);
-      dbData = await userInvitation.load();
-    } else {
-      throw new Error('Invalid token');
-    }
-    const userRoleRel = new UserRoleRelation();
-
-    // what is the highest rank role of the user who invited this warden
-    const role = await userRoleRel.getByUserId(dbData['invited_by_user'], true);
-    // the account of the user who invited this warden
-    const account = new Account(dbData['account_id']);
-    try {
-      // locations tagged to the user who invited this warden
-      locationsOnAccount = await account.getLocationsOnAccount(dbData['invited_by_user'], role);
-    } catch (e) {
-      console.log(e);
-      throw new Error(e);
-    }
-
-    const accountDB = await account.load();
-    dbData['account'] = account.get('account_name');
-    if (!dbData['location_id']) {
-      switch (role) {
-        case 1:
-          for (let loc of locationsOnAccount) {
-            location = new Location(loc.location_id);
-            loc['sublocations'] = await location.getSublocations();
-          }
-          dbData['locations'] = locationsOnAccount; console.log('dbData = ', dbData);
-          break;
-        case 2:
-          // get the parent or parents of these sublocation
-          let results;
-          // let objectOfSubs:{[key: number]: Array<Object>} = {};
-          let objectOfSubs:{[key: number]: any[]} = {};
-          let seenParents = []; // these are the parent ids
-          let rootParents = [];
-          let pId = 0;
-          for (let loc of locationsOnAccount) {
-            objectOfSubs[loc.parent_id] = [];
-          }
-          for (let loc of locationsOnAccount) {
-            objectOfSubs[loc.parent_id].push(loc);
-
-            if ((seenParents.indexOf(loc.parent_id) * 1)  === -1) {
-
-              seenParents.push(loc.parent_id);
-              let parentId = loc.parent_id;
-              while (parentId !== -1) {
-                location = new Location(parentId);
-                await location.load();
-                parentId = location.get('parent_id');
-              }
-
-              rootParents.push(location.getDBData());
-              location.set('desc', loc.parent_id);
-              location = undefined;
-            }
-          }
-
-          let seenRoots = [];
-          let processedRootParents = [];
-          for (let r of rootParents) {
-                if(seenRoots.indexOf(r['location_id']) == -1) {
-                  r['sublocations'] = [];
-                  r['sublocations'] = objectOfSubs[r['desc']];
-                  r['sublocations']['total'] = 0;
-                  r['total_subs'] = objectOfSubs[r['desc']].length;
-                  seenRoots.push(r['location_id']);
-                  processedRootParents.push(r);
-                }
-              }
-          dbData['locations'] = processedRootParents;
-          break;
-
-      }
-    } else {
-      // get parent location details given a location id
-       let locationInstance = new Location(dbData['location_id']);
-       await locationInstance.load();
-       dbData['location_name'] = locationInstance.get('name');
-       let pId = <number>locationInstance.get('parent_id');
-      while (pId !== -1) {
-        locationInstance = new Location(pId);
-        await locationInstance.load();
-        pId = <number>locationInstance.get('parent_id');
-      }
-      dbData['parent_location_name'] = locationInstance.get('name') ? locationInstance.get('name') : locationInstance.get('formatted_address');
-      dbData['parent_location_id'] = locationInstance.ID();
-
-    }
-    return dbData;
-
-
-  }
-  public async processWardenInvitation(req: Request, res: Response, next: NextFunction) {
-    if (req.body.password !== req.body.confirmPassword) {
-      throw new Error('Passwords do not match');
-    }
-    const encryptedPassword = md5('Ideation' + req.body.password + 'Max');
-
-    let invitation;
-    let user;
-    try {
-      // create user
-      user  = new User();
-      const tokenObj = new Token();
-      const tokenDbData = await tokenObj.getByToken(req.body.token);
-      invitation = new UserInvitation(tokenDbData['id']);
-      const userInvitation = await invitation.load();
-      await user.create({
-        'first_name': req.body.first_name,
-        'last_name': req.body.last_name,
-        'password': encryptedPassword,
-        'email': req.body.email,
-        'token': req.body.token,
-        'account_id': req.body.account_id,
-        'invited_by_user': userInvitation['invited_by_user'],
-        'can_login': 1,
-        'mobile_number': userInvitation['contact_number']
-      });
-      await tokenObj.create({
-        'action': 'verify',
-        'verified': 1,
-        'id': user.ID(),
-        'id_type': 'user_id'
-      });
-      await invitation.create({
-        'was_used': 1
-      });
-    } catch (e) {
-      console.log(e);
-      throw new Error('Internal Error');
-    }
-    // create a record em-role-user-location
-    if(parseInt(req.body.em_role) > 2) {
-      const EMRoleUserRole = new UserEmRoleRelation();
-      await EMRoleUserRole.create({
-        'user_id': user.ID(),
-        'em_role_id': req.body.em_role,
-        'location_id': req.body.sublocation
-      });
-    }
-    // create a record in location_account_user
-    let locationAcctUser = new LocationAccountUser();
-    await locationAcctUser.create({
-      'location_id': req.body.sublocation,
-      'account_id': req.body.account_id,
-      'user_id': user.ID(),
-      'role_id': (req.body.role_id == 1 || req.body.role_id == 2) ? req.body.role_id : req.body.em_role
-    });
-
-    if (req.body.role_id) {
-      let theLocation = req.body.sublocation;
-      if (req.body.role_id == defs['Manager']) {
-        // get the root parent not the immediate parent - just to be sure
-        let locationInstance = new Location(req.body.parent_location);
-        await locationInstance.load();
-        let pId = <number>locationInstance.get('parent_id');
-        while (pId !== -1) {
-          locationInstance = new Location(pId);
-          await locationInstance.load();
-          pId = <number>locationInstance.get('parent_id');
+        if (req.params.token) {
+            token = req.params.token;
         }
-        theLocation = locationInstance.ID();
-      }
-      locationAcctUser = new LocationAccountUser();
 
-      /*await locationAcctUser.create({
-        'location_id': theLocation,
-        'account_id': req.body.account_id,
-        'user_id': user.ID(),
-        'role_id': (req.body.role_id == 1 || req.body.role_id == 2) ? req.body.role_id : req.body.em_role
-      });*/
-
-      if(parseInt(req.body.role_id) == 1 || parseInt(req.body.role_id) == 2){
+        const tokenModel = new Token();
+        const tokenDbData = await tokenModel.getByToken(token);
+        
+        if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
+            userInvitation = new UserInvitation(tokenDbData['id']);
+            dbData = await userInvitation.load();
+        } else {
+            throw new Error('Invalid token');
+        }
+        
         const userRoleRel = new UserRoleRelation();
-        await userRoleRel.create({
-          'user_id': user.ID(),
-          'role_id': req.body.role_id
-        });
-      }
 
-      const locationAccntRel = new LocationAccountRelation();
+        // what is the highest rank role of the user who invited this warden
+        const role = await userRoleRel.getByUserId(dbData['invited_by_user'], true);
+        // the account of the user who invited this warden
+        const account = new Account(dbData['account_id']);
+        try {
+            // locations tagged to the user who invited this warden
+            locationsOnAccount = await account.getLocationsOnAccount(dbData['invited_by_user'], role);
+        } catch (e) {
+            console.log(e);
+            throw new Error(e);
+        }
+        
+        const accountDB = await account.load();
+        dbData['account'] = account.get('account_name');
+        if (!dbData['location_id']) {
+            switch (role) {
+                case 1:
+                    for (let loc of locationsOnAccount) {
+                        location = new Location(loc.location_id);
+                        loc['sublocations'] = await location.getSublocations();
+                    }
+                    dbData['locations'] = locationsOnAccount; console.log('dbData = ', dbData);
+                break;
+                case 2:
+                    let results,
+                        objectOfSubs:{[key: number]: any[]} = {},
+                        seenParents = [],
+                        rootParents = [],
+                        pId = 0;
 
-      try {
-        const tmp = await locationAccntRel.getLocationAccountRelation({
-          'location_id': theLocation,
-          'account_id': req.body.account_id,
-          'responsibility': defs['role_text'][req.body.role_id]
-        });
-     } catch (err) {
-       await locationAccntRel.create({
-        'location_id': theLocation,
-        'account_id': req.body.account_id,
-        'responsibility': defs['role_text'][req.body.role_id]
-       });
-     }
+                    for (let loc of locationsOnAccount) {
+                        objectOfSubs[loc.parent_id] = [];
+                    }
+                    for (let loc of locationsOnAccount) {
+                        objectOfSubs[loc.parent_id].push(loc);
+
+                        if ((seenParents.indexOf(loc.parent_id) * 1)  === -1) {
+
+                            seenParents.push(loc.parent_id);
+                            let parentId = loc.parent_id;
+                            while (parentId !== -1) {
+                                location = new Location(parentId);
+                                await location.load();
+                                parentId = location.get('parent_id');
+                            }
+
+                            rootParents.push(location.getDBData());
+                            location.set('desc', loc.parent_id);
+                            location = undefined;
+                        }
+                    }
+
+                    let seenRoots = [];
+                    let processedRootParents = [];
+                    for (let r of rootParents) {
+                        if(seenRoots.indexOf(r['location_id']) == -1) {
+                            r['sublocations'] = [];
+                            r['sublocations'] = objectOfSubs[r['desc']];
+                            r['sublocations']['total'] = 0;
+                            r['total_subs'] = objectOfSubs[r['desc']].length;
+                            seenRoots.push(r['location_id']);
+                            processedRootParents.push(r);
+                        }
+                    }
+                    dbData['locations'] = processedRootParents;
+                    break;
+            }
+        } else {
+            let locationInstance = new Location(dbData['location_id']);
+            await locationInstance.load();
+            dbData['location_name'] = locationInstance.get('name');
+            let pId = <number>locationInstance.get('parent_id');
+            while (pId !== -1) {
+                locationInstance = new Location(pId);
+                await locationInstance.load();
+                pId = <number>locationInstance.get('parent_id');
+            }
+            dbData['parent_location_name'] = locationInstance.get('name') ? locationInstance.get('name') : locationInstance.get('formatted_address');
+            dbData['parent_location_id'] = locationInstance.ID();
+
+        }
+        return dbData;
+
+
     }
-    return;
-  }
+
+    public async processWardenInvitation(req: Request, res: Response, next: NextFunction) {
+        if (req.body.password !== req.body.confirmPassword) {
+            throw new Error('Passwords do not match');
+        }
+        const encryptedPassword = md5('Ideation' + req.body.password + 'Max');
+
+        let invitation;
+        let user;
+        try {
+            user  = new User();
+            const tokenObj = new Token();
+            const tokenDbData = await tokenObj.getByToken(req.body.token);
+            invitation = new UserInvitation(tokenDbData['id']);
+            const userInvitation = await invitation.load();
+            await user.create({
+                'first_name': req.body.first_name,
+                'last_name': req.body.last_name,
+                'password': encryptedPassword,
+                'email': req.body.email,
+                'token': req.body.token,
+                'account_id': req.body.account_id,
+                'invited_by_user': userInvitation['invited_by_user'],
+                'can_login': 1,
+                'mobile_number': userInvitation['contact_number']
+            });
+            await tokenObj.create({
+                'action': 'verify',
+                'verified': 1,
+                'id': user.ID(),
+                'id_type': 'user_id'
+            });
+            await invitation.create({
+                'was_used': 1
+            });
+        } catch (e) {
+            console.log(e);
+            throw new Error('Internal Error');
+        }
+
+        let locationAcctUser = new LocationAccountUser();
+
+        if (req.body.role_id) {
+            let theLocation = req.body.sublocation;
+            if (req.body.role_id == defs['Manager']) {
+                let locationInstance = new Location(req.body.parent_location);
+                await locationInstance.load();
+                let pId = <number>locationInstance.get('parent_id');
+                while (pId !== -1) {
+                    locationInstance = new Location(pId);
+                    await locationInstance.load();
+                    pId = <number>locationInstance.get('parent_id');
+                }
+                theLocation = locationInstance.ID();
+            }
+
+            if(parseInt(req.body.role_id) == 1 || parseInt(req.body.role_id) == 2){
+                const userRoleRel = new UserRoleRelation();
+                await userRoleRel.create({
+                    'user_id': user.ID(),
+                    'role_id': req.body.role_id
+                });
+
+                locationAcctUser = new LocationAccountUser();
+                await locationAcctUser.create({
+                    'location_id': theLocation,
+                    'account_id': req.body.account_id,
+                    'user_id': user.ID()
+                });
+
+                const EMRoleUserRole = new UserEmRoleRelation();
+                await EMRoleUserRole.create({
+                    'user_id': user.ID(),
+                    'em_role_id': defs['em_roles']['GENERAL OCCUPANT'],
+                    'location_id': req.body.sublocation
+                });
+            }else{
+                const EMRoleUserRole = new UserEmRoleRelation();
+                await EMRoleUserRole.create({
+                    'user_id': user.ID(),
+                    'em_role_id': req.body.em_role,
+                    'location_id': theLocation
+                });
+            }
+
+            const locationAccntRel = new LocationAccountRelation();
+
+            try {
+                await locationAccntRel.getLocationAccountRelation({
+                    'location_id': theLocation,
+                    'account_id': req.body.account_id,
+                    'responsibility': defs['role_text'][req.body.role_id]
+                });
+            } catch (err) {
+                await locationAccntRel.create({
+                    'location_id': theLocation,
+                    'account_id': req.body.account_id,
+                    'responsibility': defs['role_text'][req.body.role_id]
+                });
+            }
+        }
+        return;
+    }
   public async addBulkWardenByEmail(req: AuthRequest, res: Response) {
     const emailsSubmitted = JSON.parse(req.body.wardensEmail);
     console.log(typeof emailsSubmitted);

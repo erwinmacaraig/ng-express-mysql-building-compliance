@@ -362,7 +362,7 @@ export class LocationAccountUser extends BaseClass {
             location_id,
             account_id,
             user_id
-            ) VALUES (?,?,?,?)
+            ) VALUES (?,?,?)
             `;
             const param = [
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,

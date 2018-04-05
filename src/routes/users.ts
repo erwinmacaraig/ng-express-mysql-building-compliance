@@ -777,18 +777,59 @@ export class UsersRoute extends BaseRoute {
 
         if(query.roles && query.users_locations){
             let accountModel = new Account(),
+                emRolesModel = new UserEmRoleRelation(),
                 locationsDB = <any> [],
                 locations = <any> [];
             try{
                 locationsDB = await accountModel.getLocationsOnAccount(userID, 1, 0);
+                for (let loc of locationsDB) {
+                    locations.push(loc);
+                }
             }catch(e){}
+
+
+            let locationsEmRoles = <any> await emRolesModel.getLocationsByUserIds(userIds.join(','));
+            for(let loc of locationsEmRoles){
+                let exist = false;
+                for(let locDB of locations){
+                    if(locDB.location_id == loc.location_id){
+                        exist = true;
+                    }
+                }
+                if(!exist){
+                    locations.push(loc);
+                }
+            }
 
             for (let loc of locationsDB) {
                 locations.push(loc);
             }
 
-            let locationsData = [];
+            let locationsData = [],
+                parents = {};
             for (let loc of locations) {
+                let locParentModel = new Location(loc.parent_id),
+                    parent = <any> {};
+
+                locationsData.push(loc);
+
+                if(loc.parent_id == -1){
+                    parents[ loc.location_id ] = loc;
+                }else{
+                    try{
+                        if( parents[ loc.parent_id ] ){
+                            locationsData.push( parents[ loc.parent_id ] );
+                        }else{
+                            parent = await locParentModel.load();
+                            parents[ parent.location_id ] = parent;
+                            locationsData.push(parent);
+                        }
+                    }catch(e){}
+                }
+
+
+                /*
+                **** THIS IS DEEP FETCHING OF LOCATIONS ***
                 let
                     deepLocModel = new Location(),
                     deepLocations = <any> [];
@@ -820,6 +861,7 @@ export class UsersRoute extends BaseRoute {
                         locationsData.push(dl);
                     }
                 }
+                */
             }
 
             for(let loc of locationsData){
@@ -828,6 +870,10 @@ export class UsersRoute extends BaseRoute {
 
             let locAccUserModel = new LocationAccountUser(),
                 usersLocsMap = <any> await locAccUserModel.getManyLocationsByAccountIdAndUserIds(accountId, userIds.join(','));
+
+            for(let loc of locationsEmRoles){
+                usersLocsMap.push(loc);
+            }
 
             for(let map of usersLocsMap){
                 for(let user of response.data['users']){
@@ -874,21 +920,10 @@ export class UsersRoute extends BaseRoute {
                 userEmRoleModel = new UserEmRoleRelation(),
                 usersEmRoles = <any> await userEmRoleModel.getManyByUserIds(userIds.join(','));
 
-            response.data['usersRolesRelation'] = usersRolesRelation;
-            response.data['usersEmRoles'] = usersEmRoles;
-
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
                 if('locations' in user == false){ user['locations'] = []; }
-<<<<<<< HEAD
-
-                for(let loc of user.locations){
-                    let role = {
-                        role_name : 'General Occupant', role_id : 8
-                    };
-=======
->>>>>>> feature-system-revision
-
+ 
                 let usersRolesIds = [];
 
                 for(let rol of usersRolesRelation){
