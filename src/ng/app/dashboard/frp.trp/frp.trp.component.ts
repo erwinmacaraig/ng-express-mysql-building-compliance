@@ -82,8 +82,10 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 			}
 
 			setTimeout(() => {
-				let piePercent = ( (this.accountTrainings.total_users_trained / this.accountTrainings.total_users) * 100 ).toFixed(2);
-				this.donut.updateDonutChart('#specificChart', parseFloat(piePercent), true);
+				let piePercent = <any> ( (this.accountTrainings.total_users_trained / this.accountTrainings.total_users) * 100 ).toFixed(2);
+				if(!isNaN(piePercent)){
+					this.donut.updateDonutChart('#specificChart', parseFloat(piePercent), true);
+				}
 			},300);
 		});
 

@@ -62,7 +62,7 @@
 					<th>Name</th>
 					<th>Email</th>
 					<th>Contact Number</th>
-					<th>Role</th>
+					<th style="width: 20%;">Role</th>
 					<th>Training</th>
 					<th>Action</th>
 				</tr>
@@ -144,9 +144,9 @@
 </div>
 
 <div class="row">
-	<div class="col l12 m12 s12 center pagination" [hidden]="listData.length == 0">
+	<div class="col l12 m12 s12 center pagination" [hidden]="listData.length == 0 || pagination.total <= queries.limit || loadingTable">
 		<div class="inline-block">
-			<button class="btn blue" (click)="pageChange('prev')" > Prev </button>
+			<button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
 		</div>
 
 		<div class="inline-block select">
@@ -156,7 +156,7 @@
 		</div>
 
 		<div class="inline-block">
-			<button class="btn blue" (click)="pageChange('next')" > Next </button>
+			<button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
 		</div>
 	</div>
 </div>
@@ -178,12 +178,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want archive
-			<span *ngIf="selectedToArchive.locations.length > 1">Multiple locations</span>
-			<span *ngIf="selectedToArchive.locations.length == 1">
-				<span *ngIf="selectedToArchive.locations[0].parent_name.trim().length > 0">{{ selectedToArchive.locations[0].parent_name }}, </span>
-				{{selectedToArchive.locations[0].name}}
-			</span>
+			Are you sure you want to archive
 			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
 		</p>
 	</div>
@@ -211,15 +206,10 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want archive the following items?
+			Are you sure you want archive the following users?
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
-				<span *ngIf="list.locations.length > 1">Multiple locations</span>
-				<span *ngIf="list.locations.length == 1">
-					<span *ngIf="list.locations[0].parent_name.trim().length > 0">{{ list.locations[0].parent_name }}, </span>
-					{{list.locations[0].name}}
-				</span>
 				<span class="blue-text">{{list.first_name}} {{list.last_name}}</span>
 			</li>
 		</ul>

@@ -321,4 +321,19 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
+    public getManyByUserIds(userIds) {
+        return new Promise((resolve, reject) => {
+            const sql_load = 'SELECT em.*, er.role_name  FROM user_em_roles_relation em INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id WHERE em.user_id IN ('+userIds+')';
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
 }
