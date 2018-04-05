@@ -82,7 +82,7 @@ export class LocationsService {
   }
 
 	createSingleLocation(location: Object): Observable<any> {
-		return this.http.post<any>(this.baseUrl + '/location/create/', location);
+		return this.http.post<any>(this.baseUrl + '/location/create', location);
 	}
 
   createSubLocation(sublocation: Object): Observable<any>{

@@ -436,47 +436,47 @@ const defs = require('../config/defs.json');
         const dbLocationData = {};
         dbLocationData['parent_id'] = parent_id;
         Object.keys(req.body).forEach((key) => {
-          switch (key) {
-            case 'location_name':
-              dbLocationData['name'] = req.body.location_name ? req.body.location_name: '';
-            break;
-            case 'unit':
-              dbLocationData['unit'] = req.body.unit;
-            break;
-            case 'street_number':
-              dbLocationData['street'] = req.body.street_number + ' ';
-            break;
-            case 'street':
-              dbLocationData['street'] += req.body.street;
-            break;
-            case 'city':
-              dbLocationData['city'] = req.body.city;
-            break;
-            case 'state':
-              dbLocationData['state'] = req.body.state;
-            break;
-            case 'postal_code':
-              dbLocationData['postal_code'] = req.body.postal_code;
-            break;
-            case 'country':
-              dbLocationData['country'] = req.body.country;
-            break;
-            case 'formatted_address':
-              dbLocationData['formatted_address'] = req.body.formatted_address;
-            break;
-            case 'latitude':
-              dbLocationData['lat'] = req.body.latitude;
-            break;
-            case 'longitude':
-              dbLocationData['lng'] = req.body.longitude;
-            break;
-            case 'photoUrl':
-              dbLocationData['google_photo_url'] = req.body.photoUrl;
-            break;
-            case 'google_place_id':
-              dbLocationData['google_place_id'] = req.body.google_place_id;
-            break;
-          }
+            switch (key) {
+                case 'location_name':
+                dbLocationData['name'] = req.body.location_name ? req.body.location_name: '';
+                break;
+                case 'unit':
+                dbLocationData['unit'] = req.body.unit;
+                break;
+                case 'street_number':
+                dbLocationData['street'] = req.body.street_number + ' ';
+                break;
+                case 'street':
+                dbLocationData['street'] += req.body.street;
+                break;
+                case 'city':
+                dbLocationData['city'] = req.body.city;
+                break;
+                case 'state':
+                dbLocationData['state'] = req.body.state;
+                break;
+                case 'postal_code':
+                dbLocationData['postal_code'] = req.body.postal_code;
+                break;
+                case 'country':
+                dbLocationData['country'] = req.body.country;
+                break;
+                case 'formatted_address':
+                dbLocationData['formatted_address'] = req.body.formatted_address;
+                break;
+                case 'latitude':
+                dbLocationData['lat'] = req.body.latitude;
+                break;
+                case 'longitude':
+                dbLocationData['lng'] = req.body.longitude;
+                break;
+                case 'photoUrl':
+                dbLocationData['google_photo_url'] = req.body.photoUrl;
+                break;
+                case 'google_place_id':
+                dbLocationData['google_place_id'] = req.body.google_place_id;
+                break;
+            }
         });
 
         dbLocationData['admin_verified'] = 1;
@@ -484,6 +484,7 @@ const defs = require('../config/defs.json');
         const location = new Location();
         let locationAccntUser;
         let locationAccnt;
+        let userEmRole;
         // we need to check the role(s)
         const userRoleRel = new UserRoleRelation();
         const roles = await userRoleRel.getByUserId(req.user.user_id);
@@ -491,66 +492,70 @@ const defs = require('../config/defs.json');
         // what is the highest rank role
         let r = 100;
         for (let i = 0; i < roles.length; i++) {
-          if(r > parseInt(roles[i]['role_id'], 10)) {
-            r = roles[i]['role_id'];
-          }
+            if(r > parseInt(roles[i]['role_id'], 10)) {
+                r = roles[i]['role_id'];
+            }
         }
 
         const roles_text = ['', 'Manager', 'Tenant'];
         // create main location
         try {
-          await location.create(dbLocationData);
-          parent_id = location.ID();
-          dbLocationData["id_of_location"] = location.ID();
+            await location.create(dbLocationData);
+            parent_id = location.ID();
+            dbLocationData["id_of_location"] = location.ID();
 
+            locationAccnt = new LocationAccountRelation();
+            await locationAccnt.create({
+                'location_id': parent_id,
+                'account_id': req.user.account_id,
+                'responsibility': roles_text[r]
+            });
 
-          locationAccnt = new LocationAccountRelation();
-          await locationAccnt.create({
-            'location_id': parent_id,
-            'account_id': req.user.account_id,
-            'responsibility': roles_text[r]
-          });
-
-          dbLocationData['parent_id'] = parent_id;
-          locationAccntUser = new LocationAccountUser();
-          await locationAccntUser.create({
-            location_id: parent_id,
-            account_id: req.user.account_id,
-            user_id: req.user.user_id,
-            role_id: r
-          });
+            dbLocationData['parent_id'] = parent_id;
+            locationAccntUser = new LocationAccountUser();
+            await locationAccntUser.create({
+                location_id: parent_id,
+                account_id: req.user.account_id,
+                user_id: req.user.user_id
+            });
 
         } catch (er) {
-          throw new Error('Unable to create main location');
+            throw new Error('Unable to create main location');
         }
 
         // create sublevels (sublocations)
         for (let i = 0; i < req.body.sublevels.length; i++) {
-          try {
-            const subLevel = new Location();
-            locationAccnt = new LocationAccountRelation();
+            try {
+                const subLevel = new Location();
+                locationAccnt = new LocationAccountRelation();
 
-            let copyDbLocationData = JSON.parse( JSON.stringify(dbLocationData) );
-            copyDbLocationData['name'] = req.body.sublevels[i];
-            await subLevel.create(copyDbLocationData);
+                let copyDbLocationData = JSON.parse( JSON.stringify(dbLocationData) );
+                copyDbLocationData['name'] = req.body.sublevels[i];
+                await subLevel.create(copyDbLocationData);
 
-            await locationAccnt.create({
-              'location_id': subLevel.ID(),
-              'account_id': req.user.account_id,
-              'responsibility': roles_text[r]
-            });
+                await locationAccnt.create({
+                    'location_id': subLevel.ID(),
+                    'account_id': req.user.account_id,
+                    'responsibility': roles_text[r]
+                });
 
-            locationAccntUser = new LocationAccountUser();
-            await locationAccntUser.create({
-              location_id:  subLevel.ID(),
-              account_id: req.user.account_id,
-              user_id: req.user.user_id,
-              role_id: 2
-            });
+                locationAccntUser = new LocationAccountUser();
+                await locationAccntUser.create({
+                    location_id:  subLevel.ID(),
+                    account_id: req.user.account_id,
+                    user_id: req.user.user_id
+                });
 
-          } catch (e) {
-            throw new Error('Unable to process sub levels');
-          }
+                userEmRole = new UserEmRoleRelation();
+                await userEmRole.create({
+                    location_id : subLevel.ID(),
+                    user_id: req.user.user_id,
+                    em_role_id : defs['em_roles']['GENERAL OCCUPANT']
+                });
+
+            } catch (e) {
+                throw new Error('Unable to process sub levels');
+            }
         }
 
         dbLocationData['sublevels'] = req.body.sublevels;
@@ -613,19 +618,18 @@ const defs = require('../config/defs.json');
 				await locationSub.create(subData);
 				subData['location_id'] = locationSub.ID();
 
-				/*
+				
         await locationAccnt.create({
 					'location_id': subData['location_id'],
 					'account_id': req.user.account_id,
 					'responsibility': roles_text[r]
 				});
-        */
+        
 
 				await locationAccntUser.create({
 					'location_id' : subData['location_id'],
 					'account_id' : req.user.account_id,
-					'user_id' : req.user.user_id,
-					'role_id' : r
+					'user_id' : req.user.user_id
 				});
 
                 let parentModel = new Location(parentId),
@@ -665,8 +669,7 @@ const defs = require('../config/defs.json');
             await locationAccntUser.create({
               'location_id': locIds[i],
               'account_id': req.user.account_id,
-              'user_id': req.user.user_id,
-              'role_id': role
+              'user_id': req.user.user_id
             });
             /***********
             locationAccntRel = new LocationAccountRelation();
@@ -1494,7 +1497,6 @@ const defs = require('../config/defs.json');
                     await locAccUserModel.create({
                         location_id : subModel.ID(),
                         account_id : req.user.account_id,
-                        role_id : roleId,
                         user_id : req.user.user_id
                     });
 

@@ -125,6 +125,8 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 						this.companyAddress += ', '+this.countries[i]['name'];
 					}
 				}
+
+				this.companyAddress = this.companyAddress.trim();
 				
 
 				this.userService.getRoles(this.userData['userId'], (responseRoles) => {
