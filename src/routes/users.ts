@@ -654,7 +654,7 @@ export class UsersRoute extends BaseRoute {
             orWhere : [],
             joins : [],
             limit : <any> 10,
-            order : 'users.user_id ASC',
+            order : 'users.first_name ASC',
             group : false
         },
         archived : 0,
@@ -777,8 +777,11 @@ export class UsersRoute extends BaseRoute {
 
         if(query.roles && query.users_locations){
             let accountModel = new Account(),
-                locationsDB = await accountModel.getLocationsOnAccount(userID, 1, 0),
+                locationsDB = <any> [],
                 locations = <any> [];
+            try{
+                locationsDB = await accountModel.getLocationsOnAccount(userID, 1, 0);
+            }catch(e){}
 
             for (let loc of locationsDB) {
                 locations.push(loc);
@@ -819,6 +822,10 @@ export class UsersRoute extends BaseRoute {
                 }
             }
 
+            for(let loc of locationsData){
+                loc.name = (loc.name.trim().length == 0) ? loc.formatted_address : loc.name;
+            }
+
             let locAccUserModel = new LocationAccountUser(),
                 usersLocsMap = <any> await locAccUserModel.getManyLocationsByAccountIdAndUserIds(accountId, userIds.join(','));
 
@@ -829,8 +836,7 @@ export class UsersRoute extends BaseRoute {
                         location_id : 0,
                         name : '',
                         parent_id : -1,
-                        parent_name : '',
-                        location_role_id : 0
+                        parent_name : ''
                     };
 
                     if('locations' in user == false){ user['locations'] = []; }
@@ -840,7 +846,6 @@ export class UsersRoute extends BaseRoute {
                                 userLocData.location_id = loc.location_id;
                                 userLocData.name = loc.name;
                                 userLocData.parent_id = loc.parent_id;
-                                userLocData.location_role_id = map.role_id;
 
                                 if(loc.parent_id > -1){
                                     for(let par of locationsData){
@@ -852,7 +857,7 @@ export class UsersRoute extends BaseRoute {
 
                                 let exst = false;
                                 for(let ul of user['locations']){
-                                    if(ul.location_id == loc.location_id && ul.location_role_id == map.role_id){
+                                    if( ul.location_id == loc.location_id ){
                                         exst = true;
                                     }
                                 }
@@ -864,41 +869,47 @@ export class UsersRoute extends BaseRoute {
                 }
             }
 
+            let userRoleModel = new UserRoleRelation(),
+                usersRolesRelation = <any> await userRoleModel.getManyByUserIds(userIds.join(',')),
+                userEmRoleModel = new UserEmRoleRelation(),
+                usersEmRoles = <any> await userEmRoleModel.getManyByUserIds(userIds.join(','));
+
+            response.data['usersRolesRelation'] = usersRolesRelation;
+            response.data['usersEmRoles'] = usersEmRoles;
+
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
                 if('locations' in user == false){ user['locations'] = []; }
+<<<<<<< HEAD
 
                 for(let loc of user.locations){
                     let role = {
                         role_name : 'General Occupant', role_id : 8
                     };
+=======
+>>>>>>> feature-system-revision
 
-                    if( loc.location_role_id == 1 && queryRoles.indexOf('frp') > -1 ){
-                        role.role_name = 'FRP';
-                        role.role_id = 1;
-                    }else if( loc.location_role_id == 2 && queryRoles.indexOf('trp') > -1 ){
-                        role.role_name = 'TRP';
-                        role.role_id = 2;
-                    }else{
-                        for(let i in emRolesDef){
+                let usersRolesIds = [];
 
-                            if(queryRoles.indexOf('users') > -1 && emRolesDef[i] == loc.location_role_id && i !== 'FSA' && i.trim().length > 0 && i !== 'AREA WARDEN' && i !== 'EPC'){
-                                role.role_name = this.capitalizeFirstLetter( i.toLowerCase() );
-                                role.role_id = emRolesDef[i];
-                            }
-                        }
-                    }
-
-                    let exst = false;
-                    for(let ro of user['roles']){
-                        if(ro.role_id == role.role_id){
-                            exst = true;
-                        }
-                    }
-                    if(!exst){
+                for(let rol of usersRolesRelation){
+                    let role = { role_name : '', role_id : 0 };
+                    if(rol.user_id == user.user_id && ( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1 ) && usersRolesIds.indexOf(rol.role_id) == -1 ){
+                        role.role_name = (rol.role_id == 1) ? 'FRP' : 'TRP';
+                        role.role_id = (rol.role_id == 1) ? 1 : 2;
                         user['roles'].push(role);
+                        usersRolesIds.push(rol.role_id);
                     }
+                }
 
+                for(let em of usersEmRoles){
+                    let role = { role_name : '', role_id : 0 };
+
+                    if(queryRoles.indexOf('users') > -1 && em.user_id == user.user_id && usersRolesIds.indexOf(em.em_role_id) == -1){
+                        role.role_name = em.role_name;
+                        role.role_id = em.em_role_id;
+                        user['roles'].push(role);
+                        usersRolesIds.push(em.em_role_id);
+                    }
                 }
 
             }
