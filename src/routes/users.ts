@@ -47,6 +47,10 @@ export class UsersRoute extends BaseRoute {
 
 
 	public static create(router: Router) {
+        router.get('/users/query', new MiddlewareAuth().authenticate,  (req: Request, res: Response) => {
+            new UsersRoute().queryUsers(req, res);
+        });
+
 		router.get('/users/is-admin/:user_id',  (req: Request, res: Response) => {
 			new UsersRoute().checkIfAdmin(req, res);
 		});
@@ -620,6 +624,389 @@ export class UsersRoute extends BaseRoute {
 		);
 	}
 
+    public async queryUsers(req: Request, res: Response){
+        let 
+        accountId = parseInt(req['user']['account_id']),
+        userID = req['user']['user_id'],
+        query = req.query,
+        response = {
+            status : true,
+            data : <any>{},
+            message : ''
+        },
+        userModel = new User(),
+        modelQueries = {
+            select : <any>{},
+            where : [],
+            orWhere : [],
+            joins : [],
+            limit : <any> 10,
+            order : 'users.user_id ASC',
+            group : false
+        },
+        archived : 0,
+        queryRoles = [],
+        userIds = [0],
+        emRolesDef = defs.em_roles;
+
+        modelQueries.select['users'] = ['first_name', 'last_name', 'account_id', 'user_id', 'user_name', 'email', 'mobile_number', 'phone_number', 'mobility_impaired', 'last_login', 'archived'];
+
+        if(query.archived){
+            archived = query.archived;
+        }
+        modelQueries.where.push('users.archived = '+archived);
+        modelQueries.where.push('users.account_id = '+accountId);
+        if(query.impaired){
+            if(query.impaired > -1){
+                if(query.impaired == 1){
+                    modelQueries.where.push('users.mobility_impaired = 1');
+                }else if(query.impaired == 0){
+                    modelQueries.where.push('users.mobility_impaired = 0');
+                }
+            }
+        }
+
+        if(query.type){
+            switch (query.type) {
+                case "client":
+                    modelQueries.where.push('users.evac_role = "Client"');
+                    break;
+                
+                case "admin":
+                    modelQueries.where.push('users.evac_role = "admin"');
+                    break;
+            }
+        }
+
+        modelQueries.joins.push(' LEFT JOIN file_user ON users.user_id = file_user.user_id LEFT JOIN files ON files.file_id = file_user.file_id ');
+
+        if(query.roles){
+            queryRoles = query.roles.split(',');
+            if( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1){
+                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_role_relation) ');
+            }
+            if( queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1) == true ){
+                modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1) ');
+                modelQueries.orWhere.push(' AND users.archived = '+archived);
+                modelQueries.orWhere.push(' AND users.account_id = '+accountId);
+                if(query.impaired){
+                    if(query.impaired > -1){
+                        if(query.impaired == 1){
+                            modelQueries.orWhere.push(' AND users.mobility_impaired = 1');
+                        }else if(query.impaired == 0){
+                            modelQueries.orWhere.push(' AND users.mobility_impaired = 0');
+                        }
+                    }
+                }
+            }else if(queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') == -1 && queryRoles.indexOf('trp') == -1) == true){
+                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 ) ');
+            }
+        }
+
+        if(query.search){
+            if(query.search.trim().length > 0){
+                modelQueries.where.push( ' CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" ' );
+                if(modelQueries.orWhere.length == 0){
+                    modelQueries.orWhere.push( ' OR users.email LIKE "%'+query.search+'%" ' );
+                }else{
+                    modelQueries.orWhere.push( ' AND users.email LIKE "%'+query.search+'%" ' );
+                }
+            }
+        }
+
+        modelQueries.select['custom'] = [" IF(files.url IS NULL, '', files.url) as profile_pic "];
+
+        if(query.limit){
+            modelQueries.limit = query.limit;
+        }
+
+        if(query.offset){
+            modelQueries.limit = query.offset+','+modelQueries.limit;
+        }
+
+        response.data['users'] = await userModel.query(modelQueries);
+
+        for(let user of response.data['users']){
+            userIds.push(user.user_id);
+
+            let lastLoginMoment = moment(user.last_login);
+            if(lastLoginMoment.isValid()){
+                user.last_login = lastLoginMoment.format('DD/MM/YYYY hh:mma');
+            }else{
+                user.last_login = '';
+            }
+
+            user['mobility_impaired_details'] = [];
+
+            if(query.impaired){
+                if(query.impaired > -1){
+                    if( user['mobility_impaired'] == 1 ){
+                        let mobilityModel = new MobilityImpairedModel(),
+                        arrWhere = [];
+
+                        arrWhere.push( ["user_id = " + user.user_id] );
+                        arrWhere.push( "duration_date > NOW()" );
+                        try {
+                            let mobilityDetails = await mobilityModel.getMany( arrWhere );
+                            user['mobility_impaired_details'] = mobilityDetails;
+                            for(let userMobil of user.mobility_impaired_details){
+                                userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+                            }
+
+                        } catch (e) {
+                            console.log(e);
+                            user['mobility_impaired_details'] = [];
+                        }
+                    }
+                }
+            }
+        }
+
+        if(query.roles && query.users_locations){
+            let accountModel = new Account(),
+                locationsDB = await accountModel.getLocationsOnAccount(userID, 1, 0),
+                locations = <any> [];
+            
+            for (let loc of locationsDB) {
+                locations.push(loc);
+            }
+
+            let locationsData = [];
+            for (let loc of locations) {
+                let
+                    deepLocModel = new Location(),
+                    deepLocations = <any> [];
+                
+                if(loc.parent_id == -1){
+                    deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                    deepLocations.push(loc);
+                }else{
+                    let ancLocModel = new Location(),
+                        ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
+
+                    for(let anc of ancestores){
+                        if(anc.parent_id == -1){
+                            deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
+                            deepLocations.push(anc);
+                        }
+                    }
+                }
+
+                let isIn = false;
+                for(let dl of deepLocations){
+                    for(let ld of locationsData){
+                        if(dl.location_id == ld.location_id){
+                            isIn = true;
+                        }
+                    }
+
+                    if(!isIn){
+                        locationsData.push(dl);
+                    }
+                }
+            }
+
+            let locAccUserModel = new LocationAccountUser(),
+                usersLocsMap = <any> await locAccUserModel.getManyLocationsByAccountIdAndUserIds(accountId, userIds.join(','));
+
+            for(let map of usersLocsMap){
+                for(let user of response.data['users']){
+                    let userLocData = {
+                        user_id : user.user_id,
+                        location_id : 0,
+                        name : '',
+                        parent_id : -1,
+                        parent_name : '',
+                        location_role_id : 0
+                    };
+
+                    if('locations' in user == false){ user['locations'] = []; }
+                    if(map.user_id == user.user_id){
+                        for(let loc of locationsData){
+                            if(loc.location_id == map.location_id){
+                                userLocData.location_id = loc.location_id;
+                                userLocData.name = loc.name;
+                                userLocData.parent_id = loc.parent_id;
+                                userLocData.location_role_id = map.role_id;
+
+                                if(loc.parent_id > -1){
+                                    for(let par of locationsData){
+                                        if(par.location_id == loc.parent_id){
+                                            userLocData.parent_name = par.name;
+                                        }
+                                    }
+                                }
+
+                                let exst = false;
+                                for(let ul of user['locations']){
+                                    if(ul.location_id == loc.location_id && ul.location_role_id == map.role_id){
+                                        exst = true;
+                                    }
+                                }
+
+                                if(!exst){ user.locations.push(userLocData); }
+                            }
+                        }
+                    }
+                }
+            }
+
+            for(let user of response.data['users']){
+                if('roles' in user == false){ user['roles'] = []; }
+                if('locations' in user == false){ user['locations'] = []; }
+                
+                for(let loc of user.locations){
+                    let role = {
+                        role_name : 'General Occupant', role_id : 8
+                    };
+
+                    if( loc.location_role_id == 1 && queryRoles.indexOf('frp') > -1 ){
+                        role.role_name = 'FRP';
+                        role.role_id = 1;
+                    }else if( loc.location_role_id == 2 && queryRoles.indexOf('trp') > -1 ){
+                        role.role_name = 'TRP';
+                        role.role_id = 2;
+                    }else{
+                        for(let i in emRolesDef){
+
+                            if(queryRoles.indexOf('users') > -1 && emRolesDef[i] == loc.location_role_id && i !== 'FSA' && i.trim().length > 0 && i !== 'AREA WARDEN' && i !== 'EPC'){
+                                role.role_name = this.capitalizeFirstLetter( i.toLowerCase() );
+                                role.role_id = emRolesDef[i];
+                            }
+                        }
+                    }
+
+                    let exst = false;
+                    for(let ro of user['roles']){
+                        if(ro.role_id == role.role_id){
+                            exst = true;
+                        }
+                    }
+                    if(!exst){
+                        user['roles'].push(role);
+                    }
+
+                }
+                
+            }
+        }
+
+        if(query.user_training){
+
+            let user_course_total,
+                user_training_total,
+                training = new TrainingCertification(),
+                userCourseRel = new CourseUserRelation();
+
+            try {
+                user_course_total = await userCourseRel.getNumberOfAssignedCourses(userIds);
+
+            } catch (e) {
+                user_course_total = {};
+            }
+            try {
+                user_training_total = await training.getNumberOfTrainings(userIds, {
+                  'pass': 1,
+                  'current': 1
+                });
+            } catch(e) {
+                user_training_total = {};
+            }
+
+            for(let user of response.data['users']){
+                if (user.user_id in user_course_total) {
+                    user['assigned_courses'] = user_course_total[user.user_id]['count'];
+                } else {
+                    user['assigned_courses'] = 0;
+                }
+                if (user.user_id in user_training_total) {
+                    user['trainings'] = user_training_total[user.user_id]['count'];
+                } else {
+                    user['trainings'] = 0;
+                }
+            }
+        }
+
+        if(query.impaired && queryRoles.indexOf('users') > -1){
+            if(query.impaired > -1){
+
+                let userInviModel = new UserInvitation(),
+                whereInvi = [];
+
+                whereInvi.push([ 'account_id = '+accountId ]);
+                whereInvi.push([ 'mobility_impaired = 1' ]);
+                whereInvi.push([ 'was_used = 0' ]);
+
+                if(!archived){
+                    whereInvi.push([ 'archived = 0' ]);
+                }else{
+                    whereInvi.push([ 'archived = '+archived ]);
+                }
+
+                try{
+                    let usersInvited = <any> await userInviModel.getWhere(whereInvi);
+                    for(let user of usersInvited){
+                        user['locations'] = [];
+                        user['profile_pic'] = '';
+                        user['mobility_impaired_details'] = [];
+
+                        let arrWhere = [];
+                        arrWhere.push( "user_invitations_id = "+user["user_invitations_id"] );
+
+                        user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
+                        for(let userMobil of user.mobility_impaired_details){
+                            userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+                        }
+
+                        user.locations.push({
+                            location_id : user.location_id,
+                            name : user.location_name,
+                            parent_name : (user.parent_name == null) ? '' : user.parent_name
+                        });
+
+                        response.data['users'].push(user);
+                    }
+                }catch(e){}
+            }
+        }
+
+        if(query.pagination){
+            let 
+            countUserModel = new User(),
+            countResponse = <any> await countUserModel.query({
+                select : { count : true },
+                where : modelQueries.where,
+                orWhere : modelQueries.orWhere,
+                joins : modelQueries.joins
+            }),
+            pagination = {
+                total : parseInt(countResponse[0]['count']),
+                pages : 0
+            },
+            limit = (query.limit) ? parseInt(query.limit) : 10;
+
+            if(pagination.total > limit){
+                let div = pagination.total / limit,
+                    rem = (pagination.total % limit) * 1,
+                    totalpages = Math.floor(div);
+
+                if(rem > 0){
+                    totalpages++;
+                }
+
+                pagination.pages = totalpages;
+            }
+            
+            if(pagination.pages == 0 && pagination.total <= limit && pagination.total > 0){
+                pagination.pages = 1;
+            }
+
+            response.data['pagination'] = pagination; 
+        }
+
+        res.send(response);
+    }
+
 	public async getUsersByAccountIdNoneAuth(req: Request, res: Response){
 		let accountId = req.params.account_id,
 			userModel = new User();
@@ -629,7 +1016,6 @@ export class UsersRoute extends BaseRoute {
 			data : await userModel.getByAccountId(accountId),
 			message : ''
 		});
-
 	}
 
 	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction, archived?){
@@ -650,7 +1036,7 @@ export class UsersRoute extends BaseRoute {
 			emRolesIndexedId = {},
             accountModel = new Account();
 
-		if(!archived){ archived = 0; }
+        archived = (archived) ? archived : 0;
 
         let allowedRoleIds = [0,1,2];
         for(let i in emRoles){

@@ -329,7 +329,7 @@ export class User extends BaseClass {
 
     public getByAccountId(accountId, archived?) {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ?';
+            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? ';
             if(!archived){
                 archived = 0;
             }
@@ -433,8 +433,7 @@ export class User extends BaseClass {
       const sql = `SELECT
           locations.location_id,
           locations.parent_id,
-          locations.name,
-          LAU.role_id
+          locations.name
         FROM
           location_account_user LAU
         INNER JOIN
@@ -459,22 +458,207 @@ export class User extends BaseClass {
         } else {
           resolve([]);
         }
+    public getAllCertifications(filter: object = {}, user_id: number = 0): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            let uid = this.ID();
+            if (user_id) {
+                uid = user_id;
+            }
+            let filterStr = '';
+            Object.keys(filter).forEach((key) => {
+                switch (key) {
+                    case 'pass':
+                    filterStr += ` AND certifications.pass = ${filter[key]}`;
+                    break;
+                    case 'training_requirement_id':
+                    filterStr += ` AND certifications.training_requirement_id = ${filter[key]}`;
+                    break;
+                    case 'certifications_id':
+                    filterStr += ` AND certifications.certifications_id = ${filter[key]}`;
+                    break;
+                }
+            });
+            const sql_certifications = `SELECT
+            training_requirement.training_requirement_name,
+            training_requirement.scorm_course_id,
+            certifications.*,
+            training_requirement.num_months_valid,
+            DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
+            IF (DATE_ADD(certifications.certification_date,
+            INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
+            FROM
+            certifications
+            INNER JOIN
+            training_requirement
+            ON
+            training_requirement.training_requirement_id = certifications.training_requirement_id
+            WHERE
+            certifications.user_id = ? ${filterStr}`;
 
-      });
-    });
-  }
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_certifications, [uid], (error, results, fields) => {
+                if (error) {
+                    console.log('user.model.getAllCertifications',  error, sql_certifications);
+                    throw Error('There was a problem with getting the certification records for this user');
+                }
+                if (results.length > 0) {
+                    resolve(results);
+                } else {
+                    reject('There are no certifications for this user');
+                }
+            });
+            connection.end();
+        });
+    }
 
-  public getWithoutToken(){
-    return new Promise((resolve, reject) => {
+    /**
+    * @author Erwin Macaraig
+    * @description
+    * Get all locations tag to this user whether whatever their role(s) are
+    * @param user_id
+    * @returns array
+    */
+    public getAllMyLocations(user_id: number = 0) {
+        return new Promise((resolve, reject) => {
+            let userId = this.ID();
+            if (user_id) {
+                userId = user_id;
+            }
+            const sql = `SELECT
+            locations.location_id,
+            locations.parent_id,
+            locations.name,
+            LAU.role_id
+            FROM
+            location_account_user LAU
+            INNER JOIN
+            locations
+            ON
+            LAU.location_id = locations.location_id
+            WHERE LAU.user_id = ?
+            `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, [userId], (error, results, fields) => {
+                if (error) {
+                    console.log('user.model.getAllMyLocations', error, sql, userId);
+                    throw Error('Internal error. Cannot retrieve records');
+                }
+                if (results.length > 0) {
+                    console.log(results);
+                    const utils = new UtilsSync();
+                    utils.getRootParent(results).then((set) => {
+                        console.log(set);
+                        resolve(set);
+                    });
+                } else {
+                    resolve([]);
+                }
 
-      const sql = ` SELECT * FROM users WHERE user_id NOT IN (SELECT id FROM token WHERE id_type = 'user_id' AND verified = 0) `;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql,  (error, results, fields) => {
+            });
+        });
+    }
 
-        resolve(results);
+    public getWithoutToken(){
+        return new Promise((resolve, reject) => {
+            const sql = ` SELECT * FROM users WHERE user_id NOT IN (SELECT id FROM token WHERE id_type = 'user_id' AND verified = 0) `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql,  (error, results, fields) => {
 
-      });
-    });
-  }
+                resolve(results);
+
+            });
+        });
+    }
+
+    public query(queries){
+
+        return new Promise((resolve, reject) => {
+            let selectQuery = 'users.*';
+            if(queries.select){
+                if( Object.keys(queries.select).length > 0 ){
+                    selectQuery = '';
+
+                    for(let i in queries.select){
+                        let arrSel = queries.select[i];
+                        let c = 0;
+                        for(let n in arrSel){
+                            if(c > 0 || selectQuery.trim().length > 0){
+                                selectQuery += ', ';
+                            }
+
+                            if(i !== 'custom'){
+                                selectQuery += i + '.' + arrSel[n] +' ';
+                            }else{
+                                selectQuery += arrSel[n]+' ';
+                            }
+
+                            c++;
+                        }
+                    }
+
+                }
+
+            }
+
+            if(queries.select.count){
+                selectQuery = ' COUNT(users.user_id) as count';
+            }
+
+            let whereQuery = '',
+                whereCount = 0;
+            if(queries.where){
+                for(let i in queries.where){
+                    if(whereCount == 0){
+                        whereQuery += ' WHERE '+queries.where[i];
+                    }else{
+                        whereQuery += ' AND '+queries.where[i];
+                    }
+                    whereCount++;
+                }
+            }
+
+            if(queries.orWhere){
+                for(let i in queries.orWhere){
+                    whereQuery += ' '+queries.orWhere[i]+' ';
+                }
+            }
+
+            let joinsQuery = '';
+            if(queries.where){
+                for(let i in queries.joins){
+                   joinsQuery += ' '+queries.joins[i]+' ';
+                }
+            }
+
+            let limitQuery = '';
+            if(queries.limit && ('count' in queries.select == false) ){
+                limitQuery = 'LIMIT '+queries.limit;
+            }
+
+            let orderQuery = '';
+            if(queries.order){
+                orderQuery = 'ORDER BY '+queries.order;
+            }
+
+            let groupQuery = '';
+            if(queries.group){
+                groupQuery = 'GROUP BY '+queries.group;
+            }
+
+            let sql_load = 'SELECT '+selectQuery+' FROM users '+joinsQuery+' '+whereQuery+' '+groupQuery+' '+orderQuery+' '+limitQuery;
+            // console.log(sql_load);
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    console.log(sql_load);
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+
+    }
 
 }
