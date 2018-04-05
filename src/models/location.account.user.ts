@@ -58,7 +58,7 @@ export class LocationAccountUser extends BaseClass {
             count = 0;
 
             sql_load = ` SELECT l.formatted_address, l.name, l.location_id, l.parent_id,
-            lau.user_id, lau.account_id, lau.role_id as location_role_id, urr.role_id, lau.location_account_user_id, lau.archived,
+            lau.user_id, lau.account_id, urr.role_id, lau.location_account_user_id, lau.archived,
             er.role_name as er_role_name, DATEDIFF(NOW(), u.last_login) AS days,
             u.last_login, er.em_roles_id, u.mobility_impaired, lp.name as parent_name
             FROM location_account_user lau
@@ -318,13 +318,12 @@ export class LocationAccountUser extends BaseClass {
     public dbUpdate() {
         return new Promise((resolve, reject) => {
             const sql_update = `UPDATE location_account_user SET
-            location_id = ?, account_id = ?, user_id = ?, role_id = ?, archived = ?
+            location_id = ?, account_id = ?, user_id = ?, archived = ?
             WHERE location_account_user_id = ? `;
             const param = [
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
-            ('role_id' in this.dbData) ? this.dbData['role_id'] : 0,
             ('archived' in this.dbData) ? this.dbData['archived'] : 0,
             this.ID() ? this.ID() : 0
             ];
@@ -346,15 +345,13 @@ export class LocationAccountUser extends BaseClass {
             const sql_insert = `INSERT INTO location_account_user (
             location_id,
             account_id,
-            user_id,
-            role_id
+            user_id
             ) VALUES (?,?,?,?)
             `;
             const param = [
             ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
-            ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
-            ('role_id' in this.dbData) ? this.dbData['role_id'] : 0
+            ('user_id' in this.dbData) ? this.dbData['user_id'] : 0
             ];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_insert, param, (err, results, fields) => {
@@ -405,7 +402,7 @@ export class LocationAccountUser extends BaseClass {
         let role_filter = '';
         const seenAccountsArr = [];
         if (role) {
-          role_filter = ` AND LAU.role_id = ${role}`;
+          // role_filter = ` AND LAU.role_id = ${role}`;
         }
         if (!location_id) {
           reject('Cannot get info without location id');
@@ -479,7 +476,6 @@ export class LocationAccountUser extends BaseClass {
         locations.name,
         locations.formatted_address,
         LAU.user_id,
-        LAU.role_id,
         users.first_name,
         users.last_name,
         users.phone_number,
@@ -501,8 +497,6 @@ export class LocationAccountUser extends BaseClass {
         users.user_id = LAU.user_id
       WHERE
         locations.location_id IN (${locationsStr})
-      AND
-        LAU.role_id = 2
       ORDER BY
         accounts.account_name`;
 
