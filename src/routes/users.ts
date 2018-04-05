@@ -199,12 +199,25 @@ export class UsersRoute extends BaseRoute {
         });
       });
 
-      router.get('/users/get-all-locations/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+      router.get('/users/get-all-locations/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
         const user = new User(req.user.user_id);
-        user.getAllMyLocations().then((locations) => {
-          return res.status(200).send({
-            'locations': locations
-          });
+        const emrolerelationObj = new UserEmRoleRelation();
+        const locations = await user.getAllMyLocations();
+        const locIds = [];
+        for (const loc of locations) {
+          locIds.push(loc['location_id']);
+        }
+        const em_roles_in_location = await emrolerelationObj.getEmergencyRolesOfUsersInLocations([req.user.user_id], locIds);
+        // attached emrgency roles to the locations
+        for (const loc of locations) {
+          if (loc['location_id'] in em_roles_in_location) {
+            loc['em_roles'] = em_roles_in_location[loc['location_id']]['data'];
+          } else {
+            loc['em_roles'] = [];
+          }
+        }
+        return res.status(200).send({
+          'locations': locations
         });
 
       });
@@ -625,7 +638,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
     public async queryUsers(req: Request, res: Response){
-        let 
+        let
         accountId = parseInt(req['user']['account_id']),
         userID = req['user']['user_id'],
         query = req.query,
@@ -671,7 +684,7 @@ export class UsersRoute extends BaseRoute {
                 case "client":
                     modelQueries.where.push('users.evac_role = "Client"');
                     break;
-                
+
                 case "admin":
                     modelQueries.where.push('users.evac_role = "admin"');
                     break;
@@ -767,13 +780,13 @@ export class UsersRoute extends BaseRoute {
                 emRolesModel = new UserEmRoleRelation(),
                 locationsDB = <any> [],
                 locations = <any> [];
-
             try{
                 locationsDB = await accountModel.getLocationsOnAccount(userID, 1, 0);
                 for (let loc of locationsDB) {
                     locations.push(loc);
                 }
             }catch(e){}
+
 
             let locationsEmRoles = <any> await emRolesModel.getLocationsByUserIds(userIds.join(','));
             for(let loc of locationsEmRoles){
@@ -786,6 +799,10 @@ export class UsersRoute extends BaseRoute {
                 if(!exist){
                     locations.push(loc);
                 }
+            }
+
+            for (let loc of locationsDB) {
+                locations.push(loc);
             }
 
             let locationsData = [],
@@ -816,7 +833,7 @@ export class UsersRoute extends BaseRoute {
                 let
                     deepLocModel = new Location(),
                     deepLocations = <any> [];
-                
+
                 if(loc.parent_id == -1){
                     deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
                     deepLocations.push(loc);
@@ -848,7 +865,7 @@ export class UsersRoute extends BaseRoute {
             }
 
             for(let loc of locationsData){
-                loc.name = (loc.name.trim().length == 0) ? loc.formatted_address : loc.name; 
+                loc.name = (loc.name.trim().length == 0) ? loc.formatted_address : loc.name;
             }
 
             let locAccUserModel = new LocationAccountUser(),
@@ -906,7 +923,7 @@ export class UsersRoute extends BaseRoute {
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
                 if('locations' in user == false){ user['locations'] = []; }
-
+ 
                 let usersRolesIds = [];
 
                 for(let rol of usersRolesRelation){
@@ -927,9 +944,9 @@ export class UsersRoute extends BaseRoute {
                         role.role_id = em.em_role_id;
                         user['roles'].push(role);
                         usersRolesIds.push(em.em_role_id);
-                    }  
+                    }
                 }
-                
+
             }
         }
 
@@ -1013,7 +1030,7 @@ export class UsersRoute extends BaseRoute {
         }
 
         if(query.pagination){
-            let 
+            let
             countUserModel = new User(),
             countResponse = <any> await countUserModel.query({
                 select : { count : true },
@@ -1038,12 +1055,12 @@ export class UsersRoute extends BaseRoute {
 
                 pagination.pages = totalpages;
             }
-            
+
             if(pagination.pages == 0 && pagination.total <= limit && pagination.total > 0){
                 pagination.pages = 1;
             }
 
-            response.data['pagination'] = pagination; 
+            response.data['pagination'] = pagination;
         }
 
         res.send(response);
