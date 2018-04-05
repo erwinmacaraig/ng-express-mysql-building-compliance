@@ -2,7 +2,7 @@
 	<div class="col l12 m12 s12">
 		<h4> ECO Member </h4>
 		<div class="right-actions">
-			<div class="switch-container">
+			<!-- <div class="switch-container">
 				<div class="text">Show only not compliant</div>
 				<div class="switch">
 					<input type="checkbox">
@@ -11,7 +11,7 @@
 					<div class="highlight"></div>
 					<div class="background"></div>
 				</div>
-			</div>
+			</div> -->
 			<div class="archived-container">
 				<a href="javascript:void(0)" [routerLink]="['/teams/list-archived-wardens']">
 					<div class="image"></div>
@@ -32,7 +32,7 @@
 
 	<div class="col l4 m5 s12">
 		<div class="search-field">
-			<input type="text" placeholder="Search member name" (keyup)="searchMemberEvent($event)">
+			<input type="text" placeholder="Search member name or email" id="searchMemberInput">
 			<span class="material-icons">search</span>
 		</div>
 	</div>
@@ -78,7 +78,7 @@
 					<th>Action</th>
 				</tr>
 			</thead>
-			<tbody>
+			<tbody [hidden]="loadingTable">
 				<tr *ngIf="wardenArr.length == 0">
 					<td colspan="6" class="center">
 						<h6>No record found</h6>
@@ -139,10 +139,35 @@
 					</td>
 				</tr>
 			</tbody>
+			<tbody [hidden]="!loadingTable">
+				<tr>
+					<td colspan="7" class="center-align">
+						<h6>Fetching records..</h6>
+					</td>
+				</tr>
+			</tbody>
 		</table>
 
 	</div>
 
+</div>
+
+<div class="row">
+	<div class="col l12 m12 s12 center pagination" [hidden]="wardenArr.length == 0">
+		<div class="inline-block">
+			<button class="btn blue" (click)="pageChange('prev')" > Prev </button>
+		</div>
+
+		<div class="inline-block select">
+			<select #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+				<option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+			</select>
+		</div>
+
+		<div class="inline-block">
+			<button class="btn blue" (click)="pageChange('next')" > Next </button>
+		</div>
+	</div>
 </div>
 
 

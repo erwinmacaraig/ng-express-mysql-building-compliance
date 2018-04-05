@@ -10,6 +10,9 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { UserService } from '../../services/users';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import * as moment from 'moment';
+import * as Rx from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 declare var $: any;
 @Component({
@@ -31,6 +34,27 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 
 	filters = [];
 
+	loadingTable = false;
+
+    pagination = {
+        pages : 0, total : 0, currentPage : 0, selection : []
+    };
+
+    queries = {
+        roles : 'users',
+        impaired : -1,
+        type : 'client',
+        offset :  0,
+        limit : 10,
+        archived : 1,
+        pagination : true,
+        user_training : true,
+        users_locations : true,
+        search : ''
+    };
+
+    searchMemberInput;
+
 	constructor(
 		private userService : UserService,
 		private authService : AuthService,
@@ -42,61 +66,74 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 		this.userData = this.authService.getUserData();
 	}
 
-	getwardenArr(callBack?){
-		this.dataProvider.buildArchivedWardenList().subscribe((response) => {
-			let data = response['data'],
-		        tempRoles = {};
+	getListData(callBack?){
 
-		      for(let i in data){
-		        data[i]['bg_class'] = this.generateRandomBGClass();
-		        data[i]['id_encrypted'] = this.encDecrService.encrypt(data[i]['user_id']);
-		        data[i]['last_login'] = moment(data[i]['last_login']).format('MMM. DD, YYYY hh:mmA');
+        this.userService.queryUsers(this.queries, (response) => {
+            this.pagination.total = response.data.pagination.total;
+            this.pagination.pages = response.data.pagination.pages;
+            this.wardenArr = response.data.users;
 
-		        for(let r in data[i]['roles']){
-		          if( data[i]['roles'][r]['role_name'] ){
-		            if( !tempRoles[ data[i]['roles'][r]['role_name'] ] ){
-		              tempRoles[ data[i]['roles'][r]['role_name'] ] = data[i]['roles'][r]['role_name'];
-		              this.filters.push({
-		                value : data[i]['roles'][r]['role_id'],
-		                name : data[i]['roles'][r]['role_name']
-		              });
-		            }
-		          }
-		        }
-		      }
+            let tempRoles = {};
+            for(let i in this.wardenArr){
+                this.wardenArr[i]['bg_class'] = this.generateRandomBGClass();
+                this.wardenArr[i]['id_encrypted'] = this.encDecrService.encrypt(this.wardenArr[i]['user_id']);
 
-		    this.wardenArr = data;
-			this.copyOfList = JSON.parse( JSON.stringify(this.wardenArr) );
-			if(callBack){
-				callBack();
-			}
-		});
-	}
+                for(let l in this.wardenArr[i]['locations']){
+                    if(this.wardenArr[i]['locations'][l]['parent_name'] == null){
+                        this.wardenArr[i]['locations'][l]['parent_name'] = '';
+                    }
+                }
 
-	ngOnInit(){
+                for(let r in this.wardenArr[i]['roles']){
+                    if( this.wardenArr[i]['roles'][r]['role_name'] ){
+                        if( !tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] ){
+                            tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] = this.wardenArr[i]['roles'][r]['role_name'];
+                            this.filters.push({
+                                value : this.wardenArr[i]['roles'][r]['role_id'],
+                                name : this.wardenArr[i]['roles'][r]['role_name']
+                            });
+                        }
+                    }
+                }
+            }
+            this.copyOfList = JSON.parse( JSON.stringify(this.wardenArr) );
 
-		this.getwardenArr(() => {
-			this.dashboardService.hide();
-			setTimeout(() => {
-		        $('.row.filter-container select').material_select();
-		    }, 500);
-		});
+            if(callBack){
+                callBack();
+            }
+        });
+    }
 
-	}
+    ngOnInit(){
 
-	ngAfterViewInit(){
-		$('.modal').modal({
-			dismissible: false
-		});
+        this.dashboardService.show();
+        this.getListData(() => { 
+            if(this.pagination.pages > 0){
+                this.pagination.currentPage = 1;
+            }
 
-		$('.row.filter-container select').material_select();
+            for(let i = 1; i<=this.pagination.pages; i++){
+                this.pagination.selection.push({ 'number' : i });
+            }
+            setTimeout(() => {
+                this.dashboardService.hide(); 
+                $('.row.filter-container select').material_select();
+            }, 100);
+        });
+    }
 
-		this.dashboardService.show();
+    ngAfterViewInit(){
+        $('.modal').modal({
+            dismissible: false
+        });
 
-		this.filterByEvent();
-		this.sortByEvent();
-		this.bulkManageActionEvent();
-	}
+        $('.row.filter-container select').material_select();
+        this.filterByEvent();
+        this.sortByEvent();
+        this.dashboardService.show();
+        this.bulkManageActionEvent();
+        this.searchMemberEvent();
+    }
 
 	filterByEvent(){
 
@@ -147,22 +184,23 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	searchMemberEvent(event){
-		let key = event.target.value,
-			temp = [];
-
-		if(key.length == 0){
-			this.wardenArr = this.copyOfList;
-		}else{
-			for(let i in this.copyOfList){
-				let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase();
-				if(name.indexOf(key) > -1){
-					temp.push( this.copyOfList[i] );
-				}
-			}
-			this.wardenArr = temp;
-		}
-	}
+	searchMemberEvent(){
+        this.searchMemberInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberInput'), 'input');
+        this.searchMemberInput.debounceTime(800)
+            .map(event => event.target.value)
+            .subscribe((value) => {
+                this.queries.search = value;
+                this.queries.offset = 0;
+                this.loadingTable = true;
+                this.pagination.selection = [];
+                this.getListData(() => { 
+                    for(let i = 1; i<=this.pagination.pages; i++){
+                        this.pagination.selection.push({ 'number' : i });
+                    }
+                    this.loadingTable = false;
+                });
+            });
+    }
 
 	ngOnDestroy(){}
 
@@ -188,8 +226,7 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 		this.userService.unArchiveUsers([this.selectedToArchive['user_id']], (response) => {
 			this.showModalLoader = false;
 			$('#modalArchive').modal('close');
-			this.dashboardService.show();
-			this.getwardenArr(() => { this.dashboardService.hide(); });
+			this.ngOnInit();
 			this.selectedToArchive = {
 				first_name : '', last_name : '', parent_data : {}, locations : [], name: '', parent_name: ''
 			};
@@ -269,9 +306,36 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 			$('#allLocations').prop('checked', false);
 			this.showModalLoader = false;
 			$('#modalArchiveBulk').modal('close');
-			this.dashboardService.show();
-			this.getwardenArr(() => { this.dashboardService.hide(); });
+			this.ngOnInit();
 			this.selectedFromList = [];
 		});
 	}
+
+	pageChange(type){
+
+        switch (type) {
+            case "prev":
+                if(this.pagination.currentPage > 1){
+                    this.pagination.currentPage = this.pagination.currentPage - 1;
+                }
+                break;
+
+            case "next":
+                if(this.pagination.currentPage < this.pagination.pages){
+                    this.pagination.currentPage = this.pagination.currentPage + 1;
+                }
+                break;
+            
+            default:
+                this.pagination.currentPage = type;
+                break;
+        }
+
+        let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+        this.queries.offset = offset;
+        this.loadingTable = true;
+        this.getListData(() => { 
+            this.loadingTable = false;
+        });
+    }
 }
