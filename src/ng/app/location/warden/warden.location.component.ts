@@ -62,34 +62,6 @@ export class WardenLocationComponent implements OnInit, OnDestroy {
     }
 
 
-/*
-		let trp = false,
-			frp = false;
-		for(let i in this.userData['roles']){
-			if(this.userData['roles'][i]['role_id'] == 1){
-				frp = true;
-			}
-			if(this.userData['roles'][i]['role_id'] == 2){
-				trp = true;
-			}
-		}
-
-		if(trp){
-			this.roleName = 'Tenant Responsible Personnel';
-		}
-
-		if(frp){
-			this.roleName = 'Facility Responsible Personnel';
-		}
-
-		this.routeSubs = this.router.events.subscribe((event) => {
-			console.log(event);
-		});
-
-		this.routeParamsSubsc = this.activatedRoute.params.subscribe((params) => {
-			this.routeParams = params;
-    });
-*/
 	}
 
 	ngOnInit(){
@@ -101,13 +73,13 @@ export class WardenLocationComponent implements OnInit, OnDestroy {
 
       /* Filter out locations so locations will contain locations with EM Role */
       for (let i = 0; i < response['locations'].length; i++) {
-        if (response['locations'][i]['role_id'] !== 0 && response['locations'][i]['role_id'] > 2) {
+        if (response['locations'][i]['em_roles'].length !== 0) {
           this.locationsFromDb.push(response['locations'][i]);
         }
       }
 
       console.log(this.locationsFromDb);
-      this.mainLocation['main_address'] = this.locationsFromDb[0]['main_address'];
+      this.mainLocation['main_address'] = this.locationsFromDb[0]['main_address'] || '';
       this.mainLocation['parent_name'] = this.locationsFromDb[0]['root_parent_name'];
       this.mainLocation['my_location_name'] = this.locationsFromDb[0]['name'];
       this.mainLocation['photo'] = (this.locationsFromDb[0]['google_photo_url'] != null) ?

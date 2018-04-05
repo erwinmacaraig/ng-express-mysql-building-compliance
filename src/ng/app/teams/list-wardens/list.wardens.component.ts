@@ -38,7 +38,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     loadingTable = false;
 
     pagination = {
-        pages : 0, total : 0, currentPage : 0, selection : []
+        pages : 0, total : 0, currentPage : 0, prevPage: 0, selection : []
     };
 
     queries = {
@@ -76,6 +76,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             this.wardenArr = response.data.users;
 
             let tempRoles = {};
+            this.filters = [];
             for(let i in this.wardenArr){
                 this.wardenArr[i]['bg_class'] = this.generateRandomBGClass();
                 this.wardenArr[i]['id_encrypted'] = this.encDecrService.encrypt(this.wardenArr[i]['user_id']);
@@ -98,6 +99,9 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                     }
                 }
             }
+
+            setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
+
             this.copyOfList = JSON.parse( JSON.stringify(this.wardenArr) );
 
             if(callBack){
@@ -112,6 +116,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         this.getListData(() => { 
             if(this.pagination.pages > 0){
                 this.pagination.currentPage = 1;
+                this.pagination.prevPage = 1;
             }
 
             for(let i = 1; i<=this.pagination.pages; i++){
@@ -223,6 +228,8 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                     for(let i = 1; i<=this.pagination.pages; i++){
                         this.pagination.selection.push({ 'number' : i });
                     }
+                    this.pagination.currentPage = 1;
+                    this.pagination.prevPage = 1;
                     this.loadingTable = false;
                 });
             });
@@ -315,30 +322,39 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
     pageChange(type){
 
+        let changeDone = false;
         switch (type) {
             case "prev":
                 if(this.pagination.currentPage > 1){
                     this.pagination.currentPage = this.pagination.currentPage - 1;
+                    changeDone = true;
                 }
                 break;
 
             case "next":
                 if(this.pagination.currentPage < this.pagination.pages){
                     this.pagination.currentPage = this.pagination.currentPage + 1;
+                    changeDone = true;
                 }
                 break;
             
             default:
-                this.pagination.currentPage = type;
+                if(this.pagination.prevPage != parseInt(type)){
+                    this.pagination.currentPage = parseInt(type);
+                    changeDone = true;
+                }
                 break;
         }
 
-        let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-        this.queries.offset = offset;
-        this.loadingTable = true;
-        this.getListData(() => { 
-            this.loadingTable = false;
-        });
+        if(changeDone){
+            this.pagination.prevPage = parseInt(type);
+            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+            this.queries.offset = offset;
+            this.loadingTable = true;
+            this.getListData(() => { 
+                this.loadingTable = false;
+            });
+        }
     }
 
     ngOnDestroy(){}
