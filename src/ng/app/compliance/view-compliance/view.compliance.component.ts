@@ -162,7 +162,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 			kpis['tableTemplate'] = this[tableTemplateName];
 		}
     this.totalPercentage = (counter / this.KPIS.length) * 100;
-    this.totalPercentage = this.totalPercentage.toString() + '%';
+    this.totalPercentage = this.totalPercentage.toFixed(2).toString() + '%';
     console.log(this.KPIS);
     console.log('counter = ' + counter);
 
