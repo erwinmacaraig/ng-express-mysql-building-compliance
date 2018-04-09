@@ -1,7 +1,7 @@
 <div class="container-fluid">
 
 	<div class="row margin-bottom-30">
-		
+
 		<div class="col l2 m12 s12 my-training-container">
 			<h5 class="orange-text margin-bottom-30">My Training</h5>
 
@@ -17,7 +17,7 @@
 					<div class="shadow"></div>
 				</div>
 			</div>
-			
+
 			<div class="center-block text-button-container">
 			    <button class="btn orange waves-effect waves-light center-block display-block" [routerLink]="['/trainings/my-training']"> Go to training > </button>
 			</div>
@@ -27,7 +27,7 @@
 
 		<div class="col l6 m12 s12">
 			<div class="margin-bottom-30"></div>
-			
+
 			<div class="grey lighten-5 table-container">
 				<table class="table striped">
 					<thead>
@@ -38,37 +38,32 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
+						<tr *ngFor="let t of trainings">
 							<td>
 								<img src="/assets/images/check_icon.png" >
 							</td>
-							<td>Warden Training</td>
-							<td> <button class="btn light-blue waves-effect waves-light">Cerificate</button> </td>
+							<td>{{t.training_requirement_name}}</td>
+							<td> <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{t.scorm_course_id}}&amp;c={{t.certifications_id}}" target="_blank" class="btn light-blue waves-effect waves-light">Cerificate</a> </td>
 						</tr>
-						<tr>
-							<td>
-								<img src="/assets/images/expired_icon.png" >
-							</td>
-							<td>Active Shooter Response Procedures</td>
-							<td> <button class="btn light-blue waves-effect waves-light">Take Course</button> </td>
-						</tr>
-						<tr>
-							<td>
-								<img src="/assets/images/check_icon.png" >
-							</td>
-							<td>Bomb Threat</td>
-							<td> <button class="btn light-blue waves-effect waves-light">Cerificate</button> </td>
-						</tr>
+
+            <!-- Assigned Courses -->
+            <tr *ngFor="let c of assignedCourses">
+              <td>
+                <img src="/assets/images/expired_icon.png" >
+              </td>
+              <td>{{c['training_requirement_name']}}</td>
+							<td> <a [routerLink]="['/trainings', 'my-training']"> Take Course</a> </td>
+            </tr>
 					</tbody>
 				</table>
-				
+
 			</div>
 
 		</div>
 
 		<div class="col l3 m12 s12">
 			<h5 class="orange-text margin-bottom-30">Community</h5>
-			
+
 			<div class="blog">
 				<img src="/assets/images/blog.png"  >
 
@@ -90,12 +85,12 @@
 	</div>
 
 	<div class="row">
-		
+
 		<div class="col l8 m12 s12">
 			<h5 class="orange-text margin-bottom-30">Activities</h5>
 
 			<div class="row">
-				
+
 				<div class="col l4 m12 s12 activity-container">
 					<div class="display-table width100">
 						<div class="cell grey lighten-5 image-container">
@@ -166,5 +161,5 @@
 		</div>
 
 	</div>
-	
+
 </div>

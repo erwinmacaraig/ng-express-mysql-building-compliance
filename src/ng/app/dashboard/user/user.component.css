@@ -258,3 +258,7 @@ table tr td .btn{
     border: 0.1em solid #e0e5e8;
     border-radius: 50%;
 }
+
+table td a.btn.light-blue {
+  line-height: 30px;
+}
