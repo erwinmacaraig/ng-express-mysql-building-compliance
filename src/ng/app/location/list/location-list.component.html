@@ -98,6 +98,7 @@
 						</div>
 						<div class="inline-block">
 							<a [routerLink]="['/location/view/', location.location_id]" class="location-name-link">
+								<span *ngIf="location.parent">{{location.parent.name}},</span>
 								<span *ngIf="location.name.length > 0"> {{location.name}}</span>
 								<span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
 							</a>
