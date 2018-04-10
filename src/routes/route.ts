@@ -87,12 +87,17 @@ import { NextFunction, Request, Response } from 'express';
                     data[i]['sublocations'].push(d);
                 }
             }
-
         }
 
         let finalData = [];
         for(let i in data){
-            if(data[i]['parent_id'] == -1){
+            let hasParent = false;
+            for(let x in data){
+                if( data[i]['parent_id'] == data[x]['location_id'] ){
+                    hasParent = true;
+                }
+            }
+            if(!hasParent){
                 finalData.push( data[i] );
             }
         }

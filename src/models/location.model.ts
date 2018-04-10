@@ -513,7 +513,7 @@ export class Location extends BaseClass {
 
 		return new Promise((resolve) => {
 			let sql = `SELECT @pi as ids FROM ( SELECT * FROM locations WHERE archived = 0 AND location_id <= ${sublocId} ) sublocations ,
-						(SELECT @pi := parent_id FROM locations WHERE location_id = ${sublocId} ) parent 
+						(SELECT @pi := parent_id FROM locations WHERE location_id = ${sublocId} ) parent
 					    WHERE FIND_IN_SET(location_id, @pi) > 0 AND @pi := concat(@pi, ',', parent_id)
 					    ORDER BY location_id DESC`;
 
@@ -536,7 +536,7 @@ export class Location extends BaseClass {
 					} ]);
 				}
 
-				
+
 			});
 			connection.end();
 		});
@@ -584,8 +584,8 @@ export class Location extends BaseClass {
       }
       let location_em_roles = {};
       let subLocToEmRoles:{[key: number]: {}} = {};
-      // FRP or TRP 
-      
+      // FRP or TRP
+
       this.getParentsChildren(location).then((sublocations) => {
         const subIds = [];
         Object.keys(sublocations).forEach((key) => {
@@ -672,6 +672,62 @@ export class Location extends BaseClass {
       });
     }).catch((e) => {
     	return [];
+    });
+  }
+  /**
+   *
+   * @param location_id
+   * @param role
+   * @description
+   * get Tenant Responsible Persons(s) given a location
+   */
+  public getTRPOnLocation(locations = [], role = 0): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      const r = [];
+      if (!locations.length) {
+        resolve([]);
+        return;
+      }
+      const locationStr = locations.join(',');
+      let locId = this.ID();
+
+      const sql = `SELECT
+        location_account_user.location_id,
+        user_role_relation.role_id,
+        users.first_name,
+        users.last_name,
+        users.email
+      FROM
+        location_account_user
+      INNER JOIN
+        user_role_relation
+      ON
+        user_role_relation.user_id = location_account_user.user_id
+      INNER JOIN
+        users
+      ON
+        users.user_id = location_account_user.user_id
+      WHERE
+        location_account_user.location_id IN (${locationStr})
+      AND
+        role_id = ?`;
+
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql, [locId, role], (error, results) => {
+        if (error) {
+          console.log('location.model.getTRPOnLocation',error, sql);
+          throw Error('Cannot perform query');
+        }
+        if (!results.length) {
+          resolve([]);
+        } else {
+          for (let res of results) {
+            r.push(res);
+          }
+          resolve(r);
+        }
+      });
+      connection.end();
     });
   }
 

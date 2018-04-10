@@ -123,6 +123,10 @@ export class TrainingCertification extends BaseClass {
     });
   }
 
+  /**
+   * @description
+   * Determine if the given users has a valid certifications
+   */
   public getEMRUserCertifications(users: Array<number>): Promise<object> {
     return new Promise((resolve, reject) => {
       if (!users.length) {
@@ -383,6 +387,10 @@ export class TrainingCertification extends BaseClass {
         filterString += ('pass' in filter) ? ' AND pass = ' + filter['pass'] : ' AND pass = 1';
         filterString +=
         ('current' in filter) ? ` AND DATE_ADD(certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()` : '';
+        if ('training_requirement' in filter && filter['training_requirement'].length) {
+          const training_requirement_str = filter['training_requirement'].join(',');
+          filterString += ` AND training_requirement.training_requirement_id IN (${training_requirement_str})`;
+        }
         const sql = `SELECT
                       user_id
                     FROM
@@ -402,7 +410,7 @@ export class TrainingCertification extends BaseClass {
             throw Error('There was a problem getting the number of trainings');
           }
           if (!results.length) {
-            reject({});
+            resolve({});
           } else {
             for (let i = 0; i < results.length; i++) {
               if (results[i]['user_id'] in user_trainings) {

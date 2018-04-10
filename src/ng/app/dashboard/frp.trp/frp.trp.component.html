@@ -98,7 +98,7 @@
 							<td colspan="4" class="center">No plans found</td>
 						</tr>
 						<tr *ngFor="let loc of locations" >
-							<td>{{loc.name}}</td>
+							<td><span *ngIf="loc.parent">{{loc.parent.name}}, </span>{{loc.name}}</td>
 							<td></td>
 							<td> 0/0 </td>
 							<!--<td>  <button class="btn light-blue waves-effect waves-light">Shop</button>  </td>-->

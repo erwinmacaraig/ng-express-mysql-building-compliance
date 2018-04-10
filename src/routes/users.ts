@@ -1,3 +1,4 @@
+
 import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
 
@@ -29,6 +30,7 @@ import * as validator from 'validator';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as multer from 'multer';
+import * as jwt from 'jsonwebtoken';
 const md5 = require('md5');
 const defs = require('./../config/defs.json');
 
@@ -142,6 +144,14 @@ export class UsersRoute extends BaseRoute {
 	    router.post('/users/mobility-impaired-info', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().saveMobilityImpairedDetails(req, res, next);
 	    });
+
+        router.get('/users/get-profile-by-token/:token', (req: Request, res: Response) => {
+            new  UsersRoute().getProfileByToken(req, res);
+        });
+
+        router.post('/users/set-profile', (req: Request, res: Response) => {
+            new  UsersRoute().setProfile(req, res);
+        });
 
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getLocationsTenants(req, res, next).then((data) => {
@@ -272,6 +282,97 @@ export class UsersRoute extends BaseRoute {
             'msg': 'Problem sending certificate'
           });
         }
+      });
+
+      router.get('/users/em/dashboard/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+        // get assigned courses
+        const course = new CourseUserRelation();
+        const user = new User(req.user.user_id);
+        const em_roles = new UserEmRoleRelation();
+        const trainingCert = new TrainingCertification();
+        const hadNotTakenCourse = [];
+        let numOfRequiredTrainings = [];
+        let trainings, assignedCourses, required_trainings,
+        em_role, cert_req, req_trainings_count = 0, percentage_training;
+        let numberOfRequiredTrainingsHeld, mobilityImpairedDetails, tempVar, locations;
+        try {
+          assignedCourses = await course.getAllCourseForUser(req.user.user_id);
+        } catch (e) {
+          assignedCourses = [];
+        }
+
+        // get roles and get required trainings for the SPECIFIED ROLE
+        //
+        try {
+          tempVar  = await em_roles.getEmRolesFilterBy({
+            'user_id': req.user.user_id,
+            'distinct': 'em_role_id'
+          });
+          em_role = tempVar[0];
+          locations = tempVar[1];
+        } catch(e) {
+          em_role = [];
+          locations = [];
+        }
+        try {
+          cert_req = await trainingCert.getRequiredTrainings();
+          for (let i = 0; i < em_role.length; i++) {
+            if (em_role[i] in cert_req) {
+              req_trainings_count += cert_req[em_role[i]]['training_requirement_id'].length;
+              numOfRequiredTrainings = numOfRequiredTrainings.concat(cert_req[em_role[i]]['training_requirement_id']);
+            }
+          }
+          numberOfRequiredTrainingsHeld = await trainingCert.getNumberOfTrainings([req.user.user_id], {
+            'pass': 1,
+            'current': 1,
+            'training_requirement': numOfRequiredTrainings
+          });
+          if (req.user.user_id in numberOfRequiredTrainingsHeld) {
+            percentage_training = Math.round((req_trainings_count / numberOfRequiredTrainingsHeld[req.user.user_id]['count']) * 100).toFixed(0);
+          } else {
+            percentage_training = 0;
+          }
+        } catch (e) {
+          cert_req = {};
+        }
+        // get valid taken trainings
+        try {
+          trainings = await user.getAllCertifications({
+            'pass': 1,
+            'current': 1,
+            'training_requirement_id': numOfRequiredTrainings
+          });
+        } catch (e) {
+          trainings = [];
+        }
+        // loop through assigned courses
+        for ( const c of assignedCourses) {
+          if (!(c['training_requirement_id'] in numOfRequiredTrainings)) {
+            hadNotTakenCourse.push(c);
+          }
+        }
+
+        //
+        try {
+          await user.load();
+          if (user.get('mobility_impaired') === 1) {
+            const peepDetails = new MobilityImpairedModel();
+            mobilityImpairedDetails = await peepDetails.getMany([[`user_id = ${req.user.user_id}`]]);
+          }
+        } catch(e) {
+          mobilityImpairedDetails = {};
+        }
+        return res.status(200).send({
+          'em_roles': em_role,
+          'locations': locations,
+          'trainings': trainings,
+          'courses': hadNotTakenCourse,
+          'peepDetails': mobilityImpairedDetails,
+          'required_trainings_count': req_trainings_count,
+          'required_trainings_held': (req.user.user_id in numberOfRequiredTrainingsHeld) ? numberOfRequiredTrainingsHeld[req.user.user_id]['count'] : 0,
+          'percentage_training': percentage_training
+        });
+
       });
   }
 
@@ -923,7 +1024,7 @@ export class UsersRoute extends BaseRoute {
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
                 if('locations' in user == false){ user['locations'] = []; }
- 
+
                 let usersRolesIds = [];
 
                 for(let rol of usersRolesRelation){
@@ -1585,6 +1686,208 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
+    public async setProfile(req: Request, res: Response){
+        let token = req.body.token,
+            password = req.body.password,
+            tokenModel = new Token(),
+            response = { 
+                status : false, 
+                message : '', 
+                token : '',
+                data : {
+                    userId : 0,
+                    name : '',
+                    email : '',
+                    accountId : 0,
+                    roles : [],
+                    profilePic : ''
+                }
+            };
+
+        try{
+           let tokenData = <any> await tokenModel.getByToken(token),
+               today = moment(),
+               expirationDate = moment(tokenData.expiration_date);
+
+            if(tokenData.action == 'setup-password'){
+
+                let userId = tokenData.id,
+                    userModel = new User(userId);
+
+                try{
+                    let user = <any> await userModel.load(),
+                        useRoleModel = new UserRoleRelation(),
+                        emRoleModel = new UserEmRoleRelation(),
+                        roleData = {
+                            role_id : 0, role_name : '', location_id : 0
+                        },
+                        encPass = md5('Ideation' +password + 'Max');
+
+                    userModel.set('can_login', 1);
+                    userModel.set('password', encPass);
+                    userModel.set('last_login', today.format('YYYY-MM-DD HH-mm-ss'));
+                    
+                    await userModel.dbUpdate();
+
+                    tokenModel.set('action', 'verify');
+                    tokenModel.set('verified', 1);
+
+                    await tokenModel.dbUpdate();
+
+                    const token = jwt.sign(
+                        {
+                            user_db_token: user.token,
+                            user: user.user_id
+                        },
+                        process.env.KEY, { expiresIn: 7200 }
+                    );
+
+                    response.data.userId = user.user_id;
+                    response.data.name = user.first_name+' '+user.last_name;
+                    response.data.email = user.email;
+                    response.data.accountId = user.account_id;
+
+                    response['token'] = token;
+
+                    try{
+                        let trpfrp = <any> await useRoleModel.getByUserId(userId);
+
+                        roleData.role_id = trpfrp[0]['role_id'];
+                        roleData.role_name = (trpfrp[0]['role_id'] == 1)? 'Building Manager' : 'Tenant';
+
+                    }catch(e){ }
+
+                    try{
+                        let emroles = <any> await emRoleModel.getEmRolesByUserId(userId);
+                        roleData.role_id = emroles[0]['role_id'];
+                        roleData.role_name = emroles[0]['role_name'];
+                        roleData['is_warden_role'] = emroles[0]['is_warden_role'];
+                    }catch(e){ }
+
+                    response.data.roles.push(roleData);
+
+                    response.status = true;
+
+                }catch(e){
+                    console.log(e);
+                    response.message = 'User not found';
+                }
+
+            }else{
+                response.message = 'Invalid Token';
+            }
+
+        }catch(e){
+            response.message = 'Invalid Token';
+        }
+
+
+        res.status(200).send(response);
+    }
+
+    public async getProfileByToken(req: Request, res: Response){
+        let token = req.params.token,
+            tokenModel = new Token(),
+            response = { status : false, message : '', data : <any>{ user : {}, account : {}, location : {}, role : {} } };
+
+        try{
+           let tokenData = <any> await tokenModel.getByToken(token),
+               today = moment(),
+               expirationDate = moment(tokenData.expiration_date);
+
+            if(tokenData.action == 'setup-password'){
+                response.data = tokenData;
+
+                let userId = tokenData.id,
+                    userModel = new User(userId);
+
+                try{
+                    let user = <any> await userModel.load(),
+                        useRoleModel = new UserRoleRelation(),
+                        emRoleModel = new UserEmRoleRelation(),
+                        roleData = {
+                            role_id : 0, role_name : '', location_id : 0
+                        };
+
+                    response.data['user'] = user;
+
+                    try{
+                        let trpfrp = <any> await useRoleModel.getByUserId(userId),
+                            locAccntUserModel = new LocationAccountUser(),
+                            locations = <any> await locAccntUserModel.getByUserId(userId);
+
+                        if( locations.length > 0 ){
+                            roleData.role_id = trpfrp[0]['role_id'];
+                            roleData.role_name = (trpfrp[0]['role_id'] == 1)? 'Building Manager' : 'Tenant';
+                            roleData.location_id = locations[0]['location_id'];
+                        }
+
+                    }catch(e){
+                        console.log(e);
+                    }
+
+                    try{
+                        let emroles = <any> await emRoleModel.getEmRolesByUserId(userId);
+                        roleData.role_id = emroles[0]['em_roles_id'];
+                        roleData.role_name = emroles[0]['role_name'];
+                        roleData.location_id = emroles[0]['location_id'];
+                    }catch(e){
+                        console.log(e);
+                    }
+
+                    let accountModel = new Account(user.account_id);
+                    try{
+                        let account = await accountModel.load();
+                        response.data['account'] = account;
+                    }catch(e){
+                        response.message = 'Account not found';
+                    }
+
+                    if( roleData.role_id > 0 && roleData.location_id > 0 ){
+                        response.data['role'] = roleData;
+
+                        let locationModel = new Location(roleData.location_id);
+
+                        try{
+                            let location = <any> await locationModel.load();
+
+                            location['parent_name'] = '';
+
+                            try{
+                                let parentLocModel = new Location(location.parent_id);
+                                await parentLocModel.load();
+                                location['parent_name'] = parentLocModel.get('name');
+                            }catch(e){}
+
+                            response.status = true;
+                            response.data['location'] = location;
+
+                        }catch(e){
+                            response.message = 'Location not found';
+                        }
+
+
+                    }else{
+                        response.message = 'Role not found';
+                    }
+
+
+                }catch(e){
+                    response.message = 'User not found';
+                }
+
+            }else{
+                response.message = 'Invalid Token';
+            }
+
+        }catch(e){
+            response.message = 'Invalid Token';
+        }
+
+
+        res.status(200).send(response);
+    }
+
 	public async createBulkUsers(req: AuthRequest, res: Response, next: NextFunction){
 		let response = {
 			status : false, data : [], message: ''
@@ -1640,7 +1943,7 @@ export class UsersRoute extends BaseRoute {
 			if(!hasError){
 				let
 				token = this.generateRandomChars(30),
-				saveData = {
+				inviSaveData = {
 					'first_name' : users[i]['first_name'],
 					'last_name' : users[i]['last_name'],
 					'email' : users[i]['email'],
@@ -1653,25 +1956,24 @@ export class UsersRoute extends BaseRoute {
                     'was_used' : (isAccountEmailExempt) ? 1 : 0
 				};
 
-				let invitation = new UserInvitation();
-				await invitation.create(saveData);
-
-                if(isAccountEmailExempt){
-
-                    let user  = new User(),
-                        encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max');
-
-                    await user.create({
+                let user  = new User(),
+                    encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max'),
+                    userSaveData = {
                         'first_name': users[i]['first_name'],
                         'last_name': users[i]['last_name'],
-                        'password': encryptedPassword,
+                        'password': '',
                         'email': users[i]['email'],
                         'token': token,
                         'account_id': accountId,
                         'invited_by_user': req['user']['user_id'],
-                        'can_login': 1,
-                        'mobile_number': users[i]['mobile_number']
-                    });
+                        'can_login': 0,
+                        'mobile_number': users[i]['mobile_number'],
+                        'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0
+                    };
+
+                if(isAccountEmailExempt){
+                    userSaveData.password = encryptedPassword;
+                    userSaveData.can_login = 1;
 
                     let tokenModel = new Token();
                     await tokenModel.create({
@@ -1681,40 +1983,20 @@ export class UsersRoute extends BaseRoute {
                         'id_type' : 'user_id',
                         'verified' : 1
                     });
-
-                    let locationAcctUser = new LocationAccountUser();
-                    await locationAcctUser.create({
-                        'location_id': users[i]['account_location_id'],
-                        'account_id': accountId,
-                        'user_id': user.ID(),
-                        'role_id': users[i]['account_role_id']
-                    });
-
-                    if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
-                        const userRoleRel = new UserRoleRelation();
-                        await userRoleRel.create({
-                            'user_id': user.ID(),
-                            'role_id': users[i]['account_role_id']
-                        });
-                    }else{
-                        const EMRoleUserRole = new UserEmRoleRelation();
-                        await EMRoleUserRole.create({
-                            'user_id': user.ID(),
-                            'em_role_id': users[i]['account_role_id'],
-                            'location_id': users[i]['account_location_id']
-                        });
-                    }
                 }
 
+                await user.create(userSaveData);
 
                 if(isAccountEmailExempt == false){
+                    /*let invitation = new UserInvitation();
+                    await invitation.create(inviSaveData);*/
 
                     let tokenModel = new Token();
                     await tokenModel.create({
                         'token' : token,
-                        'action' : 'invitation',
-                        'id' : invitation.ID(),
-                        'id_type' : 'user_invitations_id',
+                        'action' : 'setup-password',
+                        'id' : user.ID(),
+                        'id_type' : 'user_id',
                         'verified' : 0
                     });
 
@@ -1725,12 +2007,12 @@ export class UsersRoute extends BaseRoute {
     					cc: [],
     					body : '',
     					attachments: [],
-    					subject : 'EvacConnect Notification'
+    					subject : 'EvacConnect Profile Setup'
     				};
     				const email = new EmailSender(opts);
-    				const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
+    				const link = req.protocol + '://' + req.get('host') + '/signup/profile-completion/' + token;
     				let emailBody = email.getEmailHTMLHeader();
-    				emailBody += `<h3 style="text-transform:capitalize;">Hi ${saveData['first_name']} ${saveData['last_name']},</h3> <br/>
+    				emailBody += `<h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3> <br/>
     				<h4>You were added to EvacConnect Compliance Management System.</h4> <br/>
     				<h5>Click on the link below to setup your password.</h5> <br/>
     				<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
@@ -1739,13 +2021,36 @@ export class UsersRoute extends BaseRoute {
 
     				email.assignOptions({
     					body : emailBody,
-    					to: [saveData['email']],
-    					cc: ['erwin.macaraig@gmail.com']
+    					to: [inviSaveData['email']],
+    					cc: ['jmanoharan@evacgroup.com.au']
     				});
     				email.send(
     					(data) => console.log(data),
     					(err) => console.log(err)
     				);
+                }
+
+                if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                    let locationAcctUser = new LocationAccountUser();
+                    await locationAcctUser.create({
+                        'location_id': users[i]['account_location_id'],
+                        'account_id': accountId,
+                        'user_id': user.ID(),
+                        'role_id': users[i]['account_role_id']
+                    });
+
+                    const userRoleRel = new UserRoleRelation();
+                    await userRoleRel.create({
+                        'user_id': user.ID(),
+                        'role_id': users[i]['account_role_id']
+                    });
+                }else{
+                    const EMRoleUserRole = new UserEmRoleRelation();
+                    await EMRoleUserRole.create({
+                        'user_id': user.ID(),
+                        'em_role_id': users[i]['eco_role_id'],
+                        'location_id': users[i]['account_location_id']
+                    });
                 }
 
 			}else{
@@ -2327,14 +2632,15 @@ export class UsersRoute extends BaseRoute {
 		let
 		response = <any>{
 			status : true, data : [], message : ''
-		},
+    },
+    user,
 		mobilityImpairedModel = new MobilityImpairedModel();
 
 		let saveData = {
 			'is_permanent' : req.body.is_permanent,
 			'assistant_type' : req.body.assistant_type,
 			'equipment_type' : req.body.equipment_type,
-			'duration_date' : '',
+			'duration_date' : null,
 			'evacuation_procedure' : req.body.evacuation_procedure
 		};
 
@@ -2348,13 +2654,66 @@ export class UsersRoute extends BaseRoute {
 
 		if('user_id' in req.body){
 			saveData['user_id'] = req.body.user_id;
-			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+      saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+      user = new User(req.body.user_id);
+      try {
+        await user.load();
+        await user.create({
+          'mobility_impaired': 1
+        });
+      } catch(e) {
+        console.log(e);
+        user = {};
+      }
 		}else if('user_invitations_id' in req.body){
 			saveData['user_invitations_id'] = req.body.user_invitations_id;
 			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
 		}
 
-		await mobilityImpairedModel.create(saveData);
+    await mobilityImpairedModel.create(saveData);
+
+    // retrieve TRP
+    // send notification to TRP
+    const location = new Location();
+    console.log(req.body.locations);
+    console.log(typeof req.body.locations);
+    if (req.body.locations) {
+      try {
+        const trpOnLoc = await location.getTRPOnLocation([req.body.locations], defs['Tenant']);
+        const trps = [];
+        for (let t of trpOnLoc) {
+          trps.push(t['email']);
+        }
+        const opts = {
+          from : '',
+          fromName : 'EvacConnect',
+          to : trps,
+          cc: [],
+          body : '',
+          attachments: [],
+          subject : 'EvacConnect - Mobility Impaired Registration'
+        };
+        const email = new EmailSender(opts);
+        let emailBody = email.getEmailHTMLHeader();
+        emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+          <h4> ${user.get('first_name')} ${user.get('last_name')} has registered as mobility impaired.</h4> <br/>
+
+         `;
+
+        emailBody += email.getEmailHTMLFooter();
+        email.assignOptions({
+          body : emailBody
+        });
+        email.send((data) => {
+          console.log(data);
+        },(err) => {
+          console.log(err);
+        });
+      } catch (e) {
+        console.log(e);
+        console.log('cannot send notification');
+      }
+    }
 
 		res.send(response);
 	}

@@ -359,26 +359,32 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         }
 
-        const compliance_keys_arr = Object.keys(compliances);
-        // for (const c in compliances) {
-        for (let i = 0; i < compliance_keys_arr.length; i++ ) {
-            const c = compliance_keys_arr[i];
-            
-            compliances[c]['measurement'] = compliances[c]['kpis']['measurement'];
-
-            const m = compliances[c]['measurement'],
+        for (let comp of compliances) {
+            let kpis = comp['kpis'],
+                m = kpis['measurement'],
                 today = moment(),
-                validTillMoment = moment(compliances[c]['valid_till']);
-
-
-            compliances[c]['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
+                validTillMoment = moment(comp['valid_till']);
             
-            compliances[c]['validity_status'] = 'none-exist';
+            comp['measurement'] = comp['kpis']['measurement'];
+
+            comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
+            
+            comp['validity_status'] = 'none-exist';
+            comp['days_remaining']= 0;
+
             if (m === 'Traffic' || m === 'evac') {
-                if (compliances[c]['docs'][0] && validTillMoment.diff(today, 'days') > 0) {
-                    compliances[c]['validity_status'] = 'valid';
-                } else if (compliances[c]['docs'][0] && validTillMoment.diff(today, 'days') <= 0) {
-                    compliances[c]['validity_status'] = 'invalid';
+                
+                if(comp['docs'][0]){
+                    validTillMoment = moment(comp['docs'][0]['valid_till'], ['DD/MM/YYYY']);
+                }
+
+                if (comp['docs'][0] && validTillMoment.diff(today, 'days') > 0) {
+                    comp['validity_status'] = 'valid';
+                    comp['days_remaining'] = validTillMoment.diff(today, 'days');
+                } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') >= 0 && validTillMoment.diff(today, 'days') <= 30) {
+                    comp['validity_status'] = 'expiring';
+                } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') <= 0) {
+                    comp['validity_status'] = 'invalid';
                 } 
 
             } else if (m === 'Percent') {
@@ -388,89 +394,89 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
             let tempPercetage;
 
-            compliances[c]['total_personnel'] = 0;
-            compliances[c]['total_personnel_trained'] = {
+            comp['total_personnel'] = 0;
+            comp['total_personnel_trained'] = {
                 'total_passed' : 0,
                 'passed': [],
                 'failed': []
             };
-            compliances[c]['percentage'] = '0%';
+            comp['percentage'] = '0%';
             
-            switch(compliances[c]['compliance_kpis_id']) {
+            switch(comp['compliance_kpis_id']) {
                 case 6:
                     // Warden Training
                     if ('9' in emrolesOnThisLocation) {
-                        compliances[c]['total_personnel'] = compliances[c]['warden_total'] = emrolesOnThisLocation['9']['count'];
-                        compliances[c]['location_details'] = emrolesOnThisLocation[9];
+                        comp['total_personnel'] = comp['warden_total'] = emrolesOnThisLocation['9']['count'];
+                        comp['location_details'] = emrolesOnThisLocation[9];
                         try {
-                            compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['9']['users']);
-                            tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
-                            compliances[c]['percentage'] = tempPercetage + '%';
+                            comp['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['9']['users']);
+                            tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
+                            comp['percentage'] = tempPercetage + '%';
                         } catch (e) {
-                            compliances[c]['total_personnel'] = 0;
-                            compliances[c]['total_personnel_trained'] = {
+                            comp['total_personnel'] = 0;
+                            comp['total_personnel_trained'] = {
                                 'total_passed' : 0,
                                 'passed': [],
                                 'failed': []
                             };
-                            compliances[c]['percentage'] = '0%';
+                            comp['percentage'] = '0%';
                         }
                     }
-                    // compliances[c]['total_personnel'] = compliances[c]['warden_total'] = ('9' in emrolesOnThisLocation) ? emrolesOnThisLocation['9']['count'] : 0;
+                    // comp['total_personnel'] = comp['warden_total'] = ('9' in emrolesOnThisLocation) ? emrolesOnThisLocation['9']['count'] : 0;
                 break;
             
                 case 8:
                     // General Occupant Training
                     if ('8' in emrolesOnThisLocation) {
-                        compliances[c]['total_personnel'] = compliances[c]['general_occupant_total'] = emrolesOnThisLocation['8']['count'];
-                        compliances[c]['location_details'] = emrolesOnThisLocation[8];
+                        comp['total_personnel'] = comp['general_occupant_total'] = emrolesOnThisLocation['8']['count'];
+                        comp['location_details'] = emrolesOnThisLocation[8];
                         try {
-                            compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['8']['users']);
-                            tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
-                            compliances[c]['percentage'] = tempPercetage + '%';
+                            comp['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['8']['users']);
+                            tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
+                            comp['percentage'] = tempPercetage + '%';
                         } catch (e) {
-                            compliances[c]['total_personnel'] = 0;
-                            compliances[c]['total_personnel_trained'] = {
+                            comp['total_personnel'] = 0;
+                            comp['total_personnel_trained'] = {
                                 'total_passed' : 0,
                                 'passed': [],
                                 'failed': []
                             };
-                            compliances[c]['percentage'] = '0%';
+                            comp['percentage'] = '0%';
                         }
                     }
-                    // compliances[c]['total_personnel'] = compliances[c]['general_occupant_total'] = ('8' in emrolesOnThisLocation) ? emrolesOnThisLocation['8']['count'] : 0;
+                    // comp['total_personnel'] = comp['general_occupant_total'] = ('8' in emrolesOnThisLocation) ? emrolesOnThisLocation['8']['count'] : 0;
                 break;
 
                 case 12:
                     // Chief Warden Training
                     if ('12' in emrolesOnThisLocation) {
-                        compliances[c]['total_personnel'] =  compliances[c]['chief_warden_total'] = emrolesOnThisLocation['12']['count'];
-                        compliances[c]['location_details'] = emrolesOnThisLocation[11];
+                        comp['total_personnel'] =  comp['chief_warden_total'] = emrolesOnThisLocation['12']['count'];
+                        comp['location_details'] = emrolesOnThisLocation[11];
                         try {
-                            compliances[c]['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['12']['users']);
-                            tempPercetage = Math.round((compliances[c]['total_personnel_trained']['total_passed'] / compliances[c]['total_personnel']) * 100);
-                            compliances[c]['percentage'] = tempPercetage + '%';
+                            comp['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['12']['users']);
+                            tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
+                            comp['percentage'] = tempPercetage + '%';
                         } catch (e) {
-                            compliances[c]['total_personnel'] = 0;
-                            compliances[c]['total_personnel_trained'] = {
+                            comp['total_personnel'] = 0;
+                            comp['total_personnel_trained'] = {
                                 'total_passed' : 0,
                                 'passed': [],
                                 'failed': []
                             };
-                            compliances[c]['percentage'] = '0%';
+                            comp['percentage'] = '0%';
                         }
                     }
                 break;
 
                 default:
                     
-                    // compliances[c]['total_personnel'] = 0;
-                    // compliances[c]['total_personnel_trained'] = {
+                    // comp['total_personnel'] = 0;
+                    // comp['total_personnel_trained'] = {
                     // 'total_passed' : 0,
                     // 'passed': [],
                     // 'failed': []
                     // };
-                    // compliances[c]['percentage'] = '0%';
+                    // comp['percentage'] = '0%';
                      
                 break;
             }

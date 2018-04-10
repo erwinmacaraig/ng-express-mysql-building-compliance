@@ -19,6 +19,7 @@ import { SetupCompanyComponent } from './setupcompany/setup.company.component';
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
+import { ProfileCompletionComponent } from './signup/profile-completion/profile-completion.component';
 import { TenantInvitationFormComponent } from './signup/trp-invite/tenant-invite.component';
 import { NoemailComponent } from './noemail/noemail.component';
 
@@ -94,6 +95,7 @@ const appRoutes: Routes = [
         { path : 'user', component : SignupUserInfoComponent  },
         { path: 'warden-signup', component: WardenSignupComponent },
         { path: 'warden-profile-completion/:token', component: WardenInvitationFormComponent },
+        { path: 'profile-completion/:token', component: ProfileCompletionComponent },
         { path: 'tenant-profile-completion/:token', component: TenantInvitationFormComponent }
       ]
   },

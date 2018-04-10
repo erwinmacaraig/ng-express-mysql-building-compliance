@@ -279,4 +279,8 @@ export class UserService {
     });
   }
 
+  getEmUserDashboardInfo() {
+    return this.http.get(this.baseUrl + '/users/em/dashboard/', this.options);
+  }
+
 }

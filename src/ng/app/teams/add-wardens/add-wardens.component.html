@@ -68,7 +68,7 @@
 							<input type="hidden" name="selectedLocation{{i}}" [(ngModel)]="user.account_location_id" required pattern="[1-9][0-9]*">
 						</td>
 						<td class="with-remove">
-							<input type="text" [(ngModel)]="user.contact_number" placeholder="Contact Information" name="mobile{{i}}">
+							<input type="text" [(ngModel)]="user.mobile_number" placeholder="Contact Information" name="mobile{{i}}">
 							<a href="javascript:void(0)" class="remove" (click)="removeAddedUser(i)" [hidden]="i == 0">X</a>
 						</td>
 					</tr>
@@ -232,6 +232,7 @@
 									<div class="plus-minus">
 										<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" [checked]="(location.showDropDown) ? location.showDropDown : false" />
 										<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
+										<span *ngIf="location.parent"> <span *ngIf="location.parent.name">{{location.parent.name}}, </span> </span>
 										<span *ngIf="location.name.length > 0">{{location.name}}</span>
 										<span *ngIf="location.name.length == 0">{{location.formatted_address}}</span>
 									</div>

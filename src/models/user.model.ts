@@ -180,7 +180,7 @@ export class User extends BaseClass {
             const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
             ('last_name' in this.dbData) ? this.dbData['last_name'] : '',
-            ('email' in this.dbData) ? this.dbData['email'] : '',
+            ('email' in this.dbData) ? this.dbData['email'].toLowerCase() : '',
             ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
             ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : ' ',
             ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
@@ -245,7 +245,7 @@ export class User extends BaseClass {
             const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
             ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
-            ('email' in this.dbData) ? this.dbData['email'] : '',
+            ('email' in this.dbData) ? this.dbData['email'].toLowerCase() : '',
             ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
             ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : '',
             ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
@@ -364,7 +364,14 @@ export class User extends BaseClass {
             connection.end();
         });
     }
-
+  /**
+   * @author Erwin Macaraig
+   *
+   * @param filter
+   * Object filter wherein keys are the filter
+   * @param user_id
+   * User id on which to get all certifications based on the filter
+   */
   public getAllCertifications(filter: object = {}, user_id: number = 0): Promise<Array<object>> {
     return new Promise((resolve, reject) => {
       let uid = this.ID();
@@ -378,10 +385,14 @@ export class User extends BaseClass {
             filterStr += ` AND certifications.pass = ${filter[key]}`;
           break;
           case 'training_requirement_id':
-            filterStr += ` AND certifications.training_requirement_id = ${filter[key]}`;
+            const trainingRequirementIds = (filter['training_requirement_id']).join(',');
+            filterStr += ` AND certifications.training_requirement_id IN (${trainingRequirementIds}) `;
           break;
           case 'certifications_id':
             filterStr += ` AND certifications.certifications_id = ${filter[key]}`;
+          break;
+          case 'current':
+            filterStr += ` AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()`;
           break;
         }
       });
