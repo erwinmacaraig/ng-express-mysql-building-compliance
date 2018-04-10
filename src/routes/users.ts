@@ -282,6 +282,93 @@ export class UsersRoute extends BaseRoute {
           });
         }
       });
+
+      router.get('/users/em/dashboard/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+        // get assigned courses
+        const course = new CourseUserRelation();
+        const user = new User(req.user.user_id);
+        const em_roles = new UserEmRoleRelation();
+        const trainingCert = new TrainingCertification();
+        const hadNotTakenCourse = [];
+        let numOfRequiredTrainings = [];
+        let trainings, assignedCourses, required_trainings,
+        em_role, cert_req, req_trainings_count = 0, percentage_training;
+        let numberOfRequiredTrainingsHeld, mobilityImpairedDetails;
+        try {
+          assignedCourses = await course.getAllCourseForUser(req.user.user_id);
+        } catch (e) {
+          assignedCourses = [];
+        }
+
+        // get roles and get required trainings for the SPECIFIED ROLE
+        //
+        try {
+          em_role = await em_roles.getEmRolesFilterBy({
+            'user_id': req.user.user_id,
+            'distinct': 'em_role_id'
+          });
+        } catch(e) {
+          em_role = [];
+        }
+        try {
+          cert_req = await trainingCert.getRequiredTrainings();
+          for (let i = 0; i < em_role.length; i++) {
+            if (em_role[i] in cert_req) {
+              req_trainings_count += cert_req[em_role[i]]['training_requirement_id'].length;
+              numOfRequiredTrainings = numOfRequiredTrainings.concat(cert_req[em_role[i]]['training_requirement_id']);
+            }
+          }
+          numberOfRequiredTrainingsHeld = await trainingCert.getNumberOfTrainings([req.user.user_id], {
+            'pass': 1,
+            'current': 1,
+            'training_requirement': numOfRequiredTrainings
+          });
+          if (req.user.user_id in numberOfRequiredTrainingsHeld) {
+            percentage_training = Math.round((req_trainings_count / numberOfRequiredTrainingsHeld[req.user.user_id]['count']) * 100).toFixed(0);
+          } else {
+            percentage_training = 0;
+          }
+        } catch (e) {
+          cert_req = {};
+        }
+        // get valid taken trainings
+        try {
+          trainings = await user.getAllCertifications({
+            'pass': 1,
+            'current': 1,
+            'training_requirement_id': numOfRequiredTrainings
+          });
+        } catch (e) {
+          trainings = [];
+        }
+        // loop through assigned courses
+        for ( const c of assignedCourses) {
+          if (!(c['training_requirement_id'] in numOfRequiredTrainings)) {
+            hadNotTakenCourse.push(c);
+          }
+        }
+
+        //
+        try {
+          await user.load();
+          if (user.get('mobility_impaired') === 1) {
+            const peepDetails = new MobilityImpairedModel();
+            mobilityImpairedDetails = await peepDetails.getMany([[`user_id = ${req.user.user_id}`]]);
+          }
+        } catch(e) {
+          mobilityImpairedDetails = {};
+        }
+        return res.status(200).send({
+          'em_roles': em_role,
+          'trainings': trainings,
+          'courses': hadNotTakenCourse,
+          'peepDetails': mobilityImpairedDetails,
+          'required_trainings_count': req_trainings_count,
+          'required_trainings_held': (req.user.user_id in numberOfRequiredTrainingsHeld) ? numberOfRequiredTrainingsHeld[req.user.user_id]['count'] : 0,
+          'percentage_training': percentage_training
+        });
+
+      });
   }
 
   public async checkIfAdmin(req: Request , res: Response){
@@ -932,7 +1019,7 @@ export class UsersRoute extends BaseRoute {
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
                 if('locations' in user == false){ user['locations'] = []; }
- 
+
                 let usersRolesIds = [];
 
                 for(let rol of usersRolesRelation){
@@ -2547,7 +2634,7 @@ export class UsersRoute extends BaseRoute {
 			'is_permanent' : req.body.is_permanent,
 			'assistant_type' : req.body.assistant_type,
 			'equipment_type' : req.body.equipment_type,
-			'duration_date' : '',
+			'duration_date' : null,
 			'evacuation_procedure' : req.body.evacuation_procedure
 		};
 
@@ -2561,7 +2648,16 @@ export class UsersRoute extends BaseRoute {
 
 		if('user_id' in req.body){
 			saveData['user_id'] = req.body.user_id;
-			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+      saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+      const user = new User(req.body.user_id);
+      try {
+        await user.load();
+        await user.create({
+          'mobility_impaired': 1
+        });
+      } catch(e) {
+        console.log(e);
+      }
 		}else if('user_invitations_id' in req.body){
 			saveData['user_invitations_id'] = req.body.user_invitations_id;
 			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');

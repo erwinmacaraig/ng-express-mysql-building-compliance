@@ -109,7 +109,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     ngOnInit(){
         this.dashboardService.show();
-        this.getListData(() => { 
+        this.getListData(() => {
             if(this.pagination.pages > 0){
                 this.pagination.currentPage = 1;
                 this.pagination.prevPage = 1;
@@ -119,7 +119,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 this.pagination.selection.push({ 'number' : i });
             }
             setTimeout(() => {
-                this.dashboardService.hide(); 
+                this.dashboardService.hide();
                 $('.row.filter-container select').material_select();
             }, 100);
         });
@@ -241,7 +241,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 this.queries.offset = 0;
                 this.loadingTable = true;
                 this.pagination.selection = [];
-                this.getListData(() => { 
+                this.getListData(() => {
                     for(let i = 1; i<=this.pagination.pages; i++){
                         this.pagination.selection.push({ 'number' : i });
                     }
@@ -425,7 +425,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         }
 
         this.selectedPeep = peep;
-
         $('#modalMobility').modal('open');
     }
 
@@ -467,7 +466,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
             }
 
-            paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
+            paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val();
 
             this.showModalLoader = true;
             this.dashboardService.show();
@@ -500,7 +499,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                     changeDone = true;
                 }
                 break;
-            
+
             default:
                 if(this.pagination.prevPage != parseInt(type)){
                     this.pagination.currentPage = parseInt(type);
@@ -514,7 +513,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
             this.queries.offset = offset;
             this.loadingTable = true;
-            this.getListData(() => { 
+            this.getListData(() => {
                 this.loadingTable = false;
             });
         }
