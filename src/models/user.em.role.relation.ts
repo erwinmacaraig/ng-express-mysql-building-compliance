@@ -43,6 +43,7 @@ export class UserEmRoleRelation extends BaseClass {
                       uer.location_id,
                       er.em_roles_id,
                       l.name as location_name,
+                      l.name,
                       l.parent_id,
                       l.location_id,
                       l.formatted_address,
