@@ -1,3 +1,4 @@
+
 import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
 
@@ -284,7 +285,7 @@ export class UsersRoute extends BaseRoute {
         let numOfRequiredTrainings = [];
         let trainings, assignedCourses, required_trainings,
         em_role, cert_req, req_trainings_count = 0, percentage_training;
-        let numberOfRequiredTrainingsHeld, mobilityImpairedDetails;
+        let numberOfRequiredTrainingsHeld, mobilityImpairedDetails, tempVar, locations;
         try {
           assignedCourses = await course.getAllCourseForUser(req.user.user_id);
         } catch (e) {
@@ -294,12 +295,15 @@ export class UsersRoute extends BaseRoute {
         // get roles and get required trainings for the SPECIFIED ROLE
         //
         try {
-          em_role = await em_roles.getEmRolesFilterBy({
+          tempVar  = await em_roles.getEmRolesFilterBy({
             'user_id': req.user.user_id,
             'distinct': 'em_role_id'
           });
+          em_role = tempVar[0];
+          locations = tempVar[1];
         } catch(e) {
           em_role = [];
+          locations = [];
         }
         try {
           cert_req = await trainingCert.getRequiredTrainings();
@@ -351,6 +355,7 @@ export class UsersRoute extends BaseRoute {
         }
         return res.status(200).send({
           'em_roles': em_role,
+          'locations': locations,
           'trainings': trainings,
           'courses': hadNotTakenCourse,
           'peepDetails': mobilityImpairedDetails,
@@ -2414,7 +2419,8 @@ export class UsersRoute extends BaseRoute {
 		let
 		response = <any>{
 			status : true, data : [], message : ''
-		},
+    },
+    user,
 		mobilityImpairedModel = new MobilityImpairedModel();
 
 		let saveData = {
@@ -2436,7 +2442,7 @@ export class UsersRoute extends BaseRoute {
 		if('user_id' in req.body){
 			saveData['user_id'] = req.body.user_id;
       saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
-      const user = new User(req.body.user_id);
+      user = new User(req.body.user_id);
       try {
         await user.load();
         await user.create({
@@ -2444,13 +2450,57 @@ export class UsersRoute extends BaseRoute {
         });
       } catch(e) {
         console.log(e);
+        user = {};
       }
 		}else if('user_invitations_id' in req.body){
 			saveData['user_invitations_id'] = req.body.user_invitations_id;
 			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
 		}
 
-		await mobilityImpairedModel.create(saveData);
+    await mobilityImpairedModel.create(saveData);
+
+    // retrieve TRP
+    // send notification to TRP
+    const location = new Location();
+    console.log(req.body.locations);
+    console.log(typeof req.body.locations);
+    if (req.body.locations) {
+      try {
+        const trpOnLoc = await location.getTRPOnLocation([req.body.locations], defs['Tenant']);
+        const trps = [];
+        for (let t of trpOnLoc) {
+          trps.push(t['email']);
+        }
+        const opts = {
+          from : '',
+          fromName : 'EvacConnect',
+          to : trps,
+          cc: [],
+          body : '',
+          attachments: [],
+          subject : 'EvacConnect - Mobility Impaired Registration'
+        };
+        const email = new EmailSender(opts);
+        let emailBody = email.getEmailHTMLHeader();
+        emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+          <h4> ${user.get('first_name')} ${user.get('last_name')} has registered as mobility impaired.</h4> <br/>
+
+         `;
+
+        emailBody += email.getEmailHTMLFooter();
+        email.assignOptions({
+          body : emailBody
+        });
+        email.send((data) => {
+          console.log(data);
+        },(err) => {
+          console.log(err);
+        });
+      } catch (e) {
+        console.log(e);
+        console.log('cannot send notification');
+      }
+    }
 
 		res.send(response);
 	}

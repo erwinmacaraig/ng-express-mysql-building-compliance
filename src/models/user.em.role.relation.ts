@@ -123,6 +123,8 @@ export class UserEmRoleRelation extends BaseClass {
     public getEmRolesFilterBy(filter: object = {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         const em_roles = [];
+        const user_ids = [];
+        const location_ids = [];
         let whereClause = 'WHERE 1=1';
         if ('user_id' in filter) {
           whereClause += ` AND user_id = ${filter['user_id']}`;
@@ -133,7 +135,7 @@ export class UserEmRoleRelation extends BaseClass {
         if ('distinct' in filter) {
           whereClause += ` GROUP BY ${filter['distinct']}`;
         }
-        const sql_get_roles = `SELECT em_role_id FROM user_em_roles_relation ${whereClause}`;
+        const sql_get_roles = `SELECT em_role_id, location_id, user_id FROM user_em_roles_relation ${whereClause}`;
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_roles, [], (error, results, fields) => {
           if (error) {
@@ -143,8 +145,10 @@ export class UserEmRoleRelation extends BaseClass {
           if (results.length > 0) {
             for (let i = 0; i < results.length; i++) {
               em_roles.push(results[i]['em_role_id']);
+              user_ids.push(results[i]['user_id']);
+              location_ids.push(results[i]['location_id']);
             }
-            resolve(em_roles);
+            resolve([em_roles, location_ids, user_ids]);
           } else {
             reject('Cannot get emergency roles');
           }

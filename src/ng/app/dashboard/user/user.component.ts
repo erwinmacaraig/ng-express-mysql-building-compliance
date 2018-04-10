@@ -44,6 +44,7 @@ datepickerModel: Date;
 isShowDatepicker = false;
 datepickerModelFormatted = '';
 peep = {};
+locationStr = '';
 	constructor(
 		private authService: AuthService,
     private donut: DonutService,
@@ -67,6 +68,7 @@ peep = {};
       if (response['peepDetails']) {
         this.peep = response['peepDetails'][0];
       }
+      this.locationStr = response['locations'].join(',');
       // console.log(this.peep);
       this.donut.updateDonutChart('#specificChart', this.training_percentage, true);
     }, (e) => {
@@ -137,6 +139,7 @@ peep = {};
       if (this.peep) {
         paramData['mobility_impaired_details_id'] = this.peep['mobility_impaired_details_id'];
       }
+      paramData['locations'] = this.locationStr;
       this.showModalLoader = true;
       this.dashboardService.show();
       this.userService.sendMobilityImpaireInformation(paramData, (response) => {
