@@ -130,6 +130,7 @@
 								<div class="plus-minus">
 									<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" [checked]="(location.showDropDown) ? location.showDropDown : false" />
 									<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
+									<span *ngIf="location.parent"> <span *ngIf="location.parent.name">{{location.parent.name}}, </span> </span>
 									<span *ngIf="location.name.length > 0">{{location.name}}</span>
 									<span *ngIf="location.name.length == 0">{{location.formatted_address}}</span>
 								</div>

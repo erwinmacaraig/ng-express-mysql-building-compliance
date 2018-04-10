@@ -488,6 +488,7 @@ table th:first-child{
 .documents-container .document .text-container .buttons .btn{
     width: 140px;
     margin-right: 10px;
+    margin-bottom: 10px;
 }
 
 .documents-container .document .btn{

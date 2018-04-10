@@ -288,31 +288,13 @@ export class AddUserComponent implements OnInit, OnDestroy {
         if(form.valid){
             let selectedLocationId = form.controls.selectLocation.value,
             selected = this.searchChildLocation(this.locations, selectedLocationId),
-            parent = this.findParent(this.locations, selected['parent_id']),
-            lastParent = this.getLastParent(selectedLocationId);
+            parent;
 
-            if(typeof parent == 'undefined'){
-                parent = selected;
+            if(selected.parent){
+                parent = selected.parent;
             }
 
-            switch (parseInt(this.selectedUser['account_role_id']) ) {
-                case 1:
-                this.selectedUser['account_location_id'] = lastParent.location_id;
-                break;
-                
-                case 2:
-                if(parent.parent_id == -1){
-                    this.selectedUser['account_location_id'] = selectedLocationId;
-                }else{
-                    this.selectedUser['account_location_id'] = parent.location_id;
-                }
-
-                break;
-
-                default:
-                this.selectedUser['account_location_id'] = selectedLocationId;
-                break;
-            }
+            this.selectedUser['account_location_id'] = selectedLocationId;
 
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
                 this.selectedUser['eco_location_id'] = selectedLocationId;

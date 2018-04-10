@@ -1,0 +1,70 @@
+<div id="modalSignup" class="modal">
+    <div class="modal-content" [hidden]="showMessage">
+        <form #formProfile="ngForm" (ngSubmit)="completeProfile(formProfile)">
+            <div class="container">
+                <div class="row">
+                    <div class="col m12 center-align">
+                        <h4 class="title">
+                            Hi {{firstname}} {{lastname}}!
+                            <br>
+                            <small>Welcome to EvacConnect Safety Management Tools</small>
+                            <br>
+                            <small>Please see details below and setup your password</small>
+                        </h4>
+                    </div>
+
+                    <div class="col m12">
+                        <div class="input-container">
+
+                            <div class="input-field col s12 m12 l12">
+                                <input id="account" type="text" readonly placeholder="Account" value="{{accountName}}">
+                                <label for="account" class="active">Account </label>
+                            </div>
+
+                            <div class="input-field col s12 m12 l12">
+                                <input id="locationName" type="text" readonly placeholder="Location" value="{{locationName}}">
+                                <label for="locationName" class="active">Location </label>
+                            </div>
+
+                            <div class="input-field col s12 m12 l12">
+                                <input id="roleName" type="text" readonly placeholder="Role" value="{{roleName}}">
+                                <label for="roleName" class="active">Role</label>
+                            </div>
+
+                            <div class="input-field col s12 m12 l12">
+                                <input id="password" type="password" name="password" required minlength="6" maxlength="150" (ngModel)="password" #password="ngModel" required (keyup)="passwordTyping(password)">
+                                <label for="password">Password
+                                    <small *ngIf=" password.value != confirmPassword.value "> *Mismatched </small>
+                                    <small *ngIf=" password.valid && password.touched "> *Required </small>
+                                </label>
+                            </div>
+
+                            <div class="input-field col s12 m12 l12">
+                                <input id="confirm_password" type="password" required minlength="6" maxlength="150" name="confirmPassword" #confirmPassword="ngModel" (ngModel)="confirmPassword" (keyup)="passwordTyping(confirmPassword)">
+                                <label for="confirm_password"> Confirm password
+                                    <small *ngIf=" password.value != confirmPassword.value "> *Mismatched </small>
+                                    <small *ngIf=" confirmPassword.valid && confirmPassword.touched "> *Required </small>
+                                </label>
+                            </div>
+
+                            <input type="hidden" name="user_id" required [(ngModel)]="userId" ngModel>
+
+                            <div class="input-field col m6">
+                                <a class="btn block waves-effect waves-light btn-close grey lighten-1" (click)="onCloseProfileCompletion()">Back</a>
+                            </div>
+                            <div class="input-field col m6">
+                                <button type="submit" [disabled]="!formProfile.valid" class="btn block waves-effect waves-light btn-submit">Submit</button>
+                            </div>
+
+                        </div> 
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-content" [hidden]="!showMessage">
+        <div [innerHTML]="message"></div>
+    </div>
+</div>

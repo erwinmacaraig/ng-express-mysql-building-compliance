@@ -180,7 +180,7 @@ export class User extends BaseClass {
             const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
             ('last_name' in this.dbData) ? this.dbData['last_name'] : '',
-            ('email' in this.dbData) ? this.dbData['email'] : '',
+            ('email' in this.dbData) ? this.dbData['email'].toLowerCase() : '',
             ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
             ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : ' ',
             ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
@@ -245,7 +245,7 @@ export class User extends BaseClass {
             const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
             ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
-            ('email' in this.dbData) ? this.dbData['email'] : '',
+            ('email' in this.dbData) ? this.dbData['email'].toLowerCase() : '',
             ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
             ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : '',
             ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
