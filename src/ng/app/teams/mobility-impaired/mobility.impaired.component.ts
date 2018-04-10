@@ -433,6 +433,8 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         $('#modalMobility').modal('open');
         this.selectedPeep = peep;
         this.formMobility.reset();
+
+        $('#modalMobility select').material_select('update');
     }
 
     onChangeDatePicker(event){
