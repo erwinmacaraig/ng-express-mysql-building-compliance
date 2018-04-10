@@ -12,85 +12,102 @@ declare var $: any;
 export class SignupService {
 
 	private headers: Object;
-  private options: Object;
-  private baseUrl: String;
-  private invitation_code: InvitationCode;
+    private options: Object;
+    private baseUrl: String;
+    private invitation_code: InvitationCode;
 
-	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
-		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-    this.options = { headers : this.headers };
-		this.baseUrl = (platformLocation as any).location.origin;
-	}
+    constructor(private http: HttpClient, platformLocation: PlatformLocation) {
+        this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
+        this.options = { headers : this.headers };
+        this.baseUrl = (platformLocation as any).location.origin;
+    }
 
-	sendUserData(data, callBack){
-		this.http.post(this.baseUrl+"/register", data, this.options)
-	      .subscribe(res => {
-	        callBack(res);
-	      }, err => {
-	        callBack( JSON.parse(err.error) );
-	      });
-	}
-
-	sendCompanyInfoSetupData(data, callBack){
-		this.http.post(this.baseUrl+"/accounts/create/setup", data, this.options)
-	      .subscribe(res => {
-	        callBack(res);
-	      }, err => {
-	        callBack( JSON.parse(err.error) );
-	      });
-  }
-
-  public getPersonInvitationCode(code: string): Observable<InvitationCode> {
-    return this.http.get<InvitationCode>(
-      this.baseUrl + '/person-invi-code', {params: new HttpParams().set('code', code)}
-    );
-  }
-
-  public setInvitationCode(code: InvitationCode): void {
-    this.invitation_code = new InvitationCode(code.invitation_code_id, code.code,
-    code.first_name, code.last_name, code.email, code.location_id, code.account_id, code.role_id,
-    code.was_used);
-  }
-
-  public invalidateInvitationCode() {
-    this.invitation_code = undefined;
-  }
-
-  public getInvitationCode(): InvitationCode {
-    return this.invitation_code;
-  }
-
-  getSecurityQuestions(callBack){
-    this.http.get(this.baseUrl+"/get-security-questions",  this.options)
+    sendUserData(data, callBack){
+        this.http.post(this.baseUrl+"/register", data, this.options)
         .subscribe(res => {
-          callBack(res);
+            callBack(res);
         }, err => {
-          callBack( JSON.parse(err.error) );
+            callBack( JSON.parse(err.error) );
         });
-  }
+    }
 
-  resendEmailVerification(userID, callBack){
-    this.http.post(this.baseUrl+"/register/resend-email-verification", { user_id : userID })
-    .subscribe(res => {
-      callBack(res);
-    }, err => {
-      callBack( JSON.parse(err.error) );
-    });
-  }
+    sendCompanyInfoSetupData(data, callBack){
+        this.http.post(this.baseUrl+"/accounts/create/setup", data, this.options)
+        .subscribe(res => {
+            callBack(res);
+        }, err => {
+            callBack( JSON.parse(err.error) );
+        });
+    }
 
-  retrieveWardenInvitationInfo(token: string) {
-    return this.http.get(this.baseUrl + '/team/invitation-filled-form/' + token + '/bulk', this.options);
-  }
+    public getPersonInvitationCode(code: string): Observable<InvitationCode> {
+        return this.http.get<InvitationCode>(
+            this.baseUrl + '/person-invi-code', {params: new HttpParams().set('code', code)}
+            );
+    }
 
-  signWardenUp(wardenProfile: object) {
-    return this.http.post<any>(this.baseUrl + '/team/process-warden-invitation', wardenProfile);
-  }
+    public setInvitationCode(code: InvitationCode): void {
+        this.invitation_code = new InvitationCode(code.invitation_code_id, code.code,
+            code.first_name, code.last_name, code.email, code.location_id, code.account_id, code.role_id,
+            code.was_used);
+    }
 
-  retrieveTenantInvitationInfo(token: string) {
-    return this.http.get(this.baseUrl + '/tenant/invitation-filled-form/' + token + '/', this.options);
-  }
+    public invalidateInvitationCode() {
+        this.invitation_code = undefined;
+    }
 
-  signTenantUp(tenantProfile: object) {
-    return this.http.post<any>(this.baseUrl + '/tenant/process-invitation-form/', tenantProfile);
-  }
+    public getInvitationCode(): InvitationCode {
+        return this.invitation_code;
+    }
+
+    getSecurityQuestions(callBack){
+        this.http.get(this.baseUrl+"/get-security-questions",  this.options)
+        .subscribe(res => {
+            callBack(res);
+        }, err => {
+            callBack( JSON.parse(err.error) );
+        });
+    }
+
+    resendEmailVerification(userID, callBack){
+        this.http.post(this.baseUrl+"/register/resend-email-verification", { user_id : userID })
+        .subscribe(res => {
+            callBack(res);
+        }, err => {
+            callBack( JSON.parse(err.error) );
+        });
+    }
+
+    retrieveWardenInvitationInfo(token: string) {
+        return this.http.get(this.baseUrl + '/team/invitation-filled-form/' + token + '/bulk', this.options);
+    }
+
+    signWardenUp(wardenProfile: object) {
+        return this.http.post<any>(this.baseUrl + '/team/process-warden-invitation', wardenProfile);
+    }
+
+    retrieveTenantInvitationInfo(token: string) {
+        return this.http.get(this.baseUrl + '/tenant/invitation-filled-form/' + token + '/', this.options);
+    }
+
+    signTenantUp(tenantProfile: object) {
+        return this.http.post<any>(this.baseUrl + '/tenant/process-invitation-form/', tenantProfile);
+    }
+
+    getProfileByToken(token, callBack){
+        this.http.get(this.baseUrl + '/users/get-profile-by-token/'+token, this.options).subscribe((res) => {
+            callBack(res);
+        }, err => {
+            callBack( JSON.parse(err.error) );
+        });
+    }
+
+    submitUsersSetupProfile(formData, callBack){
+        this.http.post(this.baseUrl + '/users/set-profile', formData, this.options).subscribe((res) => {
+            callBack(res);
+        }, err => {
+            callBack( JSON.parse(err.error) );
+        });
+    }
+
 }

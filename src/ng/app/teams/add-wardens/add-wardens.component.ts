@@ -8,6 +8,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { ViewChild } from '@angular/core';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { UserService } from '../../services/users';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -18,7 +19,7 @@ declare var $: any;
     selector: 'app-teams-add-warden',
     templateUrl: './add-wardens.component.html',
     styleUrls: ['./add-wardens.component.css'],
-    providers : [EncryptDecryptService]
+    providers : [EncryptDecryptService, UserService]
 })
 export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     @ViewChild('f') addWardenForm: NgForm;
@@ -35,6 +36,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         location_name : 'Select Location',
         location_id : 0,
         contact_number : '',
+        mobile_number : '',
         errors : {}
     };
 
@@ -66,6 +68,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         private actRoute : ActivatedRoute,
         private locationService: LocationsService,
         private encdecrypt : EncryptDecryptService,
+        private userService : UserService,
         private router : Router
         ) {
 
@@ -309,40 +312,22 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         event.preventDefault();
         if(form.valid){
             let selectedLocationId = form.controls.selectLocation.value,
-                selected = this.searchChildLocation(this.locations, selectedLocationId),
-                parent = this.findParent(this.locations, selected['parent_id']),
-                lastParent = this.getLastParent(selectedLocationId);
+            selected = this.searchChildLocation(this.locations, selectedLocationId),
+            parent;
 
-            if(typeof parent == undefined){
-                parent = selected;
+            if(selected.parent){
+                parent = selected.parent;
             }
 
-            switch (parseInt(this.selectedUser['role_id']) ) {
-                case 1:
-                    this.selectedUser['account_location_id'] = lastParent.location_id;
-                    break;
-
-                case 2:
-                    if(parent.parent_id == -1){
-                        this.selectedUser['account_location_id'] = selectedLocationId;
-                    }else{
-                        this.selectedUser['account_location_id'] = parent.location_id;
-                    }
-
-                    break;
-
-                default:
-                    this.selectedUser['account_location_id'] = selectedLocationId;
-                    break;
-            }
+            this.selectedUser['account_location_id'] = selectedLocationId;
 
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
-                this.selectedUser['location_id'] = selectedLocationId;
+                this.selectedUser['eco_location_id'] = selectedLocationId;
             }
 
             this.selectedUser['location_name'] = '';
-            if(Object.keys(parent).length > 0){
-                this.selectedUser['location_name'] = parent.name+', ';
+            if(typeof parent != 'undefined' && selectedLocationId != parent.location_id){
+                this.selectedUser['location_name'] += parent.name+', ';
             }
             this.selectedUser['location_name'] += selected['name'];
 
@@ -359,7 +344,14 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     }
 
     addBulkWarden() {
-        const strWardens = JSON.stringify(this.addedUsers);
+        this.userService.createBulkUsers(this.addedUsers, (response) => {
+            this.addedUsers = response.data;
+            if(this.addedUsers.length == 0){
+                this.router.navigate(["/teams/list-wardens"]);
+            }
+        });
+
+        /*const strWardens = JSON.stringify(this.addedUsers);
         this.dataProvider.addBulkWarden(strWardens).subscribe((data) => {
           this.addedUsers = data;
           if(Object.keys(this.addedUsers).length == 0){
@@ -369,7 +361,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         },
       (data) => {
         console.log('there was an error');
-      });
+      });*/
     }
 
     selectCSVButtonClick(inputFileCSV) {

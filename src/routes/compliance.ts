@@ -370,17 +370,19 @@ import * as S3Zipper from 'aws-s3-zipper';
             comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
             
             comp['validity_status'] = 'none-exist';
+            comp['days_remaining']= 0;
+
             if (m === 'Traffic' || m === 'evac') {
                 
                 if(comp['docs'][0]){
                     validTillMoment = moment(comp['docs'][0]['valid_till'], ['DD/MM/YYYY']);
                 }
 
-                console.log(validTillMoment.format('MMM DD YYYY'));
-                console.log(today.format('MMM DD YYYY'));
-
                 if (comp['docs'][0] && validTillMoment.diff(today, 'days') > 0) {
                     comp['validity_status'] = 'valid';
+                    comp['days_remaining'] = validTillMoment.diff(today, 'days');
+                } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') >= 0 && validTillMoment.diff(today, 'days') <= 30) {
+                    comp['validity_status'] = 'expiring';
                 } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') <= 0) {
                     comp['validity_status'] = 'invalid';
                 } 

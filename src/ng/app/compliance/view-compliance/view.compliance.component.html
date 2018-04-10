@@ -55,16 +55,16 @@
 				<div class="dates">
 					<div class="created">
 						<p>EPM Creation date</p>
-						<p class="green-text" *ngIf="selectedCompliance.compliance.docs.length > 0">
-              <span>{{ selectedCompliance.compliance.docs[0]['valid_till'] }}</span>
+						<p [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }" *ngIf="selectedCompliance.compliance.docs.length > 0">
+              				<span>{{ selectedCompliance.compliance.docs[0]['valid_till'] }}</span>
 						</p>
 					</div>
 
 					<div class="review">
-            <p>EPM Review date:</p>
-						<p class="green-text" *ngIf="selectedCompliance.compliance.docs.length > 0" >
-              <span >{{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}</span>
-            </p>
+			            <p>EPM Review date:</p>
+							<p [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }" *ngIf="selectedCompliance.compliance.docs.length > 0" >
+			            	<span >{{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}</span>
+			            </p>
 					</div>
 				</div>
 
@@ -111,12 +111,12 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last EPC meeting held on:</p>
-						<p *ngIf="selectedCompliance.compliance.docs.length > 0" class="green-text">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted}}</p>
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0" [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted}}</p>
 					</div>
 
 					<div class="review">
 						<p>Compliance valid till:</p>
-						<p *ngIf="selectedCompliance.compliance.docs.length > 0" class="green-text">
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0" [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">
 							<span *ngIf="selectedCompliance.compliance.docs[0] !== null">{{ selectedCompliance.compliance.docs[0].valid_till }}</span>
 							<span *ngIf="selectedCompliance.compliance.docs[0] == null"> 00/00/0000 </span>
 						</p>
@@ -166,12 +166,12 @@
 				<div class="dates">
 					<div class="created">
 						<p>Date of activity:</p>
-						<p class="green-text">00/00/0000</p>
+						<p [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">00/00/0000</p>
 					</div>
 
 					<div class="review">
 						<p>Compliance valid till:</p>
-						<p *ngIf="selectedCompliance.compliance.docs.length > 0" class="green-text">
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0" [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">
 							<span *ngIf="selectedCompliance.compliance.docs[0] !== null">{{ selectedCompliance.compliance.docs[0].valid_till }}</span>
 							<span *ngIf="selectedCompliance.compliance.docs[0] == null"> 00/00/0000 </span>
 						</p>
@@ -222,12 +222,12 @@
 				<div class="dates">
 					<div class="created">
 						<p>Diagrams Creation date:</p>
-						<p class="green-text">00/00/0000</p>
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0" [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted}}</p>
 					</div>
 
 					<div class="review">
 						<p>Diagram review date:</p>
-						<p class="green-text">
+						<p [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">
 							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
 							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
 						</p>
@@ -239,9 +239,7 @@
 				</div>
 
 				<div class="buttons">
-          <button
-          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
-          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+          			<button (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
 				</div>
 			</div>

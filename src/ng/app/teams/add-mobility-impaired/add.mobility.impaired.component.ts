@@ -6,6 +6,7 @@ import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
+import { UserService } from '../../services/users';
 import { ViewChild } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -15,7 +16,8 @@ declare var $: any;
 @Component({
   selector: 'app-add-mobility-impaired',
   templateUrl: './add.mobility.impaired.component.html',
-  styleUrls: ['./add.mobility.impaired.component.css']
+  styleUrls: ['./add.mobility.impaired.component.css'],
+  providers : [UserService]
 })
 export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 	@ViewChild('addMobilityImpairedForm') addMobilityImpairedForm: NgForm;
@@ -34,6 +36,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         location_name : 'Select Location',
         location_id : 0,
         contact_number : '',
+        mobile_number : '',
         mobility_impaired: 1,
         errors : {}
     };
@@ -55,6 +58,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService,
+        private userService : UserService,
         private router : Router
         ) {
 
@@ -236,46 +240,26 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         event.preventDefault();
         if(form.valid){
             let selectedLocationId = form.controls.selectLocation.value,
-                selected = this.searchChildLocation(this.locations, selectedLocationId),
-                parent = this.findParent(this.locations, selected['parent_id']),
-                lastParent = this.getLastParent(selectedLocationId);
+            selected = this.searchChildLocation(this.locations, selectedLocationId),
+            parent;
 
-            if(typeof parent == undefined){
-                parent = selected;
+            if(selected.parent){
+                parent = selected.parent;
             }
 
-            switch (parseInt(this.selectedUser['role_id']) ) {
-                case 1:
-                    this.selectedUser['account_location_id'] = lastParent.location_id;
-                    break;
-
-                case 2:
-                    if(parent.parent_id == -1){
-                        this.selectedUser['account_location_id'] = selectedLocationId;
-                    }else{
-                        this.selectedUser['account_location_id'] = parent.location_id;
-                    }
-
-                    break;
-
-                default:
-                    this.selectedUser['account_location_id'] = selectedLocationId;
-                    break;
-            }
+            this.selectedUser['account_location_id'] = selectedLocationId;
 
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
-                this.selectedUser['location_id'] = selectedLocationId;
-            }else if( parseInt(this.selectedUser['account_location_id']) > 0 ){
-                this.selectedUser['location_id'] = this.selectedUser['account_location_id'];
+                this.selectedUser['eco_location_id'] = selectedLocationId;
             }
 
             this.selectedUser['location_name'] = '';
-            if(Object.keys(parent).length > 0){
-                this.selectedUser['location_name'] = parent.name+', ';
+            if(typeof parent != 'undefined' && selectedLocationId != parent.location_id){
+                this.selectedUser['location_name'] += parent.name+', ';
             }
             this.selectedUser['location_name'] += selected['name'];
 
-
+            console.log(this.addedUsers);
             this.cancelLocationModal();
         }
     }
@@ -294,8 +278,16 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
             this.addedUsers[i]['eco_role_id'] = (this.addedUsers[i]['account_role_id'] != 1 || this.addedUsers[i]['account_role_id'] != 2) ? this.addedUsers[i]['account_role_id'] : 0;
         }
 
-        const strPEEP = JSON.stringify(this.addedUsers);
+        this.userService.createBulkUsers(this.addedUsers, (response) => {
+            this.addedUsers = response.data;
+            if(this.addedUsers.length == 0){
+                this.router.navigate(["/teams/mobility-impaired"]);
+            }
+        });
+
+        /*const strPEEP = JSON.stringify(this.addedUsers);
         this.dataProvider.addPEEP(strPEEP).subscribe((data) => {
+
             this.addedUsers = data;
             if(Object.keys(this.addedUsers).length == 0){
                 // this.addMoreRow();
@@ -304,7 +296,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
             }
         }, (error: HttpErrorResponse) => {
             console.log(error);
-        });
+        });*/
     }
 
     showModalCSV(){

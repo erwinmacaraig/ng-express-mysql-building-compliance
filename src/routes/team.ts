@@ -198,154 +198,154 @@ export class TeamRoute extends BaseRoute {
     this.render(req, res, 'index.hbs', options);
   }
 
-  public async processCSVUpload(req: AuthRequest, res: Response, next: NextFunction) {
-    const uploader = new FileUploader(req, res, next);
-    const invalidRecords = [];
-    const filename = await uploader.uploadFileToLocalServer();
+    public async processCSVUpload(req: AuthRequest, res: Response, next: NextFunction) {
+        const uploader = new FileUploader(req, res, next);
+        const invalidRecords = [];
+        const filename = await uploader.uploadFileToLocalServer();
 
-    const utils = new Utils();
-    let data;
-    data = await utils.processCSVUpload(<string>filename);
+        const utils = new Utils();
+        let data;
+        data = await utils.processCSVUpload(<string>filename);
 
-    const validRecords = [];
-    for (let i = 0; i < data.length; i++) {
-      const user = new User();
-      if ( ('ECO Role' in  data[i])   && ((data[i]['ECO Role']).length === 0) ) {
-        data[i]['ECO Role'] = 'General Occupant';
-      }
-      try {
-        const dbData = await user.getByEmail(data[i]['Email']);
+        const validRecords = [];
+        for (let i = 0; i < data.length; i++) {
+            const user = new User();
+            if ( ('ECO Role' in  data[i])   && ((data[i]['ECO Role']).length === 0) ) {
+                data[i]['ECO Role'] = 'General Occupant';
+            }
+            try {
+                const dbData = await user.getByEmail(data[i]['Email']);
 
-        invalidRecords.push(data[i]);
-      } catch (e) {
-        if (validator.isEmail(data[i]['Email'])) {
-          validRecords.push(data[i]);
-        } else {
-          invalidRecords.push(data[i]);
+                invalidRecords.push(data[i]);
+            } catch (e) {
+                if (validator.isEmail(data[i]['Email'])) {
+                    validRecords.push(data[i]);
+                } else {
+                    invalidRecords.push(data[i]);
+                }
+            }
         }
-      }
+        fs.unlink(<string>filename, () => {
+            console.log(`Successfully delete file: ${filename}`);
+        });
+        return {
+            'valid': validRecords,
+            'invalid': invalidRecords,
+            'data-override': req.body.override
+        };
     }
-    fs.unlink(<string>filename, () => {
-      console.log(`Successfully delete file: ${filename}`);
-    });
-    return {
-      'valid': validRecords,
-      'invalid': invalidRecords,
-      'data-override': req.body.override
-    };
-  }
 
-  public async addUsersFromCSV(req: AuthRequest, res: Response) {
-    const user_invitation_records = JSON.parse(req.body.invitations);
-    const dataOverride = req.body.data_override;
-    const utils = new Utils();
-    let em_role = '';
-    let account_role = '';
-    let name = '';
-    const allRolesObj = {};
-    for (let i = 0; i < user_invitation_records.length; i++) {
-      const userInvitation = new UserInvitation();
-      const tokenModel = new Token();
-      const tokenStr = tokenModel.generateRandomChars(10);
-      if (('ECO Role' in   user_invitation_records[i])) {
-        em_role = (user_invitation_records[i]['ECO Role']).toUpperCase();
-      }
-      if (('First Name' in user_invitation_records[i]) && ('Last Name' in user_invitation_records[i])) {
-        name = ' ' + user_invitation_records[i]['First Name'] + ' ' + user_invitation_records[i]['Last Name'];
-      }
-      if(('Role' in user_invitation_records[i])) {
-        // we still need to check if account role or eco role
-        const ecos = await utils.buildECORoleList();
-        for (let i in ecos ){
-          allRolesObj[ecos[i]['role_name'].toUpperCase()] = ecos[i]['em_roles_id'];
-        }
-        if(user_invitation_records[i]['Role'].toUpperCase() in allRolesObj){
-          em_role = user_invitation_records[i]['Role'].toUpperCase();
-        } else if(user_invitation_records[i]['Role'].toUpperCase() in defs['account_roles']) {
-          account_role = (user_invitation_records[i]['Role'].toUpperCase());
-        }
+    public async addUsersFromCSV(req: AuthRequest, res: Response) {
+        const user_invitation_records = JSON.parse(req.body.invitations);
+        const dataOverride = req.body.data_override;
+        const utils = new Utils();
+        let em_role = '';
+        let account_role = '';
+        let name = '';
+        const allRolesObj = {};
+        for (let i = 0; i < user_invitation_records.length; i++) {
+            const userInvitation = new UserInvitation();
+            const tokenModel = new Token();
+            const tokenStr = tokenModel.generateRandomChars(10);
+            if (('ECO Role' in   user_invitation_records[i])) {
+                em_role = (user_invitation_records[i]['ECO Role']).toUpperCase();
+            }
+            if (('First Name' in user_invitation_records[i]) && ('Last Name' in user_invitation_records[i])) {
+                name = ' ' + user_invitation_records[i]['First Name'] + ' ' + user_invitation_records[i]['Last Name'];
+            }
+            if(('Role' in user_invitation_records[i])) {
+                
+                const ecos = await utils.buildECORoleList();
+                for (let i in ecos ){
+                    allRolesObj[ecos[i]['role_name'].toUpperCase()] = ecos[i]['em_roles_id'];
+                }
+                if(user_invitation_records[i]['Role'].toUpperCase() in allRolesObj){
+                    em_role = user_invitation_records[i]['Role'].toUpperCase();
+                } else if(user_invitation_records[i]['Role'].toUpperCase() in defs['account_roles']) {
+                    account_role = (user_invitation_records[i]['Role'].toUpperCase());
+                }
 
-      }
-      await userInvitation.create({
-        'first_name': ('First Name' in user_invitation_records[i]) ? user_invitation_records[i]['First Name'] : '',
-        'last_name': ('Last Name' in user_invitation_records[i]) ? user_invitation_records[i]['Last Name'] : '',
-        'email': user_invitation_records[i]['Email'],
-        'location_id': 0,
-        'account_id': req.user.account_id,
-        'role_id': (account_role.length > 0 ) ? defs['account_roles'][account_role] : 0,
-        'eco_role_id': (em_role.length > 0) ? defs['em_roles'][em_role] : 0,
-        'contact_number': ('Mobile Number' in  user_invitation_records[i]) ? user_invitation_records[i]['Mobile Number'] : '',
-        'phone_number': ('Phone Number' in  user_invitation_records[i]) ? user_invitation_records[i]['Phone Number'] : '',
-        'invited_by_user': req.user.user_id
-      });
-      const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
-      await tokenModel.create({
-        'token': tokenStr,
-        'action': 'invitation',
-        'verified': 0,
-        'expiration_date': expDate,
-        'id': userInvitation.ID(),
-        'id_type': 'user_invitations_id'
-      });
-      em_role = '';
-      account_role = '';
-      const opts = {
-        from : '',
-        fromName : 'EvacConnect',
-        to : [],
-        cc: [],
-        body : '',
-        attachments: [],
-        subject : 'EvacConnect Warden Nomination'
-      };
-      const email = new EmailSender(opts);
-      const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
-      let emailBody = email.getEmailHTMLHeader();
-      emailBody += `<h3 style="text-transform:capitalize;">Hi${name},</h3> <br/>
-      <h4>You are nominated to be a Warden.</h4> <br/>
-      <h5>Click on the link below to setup your password.</h5> <br/>
-      <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+            }
+            await userInvitation.create({
+                'first_name': ('First Name' in user_invitation_records[i]) ? user_invitation_records[i]['First Name'] : '',
+                'last_name': ('Last Name' in user_invitation_records[i]) ? user_invitation_records[i]['Last Name'] : '',
+                'email': user_invitation_records[i]['Email'],
+                'location_id': 0,
+                'account_id': req.user.account_id,
+                'role_id': (account_role.length > 0 ) ? defs['account_roles'][account_role] : 0,
+                'eco_role_id': (em_role.length > 0) ? defs['em_roles'][em_role] : 0,
+                'contact_number': ('Mobile Number' in  user_invitation_records[i]) ? user_invitation_records[i]['Mobile Number'] : '',
+                'phone_number': ('Phone Number' in  user_invitation_records[i]) ? user_invitation_records[i]['Phone Number'] : '',
+                'invited_by_user': req.user.user_id
+            });
+            const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+            await tokenModel.create({
+                'token': tokenStr,
+                'action': 'invitation',
+                'verified': 0,
+                'expiration_date': expDate,
+                'id': userInvitation.ID(),
+                'id_type': 'user_invitations_id'
+            });
+            em_role = '';
+            account_role = '';
+            const opts = {
+                from : '',
+                fromName : 'EvacConnect',
+                to : [],
+                cc: [],
+                body : '',
+                attachments: [],
+                subject : 'EvacConnect Warden Nomination'
+            };
+            const email = new EmailSender(opts);
+            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+            let emailBody = email.getEmailHTMLHeader();
+            emailBody += `<h3 style="text-transform:capitalize;">Hi${name},</h3> <br/>
+            <h4>You are nominated to be a Warden.</h4> <br/>
+            <h5>Click on the link below to setup your password.</h5> <br/>
+            <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
 
-      emailBody += email.getEmailHTMLFooter();
-      email.assignOptions({
-        body : emailBody,
-        to: [user_invitation_records[i]['Email']]
-      });
-      await email.send((result) => console.log(result),
-                 (err) => console.log(err)
+            emailBody += email.getEmailHTMLFooter();
+            email.assignOptions({
+                body : emailBody,
+                to: [user_invitation_records[i]['Email']]
+            });
+            await email.send((result) => console.log(result),
+                (err) => console.log(err)
                 );
-    }
-    return true;
-    /*
-    const em_role = (data[i]['eco_role']).toUpperCase();
-          // email and create
-          const userInvitation = new UserInvitation();
-          const tokenModel = new Token();
-          const tokenStr = tokenModel.generateRandomChars(10);
-          await userInvitation.create({
-            'first_name': data[i]['first_name'],
-            'last_name': data[i]['last_name'],
-            'email': data[i]['email'],
-            'location_id': 0,
-            'account_id': req.user.account_id,
-            'role_id': 0,
-            'eco_role_id': defs['em_roles'][em_role],
-            'contact_number': data[i]['mobile_number'],
-            'phone_number': data[i]['phone_number'],
-            'invited_by_user': req.user.user_id
-          });
-          const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
-          await tokenModel.create({
-            'token': tokenStr,
-            'action': 'invitation',
-            'verified': 0,
-            'expiration_date': expDate,
-            'id': userInvitation.ID(),
-            'id_type': 'user_invitations_id'
-          });
+        }
+        return true;
+        /*
+        const em_role = (data[i]['eco_role']).toUpperCase();
+              // email and create
+              const userInvitation = new UserInvitation();
+              const tokenModel = new Token();
+              const tokenStr = tokenModel.generateRandomChars(10);
+              await userInvitation.create({
+                'first_name': data[i]['first_name'],
+                'last_name': data[i]['last_name'],
+                'email': data[i]['email'],
+                'location_id': 0,
+                'account_id': req.user.account_id,
+                'role_id': 0,
+                'eco_role_id': defs['em_roles'][em_role],
+                'contact_number': data[i]['mobile_number'],
+                'phone_number': data[i]['phone_number'],
+                'invited_by_user': req.user.user_id
+              });
+              const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+              await tokenModel.create({
+                'token': tokenStr,
+                'action': 'invitation',
+                'verified': 0,
+                'expiration_date': expDate,
+                'id': userInvitation.ID(),
+                'id_type': 'user_invitations_id'
+              });
 
-           */
-  }
+              */
+    }
 
     public async addMobilityImpairedPersons(req: AuthRequest, res: Response) {
         console.log(JSON.parse(req.body.peep));
@@ -534,6 +534,7 @@ export class TeamRoute extends BaseRoute {
         try{
             let account = <any> await accountModel.load();
             isAccountEmailExempt = (account.email_add_user_exemption == 1) ? true : false;
+            isAccountEmailExempt = true;
         }catch(e){
 
         }
@@ -759,8 +760,6 @@ export class TeamRoute extends BaseRoute {
 
         }
         return dbData;
-
-
     }
 
     public async processWardenInvitation(req: Request, res: Response, next: NextFunction) {
@@ -865,86 +864,86 @@ export class TeamRoute extends BaseRoute {
         }
         return;
     }
-  public async addBulkWardenByEmail(req: AuthRequest, res: Response) {
-    const emailsSubmitted = JSON.parse(req.body.wardensEmail);
-    console.log(typeof emailsSubmitted);
-    const invalidWardenEmails = [];
-    const objEmail = [];
-    const user = new User();
-    for (let x = 0; x < emailsSubmitted.length; x++ ) {
-      if (validator.isEmail(emailsSubmitted[x])) {
-        try {
-          const dbData = await user.getByEmail(emailsSubmitted[x]);
-          invalidWardenEmails.push(emailsSubmitted[x]);
-        } catch (e) {
-          objEmail.push(emailsSubmitted[x]);
+
+    public async addBulkWardenByEmail(req: AuthRequest, res: Response) {
+        const emailsSubmitted = JSON.parse(req.body.wardensEmail);
+        console.log(typeof emailsSubmitted);
+        const invalidWardenEmails = [];
+        const objEmail = [];
+        const user = new User();
+        for (let x = 0; x < emailsSubmitted.length; x++ ) {
+            if (validator.isEmail(emailsSubmitted[x])) {
+                try {
+                    const dbData = await user.getByEmail(emailsSubmitted[x]);
+                    invalidWardenEmails.push(emailsSubmitted[x]);
+                } catch (e) {
+                    objEmail.push(emailsSubmitted[x]);
+                }
+            }
         }
-      }
-    }
-    // email notification here
-    const opts = {
-      from : '',
-      fromName : 'EvacConnect',
-      to : [],
-      cc: [],
-      body : '',
-      attachments: [],
-      subject : 'EvacConnect Warden Invitation'
-    };
-    const email = new EmailSender(opts);
-    // add these emails to the database table
 
-    for (let i = 0; i < objEmail.length; i++) {
-      const inviCode = new UserInvitation();
-      const tokenModel = new Token();
-      const token = tokenModel.generateRandomChars(8);
+        const opts = {
+            from : '',
+            fromName : 'EvacConnect',
+            to : [],
+            cc: [],
+            body : '',
+            attachments: [],
+            subject : 'EvacConnect Warden Invitation'
+        };
+        const email = new EmailSender(opts);
 
-      const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
-      const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
-      await inviCode.create({
-        'invited_by_user': req.user.user_id,
-        'email': objEmail[i],
-        'role_id': 9,
-        'account_id': req.user.account_id
-      });
-      await tokenModel.create({
-        'token': token,
-        'action': 'invitation',
-        'verified': 0,
-        'expiration_date': expDate,
-        'id': inviCode.ID(),
-        'id_type': 'user_invitations_id'
-      });
+        for (let i = 0; i < objEmail.length; i++) {
+            const inviCode = new UserInvitation();
+            const tokenModel = new Token();
+            const token = tokenModel.generateRandomChars(8);
 
-      let emailBody = email.getEmailHTMLHeader();
-      emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
-      <h4>You are invited to be a Warden.</h4> <br/>
-      <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
-      <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
+            const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+            await inviCode.create({
+                'invited_by_user': req.user.user_id,
+                'email': objEmail[i],
+                'role_id': 9,
+                'account_id': req.user.account_id
+            });
+            await tokenModel.create({
+                'token': token,
+                'action': 'invitation',
+                'verified': 0,
+                'expiration_date': expDate,
+                'id': inviCode.ID(),
+                'id_type': 'user_invitations_id'
+            });
 
-      emailBody += email.getEmailHTMLFooter();
+            let emailBody = email.getEmailHTMLHeader();
+            emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+            <h4>You are invited to be a Warden.</h4> <br/>
+            <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
+            <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
 
-    email.assignOptions({
-      body : emailBody,
-      to: [objEmail[i]],
-      cc: []
-    });
-      email.send((data) => console.log(data),
-                 (err) => console.log(err)
+            emailBody += email.getEmailHTMLFooter();
+
+            email.assignOptions({
+                body : emailBody,
+                to: [objEmail[i]],
+                cc: []
+            });
+            email.send((data) => console.log(data),
+                (err) => console.log(err)
                 );
+        }
+        return emailsSubmitted;
     }
-    return emailsSubmitted;
-  }
 
-  public async getECOList(req: AuthRequest, res: Response) {
-    const utils = new Utils();
-    try {
-      const roles = utils.buildECORoleList();
-      return roles;
-    } catch (e) {
-      throw new Error('There was a problem generating the list');
+    public async getECOList(req: AuthRequest, res: Response) {
+        const utils = new Utils();
+        try {
+            const roles = utils.buildECORoleList();
+            return roles;
+        } catch (e) {
+            throw new Error('There was a problem generating the list');
+        }
     }
-  }
 
     public async buildWardenList(req: AuthRequest, res: Response, archived?){
         let accountId = req.user.account_id,
