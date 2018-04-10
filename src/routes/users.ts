@@ -284,7 +284,7 @@ export class UsersRoute extends BaseRoute {
         let numOfRequiredTrainings = [];
         let trainings, assignedCourses, required_trainings,
         em_role, cert_req, req_trainings_count = 0, percentage_training;
-        let numberOfRequiredTrainingsHeld;
+        let numberOfRequiredTrainingsHeld, mobilityImpairedDetails;
         try {
           assignedCourses = await course.getAllCourseForUser(req.user.user_id);
         } catch (e) {
@@ -339,10 +339,21 @@ export class UsersRoute extends BaseRoute {
           }
         }
 
+        //
+        try {
+          await user.load();
+          if (user.get('mobility_impaired') === 1) {
+            const peepDetails = new MobilityImpairedModel();
+            mobilityImpairedDetails = await peepDetails.getMany([[`user_id = ${req.user.user_id}`]]);
+          }
+        } catch(e) {
+          mobilityImpairedDetails = {};
+        }
         return res.status(200).send({
           'em_roles': em_role,
           'trainings': trainings,
           'courses': hadNotTakenCourse,
+          'peepDetails': mobilityImpairedDetails,
           'required_trainings_count': req_trainings_count,
           'required_trainings_held': (req.user.user_id in numberOfRequiredTrainingsHeld) ? numberOfRequiredTrainingsHeld[req.user.user_id]['count'] : 0,
           'percentage_training': percentage_training
@@ -2410,7 +2421,7 @@ export class UsersRoute extends BaseRoute {
 			'is_permanent' : req.body.is_permanent,
 			'assistant_type' : req.body.assistant_type,
 			'equipment_type' : req.body.equipment_type,
-			'duration_date' : '',
+			'duration_date' : null,
 			'evacuation_procedure' : req.body.evacuation_procedure
 		};
 
@@ -2424,7 +2435,16 @@ export class UsersRoute extends BaseRoute {
 
 		if('user_id' in req.body){
 			saveData['user_id'] = req.body.user_id;
-			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+      saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+      const user = new User(req.body.user_id);
+      try {
+        await user.load();
+        await user.create({
+          'mobility_impaired': 1
+        });
+      } catch(e) {
+        console.log(e);
+      }
 		}else if('user_invitations_id' in req.body){
 			saveData['user_invitations_id'] = req.body.user_invitations_id;
 			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');

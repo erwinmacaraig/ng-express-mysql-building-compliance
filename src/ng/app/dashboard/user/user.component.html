@@ -38,6 +38,9 @@
 						</tr>
 					</thead>
 					<tbody>
+            <tr *ngIf="trainings.length == 0 && assignedCourses.length == 0">
+              <td colspan="3">No trainings found.</td>
+            </tr>
 						<tr *ngFor="let t of trainings">
 							<td>
 								<img src="/assets/images/check_icon.png" >
@@ -91,12 +94,12 @@
 
 			<div class="row">
 
-				<div class="col l4 m12 s12 activity-container">
+				<div class="col l4 m12 s12 activity-container" style="cursor: pointer" (click)="showPeepForm()">
 					<div class="display-table width100">
 						<div class="cell grey lighten-5 image-container">
 							<img src="/assets/images/dash01.png" alt="">
 						</div>
-						<div class="cell font-size-20 grey lighten-4">
+						<div class="cell font-size-20 grey lighten-4" >
 							Register as Mobility Impaired
 						</div>
 					</div>
@@ -159,7 +162,52 @@
 				<div class="clearfix"></div>
 			</div>
 		</div>
+  </div>
+</div>
+<div id="modalMobility" class="modal">
+  <div class="modal-content center"></div>
 
-	</div>
+  <form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)">
+    <div class="modal-content">
+      <h5>Mobility Impaired Information</h5>
+      <div class="row">
+        <div class="col s12 l6 m6">
+          <div class="select-field">
+            <span style=" font-size: 16px;">Mobility Impaired Status</span>
+            <select ngModel name="is_permanent" #is_permanent>
+              <option value="0" selected="selected">Temporary</option>
+              <option value="1" >Permanent</option>
+            </select>
+          </div>
+        </div>
+        <div class="col s12 l6 m6" *ngIf="is_permanent.selectedIndex === 0">
+          <div class="input-field">
+            <span style=" font-size: 16px;">Mobility Impaired Upto</span>
+            <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker"></ng-datepicker>
+            <input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required >
+          </div>
 
+        </div>
+        <div class="col s12 m12 l12">
+          <h6>Assistant Type </h6>
+          <input ngModel name="assistant_type" type="text" class="grey-input" placeholder="Please describe requirements and process here." required>
+        </div>
+        <div class="col s12 m12 l12">
+          <h6>Evacuation Equipment Type / Requirement</h6>
+          <input ngModel name="equipment_type" type="text" class="grey-input" placeholder="Please inform what is the equiment and type." required>
+        </div>
+        <div class="col s12 m12 l12">
+          <h6>Evacuation / Egress Procedure</h6>
+          <input ngModel name="evacuation_procedure" type="text" class="grey-input" placeholder="" required>
+        </div>
+      </div>
+
+      <div class="row button-container">
+        <div class="col s12 m12 l12">
+          <a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+          <button class="btn orange waves-light waves-effect" [disabled]="formMobility.invalid">Submit</button>
+        </div>
+      </div>
+    </div>
+  </form>
 </div>
