@@ -43,7 +43,9 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         formatted_address: '',
         sublocations : [],
         admin_verified : 0,
-        parent : {}
+        parent : {
+            name : <any> false
+        }
     };
     private sub;
     private loc_sub;
