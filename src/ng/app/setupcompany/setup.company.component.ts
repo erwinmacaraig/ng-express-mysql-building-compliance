@@ -104,19 +104,20 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 		let thisClass = this;
 
-		this.inputCompanyName.delay(50)
+		/*this.inputCompanyName.delay(50)
 			.map(event => event.target.value)
 			.subscribe((value) => {
 				if(!this.newCompany) {
-					thisClass.searchElem['searchContainer'].addClass('active');
-					thisClass.searchElem['preLoaderMain'].show();
+					
 				}
-			});
+			});*/
 
-		this.inputCompanyName.debounceTime(800)
+		this.inputCompanyName.debounceTime(300)
 			.map(event => event.target.value)
 			.subscribe((value) => {
 				if(!this.newCompany){
+					thisClass.searchElem['searchContainer'].addClass('active');
+					thisClass.searchElem['preLoaderMain'].show();
 					this.searchCompanyTypingStopEvent(value, thisClass);
 				}
 			});
@@ -165,8 +166,8 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 			userdata['accountId'] = res.data.account.dbData.account_id;
       		this.auth.setUserData(userdata);
 	      	setTimeout(() => {
-	       	// location.replace(location.origin + '/dashboard/company-information'); }, 500);
-	        	this.router.navigate(['/dashboard/company-information']);
+	       		location.replace( location.origin + '/dashboard/company-information');
+	        	// this.router.navigate(['']);
 	        }, 100);
 
       	} else {
@@ -302,9 +303,11 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 		setTimeout(() => {
 			$('input').trigger('focusin');
-			$('#selCountry').material_select();
-			$('#selTimezone').material_select();
-		}, 100);
+			$('input[type="text"]').prop('disabled', true);
+			$('select').prop('disabled', true);
+			$('#selCountry').material_select('update');
+			$('#selTimezone').material_select('update');
+		}, 50);
 	}
 
 	cantFindMyCompanyEvent(f: NgForm){
@@ -321,9 +324,14 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
   		if(this.newCompany || this.companyIsSelected){
   			this.companyIsSelected = false;
 			this.newCompany = false;
+			this.selectedAccountId = 0;
   			$('[readonly]').attr('readonly', true);
   			$('[for="company_name"] .text').html('Search Company Name Here');
   			f.reset();
+  			$('input[type="text"]').prop('disabled', false);
+			$('select').prop('disabled', false);
+			$('#selCountry').material_select('update');
+			$('#selTimezone').material_select('update');
   		}else{
   			this.router.navigate(['login']);
   		}

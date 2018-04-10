@@ -77,19 +77,19 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		'name' : '',
 		'parentData' : <any>{ location_id : 0 }
 	};
-  public tenants;
+	public tenants;
 	latestComplianceData = <any>[];
-  public totalPercentage;
+	public totalPercentage;
 	constructor(
   		private router : Router,
   		private route: ActivatedRoute,
   		private authService : AuthService,
   		private userService: UserService,
-      private signupServices: SignupService,
-      private dashboard : DashboardPreloaderService,
-      private complianceService : ComplianceService,
-      private locationService : LocationsService,
-      private encryptDecrypt : EncryptDecryptService
+		private signupServices: SignupService,
+		private dashboard : DashboardPreloaderService,
+		private complianceService : ComplianceService,
+		private locationService : LocationsService,
+		private encryptDecrypt : EncryptDecryptService
 		){
 
 		this.userData = this.authService.getUserData();
@@ -162,7 +162,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 			kpis['tableTemplate'] = this[tableTemplateName];
 		}
     this.totalPercentage = (counter / this.KPIS.length) * 100;
-    this.totalPercentage = this.totalPercentage.toString() + '%';
+    this.totalPercentage = Math.round(this.totalPercentage) + '%';
     console.log(this.KPIS);
     console.log('counter = ' + counter);
 

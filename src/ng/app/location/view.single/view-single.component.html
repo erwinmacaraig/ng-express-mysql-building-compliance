@@ -39,7 +39,7 @@
 					<div class="inline-block details">
 						<table class="no-borders">
 							<tr>
-								<td><h5> {{locationData.name}} </h5></td>
+								<td><h5> <span *ngIf="locationData.parent.name">{{locationData.parent.name}}, </span> {{locationData.name}} </h5></td>
 							</tr>
 							<tr>
 								<td>{{locationData.formatted_address}}</td>
