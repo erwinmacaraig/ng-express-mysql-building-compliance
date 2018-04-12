@@ -374,9 +374,9 @@ export class UsersRoute extends BaseRoute {
         });
 
       });
-  }
+    }
 
-  public async checkIfAdmin(req: Request , res: Response){
+    public async checkIfAdmin(req: Request , res: Response){
 		let userModel = new User(req.params.user_id),
 			response = {
 				status : false, message : ''
@@ -393,185 +393,179 @@ export class UsersRoute extends BaseRoute {
 
     }
 
-  public async processTenantInvitationForm(req: Request, res: Response, next: NextFunction){
-    const encryptedPassword = md5('Ideation' + req.body.str_password + 'Max');
-    let user;
-    let invitation;
-    let account;
-    let locAccntUser;
-    try {
-      user = new User();
-      const tokenObj = new Token();
-      const tokenDbData = await tokenObj.getByToken(req.body.token);
-      invitation = new UserInvitation(tokenDbData['id']);
-      const userInvitation = await invitation.load();
-      account = new Account();
-      locAccntUser = new LocationAccountUser();
-      await account.create({
-        'account_name': req.body.account_name,
-        'building_number': req.body.building_number,
-        'account_domain': req.body.account_domain,
-        'billing_city': req.body.billing_city,
-        'billing_country': req.body.billing_country,
-        'billing_postal_code': req.body.billing_postal_code,
-        'billing_street': req.body.billing_street,
-        'billing_state': req.body.billing_state
-      });
-      await user.create({
-        'first_name': req.body.first_name,
-        'last_name': req.body.last_name,
-        'password': encryptedPassword,
-        'email': req.body.email,
-        'token': req.body.token,
-        'account_id': account.ID(),
-        'invited_by_user': userInvitation['invited_by_user'],
-        'can_login': 1,
-      });
-      await tokenObj.create({
-        'action': 'verify',
-        'verified': 1,
-        'id': user.ID(),
-        'id_type': 'user_id'
-      });
-      await invitation.create({
-        'was_used': 1
-      });
-      await locAccntUser.create({
-        'location_id': invitation.get('location_id'),
-        'account_id': account.ID(),
-        'user_id': user.ID(),
-        'role_id': defs['Tenant'],
-      });
-      return true;
-    } catch(e) {
-      console.log(e);
-      throw new Error('There was a problem processing tenant information');
-    }
-  }
-  public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
-    const tokenModel = new Token();
-    let dbData;
-    let userInvitation;
-    let locationModel;
-    let locationParent;
-    const token = req.params.token;
-    console.log(token);
-    try {
-      const tokenDbData = await tokenModel.getByToken(token);
-      if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
-	userInvitation = new UserInvitation(tokenDbData['id']);
-	dbData = await userInvitation.load();
-
-	// get parent location
-	locationModel = new Location(dbData['location_id']);
-	await locationModel.load();
-	let parentId = locationModel.get('parent_id');
-	while (parentId !== -1) {
-	  locationParent = new Location(parentId);
-	  await locationParent.load();
-	  parentId = locationParent.get('parent_id');
-	}
-	dbData['parent_location_name'] = (locationParent.get('name').toString().length > 0) ?
-  locationParent.get('name') : locationParent.get('formatted_address');
-	dbData['parent_location_id'] = locationParent.ID();
-  dbData['sub_location_name'] = locationModel.get('name');
-	dbData['sub_location_id'] = locationModel.ID();
-	return dbData;
-
-      } else {
-	throw new Error('Invalid token');
-      }
-    } catch(e) {
-      console.log(e);
-      throw new Error('Cannot get invitation data');
-
-    }
-
-
-
-  }
-  public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
-
-    // check first if email is existing
-    let dbData = {};
-    try {
-      const user = new User();
-      dbData = await user.getByEmail(req.body.email);
-    } catch(e) {
-
-    }
-
-    if (Object.keys(dbData).length > 0) {
-      throw Error('Email taken');
-    } else {
-      console.log('Checkpoint catch');
-      const inviCode = new UserInvitation();
-      const inviDetails = req.body;
-      inviDetails['account_id'] = req['user'].account_id;
-      inviDetails['role_id'] = defs['Tenant'];
-      inviDetails['invited_by_user'] = req['user'].user_id;
-      const tokenModel = new Token();
-      const token = tokenModel.generateRandomChars(8);
-
-      const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
-      const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
-
-      try {
-        console.log(inviDetails);
-        await inviCode.create(inviDetails);
-
-        await tokenModel.create({
-          'token': token,
-          'action': 'invitation',
-          'verified': 0,
-          'expiration_date': expDate,
-          'id': inviCode.ID(),
-          'id_type': 'user_invitations_id'
-        });
-
-        // email notification here
-        const opts = {
-          from : '',
-          fromName : 'EvacConnect',
-          to : [],
-          cc: [],
-          body : '',
-          attachments: [],
-          subject : 'EvacConnect TRP Invitation'
-        };
-        const email = new EmailSender(opts);
-        let emailBody = email.getEmailHTMLHeader();
-          emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
-          <h4>You are being assigned as a Tenant.</h4> <br/>
-          <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
-          <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
-
-        emailBody += email.getEmailHTMLFooter();
-        email.assignOptions({
-          body : emailBody,
-          to: [inviDetails['email']],
-          cc: []
-        });
-
-        email.send((data) => {
-          console.log(data);
+    public async processTenantInvitationForm(req: Request, res: Response, next: NextFunction){
+        const encryptedPassword = md5('Ideation' + req.body.str_password + 'Max');
+        let user;
+        let invitation;
+        let account;
+        let locAccntUser;
+        try {
+          user = new User();
+          const tokenObj = new Token();
+          const tokenDbData = await tokenObj.getByToken(req.body.token);
+          invitation = new UserInvitation(tokenDbData['id']);
+          const userInvitation = await invitation.load();
+          account = new Account();
+          locAccntUser = new LocationAccountUser();
+          await account.create({
+            'account_name': req.body.account_name,
+            'building_number': req.body.building_number,
+            'account_domain': req.body.account_domain,
+            'billing_city': req.body.billing_city,
+            'billing_country': req.body.billing_country,
+            'billing_postal_code': req.body.billing_postal_code,
+            'billing_street': req.body.billing_street,
+            'billing_state': req.body.billing_state
+          });
+          await user.create({
+            'first_name': req.body.first_name,
+            'last_name': req.body.last_name,
+            'password': encryptedPassword,
+            'email': req.body.email,
+            'token': req.body.token,
+            'account_id': account.ID(),
+            'invited_by_user': userInvitation['invited_by_user'],
+            'can_login': 1,
+          });
+          await tokenObj.create({
+            'action': 'verify',
+            'verified': 1,
+            'id': user.ID(),
+            'id_type': 'user_id'
+          });
+          await invitation.create({
+            'was_used': 1
+          });
+          await locAccntUser.create({
+            'location_id': invitation.get('location_id'),
+            'account_id': account.ID(),
+            'user_id': user.ID(),
+            'role_id': defs['Tenant'],
+          });
           return true;
-        },(err) => {
-          console.log(err);
-          return false;
-        });
-      } catch (e) {
-        console.log(e);
-        return false;
-      }
+        } catch(e) {
+          console.log(e);
+          throw new Error('There was a problem processing tenant information');
+        }
+        }
+        public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
+        const tokenModel = new Token();
+        let dbData;
+        let userInvitation;
+        let locationModel;
+        let locationParent;
+        const token = req.params.token;
+        console.log(token);
+        try {
+          const tokenDbData = await tokenModel.getByToken(token);
+          if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
+        userInvitation = new UserInvitation(tokenDbData['id']);
+        dbData = await userInvitation.load();
 
+        // get parent location
+        locationModel = new Location(dbData['location_id']);
+        await locationModel.load();
+        let parentId = locationModel.get('parent_id');
+        while (parentId !== -1) {
+          locationParent = new Location(parentId);
+          await locationParent.load();
+          parentId = locationParent.get('parent_id');
+        }
+        dbData['parent_location_name'] = (locationParent.get('name').toString().length > 0) ?
+        locationParent.get('name') : locationParent.get('formatted_address');
+        dbData['parent_location_id'] = locationParent.ID();
+        dbData['sub_location_name'] = locationModel.get('name');
+        dbData['sub_location_id'] = locationModel.ID();
+        return dbData;
+
+          } else {
+        throw new Error('Invalid token');
+          }
+        } catch(e) {
+          console.log(e);
+          throw new Error('Cannot get invitation data');
+
+        }
     }
 
+    public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
 
+        // check first if email is existing
+        let dbData = {};
+        try {
+          const user = new User();
+          dbData = await user.getByEmail(req.body.email);
+        } catch(e) {
 
+        }
 
+        if (Object.keys(dbData).length > 0) {
+          throw Error('Email taken');
+        } else {
+          console.log('Checkpoint catch');
+          const inviCode = new UserInvitation();
+          const inviDetails = req.body;
+          inviDetails['account_id'] = req['user'].account_id;
+          inviDetails['role_id'] = defs['Tenant'];
+          inviDetails['invited_by_user'] = req['user'].user_id;
+          const tokenModel = new Token();
+          const token = tokenModel.generateRandomChars(8);
 
-  }
+          const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
+          const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+
+          try {
+            console.log(inviDetails);
+            await inviCode.create(inviDetails);
+
+            await tokenModel.create({
+              'token': token,
+              'action': 'invitation',
+              'verified': 0,
+              'expiration_date': expDate,
+              'id': inviCode.ID(),
+              'id_type': 'user_invitations_id'
+            });
+
+            // email notification here
+            const opts = {
+              from : '',
+              fromName : 'EvacConnect',
+              to : [],
+              cc: [],
+              body : '',
+              attachments: [],
+              subject : 'EvacConnect TRP Invitation'
+            };
+            const email = new EmailSender(opts);
+            let emailBody = email.getEmailHTMLHeader();
+              emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+              <h4>You are being assigned as a Tenant.</h4> <br/>
+              <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
+              <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+            emailBody += email.getEmailHTMLFooter();
+            email.assignOptions({
+              body : emailBody,
+              to: [inviDetails['email']],
+              cc: []
+            });
+
+            email.send((data) => {
+              console.log(data);
+              return true;
+            },(err) => {
+              console.log(err);
+              return false;
+            });
+          } catch (e) {
+            console.log(e);
+            return false;
+          }
+
+        }
+    }
+
 	public async updateUser(req: Request , res: Response, next: NextFunction){
 		let
 		response = {
@@ -583,12 +577,14 @@ export class UsersRoute extends BaseRoute {
 		try{
 			let
 			userModel = new User(req.body.user_id),
-			userData = await userModel.load();
+			userData = await userModel.load(),
+            hasPass = false;
 
 			for(let i in userData){
 				if(i in req.body){
 					if(i == 'password'){
 						req.body[i] = md5('Ideation'+req.body[i]+'Max');
+                        hasPass = true;
 					}
 					userData[i] = req.body[i];
 				}
@@ -597,6 +593,21 @@ export class UsersRoute extends BaseRoute {
 			userModel.setID(req.body.user_id);
 
 			await userModel.dbUpdate();
+
+            if(hasPass){
+                let tokenModel = new Token();
+                try{
+                    await tokenModel.getAllByUserId(req.body.user_id, 'verify');
+                }catch(e){
+                    tokenModel.create({
+                        'token' : this.generateRandomChars(30),
+                        'action' : 'verify',
+                        'verified' : 1,
+                        'id' : req.body.user_id,
+                        'id_type' : 'user_id'
+                    });
+                }
+            }
 
 			response.status = true;
 			response.data = userData;
@@ -1897,11 +1908,13 @@ export class UsersRoute extends BaseRoute {
         accountModel = new Account(accountId),
 		returnUsers = [],
         account = {},
-        isAccountEmailExempt = false;
+        isAccountEmailExempt = false,
+        hasOnlineTraining = false;
 
         try{
             let account = <any> await accountModel.load();
             isAccountEmailExempt = (account.email_add_user_exemption == 1) ? true : false;
+            hasOnlineTraining = (account.online_training == 1) ? true : false;
         }catch(e){
 
         }
@@ -1954,51 +1967,82 @@ export class UsersRoute extends BaseRoute {
 					'eco_role_id' : (users[i]['account_role_id'] != 1 && users[i]['account_role_id'] != 2) ? users[i]['account_role_id'] : 0,
 					'invited_by_user' : req['user']['user_id'],
                     'was_used' : (isAccountEmailExempt) ? 1 : 0
-				};
+				},
+                user  = new User(),
+                encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max'),
+                userSaveData = {
+                    'first_name': users[i]['first_name'],
+                    'last_name': users[i]['last_name'],
+                    'password': '',
+                    'email': users[i]['email'],
+                    'token': token,
+                    'account_id': accountId,
+                    'invited_by_user': req['user']['user_id'],
+                    'can_login': 0,
+                    'mobile_number': users[i]['mobile_number'],
+                    'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0
+                },
+                tokenSaveData = {
+                    'token' : token,
+                    'action' : 'verify',
+                    'id' : 0,
+                    'id_type' : 'user_id',
+                    'verified' : 0
+                },
+                tokenModel = new Token(),
+                emailLink = req.protocol + '://' + req.get('host');
 
-                let user  = new User(),
-                    encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max'),
-                    userSaveData = {
-                        'first_name': users[i]['first_name'],
-                        'last_name': users[i]['last_name'],
-                        'password': '',
-                        'email': users[i]['email'],
-                        'token': token,
-                        'account_id': accountId,
-                        'invited_by_user': req['user']['user_id'],
-                        'can_login': 0,
-                        'mobile_number': users[i]['mobile_number'],
-                        'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0
-                    };
+                if(hasOnlineTraining || isAccountEmailExempt){
 
-                if(isAccountEmailExempt){
-                    userSaveData.password = encryptedPassword;
-                    userSaveData.can_login = 1;
+                    if(isAccountEmailExempt){
+                        userSaveData.password = encryptedPassword;
+                        userSaveData.can_login = 1;
+                        tokenSaveData.verified = 1;
+                    }else if(hasOnlineTraining){
+                        tokenSaveData.action = 'setup-password';
 
-                    let tokenModel = new Token();
-                    await tokenModel.create({
-                        'token' : token,
-                        'action' : 'verify',
-                        'id' : user.ID(),
-                        'id_type' : 'user_id',
-                        'verified' : 1
-                    });
+                        emailLink += '/signup/profile-completion/' + token;
+                    }
+
+                    await user.create(userSaveData);
+                    tokenSaveData.id = user.ID();
+
+                    if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                        let locationAcctUser = new LocationAccountUser();
+                        await locationAcctUser.create({
+                            'location_id': users[i]['account_location_id'],
+                            'account_id': accountId,
+                            'user_id': user.ID(),
+                            'role_id': users[i]['account_role_id']
+                        });
+
+                        const userRoleRel = new UserRoleRelation();
+                        await userRoleRel.create({
+                            'user_id': user.ID(),
+                            'role_id': users[i]['account_role_id']
+                        });
+                    }else{
+                        const EMRoleUserRole = new UserEmRoleRelation();
+                        await EMRoleUserRole.create({
+                            'user_id': user.ID(),
+                            'em_role_id': (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
+                            'location_id': users[i]['account_location_id']
+                        });
+                    }
+                    
+                }else{
+                    let invitation = new UserInvitation();
+                    await invitation.create(inviSaveData);
+
+                    tokenSaveData.id_type = 'user_invitations_id';
+                    tokenSaveData.id = invitation.ID();
+                    emailLink += '/signup/warden-profile-completion/'+token;
                 }
 
-                await user.create(userSaveData);
+                await tokenModel.create(tokenSaveData);
 
-                if(isAccountEmailExempt == false){
-                    /*let invitation = new UserInvitation();
-                    await invitation.create(inviSaveData);*/
 
-                    let tokenModel = new Token();
-                    await tokenModel.create({
-                        'token' : token,
-                        'action' : 'setup-password',
-                        'id' : user.ID(),
-                        'id_type' : 'user_id',
-                        'verified' : 0
-                    });
+                if(!isAccountEmailExempt){
 
     				const opts = {
     					from : 'allantaw2@gmail.com',
@@ -2010,11 +2054,11 @@ export class UsersRoute extends BaseRoute {
     					subject : 'EvacConnect Profile Setup'
     				};
     				const email = new EmailSender(opts);
-    				const link = req.protocol + '://' + req.get('host') + '/signup/profile-completion/' + token;
+    				const link = emailLink;
     				let emailBody = email.getEmailHTMLHeader();
     				emailBody += `<h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3> <br/>
     				<h4>You were added to EvacConnect Compliance Management System.</h4> <br/>
-    				<h5>Click on the link below to setup your password.</h5> <br/>
+    				<h5>Click on the link below to setup your account.</h5> <br/>
     				<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
 
     				emailBody += email.getEmailHTMLFooter();
@@ -2030,28 +2074,7 @@ export class UsersRoute extends BaseRoute {
     				);
                 }
 
-                if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
-                    let locationAcctUser = new LocationAccountUser();
-                    await locationAcctUser.create({
-                        'location_id': users[i]['account_location_id'],
-                        'account_id': accountId,
-                        'user_id': user.ID(),
-                        'role_id': users[i]['account_role_id']
-                    });
-
-                    const userRoleRel = new UserRoleRelation();
-                    await userRoleRel.create({
-                        'user_id': user.ID(),
-                        'role_id': users[i]['account_role_id']
-                    });
-                }else{
-                    const EMRoleUserRole = new UserEmRoleRelation();
-                    await EMRoleUserRole.create({
-                        'user_id': user.ID(),
-                        'em_role_id': users[i]['eco_role_id'],
-                        'location_id': users[i]['account_location_id']
-                    });
-                }
+                
 
 			}else{
 				returnUsers.push( users[i] );

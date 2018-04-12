@@ -98,7 +98,7 @@ export class TeamRoute extends BaseRoute {
       new TeamRoute().retrieveWardenInvationInfo(req, res, next).then((data) => {
         return res.status(200).send(data);
       }).catch((err) => {
-        return res.status(400).send({message: 'Internal error'});
+        return res.status(400).send({message: 'Internal error', 'err' : err });
       });
     });
 
@@ -692,6 +692,8 @@ export class TeamRoute extends BaseRoute {
         
         const accountDB = await account.load();
         dbData['account'] = account.get('account_name');
+
+        
         if (!dbData['location_id']) {
             switch (role) {
                 case 1:
@@ -759,6 +761,7 @@ export class TeamRoute extends BaseRoute {
             dbData['parent_location_id'] = locationInstance.ID();
 
         }
+        
         return dbData;
     }
 

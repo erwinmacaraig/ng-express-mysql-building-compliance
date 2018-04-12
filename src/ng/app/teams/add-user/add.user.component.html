@@ -52,7 +52,7 @@
 						<input type="email" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
 					</td>
 					<td >
-						<select [(ngModel)]="user.account_role_id" name="accountRole{{i}}" required pattern="[1-9][0-9]*">
+						<select [(ngModel)]="user.account_role_id" name="accountRole{{i}}" (change)="changeRoleEvent(user)" required pattern="[1-9][0-9]*">
 							<option value="0" disabled selected *ngIf="this.paramRole.length == 0">Select Role</option>
 							<option *ngFor="let role of accountRoles" [value]="role.role_id" [selected]="role.selected"> {{ role.role_name }} </option>
 						</select>
@@ -120,7 +120,7 @@
 
 		<div class="list-region" style="overflow-y: auto; height: 340px;">
 			<p *ngIf="locations.length == 0">No location found</p>
-			<ul *ngIf="locations.length > 0">
+			<ul *ngIf="locations.length > 0 && showLocationsRecursive">
 				<ng-template #recursiveList let-locations>
 					<li *ngFor="let location of locations" class="list-division" [id]="location.location_id" [ngClass]="{ 'show-drop-down' : (location.showDropDown) ? location.showDropDown : false }">
 						<div class="name-radio-plus">

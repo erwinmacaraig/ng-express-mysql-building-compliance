@@ -351,7 +351,8 @@ export class Location extends BaseClass {
 			name,
 			unit,
 			formatted_address,
-			google_photo_url
+			google_photo_url,
+            is_building
 			FROM
 			locations
 			WHERE
@@ -423,7 +424,7 @@ export class Location extends BaseClass {
 
 			sublocationQuery = `SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id  DESC`;
 			const sql_get_subloc = `
-			SELECT location_id, name, parent_id FROM (${sublocationQuery}) sublocations, (SELECT @pv := ?)
+			SELECT location_id, name, parent_id, is_building FROM (${sublocationQuery}) sublocations, (SELECT @pv := ?)
 			initialisation WHERE find_in_set(parent_id, @pv) > 0 AND @pv := concat(@pv, ',', location_id) ORDER BY location_id;`;
 
 			const connection = db.createConnection(dbconfig);
@@ -440,7 +441,8 @@ export class Location extends BaseClass {
 						unassignedResults.push({
 							'location_id' : results[i]['location_id'],
 							'name' : results[i]['name'],
-							'parent_id' : results[i]['parent_id'],
+                            'parent_id' : results[i]['parent_id'],
+							'is_building' : results[i]['is_building'],
 							'children' : []
 						});
 					}
@@ -597,7 +599,8 @@ export class Location extends BaseClass {
         const sql = `SELECT
                     user_em_roles_relation.*,
                     em_roles.role_name,
-                    locations.name
+                    locations.name,
+                    locations.is_building
                   FROM
                     user_em_roles_relation
                   INNER JOIN

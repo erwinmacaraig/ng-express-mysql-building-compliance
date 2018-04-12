@@ -531,6 +531,7 @@ const defs = require('../config/defs.json');
 
                 let copyDbLocationData = JSON.parse( JSON.stringify(dbLocationData) );
                 copyDbLocationData['name'] = req.body.sublevels[i];
+                copyDbLocationData['is_building'] = 0;
                 await subLevel.create(copyDbLocationData);
 
                 await locationAccnt.create({
@@ -608,7 +609,8 @@ const defs = require('../config/defs.json');
 			subData['name'] = sublocation_name;
 			subData['parent_id'] = parentId;
 			subData['order'] = null;
-      subData['admin_verified'] = 1;
+            subData['admin_verified'] = 1;
+            subData['is_building'] = 0;
 
             subData['admin_verified'] = 0;
             subData['admin_verified_date'] = null;
@@ -619,7 +621,7 @@ const defs = require('../config/defs.json');
 				subData['location_id'] = locationSub.ID();
 
 				
-        await locationAccnt.create({
+                await locationAccnt.create({
 					'location_id': subData['location_id'],
 					'account_id': req.user.account_id,
 					'responsibility': roles_text[r]
@@ -996,6 +998,8 @@ const defs = require('../config/defs.json');
             }
         }
 
+        response['sublocations_2'] = JSON.parse(JSON.stringify(sublocations));
+
 
         for (let j = 0; j < sublocations.length; j++) {
           sublocationIdsArray.push(sublocations[j]['location_id']);
@@ -1128,14 +1132,7 @@ const defs = require('../config/defs.json');
             let userRoleModel = new UserRoleRelation();
 
             roles = await userRoleModel.getByUserId(req.user.user_id);
-            
-        }catch(e){}
 
-        try {
-            locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 1, archived);
-            for (let loc of locationsOnAccount) {
-                locations.push(loc);
-            }
             for(let i in roles){
                 if(roles[i]['role_id'] == 1){
                     isFrp = true;
@@ -1144,6 +1141,15 @@ const defs = require('../config/defs.json');
                     isTrp = true;
                 }
             }
+            
+        }catch(e){}
+
+        try {
+            locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 1, archived);
+            for (let loc of locationsOnAccount) {
+                locations.push(loc);
+            }
+            
         } catch (e) { }
 
         try{
@@ -1169,7 +1175,20 @@ const defs = require('../config/defs.json');
                 deepLocModel = new Location(),
                 deepLocations = <any> [];
 
-            if(loc.parent_id == -1 && isFrp == true){
+            if(loc.parent_id > -1){
+                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                try{
+                    let locParent =  new Location(loc.parent_id),
+                        parent = await locParent.load();
+                    loc['parent'] = parent;
+                }catch(e){ }
+                deepLocations.push(loc);
+            }else{
+                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                deepLocations.push(loc);
+            }
+
+            /*if( (loc.parent_id == -1 || loc.is_building == 1 ) && isFrp == true && isTrp == false ){
                 deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
                 deepLocations.push(loc);
             }else if(loc.parent_id > -1 && isTrp == true && isFrp == false){
@@ -1189,7 +1208,7 @@ const defs = require('../config/defs.json');
                         deepLocations.push(anc);
                     }
                 }
-            }
+            }*/
 
             for(let deep of deepLocations){
                 deep['sublocations'] = [];
@@ -1247,8 +1266,13 @@ const defs = require('../config/defs.json');
                     responseLocations.push(respLoc);
                 }
             }
-
         }
+
+        responseLocations.sort((a, b) => {
+            if(a.name < b.name) return -1;
+            if(a.name > b.name) return 1;
+            return 0;
+        });
 
         response.locations = responseLocations;
 
@@ -1273,14 +1297,7 @@ const defs = require('../config/defs.json');
             let userRoleModel = new UserRoleRelation();
 
             roles = await userRoleModel.getByUserId(req.user.user_id);
-            
-        }catch(e){}
 
-        try {
-            locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 1);
-            for (let loc of locationsOnAccount) {
-                locations.push(loc);
-            }
             for(let i in roles){
                 if(roles[i]['role_id'] == 1){
                     isFrp = true;
@@ -1289,6 +1306,15 @@ const defs = require('../config/defs.json');
                     isTrp = true;
                 }
             }
+            
+        }catch(e){}
+
+        try {
+            locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 1);
+            for (let loc of locationsOnAccount) {
+                locations.push(loc);
+            }
+            
         } catch (e) { }
 
         try{
@@ -1314,7 +1340,7 @@ const defs = require('../config/defs.json');
                 deepLocModel = new Location(),
                 deepLocations = <any> [];
 
-            if(loc.parent_id == -1 && isFrp == true){
+            if( loc.parent_id == -1  && isFrp == true ){
                 deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
                 deepLocations.push(loc);
             }else if(loc.parent_id > -1 && isTrp == true && isFrp == false){

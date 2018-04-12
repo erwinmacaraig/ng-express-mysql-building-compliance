@@ -1,3 +1,93 @@
+.manage-compliance{
+    padding: 30px;
+    border: 1px solid #d3d3d3;
+    margin-bottom: 20px;
+}
+
+.manage-compliance .btn{
+    width: 100%;
+    font-size: 14px !important;
+    line-height: 44px;
+}
+
+.completion{
+    text-align: center;
+    color: #c91e2f;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.compliacne-rating{
+    color: #c91e2f;
+    font-size: 18px;
+}
+
+/* PIE */
+.donut-size {
+    font-size: 13em;
+}
+
+.pie-wrapper {
+    position: relative;
+    width: 1em;
+    height: 1em;
+    margin: 0px auto;
+}
+
+.pie-wrapper .pie {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    clip: rect(0, 1em, 1em, 0.5em);
+}
+
+.pie-wrapper .half-circle {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    border: 0.1em solid #c91e2f;
+    border-radius: 50%;
+    clip: rect(0em, 0.5em, 1em, 0em);
+}
+
+.pie-wrapper .right-side {
+    transform: rotate(0deg);
+}
+
+.pie-wrapper .label {
+    position: absolute;
+    top: 0.51em;
+    right: 0.4em;
+    bottom: 0.4em;
+    left: 0.7em;
+    display: block;
+    background: none;
+    border-radius: 50%;
+    color: #c91e2f;
+    font-size: 0.25em;
+    line-height: 2.9em;
+    text-align: center;
+    cursor: default;
+    z-index: 2;
+}
+
+.pie-wrapper .smaller {
+    color: #c91e2f;
+    font-size: .45em;
+    vertical-align: top;
+}
+
+.pie-wrapper .shadow {
+    width: 100%;
+    height: 100%;
+    border: 0.1em solid #e0e5e8;
+    border-radius: 50%;
+}
+
 .location-navigation{
     border-bottom: 1px solid #ddd;
 }
