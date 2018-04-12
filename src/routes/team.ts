@@ -787,6 +787,7 @@ export class TeamRoute extends BaseRoute {
                 'token': req.body.token,
                 'account_id': req.body.account_id,
                 'invited_by_user': userInvitation['invited_by_user'],
+                'mobility_impaired': userInvitation['mobility_impaired'],
                 'can_login': 1,
                 'mobile_number': userInvitation['contact_number']
             });
@@ -806,64 +807,62 @@ export class TeamRoute extends BaseRoute {
 
         let locationAcctUser = new LocationAccountUser();
 
-        if (req.body.role_id) {
-            let theLocation = req.body.sublocation;
-            if (req.body.role_id == defs['Manager']) {
-                let locationInstance = new Location(req.body.parent_location);
+        let theLocation = req.body.sublocation;
+        if (req.body.role_id == defs['Manager']) {
+            let locationInstance = new Location(req.body.parent_location);
+            await locationInstance.load();
+            let pId = <number>locationInstance.get('parent_id');
+            while (pId !== -1) {
+                locationInstance = new Location(pId);
                 await locationInstance.load();
-                let pId = <number>locationInstance.get('parent_id');
-                while (pId !== -1) {
-                    locationInstance = new Location(pId);
-                    await locationInstance.load();
-                    pId = <number>locationInstance.get('parent_id');
-                }
-                theLocation = locationInstance.ID();
+                pId = <number>locationInstance.get('parent_id');
             }
+            theLocation = locationInstance.ID();
+        }
 
-            if(parseInt(req.body.role_id) == 1 || parseInt(req.body.role_id) == 2){
-                const userRoleRel = new UserRoleRelation();
-                await userRoleRel.create({
-                    'user_id': user.ID(),
-                    'role_id': req.body.role_id
-                });
+        if(parseInt(req.body.role_id) == 1 || parseInt(req.body.role_id) == 2){
+            const userRoleRel = new UserRoleRelation();
+            await userRoleRel.create({
+                'user_id': user.ID(),
+                'role_id': req.body.role_id
+            });
 
-                locationAcctUser = new LocationAccountUser();
-                await locationAcctUser.create({
-                    'location_id': theLocation,
-                    'account_id': req.body.account_id,
-                    'user_id': user.ID()
-                });
+            locationAcctUser = new LocationAccountUser();
+            await locationAcctUser.create({
+                'location_id': theLocation,
+                'account_id': req.body.account_id,
+                'user_id': user.ID()
+            });
 
-                const EMRoleUserRole = new UserEmRoleRelation();
-                await EMRoleUserRole.create({
-                    'user_id': user.ID(),
-                    'em_role_id': defs['em_roles']['GENERAL OCCUPANT'],
-                    'location_id': req.body.sublocation
-                });
-            }else{
-                const EMRoleUserRole = new UserEmRoleRelation();
-                await EMRoleUserRole.create({
-                    'user_id': user.ID(),
-                    'em_role_id': req.body.em_role,
-                    'location_id': theLocation
-                });
-            }
+            const EMRoleUserRole = new UserEmRoleRelation();
+            await EMRoleUserRole.create({
+                'user_id': user.ID(),
+                'em_role_id': defs['em_roles']['GENERAL OCCUPANT'],
+                'location_id': req.body.sublocation
+            });
+        }else{
+            const EMRoleUserRole = new UserEmRoleRelation();
+            await EMRoleUserRole.create({
+                'user_id': user.ID(),
+                'em_role_id': req.body.em_role,
+                'location_id': theLocation
+            });
+        }
 
-            const locationAccntRel = new LocationAccountRelation();
+        const locationAccntRel = new LocationAccountRelation();
 
-            try {
-                await locationAccntRel.getLocationAccountRelation({
-                    'location_id': theLocation,
-                    'account_id': req.body.account_id,
-                    'responsibility': defs['role_text'][req.body.role_id]
-                });
-            } catch (err) {
-                await locationAccntRel.create({
-                    'location_id': theLocation,
-                    'account_id': req.body.account_id,
-                    'responsibility': defs['role_text'][req.body.role_id]
-                });
-            }
+        try {
+            await locationAccntRel.getLocationAccountRelation({
+                'location_id': theLocation,
+                'account_id': req.body.account_id,
+                'responsibility': defs['role_text'][req.body.role_id]
+            });
+        } catch (err) {
+            await locationAccntRel.create({
+                'location_id': theLocation,
+                'account_id': req.body.account_id,
+                'responsibility': defs['role_text'][req.body.role_id]
+            });
         }
         return;
     }
