@@ -4,6 +4,7 @@ import { BaseClass } from './base.model';
 import { UtilsSync } from './util.sync';
 
 const dbconfig = require('../config/db');
+const defs = require('../config/defs.json');
 
 import * as Promise from 'promise';
 export class Location extends BaseClass {
@@ -583,7 +584,7 @@ export class Location extends BaseClass {
 public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number, role_id: number = 0) {
   return new Promise((resolve, reject) => {
     let location = this.ID();
-
+    console.log('em_role_id = ' + em_role_id);
     let em_role_filter = '';
     let connection;
     let sql;
@@ -591,14 +592,14 @@ public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number, r
     if (location_id) {
       location = location_id;
     }
-    if (em_role_id) {
+    if (em_role_id > 0) {
       em_role_filter = ` AND user_em_roles_relation.em_role_id = ${em_role_id}`;
     }
     let location_em_roles = {};
     let subLocToEmRoles:{[key: number]: {}} = {};
 
     if (role_id === parseInt(defs['Manager'], 10) ) {
-      console.log(typeof defs['Manager']);
+
       // FRP SECTION
     this.getParentsChildren(location).then((sublocations) => {
       const subIds = [];
