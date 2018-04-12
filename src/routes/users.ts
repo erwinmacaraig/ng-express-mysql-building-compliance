@@ -1964,8 +1964,9 @@ export class UsersRoute extends BaseRoute {
 					'location_id' : users[i]['account_location_id'],
 					'account_id' : req['user']['account_id'],
 					'role_id' : (users[i]['account_role_id'] == 1 || users[i]['account_role_id'] == 2) ? users[i]['account_role_id'] : 0,
-					'eco_role_id' : (users[i]['account_role_id'] != 1 && users[i]['account_role_id'] != 2) ? users[i]['account_role_id'] : 0,
+					'eco_role_id' : (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
 					'invited_by_user' : req['user']['user_id'],
+                    'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0,
                     'was_used' : (isAccountEmailExempt) ? 1 : 0
 				},
                 user  = new User(),
