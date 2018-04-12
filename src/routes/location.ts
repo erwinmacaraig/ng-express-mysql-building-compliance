@@ -506,7 +506,7 @@ const defs = require('../config/defs.json');
         }
 
         const roles_text = ['', 'Manager', 'Tenant'];
-        
+
         // create main location
         try {
             await location.create(dbLocationData);
@@ -530,7 +530,7 @@ const defs = require('../config/defs.json');
                     user_id: req.user.user_id
                 });
             }
-            
+
         } catch (er) {
             throw new Error('Unable to create main location');
         }
@@ -632,13 +632,13 @@ const defs = require('../config/defs.json');
 				await locationSub.create(subData);
 				subData['location_id'] = locationSub.ID();
 
-				
+
                 await locationAccnt.create({
 					'location_id': subData['location_id'],
 					'account_id': req.user.account_id,
 					'responsibility': roles_text[r]
 				});
-        
+
 
 				/*await locationAccntUser.create({
 					'location_id' : subData['location_id'],
@@ -1181,7 +1181,7 @@ const defs = require('../config/defs.json');
                     isTrp = true;
                 }
             }
-            
+
         }catch(e){}
 
         try {
@@ -1189,7 +1189,7 @@ const defs = require('../config/defs.json');
             for (let loc of locationsOnAccount) {
                 locations.push(loc);
             }
-            
+
         } catch (e) { }
 
         try{
@@ -1277,7 +1277,7 @@ const defs = require('../config/defs.json');
                 }
 
                 respLoc['num_tenants'] = numTenants;
-                
+
                 let emRoleModel = new UserEmRoleRelation(),
                 locAccUser = <any> await emRoleModel.getUsersInLocationIds( allSubLocationIds.join(',') );
 
@@ -1346,7 +1346,7 @@ const defs = require('../config/defs.json');
                     isTrp = true;
                 }
             }
-            
+
         }catch(e){}
 
         try {
@@ -1354,7 +1354,7 @@ const defs = require('../config/defs.json');
             for (let loc of locationsOnAccount) {
                 locations.push(loc);
             }
-            
+
         } catch (e) { }
 
         try{

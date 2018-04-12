@@ -204,8 +204,16 @@ import * as S3Zipper from 'aws-s3-zipper';
             emrolesOnThisLocation,
             paths;
 
-
-        const utils = new Utils(),
+    // Retrieve the highest account role
+    let role = 0;
+    const userRoleRelObj = new UserRoleRelation();
+    try {
+      role = await userRoleRelObj.getByUserId(req.user.user_id, true, locationID);
+    } catch (e) {
+      console.log(e);
+      role = 0;
+    }
+    const utils = new Utils(),
             training = new TrainingCertification(),
             locationModel = new Location(locationID),
             wardenCalc = new WardenBenchmarkingCalculator();
@@ -217,23 +225,27 @@ import * as S3Zipper from 'aws-s3-zipper';
         }
 
         try {
-            emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, 0);
-            if ('8' in emrolesOnThisLocation) {
-                if (emrolesOnThisLocation['8']['location'].length > 0) {
+            emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, locationID, role);
+            // console.log('======================', emrolesOnThisLocation, '=====================');
+            if (defs['em_roles']['GENERAL_OCCUPANT'] in emrolesOnThisLocation) {
+                if (emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'].length > 0) {
                     let locId;
-                    for (let i = 0; i < emrolesOnThisLocation['8']['location'].length; i++) {
-                        locId = emrolesOnThisLocation['8']['location'][i].toString();
-                        if (emrolesOnThisLocation['8'][locId]['users'].length > 0) {
-                            emrolesOnThisLocation['8'][locId]['training'] =
-                            await training.getEMRUserCertifications(emrolesOnThisLocation['8'][locId]['users']);
+                    for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'].length; i++) {
+                        locId = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'][i].toString();
+                        if (emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']][locId]['users'].length > 0) {
+                            emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']][locId]['training'] =
+                            await training.getEMRUserCertifications(
+                              emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']][locId]['users'], {
+                                'em_role_id': defs['em_roles']['GENERAL_OCCUPANT']
+                              }
+                            );
                         }
                     }
                 }
             }
 
             if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation) {
-                // console.log(emrolesOnThisLocation['9']);
-               
+
                 if (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'].length > 0) {
                     let locId;
                     const calcResults = await wardenCalc.getBulkBenchmarkingResultOnLocations(emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location']);
@@ -242,7 +254,8 @@ import * as S3Zipper from 'aws-s3-zipper';
                         locId = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'][i].toString();
                         if (emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].length > 0) {
                             emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training'] =
-                            await training.getEMRUserCertifications(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users']);
+                            await training.getEMRUserCertifications(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'], {'em_role_id': defs['em_roles']['WARDEN']});
+                            console.log(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']);
                         }
                         if (locId in calcResults) {
                             emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens'] =
@@ -267,15 +280,69 @@ import * as S3Zipper from 'aws-s3-zipper';
                 }
             }
 
-            if ('12' in emrolesOnThisLocation) {
+            // Floor Warden
+            if (defs['em_roles']['FLOOR_WARDEN'] in emrolesOnThisLocation) {
+              let locId;
+              for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['location'].length; i++) {
+                locId = emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['location'][i].toString();
+                const floorwardens = [];
+                if (emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'].length > 0) {
+                  // loop through the users because the training for floor warden and warden is the same
+                  // so we do not count
+                  for (let counter = 0;
+                    counter < emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'].length; counter++) {
+                    if (emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].indexOf(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'][counter]) == -1) {
+                      floorwardens.push(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'][counter]);
+                    }
+                  }
+                  emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training'] =
+                  await training.getEMRUserCertifications(floorwardens, {'em_role_id': defs['em_roles']['FLOOR_WARDEN']});
+                }
+                emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_floor_wardens'] =
+                   emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['count'];
+              }
+              console.log((defs['em_roles']['WARDEN'] in emrolesOnThisLocation && (locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])));
+              if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation && (locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])) {
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] =
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] +
+                emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_wardens'];
+
+                console.log(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]);
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] =
+                  emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] +
+                  emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_passed'];
+
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
+                  Math.round( emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] / emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] ) * 100;
+
+                        emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
+                        emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'].toString() + '%';
+              } else {
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] =
+                    emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_wardens'];
+
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] =
+                emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_passed'];
+
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
+                Math.round( emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_passed'] / emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_wardens'] ) * 100;
+
+              }
+
+              console.log(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]);
+            }
+
+            if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation) {
                 // console.log(emrolesOnThisLocation['12']);
-                if (emrolesOnThisLocation['12']['location'].length > 0) {
+                if (emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'].length > 0) {
                     let locId;
-                    for (let i = 0; i < emrolesOnThisLocation['12']['location'].length; i++) {
-                        locId = emrolesOnThisLocation['12']['location'][i].toString();
-                        if (emrolesOnThisLocation['12'][locId]['users'].length > 0) {
-                            emrolesOnThisLocation['12'][locId]['training'] =
-                            await training.getEMRUserCertifications(emrolesOnThisLocation['12'][locId]['users']);
+                    for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'].length; i++) {
+                        locId = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'][i].toString();
+                        if (emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['users'].length > 0) {
+                            emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['training'] =
+                            await training.getEMRUserCertifications(
+                              emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['users']
+                            );
                         }
                     }
                 } else {
@@ -364,16 +431,16 @@ import * as S3Zipper from 'aws-s3-zipper';
                 m = kpis['measurement'],
                 today = moment(),
                 validTillMoment = moment(comp['valid_till']);
-            
+
             comp['measurement'] = comp['kpis']['measurement'];
 
             comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
-            
+
             comp['validity_status'] = 'none-exist';
             comp['days_remaining']= 0;
 
             if (m === 'Traffic' || m === 'evac') {
-                
+
                 if(comp['docs'][0]){
                     validTillMoment = moment(comp['docs'][0]['valid_till'], ['DD/MM/YYYY']);
                 }
@@ -385,7 +452,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                     comp['validity_status'] = 'expiring';
                 } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') <= 0) {
                     comp['validity_status'] = 'invalid';
-                } 
+                }
 
             } else if (m === 'Percent') {
                 // 6 Warden Training
@@ -401,15 +468,19 @@ import * as S3Zipper from 'aws-s3-zipper';
                 'failed': []
             };
             comp['percentage'] = '0%';
-            
+
             switch(comp['compliance_kpis_id']) {
                 case 6:
                     // Warden Training
-                    if ('9' in emrolesOnThisLocation) {
-                        comp['total_personnel'] = comp['warden_total'] = emrolesOnThisLocation['9']['count'];
+                    if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation) {
+                        comp['total_personnel'] = comp['warden_total'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
                         comp['location_details'] = emrolesOnThisLocation[9];
                         try {
-                            comp['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['9']['users']);
+                            comp['total_personnel_trained'] =
+                                await training.getEMRUserCertifications(
+                                  emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'],
+                                  {'em_role_id':  defs['em_roles']['WARDEN']}
+                                );
                             tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
                         } catch (e) {
@@ -422,16 +493,41 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['percentage'] = '0%';
                         }
                     }
-                    // comp['total_personnel'] = comp['warden_total'] = ('9' in emrolesOnThisLocation) ? emrolesOnThisLocation['9']['count'] : 0;
+                    if (defs['em_roles']['FLOOR_WARDEN'] in emrolesOnThisLocation) {
+                      const floorwardens = [];
+                      // loop through the users
+                      for (let u of emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['users']) {
+                        if (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'].indexOf(u) == -1) {
+                          floorwardens.push(u);
+                        }
+                      }
+                      comp['total_personnel'] += floorwardens.length;
+                      try {
+                          const floorwardentrained  = await training.getEMRUserCertifications(floorwardens,
+                          {'em_role_id':  defs['em_roles']['FLOOR_WARDEN']});
+                          comp['total_personnel_trained']['total_passed'] +=
+                          floorwardentrained['total_passed'];
+
+                        tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
+                        comp['percentage'] = tempPercetage + '%';
+                      } catch (e) {
+
+                      }
+                    }
                 break;
-            
+
                 case 8:
                     // General Occupant Training
-                    if ('8' in emrolesOnThisLocation) {
-                        comp['total_personnel'] = comp['general_occupant_total'] = emrolesOnThisLocation['8']['count'];
-                        comp['location_details'] = emrolesOnThisLocation[8];
+                    if (defs['em_roles']['GENERAL_OCCUPANT'] in emrolesOnThisLocation) {
+                        comp['total_personnel'] = comp['general_occupant_total'] =
+                          emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['count'];
+                        comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']];
                         try {
-                            comp['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['8']['users']);
+                            comp['total_personnel_trained'] =
+                            await training.getEMRUserCertifications(
+                              emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['users'],
+                              {'em_role_id': defs['em_roles']['GENERAL_OCCUPANT']}
+                            );
                             tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
                         } catch (e) {
@@ -444,16 +540,21 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['percentage'] = '0%';
                         }
                     }
-                    // comp['total_personnel'] = comp['general_occupant_total'] = ('8' in emrolesOnThisLocation) ? emrolesOnThisLocation['8']['count'] : 0;
+
                 break;
 
                 case 12:
                     // Chief Warden Training
-                    if ('12' in emrolesOnThisLocation) {
-                        comp['total_personnel'] =  comp['chief_warden_total'] = emrolesOnThisLocation['12']['count'];
-                        comp['location_details'] = emrolesOnThisLocation[11];
+                    if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation) {
+                        comp['total_personnel'] =  comp['chief_warden_total'] =
+                          emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['count'];
+                        comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']];
                         try {
-                            comp['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['12']['users']);
+                            comp['total_personnel_trained'] =
+                              await training.getEMRUserCertifications(
+                                emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['users'],
+                                {'em_role_id': defs['em_roles']['CHIEF_WARDEN']}
+                            );
                             tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
                         } catch (e) {
@@ -469,7 +570,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 break;
 
                 default:
-                    
+
                     // comp['total_personnel'] = 0;
                     // comp['total_personnel_trained'] = {
                     // 'total_passed' : 0,
@@ -477,7 +578,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                     // 'failed': []
                     // };
                     // comp['percentage'] = '0%';
-                     
+
                 break;
             }
 
