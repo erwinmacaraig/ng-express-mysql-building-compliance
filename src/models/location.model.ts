@@ -573,110 +573,195 @@ export class Location extends BaseClass {
 		});
   }
 
-  public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number, role_id?:number) {
-    return new Promise((resolve, reject) => {
-      let location = this.ID();
-      let role_id = 0;
-      let em_role_filter = '';
-      if (location_id) {
-        location = location_id;
-      }
-      if (em_role_id) {
-        em_role_filter = ` AND user_em_roles_relation.em_role_id = ${em_role_id}`;
-      }
-      let location_em_roles = {};
-      let subLocToEmRoles:{[key: number]: {}} = {};
-      // FRP or TRP
+  /**
+ *
+ * @param em_role_id
+ * @param location_id
+ * @param role_id
+ * the ACCOUNT ROLE ID of the user logged in to the system
+ */
+public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number, role_id: number = 0) {
+  return new Promise((resolve, reject) => {
+    let location = this.ID();
 
-      this.getParentsChildren(location).then((sublocations) => {
-        const subIds = [];
-        Object.keys(sublocations).forEach((key) => {
-          subIds.push(sublocations[key]['location_id']);
-        });
-        let subIdstring = subIds.join(',');
-        subIdstring = (subIdstring.length == 0) ? '0' : subIdstring;
+    let em_role_filter = '';
+    let connection;
+    let sql;
 
-        const sql = `SELECT
-                    user_em_roles_relation.*,
-                    em_roles.role_name,
-                    locations.name,
-                    locations.is_building
-                  FROM
-                    user_em_roles_relation
-                  INNER JOIN
-                    em_roles
-                  ON
-                    em_roles.em_roles_id = user_em_roles_relation.em_role_id
-                  INNER JOIN
-                    locations
-                  ON
-                    locations.location_id = user_em_roles_relation.location_id
-                  WHERE
-                  user_em_roles_relation.location_id IN (${subIdstring}) ${em_role_filter}
-                  order by em_role_id;`;
+    if (location_id) {
+      location = location_id;
+    }
+    if (em_role_id) {
+      em_role_filter = ` AND user_em_roles_relation.em_role_id = ${em_role_id}`;
+    }
+    let location_em_roles = {};
+    let subLocToEmRoles:{[key: number]: {}} = {};
 
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [], (error, results, fields) => {
-          if (error) {
-            console.log('location.model.getEMRolesForThisLocation', error, sql);
-            throw new Error('There was an error getting the EM Roles for this location');
-          }
-          if (!results.length) {
-            reject('There are no EM Roles for this location id - ' + location);
-          } else {
-            // console.log('Roles from db are ', results);
-            for (let i = 0; i < results.length; i++) {
-              if (results[i]['em_role_id'] in location_em_roles) {
-                location_em_roles[results[i]['em_role_id']]['count'] = location_em_roles[results[i]['em_role_id']]['count'] + 1;
-                (location_em_roles[results[i]['em_role_id']]['users']).push(results[i]['user_id']);
-                if ((location_em_roles[results[i]['em_role_id']]['location']).indexOf(results[i]['location_id']) == -1) {
-                  (location_em_roles[results[i]['em_role_id']]['location']).push(results[i]['location_id']);
-                }
-                // (location_em_roles[results[i]['em_role_id']][results[i]['location_id']]).push(results[i]['user_id']);
-                let loc = results[i]['location_id'];
-                loc = loc.toString();
+    if (role_id === parseInt(defs['Manager'], 10) ) {
+      console.log(typeof defs['Manager']);
+      // FRP SECTION
+    this.getParentsChildren(location).then((sublocations) => {
+      const subIds = [];
+      Object.keys(sublocations).forEach((key) => {
+        subIds.push(sublocations[key]['location_id']);
+      });
+      let subIdstring = subIds.join(',');
+      subIdstring = (subIdstring.length == 0) ? '0' : subIdstring;
 
-                if (loc in  location_em_roles[results[i]['em_role_id']]) {
-                  (location_em_roles[results[i]['em_role_id']][loc]['users']).push(results[i]['user_id']);
-                } else {
-                  location_em_roles[results[i]['em_role_id']][loc] = {
-                    'users': [],
-                    'name': ''
-                  }
-                  location_em_roles[results[i]['em_role_id']][loc]['users'].push(results[i]['user_id']);
-                  location_em_roles[results[i]['em_role_id']][loc]['name'] = results[i]['name']
-                }
+      sql = `SELECT
+                  user_em_roles_relation.*,
+                  em_roles.role_name,
+                  locations.name,
+                  locations.is_building
+                FROM
+                  user_em_roles_relation
+                INNER JOIN
+                  em_roles
+                ON
+                  em_roles.em_roles_id = user_em_roles_relation.em_role_id
+                INNER JOIN
+                  locations
+                ON
+                  locations.location_id = user_em_roles_relation.location_id
+                WHERE
+                user_em_roles_relation.location_id IN (${subIdstring}) ${em_role_filter}
+                order by em_role_id;`;
+
+      connection = db.createConnection(dbconfig);
+      connection.query(sql, [], (error, results, fields) => {
+        if (error) {
+          console.log('location.model.getEMRolesForThisLocation', error, sql);
+          throw new Error('There was an error getting the EM Roles for this location');
+        }
+        if (!results.length) {
+          reject('There are no EM Roles for this location id - ' + location);
+        } else {
+          // console.log('Roles from db are ', results);
+          for (let i = 0; i < results.length; i++) {
+            if (results[i]['em_role_id'] in location_em_roles) {
+              location_em_roles[results[i]['em_role_id']]['count'] = location_em_roles[results[i]['em_role_id']]['count'] + 1;
+              (location_em_roles[results[i]['em_role_id']]['users']).push(results[i]['user_id']);
+              if ((location_em_roles[results[i]['em_role_id']]['location']).indexOf(results[i]['location_id']) == -1) {
+                (location_em_roles[results[i]['em_role_id']]['location']).push(results[i]['location_id']);
               }
-              else {
-                let keyIndex = results[i]['em_role_id'];
-                let loc = results[i]['location_id'].toString();
-                location_em_roles[keyIndex] = {
-                  'name': results[i]['role_name'],
-                  'count': 1,
-                  'users': [results[i]['user_id']],
-                  'location': [results[i]['location_id']]
-                };
+              // (location_em_roles[results[i]['em_role_id']][results[i]['location_id']]).push(results[i]['user_id']);
+              let loc = results[i]['location_id'];
+              loc = loc.toString();
+
+              if (loc in  location_em_roles[results[i]['em_role_id']]) {
+                (location_em_roles[results[i]['em_role_id']][loc]['users']).push(results[i]['user_id']);
+              } else {
                 location_em_roles[results[i]['em_role_id']][loc] = {
                   'users': [],
                   'name': ''
                 }
-                location_em_roles[keyIndex][loc]['users'].push(results[i]['user_id']);
-                location_em_roles[keyIndex][loc]['name'] = results[i]['name']
-
-
+                location_em_roles[results[i]['em_role_id']][loc]['users'].push(results[i]['user_id']);
+                location_em_roles[results[i]['em_role_id']][loc]['name'] = results[i]['name']
               }
-
             }
-            resolve(location_em_roles);
+            else {
+              let keyIndex = results[i]['em_role_id'];
+              let loc = results[i]['location_id'].toString();
+              location_em_roles[keyIndex] = {
+                'name': results[i]['role_name'],
+                'count': 1,
+                'users': [results[i]['user_id']],
+                'location': [results[i]['location_id']]
+              };
+              location_em_roles[results[i]['em_role_id']][loc] = {
+                'users': [],
+                'name': ''
+              }
+              location_em_roles[keyIndex][loc]['users'].push(results[i]['user_id']);
+              location_em_roles[keyIndex][loc]['name'] = results[i]['name']
+            }
           }
-
-        });
-        connection.end();
+          resolve(location_em_roles);
+        }
       });
+      connection.end();
     }).catch((e) => {
-    	return [];
+      return [];
     });
-  }
+    } else if(role_id === parseInt(defs['Tenant'], 10) ) {
+      console.log(typeof defs['Tenant']);
+      sql = `SELECT
+              user_em_roles_relation.*,
+              em_roles.role_name,
+              locations.name
+            FROM
+              user_em_roles_relation
+            INNER JOIN
+              em_roles
+            ON
+              em_roles.em_roles_id = user_em_roles_relation.em_role_id
+            INNER JOIN
+              locations
+            ON
+              locations.location_id = user_em_roles_relation.location_id
+            WHERE
+              user_em_roles_relation.location_id = ${location} ${em_role_filter}
+            ORDER BY
+              em_role_id;`;
+      connection = db.createConnection(dbconfig);
+      connection.query(sql, [], (error, results) => {
+        if (error) {
+          return console.log('location.model.getEMRolesForThisLocation', error, sql);
+        }
+        if (!results.length) {
+          reject('There are no EM Roles for this location id - ' + location);
+        } else {
+          for (let i = 0; i < results.length; i++) {
+            if (results[i]['em_role_id'] in location_em_roles) {
+              location_em_roles[results[i]['em_role_id']]['count'] = location_em_roles[results[i]['em_role_id']]['count'] + 1;
+              (location_em_roles[results[i]['em_role_id']]['users']).push(results[i]['user_id']);
+              if ((location_em_roles[results[i]['em_role_id']]['location']).indexOf(results[i]['location_id']) == -1) {
+                (location_em_roles[results[i]['em_role_id']]['location']).push(results[i]['location_id']);
+              }
+              // (location_em_roles[results[i]['em_role_id']][results[i]['location_id']]).push(results[i]['user_id']);
+              let loc = results[i]['location_id'];
+              loc = loc.toString();
+
+              if (loc in  location_em_roles[results[i]['em_role_id']]) {
+                (location_em_roles[results[i]['em_role_id']][loc]['users']).push(results[i]['user_id']);
+              } else {
+                location_em_roles[results[i]['em_role_id']][loc] = {
+                  'users': [],
+                  'name': ''
+                }
+                location_em_roles[results[i]['em_role_id']][loc]['users'].push(results[i]['user_id']);
+                location_em_roles[results[i]['em_role_id']][loc]['name'] = results[i]['name']
+              }
+            }
+            else {
+              let keyIndex = results[i]['em_role_id'];
+              let loc = results[i]['location_id'].toString();
+              location_em_roles[keyIndex] = {
+                'name': results[i]['role_name'],
+                'count': 1,
+                'users': [results[i]['user_id']],
+                'location': [results[i]['location_id']]
+              };
+              location_em_roles[results[i]['em_role_id']][loc] = {
+                'users': [],
+                'name': ''
+              }
+              location_em_roles[keyIndex][loc]['users'].push(results[i]['user_id']);
+              location_em_roles[keyIndex][loc]['name'] = results[i]['name']
+            }
+          }
+          resolve(location_em_roles);
+        }
+      });
+      connection.end();
+    } else {
+      resolve({});
+    }
+
+
+
+  });
+}
   /**
    *
    * @param location_id
