@@ -66,6 +66,9 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
     queryParams = {};
     public subLocationsArr;
+
+    showCompliance = false;
+
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
         private activeRoute: ActivatedRoute,
@@ -120,6 +123,26 @@ export class SublocationComponent implements OnInit, OnDestroy {
             }
             if (this.parentData['name'].length === 0) {
               this.parentData['name'] = this.parentData['formatted_address'];
+            }
+
+            let isInLocation = false,
+                itInLocationEmRole = false,
+                itInLocationTrpFrpRole = false;
+            for(let rl of response.users_locations){
+                if(rl.location_id == this.locationData['location_id']){
+                    isInLocation = true;
+                    if('user_em_roles_relation_id' in rl){
+                        itInLocationEmRole = true;
+                    }
+                    if('location_account_user_id' in rl && itInLocationTrpFrpRole == false){
+                        itInLocationTrpFrpRole = true;
+                    }
+                }
+            }
+
+            this.showCompliance = false;
+            if(isInLocation && itInLocationTrpFrpRole){
+                this.showCompliance = true;
             }
 
             callBack();

@@ -987,7 +987,9 @@ const defs = require('../config/defs.json');
       		'location' : {},
       		'sublocations' : [],
       		'parent' : {},
-      		'siblings' : []
+      		'siblings' : [],
+            'users_locations' : [],
+            'roles' : []
       	};
 
       	// what is the highest rank role
@@ -997,6 +999,28 @@ const defs = require('../config/defs.json');
       			r = roles[i]['role_id'];
       		}
       	}
+
+        response.roles = roles;
+
+        try{
+            let emRoles = new UserEmRoleRelation(),
+                emroles = <any> await emRoles.getEmRolesByUserId(req.user.user_id);
+            for(let rol of emroles){
+                response.users_locations.push(rol);
+                response.roles.push({
+                    role_id : rol.em_roles_id,
+                    role_name : rol.role_name
+                });
+            }
+        }catch(e){}
+
+        try{
+            let locAcc = new LocationAccountUser(),
+                locAccUsers = <any> await locAcc.getByUserId(req.user.user_id);
+            for(let locacc of locAccUsers){
+                response.users_locations.push(locacc);
+            }
+        }catch(e){}
 
       	let locData = <any> await location.load();
 
@@ -1015,8 +1039,6 @@ const defs = require('../config/defs.json');
                 sublocations = await location.getSublocations(req.user.user_id, r);
             }
         }
-
-        response['sublocations_2'] = JSON.parse(JSON.stringify(sublocations));
 
 
         for (let j = 0; j < sublocations.length; j++) {
