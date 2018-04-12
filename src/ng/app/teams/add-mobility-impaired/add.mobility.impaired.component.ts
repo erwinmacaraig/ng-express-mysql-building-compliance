@@ -187,7 +187,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
     showLocationSelection(user){
-        this.locations = this.filterLocationsToDisplayByUserRole(user, this.locations);
+        this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
         $('#modalLocations').modal('open');
         this.selectedUser = user;
     }
@@ -254,9 +254,10 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
             }
 
             this.selectedUser['location_name'] = '';
-            if(typeof parent != 'undefined' && selectedLocationId != parent.location_id){
-                this.selectedUser['location_name'] += parent.name+', ';
-            }
+            try{
+                let parent = this.searchChildLocation(this.locations, selected.parent_id);
+                this.selectedUser['location_name'] += parent.name +', ';
+            }catch(e){}
             this.selectedUser['location_name'] += selected['name'];
 
             console.log(this.addedUsers);
@@ -268,7 +269,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         $('#modalLocations').modal('close');
         this.selectedUser = {};
         this.modalSearchLocation.nativeElement.value = "";
-        this.locations = this.locationsCopy;
+        // this.locations = this.locationsCopy;
     }
 
     public submitPEEP() {

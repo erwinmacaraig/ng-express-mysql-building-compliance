@@ -444,7 +444,8 @@ export class User extends BaseClass {
             const sql = `SELECT
             locations.location_id,
             locations.parent_id,
-            locations.name
+            locations.name,
+            locations.is_building
             FROM
             location_account_user LAU
             INNER JOIN

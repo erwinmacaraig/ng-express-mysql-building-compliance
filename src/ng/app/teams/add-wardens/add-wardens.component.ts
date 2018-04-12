@@ -30,7 +30,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         first_name : '',
         last_name : '',
         email : '',
-        role_id : 3,
+        role_id : 0,
+        account_role_id : 0,
         account_location_id : 0,
         eco_role_id : 0,
         location_name : 'Select Location',
@@ -259,7 +260,28 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         this.addedUsers = newList;
     }
 
+    filterLocationsToDisplayByUserRole(user, data){
+        let resp = [],
+            copy = JSON.parse(JSON.stringify(data));
+        if(user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
+            let temp = [];
+            for(let i in data){
+                let innerTemp = JSON.parse(JSON.stringify(data[i]));
+                innerTemp.sublocations = [];
+                temp.push(innerTemp);
+            }
+            resp = temp;
+        }else{
+            resp = copy;
+        }
+
+        return resp;
+    }
+
     showLocationSelection(user){
+
+        this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)) );
+
         $('#modalLocations').modal('open');
         this.selectedUser = user;
     }
@@ -326,9 +348,10 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
             }
 
             this.selectedUser['location_name'] = '';
-            if(typeof parent != 'undefined' && selectedLocationId != parent.location_id){
-                this.selectedUser['location_name'] += parent.name+', ';
-            }
+            try{
+                let parent = this.searchChildLocation(this.locations, selected.parent_id);
+                this.selectedUser['location_name'] += parent.name +', ';
+            }catch(e){}
             this.selectedUser['location_name'] += selected['name'];
 
             console.log(this.addedUsers);
@@ -340,7 +363,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         $('#modalLocations').modal('close');
         this.selectedUser = {};
         this.modalSearchLocation.nativeElement.value = "";
-        this.locations = this.locationsCopy;
+        // this.locations = this.locationsCopy;
     }
 
     addBulkWarden() {

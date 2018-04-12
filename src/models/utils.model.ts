@@ -170,6 +170,7 @@ export class Utils {
                             locations.city,
                             locations.state,
                             locations.postal_code,
+                            locations.is_building,
                             accounts.account_name
                         FROM
                             locations

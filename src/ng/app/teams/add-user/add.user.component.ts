@@ -13,6 +13,8 @@ import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
+import { ChangeDetectionStrategy } from '@angular/core';
+
 declare var $: any;
 @Component({
     selector: 'app-add-user',
@@ -58,6 +60,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
     private paramLocId = '';
 
     searchModalLocationSubs;
+    showLocationsRecursive = false;
 
     constructor(
         private authService: AuthService, 
@@ -79,7 +82,6 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 this.paramRole = params.role;
             }
         });
-        
     }
 
     ngOnInit(){
@@ -231,10 +233,12 @@ export class AddUserComponent implements OnInit, OnDestroy {
         return resp;
     }
 
+    changeRoleEvent(user){
+        this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
+        this.showLocationsRecursive = true;
+    }
+
     showLocationSelection(user){
-
-        this.locations = this.filterLocationsToDisplayByUserRole(user, this.locations);
-
         $('#modalLocations').modal('open');
         this.selectedUser = user;
     }
@@ -301,9 +305,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
             }
 
             this.selectedUser['location_name'] = '';
-            if(typeof parent != 'undefined' && selectedLocationId != parent.location_id){
-                this.selectedUser['location_name'] += parent.name+', ';
-            }
+            try{
+                let parent = this.searchChildLocation(this.locations, selected.parent_id);
+                this.selectedUser['location_name'] += parent.name +', ';
+            }catch(e){}
             this.selectedUser['location_name'] += selected['name'];
 
             console.log(this.addedUsers);
@@ -315,7 +320,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         $('#modalLocations').modal('close');
         this.selectedUser = {};
         this.modalSearchLocation.nativeElement.value = "";
-        this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
+        // this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
     }
 
     ngAfterViewInit(){
