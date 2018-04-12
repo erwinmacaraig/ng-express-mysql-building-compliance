@@ -48,7 +48,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 
 	userData = {};
-  complianceSublocations;
+  complianceSublocations = [];
 	selectedComplianceTitle = '';
 	selectedComplianceDescription = '';
 	selectedComplianceClasses = 'green darken-1 epm-icon';
@@ -172,7 +172,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 		this.locationService.getById(this.locationID, (response) => {
       console.log(response);
-      this.complianceSublocations = response.sublocations;
+
+      // this.complianceSublocations = response.sublocations;
+      // this.complianceSublocations = response.location;
+      this.complianceSublocations.push(response.location);
+      console.log(this.complianceSublocations);
 			this.locationData = response.location;
 			this.locationData['parentData'] = response.parent;
 			this.locationData.parentData['sublocations'] = response.siblings; console.log(this.locationData.parentData['sublocations']);
