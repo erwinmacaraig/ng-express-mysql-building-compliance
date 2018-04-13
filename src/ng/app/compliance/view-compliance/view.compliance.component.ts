@@ -173,7 +173,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	ngOnInit() {
         this.locationService.getById(this.locationID, (response) => {
             console.log(response);
-            this.complianceSublocations = response.sublocations;
+            if (response.sublocations.length > 0) {
+              this.complianceSublocations = response.sublocations;
+            } else {
+              this.complianceSublocations.push(response.location);
+            }
             this.locationData = response.location;
             this.locationData['parentData'] = response.parent;
             this.locationData.parentData['sublocations'] = response.siblings; console.log(this.locationData.parentData['sublocations']);
