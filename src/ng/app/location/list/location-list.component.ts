@@ -7,6 +7,7 @@ import { LocationsService } from '../../services/locations';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { ComplianceService } from '../../services/compliance.service';
 import { AuthService } from '../../services/auth.service';
 import { Observable, } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -21,7 +22,7 @@ declare var $: any;
   selector: 'app-location-list',
   templateUrl: './location-list.component.html',
   styleUrls: ['./location-list.component.css'],
-  providers : [LocationsService, DashboardPreloaderService, AuthService, AccountsDataProviderService, EncryptDecryptService]
+  providers : [LocationsService, DashboardPreloaderService, AuthService, ComplianceService, AccountsDataProviderService, EncryptDecryptService]
 })
 export class LocationListComponent implements OnInit, OnDestroy {
 
@@ -75,6 +76,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
       private locationService: LocationsService,
       private accntService: AccountsDataProviderService,
       private encryptDecrypt: EncryptDecryptService,
+      private complianceService : ComplianceService,
       private router: Router,
       private elemRef : ElementRef,
       private userService : UserService
@@ -112,7 +114,17 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	getLocationsForListing(callback){
 		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
 
-    		this.locations = response.locations;
+            this.locations = response.locations;
+
+            for(let loc of this.locations){
+                loc['fetchingCompliance'] = true;
+                loc['compliance_percentage'] = 0;
+                this.complianceService.getLocationsLatestCompliance(loc.location_id, (compRes) => {
+                    loc['fetchingCompliance'] = false;
+                    loc['compliance_percentage'] = compRes.percent ;
+                });
+            }
+    		
     		if (this.locations.length > 0) {
     			for (let i = 0; i < this.locations.length; i++) {
     				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
