@@ -1324,7 +1324,7 @@
 							<div class="arrow"></div>
 						</td>
 						<td class="with-bar red-theme" 
-                            [ngClass]="{ 'green-theme' : k.compliance.percentage_number >= 100, 'orange-theme' : k.compliance.percentage_number < 100  }" 
+                            [ngClass]="{ 'green-theme' : k.compliance.percentage_number >= 100 }" 
                             *ngIf="k.type == 'percent' && k.compliance_kpis_id != 5">
 							<div class="text">{{k.compliance.percentage}}</div>
 							<div class="progress-container">
@@ -1335,7 +1335,7 @@
 							</div>
 							<div class="arrow"></div>
 						</td>
-                        <td class="with-bar red-theme" [ngClass]="{ 'green-theme' : k.compliance.percentage_number >= 100, 'orange-theme' : k.compliance.percentage_number < 100 }" *ngIf="k.compliance_kpis_id == 5">
+                        <td class="with-bar red-theme" [ngClass]="{ 'green-theme' : k.compliance.percentage_number >= 100 }" *ngIf="k.compliance_kpis_id == 5">
                             <div class="text">{{k.compliance.percentage}}</div>
                             <div class="progress-container">
                                 <div class="progress">
