@@ -212,7 +212,8 @@ export class UsersRoute extends BaseRoute {
       router.get('/users/get-all-locations/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
         const user = new User(req.user.user_id);
         const emrolerelationObj = new UserEmRoleRelation();
-        const locations = await user.getAllMyLocations();
+
+        const locations = await user.getAllMyEMLocations();
         const locIds = [];
         for (const loc of locations) {
           locIds.push(loc['location_id']);
@@ -1701,9 +1702,9 @@ export class UsersRoute extends BaseRoute {
         let token = req.body.token,
             password = req.body.password,
             tokenModel = new Token(),
-            response = { 
-                status : false, 
-                message : '', 
+            response = {
+                status : false,
+                message : '',
                 token : '',
                 data : {
                     userId : 0,
@@ -1737,7 +1738,7 @@ export class UsersRoute extends BaseRoute {
                     userModel.set('can_login', 1);
                     userModel.set('password', encPass);
                     userModel.set('last_login', today.format('YYYY-MM-DD HH-mm-ss'));
-                    
+
                     await userModel.dbUpdate();
 
                     tokenModel.set('action', 'verify');
@@ -2030,7 +2031,7 @@ export class UsersRoute extends BaseRoute {
                             'location_id': users[i]['account_location_id']
                         });
                     }
-                    
+
                 }else{
                     let invitation = new UserInvitation();
                     await invitation.create(inviSaveData);
@@ -2075,7 +2076,7 @@ export class UsersRoute extends BaseRoute {
     				);
                 }
 
-                
+
 
 			}else{
 				returnUsers.push( users[i] );
@@ -2754,7 +2755,7 @@ export class UsersRoute extends BaseRoute {
         // listing of roles is implemented here because we are only listing roles on a sub location
         const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
         const canLoginTenantArr = [];
-
+        const tempWardenUsers = [];
         Object.keys(canLoginTenants).forEach((key) => {
           canLoginTenantArr.push(canLoginTenants[key]);
         });
@@ -2763,14 +2764,39 @@ export class UsersRoute extends BaseRoute {
           // get all wardens for this location on this account
           const EMRole = new UserEmRoleRelation();
           const trainingCert = new TrainingCertification();
-          const temp =
+          let temp;
+          try {
+            temp =
             await EMRole.getEMRolesOnAccountOnLocation(
               defs['em_roles']['WARDEN'],
               canLoginTenantArr[i]['account_id'],
               location_id
-          );
-          canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
-          canLoginTenantArr[i]['wardens'] = temp['raw'];
+            );
+            canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
+            canLoginTenantArr[i]['wardens'] = temp['raw'];
+            for (let w of temp['raw']) {
+
+            }
+          } catch (e) {
+            temp = {};
+            canLoginTenantArr[i]['total_wardens'] = 0;
+            canLoginTenantArr[i]['wardens'] = [];
+          }
+
+          try {
+            temp = null; // reset
+            temp =
+            await EMRole.getEMRolesOnAccountOnLocation(
+              defs['em_roles']['FLOOR_WARDEN'],
+              canLoginTenantArr[i]['account_id'],
+              location_id
+            );
+            canLoginTenantArr[i]['total_wardens'] += temp['users'].length;
+
+          } catch (e) {
+
+          }
+
 
           // get trained wardens
           canLoginTenantArr[i]['trained_wardens'] = await

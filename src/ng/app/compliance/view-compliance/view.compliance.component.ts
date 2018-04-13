@@ -48,7 +48,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 
 	userData = {};
-    complianceSublocations;
+    complianceSublocations = [];
 	selectedComplianceTitle = '';
 	selectedComplianceDescription = '';
 	selectedComplianceClasses = 'green darken-1 epm-icon';
@@ -171,7 +171,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	ngOnInit() {
-
         this.locationService.getById(this.locationID, (response) => {
             console.log(response);
             this.complianceSublocations = response.sublocations;
@@ -206,8 +205,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 this.evacDiagramSublocations = responseSubs.data.sublocations;
             });
         });
-
-
 	}
 
 	ngAfterViewInit(){

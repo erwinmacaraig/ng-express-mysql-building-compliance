@@ -301,8 +301,11 @@ import * as S3Zipper from 'aws-s3-zipper';
                     counter < emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'].length; counter++) {
                     if (emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].indexOf(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'][counter]) == -1) {
                       floorwardens.push(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'][counter]);
+
                     }
                   }
+                  emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'] =
+                    emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].concat(floorwardens);
                   emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training'] =
                   await training.getEMRUserCertifications(floorwardens, {'em_role_id': defs['em_roles']['FLOOR_WARDEN']});
                 }
@@ -311,6 +314,9 @@ import * as S3Zipper from 'aws-s3-zipper';
               }
               // console.log((defs['em_roles']['WARDEN'] in emrolesOnThisLocation && (locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])));
               if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation && (locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])) {
+
+
+
                 emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] =
                 emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] +
                 emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_wardens'];
@@ -491,7 +497,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                     // Warden Training
                     if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation) {
                         comp['total_personnel'] = comp['warden_total'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
-                        comp['location_details'] = emrolesOnThisLocation[9];
+                        comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']];
                         try {
                             comp['total_personnel_trained'] =
                                 await training.getEMRUserCertifications(
@@ -511,6 +517,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                         }
                     }
                     if (defs['em_roles']['FLOOR_WARDEN'] in emrolesOnThisLocation) {
+                      // comp['location_details'] = comp['location_details'].
                       const floorwardens = [];
                       // loop through the users
                       for (let u of emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['users']) {

@@ -1036,7 +1036,7 @@
                   {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_passed}}
               </td>
               <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
-                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
+                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].percentage}}
               </td>
               <td>
                   <a href="javascript:void(0)" (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
