@@ -456,11 +456,17 @@ import * as S3Zipper from 'aws-s3-zipper';
                 validTillMoment = moment(comp['valid_till']);
 
             comp['measurement'] = comp['kpis']['measurement'];
-
             comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
-
             comp['validity_status'] = 'none-exist';
+            comp['valid'] = 0;
             comp['days_remaining']= 0;
+            comp['total_personnel'] = 0;
+            comp['total_personnel_trained'] = {
+                'total_passed' : 0,
+                'passed': [],
+                'failed': []
+            };
+            comp['percentage'] = '0%';
 
             if (m === 'Traffic' || m === 'evac') {
 
@@ -471,6 +477,8 @@ import * as S3Zipper from 'aws-s3-zipper';
                 if (comp['docs'][0] && validTillMoment.diff(today, 'days') > 0) {
                     comp['validity_status'] = 'valid';
                     comp['days_remaining'] = validTillMoment.diff(today, 'days');
+                    comp['valid'] = 1;
+                    comp['percentage'] = '100%';
                 } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') >= 0 && validTillMoment.diff(today, 'days') <= 30) {
                     comp['validity_status'] = 'expiring';
                 } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') <= 0) {
@@ -483,14 +491,6 @@ import * as S3Zipper from 'aws-s3-zipper';
                 // 11 General Occupant
             }
             let tempPercetage;
-
-            comp['total_personnel'] = 0;
-            comp['total_personnel_trained'] = {
-                'total_passed' : 0,
-                'passed': [],
-                'failed': []
-            };
-            comp['percentage'] = '0%';
 
             switch(comp['compliance_kpis_id']) {
                 case 6:
@@ -506,6 +506,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                                 );
                             tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
+                            if(tempPercetage >= 100){
+                                comp['valid'] = 1;
+                            }
                         } catch (e) {
                             comp['total_personnel'] = 0;
                             comp['total_personnel_trained'] = {
@@ -535,6 +538,9 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                         tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                         comp['percentage'] = tempPercetage + '%';
+                        if(tempPercetage >= 100){
+                            comp['valid'] = 1;
+                        }
                       } catch (e) {
                         console.log(e);
                       }
@@ -564,6 +570,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['location_details'][loc]['training']['percentage'] =
                             Math.round((comp['location_details'][loc]['training']['total_passed']
                              / comp['location_details'][loc]['users'].length) * 100).toFixed(0).toString() + '%';
+
                           }
                         }
                       }
@@ -591,6 +598,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                             );
                             tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
+                            if(tempPercetage >= 100){
+                                comp['valid'] = 1;
+                            }
                         } catch (e) {
                             comp['total_personnel'] = 0;
                             comp['total_personnel_trained'] = {
@@ -618,6 +628,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                             );
                             tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
+                            if(tempPercetage >= 100){
+                                comp['valid'] = 1;
+                            }
                         } catch (e) {
                             comp['total_personnel'] = 0;
                             comp['total_personnel_trained'] = {
@@ -673,6 +686,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                 if(diagrams.length > 0){
                     comp['percentage'] = Math.round( ( valids / diagrams.length ) * 100) + '%' ;
                 }
+                if(Math.round( ( valids / diagrams.length ) * 100) >= 100){
+                    comp['valid'] = 1;
+                }
                 comp['total_valid_diagrams'] = valids;
                 comp['total_diagrams'] = diagrams.length;
             }
@@ -684,6 +700,20 @@ import * as S3Zipper from 'aws-s3-zipper';
 
 		this.response.status = true;
 		this.response.data = compliances;
+        this.response['percent'] = 0;
+
+        let validcount = 0,
+            totalcount = 0;
+        for (let comp of compliances) {
+            totalcount++;
+            if(comp['valid'] == 1){
+                validcount++;
+            }
+        }
+
+        if(totalcount > 0){
+            this.response['percent'] = Math.round( (validcount / totalcount) * 100 );
+        }
 
 		res.statusCode = 200;
 		res.send(this.response);

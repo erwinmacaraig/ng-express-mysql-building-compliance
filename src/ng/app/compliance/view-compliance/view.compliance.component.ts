@@ -163,11 +163,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 			kpis['template'] = this[templateName];
 			kpis['tableTemplate'] = this[tableTemplateName];
 		}
-        this.totalPercentage = (counter / this.KPIS.length) * 100;
-        this.totalPercentage = Math.round(this.totalPercentage) + '%';
-        console.log(this.KPIS);
-        console.log('counter = ' + counter);
-
 	}
 
 	ngOnInit() {
@@ -197,6 +192,9 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
                     this.latestComplianceData = responseCompl.data;
                     this.setKPISdataForDisplay();
+
+                    this.totalPercentage = responseCompl.percent + '%';
+
                     setTimeout(() => {
                         $('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
                         this.dashboard.hide();
