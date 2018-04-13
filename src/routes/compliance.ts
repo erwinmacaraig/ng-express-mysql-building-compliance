@@ -500,26 +500,63 @@ import * as S3Zipper from 'aws-s3-zipper';
                         }
                     }
                     if (defs['em_roles']['FLOOR_WARDEN'] in emrolesOnThisLocation) {
-                      // comp['location_details'] = comp['location_details'].
                       const floorwardens = [];
                       // loop through the users
-                      for (let u of emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['users']) {
-                        if (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'].indexOf(u) == -1) {
+                      for (const u of emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['users']) {
+                        if (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'].indexOf(u) === -1) {
                           floorwardens.push(u);
                         }
                       }
+                      emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'] =
+                        emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'].concat(floorwardens);
                       comp['total_personnel'] += floorwardens.length;
                       try {
-                          const floorwardentrained  = await training.getEMRUserCertifications(floorwardens,
-                          {'em_role_id':  defs['em_roles']['FLOOR_WARDEN']});
-                          comp['total_personnel_trained']['total_passed'] +=
-                          floorwardentrained['total_passed'];
+                        const floorwardentrained  = await training.getEMRUserCertifications(floorwardens,
+                        {'em_role_id':  defs['em_roles']['FLOOR_WARDEN']});
+                        comp['total_personnel_trained']['total_passed'] +=
+                        floorwardentrained['total_passed'];
 
                         tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                         comp['percentage'] = tempPercetage + '%';
                       } catch (e) {
-
+                        console.log(e);
                       }
+                      // computation per location section (signifance: FRP)
+                      if (Object.keys(comp['location_details']).length === 0) {
+                        comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']];
+                      } else {
+                        const locDetailsForFloorWarden = emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']];
+                        const wardenUsersInThisLoc = [];
+                        for (const loc of comp['location_details']['location']) {
+                          if (loc in locDetailsForFloorWarden) {
+                            const allPassedWardens = [];
+                            for (const pw of comp['location_details'][loc]['training']['passed']) {
+                              allPassedWardens.push(pw['user_id']);
+                            }
+                            // loop for all passed users
+                            for (const p of locDetailsForFloorWarden[loc]['training']['passed']) {
+                              if (allPassedWardens.indexOf(p['user_id']) === -1) {
+                                comp['location_details'][loc]['training']['passed'].push(p);
+                              }
+                            }
+                            comp['location_details'][loc]['training']['failed'] =
+                            comp['location_details'][loc]['training']['failed'].concat(locDetailsForFloorWarden[loc]['training']['failed']);
+                            comp['location_details'][loc]['training']['total_passed'] =
+                              comp['location_details'][loc]['training']['passed'].length;
+
+                            comp['location_details'][loc]['training']['percentage'] =
+                            Math.round((comp['location_details'][loc]['training']['total_passed']
+                             / comp['location_details'][loc]['users'].length) * 100).toFixed(0).toString() + '%';
+                          }
+                        }
+                      }
+
+
+
+
+
+
+
                     }
                 break;
 

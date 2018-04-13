@@ -127,7 +127,7 @@ export class TrainingCertification extends BaseClass {
    * @description
    * Determine if the given users has a valid certifications
    */
-  public getEMRUserCertifications(users: Array<number>,  filter = {}): Promise<object> {
+  public getEMRUserCertifications(users: Array<number>,  filter = {}): Promise<object>{
     return new Promise((resolve, reject) => {
       if (!users.length) {
         reject('Invalid input');

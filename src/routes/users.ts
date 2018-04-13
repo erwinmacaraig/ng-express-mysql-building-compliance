@@ -2747,7 +2747,7 @@ export class UsersRoute extends BaseRoute {
     //////
     // For Enhancement //
     // This is for listing Tenants(Accounts) in a location
-    // Current : We only listing who have TRP in the account
+    // Current : We only list who have TRP in the account
     //////
 	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction){
         const location_id = req.params.location_id;
@@ -2755,7 +2755,10 @@ export class UsersRoute extends BaseRoute {
         // listing of roles is implemented here because we are only listing roles on a sub location
         const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
         const canLoginTenantArr = [];
-        const tempWardenUsers = [];
+        let tempWardenUsers = [];
+        const tempFloorWardenUsers = [];
+        let trainedWardensObj = {};
+        let trainedFloorWardensObj = {};
         Object.keys(canLoginTenants).forEach((key) => {
           canLoginTenantArr.push(canLoginTenants[key]);
         });
@@ -2774,13 +2777,28 @@ export class UsersRoute extends BaseRoute {
             );
             canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
             canLoginTenantArr[i]['wardens'] = temp['raw'];
-            for (let w of temp['raw']) {
-
-            }
+            tempWardenUsers = tempWardenUsers.concat(temp['users']);
+            trainedWardensObj = await
+            trainingCert.getEMRUserCertifications(temp['users'], {'em_role_id': defs['em_roles']['WARDEN']});
+            /*
+            console.log("***********************",
+            canLoginTenantArr[i],
+            "**************************************",
+            trainedWardensObj,
+            "**************************************"
+            );
+            */
           } catch (e) {
+            console.log('users route getLocationsTenants()',e);
             temp = {};
             canLoginTenantArr[i]['total_wardens'] = 0;
             canLoginTenantArr[i]['wardens'] = [];
+            trainedWardensObj = {
+              'total_passed': 0,
+              'passed': [],
+              'failed': [],
+              'percentage': ''
+            };
           }
 
           try {
@@ -2791,19 +2809,62 @@ export class UsersRoute extends BaseRoute {
               canLoginTenantArr[i]['account_id'],
               location_id
             );
-            canLoginTenantArr[i]['total_wardens'] += temp['users'].length;
 
+            // canLoginTenantArr[i]['wardens'] = canLoginTenantArr[i]['wardens'].concat(temp['raw']);
+            // make sure that unique user only gets to be included
+            for (let fw of temp['raw']) {
+              if (tempWardenUsers.indexOf(fw['user_id']) == -1) {
+                tempFloorWardenUsers.push(fw['user_id']);
+                canLoginTenantArr[i]['wardens'].push(fw);
+              }
+            }
+            /*
+            for (let fw = 0; fw < temp['users'].length; fw++) {
+              if (tempWardenUsers.indexOf(temp['users'][fw]) == -1) {
+                tempFloorWardenUsers.push(temp['users'][fw]);
+              }
+            }
+            */
+            canLoginTenantArr[i]['total_wardens'] += tempFloorWardenUsers.length;
+            trainedFloorWardensObj = await
+            trainingCert.getEMRUserCertifications(tempFloorWardenUsers, {'em_role_id': defs['em_roles']['FLOOR_WARDEN']});
+            /*
+            console.log("---------------------------------",
+            canLoginTenantArr[i],
+            "---------------------------------------------",
+            trainedFloorWardensObj,
+            "---------------------------------------------",
+            tempFloorWardenUsers,
+            "---------------------------------------------"
+            );
+            */
           } catch (e) {
-
+            console.log('users route getLocationsTenants()',e);
+            trainedFloorWardensObj = {
+              'total_passed': 0,
+              'passed': [],
+              'failed': [],
+              'percentage': ''
+            };
           }
 
-
-          // get trained wardens
-          canLoginTenantArr[i]['trained_wardens'] = await
+          /*
+            canLoginTenantArr[i]['trained_wardens'] = await
                trainingCert.getEMRUserCertifications(temp['users']);
+          */
+          // get trained wardens
+          canLoginTenantArr[i]['trained_wardens'] = {
+            'failed': trainedWardensObj['failed'].concat(trainedFloorWardensObj['failed']),
+            'passed': trainedWardensObj['passed'].concat(trainedFloorWardensObj['passed']),
+            'total_passed': trainedWardensObj['passed'].length + trainedFloorWardensObj['passed'],
+            'percentage':  Math.round(((trainedWardensObj['passed'].length + trainedFloorWardensObj['passed']) / (tempWardenUsers.length + tempFloorWardenUsers.length)) * 100).toFixed(0).toString() + '%'
+          };
         }
-        console.log(canLoginTenantArr);
-
+        /*
+        console.log('users route getLocationsTenants()',
+        canLoginTenantArr,
+        '============================');
+        */
         return canLoginTenantArr;
 	}
 
