@@ -645,11 +645,15 @@ import * as S3Zipper from 'aws-s3-zipper';
 
             if(comp.compliance_kpis_id == evacDiagramId){
                 let locSubModel = new Location(),
-                    subs = <any> await locSubModel.getWhere([ 'parent_id = '+ locationID + ' AND archived = 0' ]),
+                    subs = <any> [],
                     subIds = [0],
                     compianceDocsModel = new ComplianceDocumentsModel(),
                     diagrams = [],
                     docsWhere = [];
+
+                try{
+                    subs = await locSubModel.getWhere([ 'parent_id = '+ locationID + ' AND archived = 0' ]);
+                }catch(e){}
 
                 for(let sub of subs){
                     subIds.push(sub.location_id);
@@ -709,7 +713,10 @@ import * as S3Zipper from 'aws-s3-zipper';
         if(response.data.location[0]){
             response.data.location = response.data.location[0];
         }
-        sublocations = <any> await locationModel.getWhere([ 'parent_id = ' +locationId+ ' AND archived = 0' ]);
+
+        try{
+            sublocations = <any> await locationModel.getWhere([ 'parent_id = ' +locationId+ ' AND archived = 0' ]);
+        }catch(e){}
 
         if(sublocations.length > 0){
             let 
@@ -765,6 +772,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             response.data.total_valid_diagrams = valids;
 
         }
+        
 
         response.data['percentage_number'] = parseInt(response.data.percentage.replace('%', '').trim());
 
