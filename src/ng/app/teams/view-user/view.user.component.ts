@@ -243,8 +243,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 				}
 			}
 
-			if(selectedLoc.em_roles_id !== null && selectedLoc.em_roles_id > 0){
-				this.viewData.role_text = this.getRoleName(selectedLoc.em_roles_id);
+			if(selectedLoc.em_role_id !== null && selectedLoc.em_role_id > 0){
+				this.viewData.role_text = this.getRoleName(selectedLoc.em_role_id);
 			}else{
 				if(selectedLoc.location_role_id == 1 || selectedLoc.location_role_id == 2){
 					this.viewData.role_text = this.getRoleName(selectedLoc.location_role_id);
@@ -461,7 +461,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     	this.toEditLocations.push({
     		location_id : 0,
     		location_role_id : 0,
-    		em_roles_id : 0,
+    		em_role_id : 0,
     		role_id : 0,
     		id : this.generateRandomChars(20)
     	});
@@ -475,11 +475,11 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     	if(roleId in [1,2]){
     		location.role_id = roleId;
     		location.location_role_id = roleId;
-    		location.em_roles_id = 0;
+    		location.em_role_id = 0;
     	}else{
     		location.role_id = 0;
     		location.location_role_id = roleId;
-    		location.em_roles_id = roleId;
+    		location.em_role_id = roleId;
     	}
     }
 

@@ -1436,7 +1436,9 @@ export class UsersRoute extends BaseRoute {
                 let arrWhere = [];
                 arrWhere.push(['user_id = '+userId]);
                 arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
-                locations = await locationAccountUserModel.getMany(arrWhere);
+                // locations = await locationAccountUserModel.getMany(arrWhere);
+
+                locations = await userModel.getAllMyEMLocations();
 
                 if( user['mobility_impaired'] == 1 ){
                     let mobilityModel = new MobilityImpairedModel(),
@@ -1478,15 +1480,17 @@ export class UsersRoute extends BaseRoute {
                 }
             }
 
-            Object.keys(locations).forEach((key) => {
-                if ('em_roles_id' in locations[key] && locations[key]['em_roles_id']) {
-                    locations[key]['training_requirement_name'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_name'];
-                    locations[key]['training_requirement_id'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_id'];
-                }
-            });
+
+          for (const loc of locations) {
+            if ('em_role_id' in loc) {
+              loc['training_requirement_name'] = training_requirements[loc['em_role_id']]['training_requirement_name'];
+              loc['training_requirement_id'] = training_requirements[loc['em_role_id']]['training_requirement_id'];
+            }
+          }
 
 
-            response.data.locations = locations;
+
+      response.data.locations = locations;
 			// response.data.user = user;
 			response.status = true;
 		}catch(e){

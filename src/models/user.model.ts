@@ -445,7 +445,8 @@ export class User extends BaseClass {
               locations.location_id,
               locations.parent_id,
               locations.name,
-              locations.is_building
+              locations.is_building,
+              user_em_roles_relation.em_role_id
               FROM
               user_em_roles_relation
               INNER JOIN
