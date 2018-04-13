@@ -688,7 +688,8 @@ export class Location extends BaseClass {
           sql = `SELECT
                   user_em_roles_relation.*,
                   em_roles.role_name,
-                  locations.name
+                  locations.name,
+                  locations.is_building
                 FROM
                   user_em_roles_relation
                 INNER JOIN
