@@ -716,9 +716,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         try{
             sublocations = <any> await locationModel.getWhere([ 'parent_id = ' +locationId+ ' AND archived = 0' ]);
-        }catch(e){}
 
-        if(sublocations.length > 0){
             let 
             subs = sublocations,    
             diagrams = <any> [],    
@@ -770,9 +768,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
             response.data.total_diagrams = total_diagrams;
             response.data.total_valid_diagrams = valids;
-
-        }
-        
+        }catch(e){}
 
         response.data['percentage_number'] = parseInt(response.data.percentage.replace('%', '').trim());
 
