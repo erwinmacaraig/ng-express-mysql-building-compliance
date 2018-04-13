@@ -127,12 +127,13 @@ export class TrainingCertification extends BaseClass {
    * @description
    * Determine if the given users has a valid certifications
    */
-  public getEMRUserCertifications(users: Array<number>): Promise<object> {
+  public getEMRUserCertifications(users: Array<number>,  filter = {}): Promise<object>{
     return new Promise((resolve, reject) => {
       if (!users.length) {
         reject('Invalid input');
         return;
       }
+      let filterStr = '';
       let trained = 0;
       const outcome = {
         'total_passed': 0,
@@ -142,8 +143,11 @@ export class TrainingCertification extends BaseClass {
       };
       const users_string = users.join(',');
       const connection = db.createConnection(dbconfig);
+      if ('em_role_id' in filter) {
+        filterStr += ` AND user_em_roles_relation.em_role_id = ${filter['em_role_id']}`;
+      }
       const sql = `SELECT
-              user_em_roles_relation.location_id,
+                user_em_roles_relation.location_id,
                 user_em_roles_relation.user_id,
                 user_em_roles_relation.em_role_id,
                 em_roles.role_name,
@@ -175,7 +179,7 @@ export class TrainingCertification extends BaseClass {
             ON
               (certifications.training_requirement_id  =  training_requirement.training_requirement_id AND
                 user_em_roles_relation.user_id = certifications.user_id)
-            WHERE user_em_roles_relation.user_id IN (${users_string}) ORDER BY expiry_date DESC;`;
+            WHERE user_em_roles_relation.user_id IN (${users_string}) ${filterStr} ORDER BY expiry_date DESC;`;
       connection.query(sql, [], (error, results, fields) => {
         if (error) {
           console.log('training.certification.model.getEMRUserCertifications', error, sql);

@@ -8,6 +8,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { LocationsService } from '../../services/locations';
 import { UserService } from '../../services/users';
 import { AccountsDataProviderService } from '../../services/accounts';
+import { AuthService } from '../../services/auth.service';
 
 import { Countries } from '../../models/country.model';
 import { Timezone } from '../../models/timezone';
@@ -26,7 +27,9 @@ declare var Materialize: any;
 })
 export class SublocationComponent implements OnInit, OnDestroy {
     @ViewChild('formAddTenant') formAddTenant : NgForm;
-    userData: Object;
+    userData = <any> {};
+    isFrp = false;
+    isTrp = false;
     encryptedID;
     locationID = 0;
     locationData = {
@@ -35,6 +38,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
       name: ''
 
     };
+    sublocations = [];
     public parentData = {
         name : '',
         sublocations: [],
@@ -62,14 +66,28 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
     queryParams = {};
     public subLocationsArr;
+
+    showCompliance = false;
+
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
         private activeRoute: ActivatedRoute,
         private router: Router,
         private userService : UserService,
         private elemRef: ElementRef,
+        private auth: AuthService,
         private accountService: AccountsDataProviderService
     ) {
+
+        this.userData = this.auth.getUserData();
+        for(let rol of this.userData.roles){
+            if(rol.role_id == 1){
+                this.isFrp = false;
+            }
+            if(rol.role_id == 2){
+                this.isTrp = false;
+            }
+        }
 
         // this.mutationOversable = new MutationObserver((mutationsList) => {
         //     mutationsList.forEach((mutation) => {
@@ -96,12 +114,35 @@ export class SublocationComponent implements OnInit, OnDestroy {
             this.encLocId = this.encryptDecrypt.encrypt(this.locationData['location_id']).toString();
             this.parentData['location_id'] = this.encryptDecrypt.encrypt(this.parentData['location_id']);
             this.parentData['sublocations'] = response.siblings;
-
+            this.sublocations = response.sublocations;
+            for (let i = 0; i < this.sublocations.length; i++ ) {
+                this.sublocations[i]['location_id'] = this.encryptDecrypt.encrypt(this.sublocations[i].location_id);
+            }
             for (let i = 0; i < this.parentData['sublocations'].length; i++ ) {
                 this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.parentData['sublocations'][i].location_id);
             }
             if (this.parentData['name'].length === 0) {
               this.parentData['name'] = this.parentData['formatted_address'];
+            }
+
+            let isInLocation = false,
+                itInLocationEmRole = false,
+                itInLocationTrpFrpRole = false;
+            for(let rl of response.users_locations){
+                if(rl.location_id == this.locationData['location_id']){
+                    isInLocation = true;
+                    if('user_em_roles_relation_id' in rl){
+                        itInLocationEmRole = true;
+                    }
+                    if('location_account_user_id' in rl && itInLocationTrpFrpRole == false){
+                        itInLocationTrpFrpRole = true;
+                    }
+                }
+            }
+
+            this.showCompliance = false;
+            if(isInLocation && itInLocationTrpFrpRole){
+                this.showCompliance = true;
             }
 
             callBack();

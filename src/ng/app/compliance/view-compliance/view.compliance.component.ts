@@ -48,7 +48,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 
 	userData = {};
-  complianceSublocations;
+    complianceSublocations = [];
 	selectedComplianceTitle = '';
 	selectedComplianceDescription = '';
 	selectedComplianceClasses = 'green darken-1 epm-icon';
@@ -80,6 +80,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	public tenants;
 	latestComplianceData = <any>[];
 	public totalPercentage;
+
+    evacDiagramSublocations = <any>[];
 	constructor(
   		private router : Router,
   		private route: ActivatedRoute,
@@ -101,7 +103,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	setKPISdataForDisplay() {
-    let counter = 0;
+        let counter = 0;
 		for(let kpi of this.KPIS) {
 			for(let comp of this.latestComplianceData){
 				if( comp.compliance_kpis_id == kpi.compliance_kpis_id ){
@@ -110,17 +112,17 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 				if(comp.docs.length > 0) {
 					for(let doc of comp.docs){
-            doc['timestamp_formatted'] = moment(doc["timestamp"]).format("MMM. DD, YYYY");
-            doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');
+                        doc['timestamp_formatted'] = moment(doc["timestamp"]).format("DD/MM/YYYY");
+                        doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');
 					}
 				}
 			}
 		}
 
 		for(let kpis of this.KPIS) {
-      if (kpis.compliance.docs.length > 0) {
-        counter = counter + 1;
-      }
+            if (kpis.compliance.docs.length > 0) {
+                counter = counter + 1;
+            }
 			let mes = kpis.measurement.toLowerCase();
 			if(mes == 'traffic' || mes == 'evac'){
 				kpis['type'] = 'date';
@@ -161,47 +163,50 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 			kpis['template'] = this[templateName];
 			kpis['tableTemplate'] = this[tableTemplateName];
 		}
-    this.totalPercentage = (counter / this.KPIS.length) * 100;
-    this.totalPercentage = Math.round(this.totalPercentage) + '%';
-    console.log(this.KPIS);
-    console.log('counter = ' + counter);
-
 	}
 
 	ngOnInit() {
+        this.locationService.getById(this.locationID, (response) => {
+            console.log(response);
+            if (response.sublocations.length > 0) {
+              this.complianceSublocations = response.sublocations;
+            } else {
+              this.complianceSublocations.push(response.location);
+            }
+            this.locationData = response.location;
+            this.locationData['parentData'] = response.parent;
+            this.locationData.parentData['sublocations'] = response.siblings; console.log(this.locationData.parentData['sublocations']);
+            this.locationData.parentData.location_id = this.encryptDecrypt.encrypt(this.locationData.parentData.location_id);
+            if (response.siblings.length) {
+                for (let i = 0; i < response.siblings.length; i++) {
+                    this.locationData.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(response.siblings[i].location_id);
+                }
+            }
+            for(let i in this.locationData['sublocations']){
+                this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id);
+            }
 
-		this.locationService.getById(this.locationID, (response) => {
-      console.log(response);
-      this.complianceSublocations = response.sublocations;
-			this.locationData = response.location;
-			this.locationData['parentData'] = response.parent;
-			this.locationData.parentData['sublocations'] = response.siblings; console.log(this.locationData.parentData['sublocations']);
-			this.locationData.parentData.location_id = this.encryptDecrypt.encrypt(this.locationData.parentData.location_id);
-			if (response.siblings.length) {
-				for (let i = 0; i < response.siblings.length; i++) {
-					this.locationData.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(response.siblings[i].location_id);
-				}
-			}
-			for(let i in this.locationData['sublocations']){
-				this.locationData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id);
-			}
+            this.complianceService.getKPIS((response) => {
+                this.KPIS = response.data;
 
-			this.complianceService.getKPIS((response) => {
-				this.KPIS = response.data;
+                this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
+                    this.latestComplianceData = responseCompl.data;
+                    this.setKPISdataForDisplay();
 
-				this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
-					this.latestComplianceData = responseCompl.data;
-					this.setKPISdataForDisplay();
-					setTimeout(() => {
-						$('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
-						this.dashboard.hide();
-						this.clickSelectComplianceFromList(this.KPIS[0]);
-					}, 100);
-				});
-			});
-		});
+                    this.totalPercentage = responseCompl.percent + '%';
 
+                    setTimeout(() => {
+                        $('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
+                        this.dashboard.hide();
+                        this.clickSelectComplianceFromList(this.KPIS[0]);
+                    }, 100);
+                });
+            });
 
+            this.complianceService.getSublocationsEvacDiagrams(this.locationID, (responseSubs) => {
+                this.evacDiagramSublocations = responseSubs.data.sublocations;
+            });
+        });
 	}
 
 	ngAfterViewInit(){

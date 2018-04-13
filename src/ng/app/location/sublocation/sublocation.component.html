@@ -3,6 +3,31 @@
 		<div class="col l2 m2 s12 left-part">
 
 			<div class="row left-box-container">
+                <div class="col l12 m12 s12" *ngIf="showCompliance">
+                    <div class="manage-compliance">
+                        <h5 class="center compliacne-rating">Compliance Rating</h5>
+                        <div id="specificChart" class="donut-size">
+                            <div class="pie-wrapper">
+                                <span class="label">
+                                    <span class="num"> 00 </span><span class="smaller">%</span>
+                                </span>
+                                <div class="pie">
+                                    <div class="left-side half-circle" ></div>
+                                    <div class="right-side half-circle" ></div>
+                                </div>
+                                <div class="shadow"></div>
+                            </div>
+                        </div>
+                        <p class="completion">
+                            <span class="start">0 </span>
+                            <span>of </span>
+                            <span class="end">0 </span>
+                            <span class="end">completion</span>
+                        </p>
+                        <h5 *ngIf="locationData.admin_verified == 0" class="red-text center">For Verification</h5>
+                        <a *ngIf="locationData.admin_verified == 1" class="btn red waves-effect waves-light darken-3" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
+                    </div>
+                </div>
 				<div class="col m12 s12">
 					<div class="box">
 						<div class="title-wrapper">
@@ -16,10 +41,11 @@
 				<div class="col m12 s12">
 					<div class="box">
 						<div class="title-wrapper">
-							Sublocations
+							Siblings
 						</div>
 						<div class="content">
-							<ul class="sub-list">
+                            <h6 class="center" *ngIf="parentData.sublocations.length == 0">No Siblings</h6>
+							<ul class="sub-list" *ngIf="parentData.sublocations.length > 0">
 								<li *ngFor="let location of parentData.sublocations"
 								[ngClass]="{active : encryptDecrypt.decrypt(location.location_id) == locationID}">
 									<a [routerLink]="['/location', 'view-sublocation', location.location_id]">{{ location.name }}</a>

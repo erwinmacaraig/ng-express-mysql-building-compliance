@@ -431,28 +431,30 @@ export class User extends BaseClass {
     /**
     * @author Erwin Macaraig
     * @description
-    * Get all locations tag to this user whether whatever their role(s) are
+    * Get all EM locations tag to this user
     * @param user_id
     * @returns array
     */
-    public getAllMyLocations(user_id: number = 0): Promise<Array<Object>> {
+    public getAllMyEMLocations(user_id: number = 0): Promise<Array<Object>> {
         return new Promise((resolve, reject) => {
             let userId = this.ID();
             if (user_id) {
                 userId = user_id;
             }
             const sql = `SELECT
-            locations.location_id,
-            locations.parent_id,
-            locations.name
-            FROM
-            location_account_user LAU
-            INNER JOIN
-            locations
-            ON
-            LAU.location_id = locations.location_id
-            WHERE LAU.user_id = ?
-            `;
+              locations.location_id,
+              locations.parent_id,
+              locations.name,
+              locations.is_building,
+              user_em_roles_relation.em_role_id
+              FROM
+              user_em_roles_relation
+              INNER JOIN
+              locations
+              ON
+              user_em_roles_relation.location_id = locations.location_id
+              WHERE user_em_roles_relation.user_id = ?`;
+
             const connection = db.createConnection(dbconfig);
             connection.query(sql, [userId], (error, results, fields) => {
                 if (error) {

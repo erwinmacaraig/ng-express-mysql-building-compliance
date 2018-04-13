@@ -64,13 +64,12 @@ import * as S3Zipper from 'aws-s3-zipper';
     });
 
     router.get('/compliance/download-compliance-file/',
-    new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-      const uploader = new FileUploader(req, res, next);
-      uploader.getFile().then((data) => {
-        console.log(data);
-        res.end();
-      });
-
+        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+            const uploader = new FileUploader(req, res, next);
+            uploader.getFile().then((data) => {
+                console.log(data);
+                res.end();
+            });
     });
 
     router.post('/compliance/toggleTPRViewAccess/',
@@ -127,67 +126,75 @@ import * as S3Zipper from 'aws-s3-zipper';
           });
         });
      });
+    });
 
-
+    router.post('/compliance/get-sublocations-evac-diagrams', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new ComplianceRoute().getSublocationsEvacDiagrams(req, res);
     });
   }
 
-  public downloadDocumentCompliancePack(req: AuthRequest, res: Response, next: NextFunction) {
+    public downloadDocumentCompliancePack(req: AuthRequest, res: Response, next: NextFunction) {
 
-    const utils = new Utils();
-    const config = {
-      'accessKeyId': AWSCredential.AWSAccessKeyId,
-      'secretAccessKey': AWSCredential.AWSSecretKey,
-      'region': AWSCredential.AWS_REGION,
-      'bucket': AWSCredential.AWS_Bucket
-    };
-    const zipper = new S3Zipper(config);
-    const dirPath = __dirname + '/../public/temp';
-    utils.s3DownloadCompliancePackPathGen(req.user.account_id, req.query.location_id).then((urlPath) => {
-      zipper.zipToFile({
-        's3FolderName': urlPath,
-        'startKey': null,
-        'zipFileName': `${dirPath}/${defs['COMPLIANCE-DOCS-PACK']}`,
-        'recursive': true
-      }, (err, result) => {
-        if (err) {
-          console.log(err);
-          // throw new Error(err);
-          return res.status(400).send(err);
-        } else {
-          const lastFile = result.zippedFiles[result.zippedFiles.length-1];
-          if (lastFile) {
-            console.log('Zip file: ', lastFile.Key); // next time start from here
-          }
-          const filePath = `${dirPath}/${defs['COMPLIANCE-DOCS-PACK']}`;
-          return res.download(filePath, (error) => {
-            if (error) {
-              console.log(error);
-              return res.status(400).send(error);
+        const utils = new Utils();
+        const config = {
+          'accessKeyId': AWSCredential.AWSAccessKeyId,
+          'secretAccessKey': AWSCredential.AWSSecretKey,
+          'region': AWSCredential.AWS_REGION,
+          'bucket': AWSCredential.AWS_Bucket
+        };
+        const zipper = new S3Zipper(config);
+        const dirPath = __dirname + '/../public/temp';
+        utils.s3DownloadCompliancePackPathGen(req.user.account_id, req.query.location_id).then((urlPath) => {
+          zipper.zipToFile({
+            's3FolderName': urlPath,
+            'startKey': null,
+            'zipFileName': `${dirPath}/${defs['COMPLIANCE-DOCS-PACK']}`,
+            'recursive': true
+          }, (err, result) => {
+            if (err) {
+              console.log(err);
+              // throw new Error(err);
+              return res.status(400).send(err);
             } else {
-              console.log('Success');
-              /*
-              fs.unlink(filePath, function(e){
-                console.log('Cannot delete file.', e);
+              const lastFile = result.zippedFiles[result.zippedFiles.length-1];
+              if (lastFile) {
+                console.log('Zip file: ', lastFile.Key); // next time start from here
+              }
+              const filePath = `${dirPath}/${defs['COMPLIANCE-DOCS-PACK']}`;
+              return res.download(filePath, (error) => {
+                if (error) {
+                  console.log(error);
+                  return res.status(400).send(error);
+                } else {
+                  console.log('Success');
+                  /*
+                  fs.unlink(filePath, function(e){
+                    console.log('Cannot delete file.', e);
+                  });
+                  */
+                }
               });
-              */
             }
           });
-        }
-      });
-    });
-    //
+        });
+        //
 
-  }
+    }
 
 	public async getKPIS(req: AuthRequest, res: Response, next: NextFunction) {
 		let kpisModel = new ComplianceKpisModel(),
-			arrWhere = [];
+			arrWhere = [],
+            evacDiagramId = 5;
 
 		arrWhere.push([' description IS NOT NULL ']);
 
 		this.response.status = true;
 		this.response.data = await kpisModel.getWhere(arrWhere);
+        for(let d of this.response.data){
+            if(d.compliance_kpis_id == evacDiagramId){
+                d['measurement'] = 'Precent';
+            }
+        }
 
 		res.send(this.response);
 	}
@@ -202,9 +209,18 @@ import * as S3Zipper from 'aws-s3-zipper';
 			arrWhereKPIS = [],
 			arrWhereCompliance = [],
             emrolesOnThisLocation,
-            paths;
+            paths,
+            evacDiagramId = 5;
 
-
+        // Retrieve the highest account role
+        let role = 0;
+        const userRoleRelObj = new UserRoleRelation();
+        try {
+          role = await userRoleRelObj.getByUserId(req.user.user_id, true, locationID);
+        } catch (e) {
+          console.log(e);
+          role = 0;
+        }
         const utils = new Utils(),
             training = new TrainingCertification(),
             locationModel = new Location(locationID),
@@ -217,23 +233,27 @@ import * as S3Zipper from 'aws-s3-zipper';
         }
 
         try {
-            emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, 0);
-            if ('8' in emrolesOnThisLocation) {
-                if (emrolesOnThisLocation['8']['location'].length > 0) {
+            emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, locationID, role);
+            // console.log('======================', emrolesOnThisLocation, '=====================');
+            if (defs['em_roles']['GENERAL_OCCUPANT'] in emrolesOnThisLocation) {
+                if (emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'].length > 0) {
                     let locId;
-                    for (let i = 0; i < emrolesOnThisLocation['8']['location'].length; i++) {
-                        locId = emrolesOnThisLocation['8']['location'][i].toString();
-                        if (emrolesOnThisLocation['8'][locId]['users'].length > 0) {
-                            emrolesOnThisLocation['8'][locId]['training'] =
-                            await training.getEMRUserCertifications(emrolesOnThisLocation['8'][locId]['users']);
+                    for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'].length; i++) {
+                        locId = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'][i].toString();
+                        if (emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']][locId]['users'].length > 0) {
+                            emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']][locId]['training'] =
+                            await training.getEMRUserCertifications(
+                              emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']][locId]['users'], {
+                                'em_role_id': defs['em_roles']['GENERAL_OCCUPANT']
+                              }
+                            );
                         }
                     }
                 }
             }
 
             if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation) {
-                // console.log(emrolesOnThisLocation['9']);
-               
+
                 if (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'].length > 0) {
                     let locId;
                     const calcResults = await wardenCalc.getBulkBenchmarkingResultOnLocations(emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location']);
@@ -242,7 +262,8 @@ import * as S3Zipper from 'aws-s3-zipper';
                         locId = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'][i].toString();
                         if (emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].length > 0) {
                             emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training'] =
-                            await training.getEMRUserCertifications(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users']);
+                            await training.getEMRUserCertifications(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'], {'em_role_id': defs['em_roles']['WARDEN']});
+                            // console.log(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']);
                         }
                         if (locId in calcResults) {
                             emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens'] =
@@ -267,15 +288,75 @@ import * as S3Zipper from 'aws-s3-zipper';
                 }
             }
 
-            if ('12' in emrolesOnThisLocation) {
+            // Floor Warden
+            if (defs['em_roles']['FLOOR_WARDEN'] in emrolesOnThisLocation) {
+              let locId;
+              for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['location'].length; i++) {
+                locId = emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['location'][i].toString();
+                const floorwardens = [];
+                if (emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'].length > 0) {
+                  // loop through the users because the training for floor warden and warden is the same
+                  // so we do not count
+                  for (let counter = 0;
+                    counter < emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'].length; counter++) {
+                    if (emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].indexOf(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'][counter]) == -1) {
+                      floorwardens.push(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'][counter]);
+
+                    }
+                  }
+                  emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'] =
+                    emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].concat(floorwardens);
+                  emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training'] =
+                  await training.getEMRUserCertifications(floorwardens, {'em_role_id': defs['em_roles']['FLOOR_WARDEN']});
+                }
+                emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_floor_wardens'] =
+                   emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['count'];
+              }
+              // console.log((defs['em_roles']['WARDEN'] in emrolesOnThisLocation && (locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])));
+              if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation && (locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])) {
+
+
+
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] =
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] +
+                emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_wardens'];
+
+                // console.log(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]);
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] =
+                  emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] +
+                  emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_passed'];
+
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
+                  Math.round( emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] / emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] ) * 100;
+
+                        emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
+                        emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'].toString() + '%';
+              } else {
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] =
+                    emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_wardens'];
+
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] =
+                emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_passed'];
+
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
+                Math.round( emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_passed'] / emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_wardens'] ) * 100;
+
+              }
+
+              // console.log(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]);
+            }
+
+            if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation) {
                 // console.log(emrolesOnThisLocation['12']);
-                if (emrolesOnThisLocation['12']['location'].length > 0) {
+                if (emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'].length > 0) {
                     let locId;
-                    for (let i = 0; i < emrolesOnThisLocation['12']['location'].length; i++) {
-                        locId = emrolesOnThisLocation['12']['location'][i].toString();
-                        if (emrolesOnThisLocation['12'][locId]['users'].length > 0) {
-                            emrolesOnThisLocation['12'][locId]['training'] =
-                            await training.getEMRUserCertifications(emrolesOnThisLocation['12'][locId]['users']);
+                    for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'].length; i++) {
+                        locId = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'][i].toString();
+                        if (emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['users'].length > 0) {
+                            emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['training'] =
+                            await training.getEMRUserCertifications(
+                              emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['users']
+                            );
                         }
                     }
                 } else {
@@ -290,9 +371,15 @@ import * as S3Zipper from 'aws-s3-zipper';
         }
 
         arrWhereKPIS.push([' description IS NOT NULL ']);
-        let kpis =  await kpisModel.getWhere(arrWhereKPIS),
+        let kpis =  <any> await kpisModel.getWhere(arrWhereKPIS),
             kpisIds = [],
             noCompliancesIds = [];
+
+        for(let kpi of kpis){
+            if(kpi.compliance_kpis_id == evacDiagramId){
+                kpi['measurement'] = 'Precent';
+            }
+        }
 
         Object.keys(kpis).forEach((key) => {
             kpisIds.push(kpis[key]['compliance_kpis_id']);
@@ -334,11 +421,14 @@ import * as S3Zipper from 'aws-s3-zipper';
         let whereDocs = [],
             docs = <any> [];
 
-        whereDocs.push(['building_id = ' + locationID]);
-        whereDocs.push(['account_id = ' + accountID]);
-        whereDocs.push(['document_type = "Primary" ']);
-        whereDocs.push(['override_document = -1 ']);
+        whereDocs.push(['compliance_documents.building_id = ' + locationID]);
+        whereDocs.push(['compliance_documents.account_id = ' + accountID]);
+        whereDocs.push(['compliance_documents.document_type = "Primary" ']);
+        whereDocs.push(['compliance_documents.override_document = -1 ']);
         docs = await complianceDocsModel.getWhere(whereDocs);
+        for(let d of docs){
+            d.timestamp_formatted = (moment(d.timestamp_formatted).isValid()) ? moment(d.timestamp_formatted).format('DD/MM/YYYY') : '00/00/0000';
+        }
 
         for (let c in compliances) {
             compliances[c]['docs'] = [];
@@ -364,16 +454,22 @@ import * as S3Zipper from 'aws-s3-zipper';
                 m = kpis['measurement'],
                 today = moment(),
                 validTillMoment = moment(comp['valid_till']);
-            
-            comp['measurement'] = comp['kpis']['measurement'];
 
+            comp['measurement'] = comp['kpis']['measurement'];
             comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
-            
             comp['validity_status'] = 'none-exist';
+            comp['valid'] = 0;
             comp['days_remaining']= 0;
+            comp['total_personnel'] = 0;
+            comp['total_personnel_trained'] = {
+                'total_passed' : 0,
+                'passed': [],
+                'failed': []
+            };
+            comp['percentage'] = '0%';
 
             if (m === 'Traffic' || m === 'evac') {
-                
+
                 if(comp['docs'][0]){
                     validTillMoment = moment(comp['docs'][0]['valid_till'], ['DD/MM/YYYY']);
                 }
@@ -381,11 +477,13 @@ import * as S3Zipper from 'aws-s3-zipper';
                 if (comp['docs'][0] && validTillMoment.diff(today, 'days') > 0) {
                     comp['validity_status'] = 'valid';
                     comp['days_remaining'] = validTillMoment.diff(today, 'days');
+                    comp['valid'] = 1;
+                    comp['percentage'] = '100%';
                 } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') >= 0 && validTillMoment.diff(today, 'days') <= 30) {
                     comp['validity_status'] = 'expiring';
                 } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') <= 0) {
                     comp['validity_status'] = 'invalid';
-                } 
+                }
 
             } else if (m === 'Percent') {
                 // 6 Warden Training
@@ -394,24 +492,23 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
             let tempPercetage;
 
-            comp['total_personnel'] = 0;
-            comp['total_personnel_trained'] = {
-                'total_passed' : 0,
-                'passed': [],
-                'failed': []
-            };
-            comp['percentage'] = '0%';
-            
             switch(comp['compliance_kpis_id']) {
                 case 6:
                     // Warden Training
-                    if ('9' in emrolesOnThisLocation) {
-                        comp['total_personnel'] = comp['warden_total'] = emrolesOnThisLocation['9']['count'];
-                        comp['location_details'] = emrolesOnThisLocation[9];
+                    if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation) {
+                        comp['total_personnel'] = comp['warden_total'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'];
+                        comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['WARDEN']];
                         try {
-                            comp['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['9']['users']);
+                            comp['total_personnel_trained'] =
+                                await training.getEMRUserCertifications(
+                                  emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'],
+                                  {'em_role_id':  defs['em_roles']['WARDEN']}
+                                );
                             tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
+                            if(tempPercetage >= 100){
+                                comp['valid'] = 1;
+                            }
                         } catch (e) {
                             comp['total_personnel'] = 0;
                             comp['total_personnel_trained'] = {
@@ -422,18 +519,88 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['percentage'] = '0%';
                         }
                     }
-                    // comp['total_personnel'] = comp['warden_total'] = ('9' in emrolesOnThisLocation) ? emrolesOnThisLocation['9']['count'] : 0;
+                    if (defs['em_roles']['FLOOR_WARDEN'] in emrolesOnThisLocation) {
+                      const floorwardens = [];
+                      // loop through the users
+                      for (const u of emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['users']) {
+                        if (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'].indexOf(u) === -1) {
+                          floorwardens.push(u);
+                        }
+                      }
+                      emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'] =
+                        emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'].concat(floorwardens);
+                      comp['total_personnel'] += floorwardens.length;
+                      try {
+                        const floorwardentrained  = await training.getEMRUserCertifications(floorwardens,
+                        {'em_role_id':  defs['em_roles']['FLOOR_WARDEN']});
+                        comp['total_personnel_trained']['total_passed'] +=
+                        floorwardentrained['total_passed'];
+
+                        tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
+                        comp['percentage'] = tempPercetage + '%';
+                        if(tempPercetage >= 100){
+                            comp['valid'] = 1;
+                        }
+                      } catch (e) {
+                        console.log(e);
+                      }
+                      // computation per location section (signifance: FRP)
+                      if (Object.keys(comp['location_details']).length === 0) {
+                        comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']];
+                      } else {
+                        const locDetailsForFloorWarden = emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']];
+                        const wardenUsersInThisLoc = [];
+                        for (const loc of comp['location_details']['location']) {
+                          if (loc in locDetailsForFloorWarden) {
+                            const allPassedWardens = [];
+                            for (const pw of comp['location_details'][loc]['training']['passed']) {
+                              allPassedWardens.push(pw['user_id']);
+                            }
+                            // loop for all passed users
+                            for (const p of locDetailsForFloorWarden[loc]['training']['passed']) {
+                              if (allPassedWardens.indexOf(p['user_id']) === -1) {
+                                comp['location_details'][loc]['training']['passed'].push(p);
+                              }
+                            }
+                            comp['location_details'][loc]['training']['failed'] =
+                            comp['location_details'][loc]['training']['failed'].concat(locDetailsForFloorWarden[loc]['training']['failed']);
+                            comp['location_details'][loc]['training']['total_passed'] =
+                              comp['location_details'][loc]['training']['passed'].length;
+
+                            comp['location_details'][loc]['training']['percentage'] =
+                            Math.round((comp['location_details'][loc]['training']['total_passed']
+                             / comp['location_details'][loc]['users'].length) * 100).toFixed(0).toString() + '%';
+
+                          }
+                        }
+                      }
+
+
+
+
+
+
+
+                    }
                 break;
-            
+
                 case 8:
                     // General Occupant Training
-                    if ('8' in emrolesOnThisLocation) {
-                        comp['total_personnel'] = comp['general_occupant_total'] = emrolesOnThisLocation['8']['count'];
-                        comp['location_details'] = emrolesOnThisLocation[8];
+                    if (defs['em_roles']['GENERAL_OCCUPANT'] in emrolesOnThisLocation) {
+                        comp['total_personnel'] = comp['general_occupant_total'] =
+                          emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['count'];
+                        comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']];
                         try {
-                            comp['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['8']['users']);
+                            comp['total_personnel_trained'] =
+                            await training.getEMRUserCertifications(
+                              emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['users'],
+                              {'em_role_id': defs['em_roles']['GENERAL_OCCUPANT']}
+                            );
                             tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
+                            if(tempPercetage >= 100){
+                                comp['valid'] = 1;
+                            }
                         } catch (e) {
                             comp['total_personnel'] = 0;
                             comp['total_personnel_trained'] = {
@@ -444,18 +611,26 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['percentage'] = '0%';
                         }
                     }
-                    // comp['total_personnel'] = comp['general_occupant_total'] = ('8' in emrolesOnThisLocation) ? emrolesOnThisLocation['8']['count'] : 0;
+
                 break;
 
                 case 12:
                     // Chief Warden Training
-                    if ('12' in emrolesOnThisLocation) {
-                        comp['total_personnel'] =  comp['chief_warden_total'] = emrolesOnThisLocation['12']['count'];
-                        comp['location_details'] = emrolesOnThisLocation[11];
+                    if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation) {
+                        comp['total_personnel'] =  comp['chief_warden_total'] =
+                          emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['count'];
+                        comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']];
                         try {
-                            comp['total_personnel_trained'] = await training.getEMRUserCertifications(emrolesOnThisLocation['12']['users']);
+                            comp['total_personnel_trained'] =
+                              await training.getEMRUserCertifications(
+                                emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['users'],
+                                {'em_role_id': defs['em_roles']['CHIEF_WARDEN']}
+                            );
                             tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
+                            if(tempPercetage >= 100){
+                                comp['valid'] = 1;
+                            }
                         } catch (e) {
                             comp['total_personnel'] = 0;
                             comp['total_personnel_trained'] = {
@@ -469,7 +644,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 break;
 
                 default:
-                    
+
                     // comp['total_personnel'] = 0;
                     // comp['total_personnel_trained'] = {
                     // 'total_passed' : 0,
@@ -477,19 +652,159 @@ import * as S3Zipper from 'aws-s3-zipper';
                     // 'failed': []
                     // };
                     // comp['percentage'] = '0%';
-                     
+
                 break;
             }
+
+            if(comp.compliance_kpis_id == evacDiagramId){
+                let locSubModel = new Location(),
+                    subs = <any> [],
+                    subIds = [0],
+                    compianceDocsModel = new ComplianceDocumentsModel(),
+                    diagrams = [],
+                    docsWhere = [];
+
+                try{
+                    subs = await locSubModel.getWhere([ 'parent_id = '+ locationID + ' AND archived = 0' ]);
+                }catch(e){}
+
+                for(let sub of subs){
+                    subIds.push(sub.location_id);
+                }
+
+                docsWhere.push( ['compliance_documents.compliance_kpis_id = '+evacDiagramId] );
+                docsWhere.push( ['compliance_documents.document_type = "Primary" '] );
+                docsWhere.push( ['compliance_documents.building_id IN ('+subIds.join(',')+')'] );
+                diagrams = <any> await compianceDocsModel.getWhere(docsWhere);
+                let valids = 0;
+                for(let diag of diagrams){
+                    let validTillMoment = moment(diag['valid_till'], ['DD/MM/YYYY']);
+                    if ( validTillMoment.diff(today, 'days') > 0 ) {
+                        valids++;
+                    }
+                }
+                if(diagrams.length > 0){
+                    comp['percentage'] = Math.round( ( valids / diagrams.length ) * 100) + '%' ;
+                }
+                if(Math.round( ( valids / diagrams.length ) * 100) >= 100){
+                    comp['valid'] = 1;
+                }
+                comp['total_valid_diagrams'] = valids;
+                comp['total_diagrams'] = diagrams.length;
+            }
+
+            comp['percentage_number'] = parseInt(comp['percentage'].replace('%', '').trim());
 
         }
 
 
 		this.response.status = true;
 		this.response.data = compliances;
+        this.response['percent'] = 0;
+
+        let validcount = 0,
+            totalcount = 0;
+        for (let comp of compliances) {
+            totalcount++;
+            if(comp['valid'] == 1){
+                validcount++;
+            }
+        }
+
+        if(totalcount > 0){
+            this.response['percent'] = Math.round( (validcount / totalcount) * 100 );
+        }
 
 		res.statusCode = 200;
 		res.send(this.response);
 
 	}
+
+    public async getSublocationsEvacDiagrams(req: AuthRequest, res: Response){
+        let 
+        locationId = req.body.location_id,
+        accountID = req.user.account_id,
+        response = {
+            status : true, data : {
+                location : {},
+                sublocations : [],
+                total_diagrams : 0,
+                total_valid_diagrams : 0,
+                percentage : '0%'
+            }, message : ''
+        },
+        locationModel = new Location(),
+        sublocations = [],
+        subIds = [0],
+        evacDiagramId = 5,
+        today = moment();
+
+        response.data.location = <any> await locationModel.getByInIds(locationId);
+        if(response.data.location[0]){
+            response.data.location = response.data.location[0];
+        }
+
+        try{
+            sublocations = <any> await locationModel.getWhere([ 'parent_id = ' +locationId+ ' AND archived = 0' ]);
+
+            let 
+            subs = sublocations,    
+            diagrams = <any> [],    
+            valids = 0,   
+            total_diagrams = 0, 
+            whereDocs = [],
+            subIds = [0],
+            complianceDocsModel = new ComplianceDocumentsModel();
+
+            for(let sub of sublocations){
+                subIds.push(sub.location_id);
+                sub['evac_diagrams'] = [];
+            }
+
+            whereDocs.push( ['compliance_documents.compliance_kpis_id = '+evacDiagramId] );
+            whereDocs.push( ['compliance_documents.document_type = "Primary" '] );
+            whereDocs.push( ['compliance_documents.building_id IN ('+subIds.join(',')+')'] );
+            diagrams = await complianceDocsModel.getWhere(whereDocs);
+
+            response.data['diagrams'] = diagrams;
+            for(let diag of diagrams){
+                for(let sub of sublocations){
+                    if(sub.location_id == diag.building_id){
+                        sub['evac_diagrams'].push(diag);
+                    }
+                }
+            }
+
+            for(let sub of sublocations){
+                sub['evac_diagrams'].reverse();
+            }
+
+            for(let sub of sublocations){
+                for(let diag of sub['evac_diagrams']){
+                    total_diagrams++;
+                    let validTillMoment = moment(diag['valid_till'], ['DD/MM/YYYY']);
+                    diag['valid'] = false;
+                    if ( validTillMoment.diff(today, 'days') > 0 ) {
+                        valids++;
+                        diag['valid'] = true;
+                    }
+                    diag['timestamp_formatted'] = (moment(diag.timestamp_formatted).isValid()) ? moment(diag.timestamp_formatted).format('DD/MM/YYYY') : '00/00/0000';
+                }
+            }
+
+            if(total_diagrams > 0){
+                response.data.percentage = Math.round( ( valids / total_diagrams ) * 100) + '%' ;
+            }
+
+            response.data.total_diagrams = total_diagrams;
+            response.data.total_valid_diagrams = valids;
+        }catch(e){}
+
+        response.data['percentage_number'] = parseInt(response.data.percentage.replace('%', '').trim());
+
+        response.data.sublocations = sublocations;
+
+        res.status(200).send(response);
+    }
 
 }

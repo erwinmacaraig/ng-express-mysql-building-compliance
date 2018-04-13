@@ -98,7 +98,7 @@ export class TeamRoute extends BaseRoute {
       new TeamRoute().retrieveWardenInvationInfo(req, res, next).then((data) => {
         return res.status(200).send(data);
       }).catch((err) => {
-        return res.status(400).send({message: 'Internal error'});
+        return res.status(400).send({message: 'Internal error', 'err' : err });
       });
     });
 
@@ -254,7 +254,7 @@ export class TeamRoute extends BaseRoute {
                 name = ' ' + user_invitation_records[i]['First Name'] + ' ' + user_invitation_records[i]['Last Name'];
             }
             if(('Role' in user_invitation_records[i])) {
-                
+
                 const ecos = await utils.buildECORoleList();
                 for (let i in ecos ){
                     allRolesObj[ecos[i]['role_name'].toUpperCase()] = ecos[i]['em_roles_id'];
@@ -351,6 +351,7 @@ export class TeamRoute extends BaseRoute {
         console.log(JSON.parse(req.body.peep));
         const peep = JSON.parse(req.body.peep);
         const invalidPeep = [];
+        const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
 
         let accountId = req.user.account_id,
         account = {},
@@ -410,7 +411,8 @@ export class TeamRoute extends BaseRoute {
                             'action' : 'verify',
                             'id' : user.ID(),
                             'id_type' : 'user_id',
-                            'verified' : 1
+                            'verified' : 1,
+                            'expiration_date': expDate
                         });
 
                         let locationAcctUser = new LocationAccountUser();
@@ -668,14 +670,14 @@ export class TeamRoute extends BaseRoute {
 
         const tokenModel = new Token();
         const tokenDbData = await tokenModel.getByToken(token);
-        
+
         if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
             userInvitation = new UserInvitation(tokenDbData['id']);
             dbData = await userInvitation.load();
         } else {
             throw new Error('Invalid token');
         }
-        
+
         const userRoleRel = new UserRoleRelation();
 
         // what is the highest rank role of the user who invited this warden
@@ -689,9 +691,11 @@ export class TeamRoute extends BaseRoute {
             console.log(e);
             throw new Error(e);
         }
-        
+
         const accountDB = await account.load();
         dbData['account'] = account.get('account_name');
+
+
         if (!dbData['location_id']) {
             switch (role) {
                 case 1:
@@ -759,6 +763,7 @@ export class TeamRoute extends BaseRoute {
             dbData['parent_location_id'] = locationInstance.ID();
 
         }
+
         return dbData;
     }
 
@@ -766,6 +771,8 @@ export class TeamRoute extends BaseRoute {
         if (req.body.password !== req.body.confirmPassword) {
             throw new Error('Passwords do not match');
         }
+        const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+
         const encryptedPassword = md5('Ideation' + req.body.password + 'Max');
 
         let invitation;
@@ -784,6 +791,7 @@ export class TeamRoute extends BaseRoute {
                 'token': req.body.token,
                 'account_id': req.body.account_id,
                 'invited_by_user': userInvitation['invited_by_user'],
+                'mobility_impaired': userInvitation['mobility_impaired'],
                 'can_login': 1,
                 'mobile_number': userInvitation['contact_number']
             });
@@ -791,7 +799,8 @@ export class TeamRoute extends BaseRoute {
                 'action': 'verify',
                 'verified': 1,
                 'id': user.ID(),
-                'id_type': 'user_id'
+                'id_type': 'user_id',
+                'expiration_date': expDate
             });
             await invitation.create({
                 'was_used': 1
@@ -803,64 +812,62 @@ export class TeamRoute extends BaseRoute {
 
         let locationAcctUser = new LocationAccountUser();
 
-        if (req.body.role_id) {
-            let theLocation = req.body.sublocation;
-            if (req.body.role_id == defs['Manager']) {
-                let locationInstance = new Location(req.body.parent_location);
+        let theLocation = req.body.sublocation;
+        if (req.body.role_id == defs['Manager']) {
+            let locationInstance = new Location(req.body.parent_location);
+            await locationInstance.load();
+            let pId = <number>locationInstance.get('parent_id');
+            while (pId !== -1) {
+                locationInstance = new Location(pId);
                 await locationInstance.load();
-                let pId = <number>locationInstance.get('parent_id');
-                while (pId !== -1) {
-                    locationInstance = new Location(pId);
-                    await locationInstance.load();
-                    pId = <number>locationInstance.get('parent_id');
-                }
-                theLocation = locationInstance.ID();
+                pId = <number>locationInstance.get('parent_id');
             }
+            theLocation = locationInstance.ID();
+        }
 
-            if(parseInt(req.body.role_id) == 1 || parseInt(req.body.role_id) == 2){
-                const userRoleRel = new UserRoleRelation();
-                await userRoleRel.create({
-                    'user_id': user.ID(),
-                    'role_id': req.body.role_id
-                });
+        if(parseInt(req.body.role_id) == 1 || parseInt(req.body.role_id) == 2){
+            const userRoleRel = new UserRoleRelation();
+            await userRoleRel.create({
+                'user_id': user.ID(),
+                'role_id': req.body.role_id
+            });
 
-                locationAcctUser = new LocationAccountUser();
-                await locationAcctUser.create({
-                    'location_id': theLocation,
-                    'account_id': req.body.account_id,
-                    'user_id': user.ID()
-                });
+            locationAcctUser = new LocationAccountUser();
+            await locationAcctUser.create({
+                'location_id': theLocation,
+                'account_id': req.body.account_id,
+                'user_id': user.ID()
+            });
 
-                const EMRoleUserRole = new UserEmRoleRelation();
-                await EMRoleUserRole.create({
-                    'user_id': user.ID(),
-                    'em_role_id': defs['em_roles']['GENERAL OCCUPANT'],
-                    'location_id': req.body.sublocation
-                });
-            }else{
-                const EMRoleUserRole = new UserEmRoleRelation();
-                await EMRoleUserRole.create({
-                    'user_id': user.ID(),
-                    'em_role_id': req.body.em_role,
-                    'location_id': theLocation
-                });
-            }
+            const EMRoleUserRole = new UserEmRoleRelation();
+            await EMRoleUserRole.create({
+                'user_id': user.ID(),
+                'em_role_id': defs['em_roles']['GENERAL OCCUPANT'],
+                'location_id': req.body.sublocation
+            });
+        }else{
+            const EMRoleUserRole = new UserEmRoleRelation();
+            await EMRoleUserRole.create({
+                'user_id': user.ID(),
+                'em_role_id': req.body.em_role,
+                'location_id': theLocation
+            });
+        }
 
-            const locationAccntRel = new LocationAccountRelation();
+        const locationAccntRel = new LocationAccountRelation();
 
-            try {
-                await locationAccntRel.getLocationAccountRelation({
-                    'location_id': theLocation,
-                    'account_id': req.body.account_id,
-                    'responsibility': defs['role_text'][req.body.role_id]
-                });
-            } catch (err) {
-                await locationAccntRel.create({
-                    'location_id': theLocation,
-                    'account_id': req.body.account_id,
-                    'responsibility': defs['role_text'][req.body.role_id]
-                });
-            }
+        try {
+            await locationAccntRel.getLocationAccountRelation({
+                'location_id': theLocation,
+                'account_id': req.body.account_id,
+                'responsibility': defs['role_text'][req.body.role_id]
+            });
+        } catch (err) {
+            await locationAccntRel.create({
+                'location_id': theLocation,
+                'account_id': req.body.account_id,
+                'responsibility': defs['role_text'][req.body.role_id]
+            });
         }
         return;
     }

@@ -212,7 +212,8 @@ export class UsersRoute extends BaseRoute {
       router.get('/users/get-all-locations/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
         const user = new User(req.user.user_id);
         const emrolerelationObj = new UserEmRoleRelation();
-        const locations = await user.getAllMyLocations();
+
+        const locations = await user.getAllMyEMLocations();
         const locIds = [];
         for (const loc of locations) {
           locIds.push(loc['location_id']);
@@ -374,9 +375,9 @@ export class UsersRoute extends BaseRoute {
         });
 
       });
-  }
+    }
 
-  public async checkIfAdmin(req: Request , res: Response){
+    public async checkIfAdmin(req: Request , res: Response){
 		let userModel = new User(req.params.user_id),
 			response = {
 				status : false, message : ''
@@ -393,185 +394,179 @@ export class UsersRoute extends BaseRoute {
 
     }
 
-  public async processTenantInvitationForm(req: Request, res: Response, next: NextFunction){
-    const encryptedPassword = md5('Ideation' + req.body.str_password + 'Max');
-    let user;
-    let invitation;
-    let account;
-    let locAccntUser;
-    try {
-      user = new User();
-      const tokenObj = new Token();
-      const tokenDbData = await tokenObj.getByToken(req.body.token);
-      invitation = new UserInvitation(tokenDbData['id']);
-      const userInvitation = await invitation.load();
-      account = new Account();
-      locAccntUser = new LocationAccountUser();
-      await account.create({
-        'account_name': req.body.account_name,
-        'building_number': req.body.building_number,
-        'account_domain': req.body.account_domain,
-        'billing_city': req.body.billing_city,
-        'billing_country': req.body.billing_country,
-        'billing_postal_code': req.body.billing_postal_code,
-        'billing_street': req.body.billing_street,
-        'billing_state': req.body.billing_state
-      });
-      await user.create({
-        'first_name': req.body.first_name,
-        'last_name': req.body.last_name,
-        'password': encryptedPassword,
-        'email': req.body.email,
-        'token': req.body.token,
-        'account_id': account.ID(),
-        'invited_by_user': userInvitation['invited_by_user'],
-        'can_login': 1,
-      });
-      await tokenObj.create({
-        'action': 'verify',
-        'verified': 1,
-        'id': user.ID(),
-        'id_type': 'user_id'
-      });
-      await invitation.create({
-        'was_used': 1
-      });
-      await locAccntUser.create({
-        'location_id': invitation.get('location_id'),
-        'account_id': account.ID(),
-        'user_id': user.ID(),
-        'role_id': defs['Tenant'],
-      });
-      return true;
-    } catch(e) {
-      console.log(e);
-      throw new Error('There was a problem processing tenant information');
-    }
-  }
-  public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
-    const tokenModel = new Token();
-    let dbData;
-    let userInvitation;
-    let locationModel;
-    let locationParent;
-    const token = req.params.token;
-    console.log(token);
-    try {
-      const tokenDbData = await tokenModel.getByToken(token);
-      if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
-	userInvitation = new UserInvitation(tokenDbData['id']);
-	dbData = await userInvitation.load();
-
-	// get parent location
-	locationModel = new Location(dbData['location_id']);
-	await locationModel.load();
-	let parentId = locationModel.get('parent_id');
-	while (parentId !== -1) {
-	  locationParent = new Location(parentId);
-	  await locationParent.load();
-	  parentId = locationParent.get('parent_id');
-	}
-	dbData['parent_location_name'] = (locationParent.get('name').toString().length > 0) ?
-  locationParent.get('name') : locationParent.get('formatted_address');
-	dbData['parent_location_id'] = locationParent.ID();
-  dbData['sub_location_name'] = locationModel.get('name');
-	dbData['sub_location_id'] = locationModel.ID();
-	return dbData;
-
-      } else {
-	throw new Error('Invalid token');
-      }
-    } catch(e) {
-      console.log(e);
-      throw new Error('Cannot get invitation data');
-
-    }
-
-
-
-  }
-  public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
-
-    // check first if email is existing
-    let dbData = {};
-    try {
-      const user = new User();
-      dbData = await user.getByEmail(req.body.email);
-    } catch(e) {
-
-    }
-
-    if (Object.keys(dbData).length > 0) {
-      throw Error('Email taken');
-    } else {
-      console.log('Checkpoint catch');
-      const inviCode = new UserInvitation();
-      const inviDetails = req.body;
-      inviDetails['account_id'] = req['user'].account_id;
-      inviDetails['role_id'] = defs['Tenant'];
-      inviDetails['invited_by_user'] = req['user'].user_id;
-      const tokenModel = new Token();
-      const token = tokenModel.generateRandomChars(8);
-
-      const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
-      const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
-
-      try {
-        console.log(inviDetails);
-        await inviCode.create(inviDetails);
-
-        await tokenModel.create({
-          'token': token,
-          'action': 'invitation',
-          'verified': 0,
-          'expiration_date': expDate,
-          'id': inviCode.ID(),
-          'id_type': 'user_invitations_id'
-        });
-
-        // email notification here
-        const opts = {
-          from : '',
-          fromName : 'EvacConnect',
-          to : [],
-          cc: [],
-          body : '',
-          attachments: [],
-          subject : 'EvacConnect TRP Invitation'
-        };
-        const email = new EmailSender(opts);
-        let emailBody = email.getEmailHTMLHeader();
-          emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
-          <h4>You are being assigned as a Tenant.</h4> <br/>
-          <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
-          <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
-
-        emailBody += email.getEmailHTMLFooter();
-        email.assignOptions({
-          body : emailBody,
-          to: [inviDetails['email']],
-          cc: []
-        });
-
-        email.send((data) => {
-          console.log(data);
+    public async processTenantInvitationForm(req: Request, res: Response, next: NextFunction){
+        const encryptedPassword = md5('Ideation' + req.body.str_password + 'Max');
+        let user;
+        let invitation;
+        let account;
+        let locAccntUser;
+        try {
+          user = new User();
+          const tokenObj = new Token();
+          const tokenDbData = await tokenObj.getByToken(req.body.token);
+          invitation = new UserInvitation(tokenDbData['id']);
+          const userInvitation = await invitation.load();
+          account = new Account();
+          locAccntUser = new LocationAccountUser();
+          await account.create({
+            'account_name': req.body.account_name,
+            'building_number': req.body.building_number,
+            'account_domain': req.body.account_domain,
+            'billing_city': req.body.billing_city,
+            'billing_country': req.body.billing_country,
+            'billing_postal_code': req.body.billing_postal_code,
+            'billing_street': req.body.billing_street,
+            'billing_state': req.body.billing_state
+          });
+          await user.create({
+            'first_name': req.body.first_name,
+            'last_name': req.body.last_name,
+            'password': encryptedPassword,
+            'email': req.body.email,
+            'token': req.body.token,
+            'account_id': account.ID(),
+            'invited_by_user': userInvitation['invited_by_user'],
+            'can_login': 1,
+          });
+          await tokenObj.create({
+            'action': 'verify',
+            'verified': 1,
+            'id': user.ID(),
+            'id_type': 'user_id'
+          });
+          await invitation.create({
+            'was_used': 1
+          });
+          await locAccntUser.create({
+            'location_id': invitation.get('location_id'),
+            'account_id': account.ID(),
+            'user_id': user.ID(),
+            'role_id': defs['Tenant'],
+          });
           return true;
-        },(err) => {
-          console.log(err);
-          return false;
-        });
-      } catch (e) {
-        console.log(e);
-        return false;
-      }
+        } catch(e) {
+          console.log(e);
+          throw new Error('There was a problem processing tenant information');
+        }
+        }
+        public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
+        const tokenModel = new Token();
+        let dbData;
+        let userInvitation;
+        let locationModel;
+        let locationParent;
+        const token = req.params.token;
+        console.log(token);
+        try {
+          const tokenDbData = await tokenModel.getByToken(token);
+          if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
+        userInvitation = new UserInvitation(tokenDbData['id']);
+        dbData = await userInvitation.load();
 
+        // get parent location
+        locationModel = new Location(dbData['location_id']);
+        await locationModel.load();
+        let parentId = locationModel.get('parent_id');
+        while (parentId !== -1) {
+          locationParent = new Location(parentId);
+          await locationParent.load();
+          parentId = locationParent.get('parent_id');
+        }
+        dbData['parent_location_name'] = (locationParent.get('name').toString().length > 0) ?
+        locationParent.get('name') : locationParent.get('formatted_address');
+        dbData['parent_location_id'] = locationParent.ID();
+        dbData['sub_location_name'] = locationModel.get('name');
+        dbData['sub_location_id'] = locationModel.ID();
+        return dbData;
+
+          } else {
+        throw new Error('Invalid token');
+          }
+        } catch(e) {
+          console.log(e);
+          throw new Error('Cannot get invitation data');
+
+        }
     }
 
+    public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
 
+        // check first if email is existing
+        let dbData = {};
+        try {
+          const user = new User();
+          dbData = await user.getByEmail(req.body.email);
+        } catch(e) {
 
+        }
 
+        if (Object.keys(dbData).length > 0) {
+          throw Error('Email taken');
+        } else {
+          console.log('Checkpoint catch');
+          const inviCode = new UserInvitation();
+          const inviDetails = req.body;
+          inviDetails['account_id'] = req['user'].account_id;
+          inviDetails['role_id'] = defs['Tenant'];
+          inviDetails['invited_by_user'] = req['user'].user_id;
+          const tokenModel = new Token();
+          const token = tokenModel.generateRandomChars(8);
 
-  }
+          const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
+          const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+
+          try {
+            console.log(inviDetails);
+            await inviCode.create(inviDetails);
+
+            await tokenModel.create({
+              'token': token,
+              'action': 'invitation',
+              'verified': 0,
+              'expiration_date': expDate,
+              'id': inviCode.ID(),
+              'id_type': 'user_invitations_id'
+            });
+
+            // email notification here
+            const opts = {
+              from : '',
+              fromName : 'EvacConnect',
+              to : [],
+              cc: [],
+              body : '',
+              attachments: [],
+              subject : 'EvacConnect TRP Invitation'
+            };
+            const email = new EmailSender(opts);
+            let emailBody = email.getEmailHTMLHeader();
+              emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+              <h4>You are being assigned as a Tenant.</h4> <br/>
+              <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
+              <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+            emailBody += email.getEmailHTMLFooter();
+            email.assignOptions({
+              body : emailBody,
+              to: [inviDetails['email']],
+              cc: []
+            });
+
+            email.send((data) => {
+              console.log(data);
+              return true;
+            },(err) => {
+              console.log(err);
+              return false;
+            });
+          } catch (e) {
+            console.log(e);
+            return false;
+          }
+
+        }
+    }
+
 	public async updateUser(req: Request , res: Response, next: NextFunction){
 		let
 		response = {
@@ -583,12 +578,14 @@ export class UsersRoute extends BaseRoute {
 		try{
 			let
 			userModel = new User(req.body.user_id),
-			userData = await userModel.load();
+			userData = await userModel.load(),
+            hasPass = false;
 
 			for(let i in userData){
 				if(i in req.body){
 					if(i == 'password'){
 						req.body[i] = md5('Ideation'+req.body[i]+'Max');
+                        hasPass = true;
 					}
 					userData[i] = req.body[i];
 				}
@@ -597,6 +594,21 @@ export class UsersRoute extends BaseRoute {
 			userModel.setID(req.body.user_id);
 
 			await userModel.dbUpdate();
+
+            if(hasPass){
+                let tokenModel = new Token();
+                try{
+                    await tokenModel.getAllByUserId(req.body.user_id, 'verify');
+                }catch(e){
+                    tokenModel.create({
+                        'token' : this.generateRandomChars(30),
+                        'action' : 'verify',
+                        'verified' : 1,
+                        'id' : req.body.user_id,
+                        'id_type' : 'user_id'
+                    });
+                }
+            }
 
 			response.status = true;
 			response.data = userData;
@@ -1424,7 +1436,9 @@ export class UsersRoute extends BaseRoute {
                 let arrWhere = [];
                 arrWhere.push(['user_id = '+userId]);
                 arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
-                locations = await locationAccountUserModel.getMany(arrWhere);
+                // locations = await locationAccountUserModel.getMany(arrWhere);
+
+                locations = await userModel.getAllMyEMLocations();
 
                 if( user['mobility_impaired'] == 1 ){
                     let mobilityModel = new MobilityImpairedModel(),
@@ -1466,15 +1480,17 @@ export class UsersRoute extends BaseRoute {
                 }
             }
 
-            Object.keys(locations).forEach((key) => {
-                if ('em_roles_id' in locations[key] && locations[key]['em_roles_id']) {
-                    locations[key]['training_requirement_name'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_name'];
-                    locations[key]['training_requirement_id'] = training_requirements[locations[key]['em_roles_id']]['training_requirement_id'];
-                }
-            });
+
+          for (const loc of locations) {
+            if ('em_role_id' in loc) {
+              loc['training_requirement_name'] = training_requirements[loc['em_role_id']]['training_requirement_name'];
+              loc['training_requirement_id'] = training_requirements[loc['em_role_id']]['training_requirement_id'];
+            }
+          }
 
 
-            response.data.locations = locations;
+
+      response.data.locations = locations;
 			// response.data.user = user;
 			response.status = true;
 		}catch(e){
@@ -1690,9 +1706,9 @@ export class UsersRoute extends BaseRoute {
         let token = req.body.token,
             password = req.body.password,
             tokenModel = new Token(),
-            response = { 
-                status : false, 
-                message : '', 
+            response = {
+                status : false,
+                message : '',
                 token : '',
                 data : {
                     userId : 0,
@@ -1726,7 +1742,7 @@ export class UsersRoute extends BaseRoute {
                     userModel.set('can_login', 1);
                     userModel.set('password', encPass);
                     userModel.set('last_login', today.format('YYYY-MM-DD HH-mm-ss'));
-                    
+
                     await userModel.dbUpdate();
 
                     tokenModel.set('action', 'verify');
@@ -1897,11 +1913,13 @@ export class UsersRoute extends BaseRoute {
         accountModel = new Account(accountId),
 		returnUsers = [],
         account = {},
-        isAccountEmailExempt = false;
+        isAccountEmailExempt = false,
+        hasOnlineTraining = false;
 
         try{
             let account = <any> await accountModel.load();
             isAccountEmailExempt = (account.email_add_user_exemption == 1) ? true : false;
+            hasOnlineTraining = (account.online_training == 1) ? true : false;
         }catch(e){
 
         }
@@ -1951,54 +1969,86 @@ export class UsersRoute extends BaseRoute {
 					'location_id' : users[i]['account_location_id'],
 					'account_id' : req['user']['account_id'],
 					'role_id' : (users[i]['account_role_id'] == 1 || users[i]['account_role_id'] == 2) ? users[i]['account_role_id'] : 0,
-					'eco_role_id' : (users[i]['account_role_id'] != 1 && users[i]['account_role_id'] != 2) ? users[i]['account_role_id'] : 0,
+					'eco_role_id' : (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
 					'invited_by_user' : req['user']['user_id'],
+                    'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0,
                     'was_used' : (isAccountEmailExempt) ? 1 : 0
-				};
+				},
+                user  = new User(),
+                encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max'),
+                userSaveData = {
+                    'first_name': users[i]['first_name'],
+                    'last_name': users[i]['last_name'],
+                    'password': '',
+                    'email': users[i]['email'],
+                    'token': token,
+                    'account_id': accountId,
+                    'invited_by_user': req['user']['user_id'],
+                    'can_login': 0,
+                    'mobile_number': users[i]['mobile_number'],
+                    'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0
+                },
+                tokenSaveData = {
+                    'token' : token,
+                    'action' : 'verify',
+                    'id' : 0,
+                    'id_type' : 'user_id',
+                    'verified' : 0
+                },
+                tokenModel = new Token(),
+                emailLink = req.protocol + '://' + req.get('host');
 
-                let user  = new User(),
-                    encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max'),
-                    userSaveData = {
-                        'first_name': users[i]['first_name'],
-                        'last_name': users[i]['last_name'],
-                        'password': '',
-                        'email': users[i]['email'],
-                        'token': token,
-                        'account_id': accountId,
-                        'invited_by_user': req['user']['user_id'],
-                        'can_login': 0,
-                        'mobile_number': users[i]['mobile_number'],
-                        'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0
-                    };
+                if(hasOnlineTraining || isAccountEmailExempt){
 
-                if(isAccountEmailExempt){
-                    userSaveData.password = encryptedPassword;
-                    userSaveData.can_login = 1;
+                    if(isAccountEmailExempt){
+                        userSaveData.password = encryptedPassword;
+                        userSaveData.can_login = 1;
+                        tokenSaveData.verified = 1;
+                    }else if(hasOnlineTraining){
+                        tokenSaveData.action = 'setup-password';
 
-                    let tokenModel = new Token();
-                    await tokenModel.create({
-                        'token' : token,
-                        'action' : 'verify',
-                        'id' : user.ID(),
-                        'id_type' : 'user_id',
-                        'verified' : 1
-                    });
+                        emailLink += '/signup/profile-completion/' + token;
+                    }
+
+                    await user.create(userSaveData);
+                    tokenSaveData.id = user.ID();
+
+                    if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                        let locationAcctUser = new LocationAccountUser();
+                        await locationAcctUser.create({
+                            'location_id': users[i]['account_location_id'],
+                            'account_id': accountId,
+                            'user_id': user.ID(),
+                            'role_id': users[i]['account_role_id']
+                        });
+
+                        const userRoleRel = new UserRoleRelation();
+                        await userRoleRel.create({
+                            'user_id': user.ID(),
+                            'role_id': users[i]['account_role_id']
+                        });
+                    }else{
+                        const EMRoleUserRole = new UserEmRoleRelation();
+                        await EMRoleUserRole.create({
+                            'user_id': user.ID(),
+                            'em_role_id': (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
+                            'location_id': users[i]['account_location_id']
+                        });
+                    }
+
+                }else{
+                    let invitation = new UserInvitation();
+                    await invitation.create(inviSaveData);
+
+                    tokenSaveData.id_type = 'user_invitations_id';
+                    tokenSaveData.id = invitation.ID();
+                    emailLink += '/signup/warden-profile-completion/'+token;
                 }
 
-                await user.create(userSaveData);
+                await tokenModel.create(tokenSaveData);
 
-                if(isAccountEmailExempt == false){
-                    /*let invitation = new UserInvitation();
-                    await invitation.create(inviSaveData);*/
 
-                    let tokenModel = new Token();
-                    await tokenModel.create({
-                        'token' : token,
-                        'action' : 'setup-password',
-                        'id' : user.ID(),
-                        'id_type' : 'user_id',
-                        'verified' : 0
-                    });
+                if(!isAccountEmailExempt){
 
     				const opts = {
     					from : 'allantaw2@gmail.com',
@@ -2010,11 +2060,11 @@ export class UsersRoute extends BaseRoute {
     					subject : 'EvacConnect Profile Setup'
     				};
     				const email = new EmailSender(opts);
-    				const link = req.protocol + '://' + req.get('host') + '/signup/profile-completion/' + token;
+    				const link = emailLink;
     				let emailBody = email.getEmailHTMLHeader();
     				emailBody += `<h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3> <br/>
     				<h4>You were added to EvacConnect Compliance Management System.</h4> <br/>
-    				<h5>Click on the link below to setup your password.</h5> <br/>
+    				<h5>Click on the link below to setup your account.</h5> <br/>
     				<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
 
     				emailBody += email.getEmailHTMLFooter();
@@ -2030,28 +2080,7 @@ export class UsersRoute extends BaseRoute {
     				);
                 }
 
-                if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
-                    let locationAcctUser = new LocationAccountUser();
-                    await locationAcctUser.create({
-                        'location_id': users[i]['account_location_id'],
-                        'account_id': accountId,
-                        'user_id': user.ID(),
-                        'role_id': users[i]['account_role_id']
-                    });
 
-                    const userRoleRel = new UserRoleRelation();
-                    await userRoleRel.create({
-                        'user_id': user.ID(),
-                        'role_id': users[i]['account_role_id']
-                    });
-                }else{
-                    const EMRoleUserRole = new UserEmRoleRelation();
-                    await EMRoleUserRole.create({
-                        'user_id': user.ID(),
-                        'em_role_id': users[i]['eco_role_id'],
-                        'location_id': users[i]['account_location_id']
-                    });
-                }
 
 			}else{
 				returnUsers.push( users[i] );
@@ -2722,7 +2751,7 @@ export class UsersRoute extends BaseRoute {
     //////
     // For Enhancement //
     // This is for listing Tenants(Accounts) in a location
-    // Current : We only listing who have TRP in the account
+    // Current : We only list who have TRP in the account
     //////
 	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction){
         const location_id = req.params.location_id;
@@ -2730,7 +2759,10 @@ export class UsersRoute extends BaseRoute {
         // listing of roles is implemented here because we are only listing roles on a sub location
         const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
         const canLoginTenantArr = [];
-
+        let tempWardenUsers = [];
+        const tempFloorWardenUsers = [];
+        let trainedWardensObj = {};
+        let trainedFloorWardensObj = {};
         Object.keys(canLoginTenants).forEach((key) => {
           canLoginTenantArr.push(canLoginTenants[key]);
         });
@@ -2739,21 +2771,104 @@ export class UsersRoute extends BaseRoute {
           // get all wardens for this location on this account
           const EMRole = new UserEmRoleRelation();
           const trainingCert = new TrainingCertification();
-          const temp =
+          let temp;
+          try {
+            temp =
             await EMRole.getEMRolesOnAccountOnLocation(
               defs['em_roles']['WARDEN'],
               canLoginTenantArr[i]['account_id'],
               location_id
-          );
-          canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
-          canLoginTenantArr[i]['wardens'] = temp['raw'];
+            );
+            canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
+            canLoginTenantArr[i]['wardens'] = temp['raw'];
+            tempWardenUsers = tempWardenUsers.concat(temp['users']);
+            trainedWardensObj = await
+            trainingCert.getEMRUserCertifications(temp['users'], {'em_role_id': defs['em_roles']['WARDEN']});
+            /*
+            console.log("***********************",
+            canLoginTenantArr[i],
+            "**************************************",
+            trainedWardensObj,
+            "**************************************"
+            );
+            */
+          } catch (e) {
+            console.log('users route getLocationsTenants()',e);
+            temp = {};
+            canLoginTenantArr[i]['total_wardens'] = 0;
+            canLoginTenantArr[i]['wardens'] = [];
+            trainedWardensObj = {
+              'total_passed': 0,
+              'passed': [],
+              'failed': [],
+              'percentage': ''
+            };
+          }
 
-          // get trained wardens
-          canLoginTenantArr[i]['trained_wardens'] = await
+          try {
+            temp = null; // reset
+            temp =
+            await EMRole.getEMRolesOnAccountOnLocation(
+              defs['em_roles']['FLOOR_WARDEN'],
+              canLoginTenantArr[i]['account_id'],
+              location_id
+            );
+
+            // canLoginTenantArr[i]['wardens'] = canLoginTenantArr[i]['wardens'].concat(temp['raw']);
+            // make sure that unique user only gets to be included
+            for (let fw of temp['raw']) {
+              if (tempWardenUsers.indexOf(fw['user_id']) == -1) {
+                tempFloorWardenUsers.push(fw['user_id']);
+                canLoginTenantArr[i]['wardens'].push(fw);
+              }
+            }
+            /*
+            for (let fw = 0; fw < temp['users'].length; fw++) {
+              if (tempWardenUsers.indexOf(temp['users'][fw]) == -1) {
+                tempFloorWardenUsers.push(temp['users'][fw]);
+              }
+            }
+            */
+            canLoginTenantArr[i]['total_wardens'] += tempFloorWardenUsers.length;
+            trainedFloorWardensObj = await
+            trainingCert.getEMRUserCertifications(tempFloorWardenUsers, {'em_role_id': defs['em_roles']['FLOOR_WARDEN']});
+            /*
+            console.log("---------------------------------",
+            canLoginTenantArr[i],
+            "---------------------------------------------",
+            trainedFloorWardensObj,
+            "---------------------------------------------",
+            tempFloorWardenUsers,
+            "---------------------------------------------"
+            );
+            */
+          } catch (e) {
+            console.log('users route getLocationsTenants()',e);
+            trainedFloorWardensObj = {
+              'total_passed': 0,
+              'passed': [],
+              'failed': [],
+              'percentage': ''
+            };
+          }
+
+          /*
+            canLoginTenantArr[i]['trained_wardens'] = await
                trainingCert.getEMRUserCertifications(temp['users']);
+          */
+          // get trained wardens
+          canLoginTenantArr[i]['trained_wardens'] = {
+            'failed': trainedWardensObj['failed'].concat(trainedFloorWardensObj['failed']),
+            'passed': trainedWardensObj['passed'].concat(trainedFloorWardensObj['passed']),
+            'total_passed': trainedWardensObj['passed'].length + trainedFloorWardensObj['passed'],
+            'percentage':  Math.round(((trainedWardensObj['passed'].length + trainedFloorWardensObj['passed']) / (tempWardenUsers.length + tempFloorWardenUsers.length)) * 100).toFixed(0).toString() + '%'
+          };
         }
-        console.log(canLoginTenantArr);
-
+        /*
+        console.log('users route getLocationsTenants()',
+        canLoginTenantArr,
+        '============================');
+        */
         return canLoginTenantArr;
 	}
 

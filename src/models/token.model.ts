@@ -143,7 +143,7 @@ export class Token extends BaseClass {
             ('token' in this.dbData) ? this.dbData['token'] : 0,
             ('action' in this.dbData) ? this.dbData['action'] : "",
             ('verified' in this.dbData) ? this.dbData['verified'] : 0,
-            ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : '',
+            ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : '0000-00-00',
             this.ID() ? this.ID() : 0
           ];
           const connection = db.createConnection(dbconfig);
@@ -175,7 +175,7 @@ export class Token extends BaseClass {
             ('token' in this.dbData) ? this.dbData['token'] : 0,
             ('action' in this.dbData) ? this.dbData['action'] : "",
             ('verified' in this.dbData) ? this.dbData['verified'] : 0,
-            ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : ''
+            ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : '0000-00-00'
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_insert, token, (err, results, fields) => {
