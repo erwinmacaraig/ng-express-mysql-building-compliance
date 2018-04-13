@@ -1,6 +1,6 @@
 <ng-template #complianceTitleTemplateInner>
 	<div class="image" [ngClass]="selectedComplianceClasses"></div>
-	<div class="close"></div>
+	<!-- <div class="close"></div> -->
 
 	<div class="text">
 		<h6 class="title blue-text">{{selectedComplianceTitle}}</h6>
@@ -55,16 +55,22 @@
 				<div class="dates">
 					<div class="created">
 						<p>EPM Creation date</p>
-						<p [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }" *ngIf="selectedCompliance.compliance.docs.length > 0">
-              				<span>{{ selectedCompliance.compliance.docs[0]['valid_till'] }}</span>
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0">
+              				<span>{{selectedCompliance.compliance.docs[0].timestamp_formatted}}</span>
 						</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0">
+                            <span>00/00/0000</span>
+                        </p>
 					</div>
 
 					<div class="review">
-			            <p>EPM Review date:</p>
-							<p [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }" *ngIf="selectedCompliance.compliance.docs.length > 0" >
+			            <p>EPM Review date</p>
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0" >
 			            	<span >{{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}</span>
-			            </p>
+                        </p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0">
+                            <span>00/00/0000</span>
+                        </p>
 					</div>
 				</div>
 
@@ -111,15 +117,17 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last EPC meeting held on:</p>
-						<p *ngIf="selectedCompliance.compliance.docs.length > 0" [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted}}</p>
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted}}</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" >00/00/0000</p>
 					</div>
 
 					<div class="review">
 						<p>Compliance valid till:</p>
-						<p *ngIf="selectedCompliance.compliance.docs.length > 0" [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0" >
 							<span *ngIf="selectedCompliance.compliance.docs[0] !== null">{{ selectedCompliance.compliance.docs[0].valid_till }}</span>
 							<span *ngIf="selectedCompliance.compliance.docs[0] == null"> 00/00/0000 </span>
 						</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" > 00/00/0000 </p>
 					</div>
 				</div>
 
@@ -166,15 +174,21 @@
 				<div class="dates">
 					<div class="created">
 						<p>Date of activity:</p>
-						<p [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">00/00/0000</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
+                            {{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}
+                        </p>
+						<p *ngIf="selectedCompliance.compliance.docs.length == 0">00/00/0000</p>
 					</div>
 
 					<div class="review">
 						<p>Compliance valid till:</p>
-						<p *ngIf="selectedCompliance.compliance.docs.length > 0" [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0" >
 							<span *ngIf="selectedCompliance.compliance.docs[0] !== null">{{ selectedCompliance.compliance.docs[0].valid_till }}</span>
 							<span *ngIf="selectedCompliance.compliance.docs[0] == null"> 00/00/0000 </span>
 						</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" >
+                            00/00/0000
+                        </p>
 					</div>
 				</div>
 
@@ -222,12 +236,13 @@
 				<div class="dates">
 					<div class="created">
 						<p>Diagrams Creation date:</p>
-						<p *ngIf="selectedCompliance.compliance.docs.length > 0" [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted}}</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >{{selectedCompliance.compliance.docs[0].timestamp_formatted}}</p>
+						<p *ngIf="selectedCompliance.compliance.docs.length == 0" >00/00/0000</p>
 					</div>
 
 					<div class="review">
 						<p>Diagram review date:</p>
-						<p [ngClass]="{ 'green-text' : selectedCompliance.compliance.validity_status == 'valid', 'red-text' : selectedCompliance.compliance.validity_status != 'valid' }">
+						<p>
 							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
 							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
 						</p>
@@ -278,7 +293,12 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last Chief warden training held on:</p>
-						<p class="green-text">00/00/0000</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
+                            {{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}
+                        </p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" >
+                            00/00/0000
+                        </p>
 					</div>
 
 				</div>
@@ -330,7 +350,12 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last warden training session held on</p>
-						<p class="green-text">00/00/0000</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
+                            {{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}
+                        </p>
+						<p *ngIf="selectedCompliance.compliance.docs.length == 0" >
+                            00/00/0000
+                        </p>
 					</div>
 				</div>
 
@@ -379,12 +404,16 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last Fire safety review date:</p>
-						<p *ngIf="selectedCompliance.compliance.docs.length > 0" class="green-text">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted }}</p>
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0">{{selectedCompliance.compliance.docs[0].date_of_activity_formatted }}</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" >
+                            00/00/0000
+                        </p>
 					</div>
 
 					<div class="review">
 						<p>Report valid till:</p>
-						<p class="green-text">{{selectedCompliance.compliance.docs[0].valid_till}}</p>
+						<p *ngIf="selectedCompliance.compliance.docs.length > 0">{{selectedCompliance.compliance.docs[0].valid_till}}</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" > 00/00/0000 </p>
 					</div>
 				</div>
 
@@ -393,9 +422,7 @@
 				</div>
 
 				<div class="buttons">
-          <button
-          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
-          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+                    <button (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
 				</div>
 			</div>
@@ -434,7 +461,10 @@
 				<div class="dates">
 					<div class="created">
 						<p>Last General Occupant training held on:</p>
-						<p class="green-text">00/00/0000</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
+                            {{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}
+                        </p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" >00/00/0000</p>
 					</div>
 				</div>
 
@@ -443,9 +473,7 @@
 				</div>
 
 				<div class="buttons">
-          <button
-          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
-          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+                    <button (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
 				</div>
@@ -499,9 +527,7 @@
 				</div>
 
 				<div class="buttons">
-          <button
-          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
-          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+                    <button  (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
 				</div>
@@ -562,16 +588,18 @@
 					<th style="width: 10%;">Action</th>
 				</tr>
 			</thead>
+
 			<tbody>
 				<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
 					<td>
 					{{doc.display_format}}
 					</td>
+                    <td>{{doc.date_of_activity_formatted}}</td>
 					<td>
 						{{doc.file_name}}
 					</td>
 					<td>
-						Allan Last
+						--
 					</td>
 					<td style="padding: 2px;">
 						<a href="javascript:void(0)" class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
@@ -723,11 +751,44 @@
 					<th>Date Uploaded</th>
 					<th>Valid Until</th>
 					<th>Diagram</th>
-					<th>Created By</th>
+					<!-- <th>Created By</th> -->
 					<th style="width: 10%;">Action</th>
 				</tr>
 			</thead>
 			<tbody>
+                <tr colspan="5" *ngIf="evacDiagramSublocations.length == 0">
+                    <td class="center"> No sublocations </td>
+                </tr>
+                <tr *ngFor="let loc of evacDiagramSublocations">
+                    <td class="with-icon">
+                        <div class="image expired" *ngIf="!loc.evac_diagrams[0]"></div>
+                        <div class="image" *ngIf="loc.evac_diagrams[0]">
+                            <div class="image alarm" *ngIf="loc.evac_diagrams[0]['valid'] == false"></div>
+                            <div class="image check" *ngIf="loc.evac_diagrams[0]['valid'] == true"></div>
+                        </div>
+                        <div class="text">{{loc.name}}</div>
+                    </td>
+                    <td>
+                        <span *ngIf="loc.evac_diagrams[0]">{{loc.evac_diagrams[0]['timestamp_formatted']}}</span>
+                        <span *ngIf="!loc.evac_diagrams[0]">--</span>
+                    </td>
+                    <td>
+                        <span *ngIf="loc.evac_diagrams[0]">
+                            <span *ngIf="loc.evac_diagrams[0]['valid_till'] != null">{{loc.evac_diagrams[0]['valid_till']}}</span>
+                            <span *ngIf="loc.evac_diagrams[0]['valid_till'] == null">--</span>
+                        </span>
+                        <span *ngIf="!loc.evac_diagrams[0]">--</span>
+                    </td>
+                    <td>
+                        --
+                    </td>
+                    <td style="padding: 2px;">
+                        <a href="javascript:void(0)" class=" " *ngIf="loc.evac_diagrams[0]">
+                            <img src="/assets/images/download_ico_blue.png"  >
+                        </a>
+                    </td>
+                </tr>
+                <!--  
 				<tr>
 					<td class="with-icon">
 						<div class="image check"></div>
@@ -818,6 +879,7 @@
 						<button class="btn red waves-effect waves-light btn-manage accent-4">Manage</button>
 					</td>
 				</tr>
+                -->
 			</tbody>
 		</table>
 	</div>
@@ -1261,7 +1323,9 @@
 
 							<div class="arrow"></div>
 						</td>
-						<td class="with-bar" *ngIf="k.type == 'percent'">
+						<td class="with-bar red-theme" 
+                            [ngClass]="{ 'green-theme' : k.compliance.percentage_number >= 100 }" 
+                            *ngIf="k.type == 'percent' && k.compliance_kpis_id != 5">
 							<div class="text">{{k.compliance.percentage}}</div>
 							<div class="progress-container">
 								<div class="progress">
@@ -1271,6 +1335,16 @@
 							</div>
 							<div class="arrow"></div>
 						</td>
+                        <td class="with-bar red-theme" [ngClass]="{ 'green-theme' : k.compliance.percentage_number >= 100 }" *ngIf="k.compliance_kpis_id == 5">
+                            <div class="text">{{k.compliance.percentage}}</div>
+                            <div class="progress-container">
+                                <div class="progress">
+                                    <div class="determinate" [ngStyle]="{'width': k.compliance.percentage}"></div>
+                                </div>
+                                <p> {{k.compliance.total_valid_diagrams}} / {{k.compliance.total_diagrams}} </p>
+                            </div>
+                            <div class="arrow"></div>
+                        </td>
 					</tr>
 
 				</tbody>

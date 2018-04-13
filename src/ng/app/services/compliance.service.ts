@@ -67,7 +67,16 @@ export class ComplianceService {
 			}, err => {
 				callBack( JSON.parse(err.error) );
 			});
-  }
+    }
+
+    public getSublocationsEvacDiagrams(locationID, callBack){
+        this.http.post(this.baseUrl + '/compliance/get-sublocations-evac-diagrams', { location_id : locationID })
+            .subscribe(res => {
+                callBack(res);
+            }, err => {
+                callBack( JSON.parse(err.error) );
+            });
+    }
 
   public downloadAllComplianceDocumentPack(location) {
     const headers = new HttpHeaders(
