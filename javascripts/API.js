@@ -17,10 +17,10 @@ API.LMSGetValue =  function(parameter) {
             "param": parameter,
             "relation": user_course_relation
         },
-        error: (e) =>{
+        error: function(e){
             console.log('Error', e);
         },
-        success: (data) => {
+        success: function(data) {
             // console.log(data.value);
             result = data.value;
         },
@@ -42,11 +42,11 @@ API.LMSSetValue = function(element, value) {
            "value": value,
            "relation": user_course_relation
         },
-        success: (data) => {
+        success: function(data) {
             // console.log("data setParameterValue is ", data);
             result = data.status
         },
-        error: (e) =>{
+        error: function(e){
             console.log('Error', e);
         },
         dataType: 'json',

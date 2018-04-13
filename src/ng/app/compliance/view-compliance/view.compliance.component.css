@@ -269,13 +269,30 @@ table tbody tr td.with-icon .text{
     font-size: 13px;
 }
 
-table tbody tr td.with-icon .text p{
-	margin: 0px;
+table tbody tr td.with-bar .text{
+    margin-right: 12px;
+    vertical-align: super;
+    color: #F44336;
 }
 
-table tbody tr td.with-bar .text{
-	color: #F44336 !important;
-	margin-right: 12px;
+table tbody tr td.with-icon .text p{
+	margin: 0px;
+    color: #333;
+}
+
+table tbody tr td.with-bar.red-theme .text,
+table tbody tr td.with-bar.red-theme .progress-container p{
+    color: #F44336 !important;
+}
+
+table tbody tr td.with-bar.green-theme .text,
+table tbody tr td.with-bar.green-theme .progress-container p{
+    color: #26a69a !important;
+}
+
+table tbody tr td.with-bar.orange-theme .text,
+table tbody tr td.with-bar.orange-theme .progress-container p{
+    color: #ff7e0b !important;
 }
 
 table tbody tr td.with-bar .text,
@@ -293,25 +310,50 @@ table tbody tr td .progress-container p{
     color: #333;
 }
 
-table tbody tr td .progress{
+table tbody tr td.with-bar .progress{
 	position: relative;
     height: 10px;
     display: block;
     width: 100%;
-    background-color: #dc44534d;
     border-radius: 2px;
     margin: 0px;
     overflow: hidden;
+    background-color: rgba(244, 67, 54, 0.17);
 }
 
-table tbody tr td .progress .determinate{
+table tbody tr td.with-bar.red-theme .progress{
+    background-color: rgba(244, 67, 54, 0.17);
+}
+
+table tbody tr td.with-bar.green-theme .progress{
+    background-color: rgba(38, 166, 154, 0.21);
+}
+
+table tbody tr td.with-bar.orange-theme .progress{
+    background-color: rgba(255, 126, 11, 0.17);
+}
+
+table tbody tr td.with-bar .progress .determinate{
 	position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
-    background-color: #cb0d20;
     transition: width .3s linear;
+    background-color: #cb0d20;
 }
+
+table tbody tr td.with-bar.red-theme .progress .determinate{
+    background-color: #cb0d20;
+}
+
+table tbody tr td.with-bar.green-theme .progress .determinate{
+    background-color: #26a69a;
+}
+
+table tbody tr td.with-bar.orange-theme .progress .determinate{
+    background-color: #ff7e0b;
+}
+
 
 table.table-list:not(.striped) tbody tr{
     background-color: #eee;
