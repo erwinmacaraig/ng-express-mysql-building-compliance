@@ -43,11 +43,14 @@ export class UserEmRoleRelation extends BaseClass {
                       uer.location_id,
                       er.em_roles_id,
                       l.name as location_name,
+                      l.name,
                       l.parent_id,
                       l.location_id,
                       l.formatted_address,
                       l.google_place_id,
-                      l.google_photo_url
+                      l.google_photo_url,
+                      l.is_building,
+                      l.admin_verified
                     FROM em_roles er
                     INNER JOIN user_em_roles_relation uer ON er.em_roles_id = uer.em_role_id
                     LEFT JOIN locations l ON l.location_id = uer.location_id
@@ -83,6 +86,8 @@ export class UserEmRoleRelation extends BaseClass {
                       l.formatted_address,
                       l.google_place_id,
                       l.google_photo_url,
+                      l.admin_verified,
+                      l.is_building,
                       u.first_name,
                       u.last_name,
                       u.user_id,
@@ -429,7 +434,8 @@ export class UserEmRoleRelation extends BaseClass {
                     l.location_id,
                     l.formatted_address,
                     l.google_place_id,
-                    l.google_photo_url
+                    l.google_photo_url,
+                    l.is_building
                     FROM user_em_roles_relation uemr
                     INNER JOIN locations l ON l.location_id = uemr.location_id
                     WHERE uemr.user_id IN (`+userIds+`)`;

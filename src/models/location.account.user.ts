@@ -57,7 +57,7 @@ export class LocationAccountUser extends BaseClass {
             sqlWhere = '',
             count = 0;
 
-            sql_load = ` SELECT l.formatted_address, l.name, l.location_id, l.parent_id,
+            sql_load = ` SELECT l.formatted_address, l.name, l.location_id, l.parent_id, l.is_building,
             lau.user_id, lau.account_id, urr.role_id, lau.location_account_user_id, lau.archived,
             er.role_name as er_role_name, DATEDIFF(NOW(), u.last_login) AS days,
             u.last_login, er.em_roles_id, u.mobility_impaired, lp.name as parent_name
@@ -485,6 +485,7 @@ export class LocationAccountUser extends BaseClass {
         locations.location_id,
         locations.name,
         locations.formatted_address,
+        locations.is_building,
         LAU.user_id,
         users.first_name,
         users.last_name,

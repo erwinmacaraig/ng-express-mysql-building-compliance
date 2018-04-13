@@ -34,34 +34,59 @@ export class UserRoleRelation extends BaseClass {
         });
     }
 
-    public getByUserId(user_id, highest_rank: boolean = false): Promise<any> {
-        return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM user_role_relation WHERE user_id = ?';
-            const param = [user_id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                if (!results.length) {
-                    reject('No role found');
-                } else {
-                    if (highest_rank) {
-                        let r = 100;
-                        for (let i = 0; i < results.length; i++) {
-                            if (r > parseInt(results[i]['role_id'], 10)) {
-                                r = results[i]['role_id'];
-                            }
-                        }
-                        resolve(r);
-                    } else {
-                        resolve(results);
-                    }
-                }
-            });
-            connection.end();
-        });
-    }
+    /**
+     *
+     * @param user_id
+     * @param highest_rank
+     * @param location
+     * @description
+     * Gets the highest ACCOUNT ROLE of a particular user
+     */
+    public getByUserId(user_id, highest_rank: boolean = false, location: number = 0): Promise<any> {
+      return new Promise((resolve, reject) => {
+          let sql_load = '', param = [];
+          sql_load = 'SELECT * FROM user_role_relation WHERE user_id = ?';
+          param = [user_id];
+          if (location) {
+            sql_load = `SELECT
+                          *
+                        FROM
+                          user_role_relation
+                        INNER JOIN
+                          location_account_user
+                        ON
+                          user_role_relation.user_id = location_account_user.user_id
+                        WHERE
+                          location_account_user.user_id = ?
+                        AND
+                          location_account_user.location_id = ?`;
+            param.push(location);
+
+          }
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql_load, param, (error, results, fields) => {
+              if (error) {
+                  return console.log('user.role.relation.model.getByUserId', error, sql_load);
+              }
+              if (!results.length) {
+                  reject('No role found');
+              } else {
+                  if (highest_rank) {
+                      let r = 100;
+                      for (let i = 0; i < results.length; i++) {
+                          if (r > parseInt(results[i]['role_id'], 10)) {
+                              r = results[i]['role_id'];
+                          }
+                      }
+                      resolve(r);
+                  } else {
+                      resolve(results);
+                  }
+              }
+          });
+          connection.end();
+      });
+  }
 
     public dbInsert() {
         return new Promise((resolve, reject) => {

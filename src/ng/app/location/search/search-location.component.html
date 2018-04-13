@@ -214,8 +214,25 @@
 		</div>
 
 		<div class="list-region" *ngIf="!showLoaderModalSubLocation && !showModalAlreadyVerified" style="overflow-y: auto; height: 340px;">
-			<h6 class="blue-text">Select  Level</h6>
-			<div>
+            <h6 class="blue-text" *ngIf="this.isFrp">Select Building</h6>
+            <div *ngIf="this.isFrp">
+                <ul>
+                    <ng-template #recursiveList let-selectedLocationArray>
+                        <li *ngFor="let location of selectedLocationArray" class="list-division" [id]="location.location_id">
+                            <div class="name-radio-plus">
+                                <div class="input">
+                                    <input type="checkbox" [id]="'check-'+location.location_id" (click)="onClickSelectLocationFromModal($event, location)">
+                                    <label [for]="'check-'+location.location_id" style="color: rgba(0,0,0,0.87); padding-left: 25px;"> {{location.name}} </label>
+                                </div>
+                            </div>
+                        </li>
+                    </ng-template>
+                    <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: selectedLocationArray }"></ng-container>
+                </ul>
+            </div>
+
+			<h6 class="blue-text" *ngIf="this.isTrp">Select Level</h6>
+			<div *ngIf="this.isTrp">
 				<ul>
 					<ng-template #recursiveList let-selectedLocationSubLocations>
 						<li *ngFor="let location of selectedLocationSubLocations" class="list-division" [id]="location.location_id">

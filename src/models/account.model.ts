@@ -288,7 +288,9 @@ export class Account extends BaseClass {
               locations.formatted_address,
               locations.location_id,
               locations.google_photo_url,
-              locations.admin_verified
+              locations.admin_verified,
+              locations.is_building,
+              LAU.location_account_user_id
             FROM
               locations
             INNER JOIN
@@ -331,7 +333,8 @@ export class Account extends BaseClass {
               locations.formatted_address,
               locations.location_id,
               locations.google_photo_url,
-              locations.admin_verified
+              locations.admin_verified,
+              locations.is_building
             FROM
               locations
             INNER JOIN
@@ -374,7 +377,8 @@ export class Account extends BaseClass {
           locations.name,
           locations.formatted_address,
           locations.location_id,
-          locations.google_photo_url
+          locations.google_photo_url,
+          locations.is_building
         FROM
          user_em_roles_relation
         INNER JOIN
@@ -443,7 +447,8 @@ export class Account extends BaseClass {
             l.location_id,
             l.name as location_name,
             l.formatted_address,
-            l.google_photo_url
+            l.google_photo_url,
+            l.is_building
           FROM
             users u
             INNER JOIN location_account_user lau ON u.user_id = lau.user_id
@@ -502,7 +507,8 @@ export class Account extends BaseClass {
               l.parent_id,
               l.name as location_name,
               l.formatted_address,
-              l.google_photo_url
+              l.google_photo_url,
+              l.is_building
             FROM
               user_invitations ui
               INNER JOIN em_roles er ON ui.eco_role_id = er.em_roles_id
@@ -543,7 +549,8 @@ export class Account extends BaseClass {
             locations.formatted_address,
             locations.location_id,
             locations.google_photo_url,
-            locations.admin_verified
+            locations.admin_verified,
+            locations.is_building
           FROM
             locations
           INNER JOIN
@@ -594,6 +601,7 @@ export class Account extends BaseClass {
               locations.parent_id,
               locations.name,
               locations.formatted_address,
+              locations.is_building,
               LAU.location_id,
               LAU.user_id,
               LAU.role_id,

@@ -62,7 +62,7 @@
 							</select>
 						</td>
 						<td >
-							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0 && user.role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
+							<a href="javascript:void(0)" [class.disabled]="user.account_role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
 							<input type="hidden" name="selectedLocation{{i}}" [(ngModel)]="user.account_location_id" required pattern="[1-9][0-9]*">
 						</td>
 						<td class="with-remove">
