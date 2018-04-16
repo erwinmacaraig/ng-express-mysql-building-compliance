@@ -1228,28 +1228,6 @@ const defs = require('../config/defs.json');
                 deepLocations.push(loc);
             }
 
-            /*if( (loc.parent_id == -1 || loc.is_building == 1 ) && isFrp == true && isTrp == false ){
-                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
-                deepLocations.push(loc);
-            }else if(loc.parent_id > -1 && isTrp == true && isFrp == false){
-                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
-                try{
-                    let locParent =  new Location(loc.parent_id),
-                        parent = await locParent.load();
-                    loc['parent'] = parent;
-                }catch(e){ }
-                deepLocations.push(loc);
-            }else if(loc.parent_id > -1 && isTrp == false && isFrp == false){
-                let ancLocModel = new Location(),
-                    ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
-                for(let anc of ancestores){
-                    if(anc.parent_id == -1){
-                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
-                        deepLocations.push(anc);
-                    }
-                }
-            }*/
-
             for(let deep of deepLocations){
                 deep['sublocations'] = [];
             }
@@ -1290,7 +1268,7 @@ const defs = require('../config/defs.json');
                     }
                 }
 
-                respLoc['num_wardens'] = locAccUser.length; // <- to remove
+                respLoc['num_wardens'] = locAccUser.length;
 
                 respLoc['mobility_impaired'] = impairedCount;
                 respLoc['compliance'] = 0;
@@ -1380,18 +1358,7 @@ const defs = require('../config/defs.json');
                 deepLocModel = new Location(),
                 deepLocations = <any> [];
 
-            if( loc.parent_id == -1  && isFrp == true ){
-                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
-                deepLocations.push(loc);
-            }else if(loc.parent_id > -1 && isTrp == true && isFrp == false){
-                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
-                try{
-                    let locParent =  new Location(loc.parent_id),
-                        parent = await locParent.load();
-                    loc['parent'] = parent;
-                }catch(e){ }
-                deepLocations.push(loc);
-            }else if(loc.parent_id > -1 && isTrp == false && isFrp == false){
+            if(loc.parent_id > -1){
                 let ancLocModel = new Location(),
                     ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
                 for(let anc of ancestores){
@@ -1400,6 +1367,9 @@ const defs = require('../config/defs.json');
                         deepLocations.push(anc);
                     }
                 }
+            }else{
+                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                deepLocations.push(loc);
             }
 
             for(let deep of deepLocations){

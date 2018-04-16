@@ -6,6 +6,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
+import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { Location } from '../models/location.model';
 import { LocationAccountUser } from '../models/location.account.user';
 import { ComplianceModel } from '../models/compliance.model';
@@ -210,7 +211,8 @@ import * as S3Zipper from 'aws-s3-zipper';
 			arrWhereCompliance = [],
             emrolesOnThisLocation,
             paths,
-            evacDiagramId = 5;
+            evacDiagramId = 5,
+            sundryId = 13;
 
         // Retrieve the highest account role
         let role = 0;
@@ -388,7 +390,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         arrWhereCompliance.push(['compliance_kpis_id IN (' + kpisIds.join(',') + ')']);
         arrWhereCompliance.push(['building_id = ' + locationID]);
-        arrWhereCompliance.push(['account_id = ' + accountID]);
+        arrWhereCompliance.push(['account_id = ' + accountID + ' GROUP BY compliance_kpis_id' ]);
 
         let compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
 
@@ -693,6 +695,21 @@ import * as S3Zipper from 'aws-s3-zipper';
                 comp['total_diagrams'] = diagrams.length;
             }
 
+            if(comp.compliance_kpis_id == sundryId){
+                let deepLocModel = new Location(),
+                    deepLocs = <any> await deepLocModel.getDeepLocationsByParentId(locationID),
+                    emRoleModel = new UserEmRoleRelation(),
+                    wardens = [],
+                    sublocsId = [0];
+                for(let loc of deepLocs){
+                    sublocsId.push( loc.location_id );
+                }
+
+                wardens = <any> await emRoleModel.getCountWardensInLocationIds( sublocsId.join(',') );
+
+                comp['num_wardens'] = (wardens[0]) ? wardens[0]['count'] : 0;
+            }
+
             comp['percentage_number'] = parseInt(comp['percentage'].replace('%', '').trim());
 
         }
@@ -705,9 +722,11 @@ import * as S3Zipper from 'aws-s3-zipper';
         let validcount = 0,
             totalcount = 0;
         for (let comp of compliances) {
-            totalcount++;
-            if(comp['valid'] == 1){
-                validcount++;
+            if(sundryId != comp.compliance_kpis_id){
+                totalcount++;
+                if(comp['valid'] == 1){
+                    validcount++;
+                }
             }
         }
 

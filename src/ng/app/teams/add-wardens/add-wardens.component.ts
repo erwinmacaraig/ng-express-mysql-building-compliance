@@ -62,6 +62,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     public paramLocId = '';
 
     searchModalLocationSubs;
+    showLocationsRecursive = false;
 
     constructor(
         private authService: AuthService,
@@ -263,7 +264,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     filterLocationsToDisplayByUserRole(user, data){
         let resp = [],
             copy = JSON.parse(JSON.stringify(data));
-        if(user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
+        if(user.eco_role_id == 11 || user.eco_role_id == 15 || user.eco_role_id == 16 || user.eco_role_id == 18){
             let temp = [];
             for(let i in data){
                 let innerTemp = JSON.parse(JSON.stringify(data[i]));
@@ -276,6 +277,11 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         }
 
         return resp;
+    }
+
+    changeRoleEvent(user){
+        this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
+        this.showLocationsRecursive = true;
     }
 
     showLocationSelection(user){
