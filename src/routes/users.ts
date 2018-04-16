@@ -810,6 +810,9 @@ export class UsersRoute extends BaseRoute {
             queryRoles = query.roles.split(',');
             if( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1){
                 modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_role_relation) ');
+                if(query.search){
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
+                }
             }
             if( queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1) == true ){
                 modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1) ');
@@ -824,12 +827,22 @@ export class UsersRoute extends BaseRoute {
                         }
                     }
                 }
+                if(query.search){
+                    modelQueries.orWhere.push(' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
+                }
             }else if(queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') == -1 && queryRoles.indexOf('trp') == -1) == true){
                 modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 ) ');
+                if(query.search){
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
+                }
+            }
+        }else{
+            if(query.search){
+                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
             }
         }
 
-        if(query.search){
+        /*if(query.search){
             if(query.search.trim().length > 0){
                 modelQueries.where.push( ' CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" ' );
                 if(modelQueries.orWhere.length == 0){
@@ -838,7 +851,7 @@ export class UsersRoute extends BaseRoute {
                     modelQueries.orWhere.push( ' AND users.email LIKE "%'+query.search+'%" ' );
                 }
             }
-        }
+        }*/
 
         modelQueries.select['custom'] = [" IF(files.url IS NULL, '', files.url) as profile_pic "];
 

@@ -34,7 +34,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("warden_trainingTemplate") warden_trainingTemplate : ElementRef;
 	@ViewChild("fire_safety_advisorTemplate") fire_safety_advisorTemplate : ElementRef;
 	@ViewChild("general_occupant_trainingTemplate") general_occupant_trainingTemplate : ElementRef;
-	@ViewChild("warden_listTemplate") warden_listTemplate : ElementRef;
+	@ViewChild("sundryTemplate") sundryTemplate : ElementRef;
 
 	@ViewChild("epmTableTemplate") epmTableTemplate : ElementRef;
 	@ViewChild("epcTableTemplate") epcTableTemplate : ElementRef;
@@ -44,7 +44,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("warden_trainingTableTemplate") warden_trainingTableTemplate : ElementRef;
 	@ViewChild("fire_safety_advisorTableTemplate") fire_safety_advisorTableTemplate : ElementRef;
 	@ViewChild("general_occupant_trainingTableTemplate") general_occupant_trainingTableTemplate : ElementRef;
-	@ViewChild("warden_listTableTemplate") warden_listTableTemplate : ElementRef;
+	@ViewChild("sundryTableTemplate") sundryTableTemplate : ElementRef;
 
 
 	userData = {};
@@ -156,7 +156,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 				kpis['short_code'] = 'general_occupant_training';
 			}else if(kpis.compliance_kpis_id == 13){
 				kpis['icon_class'] = 'green training-icon';
-				kpis['short_code'] = 'warden_list';
+				kpis['short_code'] = 'sundry';
 			}
 			let templateName = kpis['short_code']+'Template',
 				tableTemplateName = kpis['short_code']+'TableTemplate';
