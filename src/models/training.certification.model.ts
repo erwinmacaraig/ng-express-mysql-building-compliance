@@ -179,7 +179,8 @@ export class TrainingCertification extends BaseClass {
             ON
               (certifications.training_requirement_id  =  training_requirement.training_requirement_id AND
                 user_em_roles_relation.user_id = certifications.user_id)
-            WHERE user_em_roles_relation.user_id IN (${users_string}) ${filterStr} ORDER BY expiry_date DESC;`;
+            WHERE user_em_roles_relation.user_id IN (${users_string}) ${filterStr}
+            GROUP BY certifications.certifications_id ORDER BY certifications.user_id DESC;`;
       connection.query(sql, [], (error, results, fields) => {
         if (error) {
           console.log('training.certification.model.getEMRUserCertifications', error, sql);
