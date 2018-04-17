@@ -1076,11 +1076,17 @@ const defs = require('../config/defs.json');
           console.log('There are no wardens for this building');
         }
 
-        for(let sub of sublocations){
-            let locAccModel = new LocationAccountRelation(),
-            locAcc = <any> await locAccModel.getByWhereInLocationIds( sub.location_id );
-
-            sub['num_tenants'] = locAcc.length;
+        for(let sub of sublocations) {
+            let locAccModel = new LocationAccountRelation();
+            // locAcc = <any> await locAccModel.getByWhereInLocationIds( sub.location_id );
+            const locationAccountUserObj = new LocationAccountUser();
+            // listing of roles is implemented here because we are only listing roles on a sub location
+            try {
+              const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], sub.location_id);
+              sub['num_tenants'] = Object.keys(canLoginTenants).length;
+            } catch (e) {
+              sub['num_tenants'] = 0;
+            }
         }
 
       	response.sublocations = sublocations;
@@ -1235,26 +1241,31 @@ const defs = require('../config/defs.json');
             let locMerged = this.addChildrenLocationToParent(deepLocations),
                 respLoc = (locMerged[0]) ? locMerged[0] : false;
 
-            if(respLoc){
+            if(respLoc) {
                 for(let sub of deepLocations){
                     if(sub.parent_id > -1){
                         allSubLocationIds.push(sub.location_id);
                     }
                 }
 
-                let locAccModel = new LocationAccountRelation(),
-                    locAccTenant = <any> await locAccModel.getByWhereInLocationIds( allSubLocationIds.join(',') ),
+                let
+                    locAccModel,
+                    // locAccTenant = <any> await locAccModel.getByWhereInLocationIds( allSubLocationIds.join(',') ),
                     numTenants = 0,
                     tenantsIds = [];
 
-                for(let ten of locAccTenant){
-                    if(tenantsIds.indexOf( ten.account_id ) == -1){
-                        numTenants++;
-                        tenantsIds.push( ten.account_id );
-                    }
+                try {
+                  locAccModel = new Location();
+                  const locAccTenant = await locAccModel.getTRPOnLocation(allSubLocationIds, defs['Tenant']);
+
+                  respLoc['num_tenants'] = locAccTenant.length;
+
+                } catch(e) {
+                  respLoc['num_tenants'] = 0;
                 }
 
-                respLoc['num_tenants'] = numTenants;
+
+
 
                 let emRoleModel = new UserEmRoleRelation(),
                 locAccUser = <any> await emRoleModel.getUsersInLocationIds( allSubLocationIds.join(',') );

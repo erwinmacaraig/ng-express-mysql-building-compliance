@@ -781,6 +781,7 @@ export class Location extends BaseClass {
 
           const sql = `SELECT
             location_account_user.location_id,
+            accounts.account_id,
             user_role_relation.role_id,
             users.first_name,
             users.last_name,
@@ -795,13 +796,14 @@ export class Location extends BaseClass {
             users
           ON
             users.user_id = location_account_user.user_id
+          INNER JOIN accounts ON accounts.account_id = users.account_id
           WHERE
             location_account_user.location_id IN (${locationStr})
           AND
             role_id = ?`;
 
           const connection = db.createConnection(dbconfig);
-          connection.query(sql, [locId, role], (error, results) => {
+          connection.query(sql, [role], (error, results) => {
             if (error) {
               console.log('location.model.getTRPOnLocation',error, sql);
               throw Error('Cannot perform query');

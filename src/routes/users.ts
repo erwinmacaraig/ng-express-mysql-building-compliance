@@ -1542,6 +1542,9 @@ export class UsersRoute extends BaseRoute {
         }
         try{
             let certificates = await userModel.getAllCertifications({'pass': 1});
+            for (let c of certificates) {
+              c['token'] = md5(userModel.ID().toString() + userModel.get('first_name') + userModel.get('last_name') + c['certification_date']);
+            }
             response.data.certificates = certificates;
         } catch(e){
           console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
@@ -2865,6 +2868,11 @@ export class UsersRoute extends BaseRoute {
             };
           }
 
+          let tempPercentage = Math.round(((trainedWardensObj['passed'].length + trainedFloorWardensObj['passed']) / (tempWardenUsers.length + tempFloorWardenUsers.length)) * 100);
+          let tempPercentageStr = '0%';
+          if (tempPercentage > 0) {
+            tempPercentageStr =  tempPercentage.toFixed(0).toString() + '%';
+          }
           /*
             canLoginTenantArr[i]['trained_wardens'] = await
                trainingCert.getEMRUserCertifications(temp['users']);
@@ -2874,7 +2882,7 @@ export class UsersRoute extends BaseRoute {
             'failed': trainedWardensObj['failed'].concat(trainedFloorWardensObj['failed']),
             'passed': trainedWardensObj['passed'].concat(trainedFloorWardensObj['passed']),
             'total_passed': trainedWardensObj['passed'].length + trainedFloorWardensObj['passed'],
-            'percentage':  Math.round(((trainedWardensObj['passed'].length + trainedFloorWardensObj['passed']) / (tempWardenUsers.length + tempFloorWardenUsers.length)) * 100).toFixed(0).toString() + '%'
+            'percentage':  tempPercentageStr
           };
         }
         /*
