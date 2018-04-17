@@ -119,6 +119,12 @@
 								<span *ngIf="location.name.length > 0"> {{location.name}}</span>
 								<span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
               </a>
+              <a *ngIf="!location.is_building && location.parent_id == -1" [routerLink]="['/location', 'view', location.location_id]" class="location-name-link">
+                <span *ngIf="location.parent">{{location.parent.name}},</span>
+								<span *ngIf="location.name.length > 0"> {{location.name}}</span>
+								<span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+              </a>
+
 
 						</div>
 					</td>
