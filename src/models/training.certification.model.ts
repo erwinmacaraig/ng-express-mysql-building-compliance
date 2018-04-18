@@ -129,24 +129,30 @@ export class TrainingCertification extends BaseClass {
    */
   public getEMRUserCertifications(users: Array<number>,  filter = {}): Promise<object>{
     return new Promise((resolve, reject) => {
-      if (!users.length) {
-        reject('Invalid input');
-        return;
-      }
-      let filterStr = '';
-      let trained = 0;
       const outcome = {
         'total_passed': 0,
         'passed': [],
         'failed': [],
         'percentage': ''
       };
+      if (!users.length) {
+        // reject('Invalid input');
+        resolve(outcome);
+        return;
+      }
+      let filterStr = '';
+      let trained = 0;
+
       const users_string = users.join(',');
       const connection = db.createConnection(dbconfig);
       if ('em_role_id' in filter) {
         filterStr += ` AND user_em_roles_relation.em_role_id = ${filter['em_role_id']}`;
       }
+      if ('location' in filter) {
+        filterStr += ` AND user_em_roles_relation.location_id = ${filter['location']}`;
+      }
       const sql = `SELECT
+                certifications.certifications_id,
                 user_em_roles_relation.location_id,
                 user_em_roles_relation.user_id,
                 user_em_roles_relation.em_role_id,
@@ -162,6 +168,7 @@ export class TrainingCertification extends BaseClass {
                   'not taken') as validity
             FROM
               user_em_roles_relation
+            INNER JOIN users ON users.user_id = user_em_roles_relation.user_id
             INNER JOIN
               em_roles
             ON
@@ -180,14 +187,16 @@ export class TrainingCertification extends BaseClass {
               (certifications.training_requirement_id  =  training_requirement.training_requirement_id AND
                 user_em_roles_relation.user_id = certifications.user_id)
             WHERE user_em_roles_relation.user_id IN (${users_string}) ${filterStr}
-            GROUP BY certifications.certifications_id ORDER BY certifications.user_id DESC;`;
+            GROUP BY certifications.user_id ORDER BY certifications.user_id DESC;`;
+
       connection.query(sql, [], (error, results, fields) => {
         if (error) {
           console.log('training.certification.model.getEMRUserCertifications', error, sql);
           throw new Error('There was a problem getting the certifications of the following users: ' + users_string);
         }
         if (!results.length) {
-          reject('There are no records to be found for these users - ' + users_string);
+          // reject('There are no records to be found for these users - ' + users_string);
+          resolve(outcome);
         } else {
           for (let i = 0; i < results.length; i++) {
             // future-improvement: modify this to accommodate future need of having to take two or more course to be compliant

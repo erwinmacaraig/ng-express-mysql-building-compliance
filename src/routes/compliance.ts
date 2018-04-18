@@ -238,6 +238,8 @@ import * as S3Zipper from 'aws-s3-zipper';
             emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, locationID, role);
             // console.log('======================', emrolesOnThisLocation, '=====================');
             if (defs['em_roles']['GENERAL_OCCUPANT'] in emrolesOnThisLocation) {
+
+                /*
                 if (emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'].length > 0) {
                     let locId;
                     for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'].length; i++) {
@@ -246,12 +248,14 @@ import * as S3Zipper from 'aws-s3-zipper';
                             emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']][locId]['training'] =
                             await training.getEMRUserCertifications(
                               emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']][locId]['users'], {
-                                'em_role_id': defs['em_roles']['GENERAL_OCCUPANT']
+                                'em_role_id': defs['em_roles']['GENERAL_OCCUPANT'],
+                                'location': locId
                               }
                             );
                         }
                     }
                 }
+                */
             }
 
             if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation) {
@@ -264,7 +268,12 @@ import * as S3Zipper from 'aws-s3-zipper';
                         locId = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'][i].toString();
                         if (emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].length > 0) {
                             emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training'] =
-                            await training.getEMRUserCertifications(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'], {'em_role_id': defs['em_roles']['WARDEN']});
+                            await training.getEMRUserCertifications(
+                              emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'],
+                              {
+                                'em_role_id': defs['em_roles']['WARDEN'],
+                                'location': locId
+                            });
                             // console.log(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']);
                         }
                         if (locId in calcResults) {
@@ -273,14 +282,17 @@ import * as S3Zipper from 'aws-s3-zipper';
                         } else {
                             emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens'] = 0;
                         }
+                        /*
                         emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] =
                         (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'] >=
                             emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens']) ?
                         emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'] :
                         emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens'];
-
+                        */
                         emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
-                        Math.round( emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] / emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] ) * 100;
+                        Math.round(
+                          emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] /
+                          emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] ) * 100;
 
                         emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
                         emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'].toString() + '%';
@@ -288,6 +300,13 @@ import * as S3Zipper from 'aws-s3-zipper';
                 } else { // there is no  warden assigned to the selected location
 
                 }
+            } else {
+              emrolesOnThisLocation[defs['em_roles']['WARDEN']] = {
+                'name': '',
+                'count': 0,
+                'users': [],
+                'location': []
+              };
             }
 
             // Floor Warden
@@ -297,28 +316,46 @@ import * as S3Zipper from 'aws-s3-zipper';
                 locId = emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['location'][i].toString();
                 const floorwardens = [];
                 if (emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'].length > 0) {
-                  // loop through the users because the training for floor warden and warden is the same
-                  // so we do not count
-                  for (let counter = 0;
-                    counter < emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'].length; counter++) {
-                    if (emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].indexOf(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'][counter]) == -1) {
-                      floorwardens.push(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'][counter]);
-
+                  if ((locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])) {
+                    // loop through the users because the training for floor warden and warden is the same
+                    // so we do not count
+                    for (let counter = 0;
+                      counter < emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'].length; counter++) {
+                      if (emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].indexOf(
+                          emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'][counter]) === -1
+                        ) {
+                        floorwardens.push(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'][counter]);
+                      }
                     }
+                    emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'] =
+                      emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].concat(floorwardens);
+
+                    emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training'] =
+                      await training.getEMRUserCertifications(floorwardens, {'em_role_id': defs['em_roles']['FLOOR_WARDEN']});
+                  } else {
+                   emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training'] =
+                   await training.getEMRUserCertifications(
+                    emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['users'],
+                    {'em_role_id': defs['em_roles']['FLOOR_WARDEN']});
+
+                    emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId] =
+                      emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId];
+
+                    emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'].push(locId);
+                    emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['count'] =
+                      emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['count'];
+
+                  /*
+                    emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'] =
+                    emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['count'];
+                  */
                   }
-                  emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'] =
-                    emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].concat(floorwardens);
-                  emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training'] =
-                  await training.getEMRUserCertifications(floorwardens, {'em_role_id': defs['em_roles']['FLOOR_WARDEN']});
                 }
                 emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_floor_wardens'] =
-                   emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['count'];
+                   emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['users'].length;
               }
               // console.log((defs['em_roles']['WARDEN'] in emrolesOnThisLocation && (locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])));
-              if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation && (locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])) {
-
-
-
+              if ((locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])) {
                 emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] =
                 emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] +
                 emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_wardens'];
@@ -329,10 +366,13 @@ import * as S3Zipper from 'aws-s3-zipper';
                   emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_passed'];
 
                 emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
-                  Math.round( emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] / emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] ) * 100;
+                  Math.round(
+                    emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] /
+                    emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens']
+                  ) * 100;
 
-                        emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
-                        emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'].toString() + '%';
+                  emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
+                    emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'].toString() + '%';
               } else {
                 emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] =
                     emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_wardens'];
@@ -341,8 +381,17 @@ import * as S3Zipper from 'aws-s3-zipper';
                 emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_passed'];
 
                 emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
-                Math.round( emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_passed'] / emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_wardens'] ) * 100;
+                Math.round(
+                  emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_passed'] /
+                  emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_wardens'] ) * 100;
 
+              }
+              if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation === false) {
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'] =
+                emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['count'];
+
+                emrolesOnThisLocation[defs['em_roles']['WARDEN']]['name'] =
+                emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['name'];
               }
 
               // console.log(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]);
@@ -493,8 +542,10 @@ import * as S3Zipper from 'aws-s3-zipper';
                 // 11 General Occupant
             }
             let tempPercetage;
+            const totalPassedArr = [];
+            const totalFailedArr = [];
 
-            switch(comp['compliance_kpis_id']) {
+            switch (comp['compliance_kpis_id']) {
                 case 6:
                     // Warden Training
                     if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation) {
@@ -511,6 +562,17 @@ import * as S3Zipper from 'aws-s3-zipper';
                             if(tempPercetage >= 100){
                                 comp['valid'] = 1;
                             }
+                            for (const p of comp['total_personnel_trained']['passed']) {
+                              if (totalPassedArr.indexOf(p['user_id']) === -1) {
+                                totalPassedArr.push(p['user_id']);
+                              }
+                            }
+                            for (const f of comp['total_personnel_trained']['failed']) {
+                              if (totalFailedArr.indexOf(f['user_id']) === -1) {
+                                totalFailedArr.push(f['user_id']);
+                              }
+                            }
+
                         } catch (e) {
                             comp['total_personnel'] = 0;
                             comp['total_personnel_trained'] = {
@@ -521,35 +583,54 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['percentage'] = '0%';
                         }
                     }
+
                     if (defs['em_roles']['FLOOR_WARDEN'] in emrolesOnThisLocation) {
                       const floorwardens = [];
                       // loop through the users
+                      console.log(emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users']);
                       for (const u of emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['users']) {
                         if (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'].indexOf(u) === -1) {
                           floorwardens.push(u);
                         }
                       }
+                      // console.log('FLOOR WARDENS = ', floorwardens );
                       emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'] =
                         emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'].concat(floorwardens);
                       comp['total_personnel'] += floorwardens.length;
+
                       try {
                         const floorwardentrained  = await training.getEMRUserCertifications(floorwardens,
                         {'em_role_id':  defs['em_roles']['FLOOR_WARDEN']});
                         comp['total_personnel_trained']['total_passed'] +=
                         floorwardentrained['total_passed'];
+                        // console.log(floorwardentrained);
+                        for (const p of floorwardentrained['passed']) {
+                          if (totalPassedArr.indexOf(p['user_id']) === -1) {
+                            totalPassedArr.push(p['user_id']);
+                            comp['total_personnel_trained']['passed'].push(p);
+                          }
+                        }
+                        for (const f of floorwardentrained['failed']) {
+                          if (totalFailedArr.indexOf(f['user_id']) === -1) {
+                            totalFailedArr.push(f['user_id']);
+                            comp['total_personnel_trained']['failed'].push(f);
+                          }
+                        }
 
                         tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                         comp['percentage'] = tempPercetage + '%';
-                        if(tempPercetage >= 100){
+                        if (tempPercetage >= 100) {
                             comp['valid'] = 1;
                         }
                       } catch (e) {
                         console.log(e);
                       }
+
                       // computation per location section (signifance: FRP)
                       if (Object.keys(comp['location_details']).length === 0) {
                         comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']];
                       } else {
+                        console.log('hereeeeeee again');
                         const locDetailsForFloorWarden = emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']];
                         const wardenUsersInThisLoc = [];
                         for (const loc of comp['location_details']['location']) {
@@ -576,23 +657,18 @@ import * as S3Zipper from 'aws-s3-zipper';
                           }
                         }
                       }
-
-
-
-
-
-
-
                     }
                 break;
 
                 case 8:
                     // General Occupant Training
                     if (defs['em_roles']['GENERAL_OCCUPANT'] in emrolesOnThisLocation) {
-                        comp['total_personnel'] = comp['general_occupant_total'] =
-                          emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['count'];
-                        comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']];
-                        try {
+
+                      comp['total_personnel'] = comp['general_occupant_total'] =
+                      emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['count'];
+                      comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']];
+
+                      try {
                             comp['total_personnel_trained'] =
                             await training.getEMRUserCertifications(
                               emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['users'],
@@ -600,7 +676,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                             );
                             tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
-                            if(tempPercetage >= 100){
+                            if (tempPercetage >= 100){
                                 comp['valid'] = 1;
                             }
                         } catch (e) {
@@ -740,7 +816,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 	}
 
     public async getSublocationsEvacDiagrams(req: AuthRequest, res: Response){
-        let 
+        let
         locationId = req.body.location_id,
         accountID = req.user.account_id,
         response = {
@@ -766,11 +842,11 @@ import * as S3Zipper from 'aws-s3-zipper';
         try{
             sublocations = <any> await locationModel.getWhere([ 'parent_id = ' +locationId+ ' AND archived = 0' ]);
 
-            let 
-            subs = sublocations,    
-            diagrams = <any> [],    
-            valids = 0,   
-            total_diagrams = 0, 
+            let
+            subs = sublocations,
+            diagrams = <any> [],
+            valids = 0,
+            total_diagrams = 0,
             whereDocs = [],
             subIds = [0],
             complianceDocsModel = new ComplianceDocumentsModel();

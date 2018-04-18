@@ -684,7 +684,6 @@ export class Location extends BaseClass {
               return [];
             });
         } else if(role_id === parseInt(defs['Tenant'], 10) ) {
-          console.log(typeof defs['Tenant']);
           sql = `SELECT
                   user_em_roles_relation.*,
                   em_roles.role_name,
@@ -692,6 +691,7 @@ export class Location extends BaseClass {
                   locations.is_building
                 FROM
                   user_em_roles_relation
+                INNER JOIN users ON users.user_id = user_em_roles_relation.user_id
                 INNER JOIN
                   em_roles
                 ON
@@ -712,10 +712,16 @@ export class Location extends BaseClass {
             if (!results.length) {
               reject('There are no EM Roles for this location id - ' + location);
             } else {
+
               for (let i = 0; i < results.length; i++) {
+
+
                 if (results[i]['em_role_id'] in location_em_roles) {
-                  location_em_roles[results[i]['em_role_id']]['count'] = location_em_roles[results[i]['em_role_id']]['count'] + 1;
-                  (location_em_roles[results[i]['em_role_id']]['users']).push(results[i]['user_id']);
+                  if (location_em_roles[results[i]['em_role_id']]['users'].indexOf(results[i]['user_id']) === -1) {
+                    (location_em_roles[results[i]['em_role_id']]['users']).push(results[i]['user_id']);
+                    location_em_roles[results[i]['em_role_id']]['count'] = location_em_roles[results[i]['em_role_id']]['users'].length;
+                  }
+
                   if ((location_em_roles[results[i]['em_role_id']]['location']).indexOf(results[i]['location_id']) == -1) {
                     (location_em_roles[results[i]['em_role_id']]['location']).push(results[i]['location_id']);
                   }
@@ -748,7 +754,8 @@ export class Location extends BaseClass {
                     'name': ''
                   }
                   location_em_roles[keyIndex][loc]['users'].push(results[i]['user_id']);
-                  location_em_roles[keyIndex][loc]['name'] = results[i]['name']
+                  location_em_roles[keyIndex][loc]['name'] = results[i]['name'];
+                  // location_em_roles['all_role_users'] = allUsers;
                 }
               }
               resolve(location_em_roles);
