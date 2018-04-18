@@ -630,7 +630,6 @@ import * as S3Zipper from 'aws-s3-zipper';
                       if (Object.keys(comp['location_details']).length === 0) {
                         comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']];
                       } else {
-                        console.log('hereeeeeee again');
                         const locDetailsForFloorWarden = emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']];
                         const wardenUsersInThisLoc = [];
                         for (const loc of comp['location_details']['location']) {

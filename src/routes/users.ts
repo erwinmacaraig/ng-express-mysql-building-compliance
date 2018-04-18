@@ -2773,7 +2773,20 @@ export class UsersRoute extends BaseRoute {
         const location_id = req.params.location_id;
         const locationAccountUserObj = new LocationAccountUser();
         // listing of roles is implemented here because we are only listing roles on a sub location
-        const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
+        let canLoginTenants = {};
+        try {
+          canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
+        } catch(e) {
+          const accntObj = new Account(req.user.account_id);
+          const accntDetails = await accntObj.load();
+          canLoginTenants[req.user.account_id] = {
+            'account_name': accntDetails['account_name'],
+            'account_id': req.user.account_id,
+            'trp': []
+          };
+
+        }
+
         const canLoginTenantArr = [];
         let tempWardenUsers = [];
         const tempFloorWardenUsers = [];
