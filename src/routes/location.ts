@@ -1,4 +1,3 @@
-
 import { Account } from '../models/account.model';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { NextFunction, Request, Response, Router } from 'express';
@@ -15,6 +14,7 @@ import { Token } from '../models/token.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { TrainingCertification } from '../models/training.certification.model';
 import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calculator.model';
+
 import * as fs from 'fs';
 import * as path from 'path';
 import * as CryptoJS from 'crypto-js';
@@ -71,16 +71,81 @@ const defs = require('../config/defs.json');
 	   		new LocationRoute().getByUserIdAndAccountId(req, res, next);
 	   	});
 
-     	router.get('/location/get-parent-locations-by-account-id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-          new LocationRoute().getParentLocationsByAccount(req, res, 0).then((data) => {
+     	router.get('/location/get-parent-locations-by-account-id', new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response) => {
+
+        const locAccntRelObj = new LocationAccountRelation();
+        const userRoleRel = new UserRoleRelation();
+        let r = 0;
+        const filter = {};
+        let EMRole = new UserEmRoleRelation();
+        let temp;
+        let totalWardens = 0;
+
+        try {
+          r = await userRoleRel.getByUserId(req.user.user_id, true);
+        } catch(e) {
+          console.log('location route get-parent-locations-by-account-d',e);
+          r = 0;
+        }
+        filter['responsibility'] = r;
+        if (r == defs['Tenant']) {
+          const locationListingTRP = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+          let canLoginTenants = {};
+          const locationAccountUserObj = new LocationAccountUser();
+          for (const loc of locationListingTRP) {
+            const tempWardenUsers = [];
+            const tempFloorWardenUsers = [];
+            try {
+              canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], loc['location_id']);
+              loc['num_tenants'] = Object.keys(canLoginTenants).length;
+            } catch(e) {
+              loc['num_tenants'] = 0;
+            }
+            try {
+              temp =
+              await EMRole.getEMRolesOnAccountOnLocation(
+                defs['em_roles']['WARDEN'],
+                req.user.account_id,
+                loc['location_id']
+              );
+              totalWardens = temp['users'].length;
+            } catch(e) {
+              totalWardens = 0;
+            }
+            try {
+              temp = null; // reset
+              temp =
+              await EMRole.getEMRolesOnAccountOnLocation(
+                defs['em_roles']['FLOOR_WARDEN'],
+                req.user.account_id,
+                loc['location_id']
+              );
+              for (let fw of temp['users']) {
+                if (tempWardenUsers.indexOf(fw) == -1) {
+                  tempFloorWardenUsers.push(fw);
+                }
+              }
+            } catch(e) {
+            }
+            loc['num_wardens'] = totalWardens + tempFloorWardenUsers.length;
+          } // end for loop
+
+          return res.status(200).send({
+            locations: locationListingTRP,
+            roles: [],
+          });
+        } // end if
+        /*
+        new LocationRoute().getParentLocationsByAccount(req, res, 0).then((data) => {
             return res.status(200).send(data);
           }).catch((err) => {
             return res.status(400).send({
               	locations : [],
                 message: err
           	});
-     		});
-     	});
+         });
+        */
+      });
 
          router.get('/location/get-archived-parent-locations-by-account-id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
           new LocationRoute().getParentLocationsByAccount(req, res, 1).then((data) => {

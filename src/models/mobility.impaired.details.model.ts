@@ -44,7 +44,7 @@ export class MobilityImpairedModel extends BaseClass {
 					count++;
 				}
 			}
-			
+
 			sql_load += ' ORDER BY date_created DESC ';
 
 			const connection = db.createConnection(dbconfig);
@@ -76,7 +76,7 @@ export class MobilityImpairedModel extends BaseClass {
 			('user_invitations_id' in this.dbData) ? this.dbData['user_invitations_id'] : 0,
 			this.ID() ? this.ID() : 0
 			];
-			
+
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_update, param, (err, results, fields) => {
 				if (err) {
@@ -91,8 +91,8 @@ export class MobilityImpairedModel extends BaseClass {
 
 	public dbInsert() {
 		return new Promise((resolve, reject) => {
-			const sql_insert = `INSERT INTO mobility_impaired_details 
-			(user_id, is_permanent, duration_date, assistant_type, equipment_type, evacuation_procedure, date_created, user_invitations_id) 
+			const sql_insert = `INSERT INTO mobility_impaired_details
+			(user_id, is_permanent, duration_date, assistant_type, equipment_type, evacuation_procedure, date_created, user_invitations_id)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?);`;
 			const param = [
 			('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
@@ -129,7 +129,10 @@ export class MobilityImpairedModel extends BaseClass {
 			}
 			resolve(this.write());
 		});
-	}
+  }
+
+
+  // public listAllMobilityImpaired
 
 
 }

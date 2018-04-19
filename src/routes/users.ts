@@ -2184,7 +2184,7 @@ export class UsersRoute extends BaseRoute {
 		locationAccountUser = new LocationAccountUser(),
 		locationModel = new Location();
 
-		try{
+		try {
 			myEmRoles = await myEmRoleRelation.getEmRolesByUserId(req['user']['user_id']);
 			for(let i in emRoles){
 				if(emRoles[i]['em_roles_id'] == roleId){
@@ -2784,7 +2784,6 @@ export class UsersRoute extends BaseRoute {
             'account_id': req.user.account_id,
             'trp': []
           };
-
         }
 
         const canLoginTenantArr = [];

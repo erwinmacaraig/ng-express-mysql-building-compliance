@@ -75,7 +75,7 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getUserLocationByAccountIdAndLocationIds(accountId, locIds, archived?) {
+    public getUserLocationByAccountIdAndLocationIds(accountId, locIds, archived = 0) {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
                       uer.user_em_roles_relation_id,
