@@ -14,7 +14,7 @@ import { Token } from '../models/token.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { TrainingCertification } from '../models/training.certification.model';
 import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calculator.model';
-
+import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as CryptoJS from 'crypto-js';
@@ -92,6 +92,7 @@ const defs = require('../config/defs.json');
           const locationListingTRP = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
           let canLoginTenants = {};
           const locationAccountUserObj = new LocationAccountUser();
+          const mobilityImpaired = new MobilityImpairedModel();
           for (const loc of locationListingTRP) {
             const tempWardenUsers = [];
             const tempFloorWardenUsers = [];
@@ -125,16 +126,48 @@ const defs = require('../config/defs.json');
                   tempFloorWardenUsers.push(fw);
                 }
               }
-            } catch(e) {
-            }
+            } catch(e) { }
             loc['num_wardens'] = totalWardens + tempFloorWardenUsers.length;
+            temp = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, loc['location_id'], 'account');
+            const userIds = [];
+            console.log(temp);
+            Object.keys(temp).forEach((u)=> {
+              userIds.push(u['user_id']);
+            });
+            temp = null;
+            temp = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, loc['location_id'], 'emergency');
+            console.log(temp);
+            Object.keys(temp).forEach((u)=> {
+              if (userIds.indexOf(u['user_id']) === -1) {
+                userIds.push(u['user_id']);
+              }
+
+            });
+            loc['mobility_impaired'] = userIds.length;
+
+            /**
+             * COMPLIANCE SECTION HERE
+             */
+
+
+
           } // end for loop
 
           return res.status(200).send({
-            locations: locationListingTRP,
-            roles: [],
+            locations: locationListingTRP
           });
         } // end if
+
+        if (r == defs['Manager']) {
+          new LocationRoute().getParentLocationsByAccount(req, res, 0).then((data) => {
+            return res.status(200).send(data);
+          }).catch((err) => {
+            return res.status(400).send({
+              	locations : [],
+                message: err
+          	});
+         });
+        }
         /*
         new LocationRoute().getParentLocationsByAccount(req, res, 0).then((data) => {
             return res.status(200).send(data);

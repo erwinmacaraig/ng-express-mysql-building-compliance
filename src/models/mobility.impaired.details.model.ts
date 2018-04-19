@@ -131,8 +131,105 @@ export class MobilityImpairedModel extends BaseClass {
 		});
   }
 
+  /**
+   * @description
+   * Generate a list of all Mobility Impaired
+   * @param account_id
+   * @param location
+   * You have to supply this parameter if logged in as a TRP
+   * @param type
+   * if account - queries the location_account_user
+   * if emergency - queries the user_em_roles_relation
+   */
+  public listAllMobilityImpaired(account_id = 0, location = 0, type = 'account') {
 
-  // public listAllMobilityImpaired
+    return new Promise((resolve, reject) => {
+      let whereClause = '';
+
+      const queryResultSet = [];
+      let sql_peep_users = '';
+      if (location) {
+        whereClause += ` AND location_id = ${location}`;
+      }
+      if (type === 'account') {
+        sql_peep_users = `
+        SELECT
+          users.user_id,
+          users.first_name,
+          users.last_name,
+          users.mobility_impaired,
+          location_account_user.location_id
+        FROM
+          users
+        INNER JOIN
+          location_account_user
+        ON
+          users.user_id = location_account_user.user_id
+        WHERE
+          users.account_id = ?
+        AND
+          users.mobility_impaired = 1
+          ${whereClause}
+        GROUP BY users.user_id
+      `;
+      } else if (type === 'emergency') {
+        sql_peep_users = `
+        SELECT
+            users.user_id,
+            users.first_name,
+            users.last_name,
+            users.mobility_impaired,
+            user_em_roles_relation.location_id
+          FROM
+            users
+          INNER JOIN
+            user_em_roles_relation
+          ON
+            users.user_id = user_em_roles_relation.user_id
+          WHERE
+            users.account_id = ?
+          AND
+            users.mobility_impaired = 1 ${whereClause}
+          GROUP BY users.user_id
+        `;
+      }
+
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_peep_users, [account_id], (error, results) => {
+        if (error) {
+          console.log('mobility.impaired.details.listAllMobilityImpaired', error, sql_peep_users);
+          throw Error('Cannot generate list of peep emergency users');
+        }
+        if (results.length > 0) {
+          for (const r of results) {
+            queryResultSet.push(r);
+          }
+        }
+        resolve(queryResultSet);
+      });
+
+       /*
+      if (queryStat) {
+        connection.query(sql_peep_account_users, [account_id], (error, results) => {
+          if (error) {
+            console.log('mobility.impaired.details.listAllMobilityImpaired', error, sql_peep_account_users);
+            throw Error('Cannot generate list of peep account users');
+          }
+          if (results.length > 0) {
+            for (const r of results) {
+              if (uniqueIds.indexOf(r['user_id']) === -1) {
+                queryResultSet.push(r);
+                uniqueIds.push(r['user_id']); // just to be sure we get the unique ids
+              }
+            }
+          }
+          resolve(queryResultSet);
+        });
+      }
+      */
+      connection.end();
+    });
+  }
 
 
 }
