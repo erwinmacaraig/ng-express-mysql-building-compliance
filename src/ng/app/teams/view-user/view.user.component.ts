@@ -31,14 +31,14 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 	decryptedID = '';
 	viewData = {
 		user : {
-      profilePic : '',
-      last_name: '',
-      first_name: '',
-      last_login : '',
-      mobility_impaired_details : {},
-      mobility_impaired: 0,
-      mobile_number: '',
-      email: ''
+          profilePic : '',
+          last_name: '',
+          first_name: '',
+          last_login : '',
+          mobility_impaired_details : {},
+          mobility_impaired: 0,
+          mobile_number: '',
+          email: ''
 		},
 		role_text : '',
 		eco_roles : [],
@@ -203,53 +203,33 @@ export class ViewUserComponent implements OnInit, OnDestroy {
             $('#modalMobility select[name="is_permanent"]').material_select('update');
         });
 
-		this.selectLocationEvent();
+        this.selectLocationEvent();
+
 		setTimeout(() => {
-			Materialize.updateTextFields();
-		}, 1000);
-		setTimeout(() => {
-			$('#selectLocation').trigger('change');
-		}, 1000);
+            $('#selectLocation').trigger('change');
+            setTimeout(() => {
+                Materialize.updateTextFields();
+            }, 300);
+        }, 300);
 
 		this.selectActionEvent();
 
 	}
 
-	getRoleName(roleId){
-		if(roleId == 1){
-			return 'Building Manager';
-		}else if(roleId == 2){
-			return 'Tenant';
-		}else{
-			let emRoles = this.viewData.eco_roles;
-			for(let role of emRoles){
-				if(role.em_roles_id == roleId){
-					return role.role_name;
-				}
-			}
-		}
-	}
-
 	selectLocationEvent(){
 		let selectLocation = $('#selectLocation');
 		selectLocation.off('change').on('change', () => {
-			let locId = selectLocation.val(),
-				selectedLoc = <any>{},
-				emRoles = this.viewData.eco_roles;
+			let option = selectLocation.find('option:selected'),
+                index = option.attr('index'),
+                selectedLoc =  <any> this.viewData.locations[index];
 
-			for(let loc of this.viewData.locations){
-				if(loc.location_id == locId){
-					selectedLoc = loc;
-				}
-			}
+			if(selectedLoc){
+                this.viewData.role_text = selectedLoc.role_name;
 
-			if(selectedLoc.em_role_id !== null && selectedLoc.em_role_id > 0){
-				this.viewData.role_text = this.getRoleName(selectedLoc.em_role_id);
-			}else{
-				if(selectedLoc.location_role_id == 1 || selectedLoc.location_role_id == 2){
-					this.viewData.role_text = this.getRoleName(selectedLoc.location_role_id);
-				}
-			}
+                setTimeout(() => {
+                    Materialize.updateTextFields();
+                }, 100);
+            }
 
 			setTimeout(() => {
 				Materialize.updateTextFields();
@@ -457,11 +437,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     	}
     }
 
+    removeAssigned(index){
+        this.toEditLocations[index]['deleted'] = true;
+    }
+
     assignNewClickEvent(){
     	this.toEditLocations.push({
     		location_id : 0,
-    		location_role_id : 0,
-    		em_role_id : 0,
     		role_id : 0,
     		id : this.generateRandomChars(20)
     	});
@@ -472,15 +454,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     }
 
     onChangeSelectRole(location, roleId){
-    	if(roleId in [1,2]){
-    		location.role_id = roleId;
-    		location.location_role_id = roleId;
-    		location.em_role_id = 0;
-    	}else{
-    		location.role_id = 0;
-    		location.location_role_id = roleId;
-    		location.em_role_id = roleId;
-    	}
+    	location.role_id = roleId;
+        let rolesForMains = [1,11,15,16,17];
     }
 
     onChangeDropDown(event){
@@ -493,7 +468,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
     clickSelectLocation(loc){
 
-    	if(loc.location_role_id == 1 ){
+    	if(loc.role_id == 1 ){
     		let filterLocs = [];
     		for(let i in this.locationsBackup){
     			if( this.locationsBackup[i]['parent_id'] == -1 ){
@@ -517,9 +492,6 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     		let locId = formLoc.value.selectLocation;
     		this.selectedLocationData['location_id'] = locId;
 
-    		for(let loc of this.toEditLocations){
-
-    		}
 
     		this.showSelectLocation = false;
     	}
@@ -527,12 +499,45 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
     cancelLocationModal(){
     	this.showSelectLocation = false;
-    	this.toEditLocations = JSON.parse( JSON.stringify(this.viewData.locations) );
     }
 
     saveLocationAssignments(event){
     	event.preventDefault();
-    	console.log( this.toEditLocations );
+        let toSaveData = this.toEditLocations,
+            error = 0;
+        for(let data of toSaveData){
+            if(data.location_id == 0 && !data.deleted || data.role_id == 0 && !data.deleted){
+                error++;
+            }
+        }
+
+        if(error == 0){
+
+            $('#modalAssignLocations button').attr('disabled', true);
+            $('#modalAssignLocations input').attr('disabled', true);
+            $('#modalAssignLocations a').attr('disabled', true);
+
+            this.userService.userLocationRoleAssignments({
+                user_id : this.decryptedID, assignments : JSON.stringify(this.toEditLocations)
+            }, (response) => {
+
+                $('#modalAssignLocations button').attr('disabled', false);
+                $('#modalAssignLocations input').attr('disabled', false);
+                $('#modalAssignLocations a').attr('disabled', false);
+
+                if(response.status){
+                    this.viewData.locations = response.data;
+                    setTimeout(() => {
+                        $('#modalAssignLocations').modal('');
+                        $('#selectLocation').material_select('update');
+                        setTimeout(() => {
+                            $('#selectLocation').trigger('change');
+                        },300);
+                    }, 300);
+                }
+
+            });
+        }
     }
 
     ngOnDestroy(){

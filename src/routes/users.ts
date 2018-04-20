@@ -153,6 +153,10 @@ export class UsersRoute extends BaseRoute {
             new  UsersRoute().setProfile(req, res);
         });
 
+        router.post('/users/location-role-assignment', new MiddlewareAuth().authenticate, (req: Request, res: Response) => {
+            new  UsersRoute().locationRoleAssignments(req, res);
+        });
+
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getLocationsTenants(req, res, next).then((data) => {
           res.status(200).send({
@@ -1412,11 +1416,12 @@ export class UsersRoute extends BaseRoute {
 		user = {},
 		emRolesModel = new UserEmRoleRelation(),
 		emRoles = await emRolesModel.getEmRoles(),
-		mobilityModel = new MobilityImpairedModel();
+		mobilityModel = new MobilityImpairedModel(),
+        userRoleModel = new UserRoleRelation();
 
 		response.data.eco_roles = emRoles;
         const training_requirements = await new TrainingCertification().getRequiredTrainings();
-        // console.log(training_requirements);
+        /*console.log(training_requirements);*/
         try {
 
             let user = await userModel.load(),
@@ -1424,32 +1429,7 @@ export class UsersRoute extends BaseRoute {
 
             if( Object.keys(user).length > 0 ) {
                 user['mobility_impaired_details'] = [];
-
-                let sqlInLocation = ` (
-                SELECT
-                locations.location_id
-                FROM
-                locations
-                INNER JOIN
-                location_account_user LAU
-                ON
-                locations.location_id = LAU.location_id
-                WHERE
-                LAU.account_id = `+user['account_id']+`
-                AND
-                locations.archived = 0
-                AND
-                LAU.user_id = `+req['user']['user_id']+`
-                AND LAU.archived = 0
-                GROUP BY
-                locations.location_id
-                ORDER BY
-                locations.location_id
-                )`;
-                let arrWhere = [];
-                arrWhere.push(['user_id = '+userId]);
-                arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
-                // locations = await locationAccountUserModel.getMany(arrWhere);
+                user['last_login'] = (user['last_login'] == null) ? '' : user['last_login'];
 
                 locations = await userModel.getAllMyEMLocations();
 
@@ -1460,7 +1440,13 @@ export class UsersRoute extends BaseRoute {
                     arrWhere.push( ["user_id = " + userId] );
                     arrWhere.push( "duration_date > NOW()" );
                     try {
-                        let mobilityDetails = await mobilityModel.getMany( arrWhere );
+                        let mobilityDetails = <any> await mobilityModel.getMany( arrWhere );
+
+                        for(let mob of mobilityDetails){
+                            mob['date_created_formatted'] = moment(mob['date_created']).format('MMM. DD, YYYY');
+                            mob['duration_date_formatted'] = moment(mob['duration_date']).format('MMM. DD, YYYY');
+                        }
+
                         user['mobility_impaired_details'] = mobilityDetails;
                     } catch (e) {
                         console.log(e);
@@ -1481,30 +1467,44 @@ export class UsersRoute extends BaseRoute {
                     console.log(e);
                 }
 
-                try {
-                    user['mobility_impaired_details'] = <any> await mobilityModel.getMany([ [ "user_id = "+userId] ]);
-
-                    for(let i in user['mobility_impaired_details']) {
-                        user['mobility_impaired_details'][i]['date_created_formatted'] = moment(user['mobility_impaired_details'][i]['date_created']).format('MMM. DD, YYYY');
-                        user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
+                try{
+                    for (const loc of locations) {
+                        if ('em_role_id' in loc) {
+                            loc['training_requirement_name'] = training_requirements[loc['em_role_id']]['training_requirement_name'];
+                            loc['training_requirement_id'] = training_requirements[loc['em_role_id']]['training_requirement_id'];
+                        }
                     }
-                } catch(e) {
-                    console.log(e);
+                }catch(er){}
+
+                /*let 
+                usersFrpTrpRole = <any> await userRoleModel.getManyByUserIds(userId),
+                locationsOfAccountUser = <any> await locationAccountUserModel.getLocationsByUserIdAndAccountId(userId, user['account_id']),
+                isFRP = false,
+                isTRP = false;
+
+                for(let frptrp of usersFrpTrpRole){
+                    if(frptrp.role_id == 1){
+                        isFRP = true;
+                    }else if(frptrp.role_id == 2){
+                        isTRP = true;
+                    }
                 }
+
+                for(let loc of locationsOfAccountUser){
+                    if(isFRP){
+                        loc['role_id'] = 1;
+                        loc['role_name'] = 'Building Manager';
+                    }else if(isTRP){
+                        loc['role_id'] = 2;
+                        loc['role_name'] = 'Tenancy Responsible Personnel';
+                    }
+               }
+
+               locations = locations.concat(locationsOfAccountUser);*/
             }
-
-
-          for (const loc of locations) {
-            if ('em_role_id' in loc) {
-              loc['training_requirement_name'] = training_requirements[loc['em_role_id']]['training_requirement_name'];
-              loc['training_requirement_id'] = training_requirements[loc['em_role_id']]['training_requirement_id'];
-            }
-          }
-
-
-
-      response.data.locations = locations;
-			// response.data.user = user;
+                
+            response.data.locations = locations;
+			response.data.user = user;
 			response.status = true;
 		}catch(e){
             response.status = false;
@@ -1518,28 +1518,9 @@ export class UsersRoute extends BaseRoute {
             response.data.trainings = trainings;
 
         }catch(e){
-          console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
+            console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
         }
 
-
-        try {
-          const userModel = new User(userId)
-          response.data.user = await userModel.load();
-        } catch(e) {
-          console.log(e, ' Cannot load user.', 'UsersRoute.getUserLocationsTrainingsEcoRoles');
-        }
-        try {
-          await fileModel.getByUserIdAndType(userId, 'profile').then(
-              (fileData) => {
-                  response.data.user['profilePic'] = fileData[0].url;
-              },
-              () => {
-                  response.data.user['profilePic'] = '';
-              }
-              );
-        } catch(e) {
-          console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
-        }
         try{
             let certificates = await userModel.getAllCertifications({'pass': 1});
             for (let c of certificates) {
@@ -1547,7 +1528,7 @@ export class UsersRoute extends BaseRoute {
             }
             response.data.certificates = certificates;
         } catch(e){
-          console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
+            console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
         }
 
         res.statusCode = 200;
@@ -2904,5 +2885,188 @@ export class UsersRoute extends BaseRoute {
         */
         return canLoginTenantArr;
 	}
+
+    public async locationRoleAssignments(req:AuthRequest, res:Response){
+
+        let 
+        response = {
+            status : false, message : '', data : []
+        },
+        userId = req.body.user_id,
+        assignments = JSON.parse(req.body.assignments),
+        userModel = new User(userId),
+        locAccModel = new LocationAccountUser(),
+        userEmModel = new UserEmRoleRelation(),
+        userRoleModel = new UserRoleRelation(),
+        deleteAssignment = async (assignment) => {
+            if('user_em_roles_relation_id' in assignment){
+                userEmModel.setID(assignment.user_em_roles_relation_id);
+                await userEmModel.delete();
+                userEmModel = new UserEmRoleRelation();
+            }
+
+            if('location_account_user_id' in assignment){
+                locAccModel.setID(assignment.location_account_user_id);
+                await locAccModel.delete();
+                locAccModel = new LocationAccountUser();
+            }
+        },
+        createFrpTrp = async (assign) => {
+            try{
+                await locAccModel.getByLocationIdAndUserId(assign.location_id, userId);
+            }catch(errLoc){
+                locAccModel.set('location_id', assign.location_id);
+                locAccModel.set('user_id', userId);
+                locAccModel.set('account_id', assign.account_id);
+                await locAccModel.dbInsert();
+                locAccModel = new LocationAccountUser();
+            }
+
+            try{
+                let roles = await userRoleModel.getByUserId(userId),
+                hasSame = false;
+                for(let ro of roles){
+                    if(ro.role_id == assign.role_id){
+                        hasSame = true;
+                    }
+                }
+
+                if(!hasSame){
+                    userRoleModel.set('user_id', userId);
+                    userRoleModel.set('role_id', assign.role_id);
+                    userRoleModel.dbInsert();
+                    userRoleModel = new UserRoleRelation();
+                }
+
+            }catch(err){
+                userRoleModel.set('user_id', userId);
+                userRoleModel.set('role_id', assign.role_id);
+                userRoleModel.dbInsert();
+                userRoleModel = new UserRoleRelation();
+            }
+        };
+
+
+        try{
+            let user = <any> await userModel.load();
+            response.status = true;
+
+            for(let assign of assignments){
+
+                assign['account_id'] = user.account_id;
+
+                if( 'deleted' in assign ){
+                    if( assign.deleted == true ){
+                        await deleteAssignment(assign);
+                    }
+                }else if( 'user_em_roles_relation_id' in assign ){
+                    if(assign.role_id == 1 || assign.role_id == 2){
+                        await deleteAssignment(assign);
+                        await createFrpTrp(assign);
+                    }else{
+                        userEmModel.setID(assign.user_em_roles_relation_id);
+                        try{
+                            await userEmModel.load();
+                            userEmModel.set('em_role_id', assign.role_id);
+                            userEmModel.set('location_id', assign.location_id);
+                            await userEmModel.dbUpdate();
+                            userEmModel = new UserEmRoleRelation();
+                        }catch(errEm){
+                        }
+                    }
+
+                }else if( 'location_account_user_id' in assign ){
+
+                    if(assign.role_id == 1 || assign.role_id == 2){
+                        locAccModel.setID(assign.location_account_user_id);
+                        try{
+                            await locAccModel.load();
+                            locAccModel.set('location_id', assign.location_id);
+                            await locAccModel.dbUpdate();
+                            locAccModel = new LocationAccountUser();
+                        }catch(errLoc){}
+
+                        try{
+                            await userRoleModel.getByUserId(userId);
+                            userRoleModel = new UserRoleRelation();
+                        }catch(er){
+                            await userRoleModel.create({
+                                'user_id' : userId,
+                                'role' : assign.role_id
+                            });
+                            userRoleModel = new UserRoleRelation();
+                        } 
+                    }else{
+                        await deleteAssignment(assign);
+
+                        userEmModel.set('user_id', userId);
+                        userEmModel.set('location_id', assign.location_id);
+                        userEmModel.set('em_role_id', assign.role_id);
+                        await userEmModel.dbInsert();
+                    }
+
+                }else{
+                    if( assign.role_id == 1 || assign.role_id == 2 ){
+                        await createFrpTrp(assign);
+                    }else{
+                        let arrWhere = [];
+                        arrWhere.push([ ' em.user_id = '+userId ]);
+                        arrWhere.push([ ' em.location_id = '+assign.location_id ]);
+                        arrWhere.push([ ' em.em_role_id = '+assign.role_id ]);
+                        let emroles = <any> await userEmModel.getWhere(arrWhere);
+
+                        if( emroles.length == 0 ){
+                            userEmModel = new UserEmRoleRelation();
+                            userEmModel.set('user_id', userId);
+                            userEmModel.set('location_id', assign.location_id);
+                            userEmModel.set('em_role_id', assign.role_id);
+                            await userEmModel.dbInsert();
+                        }
+
+                    }
+                }
+
+            }
+
+            let locations = <any>[],
+                locationAccountUserModel = new LocationAccountUser(),
+                usersFrpTrpRole = <any> await userRoleModel.getManyByUserIds(userId),
+                locationsOfAccountUser = <any> await locationAccountUserModel.getLocationsByUserIdAndAccountId(userId, user['account_id']),
+                isFRP = false,
+                isTRP = false;
+
+            locations = await userModel.getAllMyEMLocations();
+
+            for(let frptrp of usersFrpTrpRole){
+                if(frptrp.role_id == 1){
+                    isFRP = true;
+                }else if(frptrp.role_id == 2){
+                    isTRP = true;
+                }
+            }
+
+            for(let loc of locationsOfAccountUser){
+                if(isFRP){
+                    loc['role_id'] = 1;
+                    loc['role_name'] = 'Building Manager';
+                }else if(isTRP){
+                    loc['role_id'] = 2;
+                    loc['role_name'] = 'Tenancy Responsible Personnel';
+                }
+           }
+
+           // locations = locations.concat(locationsOfAccountUser);
+
+           response.data = locations;
+           response['usersFrpTrpRole'] = usersFrpTrpRole;
+
+        }catch(e){
+            response.message = 'No user found';
+        }
+
+
+        res.send(response);
+
+    }
 
 }
