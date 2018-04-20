@@ -528,7 +528,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
                 if(response.status){
                     this.viewData.locations = response.data;
                     setTimeout(() => {
-                        $('#modalAssignLocations').modal('');
+                        $('#modalAssignLocations').modal('close');
                         $('#selectLocation').material_select('update');
                         setTimeout(() => {
                             $('#selectLocation').trigger('change');
