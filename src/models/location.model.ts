@@ -471,11 +471,11 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getParentsChildren(parentId, role_id:number = 0) {
+	public getParentsChildren(parentId, raw = 1): any {
 		return new Promise((resolve) => {
 
       // let sql = `SELECT * FROM locations WHERE parent_id = ${parentId} AND archived = 0 ORDER BY location_id`;
-
+      let locationIds = [];
       let sql = `SELECT *
 			FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
 			(SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
@@ -502,10 +502,15 @@ export class Location extends BaseClass {
 				if (err) {
 					console.log(sql);
 					throw new Error('Internal error. There was a problem processing your query');
-				}
-
-				resolve(results);
-
+        }
+        if (raw) {
+          resolve(results);
+        } else {
+          for (const r of results) {
+            locationIds.push(r['location_id']);
+          }
+          resolve(locationIds);
+        }
 			});
 			connection.end();
 		});
@@ -826,6 +831,32 @@ export class Location extends BaseClass {
           });
           connection.end();
         });
+    }
+
+
+    public getTenantAccounts(location = 0): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let locId = this.ID();
+        const resultSet = [];
+        if (location) {
+          locId = location;
+        }
+        const sql_get_tenant_accounts = `
+          SELECT * FROM location_account_relation WHERE location_id = ? AND responsibility = 'Tenant' GROUP BY account_id;
+        `;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_get_tenant_accounts, [locId], (error, results) => {
+          if (error) {
+            console.log('location.model.getTenantAccouts', error, sql_get_tenant_accounts);
+            throw Error('Internal error: Cannot obtain tenant accounts on this location ' + locId);
+          }
+          for (let r of results) {
+            resultSet.push(r);
+          }
+          resolve(resultSet);
+        });
+        connection.end();
+      });
     }
 
 }
