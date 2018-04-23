@@ -620,6 +620,7 @@ export class Location extends BaseClass {
                           locations.is_building
                         FROM
                           user_em_roles_relation
+                        INNER JOIN users ON users.user_id = user_em_roles_relation.user_id
                         INNER JOIN
                           em_roles
                         ON
@@ -707,6 +708,7 @@ export class Location extends BaseClass {
                   locations.location_id = user_em_roles_relation.location_id
                 WHERE
                   user_em_roles_relation.location_id = ${location} ${em_role_filter}
+                AND users.archived = 0
                 ORDER BY
                   em_role_id;`;
           connection = db.createConnection(dbconfig);

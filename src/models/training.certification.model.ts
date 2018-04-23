@@ -303,7 +303,7 @@ export class TrainingCertification extends BaseClass {
   public getCertificatesByInUsersId(userIds) {
     return new Promise((resolve) => {
 
-      let sql = `
+      const sql = `
         SELECT
           training_requirement.training_requirement_name,
           certifications.*,
@@ -318,10 +318,10 @@ export class TrainingCertification extends BaseClass {
           ON
             training_requirement.training_requirement_id = certifications.training_requirement_id
           WHERE
-            certifications.user_id IN (`+userIds+`)
+            certifications.user_id IN (${userIds})
           ORDER BY certifications.certification_date DESC
-      `,
-        connection = db.createConnection(dbconfig);
+      `;
+        const connection = db.createConnection(dbconfig);
 
       connection.query(sql, (error, results, fields) => {
 

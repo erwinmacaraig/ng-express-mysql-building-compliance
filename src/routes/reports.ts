@@ -353,9 +353,9 @@ export class ReportsRoute extends BaseRoute {
                 loc['name'] = (loc['name'].length === 0) ? loc['formatted_address'] : loc['name'];
             }
 
-            let locAccUser = new LocationAccountUser(),
-                users = <any> await locAccUser.getUsersInLocationId( allLocationIds.join(',') ),
-                allUserIds = [];
+            let locAccUser = new UserEmRoleRelation(),
+                users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(',') ),
+                allUserIds = [0];
 
             for(let user of users){
                 if(allUserIds.indexOf(user.user_id) == -1){
@@ -374,7 +374,6 @@ export class ReportsRoute extends BaseRoute {
                         cert['email'] = user.email;
                     }
                 }
-
                 cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
             }
 
