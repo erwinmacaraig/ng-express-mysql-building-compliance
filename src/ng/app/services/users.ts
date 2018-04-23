@@ -256,31 +256,40 @@ export class UserService {
 		});
   }
 
-  sendTRPInvitation(trpInfo: object = {}) {
-    const body = {};
-    body['tenancy_name'] = ('account_name' in trpInfo) ? trpInfo['account_name'] : '';
-    body['email'] = ('email' in trpInfo) ? trpInfo['email'] : '';
-    body['first_name'] = ('key_contact_name' in trpInfo) ? trpInfo['key_contact_name'] : '';
-    body['last_name'] = ('key_contact_lastname' in trpInfo) ? trpInfo['key_contact_lastname'] : '';
-    body['location_id'] = ('location_id' in trpInfo) ? trpInfo['location_id'] : 0;
+    sendTRPInvitation(trpInfo: object = {}) {
+        const body = {};
+        body['tenancy_name'] = ('account_name' in trpInfo) ? trpInfo['account_name'] : '';
+        body['email'] = ('email' in trpInfo) ? trpInfo['email'] : '';
+        body['first_name'] = ('key_contact_name' in trpInfo) ? trpInfo['key_contact_name'] : '';
+        body['last_name'] = ('key_contact_lastname' in trpInfo) ? trpInfo['key_contact_lastname'] : '';
+        body['location_id'] = ('location_id' in trpInfo) ? trpInfo['location_id'] : 0;
 
-    return this.http.post<any>(this.baseUrl + '/users/send-trp-invitation/', body);
+        return this.http.post<any>(this.baseUrl + '/users/send-trp-invitation/', body);
 
-  }
+    }
 
-  getAllLocationsForUser() {
-    return this.http.get(this.baseUrl + '/users/get-all-locations/', this.options);
-  }
+    getAllLocationsForUser() {
+        return this.http.get(this.baseUrl + '/users/get-all-locations/', this.options);
+    }
 
-  emailCertificate(userId = 0, certId = 0) {
-    return this.http.post<any>(this.baseUrl + '/users/email-certificate/',{
-      'userId': userId,
-      'certId': certId
-    });
-  }
+    emailCertificate(userId = 0, certId = 0) {
+        return this.http.post<any>(this.baseUrl + '/users/email-certificate/',{
+            'userId': userId,
+            'certId': certId
+        });
+    }
 
-  getEmUserDashboardInfo() {
-    return this.http.get(this.baseUrl + '/users/em/dashboard/', this.options);
-  }
+    getEmUserDashboardInfo() {
+        return this.http.get(this.baseUrl + '/users/em/dashboard/', this.options);
+    }
+
+    userLocationRoleAssignments(formData, callBack){
+        this.http.post(this.baseUrl+"/users/location-role-assignment", formData)
+        .subscribe(res => {
+            callBack(res);
+        }, err => {
+            callBack( JSON.parse(err.error) );
+        });
+    }
 
 }

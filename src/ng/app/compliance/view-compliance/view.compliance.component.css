@@ -512,6 +512,7 @@ table th:first-child{
 
 .documents-container .document .text-container .file-name{
     margin-top: 0px;
+    max-width: 270px;
 }
 
 .documents-container .document .text-container .dates{

@@ -51,6 +51,32 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
+    public getLocationsByUserIdAndAccountId(userId, accntId){
+        return new Promise((resolve) => {
+
+            let sql = `
+            SELECT
+                lau.location_account_user_id, l.formatted_address, l.name, l.location_id, l.parent_id, l.is_building, lp.name as parent_name
+            FROM location_account_user lau
+            INNER JOIN locations l ON lau.location_id = l.location_id
+            LEFT JOIN locations lp ON lp.location_id = l.parent_id
+            WHERE lau.user_id = ${userId} AND lau.account_id = ${accntId} AND l.archived = 0
+            `;
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+
+
+        });
+    }
+
     public getMany(arrWhere){
         return new Promise((resolve, reject) => {
             let sql_load = '',
