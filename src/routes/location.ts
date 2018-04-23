@@ -170,6 +170,7 @@ const defs = require('../config/defs.json');
             });
             sublocationIds = [];
             loc['num_wardens'] = totalWardenOnAccount.length;
+            loc['']
           }
           console.log(locationsForBuildingManager);
 
