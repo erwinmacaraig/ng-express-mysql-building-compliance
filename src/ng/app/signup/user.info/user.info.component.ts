@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, ViewEncapsulation, OnDestroy } from '@angular/core';
-import { HttpClient,  HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PlatformLocation } from '@angular/common';
@@ -57,7 +57,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
         private signupService: SignupService,
         private auth: AuthService
     ) {
-        this.headers = new Headers({ 'Content-type' : 'application/json' });
+        this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
         this.options = { headers : this.headers };
         this.baseUrl = (platformLocation as any).location.origin;
 
