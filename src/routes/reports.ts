@@ -22,6 +22,7 @@ import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calc
 import * as fs from 'fs';
 import * as path from 'path';
 import * as CryptoJS from 'crypto-js';
+import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 const validator = require('validator');
 const md5 = require('md5');
 const moment = require('moment');
@@ -116,30 +117,85 @@ export class ReportsRoute extends BaseRoute {
         // console.log(req.query.location_id);
         // create location object reference
         const location = new Location(req.query.location_id);
+        const userRoleRel = new UserRoleRelation();
+        let r = 0;
         // generate all sublocation from the given parent
+        try {
+          r = await userRoleRel.getByUserId(req.user.user_id, true);
+        } catch (e) {
+          console.log('location route get-parent-locations-by-account-d', e);
+          r = 0;
+        }
+
+
         const sublocationsDbData = await location.getDeepLocationsByParentId(req.query.location_id);
         const sublocs = [];
         const EMRole = new UserEmRoleRelation();
+
         Object.keys(sublocationsDbData).forEach((i) => {
           sublocs.push(sublocationsDbData[i]['location_id']);
         });
 
+        if (!sublocs.length) {
+          sublocs.push(req.query.location_id);
+        }
+
         const locAcctUser = new LocationAccountUser();
         const resultSet = await locAcctUser.getAllAccountsInSublocations(sublocs);
         const resultSetArr = [];
-        let wardenInTheWholeBuilding = 0;
-        try {
-          const temp = await location.getEMRolesForThisLocation(defs['em_roles']['WARDEN']);
-          wardenInTheWholeBuilding = temp[defs['em_roles']['WARDEN']]['count'];
-        } catch (e) {
-          console.log(e);
-          wardenInTheWholeBuilding = 0;
-        }
-
-
+        let users = [];
         Object.keys(resultSet).forEach((key) => {
           resultSetArr.push(resultSet[key]);
         });
+
+        console.log(resultSetArr);
+        let wardenInTheWholeBuilding = 0;
+        let temp;
+        try {
+          temp = await location.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], 0, r);
+          wardenInTheWholeBuilding = temp[defs['em_roles']['WARDEN']]['count'];
+          users = temp[defs['em_roles']['WARDEN']]['users'];
+        } catch (e) {
+          console.log('Reports route - generateTeamReport (getting EMRoles)', e);
+        }
+        try {
+          temp = await location.getEMRolesForThisLocation(defs['em_roles']['FLOOR_WARDEN'], 0, r);
+          for (const u in temp[defs['em_roles']['FLOOR_WARDEN']]['users']) {
+            if (users.indexOf(u) === -1) {
+              users.push(u);
+            }
+          }
+          wardenInTheWholeBuilding = temp[defs['em_roles']['WARDEN']]['count'];
+        } catch (e) {
+          console.log('Reports route - generateTeamReport (getting EMRoles)', e);
+        }
+        wardenInTheWholeBuilding = users.length;
+
+        const mobilityImpaired = new MobilityImpairedModel();
+        for (const rs of resultSetArr) {
+          let injured = [];
+          let wardenArrays = [];
+          injured = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, rs['location_id'], 'account');
+          injured = injured.concat(await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, rs['location_id'], 'emergency'));
+          rs['peep_total'] = (Array.from(new Set(injured))).length;
+          temp = null;
+          temp = await EMRole.getEMRolesOnAccountOnLocation(
+            defs['em_roles']['WARDEN'],
+            req.user.account_id,
+            rs['location_id']
+          );
+          wardenArrays = temp['users'];
+          temp = null;
+          temp = await EMRole.getEMRolesOnAccountOnLocation(
+            defs['em_roles']['FLOOR_WARDEN'],
+            req.user.account_id,
+            rs['location_id']
+          );
+          wardenArrays = wardenArrays.concat(temp['users']);
+          rs['total_wardens'] = (Array.from(new Set(wardenArrays))).length;
+        }
+
+/*
         let peepData;
         try {
           peepData = await new Account().generateReportPEEPList(sublocs);
@@ -164,7 +220,7 @@ export class ReportsRoute extends BaseRoute {
             resultSetArr[j]['total_wardens'] = 0;
             resultSetArr[j]['wardens'] = [];
           }
-        }
+        } */
         return [resultSetArr, wardenInTheWholeBuilding];
      }
 
