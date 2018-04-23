@@ -255,7 +255,7 @@ export class LocationAccountRelation extends BaseClass {
           SELECT
             location_account_relation.*,
             locations.location_id,
-            CONCAT(parent_locations.name, ' ', locations.name) as name,
+            IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name,
             locations.is_building,
             locations.google_photo_url,
             locations.admin_verified

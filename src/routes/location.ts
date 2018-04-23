@@ -63,15 +63,15 @@ const defs = require('../config/defs.json');
             });
         });
 
-	   	router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
-	   		new LocationRoute().getByAccountId(req, res, next);
-	   	});
+      router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
+        new LocationRoute().getByAccountId(req, res, next);
+      });
 
-	   	router.get('/location/get-by-userid-accountid/:user_id/:account_id', (req: Request, res: Response, next: NextFunction) => {
-	   		new LocationRoute().getByUserIdAndAccountId(req, res, next);
-	   	});
+      router.get('/location/get-by-userid-accountid/:user_id/:account_id', (req: Request, res: Response, next: NextFunction) => {
+        new LocationRoute().getByUserIdAndAccountId(req, res, next);
+      });
 
-     	router.get('/location/get-parent-locations-by-account-id', new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response) => {
+      router.get('/location/get-parent-locations-by-account-id', new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response) => {
 
         const locAccntRelObj = new LocationAccountRelation();
         const userRoleRel = new UserRoleRelation();
@@ -80,7 +80,8 @@ const defs = require('../config/defs.json');
         let EMRole = new UserEmRoleRelation();
         let temp;
         let totalWardens = 0;
-
+        let userIds = [];
+        const mobilityImpaired = new MobilityImpairedModel();
         try {
           r = await userRoleRel.getByUserId(req.user.user_id, true);
         } catch(e) {
@@ -92,7 +93,7 @@ const defs = require('../config/defs.json');
           const locationListingTRP = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
           let canLoginTenants = {};
           const locationAccountUserObj = new LocationAccountUser();
-          const mobilityImpaired = new MobilityImpairedModel();
+
           for (const loc of locationListingTRP) {
             const tempWardenUsers = [];
             const tempFloorWardenUsers = [];
@@ -129,7 +130,7 @@ const defs = require('../config/defs.json');
             } catch(e) { }
             loc['num_wardens'] = totalWardens + tempFloorWardenUsers.length;
             temp = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, loc['location_id'], 'account');
-            const userIds = [];
+            userIds = [];
             console.log(temp);
             Object.keys(temp).forEach((u)=> {
               userIds.push(u['user_id']);
@@ -148,9 +149,6 @@ const defs = require('../config/defs.json');
             /**
              * COMPLIANCE SECTION HERE
              */
-
-
-
           } // end for loop
 
           return res.status(200).send({
@@ -159,14 +157,53 @@ const defs = require('../config/defs.json');
         } // end if
 
         if (r == defs['Manager']) {
+          const locationObject = new Location();
+          let sublocationIds = [];
+          const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+          const accountObj = new Account(req.user.account_id);
+          for(const loc of locationsForBuildingManager) {
+            sublocationIds = await <Array<number>>locationObject.getParentsChildren(loc['location_id'], 0);
+
+            const totalWardenOnAccount = await accountObj.getAllEMRolesOnThisAccount(req.user.account_id, {
+              'em_roles': [defs['em_roles']['WARDEN'], defs['em_roles']['FLOOR_WARDEN']],
+              'location': sublocationIds
+            });
+            sublocationIds = [];
+            loc['num_wardens'] = totalWardenOnAccount.length;
+          }
+          console.log(locationsForBuildingManager);
+
+          // console.log('===================', locationsForBuildingManager, '===============');
+          // console.log('Total Wardens = ' + totalWardenOnAccount.length);
+          temp = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, 0, 'account');
+          userIds = [];
+          console.log(temp);
+          Object.keys(temp).forEach((u)=> {
+            userIds.push(u['user_id']);
+          });
+          temp = null;
+          temp = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, 0, 'emergency');
+          console.log(temp);
+          Object.keys(temp).forEach((u)=> {
+            if (userIds.indexOf(u['user_id']) === -1) {
+              userIds.push(u['user_id']);
+            }
+          });
+          console.log("Mobility Impaired Total = " + userIds.length);
+          return res.status(200).send({
+            locations: locationsForBuildingManager
+          });
+          /*
+
           new LocationRoute().getParentLocationsByAccount(req, res, 0).then((data) => {
+            data['locations'].concat(locationsForBuildingManager);
             return res.status(200).send(data);
           }).catch((err) => {
             return res.status(400).send({
               	locations : [],
                 message: err
           	});
-         });
+         });*/
         }
         /*
         new LocationRoute().getParentLocationsByAccount(req, res, 0).then((data) => {
