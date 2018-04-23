@@ -21,7 +21,7 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 	locationId = 0;
 
 	reportData = {
-		location : { name : '' },
+		location : { name : '', parent : { name : '' } },
 		docs : [],
 		compliances : [],
 		kpis : [],
@@ -60,7 +60,7 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 			this.reportData.location = response.data.location;
 			this.reportData.docs = response.data.docs;
 			this.reportData.compliances = response.data.compliances;
-			this.reportData.kpis = response.data.kpis;
+            this.reportData.kpis = response.data.kpis;
 			this.reportData.totalComplianceRating = response['data']['compliance_rating'];
 
 			this.dashboardPreloader.hide();
