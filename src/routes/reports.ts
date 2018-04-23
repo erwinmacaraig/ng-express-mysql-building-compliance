@@ -46,15 +46,32 @@ export class ReportsRoute extends BaseRoute {
         * @route
         * getting the list of parent locations for this user under his account
         */
-        router.get('/reports/list-locations/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-          // get all parent locations
-          
-          let thisInstance = new ReportsRoute(),
-              response = await thisInstance.getRootLocationsOnAccount(req.user.account_id, req.user.user_id);
+        router.get('/reports/list-locations/',
+          new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+          const locAccntRelObj = new LocationAccountRelation();
+          const userRoleRel = new UserRoleRelation();
+          let r = 0;
+          const filter = {};
+          let locationListing;
+          try {
+            r = await userRoleRel.getByUserId(req.user.user_id, true);
+          } catch (e) {
+            console.log('location route get-parent-locations-by-account-d', e);
+            r = 0;
+          }
+          filter['responsibility'] = r;
+          if (r === defs['Tenant']) {
+            locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
 
+          } else if (r === defs['Manager']) {
+            filter['is_building'] = 1;
+            locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+          }
+          // console.log(locationListing);
           return  res.send({
-              data : response
+              data : locationListing
           });
+
         });
 
        /**
@@ -235,7 +252,7 @@ export class ReportsRoute extends BaseRoute {
                 roles = await userRoleModel.getByUserId(userId);
 
             locationsOnAccount = await account.getLocationsOnAccount(userId, 1, 0);
-            
+
             for (let loc of locationsOnAccount) {
                 locations.push(loc);
             }
@@ -245,7 +262,7 @@ export class ReportsRoute extends BaseRoute {
             try{
                 let userEmRole = new UserEmRoleRelation(),
                 emRoles = <any> await userEmRole.getEmRolesByUserId(userId);
-                
+
                 for (let em of emRoles) {
                     locations.push(em);
                 }
@@ -258,7 +275,7 @@ export class ReportsRoute extends BaseRoute {
             let allSubLocationIds = [0],
                 deepLocModel = new Location(),
                 deepLocations = <any> [];
-            
+
             if(loc.parent_id == -1){
                 deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
                 deepLocations.push(loc);
@@ -295,7 +312,7 @@ export class ReportsRoute extends BaseRoute {
 
             let locMerged = this.addChildrenLocationToParent(deepLocations),
                 respLoc = (locMerged[0]) ? locMerged[0] : locMerged;
-            
+
             let alreadyHave = false;
             for(let parent of parentLoc){
                 if(parent.location_id == respLoc.location_id){
@@ -421,8 +438,8 @@ export class ReportsRoute extends BaseRoute {
         locationData['name'] = (locationData['name'].length == 0) ? locationData['formatted_address'] : locationData['name'];
         this.createComplianceMapForLocation(locationData.location_id, accountId, 'Manager');
 
-        for(let sub of deepLocations){ 
-            allSubLocationsId.push( sub.location_id ); 
+        for(let sub of deepLocations){
+            allSubLocationsId.push( sub.location_id );
         }
         locationData['wardens'] = await locAccntUser.getWardensByAccountIdWhereInLocationId(accountId, allSubLocationsId.join(','));
 
@@ -441,17 +458,17 @@ export class ReportsRoute extends BaseRoute {
             for(let comp of locationCompliance){
 
                 kp['valid_till'] = comp['valid_till'];
-                
+
                 if( comp.compliance_kpis_id == kp.compliance_kpis_id ){
-                    
+
                     if(comp.measurement == "Precent"){
 
                         let totalWadens = locationData.wardens.length,
                             userIds = [0],
                             wardenCompliantCount = 0;
 
-                        for(let ward of locationData.wardens){ 
-                            userIds.push(ward.user_id); 
+                        for(let ward of locationData.wardens){
+                            userIds.push(ward.user_id);
                         }
 
                         let certModel = new TrainingCertification(),
@@ -459,7 +476,7 @@ export class ReportsRoute extends BaseRoute {
 
                         kp['certificates'] = certificates;
 
-                        for(let ward of locationData.wardens){ 
+                        for(let ward of locationData.wardens){
                             ward['compliant'] = false;
                             for(let cert of certificates){
                                 if(cert.user_id == ward.user_id){
@@ -509,8 +526,8 @@ export class ReportsRoute extends BaseRoute {
             }
 
         }
-        
-        locationData['compliances'] = locationCompliance; 
+
+        locationData['compliances'] = locationCompliance;
         locationData['number_of_sublocations'] = deepLocations.length;
         locationData['compliance_rating'] = locCompRate+'/'+TotalNumberOfKPIS;
         locationData['status'] = (locCompRate == TotalNumberOfKPIS) ? 'Compliant' : 'Not Compliant';
@@ -595,7 +612,7 @@ export class ReportsRoute extends BaseRoute {
 
         try{
             let loc = <any> await locationModel.load();
-            
+
             loc = await this.buildLocationComplianceData( loc, accountId, 'Manager', kpis );
 
             response.data.location = loc;
