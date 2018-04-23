@@ -47,9 +47,6 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
             }
         }
 
-    }
-
-    ngOnInit(){
         this.reportService.getParentLocationsForReporting().subscribe((response) => {
             console.log(response);
             this.rootLocationsFromDb = response['data'];
@@ -59,6 +56,11 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
         }, (e) => {
             console.log(e);
         });
+
+    }
+
+    ngOnInit(){
+        
 
     }
 

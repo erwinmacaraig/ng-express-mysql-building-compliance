@@ -497,7 +497,7 @@
 	</div>
 </ng-template>
 
-<ng-template #warden_listTemplate> <!-- Warden Lists -->
+<ng-template #sundryTemplate> <!-- Sundry -->
 	<div class="documents-container">
 		<div class="document" >
 
@@ -512,9 +512,10 @@
 
 				<div class="dates">
 					<div class="created">
-						<p></p>
-						<p class="green-text"></p>
-					</div>
+                        <p>Date of activity:</p>
+                        <p *ngIf="!selectedCompliance.compliance.docs[0]">00/00/0000</p>
+                        <p *ngIf="selectedCompliance.compliance.docs[0]">{{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}</p>
+                    </div>
 
 					<div class="review">
 						<p></p>
@@ -528,21 +529,21 @@
 
 				<div class="buttons">
                     <button  (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
-					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
+					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button> -->
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
 				</div>
 			</div>
 
-			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
-				<p class="give-access-text">Give access to TRP</p>
-				<div class="switch" >
-					<input type="checkbox"  >
-					<div class="yes">Yes</div>
-					<div class="no">No</div>
-					<div class="highlight"></div>
-					<div class="background"></div>
-				</div>
-			</div>
+			<!-- <div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
+                <p class="give-access-text">Give access to TRP</p>
+                <div class="switch" >
+                    <input type="checkbox"  >
+                    <div class="yes">Yes</div>
+                    <div class="no">No</div>
+                    <div class="highlight"></div>
+                    <div class="background"></div>
+                </div>
+            </div> -->
 
 		</div>
 
@@ -1180,13 +1181,13 @@
 		</table>
 	</div>
 </ng-template>
-<!--
-<ng-template #warden_listTableTemplate>
+
+<ng-template #sundryTableTemplate>
 	<div class="col l12 m12 s12">
 		<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
 	</div>
 	<div class="col l4 m12 s12"  >
-		<ng-container *ngTemplateOutlet="warden_listTemplate"></ng-container>
+		<ng-container *ngTemplateOutlet="sundryTemplate"></ng-container>
 	</div>
 	<div class="col l8 m12 s12">
 		<div class="diagram-top-of-table">
@@ -1214,38 +1215,28 @@
 			<thead>
 				<tr>
 					<th>Date</th>
-					<th>Account</th>
-					<th>TRP Name</th>
-					<th style="width: 10%;">No of new wardens added</th>
+					<!-- <th>Account</th> -->
+					<th>File Name</th>
+					<th style="width: 12%;">No of wardens</th>
 					<th style="width: 10%;">Action</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						<span class="blue-text"> Emapta </span>
-					</td>
-					<td>
-						Allan Last
-					</td>
-					<td>
-						150
-					</td>
-					<td style="padding: 2px;">
-						<a href="javascript:void(0)" class=" ">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
-
+                <tr *ngFor="let doc of selectedCompliance.compliance.docs">
+                    <td>{{doc.date_of_activity_formatted}}</td>
+                    <td>{{doc.file_name}}</td>
+                    <td>{{selectedCompliance.compliance.num_wardens}}</td>
+                    <td style="padding: 2px;">
+                        <a href="javascript:void(0)" class=" ">
+                            <img src="/assets/images/download_ico_blue.png"  >
+                        </a>
+                    </td>
+                </tr>
 			</tbody>
 		</table>
 	</div>
 </ng-template>
--->
+
 
 <div class="top-gray">
 	<h6 class="title">
@@ -1325,7 +1316,7 @@
 						</td>
 						<td class="with-bar red-theme" 
                             [ngClass]="{ 'green-theme' : k.compliance.percentage_number >= 100 }" 
-                            *ngIf="k.type == 'percent' && k.compliance_kpis_id != 5">
+                            *ngIf="k.type == 'percent' && k.compliance_kpis_id != 5 && k.compliance_kpis_id != 13">
 							<div class="text">{{k.compliance.percentage}}</div>
 							<div class="progress-container">
 								<div class="progress">
@@ -1335,7 +1326,7 @@
 							</div>
 							<div class="arrow"></div>
 						</td>
-                        <td class="with-bar red-theme" [ngClass]="{ 'green-theme' : k.compliance.percentage_number >= 100 }" *ngIf="k.compliance_kpis_id == 5">
+                        <td class="with-bar red-theme" [ngClass]="{ 'green-theme' : k.compliance.percentage_number >= 100 }" *ngIf="k.compliance_kpis_id == 5 && k.compliance_kpis_id != 13">
                             <div class="text">{{k.compliance.percentage}}</div>
                             <div class="progress-container">
                                 <div class="progress">
@@ -1344,6 +1335,8 @@
                                 <p> {{k.compliance.total_valid_diagrams}} / {{k.compliance.total_diagrams}} </p>
                             </div>
                             <div class="arrow"></div>
+                        </td>
+                        <td *ngIf="k.compliance_kpis_id == 13">
                         </td>
 					</tr>
 

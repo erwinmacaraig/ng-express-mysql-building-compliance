@@ -299,7 +299,7 @@ export class Account extends BaseClass {
               locations.location_id = LAU.location_id
             WHERE
               locations.archived = ?
-              ${user_filter} 
+              ${user_filter}
             GROUP BY
               locations.location_id
             ORDER BY
@@ -325,6 +325,132 @@ export class Account extends BaseClass {
         });
     }
 
+    public getAllEMRolesOnThisAccount(accountId = 0, filter = {} ): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let account = this.ID();
+        let filterStr = '';
+        const resultSet = [];
+        if (accountId) {
+          account = accountId;
+        }
+        if ('location' in filter && filter['location'].length > 0) {
+          filterStr += ' AND user_em_roles_relation.location_id IN (' + filter['location'].join(',') + ')';
+        }
+        if ('em_roles' in filter) {
+          filterStr += ' AND user_em_roles_relation.em_role_id IN (' + filter['em_roles'].join(',')  + ')';
+        }
+
+        const sql_all = `
+          SELECT
+          	users.user_id,
+            users.first_name,
+            users.last_name,
+            user_em_roles_relation.location_id,
+            user_em_roles_relation.em_role_id
+          FROM
+          	users
+          INNER JOIN
+          	user_em_roles_relation
+          ON
+          	users.user_id = user_em_roles_relation.user_id
+          WHERE
+            users.account_id = ? ${filterStr}
+          AND
+           archived = 0
+          GROUP BY
+            users.user_id
+          ORDER BY
+          	users.user_id;
+        `;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_all, [account], (error, results) => {
+          if (error) {
+            console.log('account.model.getAllEMRolesOnThisAccount', error, sql_all);
+            throw Error('Cannot generate the list of emergency roles');
+          }
+          for (const r of results) {
+            resultSet.push(r);
+          }
+          resolve(resultSet);
+        });
+        connection.end();
+      });
+    }
+    public generateReportPEEPList(sublocations = []) {
+      return new Promise((resolve, reject) => {
+        if (!sublocations.length) {
+          reject('Cannot generate list without locations');
+          return;
+        }
+        const sublocationStr = sublocations.join(',');
+        const peepDataResultObj = {};
+        const sql = `SELECT
+            accounts.account_id,
+            accounts.account_name,
+            accounts.key_contact,
+            locations.parent_id,
+            locations.name,
+            locations.formatted_address,
+            locations.is_building,
+            LAU.location_id,
+            LAU.user_id,
+            LAU.role_id,
+            users.first_name,
+            users.last_name,
+            users.phone_number,
+            users.mobile_number,
+            users.email
+          FROM
+              location_account_user LAU
+          INNER JOIN
+            accounts
+          ON
+               accounts.account_id = LAU.account_id
+          INNER JOIN
+            locations
+          ON
+            locations.location_id = LAU.location_id
+          INNER JOIN
+            users
+          ON
+            users.user_id = LAU.user_id
+          WHERE
+             locations.location_id IN (${sublocationStr})
+          AND
+            users.mobility_impaired = 1
+          ORDER BY
+            accounts.account_name`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [], (error, results, fields) => {
+          if (error) {
+            console.log('account.model.generateReportPEEPList', error, sql);
+            throw Error('There was a problem generating report');
+          }
+          if (!results.length) {
+            reject(`There are no records found for ${sublocationStr}`);
+          } else {
+            for (let i = 0; i < results.length; i++) {
+              if (results[i]['account_id'] in peepDataResultObj) {
+                (peepDataResultObj[results[i]['account_id']]['users']).push(results[i]['user_id']);
+                peepDataResultObj[results[i]['account_id']]['total'] = (peepDataResultObj[results[i]['account_id']]['users']).length;
+              } else {
+                peepDataResultObj[results[i]['account_id']] = {
+                  'name': results[i]['account_name'],
+                  'users': [results[i]['user_id']],
+                  'location': results[i]['location_id'],
+                  'account_id': results[i]['account_id'],
+                  'total': 1
+                };
+              }
+            }
+            resolve(peepDataResultObj);
+          }
+        });
+        connection.end();
+      });
+  }
+
+/*
     public getLocationsByAccountId(accountId){
         return new Promise((resolve, reject) => {
             const sql = `SELECT
@@ -358,7 +484,8 @@ export class Account extends BaseClass {
             connection.end();
         });
     }
-
+*/
+ /*
     public buildWardenList(user_id: number, archived?) {
       return new Promise((resolve, reject) => {
         if(!archived){ archived = 0; }
@@ -429,7 +556,8 @@ export class Account extends BaseClass {
         connection.end();
       });
     }
-
+*/
+/*
     public buildPEEPList(accntID?, userID?, archived?) {
       return new Promise((resolve, reject) => {
         let sql_get_peep = `
@@ -535,11 +663,11 @@ export class Account extends BaseClass {
         connection.end();
       });
     }
-
+*/
     /**
     * @getRootLocationsOnAccount
     * Get all parent locations irregardless of role of user
-    */
+
     public getRootLocationsOnAccount(user_id: number = 0, archived: number = 0) {
         return new Promise((resolve, reject) => {
 
@@ -585,81 +713,8 @@ export class Account extends BaseClass {
           connection.end();
         });
     }
-
-    public generateReportPEEPList(sublocations = []) {
-        return new Promise((resolve, reject) => {
-          if (!sublocations.length) {
-            reject('Cannot generate list without locations');
-            return;
-          }
-          const sublocationStr = sublocations.join(',');
-          const peepDataResultObj = {};
-          const sql = `SELECT
-              accounts.account_id,
-              accounts.account_name,
-              accounts.key_contact,
-              locations.parent_id,
-              locations.name,
-              locations.formatted_address,
-              locations.is_building,
-              LAU.location_id,
-              LAU.user_id,
-              LAU.role_id,
-              users.first_name,
-              users.last_name,
-              users.phone_number,
-              users.mobile_number,
-              users.email
-            FROM
-                location_account_user LAU
-            INNER JOIN
-              accounts
-            ON
-                 accounts.account_id = LAU.account_id
-            INNER JOIN
-              locations
-            ON
-              locations.location_id = LAU.location_id
-            INNER JOIN
-              users
-            ON
-              users.user_id = LAU.user_id
-            WHERE
-               locations.location_id IN (${sublocationStr})
-            AND
-              users.mobility_impaired = 1
-            ORDER BY
-              accounts.account_name`;
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql, [], (error, results, fields) => {
-            if (error) {
-              console.log('account.model.generateReportPEEPList', error, sql);
-              throw Error('There was a problem generating report');
-            }
-            if (!results.length) {
-              reject(`There are no records found for ${sublocationStr}`);
-            } else {
-              for (let i = 0; i < results.length; i++) {
-                if (results[i]['account_id'] in peepDataResultObj) {
-                  (peepDataResultObj[results[i]['account_id']]['users']).push(results[i]['user_id']);
-                  peepDataResultObj[results[i]['account_id']]['total'] = (peepDataResultObj[results[i]['account_id']]['users']).length;
-                } else {
-                  peepDataResultObj[results[i]['account_id']] = {
-                    'name': results[i]['account_name'],
-                    'users': [results[i]['user_id']],
-                    'location': results[i]['location_id'],
-                    'account_id': results[i]['account_id'],
-                    'total': 1
-                  };
-                }
-              }
-              resolve(peepDataResultObj);
-            }
-          });
-          connection.end();
-        });
-    }
-
+*/
+/*
     public getUsersOfAccount(accountId?){
         return new Promise((resolve) => {
             accountId = (accountId) ? accountId : this.ID();
@@ -677,5 +732,7 @@ export class Account extends BaseClass {
 
         });
     }
+    */
 
-}
+
+} // end class

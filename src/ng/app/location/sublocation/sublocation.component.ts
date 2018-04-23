@@ -30,6 +30,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
     userData = <any> {};
     isFrp = false;
     isTrp = false;
+    role = 100;
     encryptedID;
     locationID = 0;
     locationData = {
@@ -80,13 +81,12 @@ export class SublocationComponent implements OnInit, OnDestroy {
     ) {
 
         this.userData = this.auth.getUserData();
-        for(let rol of this.userData.roles){
-            if(rol.role_id == 1){
-                this.isFrp = false;
+        for( let rol of this.userData.roles) {
+
+            if (this.role > rol.role_id) {
+              this.role = rol.role_id;
             }
-            if(rol.role_id == 2){
-                this.isTrp = false;
-            }
+
         }
 
         // this.mutationOversable = new MutationObserver((mutationsList) => {
@@ -231,7 +231,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
         $('#modalAddNewTenant').modal('open');
     }
 
-    submitNewTenant(formAddTenant:NgForm){
+    submitNewTenant(formAddTenant:NgForm) {
         if(formAddTenant.valid){
             this.showModalNewTenantLoader = true;
             let formData = formAddTenant.value;

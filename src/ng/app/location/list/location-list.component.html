@@ -97,20 +97,39 @@
 							<img src="{{location.google_photo_url}}" alt="">
 						</div>
 						<div class="inline-block">
-                            <a *ngIf="location.parent_id > -1"  [routerLink]="['/location/view-sublocation/', location.location_id]" class="location-name-link">
-                                <span *ngIf="location.parent">{{location.parent.name}},</span>
-                                <span *ngIf="location.name.length > 0"> {{location.name}}</span>
-                                <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
-                            </a>
-							<a *ngIf="location.parent_id == -1" [routerLink]="['/location/view/', location.location_id]" class="location-name-link">
-								<span *ngIf="location.parent">{{location.parent.name}},</span>
-								<span *ngIf="location.name.length > 0"> {{location.name}}</span>
-								<span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
-							</a>
+                        <!--
+                        <a *ngIf="location.parent_id > -1"  [routerLink]="['/location/view-sublocation/', location.location_id]" class="location-name-link">
+                        <span *ngIf="location.parent">{{location.parent.name}},</span>
+                        <span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                        <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                        </a>
+                        		<a *ngIf="location.parent_id == -1" [routerLink]="['/location/view/', location.location_id]" class="location-name-link">
+                        			<span *ngIf="location.parent">{{location.parent.name}},</span>
+                        			<span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                        			<span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                        </a>
+                        -->
+
+                        <a *ngIf="location.is_building" [routerLink]="['/location', 'view', location.location_id]" class="location-name-link">
+                            <span *ngIf="location.parent">{{location.parent.name}},</span>
+                            <span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                            <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                        </a>
+                        <a *ngIf="!location.is_building && location.parent_id != -1" [routerLink]="['/location', 'view-sublocation', location.location_id]" class="location-name-link">
+                            <span *ngIf="location.parent">{{location.parent.name}},</span>
+                            <span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                            <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                        </a>
+                        <a *ngIf="!location.is_building && location.parent_id == -1" [routerLink]="['/location', 'view', location.location_id]" class="location-name-link">
+                            <span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                            <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                        </a>
+
+
 						</div>
 					</td>
 					<td>
-						{{location.sublocations.length}}
+						<!-- {{location.sublocations.length}} -->
 					</td>
 					<td>
 						<span style="margin-right:10px;">{{location.num_tenants}}</span>
@@ -125,7 +144,7 @@
 						{{location.mobility_impaired}}
 					</td>
 					<td class="with-bar">
-                        
+
                         <div *ngIf="location.fetchingCompliance" class="progress fetching">
                             <div class="indeterminate"></div>
                         </div>

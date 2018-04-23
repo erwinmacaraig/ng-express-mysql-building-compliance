@@ -1,6 +1,7 @@
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
+const defs = require('../config/defs');
 
 import * as Promise from 'promise';
 export class LocationAccountUser extends BaseClass {
@@ -48,6 +49,32 @@ export class LocationAccountUser extends BaseClass {
 
             });
             connection.end();
+        });
+    }
+
+    public getLocationsByUserIdAndAccountId(userId, accntId){
+        return new Promise((resolve) => {
+
+            let sql = `
+            SELECT
+                lau.location_account_user_id, l.formatted_address, l.name, l.location_id, l.parent_id, l.is_building, lp.name as parent_name
+            FROM location_account_user lau
+            INNER JOIN locations l ON lau.location_id = l.location_id
+            LEFT JOIN locations lp ON lp.location_id = l.parent_id
+            WHERE lau.user_id = ${userId} AND lau.account_id = ${accntId} AND l.archived = 0
+            `;
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+
+
         });
     }
 
@@ -479,49 +506,34 @@ export class LocationAccountUser extends BaseClass {
   public getAllAccountsInSublocations(locations = []) {
     return new Promise((resolve, reject) => {
       const locationsStr = locations.join(',');
-      const sql = `SELECT
-        accounts.account_id,
-        accounts.account_name,
-        locations.location_id,
-        locations.name,
-        locations.formatted_address,
-        locations.is_building,
-        LAU.user_id,
-        users.first_name,
-        users.last_name,
-        users.phone_number,
-        users.mobile_number,
-        users.email
-      FROM
-        location_account_user LAU
-      INNER JOIN
-        accounts
-      ON
-        accounts.account_id = LAU.account_id
-      INNER JOIN
-        locations
-      ON
-        locations.location_id = LAU.location_id
-      INNER JOIN
-        users
-      ON
-        users.user_id = LAU.user_id
-      WHERE
-        locations.location_id IN (${locationsStr})
-      ORDER BY
-        accounts.account_name`;
+      const sql_get_tenants = `SELECT
+            accounts.account_name,
+            users.first_name,
+            users.last_name,
+            users.phone_number,
+            users.mobile_number,
+            users.email,
+            locations.name,
+            location_account_user.*
+        FROM location_account_user
+        INNER JOIN user_role_relation ON user_role_relation.user_id = location_account_user.user_id
+        INNER JOIN users ON users.user_id = location_account_user.user_id
+        INNER JOIN accounts ON accounts.account_id = users.account_id
+        INNER JOIN locations ON locations.location_id = location_account_user.location_id
+        WHERE
+          location_account_user.location_id IN (${locationsStr})
+        AND
+          user_role_relation.role_id = ${defs['Tenant']}
+        ORDER BY
+          accounts.account_name`;
 
     const connection = db.createConnection(dbconfig);
-    connection.query(sql, [], (error, results, fields) => {
+    connection.query(sql_get_tenants, [], (error, results, fields) => {
       if (error) {
-        console.log('location.account.user.model.getAllAccountsInSublocations', error, sql);
+        console.log('location.account.user.model.getAllAccountsInSublocations', error, sql_get_tenants);
         throw Error('Cannot process request');
       }
-      if (results.length > 0) {
-        resolve(results);
-      } else {
-        reject('There are no records to be retrieve');
-      }
+      resolve(results);
     });
   });
   }
