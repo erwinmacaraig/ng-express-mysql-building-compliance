@@ -46,13 +46,15 @@
 
         <!-- completed -->
         <div class="buttons" *ngIf="course.lesson_status == 'completed'">
-          <button class="btn light-blue waves-effect waves-light">Download Certificate</button>
+          <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{course.scorm_course_id}}&amp;c={{course.certifications_id}}"
+            target="_blank" class="btn blue waves-effect waves-light">Download Certificate</a>
           <button  class="btn grey waves-effect waves-light" (click)="loadTrainingCourse(course)">Retake this course</button>
         </div>
 
         <!-- passed -->
         <div class="buttons" *ngIf="course.lesson_status == 'passed'">
-          <button class="btn light-blue waves-effect waves-light">Download Certificate</button>
+          <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{course.scorm_course_id}}&amp;c={{course.certifications_id}}"
+            target="_blank" class="btn blue waves-effect waves-light">Download Certificate</a>
           <button  class="btn grey waves-effect waves-light" (click)="loadTrainingCourse(course)">Retake this course</button>
         </div>
 			</div>

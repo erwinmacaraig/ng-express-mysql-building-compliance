@@ -58,7 +58,7 @@
 							</select>
 						</td> -->
 						<td >
-							<select [(ngModel)]="user.eco_role_id" name="ecorole{{i}}" required pattern="[1-9][0-9]*">
+							<select [(ngModel)]="user.eco_role_id" name="ecorole{{i}}" (change)="changeRoleEvent(user)" required pattern="[1-9][0-9]*">
 								<option value="0" selected>Select ECO Role</option>
 								<option *ngFor="let e of ecoDisplayRoles[i]" [value]="e.em_roles_id">{{ e.role_name }}</option>
 							</select>
@@ -86,7 +86,7 @@
 		</form>
 
 	<div class="col l12 m12 s12 button-container right-align">
-		<button class="btn grey lighten-1 waves-effect waves-light cancel" [routerLink]="['/teams/add-wardens']"> Cancel </button>
+		<button class="btn grey lighten-1 waves-effect waves-light cancel" [routerLink]="['/teams/list-wardens']"> Cancel </button>
 		<button class="btn orange waves-effect waves-light cancel" (click)="addBulkWarden()" [disabled]="f.invalid"> Submit </button>
 	</div>
 </div>
@@ -222,7 +222,7 @@
 
 			<div class="list-region" style="overflow-y: auto; height: 340px;">
 				<p *ngIf="locations.length == 0">No location found</p>
-				<ul *ngIf="locations.length > 0">
+				<ul *ngIf="locations.length > 0 && showLocationsRecursive">
 					<ng-template #recursiveList let-locations>
 						<li *ngFor="let location of locations" class="list-division" [id]="location.location_id" [ngClass]="{ 'show-drop-down' : (location.showDropDown) ? location.showDropDown : false }">
 							<div class="name-radio-plus">

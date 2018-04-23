@@ -446,13 +446,17 @@ export class User extends BaseClass {
               locations.parent_id,
               locations.name,
               locations.is_building,
-              user_em_roles_relation.em_role_id
+              user_em_roles_relation.user_em_roles_relation_id,
+              user_em_roles_relation.em_role_id,
+              user_em_roles_relation.em_role_id,
+              user_em_roles_relation.em_role_id as role_id,
+              lp.name as parent_name,
+              em_roles.role_name
               FROM
               user_em_roles_relation
-              INNER JOIN
-              locations
-              ON
-              user_em_roles_relation.location_id = locations.location_id
+              INNER JOIN locations ON user_em_roles_relation.location_id = locations.location_id
+              INNER JOIN em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
+              LEFT JOIN locations lp ON lp.location_id = locations.parent_id
               WHERE user_em_roles_relation.user_id = ?`;
 
             const connection = db.createConnection(dbconfig);
@@ -462,10 +466,10 @@ export class User extends BaseClass {
                     throw Error('Internal error. Cannot retrieve records');
                 }
                 if (results.length > 0) {
-                    console.log(results);
+                    /*console.log(results);*/
                     const utils = new UtilsSync();
                     utils.getRootParent(results).then((set) => {
-                        console.log(set);
+                        /*console.log(set);*/
                         resolve(set);
                     });
                 } else {

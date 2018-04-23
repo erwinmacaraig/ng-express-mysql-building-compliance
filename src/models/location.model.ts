@@ -471,11 +471,11 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getParentsChildren(parentId, role_id:number = 0) {
+	public getParentsChildren(parentId, raw = 1): any {
 		return new Promise((resolve) => {
 
       // let sql = `SELECT * FROM locations WHERE parent_id = ${parentId} AND archived = 0 ORDER BY location_id`;
-
+      let locationIds = [];
       let sql = `SELECT *
 			FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
 			(SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
@@ -502,10 +502,15 @@ export class Location extends BaseClass {
 				if (err) {
 					console.log(sql);
 					throw new Error('Internal error. There was a problem processing your query');
-				}
-
-				resolve(results);
-
+        }
+        if (raw) {
+          resolve(results);
+        } else {
+          for (const r of results) {
+            locationIds.push(r['location_id']);
+          }
+          resolve(locationIds);
+        }
 			});
 			connection.end();
 		});
@@ -583,7 +588,7 @@ export class Location extends BaseClass {
     public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number, role_id: number = 0) {
         return new Promise((resolve, reject) => {
         let location = this.ID();
-        console.log('em_role_id = ' + em_role_id);
+
         let em_role_filter = '';
         let connection;
         let sql;
@@ -615,6 +620,7 @@ export class Location extends BaseClass {
                           locations.is_building
                         FROM
                           user_em_roles_relation
+                        INNER JOIN users ON users.user_id = user_em_roles_relation.user_id
                         INNER JOIN
                           em_roles
                         ON
@@ -684,7 +690,6 @@ export class Location extends BaseClass {
               return [];
             });
         } else if(role_id === parseInt(defs['Tenant'], 10) ) {
-          console.log(typeof defs['Tenant']);
           sql = `SELECT
                   user_em_roles_relation.*,
                   em_roles.role_name,
@@ -692,6 +697,7 @@ export class Location extends BaseClass {
                   locations.is_building
                 FROM
                   user_em_roles_relation
+                INNER JOIN users ON users.user_id = user_em_roles_relation.user_id
                 INNER JOIN
                   em_roles
                 ON
@@ -702,6 +708,7 @@ export class Location extends BaseClass {
                   locations.location_id = user_em_roles_relation.location_id
                 WHERE
                   user_em_roles_relation.location_id = ${location} ${em_role_filter}
+                AND users.archived = 0
                 ORDER BY
                   em_role_id;`;
           connection = db.createConnection(dbconfig);
@@ -712,10 +719,16 @@ export class Location extends BaseClass {
             if (!results.length) {
               reject('There are no EM Roles for this location id - ' + location);
             } else {
+
               for (let i = 0; i < results.length; i++) {
+
+
                 if (results[i]['em_role_id'] in location_em_roles) {
-                  location_em_roles[results[i]['em_role_id']]['count'] = location_em_roles[results[i]['em_role_id']]['count'] + 1;
-                  (location_em_roles[results[i]['em_role_id']]['users']).push(results[i]['user_id']);
+                  if (location_em_roles[results[i]['em_role_id']]['users'].indexOf(results[i]['user_id']) === -1) {
+                    (location_em_roles[results[i]['em_role_id']]['users']).push(results[i]['user_id']);
+                    location_em_roles[results[i]['em_role_id']]['count'] = location_em_roles[results[i]['em_role_id']]['users'].length;
+                  }
+
                   if ((location_em_roles[results[i]['em_role_id']]['location']).indexOf(results[i]['location_id']) == -1) {
                     (location_em_roles[results[i]['em_role_id']]['location']).push(results[i]['location_id']);
                   }
@@ -748,7 +761,8 @@ export class Location extends BaseClass {
                     'name': ''
                   }
                   location_em_roles[keyIndex][loc]['users'].push(results[i]['user_id']);
-                  location_em_roles[keyIndex][loc]['name'] = results[i]['name']
+                  location_em_roles[keyIndex][loc]['name'] = results[i]['name'];
+                  // location_em_roles['all_role_users'] = allUsers;
                 }
               }
               resolve(location_em_roles);
@@ -781,6 +795,7 @@ export class Location extends BaseClass {
 
           const sql = `SELECT
             location_account_user.location_id,
+            accounts.account_id,
             user_role_relation.role_id,
             users.first_name,
             users.last_name,
@@ -795,13 +810,14 @@ export class Location extends BaseClass {
             users
           ON
             users.user_id = location_account_user.user_id
+          INNER JOIN accounts ON accounts.account_id = users.account_id
           WHERE
             location_account_user.location_id IN (${locationStr})
           AND
             role_id = ?`;
 
           const connection = db.createConnection(dbconfig);
-          connection.query(sql, [locId, role], (error, results) => {
+          connection.query(sql, [role], (error, results) => {
             if (error) {
               console.log('location.model.getTRPOnLocation',error, sql);
               throw Error('Cannot perform query');
@@ -817,6 +833,32 @@ export class Location extends BaseClass {
           });
           connection.end();
         });
+    }
+
+
+    public getTenantAccounts(location = 0): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let locId = this.ID();
+        const resultSet = [];
+        if (location) {
+          locId = location;
+        }
+        const sql_get_tenant_accounts = `
+          SELECT * FROM location_account_relation WHERE location_id = ? AND responsibility = 'Tenant' GROUP BY account_id;
+        `;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_get_tenant_accounts, [locId], (error, results) => {
+          if (error) {
+            console.log('location.model.getTenantAccouts', error, sql_get_tenant_accounts);
+            throw Error('Internal error: Cannot obtain tenant accounts on this location ' + locId);
+          }
+          for (let r of results) {
+            resultSet.push(r);
+          }
+          resolve(resultSet);
+        });
+        connection.end();
+      });
     }
 
 }

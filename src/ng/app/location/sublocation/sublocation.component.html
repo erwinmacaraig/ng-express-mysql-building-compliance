@@ -135,7 +135,7 @@
 									{{tenant.account_name}}
 								</td>
 								<td>
-                  <span *ngFor="let t of tenant['trp']">
+                  <span *ngFor="let t of tenant['trp']" [ngStyle]="{'display': 'block'}">
                       {{ t }}
                   </span>
 								</td>
@@ -162,7 +162,7 @@
 									</select>
 								</td>
 							</tr>
-							<tr>
+							<tr *ngIf="role == 1">
 								<td colspan="6" class="btn-block-holder">
 									<a class="btn blue waves-effect waves-light" (click)="addNewTenantClickEvent()">+ Add new tenant</a>
 								</td>

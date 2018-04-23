@@ -167,25 +167,37 @@ export class CourseUserRelation extends BaseClass {
         disabled = 0;
       }
       const sql = `SELECT
-                      course_user_relation.*,
-                      scorm_course.*,
-                      scorm.parameter_value as lesson_status,
-                      tr.training_requirement_name
-                  FROM
-                    course_user_relation
-                  INNER JOIN
-                    scorm_course
-                  ON
-                    course_user_relation.course_id = scorm_course.course_id
-                  INNER JOIN
-                    training_requirement tr ON course_user_relation.training_requirement_id = tr.training_requirement_id
-                  LEFT JOIN
-                    scorm
-                  ON (course_user_relation.course_user_relation_id = scorm.course_user_relation_id
-                      AND scorm.parameter_name = 'cmi.core.lesson_status')
-                  WHERE
-                    course_user_relation.user_id = ? AND course_user_relation.disabled = ?
-                  ORDER BY course_user_relation.dtTimeStamp DESC`;
+            course_user_relation.*,
+            scorm_course.*,
+            scorm.parameter_value as lesson_status,
+            tr.training_requirement_name,
+            tr.scorm_course_id,
+            certifications.certifications_id
+        FROM
+          course_user_relation
+        INNER JOIN
+          users
+        ON users.user_id = course_user_relation.user_id
+        INNER JOIN
+          scorm_course
+        ON
+          course_user_relation.course_id = scorm_course.course_id
+        INNER JOIN
+          training_requirement tr ON course_user_relation.training_requirement_id = tr.training_requirement_id
+        LEFT JOIN
+          certifications
+        ON (certifications.training_requirement_id = tr.training_requirement_id
+        AND certifications.user_id = course_user_relation.user_id
+        AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date,
+          INTERVAL tr.num_months_valid MONTH) > NOW()
+        )
+        LEFT JOIN
+          scorm
+        ON (course_user_relation.course_user_relation_id = scorm.course_user_relation_id
+            AND scorm.parameter_name = 'cmi.core.lesson_status')
+        WHERE
+          course_user_relation.user_id = ? AND course_user_relation.disabled = ?
+        ORDER BY course_user_relation.dtTimeStamp DESC`;
       const connection = db.createConnection(dbconfig);
       connection.query(sql, [user, disabled], (error, results, fields) => {
         if (error) {

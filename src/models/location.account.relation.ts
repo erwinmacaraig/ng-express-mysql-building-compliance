@@ -1,6 +1,7 @@
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
+const defs = require('../config/defs.json');
 
 import * as Promise from 'promise';
 export class LocationAccountRelation extends BaseClass {
@@ -226,6 +227,72 @@ export class LocationAccountRelation extends BaseClass {
             }
             resolve(this.write());
         });
+    }
+    /**
+     * @description
+     * Retrieve a list of all locations for an account with the necessary filters supplied
+     * Mainly used in listing all the locations for a user under an account
+     * @param accountId
+     * required parameter
+     * @param filter
+     */
+    public listAllLocationsOnAccount(accountId = 0, filter = {}): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        const resultSet = [];
+        let filterStr = '';
+        if ('responsibility' in filter) {
+          if (filter['responsibility'] === defs['Tenant']) {
+            filterStr += ` AND location_account_relation.responsibility = 'Tenant'`;
+          }
+          if (filter['responsibility'] === defs['Manager']) {
+            filterStr += ` AND location_account_relation.responsibility = 'Manager'`;
+          }
+        }
+        if ('is_building' in filter) {
+          filterStr += ` AND locations.is_building = ${filter['is_building']}`;
+        }
+        const sql_get_locations = `
+          SELECT
+            location_account_relation.*,
+            locations.location_id,
+            IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name,
+            locations.is_building,
+            locations.google_photo_url,
+            locations.admin_verified
+          FROM
+            location_account_relation
+          INNER JOIN
+            locations
+          ON
+            locations.location_id = location_account_relation.location_id
+          LEFT JOIN
+            locations as parent_locations
+          ON
+            locations.parent_id = parent_locations.location_id
+          WHERE
+            location_account_relation.account_id = ?
+            ${filterStr}
+          GROUP BY location_account_relation.location_id;`;
+
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_get_locations, [accountId], (error, results) => {
+          if (error) {
+            console.log('location.account.relation.listAllLocationsOnAccount', error, sql_get_locations);
+            throw Error('Cannot get all locations for this account');
+          }
+          if (results.length > 0) {
+            for (const loc of results) {
+              resultSet.push(loc);
+            }
+            resolve(resultSet);
+          } else {
+            resolve([]);
+          }
+        });
+        connection.end();
+
+      });
+
     }
 
 }

@@ -34,7 +34,8 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getEmRolesByUserId(userId) {
+    public getEmRolesByUserId(userId, archived?) {
+        archived = (archived) ? archived : 0;
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
                       uer.user_em_roles_relation_id,
@@ -50,11 +51,12 @@ export class UserEmRoleRelation extends BaseClass {
                       l.google_place_id,
                       l.google_photo_url,
                       l.is_building,
-                      l.admin_verified
+                      l.admin_verified,
+                      l.archived
                     FROM em_roles er
                     INNER JOIN user_em_roles_relation uer ON er.em_roles_id = uer.em_role_id
                     LEFT JOIN locations l ON l.location_id = uer.location_id
-                    WHERE uer.user_id = ?`;
+                    WHERE uer.user_id = ? AND l.archived = ${archived}`;
             const uid = [userId];
             const connection = db.createConnection(dbconfig);
 
@@ -73,7 +75,7 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getUserLocationByAccountIdAndLocationIds(accountId, locIds) {
+    public getUserLocationByAccountIdAndLocationIds(accountId, locIds, archived = 0) {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
                       uer.user_em_roles_relation_id,
@@ -88,6 +90,7 @@ export class UserEmRoleRelation extends BaseClass {
                       l.google_photo_url,
                       l.admin_verified,
                       l.is_building,
+                      l.archived,
                       u.first_name,
                       u.last_name,
                       u.user_id,
@@ -96,7 +99,7 @@ export class UserEmRoleRelation extends BaseClass {
                     INNER JOIN user_em_roles_relation uer ON er.em_roles_id = uer.em_role_id
                     INNER JOIN users u ON u.user_id = uer.user_id
                     LEFT JOIN locations l ON l.location_id = uer.location_id
-                    WHERE u.account_id = ${accountId} AND l.location_id IN (${locIds})`;
+                    WHERE u.account_id = ${accountId} AND l.location_id IN (${locIds}) AND l.archived = ${archived}`;
 
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
@@ -260,7 +263,7 @@ export class UserEmRoleRelation extends BaseClass {
                 WHERE
                   users.account_id = ?
                 AND
-                  location_id = ?
+                  location_id = ? AND users.archived = 0
                 ${role_filter}`;
         const connection = db.createConnection(dbconfig);
         connection.query(sql, [account_id, location_id], (error, results, fields) => {
@@ -271,14 +274,17 @@ export class UserEmRoleRelation extends BaseClass {
           const users = [];
           if (results.length > 0) {
             for (let i = 0; i < results.length; i++) {
-              users.push(results[0]['user_id']);
+              users.push(results[i]['user_id']);
             }
             resolve({
               'raw': results,
               'users': users
             });
           } else {
-            reject('No records can be retrieve.');
+            resolve({
+              'raw': {},
+              'users': []
+            });
           }
         });
         connection.end();
@@ -322,6 +328,56 @@ export class UserEmRoleRelation extends BaseClass {
                 INNER JOIN users u ON em.user_id = u.user_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
                 WHERE em.location_id IN (`+locationIds+`) AND u.archived = `+archived+`
+            `;
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
+    public getWardensInLocationIds(locationIds, archived?){
+        archived = (archived) ? archived : 0;
+
+        return new Promise((resolve, reject) => {
+            let sql_load = `
+                SELECT
+                    u.*, em.em_role_id, er.role_name
+                FROM user_em_roles_relation em
+                INNER JOIN users u ON em.user_id = u.user_id
+                INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
+                WHERE em.location_id IN (`+locationIds+`) AND u.archived = `+archived+` AND em.is_warden_role = 1
+            `;
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
+    public getCountWardensInLocationIds(locationIds, archived?){
+        archived = (archived) ? archived : 0;
+
+        return new Promise((resolve, reject) => {
+            let sql_load = `
+                SELECT
+                    COUNT(em.user_em_roles_relation_id) as count
+                FROM user_em_roles_relation em
+                INNER JOIN users u ON em.user_id = u.user_id
+                INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
+                WHERE em.location_id IN (`+locationIds+`) AND u.archived = `+archived+` AND er.is_warden_role = 1
             `;
 
             const connection = db.createConnection(dbconfig);
@@ -442,6 +498,34 @@ export class UserEmRoleRelation extends BaseClass {
 
             const connection = db.createConnection(dbconfig);
 
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
+    public getWhere(where) {
+        return new Promise((resolve, reject) => {
+            let whereSql = '',
+                count = 0;
+            for(let w of where){
+                if(count == 0){
+                    whereSql += ' WHERE ';
+                }else{
+                    whereSql += ' AND ';
+                }
+
+                whereSql += w;
+                count++;
+            }
+
+            const sql_load = 'SELECT em.*, er.role_name  FROM user_em_roles_relation em INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id '+whereSql;
+            const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
                     return console.log(error);

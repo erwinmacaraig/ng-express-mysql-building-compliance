@@ -2,7 +2,7 @@
 	<div class="row" style="margin-top: 35px;">
 
 		<div class="col l12 m12 s12">
-			<h5 class="left">{{reportData.location.name}} Statement of Compliance</h5>
+			<h5 class="left"> <span *ngIf="reportData.location.parent.name.length > 0">{{reportData.location.parent.name}}, </span>{{reportData.location.name}}  Statement of Compliance</h5>
 
 			<div class="right right-buttons">
 				<a href="javascript:void(0)">
@@ -52,12 +52,13 @@
 								{{kpi.activity_date}}
 							</td>
 							<td>
-								<span class="blue-text text" *ngIf="!kpi.compliant">
+								<span class="blue-text text" *ngIf="!kpi.compliant && kpi.compliance_kpis_id != 13">
 									Not Compliant
 								</span>
-								<span class="blue-text text" *ngIf="kpi.compliant">
+								<span class="blue-text text" *ngIf="kpi.compliant && kpi.compliance_kpis_id != 13">
 									Compliant
 								</span>
+                                <span *ngIf="kpi.compliance_kpis_id == 13"> -- </span>
 							</td>
 							<td>
 								<span class="red-text" style="font-size: 12px !important;" *ngIf="kpi.overdue">

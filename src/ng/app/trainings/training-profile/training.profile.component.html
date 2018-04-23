@@ -195,7 +195,7 @@
 	</div>
 	<div class="modal-content" *ngIf="!showModalRemoveWardenLoader">
 		<h5>Confirmation</h5>
-		<h6>Are you sure you want to remove <span class="blue-text">{{viewData.user.first_name}} {{viewData.user.last_name}}</span> as {{viewData.eco_role}} ?</h6>
+		<h6>Are you sure you want to remove <span class="blue-text">{{viewData.user.first_name}} {{viewData.user.last_name}}</span> as {{viewData['eco_role']}} ?</h6>
 		<h6 class="red-text">{{errorMessageRemoveWarden}}</h6>
 	</div>
 	<div class="modal-footer" *ngIf="!showModalRemoveWardenLoader">
