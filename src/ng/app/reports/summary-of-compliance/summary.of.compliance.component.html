@@ -49,7 +49,10 @@
 						</tr>
 						<tr *ngFor="let loc of reportData.locations">
 							<td>
-								<a [routerLink]="['/reports/statement-compliance', loc.locIdEnc]" class="blue-text">{{loc.name}}</a>
+								<a [routerLink]="['/reports/statement-compliance', loc.locIdEnc]" class="blue-text">
+                                    <span *ngIf="loc.parent.name.length > 0">{{loc.parent.name}}, </span>
+                                    <span>{{loc.name}}</span>
+                                </a>
 							</td>
 							<td>
 								{{loc.number_of_sublocations}}

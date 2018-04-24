@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { ForgotPasswordService } from '../services/forgotpassword.service';
@@ -32,7 +32,7 @@ export class ForgotpasswordComponent implements OnInit {
 	constructor(private platformLocation: PlatformLocation, private fpService:ForgotPasswordService, private http: HttpClient) {
 		this.baseUrl = (platformLocation as any).location.origin;
 		this.options = { headers : this.headers };
-		this.headers = new Headers({ 'Content-type' : 'application/json' });
+		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 	}
 
 	ngOnInit() {
