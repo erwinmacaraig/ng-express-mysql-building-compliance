@@ -16,7 +16,7 @@ import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 
 import * as moment from 'moment';
-
+const defs = require('../config/defs');
 
 export class CourseRoute extends BaseRoute {
 
@@ -227,131 +227,70 @@ export class CourseRoute extends BaseRoute {
 		account = new Account(accountId),
 		locationsOnAccount = <any> [],
 		locations = <any> [],
-		responseLocations = [];
+    responseLocations = [];
+    const trainingCertModel = new TrainingCertification();
 
 		try {
             // FRP & TRP
-            let userRoleModel = new UserRoleRelation(),
-                roles = await userRoleModel.getByUserId(req.user.user_id);
+            const userRoleModel = new UserRoleRelation();
+            const role = await userRoleModel.getByUserId(req.user.user_id, true);
+            const locAccntRelObj = new LocationAccountRelation();
+            const location = new Location();
 
-            locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 1);
-
-            for (let loc of locationsOnAccount) {
-                locations.push(loc);
+            const filter = {};
+            const locationIdsOnAccnt = [];
+            let sublocations = [];
+            filter['responsibility'] = role;
+            const locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+            for (const l of locationListing) {
+              locationIdsOnAccnt.push(l['location_id']);
             }
-        } catch (e) {
-            // Warden or Users
-            try{
-                let userEmRole = new UserEmRoleRelation(),
-                emRoles = <any> await userEmRole.getEmRolesByUserId(req.user.user_id);
-
-
-                for (let em of emRoles) {
-                    locations.push(em);
-                }
-
-            }catch(e){  }
-        }
-
-        for (let loc of locations) {
-            let allSubLocationIds = [0],
-                deepLocModel = new Location(),
-                emRoleModel = new UserEmRoleRelation(),
-                trainingCertModel = new TrainingCertification(),
-                deepLocations = <any> [],
-                userIds = [0];
-
-            if(loc.parent_id == -1){
-                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
-                deepLocations.push(loc);
-            }else{
-                let ancLocModel = new Location(),
-                    ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
-
-                for(let anc of ancestores){
-                    if(anc.parent_id == -1){
-                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
-                        deepLocations.push(anc);
-                    }
-                }
+            if (role === defs['Manager']) {
+              let sublocationsDbData;
+              const sublocs = [0];
+              for (const loc of locationIdsOnAccnt) {
+                sublocationsDbData = await location.getDeepLocationsByParentId(loc);
+                Object.keys(sublocationsDbData).forEach((i) => {
+                  sublocs.push(sublocationsDbData[i]['location_id']);
+                });
+              }
+              sublocations = sublocations.concat(sublocs);
+            } else if (role === defs['Tenant']) {
+              sublocations = sublocations.concat(locationIdsOnAccnt);
             }
-
-            let locMerged = this.addChildrenLocationToParent(deepLocations),
-                respLoc = (locMerged[0]) ? locMerged[0] : locMerged;
-
-            for(let sub of deepLocations){
-                if(sub.parent_id > -1){
-                    allSubLocationIds.push(sub.location_id);
-                }
+            const em_roles = await account.getAllEMRolesOnThisAccount(accountId, {'location' : sublocations, 'all': 1});
+            // console.log(em_roles);
+            const em_roles_user = {};
+            const allUsers = [];
+            for (const em of em_roles) {
+              if (em['em_role_id'] in em_roles_user) {
+                em_roles_user[em['em_role_id']]['users'].push(em['user_id']);
+              } else {
+                em_roles_user[em['em_role_id']] = {
+                  'users': [em['user_id']],
+                  'role_name': em['role_name']
+                };
+              }
+              if (allUsers.indexOf(em['user_id']) === -1) {
+                allUsers.push(em['user_id']);
+              }
             }
 
-            let users = <any> await emRoleModel.getUsersInLocationIds( allSubLocationIds.join(',') );
-            response.data.total_users = response.data.total_users + users.length;
-            for(let u of users){
-            	if( userIds.indexOf( u.user_id ) == -1 ){
-            		userIds.push( u.user_id );
-            	}
+            Object.keys(em_roles_user).forEach((u) => {
+              // console.log( `${u} = ${em_roles_user[u]['users'].length}` );
+              response.data.em_roles[u] = {
+                'total': em_roles_user[u]['users'].length,
+                'role_name':  em_roles_user[u]['role_name']
+              };
+            });
 
-            	if( u.em_role_id in response.data.em_roles == false ){
-            		response.data.em_roles[ u.em_role_id ] = {
-            			total : 0,
-            			role_name : u.role_name
-            		};
-            	}
+            response.data.total_users = allUsers.length;
+            const users_took_trainings = await trainingCertModel.getEMRUserCertifications(allUsers);
+            response.data.total_users_trained = users_took_trainings['total_passed'];
 
-            	response.data.em_roles[ u.em_role_id ].total++;
-            }
+        } catch (e) { }
 
-            let users_took_trainings = <any> await trainingCertModel.getCertificationsInUserIds( userIds.join(',') );
-
-            let usersTrainings = [];
-            for(let u of users){
-	            let isIn = false;
-	            for(let ut of usersTrainings){
-	            	if(ut.user_id == u.user_id){
-	            		isIn = true;
-	            	}
-	            }
-
-	            if(!isIn){
-	            	usersTrainings.push({
-	            		user_id : u.user_id,
-	            		trainings : {}
-	            	});
-	            }
-            }
-
-            for(let ut of usersTrainings){
-            	for(let took of users_took_trainings){
-            		if(took.user_id == ut.user_id){
-            			if( took.training_requirement_id in ut.trainings == false ){
-            				ut.trainings[ took.training_requirement_id ] = took;
-            				if(took.validity == 'active' && took.pass == 1){
-            					response.data.total_users_trained++;
-            				}
-            			}
-            		}
-            	}
-            }
-
-            respLoc['usersTrainings'] = usersTrainings;
-
-
-            let isInside = false;
-            for(let i in responseLocations){
-            	if(responseLocations[i].location_id == respLoc.location_id){
-            		isInside = true;
-            	}
-            }
-
-            if(!isInside){
-            	responseLocations.push(respLoc);
-            }
-        }
-
-        response.data.locations = responseLocations;
-
-		res.send(response);
-	}
+    res.send(response);
+  }
 
 }
