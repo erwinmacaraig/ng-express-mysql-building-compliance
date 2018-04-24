@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewEncapsulation, AfterViewInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { ForgotPasswordService } from '../services/forgotpassword.service';
@@ -43,7 +43,7 @@ export class ChangepasswordComponent implements OnInit, AfterViewInit {
 	) {
 		this.baseUrl = (platformLocation as any).location.origin;
 		this.options = { headers : this.headers };
-		this.headers = new Headers({ 'Content-type' : 'application/json' });
+		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 	}
 
 	ngOnInit() {

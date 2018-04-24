@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, ViewEncapsulation, OnDestroy, NgZone } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { PlatformLocation, NgForOf } from '@angular/common';
@@ -70,7 +70,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		private userService: UserService
 	) {
 		this.userData = this.auth.getUserData();
-		this.headers = new Headers({ 'Content-type' : 'application/json' });
+		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 		this.options = { headers : this.headers };
 		this.baseUrl = (platformLocation as any).location.origin;
 		if(this.userData['accountId'] > 0){
