@@ -329,6 +329,7 @@ export class Account extends BaseClass {
       return new Promise((resolve, reject) => {
         let account = this.ID();
         let filterStr = '';
+        let uniqStr = `GROUP BY users.user_id`;
         const resultSet = [];
         if (accountId) {
           account = accountId;
@@ -339,6 +340,9 @@ export class Account extends BaseClass {
         if ('em_roles' in filter) {
           filterStr += ' AND user_em_roles_relation.em_role_id IN (' + filter['em_roles'].join(',')  + ')';
         }
+        if ('all' in filter) {
+          uniqStr = '';
+        }
 
         const sql_all = `
           SELECT
@@ -346,19 +350,22 @@ export class Account extends BaseClass {
             users.first_name,
             users.last_name,
             user_em_roles_relation.location_id,
-            user_em_roles_relation.em_role_id
+            user_em_roles_relation.em_role_id,
+            em_roles.role_name
           FROM
           	users
           INNER JOIN
           	user_em_roles_relation
           ON
-          	users.user_id = user_em_roles_relation.user_id
+            users.user_id = user_em_roles_relation.user_id
+          INNER JOIN
+            em_roles
+          ON
+           user_em_roles_relation.em_role_id = em_roles.em_roles_id
           WHERE
             users.account_id = ? ${filterStr}
           AND
-           archived = 0
-          GROUP BY
-            users.user_id
+           archived = 0 ${uniqStr}
           ORDER BY
           	users.user_id;
         `;
@@ -376,6 +383,8 @@ export class Account extends BaseClass {
         connection.end();
       });
     }
+
+    /*
     public generateReportPEEPList(sublocations = []) {
       return new Promise((resolve, reject) => {
         if (!sublocations.length) {
@@ -449,8 +458,6 @@ export class Account extends BaseClass {
         connection.end();
       });
   }
-
-/*
     public getLocationsByAccountId(accountId){
         return new Promise((resolve, reject) => {
             const sql = `SELECT

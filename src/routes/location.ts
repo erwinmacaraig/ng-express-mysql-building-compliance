@@ -172,25 +172,25 @@ const defs = require('../config/defs.json');
             loc['num_wardens'] = totalWardenOnAccount.length;
             loc['']
           }
-          console.log(locationsForBuildingManager);
+          // console.log(locationsForBuildingManager);
 
           // console.log('===================', locationsForBuildingManager, '===============');
           // console.log('Total Wardens = ' + totalWardenOnAccount.length);
           temp = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, 0, 'account');
           userIds = [];
-          console.log(temp);
+
           Object.keys(temp).forEach((u)=> {
             userIds.push(u['user_id']);
           });
           temp = null;
           temp = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, 0, 'emergency');
-          console.log(temp);
+
           Object.keys(temp).forEach((u)=> {
             if (userIds.indexOf(u['user_id']) === -1) {
               userIds.push(u['user_id']);
             }
           });
-          console.log("Mobility Impaired Total = " + userIds.length);
+          // console.log("Mobility Impaired Total = " + userIds.length);
           return res.status(200).send({
             locations: locationsForBuildingManager
           });
