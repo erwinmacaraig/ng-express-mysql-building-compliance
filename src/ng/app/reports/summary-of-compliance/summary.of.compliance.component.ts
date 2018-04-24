@@ -22,7 +22,9 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 
 	reportData = {
 		locations : [],
-		totalComplianceRating : '0/0'
+		totalComplianceRating : '0/0',
+        kpis : [],
+        date : ''
 	};
 
 	routeSubs;
@@ -58,7 +60,9 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 		}).subscribe((response) => {
 
 			this.reportData.locations = response['data']['locations'];
-			this.reportData.totalComplianceRating = response['data']['compliance_rating'];
+            this.reportData.totalComplianceRating = response['data']['compliance_rating'];
+            this.reportData.kpis = response['data']['kpis'];
+			this.reportData.date = response['data']['date'];
 			 
 			for(let loc of this.reportData.locations){
 				loc['locIdEnc'] = this.encryptDecrypt.encrypt( loc.location_id );

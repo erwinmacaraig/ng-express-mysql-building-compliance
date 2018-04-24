@@ -35,6 +35,7 @@
 					<thead>
 						<tr class="grey darken-5 white-text">
 							<th>Compliance Requirement</th>
+                            <th>Legislative Reference</th>
 							<th>Activity Date</th>
 							<th style="width: 140px;">Status</th>
 							<th style="width: 138px;"></th>
@@ -42,17 +43,29 @@
 					</thead>
 					<tbody>
 						<tr *ngIf="reportData.kpis.length == 0">
-							<td colspan="4" class="center">
+							<td colspan="5" class="center">
 								No record found
 							</td>
 						</tr>
 						<tr *ngFor="let kpi of reportData.kpis">
 							<td>{{kpi.name}}</td>
+                            <td>
+                                <span *ngIf="kpi.compliance_kpis_id == 2">AS 3745:2010 s.2.4</span>
+                                <span *ngIf="kpi.compliance_kpis_id == 3">Qld Building Fire Safety Regulations & Best Practice</span>
+                                <span *ngIf="kpi.compliance_kpis_id == 4">AS 3745:2010 s.3, s.4 & s.8</span>
+                                <span *ngIf="kpi.compliance_kpis_id == 5">AS 3745:2010 s.3.5</span>
+                                <span *ngIf="kpi.compliance_kpis_id == 6">AS 3745:2010 s.6.3 & s.6.5 </span>
+                                <span *ngIf="kpi.compliance_kpis_id == 8">AS 3745:2010 s.6.3 & s.6.5 </span>
+                                <span *ngIf="kpi.compliance_kpis_id == 9">AS 3745:2010 s.7 </span>  
+                                <span *ngIf="kpi.compliance_kpis_id == 12">AS 3745:2010 s.6.3 & s.6.5</span>
+                                <span *ngIf="kpi.compliance_kpis_id == 13"> -- </span>
+                            </td>
 							<td>
-								{{kpi.activity_date}}
+                                <span *ngIf="kpi.activity_date.length > 0">{{kpi.activity_date}}</span>
+                                <span *ngIf="kpi.activity_date.length == 0"> n/a </span>
 							</td>
 							<td>
-								<span class="blue-text text" *ngIf="!kpi.compliant && kpi.compliance_kpis_id != 13">
+								<span class="grey-text text" *ngIf="!kpi.compliant && kpi.compliance_kpis_id != 13">
 									Not Compliant
 								</span>
 								<span class="blue-text text" *ngIf="kpi.compliant && kpi.compliance_kpis_id != 13">

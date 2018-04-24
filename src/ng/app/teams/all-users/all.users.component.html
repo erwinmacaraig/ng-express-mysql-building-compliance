@@ -119,7 +119,8 @@
 						-->
 					</td>
 					<td>
-						<span class="red-text">{{list.assigned_courses}}/{{list.trainings}}</span>
+						<span [ngClass]="{'red-text': list.assigned_courses == 0 && list.trainings == 0, 'green-text': list.assigned_courses > 0 || list.trainings > 0}">
+              {{list.assigned_courses}}/{{list.trainings}}</span>
 					</td>
 					<td>
 						<select (change)="onSelectFromTable($event, list)">
