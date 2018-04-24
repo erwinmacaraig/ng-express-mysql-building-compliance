@@ -222,7 +222,40 @@ export class ReportsRoute extends BaseRoute {
           }
         } */
         return [resultSetArr, wardenInTheWholeBuilding];
-     }
+    }
+
+    public async listLocations(req: AuthRequest, res: Response, toReturn?){
+        const locAccntRelObj = new LocationAccountRelation();
+        const userRoleRel = new UserRoleRelation();
+        let r = 0;
+        const filter = {};
+        let locationListing;
+        try {
+            r = await userRoleRel.getByUserId(req.user.user_id, true);
+        } catch (e) {
+            console.log('location route get-parent-locations-by-account-d', e);
+            r = 0;
+        }
+        filter['responsibility'] = r;
+        if (r === defs['Tenant']) {
+            locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+
+        } else if (r === defs['Manager']) {
+            filter['is_building'] = 1;
+            locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+        }
+        // console.log(locationListing);
+         
+        if(toReturn){
+            return  {
+                data : locationListing
+            };
+        }else{
+            return  res.send({
+                data : locationListing
+            });
+        }
+    }
 
     private mergeToParent(data){
 
