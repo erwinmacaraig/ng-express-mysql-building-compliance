@@ -1,8 +1,8 @@
-<div class="container" >
+<div class="container-fluid" >
 	<div class="row" style="margin-top: 35px;">
 
 		<div class="col l12 m12 s12">
-			<h5 class="left">Summary of Compliance</h5>
+			<h5 class="left">Summary of Compliance ({{reportData.date}})</h5>
 
 			<div class="right right-buttons">
 				<a href="javascript:void(0)">
@@ -35,34 +35,50 @@
 				<table class="striped">
 					<thead>
 						<tr class="grey darken-5 white-text">
-							<th>Locations</th>
-							<th>Number of Locations</th>
-							<th>Compliance Rating</th>
-							<th>Status</th>
+							<th style="width: 9%">Locations</th>
+							<th style="width: 8%" *ngFor="let kpi of reportData.kpis"> {{kpi.name}} </th>
+                            <th style="width: 1%;">Total ECO</th>
+                            <th style="width: 1%;">% Trained Wardens</th>
+                            <th style="width: 1%;">Compliance Rating</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr *ngIf="reportData.locations.length == 0">
-							<td colspan="4" class="center">
+							<td [colSpan]="reportData.kpis.length + 4" class="center">
 								No record found
 							</td>
 						</tr>
 						<tr *ngFor="let loc of reportData.locations">
-							<td>
+							<td style="line-height: 16px;">
 								<a [routerLink]="['/reports/statement-compliance', loc.locIdEnc]" class="blue-text">
-                                    <span *ngIf="loc.parent.name.length > 0">{{loc.parent.name}}, </span>
+                                    <span *ngIf="loc.parent.name.length > 0">{{loc.parent.name}}, </span> 
                                     <span>{{loc.name}}</span>
                                 </a>
 							</td>
-							<td>
-								{{loc.number_of_sublocations}}
-							</td>
-							<td>
-								{{loc.compliance_rating}}
-							</td>
-							<td>
-								<span class="blue-text">{{loc.status}}</span>
-							</td>
+                            <td *ngFor="let kpi of loc.kpis">
+                                <p *ngIf="kpi.compliant" class="blue-text" style="line-height: 14px;">Compliant</p>
+                                <p *ngIf="!kpi.compliant" class="grey-text" style="line-height: 14px;">Not Compliant</p>
+                            </td>
+                            <td>
+                                <span *ngIf="!loc.eco_users">0</span>
+                                <span *ngIf="loc.eco_users">
+                                    {{loc.eco_users.length}}
+                                </span>
+                            </td>
+                            <td>
+                                <span>{{loc.wardens_trained_percent}}%</span>
+                            </td>
+                            <td>
+                                {{loc.compliance_rating}}
+                            </td>
+
+							<!-- <td>
+                                {{loc.number_of_sublocations}}
+                            </td>
+                            
+                            <td>
+                                <span class="blue-text">{{loc.status}}</span>
+                            </td> -->
 						</tr>
 						
 					</tbody>

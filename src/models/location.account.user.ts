@@ -296,12 +296,11 @@ export class LocationAccountUser extends BaseClass {
 
     public getWardensByAccountIdWhereInLocationId(accountId, locIds){
         return new Promise((resolve, reject) => {
-            const sql_load = `SELECT u.*, er.role_name, lau.location_id, er.em_roles_id, er.is_warden_role
+            const sql_load = `SELECT u.*, er.role_name, uem.location_id, er.em_roles_id, er.is_warden_role
             FROM users u
             LEFT JOIN user_em_roles_relation uem ON uem.user_id = u.user_id
             LEFT JOIN em_roles er ON uem.em_role_id = er.em_roles_id
-            LEFT JOIN location_account_user lau ON lau.user_id = u.user_id
-            WHERE u.account_id = ? AND lau.location_id IN (`+locIds+`) AND u.archived = 0 GROUP BY u.user_id`;
+            WHERE u.account_id = ? AND uem.location_id IN (`+locIds+`) AND u.archived = 0 GROUP BY u.user_id`;
             const param = [accountId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
