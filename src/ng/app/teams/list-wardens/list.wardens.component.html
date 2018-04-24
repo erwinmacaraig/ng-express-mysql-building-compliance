@@ -125,7 +125,8 @@
 						</div>
 					</td>
 					<td>
-						<span class="over red-text">{{warden.assigned_courses}} / {{warden.trainings}}</span>
+              <span [ngClass]="{'over red-text': warden.assigned_courses == 0 && warden.trainings == 0, 'over green-text': warden.assigned_courses > 0 || warden.trainings > 0}">
+						{{warden.assigned_courses}} / {{warden.trainings}} </span>
 					</td>
 					<td>
 						{{warden['last_login']}}
