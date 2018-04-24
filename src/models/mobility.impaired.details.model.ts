@@ -141,7 +141,7 @@ export class MobilityImpairedModel extends BaseClass {
    * if account - queries the location_account_user
    * if emergency - queries the user_em_roles_relation
    */
-  public listAllMobilityImpaired(account_id = 0, location = 0, type = 'account') {
+  public listAllMobilityImpaired(account_id = 0, location = 0, type = 'account'): Promise<Array<object>> {
 
     return new Promise((resolve, reject) => {
       let whereClause = '';

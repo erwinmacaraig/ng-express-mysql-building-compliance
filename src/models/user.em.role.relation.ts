@@ -263,7 +263,7 @@ export class UserEmRoleRelation extends BaseClass {
                 WHERE
                   users.account_id = ?
                 AND
-                  location_id = ?
+                  location_id = ? AND users.archived = 0
                 ${role_filter}`;
         const connection = db.createConnection(dbconfig);
         connection.query(sql, [account_id, location_id], (error, results, fields) => {
@@ -274,14 +274,17 @@ export class UserEmRoleRelation extends BaseClass {
           const users = [];
           if (results.length > 0) {
             for (let i = 0; i < results.length; i++) {
-              users.push(results[0]['user_id']);
+              users.push(results[i]['user_id']);
             }
             resolve({
               'raw': results,
               'users': users
             });
           } else {
-            reject('No records can be retrieve.');
+            resolve({
+              'raw': {},
+              'users': []
+            });
           }
         });
         connection.end();

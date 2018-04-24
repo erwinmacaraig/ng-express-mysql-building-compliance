@@ -221,8 +221,14 @@ import * as S3Zipper from 'aws-s3-zipper';
           role = await userRoleRelObj.getByUserId(req.user.user_id, true, locationID);
         } catch (e) {
           console.log(e);
-          role = 0;
+          try {
+            role = await userRoleRelObj.getByUserId(req.user.user_id, true);
+          } catch (err) {
+            console.log(err);
+            role = 0;
+          }
         }
+        console.log('Role is ' + role);
         const utils = new Utils(),
             training = new TrainingCertification(),
             locationModel = new Location(locationID),
@@ -233,7 +239,6 @@ import * as S3Zipper from 'aws-s3-zipper';
         } catch (e) {
             paths = [];
         }
-
         try {
             emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, locationID, role);
             // console.log('======================', emrolesOnThisLocation, '=====================');

@@ -588,7 +588,7 @@ export class Location extends BaseClass {
     public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: number, role_id: number = 0) {
         return new Promise((resolve, reject) => {
         let location = this.ID();
-        console.log('em_role_id = ' + em_role_id);
+
         let em_role_filter = '';
         let connection;
         let sql;
