@@ -710,7 +710,7 @@ export class Location extends BaseClass {
                   user_em_roles_relation.location_id = ${location} ${em_role_filter}
                 AND users.archived = 0
                 ORDER BY
-                  em_role_id;`; console.log(sql);
+                  em_role_id;`;
           connection = db.createConnection(dbconfig);
           connection.query(sql, [], (error, results) => {
             if (error) {
