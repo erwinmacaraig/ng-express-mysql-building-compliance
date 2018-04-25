@@ -61,14 +61,17 @@
                                 <span *ngIf="kpi.compliance_kpis_id == 13"> -- </span>
                             </td>
 							<td>
-                                <span *ngIf="kpi.activity_date.length > 0">{{kpi.activity_date}}</span>
-                                <span *ngIf="kpi.activity_date.length == 0"> n/a </span>
+                                <span *ngIf="kpi.compliance.docs">
+                                    <span *ngIf="kpi.compliance.docs[0]">{{ kpi.compliance.docs[0]['date_of_activity_formatted'] }}</span>
+                                    <span *ngIf="!kpi.compliance.docs[0]">n/a</span>
+                                </span>
+                                <span *ngIf="!kpi.compliance.docs"> n/a </span>
 							</td>
 							<td>
-								<span class="grey-text text" *ngIf="!kpi.compliant && kpi.compliance_kpis_id != 13">
+								<span class="grey-text text" *ngIf="kpi.compliance.valid == 0 && kpi.compliance_kpis_id != 13">
 									Not Compliant
 								</span>
-								<span class="blue-text text" *ngIf="kpi.compliant && kpi.compliance_kpis_id != 13">
+								<span class="blue-text text" *ngIf="kpi.compliance.valid == 1 && kpi.compliance_kpis_id != 13">
 									Compliant
 								</span>
                                 <span *ngIf="kpi.compliance_kpis_id == 13"> -- </span>

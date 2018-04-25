@@ -63,6 +63,20 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
             this.reportData.totalComplianceRating = response['data']['compliance_rating'];
             this.reportData.kpis = response['data']['kpis'];
 			this.reportData.date = response['data']['date'];
+
+            for(let loc of this.reportData.locations){
+                let kpis = loc.kpis,
+                    compliances = loc.compliances;
+                for(let k of kpis){
+                   if(!k['compliance']){ k['compliance'] = {}; }
+                    for(let c of compliances){
+                        if(c.compliance_kpis_id == k.compliance_kpis_id){
+                            k['compliance'] = c;
+                        }
+                    } 
+                }
+            }
+
 			 
 			for(let loc of this.reportData.locations){
 				loc['locIdEnc'] = this.encryptDecrypt.encrypt( loc.location_id );
