@@ -236,7 +236,7 @@ export class CourseRoute extends BaseRoute {
             const role = await userRoleModel.getByUserId(req.user.user_id, true);
             const locAccntRelObj = new LocationAccountRelation();
             const location = new Location();
-
+            console.log('============', role );
             const filter = {};
             const locationIdsOnAccnt = [];
             let sublocations = [];
@@ -253,7 +253,7 @@ export class CourseRoute extends BaseRoute {
                 Object.keys(sublocationsDbData).forEach((i) => {
                   sublocs.push(sublocationsDbData[i]['location_id']);
                 });
-              }
+              }console.log(sublocs);
               sublocations = sublocations.concat(sublocs);
             } else if (role === defs['Tenant']) {
               sublocations = sublocations.concat(locationIdsOnAccnt);

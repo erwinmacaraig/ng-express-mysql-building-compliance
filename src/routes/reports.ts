@@ -139,37 +139,47 @@ export class ReportsRoute extends BaseRoute {
         if (!sublocs.length) {
           sublocs.push(req.query.location_id);
         }
-
+        console.log(sublocs);
         const locAcctUser = new LocationAccountUser();
         const resultSet = await locAcctUser.getAllAccountsInSublocations(sublocs);
         const resultSetArr = [];
         let users = [];
+        console.log('***********************', resultSet);
         Object.keys(resultSet).forEach((key) => {
           resultSetArr.push(resultSet[key]);
         });
 
+        console.log('===============', resultSetArr);
 
         let wardenInTheWholeBuilding = 0;
         let temp;
+        /*
         try {
           temp = await location.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], 0, r);
+          console.log(temp);
           wardenInTheWholeBuilding = temp[defs['em_roles']['WARDEN']]['count'];
           users = temp[defs['em_roles']['WARDEN']]['users'];
         } catch (e) {
           console.log('Reports route - generateTeamReport (getting EMRoles)', e);
         }
         try {
+          temp = null;
           temp = await location.getEMRolesForThisLocation(defs['em_roles']['FLOOR_WARDEN'], 0, r);
+          console.log(temp);
+          /*
           for (const u in temp[defs['em_roles']['FLOOR_WARDEN']]['users']) {
             if (users.indexOf(u) === -1) {
               users.push(u);
             }
           }
           wardenInTheWholeBuilding = temp[defs['em_roles']['WARDEN']]['count'];
+
+          users = users.concat(temp[defs['em_roles']['FLOOR_WARDEN']]['users']);
         } catch (e) {
           console.log('Reports route - generateTeamReport (getting EMRoles)', e);
         }
-        wardenInTheWholeBuilding = users.length;
+        wardenInTheWholeBuilding = Array.from(new Set(users)).length;
+        */
 
         const mobilityImpaired = new MobilityImpairedModel();
         for (const rs of resultSetArr) {
@@ -192,6 +202,8 @@ export class ReportsRoute extends BaseRoute {
             rs['location_id']
           );
           wardenArrays = wardenArrays.concat(temp['users']);
+          console.log('TOTAL WARDENS WITHOUT FILTER = ' + wardenArrays.length);
+          users = users.concat(Array.from(new Set(wardenArrays)));
           rs['total_wardens'] = (Array.from(new Set(wardenArrays))).length;
         }
 
@@ -221,6 +233,7 @@ export class ReportsRoute extends BaseRoute {
             resultSetArr[j]['wardens'] = [];
           }
         } */
+        wardenInTheWholeBuilding = (Array.from(new Set(users))).length;
         return [resultSetArr, wardenInTheWholeBuilding];
     }
 
@@ -245,7 +258,7 @@ export class ReportsRoute extends BaseRoute {
             locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
         }
         // console.log(locationListing);
-         
+
         if(toReturn){
             return  {
                 data : locationListing
@@ -547,7 +560,7 @@ export class ReportsRoute extends BaseRoute {
             wardensId.push(ward.user_id);
             wardensIdTrainedMap[ ward.user_id ] = { passed : false, viewed : false };
         }
-        
+
         let wardensCerts = <any> await trainingCertificationModel.getCertificationsInUserIds(wardensId.join(',')),
             trainedCount = 0;
 

@@ -53,7 +53,7 @@
 							<th>Company</th>
 							<th>Sub Location</th>
 							<th>Contact Person</th>
-							<th>Tel no</th>
+							<!-- <th>Tel no</th> -->
 							<th>Email</th>
 							<th>Warden</th>
 							<th>P.E.E.P</th>
@@ -65,19 +65,32 @@
 						</tr>
 						<tr *ngFor="let field of reportData">
 							<td>
-								{{field['account_name']}}
+                <span *ngFor="let accnt of field['trp']" [ngStyle]="{'display': 'block'}">
+                    {{accnt['account_name']}}
+                </span>
+
 							</td>
 							<td>
 								{{field['name']}}
-							</td>
+              </td>
+
 							<td>
-								{{field['first_name']}} {{field['last_name']}}
-							</td>
+                  <span *ngFor="let accnt of field['trp']" [ngStyle]="{'display': 'block'}">
+                      {{accnt['first_name']}} {{accnt['last_name']}}
+                      <span *ngIf="accnt['mobile_number'].length > 0">  ( {{accnt['mobile_number']}} )  </span>
+                  </span>
+              </td>
+              <!--
 							<td>
-								{{field['mobile_number']}}
-							</td>
+                  <span *ngFor="let accnt of field['trp']">
+                      <span [ngStyle]="{'display': 'block'}">{{accnt['mobile_number']}}</span>
+                  </span>
+              </td>
+              -->
 							<td>
-								{{field['email']}}
+                  <span *ngFor="let accnt of field['trp']" [ngStyle]="{'display': 'block'}">
+                      {{accnt['email']}}
+                  </span>
 							</td>
 							<td>
 								<span class="blue-text">{{field['total_wardens']}}</span>
