@@ -70,10 +70,11 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
 
     clickStatementOfComplianceReport(){
         let val = $('#statementOfCompliance').val();
-        if(val != null){
-            let locId = this.encryptDecrypt.encrypt(val);
-            this.router.navigate(['/reports/statement-compliance', locId]);
+        if(val == null){
+            val = 0;
         }
+        let locId = this.encryptDecrypt.encrypt(val);
+        this.router.navigate(['/reports/statement-compliance', locId]);
     }
 
     clickSummaryOfComplianceReport(){
@@ -88,10 +89,11 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
 
     clickTrainingReport(){
         let val = $('#summaryTraining').val();
-        if(val != null){
-            let locId = this.encryptDecrypt.encrypt(val);
-            this.router.navigate(['/reports/trainings', locId]);
+        if(val == null){
+            val = 0;
         }
+        let locId = this.encryptDecrypt.encrypt(val);
+        this.router.navigate(['/reports/trainings', locId]);
     }
 
     activityLogReport(){

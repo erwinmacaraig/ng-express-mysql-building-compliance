@@ -1,8 +1,8 @@
-<div class="container" >
+<div class="container" *ngFor="let report of reportData">
 	<div class="row" style="margin-top: 35px;">
 
 		<div class="col l12 m12 s12">
-			<h5 class="left"> <span *ngIf="reportData.location.parent.name.length > 0">{{reportData.location.parent.name}}, </span>{{reportData.location.name}}  Statement of Compliance</h5>
+			<h5 class="left"> <span *ngIf="report.location.parent.name.length > 0">{{report.location.parent.name}}, </span>{{report.location.name}}  Statement of Compliance</h5>
 
 			<div class="right right-buttons">
 				<a href="javascript:void(0)">
@@ -14,7 +14,7 @@
 					<div class="image excel"></div>
 				</a>
 
-				<a href="javascript:void(0)" (click)="printResult()">
+				<a href="javascript:void(0)" (click)="printResult(report, printContainer)">
 					<div class="text">Print</div>
 					<div class="image print"></div>
 				</a>
@@ -27,7 +27,7 @@
 
 	</div>
 
-	<div id="printContainer">
+	<div #printContainer>
 		<div class="row">
 			
 			<div class="col l12 m12 s12">
@@ -42,12 +42,12 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr *ngIf="reportData.kpis.length == 0">
+						<tr *ngIf="report.kpis.length == 0">
 							<td colspan="5" class="center">
 								No record found
 							</td>
 						</tr>
-						<tr *ngFor="let kpi of reportData.kpis">
+						<tr *ngFor="let kpi of report.kpis">
 							<td>{{kpi.name}}</td>
                             <td>
                                 <span *ngIf="kpi.compliance_kpis_id == 2">AS 3745:2010 s.2.4</span>
@@ -91,14 +91,14 @@
 		<div class="row">
 			<div class="col l12 m12 s12 col-buttons right-align">
 				
-				<button class="btn blue waves-effect waves-light no-print">Compliance Document</button>
+				<button class="btn blue waves-effect waves-light no-print hide">Compliance Document</button>
 
 				<button class="btn orange btn-compliance-rating">
 					<div class="text">
 						Compliance Rating
 					</div>
 					<div class="white center">
-						{{reportData.totalComplianceRating}}
+						{{report.compliance_rating}}
 					</div>
 				</button>
 
