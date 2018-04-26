@@ -108,6 +108,10 @@ export class ReportsRoute extends BaseRoute {
        router.get('/reports/get-statement-of-compliance/:location_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
          new ReportsRoute().getStatementOfCompliance(req, res);
        });
+
+       router.post('/reports/get-activity-report', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
+           new ReportsRoute().getActivityReport(req, res);
+       });
      }
 
      /**
@@ -708,5 +712,88 @@ export class ReportsRoute extends BaseRoute {
 
         response.data.compliance_rating = Math.floor(overallRating)+'/'+TotalNumberOfKPIS;
         res.send(response);
+    }
+
+    public async getActivityReport(req: AuthRequest, res: Response){
+        let 
+        location_id = req.body.location_id,
+        limit = req.body.limit,
+        offset = req.body.offset,
+        accountId = req.user.account_id,
+        userId = req.user.user_id,
+        response = {
+            status : false, data : [], 
+            pagination : {
+                total : 0,
+                pages : 0
+            }, message : ''
+        },
+        locationModel = new Location(location_id),
+        accountsModel = new Account(accountId),
+        locations = <any>[],
+        locIds = [],
+        offsetLimit = offset+','+limit;
+
+        if(location_id == 0){
+            try{
+                let responseLocations = <any> await this.listLocations(req,res, true);
+                locations = responseLocations.data;
+            }catch(e){}
+
+        }else{
+            try{
+                let location = await locationModel.load();
+                locations.push(location);
+            }catch(e){
+                response.status = false;
+                response.message = 'No location found';
+            }
+        }
+
+        for(let loc of locations){
+            loc['parent'] = {  name : '' };
+            locIds.push(loc.location_id);
+            try{
+                let locParentModel = new Location(loc.parent_id);
+                loc['parent'] = await locParentModel.load();
+            }catch(e){}
+        }
+
+        let logsCount = await accountsModel.getActivityLog(locIds, offsetLimit, true),
+            logs = <any> await accountsModel.getActivityLog(locIds, offsetLimit);
+
+        for(let log of logs){
+            log['timestamp_formatted'] = moment(log.timestamp).format('DD/MM/YYYY');
+            for(let loc of locations){
+                if(log.building_id == loc.location_id){
+                    log['location_name'] = loc.name;
+                    log['parent_name'] = loc.parent.name;
+                    log['formatted_address'] = loc.formatted_address;
+                }
+            }
+        }
+
+        response.data = logs;
+        response.pagination.total = logsCount[0]['count'];
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
+
+
+
+        res.status(200).send(response);
     }
 }

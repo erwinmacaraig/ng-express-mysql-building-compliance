@@ -16,7 +16,7 @@
 
 					<div class="select-container">
 						<select class="report-box" ngModel name="statementOfCompliance" id="statementOfCompliance">
-				          <option value="0">Select Location</option>
+				          <option value="0">All Location</option>
 				          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
 						</select>
 					</div>
@@ -50,12 +50,12 @@
 
 					<div class="select-container">
 						<select class="report-box" ngModel name="summaryActivityLog" id="summaryActivityLog">
-				          <option value="0">Select Location</option>
+				          <option value="0">All Location</option>
 				          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
 						</select>
 					</div>
 
-					<button class="btn blue waves-effect waves-light" [routerLink]="['/reports/activity-log']" >Activity Log</button>
+					<button class="btn blue waves-effect waves-light" (click)="activityLogReport()" >Activity Log</button>
 
 				</div>
 			</div>
@@ -67,7 +67,7 @@
 
 					<div class="select-container">
 						<select class="report-box" ngModel name="summaryTeam" id="summaryTeam">
-				          <option value="-1">Select Location</option>
+				          <option value="-1">All Location</option>
 				          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
 						</select>
 					</div>
@@ -83,7 +83,7 @@
 
 					<div class="select-container">
 						<select class="report-box" ngModel name="summaryTraining" id="summaryTraining">
-				          <option value="null">Select Location</option>
+				          <option value="null">All Location</option>
 				          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
 						</select>
 					</div>

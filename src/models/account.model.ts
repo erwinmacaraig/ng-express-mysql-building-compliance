@@ -325,6 +325,70 @@ export class Account extends BaseClass {
         });
     }
 
+    public getActivityLog(locationIds?, offsetLimit?, count?){
+        if(!offsetLimit){
+            offsetLimit = 0,10;
+        }
+
+        let accountId = this.ID(),
+            locationSql = '';
+
+        if(locationIds){
+            locationSql = ' AND compliance_documents.building_id IN ('+locationIds+')'; 
+        }
+
+        return new Promise((resolve, reject) => {
+            let accountId = this.ID();
+            let sql = `
+                SELECT
+                    compliance_documents.compliance_documents_id,
+                    compliance_documents.account_id,
+                    compliance_documents.building_id,
+                    compliance_documents.compliance_kpis_id,
+                    compliance_documents.document_type,
+                    compliance_documents.file_name,
+                    compliance_documents.override_document,
+                    compliance_documents.description,
+                    compliance_documents.date_of_activity,
+                    compliance_documents.viewable_by_trp,
+                    compliance_documents.file_size,
+                    compliance_documents.file_type,
+                    compliance_documents.timestamp,
+                    compliance_kpis.directory_name
+
+                FROM compliance_kpis
+                INNER JOIN compliance_documents
+                ON compliance_kpis.compliance_kpis_id = compliance_documents.compliance_kpis_id
+                WHERE compliance_documents.account_id = ${accountId} ${locationSql}
+                ORDER BY compliance_documents.timestamp DESC
+                LIMIT ${offsetLimit}
+            `;
+
+            if(count){
+                sql = `
+                    SELECT COUNT(compliance_documents.compliance_documents_id) as count FROM 
+                    compliance_kpis
+                    INNER JOIN compliance_documents
+                    ON compliance_kpis.compliance_kpis_id = compliance_documents.compliance_kpis_id
+                    WHERE compliance_documents.account_id = ${accountId} ${locationSql}
+                    ORDER BY compliance_documents.timestamp DESC
+                `;
+            }
+
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, (err, results, fields) => {
+                if (err) {
+                    console.log(err);
+                    throw new Error('Internal problem. There was a problem processing your query');
+                }
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
     public getAllEMRolesOnThisAccount(accountId = 0, filter = {} ): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         let account = this.ID();
