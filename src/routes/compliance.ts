@@ -56,7 +56,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
     router.post('/compliance/locations-latest-compliance',
       new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-        new ComplianceRoute().getLocationsLatestCompliance(req, res, next);
+        new ComplianceRoute().getLocationsLatestCompliance(req, res);
     });
 
     router.get('/compliance/download-compliance-documents-pack/',
@@ -200,8 +200,8 @@ import * as S3Zipper from 'aws-s3-zipper';
 		res.send(this.response);
 	}
 
-	public async getLocationsLatestCompliance(req: AuthRequest, res: Response, next: NextFunction) {
-		let locationID = req.body.location_id,
+	public async getLocationsLatestCompliance(req: AuthRequest, res: Response, toReturn?, formData?) {
+		let locationID = (formData) ? formData.location_id : req.body.location_id,
 			accountID = req.user.account_id,
 			locAccModel = new LocationAccountRelation(),
 			complianceModel = new ComplianceModel(),
@@ -218,15 +218,15 @@ import * as S3Zipper from 'aws-s3-zipper';
         let role = 0;
         const userRoleRelObj = new UserRoleRelation();
         try {
-          role = await userRoleRelObj.getByUserId(req.user.user_id, true, locationID);
+            role = await userRoleRelObj.getByUserId(req.user.user_id, true, locationID);
         } catch (e) {
-          console.log(e);
-          try {
-            role = await userRoleRelObj.getByUserId(req.user.user_id, true);
-          } catch (err) {
-            console.log(err);
-            role = 0;
-          }
+            console.log(e);
+            try {
+                role = await userRoleRelObj.getByUserId(req.user.user_id, true);
+            } catch (err) {
+                console.log(err);
+                role = 0;
+            }
         }
         console.log('Role is ' + role);
         const utils = new Utils(),
@@ -296,8 +296,8 @@ import * as S3Zipper from 'aws-s3-zipper';
                         */
                         emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
                         Math.round(
-                          emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] /
-                          emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] ) * 100;
+                          (emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] /
+                          emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['users'].length) * 100 );
 
                         emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
                         emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'].toString() + '%';
@@ -420,6 +420,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 }
             }
 
+            this.response['emrolesOnThisLocation'] = emrolesOnThisLocation;
             // console.log(emrolesOnThisLocation);
         } catch (e) {
             console.log(e);
@@ -815,7 +816,12 @@ import * as S3Zipper from 'aws-s3-zipper';
         }
 
 		res.statusCode = 200;
-		res.send(this.response);
+
+        if(!toReturn){
+		    res.send(this.response);
+        }else{
+            return this.response;
+        }
 
 	}
 

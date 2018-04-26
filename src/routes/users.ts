@@ -1476,7 +1476,7 @@ export class UsersRoute extends BaseRoute {
                     }
                 }catch(er){}
 
-                /*let 
+                /*let
                 usersFrpTrpRole = <any> await userRoleModel.getManyByUserIds(userId),
                 locationsOfAccountUser = <any> await locationAccountUserModel.getLocationsByUserIdAndAccountId(userId, user['account_id']),
                 isFRP = false,
@@ -1502,7 +1502,7 @@ export class UsersRoute extends BaseRoute {
 
                locations = locations.concat(locationsOfAccountUser);*/
             }
-                
+
             response.data.locations = locations;
 			response.data.user = user;
 			response.status = true;
@@ -2763,7 +2763,8 @@ export class UsersRoute extends BaseRoute {
           canLoginTenants[req.user.account_id] = {
             'account_name': accntDetails['account_name'],
             'account_id': req.user.account_id,
-            'trp': []
+            'trp': [],
+            'wardens': []
           };
         }
 
@@ -2775,7 +2776,6 @@ export class UsersRoute extends BaseRoute {
         Object.keys(canLoginTenants).forEach((key) => {
           canLoginTenantArr.push(canLoginTenants[key]);
         });
-
         for (let i = 0; i < canLoginTenantArr.length; i++) {
           // get all wardens for this location on this account
           const EMRole = new UserEmRoleRelation();
@@ -2793,14 +2793,6 @@ export class UsersRoute extends BaseRoute {
             tempWardenUsers = tempWardenUsers.concat(temp['users']);
             trainedWardensObj = await
             trainingCert.getEMRUserCertifications(temp['users'], {'em_role_id': defs['em_roles']['WARDEN']});
-            /*
-            console.log("***********************",
-            canLoginTenantArr[i],
-            "**************************************",
-            trainedWardensObj,
-            "**************************************"
-            );
-            */
           } catch (e) {
             console.log('users route getLocationsTenants()',e);
             temp = {};
@@ -2822,35 +2814,17 @@ export class UsersRoute extends BaseRoute {
               canLoginTenantArr[i]['account_id'],
               location_id
             );
-
-            // canLoginTenantArr[i]['wardens'] = canLoginTenantArr[i]['wardens'].concat(temp['raw']);
-            // make sure that unique user only gets to be included
             for (let fw of temp['raw']) {
               if (tempWardenUsers.indexOf(fw['user_id']) == -1) {
                 tempFloorWardenUsers.push(fw['user_id']);
                 canLoginTenantArr[i]['wardens'].push(fw);
               }
             }
-            /*
-            for (let fw = 0; fw < temp['users'].length; fw++) {
-              if (tempWardenUsers.indexOf(temp['users'][fw]) == -1) {
-                tempFloorWardenUsers.push(temp['users'][fw]);
-              }
-            }
-            */
+
             canLoginTenantArr[i]['total_wardens'] += tempFloorWardenUsers.length;
             trainedFloorWardensObj = await
             trainingCert.getEMRUserCertifications(tempFloorWardenUsers, {'em_role_id': defs['em_roles']['FLOOR_WARDEN']});
-            /*
-            console.log("---------------------------------",
-            canLoginTenantArr[i],
-            "---------------------------------------------",
-            trainedFloorWardensObj,
-            "---------------------------------------------",
-            tempFloorWardenUsers,
-            "---------------------------------------------"
-            );
-            */
+
           } catch (e) {
             console.log('users route getLocationsTenants()',e);
             trainedFloorWardensObj = {
@@ -2866,10 +2840,7 @@ export class UsersRoute extends BaseRoute {
           if (tempPercentage > 0) {
             tempPercentageStr =  tempPercentage.toFixed(0).toString() + '%';
           }
-          /*
-            canLoginTenantArr[i]['trained_wardens'] = await
-               trainingCert.getEMRUserCertifications(temp['users']);
-          */
+
           // get trained wardens
           canLoginTenantArr[i]['trained_wardens'] = {
             'failed': trainedWardensObj['failed'].concat(trainedFloorWardensObj['failed']),
@@ -2878,17 +2849,13 @@ export class UsersRoute extends BaseRoute {
             'percentage':  tempPercentageStr
           };
         }
-        /*
-        console.log('users route getLocationsTenants()',
-        canLoginTenantArr,
-        '============================');
-        */
+
         return canLoginTenantArr;
 	}
 
     public async locationRoleAssignments(req:AuthRequest, res:Response){
 
-        let 
+        let
         response = {
             status : false, message : '', data : []
         },
@@ -2995,7 +2962,7 @@ export class UsersRoute extends BaseRoute {
                                 'role' : assign.role_id
                             });
                             userRoleModel = new UserRoleRelation();
-                        } 
+                        }
                     }else{
                         await deleteAssignment(assign);
 

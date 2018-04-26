@@ -40,4 +40,8 @@ export class ReportService {
         return this.http.get(this.baseUrl + '/reports/get-statement-of-compliance/'+locId, this.options);
     }
 
+    public getActivityReport(formdata){
+        return this.http.post(this.baseUrl + '/reports/get-activity-report', formdata, this.options);
+    }
+
 }
