@@ -63,6 +63,15 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
             this.reportData.kpis = response.data.kpis;
 			this.reportData.totalComplianceRating = response['data']['compliance_rating'];
 
+            for(let k of this.reportData.kpis){
+                if(!k['compliance']){ k['compliance'] = {}; }
+                for(let c of this.reportData.compliances){
+                    if(c.compliance_kpis_id == k.compliance_kpis_id){
+                        k['compliance'] = c;
+                    }
+                }
+            }
+
 			this.dashboardPreloader.hide();
 		});
 	}

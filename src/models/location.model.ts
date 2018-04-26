@@ -630,8 +630,10 @@ export class Location extends BaseClass {
                         ON
                           locations.location_id = user_em_roles_relation.location_id
                         WHERE
-                        user_em_roles_relation.location_id IN (${subIdstring}) ${em_role_filter}
-                        order by em_role_id;`;
+                        users.archived = 0
+                        AND user_em_roles_relation.location_id IN (${subIdstring}) ${em_role_filter}
+                        ORDER BY em_role_id
+                        `;
 
               connection = db.createConnection(dbconfig);
               connection.query(sql, [], (error, results, fields) => {
@@ -709,8 +711,8 @@ export class Location extends BaseClass {
                 WHERE
                   user_em_roles_relation.location_id = ${location} ${em_role_filter}
                 AND users.archived = 0
-                ORDER BY
-                  em_role_id;`;
+                ORDER BY em_role_id
+                `;
           connection = db.createConnection(dbconfig);
           connection.query(sql, [], (error, results) => {
             if (error) {

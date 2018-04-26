@@ -145,6 +145,7 @@ export class TrainingCertification extends BaseClass {
 
       const users_string = users.join(',');
       const connection = db.createConnection(dbconfig);
+      console.log(filter);
       if ('em_role_id' in filter) {
         filterStr += ` AND user_em_roles_relation.em_role_id = ${filter['em_role_id']}`;
       }
@@ -187,7 +188,7 @@ export class TrainingCertification extends BaseClass {
               (certifications.training_requirement_id  =  training_requirement.training_requirement_id AND
                 user_em_roles_relation.user_id = certifications.user_id)
             WHERE user_em_roles_relation.user_id IN (${users_string}) ${filterStr}
-            GROUP BY certifications.user_id ORDER BY certifications.user_id DESC;`;
+            ORDER BY certifications.certification_date DESC;`;
 
       connection.query(sql, [], (error, results, fields) => {
         if (error) {
@@ -198,15 +199,22 @@ export class TrainingCertification extends BaseClass {
           // reject('There are no records to be found for these users - ' + users_string);
           resolve(outcome);
         } else {
+          let objUsers = {};
           for (let i = 0; i < results.length; i++) {
-            // future-improvement: modify this to accommodate future need of having to take two or more course to be compliant
-            if (results[i]['validity'] === 'active' && results[i]['pass']) {
-              trained = trained + 1;
-              (outcome['passed']).push(results[i]);
-            } else {
-              (outcome['failed']).push(results[i]);
+            if( !objUsers[ results[i]['user_id'] ] ){
+                objUsers[ results[i]['user_id'] ] = results[i];
             }
           }
+
+          for(let i in objUsers){
+             if (objUsers[i]['validity'] === 'active' && objUsers[i]['pass']) {
+              trained = trained + 1;
+              (outcome['passed']).push(objUsers[i]);
+            } else {
+              (outcome['failed']).push(objUsers[i]);
+            }
+          }
+
           outcome['total_passed'] = trained;
           outcome['percentage'] = Math.round((trained / users.length) * 100).toFixed(0).toString() + '%';
         }

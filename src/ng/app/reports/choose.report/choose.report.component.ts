@@ -94,6 +94,15 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
         }
     }
 
+    activityLogReport(){
+        let val = $('#summaryActivityLog').val();
+        if(val == null){
+            val = 0;
+        }
+        let locId = this.encryptDecrypt.encrypt(val);
+        this.router.navigate(['/reports/activity-log/'+locId]);
+    }
+
     public generateTeamReport() {
         this.selectedLocationForTeamReport = $('#summaryTeam')[0].value;
         console.log(`selected location is ${this.selectedLocationForTeamReport}`);

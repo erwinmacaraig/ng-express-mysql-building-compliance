@@ -56,8 +56,8 @@
                                 </a>
 							</td>
                             <td *ngFor="let kpi of loc.kpis">
-                                <p *ngIf="kpi.compliant" class="blue-text" style="line-height: 14px;">Compliant</p>
-                                <p *ngIf="!kpi.compliant" class="grey-text" style="line-height: 14px;">Not Compliant</p>
+                                <p *ngIf="kpi.compliance.valid == 1" class="blue-text" style="line-height: 14px;">Compliant</p>
+                                <p *ngIf="kpi.compliance.valid == 0" class="grey-text" style="line-height: 14px;">Not Compliant</p>
                             </td>
                             <td>
                                 <span *ngIf="!loc.eco_users">0</span>

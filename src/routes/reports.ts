@@ -18,6 +18,7 @@ import { ComplianceDocumentsModel } from '../models/compliance.documents.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { TrainingCertification } from '../models/training.certification.model';
 import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calculator.model';
+import { ComplianceRoute } from './compliance';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -106,6 +107,10 @@ export class ReportsRoute extends BaseRoute {
 
        router.get('/reports/get-statement-of-compliance/:location_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
          new ReportsRoute().getStatementOfCompliance(req, res);
+       });
+
+       router.post('/reports/get-activity-report', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
+           new ReportsRoute().getActivityReport(req, res);
        });
      }
 
@@ -467,18 +472,15 @@ export class ReportsRoute extends BaseRoute {
         }
     }
 
-    private async buildLocationComplianceData(locationData, accountId, role, kpis){
+    private async buildLocationComplianceData(locationData, role, kpis, reqRes?){
         let sublocationModel = new Location(),
             deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationData.location_id),
             locAccntModel = new LocationAccountRelation(),
             locCompRate = 0,
             allSubLocationsId = [locationData.location_id],
             complianceModel = new ComplianceModel(),
-            locationCompliance = <any> await complianceModel.getLocationCompliance(locationData.location_id, accountId, role),
             emRoleModel = new UserEmRoleRelation(),
-            complianceDocsModel = new ComplianceDocumentsModel(),
             trainingCertificationModel = new TrainingCertification(),
-            whereDocs = [],
             docs = [],
             today = moment(),
             TotalNumberOfKPIS = kpis.length - 1,
@@ -489,8 +491,7 @@ export class ReportsRoute extends BaseRoute {
 
         locationData['kpis'] = JSON.parse(JSON.stringify(kpis));
         locationData['name'] = (locationData['name'].length == 0) ? locationData['formatted_address'] : locationData['name'];
-        this.createComplianceMapForLocation(locationData.location_id, accountId, 'Manager');
-
+        
         for(let sub of deepLocations){
             allSubLocationsId.push( sub.location_id );
         }
@@ -530,91 +531,23 @@ export class ReportsRoute extends BaseRoute {
         let percentWardens = Math.floor( trainedCount / locationData['wardens'].length * 100 );
         locationData['wardens_trained_percent'] = ( isNaN(percentWardens) ) ? 0 : percentWardens;
 
-        whereDocs.push(['building_id = ' + locationData.location_id]);
-        whereDocs.push(['account_id = ' + accountId]);
-        whereDocs.push(['document_type = "Primary" ']);
-        whereDocs.push(['override_document = -1 ']);
-        docs = <any> await complianceDocsModel.getWhere(whereDocs);
-        locationData['docs'] = docs;
+        try{
+            let complianceRoute = new ComplianceRoute(),
+            locCompliance = await complianceRoute.getLocationsLatestCompliance(reqRes.req, reqRes.res, true, { 'location_id' : locationData.location_id });
 
-        for(let kp of locationData.kpis){
-            kp['compliant'] = false;
-            kp['overdue'] = false;
-            kp['activity_date'] = '';
+            locationData['compliances'] = locCompliance.data;
 
-            for(let comp of locationCompliance){
-
-                kp['valid_till'] = comp['valid_till'];
-
-                if( comp.compliance_kpis_id == kp.compliance_kpis_id && kp.compliance_kpis_id != sundryId){
-
-                    if(comp.measurement == "Precent"){
-
-                        let totalWadens = locationData.wardens.length,
-                            userIds = [0],
-                            wardenCompliantCount = 0;
-
-                        for(let ward of locationData.wardens){
-                            userIds.push(ward.user_id);
-                        }
-
-                        let certModel = new TrainingCertification(),
-                            certificates = <any> await certModel.getCertificatesByInUsersId( userIds.join(',') );
-
-                        kp['certificates'] = certificates;
-
-                        for(let ward of locationData.wardens){
-                            ward['compliant'] = false;
-                            for(let cert of certificates){
-                                if(cert.user_id == ward.user_id){
-                                    if(cert.pass == 1 && cert.status == 'valid'){
-                                        ward['compliant'] = true;
-                                        wardenCompliantCount++;
-                                    }
-                                }
-                            }
-                        }
-
-                        kp['wardenCompliantCount'] = wardenCompliantCount;
-
-                        if(wardenCompliantCount == totalWadens){
-                            kp['compliant'] = true;
-                            locCompRate++;
-                        }
-
-                    }else if(comp.measurement == "Traffic"){
-
-                        if(locationData.docs.length > 0){
-                            let validTillMoment = moment(comp['valid_till']),
-                                doc = {};
-                            for(let d of locationData.docs){
-                                if(d.compliance_kpis_id == kp.compliance_kpis_id && Object.keys(doc).length == 0){
-                                    doc = d;
-                                    kp['activity_date'] = d.date_of_activity_formatted;
-                                }
-                            }
-
-                            kp['doc'] = doc;
-
-                            if (Object.keys(doc).length > 0 && validTillMoment.diff(today, 'days') > 0) {
-                                kp['compliant'] = true;
-                                locCompRate++;
-                            }else if( today.diff(validTillMoment, 'days') > 0  ){
-                                kp['overdue'] = true;
-                            }
-
-                        }
-
-                    }
-
-                    kp['rate'] = locCompRate;
-
+            for(let com of locationData['compliances']){
+                if(com.valid == 1){
+                    locCompRate++;
                 }
             }
 
+        }catch(e){
+            locationData['compliances'] = [];
         }
 
-        locationData['compliances'] = locationCompliance;
+        
         locationData['number_of_sublocations'] = deepLocations.length;
         locationData['compliance_rating'] = locCompRate+'/'+TotalNumberOfKPIS;
         locationData['status'] = (locCompRate == TotalNumberOfKPIS) ? 'Compliant' : 'Not Compliant';
@@ -670,7 +603,7 @@ export class ReportsRoute extends BaseRoute {
                 let locParentModel = new Location(loc.parent_id);
                 loc['parent'] = await locParentModel.load();
             }catch(e){}
-            loc = <any> await this.buildLocationComplianceData(loc, accountId, 'Manager', kpis);
+            loc = <any> await this.buildLocationComplianceData(loc, 'Manager', kpis, { 'req' : req, 'res' : res });
         }
 
         let overallRatingCount = 0;
@@ -715,13 +648,20 @@ export class ReportsRoute extends BaseRoute {
         try{
             let loc = <any> await locationModel.load();
 
-            loc = await this.buildLocationComplianceData( loc, accountId, 'Manager', kpis );
+            loc = await this.buildLocationComplianceData( loc, 'Manager', kpis, { 'req' : req, 'res' : res } );
             loc['parent'] = {  name : '' };
             try{
                 let locParentModel = new Location(loc.parent_id);
                 loc['parent'] = await locParentModel.load();
             }catch(e){}
 
+            for(let com of loc.compliances){
+                if(com.valid == 1){
+                    overallRating++;
+                }
+            }
+
+            
             response.data.location = loc;
             response.data.kpis = loc.kpis;
             response.data.wardens = loc.wardens;
@@ -732,5 +672,88 @@ export class ReportsRoute extends BaseRoute {
 
         response.data.compliance_rating = Math.floor(overallRating)+'/'+TotalNumberOfKPIS;
         res.send(response);
+    }
+
+    public async getActivityReport(req: AuthRequest, res: Response){
+        let 
+        location_id = req.body.location_id,
+        limit = req.body.limit,
+        offset = req.body.offset,
+        accountId = req.user.account_id,
+        userId = req.user.user_id,
+        response = {
+            status : false, data : [], 
+            pagination : {
+                total : 0,
+                pages : 0
+            }, message : ''
+        },
+        locationModel = new Location(location_id),
+        accountsModel = new Account(accountId),
+        locations = <any>[],
+        locIds = [],
+        offsetLimit = offset+','+limit;
+
+        if(location_id == 0){
+            try{
+                let responseLocations = <any> await this.listLocations(req,res, true);
+                locations = responseLocations.data;
+            }catch(e){}
+
+        }else{
+            try{
+                let location = await locationModel.load();
+                locations.push(location);
+            }catch(e){
+                response.status = false;
+                response.message = 'No location found';
+            }
+        }
+
+        for(let loc of locations){
+            loc['parent'] = {  name : '' };
+            locIds.push(loc.location_id);
+            try{
+                let locParentModel = new Location(loc.parent_id);
+                loc['parent'] = await locParentModel.load();
+            }catch(e){}
+        }
+
+        let logsCount = await accountsModel.getActivityLog(locIds, offsetLimit, true),
+            logs = <any> await accountsModel.getActivityLog(locIds, offsetLimit);
+
+        for(let log of logs){
+            log['timestamp_formatted'] = moment(log.timestamp).format('DD/MM/YYYY');
+            for(let loc of locations){
+                if(log.building_id == loc.location_id){
+                    log['location_name'] = loc.name;
+                    log['parent_name'] = loc.parent.name;
+                    log['formatted_address'] = loc.formatted_address;
+                }
+            }
+        }
+
+        response.data = logs;
+        response.pagination.total = logsCount[0]['count'];
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
+
+
+
+        res.status(200).send(response);
     }
 }
