@@ -144,42 +144,15 @@ export class ReportsRoute extends BaseRoute {
         const resultSet = await locAcctUser.getAllAccountsInSublocations(sublocs);
         const resultSetArr = [];
         let users = [];
-        console.log('***********************', resultSet);
+
         Object.keys(resultSet).forEach((key) => {
           resultSetArr.push(resultSet[key]);
         });
 
-        console.log('===============', resultSetArr);
+
 
         let wardenInTheWholeBuilding = 0;
         let temp;
-        /*
-        try {
-          temp = await location.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], 0, r);
-          console.log(temp);
-          wardenInTheWholeBuilding = temp[defs['em_roles']['WARDEN']]['count'];
-          users = temp[defs['em_roles']['WARDEN']]['users'];
-        } catch (e) {
-          console.log('Reports route - generateTeamReport (getting EMRoles)', e);
-        }
-        try {
-          temp = null;
-          temp = await location.getEMRolesForThisLocation(defs['em_roles']['FLOOR_WARDEN'], 0, r);
-          console.log(temp);
-          /*
-          for (const u in temp[defs['em_roles']['FLOOR_WARDEN']]['users']) {
-            if (users.indexOf(u) === -1) {
-              users.push(u);
-            }
-          }
-          wardenInTheWholeBuilding = temp[defs['em_roles']['WARDEN']]['count'];
-
-          users = users.concat(temp[defs['em_roles']['FLOOR_WARDEN']]['users']);
-        } catch (e) {
-          console.log('Reports route - generateTeamReport (getting EMRoles)', e);
-        }
-        wardenInTheWholeBuilding = Array.from(new Set(users)).length;
-        */
 
         const mobilityImpaired = new MobilityImpairedModel();
         for (const rs of resultSetArr) {
@@ -207,32 +180,6 @@ export class ReportsRoute extends BaseRoute {
           rs['total_wardens'] = (Array.from(new Set(wardenArrays))).length;
         }
 
-/*
-        let peepData;
-        try {
-          peepData = await new Account().generateReportPEEPList(sublocs);
-        } catch (e) {
-          peepData = {};
-        }
-        for (let j = 0; j < resultSetArr.length; j++) {
-          if (resultSetArr[j]['account_id'].toString() in peepData) {
-            resultSetArr[j]['peep_total'] = peepData[resultSetArr[j]['account_id']]['total'];
-          } else {
-            resultSetArr[j]['peep_total'] = 0;
-          }
-          try {
-            const temp = await EMRole.getEMRolesOnAccountOnLocation(
-              defs['em_roles']['WARDEN'],
-              resultSetArr[j]['account_id'],
-              resultSetArr[j]['location_id']
-            );
-            resultSetArr[j]['total_wardens'] = temp['users'].length;
-            resultSetArr[j]['wardens'] = temp['raw'];
-          } catch (e) {
-            resultSetArr[j]['total_wardens'] = 0;
-            resultSetArr[j]['wardens'] = [];
-          }
-        } */
         wardenInTheWholeBuilding = (Array.from(new Set(users))).length;
         return [resultSetArr, wardenInTheWholeBuilding];
     }
