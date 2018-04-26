@@ -20,13 +20,7 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 	userData = {};
 	locationId = 0;
 
-	reportData = {
-		location : { name : '', parent : { name : '' } },
-		docs : [],
-		compliances : [],
-		kpis : [],
-		totalComplianceRating : '0/0'
-	};
+	reportData = <any>[];
 
 	routeSubs;
 
@@ -57,17 +51,15 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 		this.dashboardPreloader.show();
 		this.reportService.getStatementOfCompliance(this.locationId).subscribe((response:any) => {
 
-			this.reportData.location = response.data.location;
-			this.reportData.docs = response.data.docs;
-			this.reportData.compliances = response.data.compliances;
-            this.reportData.kpis = response.data.kpis;
-			this.reportData.totalComplianceRating = response['data']['compliance_rating'];
+			this.reportData = response.data;
 
-            for(let k of this.reportData.kpis){
-                if(!k['compliance']){ k['compliance'] = {}; }
-                for(let c of this.reportData.compliances){
-                    if(c.compliance_kpis_id == k.compliance_kpis_id){
-                        k['compliance'] = c;
+            for(let rp of this.reportData){
+                for(let k of rp.kpis){
+                    if(!k['compliance']){ k['compliance'] = {}; }
+                    for(let c of rp.compliances){
+                        if(c.compliance_kpis_id == k.compliance_kpis_id){
+                            k['compliance'] = c;
+                        }
                     }
                 }
             }
@@ -76,11 +68,11 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 		});
 	}
 
-	printResult(){
+	printResult(report, printContainer){
 
-		let headerHtml = `<h5> `+this.reportData.location.name+` Statement of Compliance </h5>`;
+		let headerHtml = `<h5> `+report.location.name+` Statement of Compliance </h5>`;
 
-		$('#printContainer').printThis({
+		$(printContainer).printThis({
 			importCSS: true,
 			importStyle: true,
 			loadCSS: [ "/assets/css/materialize.css" ],

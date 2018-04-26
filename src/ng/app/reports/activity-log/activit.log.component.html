@@ -40,12 +40,12 @@
 				</thead>
                 <tbody *ngIf="loadingTable">
                     <tr>
-                        <td colspan="3">Fetching records</td>               
+                        <td colspan="3" class="center">Fetching records</td>               
                     </tr>
                 </tbody>
 				<tbody *ngIf="activityLogs.length == 0 && !loadingTable">
 					<tr>
-                        <td colspan="3">No records found</td>               
+                        <td colspan="3" class="center">No records found</td>               
                     </tr>
 				</tbody>
                 <tbody *ngIf="activityLogs.length > 0 && !loadingTable">

@@ -67,7 +67,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 	}
 
 	ngAfterViewInit(){
-
+        $('.pagination select').material_select('destroy');
     }
 
     getActivityReport(callBack){

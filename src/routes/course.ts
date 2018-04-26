@@ -287,6 +287,7 @@ export class CourseRoute extends BaseRoute {
             response.data.total_users = allUsers.length;
             const users_took_trainings = await trainingCertModel.getEMRUserCertifications(allUsers);
             response.data.total_users_trained = users_took_trainings['total_passed'];
+            response.data['allUsers'] = allUsers;
 
         } catch (e) { }
 

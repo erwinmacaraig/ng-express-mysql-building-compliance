@@ -109,7 +109,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
 	printResult(){
-		let locName = '';
+		let locName = 'All Locations';
 		for(let loc of this.rootLocationsFromDb){
 			if(loc['location_id'] == this.locationId){
 				locName = loc.name;

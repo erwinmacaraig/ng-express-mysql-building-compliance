@@ -68,6 +68,9 @@ export class LocationListComponent implements OnInit, OnDestroy {
     public key_contact_lastname;
     public emailTaken = false;
 
+    isFRP = false;
+    isTRP = false;
+
   constructor (
       private platformLocation: PlatformLocation,
       private http: HttpClient,
@@ -104,6 +107,15 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		});
 
 		this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
+
+        for(let rol of this.userData['roles']){
+            if(rol.role_id == 1){
+                this.isFRP = true;
+            }
+            if(rol.role_id == 2){
+                this.isTRP = true;
+            }
+        }
 
   	}
 
