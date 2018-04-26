@@ -277,12 +277,12 @@ export class UserEmRoleRelation extends BaseClass {
               users.push(results[i]['user_id']);
             }
             resolve({
-              'raw': results,
+              'raw': Object.keys(results).map((key) =>  { return results[key]; }),
               'users': users
             });
           } else {
             resolve({
-              'raw': {},
+              'raw': [],
               'users': []
             });
           }

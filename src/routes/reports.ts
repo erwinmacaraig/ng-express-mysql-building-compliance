@@ -200,14 +200,13 @@ export class ReportsRoute extends BaseRoute {
                 let responseLocations = <any> await this.listLocations(req,res, true);
                 locations = responseLocations.data;
             }catch(e){}
-
         }else{
             try{
                 let location = await locationModel.load();
                 locations.push(location);
             }catch(e){ }
         }
-
+        
         for(let loc of locations){
             loc['parent'] = { name : '' };
             try{
@@ -226,7 +225,6 @@ export class ReportsRoute extends BaseRoute {
         }
 
         return toReturn;
-        
     }
 
     public async listLocations(req: AuthRequest, res: Response, toReturn?){
