@@ -2,7 +2,7 @@
 	<div class="row" style="margin-top: 35px;">
 
 		<div class="col l12 m12 s12">
-			<h5 class="left">Activity Log For Location</h5>
+			<h5 class="left">Activity Log</h5>
 
 			<div class="right right-buttons">
 				<a href="javascript:void(0)">
@@ -14,7 +14,7 @@
 					<div class="image excel"></div>
 				</a>
 
-				<a href="javascript:void(0)">
+				<a href="javascript:void(0)" (click)="printResult()">
 					<div class="text">Print</div>
 					<div class="image print"></div>
 				</a>
@@ -27,45 +27,60 @@
 
 	</div>
 
-	<div class="row">
+	<div class="row" id="printContainer">
 		
 		<div class="col l12 m12 s12">
 			<table class="striped">
 				<thead>
 					<tr class="grey darken-5 white-text">
 						<th>Locations</th>
-						<th>Activity</th>
+						<th>File Name</th>
 						<th>Date</th>
 					</tr>
 				</thead>
-				<tbody>
+                <tbody *ngIf="loadingTable">
+                    <tr>
+                        <td colspan="3" class="center">Fetching records</td>               
+                    </tr>
+                </tbody>
+				<tbody *ngIf="activityLogs.length == 0 && !loadingTable">
 					<tr>
-						<td>
-							<a href="javascript:void(0)" class="blue-text">Location name</a>
-						</td>
-						<td>
-							Added new warden
-						</td>
-						<td>
-							01/05/2018
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<a href="javascript:void(0)" class="blue-text">XML Building</a>
-						</td>
-						<td>
-							Added new chief warden
-						</td>
-						<td>
-							12/04/2018
-						</td>
-					</tr>
+                        <td colspan="3" class="center">No records found</td>               
+                    </tr>
 				</tbody>
+                <tbody *ngIf="activityLogs.length > 0 && !loadingTable">
+                    <tr *ngFor="let log of activityLogs">
+                        <td>
+                            <span *ngIf="log.parent_name.length > 0">{{log.parent_name}}, </span>
+                            <span>{{log.location_name}}</span>
+                        </td>
+                        <td>{{log.file_name}}</td>
+                        <td>{{log.timestamp_formatted}}</td>
+                    </tr>
+                </tbody>
+
 			</table>
 		</div>
 
 	</div>
+
+    <div class="row">
+        <div class="col l12 m12 s12 center pagination" [hidden]="activityLogs.length == 0 || pagination.total <= queries.limit || loadingTable">
+            <div class="inline-block">
+                <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
+            </div>
+
+            <div class="inline-block select">
+                <select #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+                    <option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+                </select>
+            </div>
+
+            <div class="inline-block">
+                <button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
+            </div>
+        </div>
+    </div>
 
 
 	 

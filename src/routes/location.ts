@@ -145,6 +145,7 @@ const defs = require('../config/defs.json');
 
             });
             loc['mobility_impaired'] = userIds.length;
+            loc['sublocation_count'] = 0;
 
             /**
              * COMPLIANCE SECTION HERE
@@ -168,9 +169,10 @@ const defs = require('../config/defs.json');
               'em_roles': [defs['em_roles']['WARDEN'], defs['em_roles']['FLOOR_WARDEN']],
               'location': sublocationIds
             });
-            sublocationIds = [];
+            
+            loc['sublocation_count'] = sublocationIds.length;
             loc['num_wardens'] = totalWardenOnAccount.length;
-            loc['']
+
           }
           // console.log(locationsForBuildingManager);
 
