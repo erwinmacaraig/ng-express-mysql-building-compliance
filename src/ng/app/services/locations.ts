@@ -106,6 +106,15 @@ export class LocationsService {
 	      });
 	}
 
+    getParentLocationsForListingPaginated(formData, callBack){
+        this.http.post(this.baseUrl + '/location/get-parent-locations-by-account-id-paginated', formData, this.options)
+          .subscribe(res => {
+            callBack(res);
+          }, err => {
+            callBack( JSON.parse(err.error) );
+          });
+    }
+
   getArchivedParentLocationsForListing(accountid, callBack){
     this.http.get(this.baseUrl + '/location/get-archived-parent-locations-by-account-id/', this.options)
         .subscribe(res => {
