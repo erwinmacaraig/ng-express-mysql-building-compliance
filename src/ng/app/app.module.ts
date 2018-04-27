@@ -1,3 +1,4 @@
+
 import { AppRoutingModule } from './app-routing.module';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
@@ -110,6 +111,9 @@ import { ReportsTrainingsComponent } from './reports/trainings/trainings.compone
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
+// ADMIN COMPONENTS HERE
+import { AdminComponent } from './admin/admin.component';
+import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
 @NgModule({
   declarations: [
     SafeHtmlPipe,
@@ -195,7 +199,10 @@ import { AssignCoursesComponent } from './assign-courses/assign.courses.componen
     ReportsTeamsComponent,
     ReportsTrainingsComponent,
     ReportsActivityLogComponent,
-    AssignCoursesComponent
+    AssignCoursesComponent,
+    // ADMIN COMPONENTS
+    AdminComponent,
+    ListAccountsComponent
   ],
   imports: [
     BrowserModule,

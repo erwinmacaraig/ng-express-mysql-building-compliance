@@ -87,6 +87,10 @@ import { ReportsTrainingsComponent  } from './reports/trainings/trainings.compon
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
+// ADMIN SECTION HERE
+import { AdminComponent } from './admin/admin.component';
+import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
+
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -133,7 +137,7 @@ const appRoutes: Routes = [
     { path : 'warden', component : WardenLocationComponent }
   ]},
   {
-    path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
+    path : 'view-location/:encrypted', canActivate: [ AuthGuard ], component : ViewSingleLocation
   },
   {
     path : 'teams', canActivate: [AuthGuard], component : TeamsComponent,
@@ -193,6 +197,12 @@ const appRoutes: Routes = [
   },
   {
     path : 'assign-courses', canActivate: [AuthGuard], component : AssignCoursesComponent
+  },
+  {
+    path: 'admin', component: AdminComponent,
+    children: [
+      { path: 'accounts', component: ListAccountsComponent }
+    ]
   }
 ];
 
