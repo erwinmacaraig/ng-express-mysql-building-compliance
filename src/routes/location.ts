@@ -1222,110 +1222,46 @@ const defs = require('../config/defs.json');
         }
 
         if (r == defs['Tenant']) {
-            const 
-                locationListingTRP = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter),
-                locationAccountUserObj = new LocationAccountUser();
-            
-            let canLoginTenants = {};
-
-            for (const loc of locationListingTRP) {
-                const
-                    tempWardenUsers = [],
-                    tempFloorWardenUsers = [];
-
-                try {
-                    canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], loc['location_id']);
-                    loc['num_tenants'] = Object.keys(canLoginTenants).length;
-                } catch(e) {
-                    loc['num_tenants'] = 0;
-                }
-                try {
-                    temp =
-                    await EMRole.getEMRolesOnAccountOnLocation(
-                        defs['em_roles']['WARDEN'],
-                        req.user.account_id,
-                        loc['location_id']
-                        );
-                    totalWardens = temp['users'].length;
-                } catch(e) {
-                    totalWardens = 0;
-                }
-                try {
-                    temp = null;
-                    temp =
-                    await EMRole.getEMRolesOnAccountOnLocation(
-                        defs['em_roles']['FLOOR_WARDEN'],
-                        req.user.account_id,
-                        loc['location_id']
-                        );
-                    for (let fw of temp['users']) {
-                        if (tempWardenUsers.indexOf(fw) == -1) {
-                            tempFloorWardenUsers.push(fw);
-                        }
-                    }
-                } catch(e) { }
-                loc['num_wardens'] = totalWardens + tempFloorWardenUsers.length;
-                temp = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, loc['location_id'], 'account');
-                userIds = [];
-                
-                Object.keys(temp).forEach((u)=> {
-                    userIds.push(u['user_id']);
-                });
-
-                temp = null;
-                temp = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, loc['location_id'], 'emergency');
-
-                Object.keys(temp).forEach((u)=> {
-                    if (userIds.indexOf(u['user_id']) === -1) {
-                        userIds.push(u['user_id']);
-                    }
-
-                });
-                loc['mobility_impaired'] = userIds.length;
-                loc['sublocation_count'] = 0;
-            }
-
+            const locationListingTRP = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
             response.locations = locationListingTRP;
         }
 
         if (r == defs['Manager']) {
-            const 
-            locationObject = new Location(),
-            locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter),
-            accountObj = new Account(req.user.account_id);
+            const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+            response.locations = locationsForBuildingManager;
+        }
 
-            let sublocationIds = [];
-            for(const loc of locationsForBuildingManager) {
-                sublocationIds = await <Array<number>>locationObject.getParentsChildren(loc['location_id'], 0);
+        for(let loc of response.locations){
+            let sublocationIds = await new Location(loc.location_id).getParentsChildren(loc['location_id'], 0);
+            loc['sublocation_count'] = sublocationIds.length;
 
-                const totalWardenOnAccount = await accountObj.getAllEMRolesOnThisAccount(req.user.account_id, {
-                    'em_roles': [defs['em_roles']['WARDEN'], defs['em_roles']['FLOOR_WARDEN']],
-                    'location': sublocationIds
-                });
-
-                loc['sublocation_count'] = sublocationIds.length;
-                loc['num_wardens'] = totalWardenOnAccount.length;
-
-                temp = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, loc['location_id'], 'account');
-                userIds = [];
-
-                Object.keys(temp).forEach((u)=> {
-                    userIds.push(u['user_id']);
-                });
-                temp = null;
-                temp = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, loc['location_id'], 'emergency');
-
-                Object.keys(temp).forEach((u)=> {
-                    if (userIds.indexOf(u['user_id']) === -1) {
-                        userIds.push(u['user_id']);
-                    }
-                });
-                loc['mobility_impaired'] = userIds.length;
+            let canLoginTenants = {},
+                locationAccountUserObj = new LocationAccountUser();
+            try {
+                canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], loc['location_id']);
+                loc['num_tenants'] = Object.keys(canLoginTenants).length;
+            } catch(e) {
+                loc['num_tenants'] = 0;
             }
 
-            
+            let 
+                locsIds = JSON.parse(JSON.stringify(sublocationIds)),
+                emRolesModel = new UserEmRoleRelation(),
+                wardens = [];
 
-            response.locations = locationsForBuildingManager;
+            if(loc.parent_id > -1){
+                locsIds.push(loc.location_id);
+            }
+
+            wardens = <any> await emRolesModel.getWardensInLocationIds(locsIds.join(','));
+
+            loc['num_wardens'] = wardens.length;
+            loc['wardens'] = wardens;
+
+            let mobilityModel = new MobilityImpairedModel(),
+                impaired = <any> await mobilityModel.getImpairedUsersInLocationIds(locsIds.join(','), req.user.account_id);
+
+            loc['mobility_impaired'] = impaired.length;
         }
 
         if(pagination){
