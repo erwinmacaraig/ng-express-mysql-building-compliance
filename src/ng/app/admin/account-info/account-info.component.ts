@@ -1,5 +1,5 @@
 
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, Input } from '@angular/core';
 import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -38,9 +38,11 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
     'online_training': ''
   };
   account_billing = '';
+  @Input() account: number;
   constructor(private adminService: AdminService, private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit() {
+
     this.sub = this.route.params.subscribe((params) => {
       this.accountId = +params['accntId'];
       console.log(this.accountId);
