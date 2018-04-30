@@ -39,5 +39,22 @@ export class AdminRoute extends BaseRoute {
         }
       });
     });
+
+    router.get('/admin/account-information/:accountId/',
+        async (req: AuthRequest, res: Response, next: NextFunction) => {
+        const account = new Account(req.params.accountId);
+        try {
+          const accntDbData = await account.load();
+          return res.status(200).send({
+            'message': 'Success',
+            data: accntDbData
+          });
+        } catch (e) {
+          return res.status(200).send({
+            'message': 'Fail',
+            data: {}
+          });
+        }
+    });
   }
 }

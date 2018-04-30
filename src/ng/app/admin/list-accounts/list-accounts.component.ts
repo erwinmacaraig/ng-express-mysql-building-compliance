@@ -20,7 +20,7 @@ export class ListAccountsComponent implements OnInit, OnDestroy, AfterViewInit {
   public list = [];
   public total_pages = 0;
   public createRange;
-  public currentPage = 1;
+  public currentPage = 0;
   @ViewChild('selectPage') selectedPage: ElementRef;
   constructor(private adminService: AdminService) {}
 
@@ -44,15 +44,14 @@ export class ListAccountsComponent implements OnInit, OnDestroy, AfterViewInit {
   nextPage() {
     console.log('current page is ' + this.selectedPage.nativeElement.value);
     this.currentPage = parseInt(this.selectedPage.nativeElement.value, 10) + 1;
-    if (this.currentPage > this.total_pages) {
-      this.currentPage = 1;
+    if (this.currentPage > this.total_pages - 1) {
+      this.currentPage = 0;
     }
     console.log(this.selectedPage);
     this.adminService.getAccountListingForAdmin(this.currentPage).subscribe((response) => {
       this.list = Object.keys(response['data']['list']).map((key) => {
         return response['data']['list'][key];
-      }) ;
-      console.log(this.list);
+      });
     });
   }
 
@@ -61,22 +60,22 @@ export class ListAccountsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.adminService.getAccountListingForAdmin(this.currentPage).subscribe((response) => {
       this.list = Object.keys(response['data']['list']).map((key) => {
         return response['data']['list'][key];
-      }) ;
-      console.log(this.list);
+      });
     });
   }
 
   prevPage() {
     this.currentPage = parseInt(this.selectedPage.nativeElement.value, 10) - 1;
-    if (this.currentPage <= 0) {
-      this.currentPage = this.total_pages;
+    console.log('current Page at this point is ' + this.currentPage);
+    if (this.currentPage < 0) {
+      this.currentPage = this.total_pages - 1;
     }
     this.adminService.getAccountListingForAdmin(this.currentPage).subscribe((response) => {
       this.list = Object.keys(response['data']['list']).map((key) => {
         return response['data']['list'][key];
       }) ;
-      console.log(this.list);
     });
+
   }
   searchByAccoutName(event: KeyboardEvent) {
     console.log(( (<HTMLInputElement>event.target).value));
@@ -85,8 +84,7 @@ export class ListAccountsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.adminService.getAccountListingForAdmin(this.currentPage, searchKey).subscribe((response) => {
       this.list = Object.keys(response['data']['list']).map((key) => {
         return response['data']['list'][key];
-      }) ;
-      console.log(this.list);
+      });
     });
   }
 }

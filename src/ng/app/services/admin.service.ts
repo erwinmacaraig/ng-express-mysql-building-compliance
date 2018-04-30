@@ -28,4 +28,9 @@ export class AdminService {
     this.options['params'] = httpParams;
     return this.http.get(this.baseUrl + '/admin/accounts/list/', this.options);
   }
+
+  getAccountInfo(accountId = 0) {
+    return this.http.get(this.baseUrl + `/admin/account-information/${accountId}/`, this.options);
+  }
 }
+
