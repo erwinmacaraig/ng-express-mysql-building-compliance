@@ -1171,7 +1171,6 @@ const defs = require('../config/defs.json');
 		);
 	}
 
-
 	public async getParentLocationsByAccount(req: AuthRequest, res: Response, archived?, pagination?) {
 	    const 
             queries = req.body,

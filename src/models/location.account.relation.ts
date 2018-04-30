@@ -280,10 +280,12 @@ export class LocationAccountRelation extends BaseClass {
             
         }
 
+        let selectParentName = ('no_parent_name' in filter) ? 'locations.name,' : `IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name,`; 
+
         let sql_get_locations = `
               SELECT
                 location_account_relation.*,
-                IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name,
+                ${selectParentName}
                 locations.is_building,
                 locations.parent_id,
                 locations.google_photo_url,
