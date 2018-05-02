@@ -94,7 +94,7 @@ const defs = require('../config/defs.json');
 
         });
 
-         router.get('/location/get-archived-parent-locations-by-account-id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        router.get('/location/get-archived-parent-locations-by-account-id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
           new LocationRoute().getParentLocationsByAccount(req, res, 1).then((data) => {
             return res.status(200).send(data);
           }).catch((err) => {
@@ -103,7 +103,7 @@ const defs = require('../config/defs.json');
                 message: err
               });
              });
-         });
+        });
 
         router.get('/location/get-locations-hierarchy-by-account-id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new LocationRoute().getLocationsHierarchyByAccount(req, res).then((data) => {

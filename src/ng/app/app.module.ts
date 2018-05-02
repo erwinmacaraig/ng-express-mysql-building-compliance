@@ -114,6 +114,7 @@ import { AssignCoursesComponent } from './assign-courses/assign.courses.componen
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
+import { AccountInfoComponent } from './admin/account-info/account-info.component';
 @NgModule({
   declarations: [
     SafeHtmlPipe,
@@ -202,7 +203,8 @@ import { ListAccountsComponent } from './admin/list-accounts/list-accounts.compo
     AssignCoursesComponent,
     // ADMIN COMPONENTS
     AdminComponent,
-    ListAccountsComponent
+    ListAccountsComponent,
+    AccountInfoComponent
   ],
   imports: [
     BrowserModule,
