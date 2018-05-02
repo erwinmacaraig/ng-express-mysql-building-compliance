@@ -129,7 +129,46 @@ export class MobilityImpairedModel extends BaseClass {
 			}
 			resolve(this.write());
 		});
-  }
+    }
+
+    public getImpairedUsersInLocationIds(locationIds, accountId, archived?){
+        if(!archived){
+            archived = 0;
+        }
+
+        return new Promise((resolve, reject) => {
+            let sql = `
+                SELECT
+                    user_id,
+                    first_name,
+                    last_name,
+                    email
+                FROM users
+                WHERE 
+                    archived = ${archived} AND account_id = ${accountId} AND mobility_impaired = 1 AND
+                    user_id IN (SELECT user_id FROM location_account_user WHERE location_id IN (${locationIds}))
+                OR
+                    archived = ${archived} AND account_id = ${accountId} AND mobility_impaired = 1 AND
+                    user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id IN (${locationIds}))
+
+                GROUP BY users.user_id
+                    
+            `;
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, (error, results) => {
+                if (error) {
+                    console.log(sql);
+                    throw Error('Cannot generate list of peep emergency users');
+                }
+
+                resolve(results);
+            });
+
+            connection.end();
+        });
+    }
+
 
   /**
    * @description

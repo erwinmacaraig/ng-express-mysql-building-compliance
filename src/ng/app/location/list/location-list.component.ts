@@ -9,7 +9,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { ComplianceService } from '../../services/compliance.service';
 import { AuthService } from '../../services/auth.service';
-import { Observable, } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import { isArray } from 'util';
@@ -29,6 +29,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	@ViewChild('inpSearchLoc') inpSearchLoc;
 	@ViewChild('tbodyElem') tbodyElem;
 	@ViewChild('formAddTenant') formAddTenant : NgForm;
+    @ViewChild('inputSearch') inputSearch : ElementRef;
 
 	locations = [];
 	locationsBackup = [];
@@ -71,6 +72,21 @@ export class LocationListComponent implements OnInit, OnDestroy {
     isFRP = false;
     isTRP = false;
 
+    loadingTable = false;
+
+    pagination = {
+        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+    };
+
+    queries = {
+        offset :  0,
+        limit : 10,
+        search : '',
+        sort : ''
+    };
+
+    searchSubs;
+
   constructor (
       private platformLocation: PlatformLocation,
       private http: HttpClient,
@@ -97,9 +113,9 @@ export class LocationListComponent implements OnInit, OnDestroy {
 			mutationsList.forEach((mutation) => {
 				if(mutation.target.nodeName != '#text'){
 					let target = $(mutation.target);
-					if(target.find('select:not(.initialized)').length > 0){
+					if(target.find('select.select-from-row:not(.initialized)').length > 0){
 
-						target.find('select:not(.initialized)').material_select();
+						target.find('select.select-from-row:not(.initialized)').material_select();
 
 					}
 				}
@@ -124,7 +140,14 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	}
 
 	getLocationsForListing(callback){
-		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
+		this.locationService.getParentLocationsForListingPaginated(this.queries, (response) => {
+
+            this.pagination.total = response.pagination.total;
+            this.pagination.pages = response.pagination.pages;
+            this.pagination.selection = [];
+            for(let i = 1; i<=this.pagination.pages; i++){
+                this.pagination.selection.push({ 'number' : i });
+            }
 
             this.locations = response.locations;
 
@@ -144,13 +167,19 @@ export class LocationListComponent implements OnInit, OnDestroy {
     		}
     		this.locationsBackup = JSON.parse(JSON.stringify(this.locations));
 
-    		callback();
+    		callback(response);
     	});
 	}
 
 	ngAfterViewInit(){
 		this.preloaderService.show();
-		this.getLocationsForListing(() => {
+		this.getLocationsForListing((response) => {
+
+            if(this.pagination.pages > 0){
+                this.pagination.currentPage = 1;
+                this.pagination.prevPage = 1;
+            }
+
     		this.preloaderService.hide();
 
 	        if (localStorage.getItem('showemailverification') !== null) {
@@ -184,7 +213,48 @@ export class LocationListComponent implements OnInit, OnDestroy {
         $('body').off('change.locationchange').on('change.locationchange', 'select.location-id', (event) => {
             formAddTenant.controls.location_id.setValue( event.currentTarget.value );
         });
+
+        this.searchLocationEvent();
+
+        $('.pagination select').material_select('destroy');
 	}
+
+    pageChange(type){
+
+        let changeDone = false;
+        switch (type) {
+            case "prev":
+                if(this.pagination.currentPage > 1){
+                    this.pagination.currentPage = this.pagination.currentPage - 1;
+                    changeDone = true;
+                }
+                break;
+
+            case "next":
+                if(this.pagination.currentPage < this.pagination.pages){
+                    this.pagination.currentPage = this.pagination.currentPage + 1;
+                    changeDone = true;
+                }
+                break;
+            
+            default:
+                if(this.pagination.prevPage != parseInt(type)){
+                    this.pagination.currentPage = parseInt(type);
+                    changeDone = true;
+                }
+                break;
+        }
+
+        if(changeDone){
+            this.pagination.prevPage = parseInt(type);
+            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+            this.queries.offset = offset;
+            this.loadingTable = true;
+            this.getLocationsForListing(() => { 
+                this.loadingTable = false;
+            });
+        }
+    }
 
 	selectBulkAction(){
 		$('body').off('change.selectbulk').on('change.selectbulk', 'select.bulk-manage', (e) => {
@@ -367,197 +437,42 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	}
 
 	selectFilteringEvent(){
-		$('body').off('change.filterby').on('change.filterby', 'select.filter-by', (e) => {
-			e.preventDefault();
-			let target = $(e.target),
-				val = target.val(),
-				filtered = [];
-
-			if(val == 'compliance'){
-				for(let i in this.locationsBackup){
-					if( this.locationsBackup[i]['compliance'] == 100 ){
-						filtered.push( this.locationsBackup[i] );
-					}
-				}
-				this.locations = filtered;
-			}else if(val == 'not-compliance'){
-				for(let i in this.locationsBackup){
-					if( this.locationsBackup[i]['compliance'] < 100 ){
-						filtered.push( this.locationsBackup[i] );
-					}
-				}
-				this.locations = filtered;
-			}else if(val == 'mobility-impaired'){
-				for(let i in this.locationsBackup){
-					if( this.locationsBackup[i]['mobility_impaired'] > 0 ){
-						filtered.push( this.locationsBackup[i] );
-					}
-				}
-				this.locations = filtered;
-			}else{
-				this.locations = this.locationsBackup;
-			}
-
-		});
-
-
 		$('body').off('change.sortby').on('change.sortby', 'select.sort-by', (e) => {
 			e.preventDefault();
 			let target = $(e.target),
-				val = target.val(),
-				filtered = [];
-
-			if(val == 'name-asc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.name.toUpperCase(),
-						name2 = b.name.toUpperCase();
-
-					if(name1 < name2){
-						return -1
-					}
-					if(name1 > name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'name-desc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.name.toUpperCase(),
-						name2 = b.name.toUpperCase();
-
-					if(name1 > name2){
-						return -1
-					}
-					if(name1 < name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'mobility-asc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.mobility_impaired,
-						name2 = b.mobility_impaired;
-
-					if(name1 < name2){
-						return -1
-					}
-					if(name1 > name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'mobility-desc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.mobility_impaired,
-						name2 = b.mobility_impaired;
-
-					if(name1 > name2){
-						return -1
-					}
-					if(name1 < name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'sublocation-asc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.sublocations.length,
-						name2 = b.sublocations.length;
-
-					if(name1 < name2){
-						return -1
-					}
-					if(name1 > name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'sublocation-desc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.sublocations.length,
-						name2 = b.sublocations.length;
-
-					if(name1 > name2){
-						return -1
-					}
-					if(name1 < name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'wardens-asc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.num_wardens,
-						name2 = b.num_wardens;
-
-					if(name1 < name2){
-						return -1
-					}
-					if(name1 > name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'wardens-desc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.num_wardens,
-						name2 = b.num_wardens;
-
-					if(name1 > name2){
-						return -1
-					}
-					if(name1 < name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else{
-				this.locations = this.locationsBackup;
-			}
-
+				val = target.val();
+            this.queries.sort = val;
+            this.queries.offset = 0;
+            this.loadingTable = true;
+            this.getLocationsForListing((response) => {
+                this.pagination.total = response.pagination.total;
+                this.pagination.pages = response.pagination.pages;
+                this.pagination.currentPage = 1;
+                this.loadingTable = false;
+            });
 		});
 	}
 
-	searchLocationEvent(event){
-		let elem = event.target,
-			val = elem.value.toLowerCase().trim(),
-			filtered = [];
+	searchLocationEvent(){
+        let thisClass = this;
 
-		if(val.length == 0){
-			this.locations = this.locationsBackup;
-		}else{
-			for(let i in this.locationsBackup){
-				if(this.locationsBackup[i]['name'].toLowerCase().indexOf(val) > -1 || this.locationsBackup[i]['formatted_address'].toLowerCase().indexOf(val) > -1){
-					filtered.push(this.locationsBackup[i]);
-				}
-			}
+		this.searchSubs = Observable.fromEvent(this.inputSearch.nativeElement, 'keyup')
+        .debounceTime(800).subscribe((event:KeyboardEvent) => {
+            thisClass.queries.limit = 10;
+            thisClass.queries.offset = 0;
+            thisClass.queries.search = event.srcElement['value'];
+            thisClass.queries.sort = $('.sort-by select').val();
+            thisClass.loadingTable = true;
+            thisClass.getLocationsForListing((response) => {
 
-			this.locations = filtered;
-		}
+                thisClass.pagination.total = response.pagination.total;
+                thisClass.pagination.pages = response.pagination.pages;
+                thisClass.pagination.currentPage = 1;
+
+                thisClass.loadingTable = false;
+            });
+            console.log(thisClass.queries);
+        });
 	}
 
 	selectAllChangeEvent(event){
@@ -607,6 +522,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 	ngOnDestroy(){
 		this.mutationOversable.disconnect();
+        this.searchSubs.unsubscribe();
 	}
 
 	getInitial(name:String){

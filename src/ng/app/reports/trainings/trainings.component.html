@@ -5,12 +5,12 @@
 			<h5 class="left">Training</h5>
 
 			<div class="left filter-container">
-				<div class="select-container">
-					<select class="select-location" id="selectLocation">
-						<option value="0" [selected]="locationId == 0">All Location</option>
-						<option value="{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb" [selected]="locationId == loc.location_id">{{loc.name}}</option>
-					</select>
-				</div>
+				<!-- <div class="select-container">
+                    <select class="select-location" id="selectLocation">
+                        <option value="0" [selected]="locationId == 0">All Location</option>
+                        <option value="{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb" [selected]="locationId == loc.location_id">{{loc.name}}</option>
+                    </select>
+                </div> -->
 
 				<div class="select-container">
 					<select class="select-location" id="selectFilter">

@@ -28,6 +28,7 @@ import { ProductRoute } from './routes/product';
 import { LMSRoute } from './routes/lms';
 import { CourseRoute } from './routes/course';
 import { ReportsRoute } from './routes/reports';
+import { AdminRoute } from './routes/admin';
 
 import * as cors from 'cors';
 
@@ -178,6 +179,9 @@ export class Server {
 
       // ReportsRoute
       ReportsRoute.create(router);
+
+      // Admin Route
+      AdminRoute.create(router);
 
       this.app.use('/api/v1', router);
 

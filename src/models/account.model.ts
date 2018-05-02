@@ -34,16 +34,66 @@ export class Account extends BaseClass {
         });
     }
 
-    public getAll() {
+    public getAll(config = {}): Promise<any> {
       return new Promise((resolve, reject) => {
-          const sql_load = 'SELECT * FROM accounts WHERE archived = 0';
+          let sql_load = 'SELECT * FROM accounts WHERE archived = 0';
+          let page = 0;
+          const accountIds = [];
           const connection = db.createConnection(dbconfig);
+          if ('page' in config) {
+            page = Math.abs(parseInt(config['page'], 10)) * 10;
+            sql_load = `SELECT account_id FROM accounts LIMIT 10 OFFSET ${page}`;
+            connection.query(sql_load, (error, results) => {
+              if (error) {
+                console.log('account.model.getAll - cannot get account ids', error, sql_load);
+                throw Error('There was a problem getting the list of account ids');
+              }
+              for (const r of results) {
+                accountIds.push(r['account_id']);
+              }
+              resolve(accountIds);
+            });
+            connection.end();
+            return;
+          }
+          if ('count' in config) {
+            sql_load = `SELECT COUNT(account_id) as total FROM accounts;`;
+            connection.query(sql_load, (error, results) => {
+              if (error) {
+                console.log('account.model.getAll - cannot get total number of accounts', error, sql_load);
+                throw Error('There was a problem getting the total number of account');
+              }
+              resolve(results[0]['total']);
+            });
+            connection.end();
+            return;
+          }
+          if ('query' in config) {
+            sql_load = `SELECT account_id FROM accounts WHERE account_name LIKE '%${config['query']}%' LIMIT 10`;
+            connection.query(sql_load, (error, results) => {
+              if (error) {
+                console.log('account.model.getAll - cannot get account with the specified query', error, sql_load);
+                throw Error('There was a problem querying accounts given the name');
+              }
+              for (const r of results) {
+                accountIds.push(r['account_id']);
+              }
+              resolve(accountIds);
+            });
+            connection.end();
+            return;
+          }
+
           connection.query(sql_load, (error, results, fields) => {
             if (error) {
               return console.log(error);
             }
             this.dbData = results;
-            resolve(this.dbData);
+            if (length) {
+              resolve(results.length);
+            } else {
+              resolve(this.dbData);
+            }
           });
           connection.end();
       });
@@ -333,7 +383,7 @@ export class Account extends BaseClass {
             locationSql = '';
 
         if(locationIds){
-            locationSql = ' AND compliance_documents.building_id IN ('+locationIds+')'; 
+            locationSql = ' AND compliance_documents.building_id IN ('+locationIds+')';
         }
 
         return new Promise((resolve, reject) => {
@@ -365,7 +415,7 @@ export class Account extends BaseClass {
 
             if(count){
                 sql = `
-                    SELECT COUNT(compliance_documents.compliance_documents_id) as count FROM 
+                    SELECT COUNT(compliance_documents.compliance_documents_id) as count FROM
                     compliance_kpis
                     INNER JOIN compliance_documents
                     ON compliance_kpis.compliance_kpis_id = compliance_documents.compliance_kpis_id
