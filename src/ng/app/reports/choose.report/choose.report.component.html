@@ -4,91 +4,116 @@
 	</div>
 </div>
 
+<ng-template #inputTemplate>
+    <input type="text" class="search-location" placeholder="Search Location"  >
+</ng-template>
+
+<ng-template #searchResult>
+    <div class="search-result">
+        <ul>
+            <li *ngIf="selectedReport.searching">Searching...</li>
+            <li *ngIf="selectedReport.searches.length === 0 && !selectedReport.searching"  >
+                No record found!
+            </li>
+            <li *ngFor="let loc of selectedReport.searches" [hidden]="selectedReport.searching" (click)="clickSelectLocation(loc, thisCheckbox)">
+                <input type="checkbox" class="filled-in" id="loc-{{loc.location_id}}" #thisCheckbox [checked]="isLocationSelected(loc)"  />
+                <label for="loc-{{loc.location_id}}"> {{loc.name}} </label>
+            </li>
+        </ul>
+    </div>
+</ng-template>
+
 <div class="row">
 	<div class="col s12">
 
-		<div class="boxes-container">
+		<div class="boxes-container ">
 
-			<div class="box-wrapper">
-				<div class="box">
+			<div class="box-wrapper box-statement-of-compliance">
+				<div class="box" #boxStatement (click)="clickBox(boxStatement, $event)">
 
 					<div class="image summary-of-compliance"></div>
 
-					<div class="select-container">
-						<select class="report-box" ngModel name="statementOfCompliance" id="statementOfCompliance">
-				          <option value="0">All Location</option>
-				          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
-						</select>
+					<div class="search-container">
+                        <ng-container *ngTemplateOutlet="inputTemplate"></ng-container>
+                        <ng-container *ngTemplateOutlet="searchResult"></ng-container>
 					</div>
 
-					<button class="btn blue waves-effect waves-light" (click)="clickStatementOfComplianceReport()" >Statement of Compliance</button>
+					<button class="btn blue waves-effect waves-light" [disabled]="collection.soc.locations.length === 0" (click)="clickGenerate()" >Statement of Compliance</button>
 
 				</div>
 			</div>
 
-			<div class="box-wrapper" *ngIf="isFrp == true">
-				<div class="box" >
+            <div class="box-wrapper box-summary-of-portfolio" *ngIf="isFrp === true">
+				<div class="box" #boxPortfolio (click)="clickBox(boxPortfolio, $event)">
 
 					<div class="image summary-of-portfolio"></div>
 
-					<div class="select-container">
-						<select class="report-box" ngModel name="summaryCompliance" id="summaryCompliance">
-				          <option value="0">All Location</option>
-				          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
-						</select>
+					<div class="search-container two">
+                        <ng-container *ngTemplateOutlet="inputTemplate"></ng-container>
+                        <ng-container *ngTemplateOutlet="searchResult"></ng-container>
 					</div>
 
-					<button class="btn blue waves-effect waves-light"  (click)="clickSummaryOfComplianceReport()" >Summary of Portfolio Compliance</button>
+                    <div class="select-all">
+                        <input type="checkbox" class="filled-in"  id="checkPortfolio" #checkPortfolio (click)="clickAllLocation('sop', checkPortfolio)"><label for="checkPortfolio">All Locations</label>
+                    </div>
+
+					<button class="btn blue waves-effect waves-light" [disabled]="collection.sop.locations.length === 0"  (click)="clickGenerate()" >Summary of Portfolio Compliance</button>
 
 				</div>
 			</div>
 
-			<div class="box-wrapper">
-				<div class="box">
+			<div class="box-wrapper box-activity-log">
+				<div class="box" #boxActivity (click)="clickBox(boxActivity, $event)">
 
 					<div class="image activity-log"></div>
 
-					<div class="select-container">
-						<select class="report-box" ngModel name="summaryActivityLog" id="summaryActivityLog">
-				          <option value="0">All Location</option>
-				          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
-						</select>
-					</div>
+					<div class="search-container two">
+                        <ng-container *ngTemplateOutlet="inputTemplate"></ng-container>
+                        <ng-container *ngTemplateOutlet="searchResult"></ng-container>
+                    </div>
 
-					<button class="btn blue waves-effect waves-light" (click)="activityLogReport()" >Activity Log</button>
+                    <div class="select-all">
+                        <input type="checkbox" class="filled-in"  id="checkActivity" #checkActivity (click)="clickAllLocation('acl', checkActivity)" /><label for="checkActivity">All Locations</label>
+                    </div>
+
+					<button class="btn blue waves-effect waves-light" [disabled]="collection.acl.locations.length === 0" (click)="clickGenerate()" >Activity Log</button>
 
 				</div>
 			</div>
 			
-			<div class="box-wrapper">
-				<div class="box">
+			<div class="box-wrapper box-team">
+				<div class="box" #boxTeam (click)="clickBox(boxTeam, $event)">
 
 					<div class="image team"></div>
 
-					<div class="select-container">
-						<select class="report-box" ngModel name="summaryTeam" id="summaryTeam">
-				          <option value="-1">All Location</option>
-				          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
-						</select>
-					</div>
-					<button class="btn blue waves-effect waves-light" (click)="generateTeamReport()">Team</button>
+					<div class="search-container two">
+                        <ng-container *ngTemplateOutlet="inputTemplate"></ng-container>
+                        <ng-container *ngTemplateOutlet="searchResult"></ng-container>
+                    </div>
+
+                    <div class="select-all">
+                        <input type="checkbox" class="filled-in"  id="checkTeam" #checkTeam (click)="clickAllLocation('tm', checkTeam)" /><label for="checkTeam">All Locations</label>
+                    </div>
+					<button class="btn blue waves-effect waves-light" [disabled]="collection.tm.locations.length === 0" (click)="clickGenerate()">Team</button>
 
 				</div>
 			</div>
 
-			<div class="box-wrapper">
-				<div class="box">
+			<div class="box-wrapper box-training">
+				<div class="box" #boxTraining (click)="clickBox(boxTraining, $event)">
 
 					<div class="image training"></div>
 
-					<div class="select-container">
-						<select class="report-box" ngModel name="summaryTraining" id="summaryTraining">
-				          <option value="null">All Location</option>
-				          <option *ngFor="let i of rootLocationsFromDb" [value]="i.location_id">{{i.name}}</option>
-						</select>
-					</div>
+					<div class="search-container two">
+                        <ng-container *ngTemplateOutlet="inputTemplate"></ng-container>
+                        <ng-container *ngTemplateOutlet="searchResult"></ng-container>
+                    </div>
 
-					<button class="btn blue waves-effect waves-light" (click)="clickTrainingReport()" >Training</button>
+                    <div class="select-all">
+                        <input type="checkbox" class="filled-in"  id="checkTraining" #checkTraining (click)="clickAllLocation('tr', checkTraining)" /><label for="checkTraining">All Locations</label>
+                    </div>
+
+					<button class="btn blue waves-effect waves-light" [disabled]="collection.tr.locations.length === 0" (click)="clickGenerate()" >Training</button>
 
 				</div>
 			</div>
@@ -96,8 +121,25 @@
 
 
 		</div>
-
-
-
 	</div>
+</div>
+
+<div class="row">
+    <div class="col s12" *ngIf="selectedReport.active">
+        <h5 class="blue-text">Selected locations for {{selectedReport.name}} report</h5>
+
+        <h5 class="red-text" *ngIf="selectedReport.allloc">All Locations</h5>
+
+        <div class="tags" *ngFor="let loc of selectedReport.locations" [hidden]="loc == 0">
+            <div class="text">{{loc.name}}</div>
+            <div class="icon">
+                <a href="javascript:void(0)" (click)="removeFromSelected(loc)"> <i class="material-icons red-text" >close</i> </a>
+            </div>
+        </div>
+        
+        <div style="clear: both;"></div>
+
+        <button class="btn orange waves-effect waves-light" [disabled]="selectedReport.locations.length === 0" style="margin:10px 0px;" (click)="clickGenerate()">Generate Report</button>
+        
+    </div>
 </div>

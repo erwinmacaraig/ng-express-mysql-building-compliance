@@ -109,85 +109,26 @@ export class ReportsRoute extends BaseRoute {
        router.post('/reports/get-activity-report', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
            new ReportsRoute().getActivityReport(req, res);
        });
-     }
+    }
 
      /**
       * @generateTeamReport
       * process reporting info for a given root location
       */
+    
     public async generateTeamReport(req: AuthRequest, res: Response, next: NextFunction) {
 
-        const getSingleLocationTeam = async (locationId) => {
-            const 
-                location = new Location(locationId),
-                userRoleRel = new UserRoleRelation();
-            let r = 0;
+        let 
+        userRoleRel = new UserRoleRelation(),
+        r = 0,
+        accntId = req.user.account_id;
             
-            try {
-                r = await userRoleRel.getByUserId(req.user.user_id, true);
-            } catch (e) {
-                console.log('location route get-parent-locations-by-account-d', e);
-                r = 0;
-            }
-
-            const 
-                sublocationsDbData = await location.getDeepLocationsByParentId(locationId),
-                sublocs = [],
-                EMRole = new UserEmRoleRelation();
-
-            Object.keys(sublocationsDbData).forEach((i) => {
-                sublocs.push(sublocationsDbData[i]['location_id']);
-            });
-
-            if (!sublocs.length) {
-                sublocs.push(locationId);
-            }
-
-            const 
-                locAcctUser = new LocationAccountUser(),
-                resultSet = await locAcctUser.getAllAccountsInSublocations(sublocs),
-                resultSetArr = [];
-            let users = [];
-
-            Object.keys(resultSet).forEach((key) => {
-                resultSetArr.push(resultSet[key]);
-            });
-
-            let 
-                wardenInTheWholeBuilding = 0,
-                temp;
-
-            const mobilityImpaired = new MobilityImpairedModel();
-            for (const rs of resultSetArr) {
-                let 
-                    injured = [],
-                    wardenArrays = [];
-
-                injured = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, rs['location_id'], 'account');
-                injured = injured.concat(await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, rs['location_id'], 'emergency'));
-                rs['peep_total'] = (Array.from(new Set(injured))).length;
-                temp = null;
-                temp = await EMRole.getEMRolesOnAccountOnLocation(
-                    defs['em_roles']['WARDEN'],
-                    req.user.account_id,
-                    rs['location_id']
-                    );
-                wardenArrays = temp['users'];
-                temp = null;
-                temp = await EMRole.getEMRolesOnAccountOnLocation(
-                    defs['em_roles']['FLOOR_WARDEN'],
-                    req.user.account_id,
-                    rs['location_id']
-                    );
-                wardenArrays = wardenArrays.concat(temp['users']);
-                
-                users = users.concat(Array.from(new Set(wardenArrays)));
-                rs['total_wardens'] = (Array.from(new Set(wardenArrays))).length;
-            }
-
-            wardenInTheWholeBuilding = (Array.from(new Set(users))).length;
-            return [resultSetArr, wardenInTheWholeBuilding];
-        };
+        try {
+            r = await userRoleRel.getByUserId(req.user.user_id, true);
+        } catch (e) {
+            console.log('location route get-parent-locations-by-account-d', e);
+            r = 0;
+        }
 
         let 
             location_id = req.query.location_id,
@@ -201,10 +142,14 @@ export class ReportsRoute extends BaseRoute {
                 locations = responseLocations.data;
             }catch(e){}
         }else{
-            try{
-                let location = await locationModel.load();
-                locations.push(location);
-            }catch(e){ }
+            let ids = location_id.split('-');
+            for(let i in ids){
+                try{
+                    locationModel.setID(ids[i]);
+                    let location = await locationModel.load();
+                    locations.push(location);
+                }catch(e){ }
+            }
         }
         
         for(let loc of locations){
@@ -216,208 +161,83 @@ export class ReportsRoute extends BaseRoute {
                 loc['parent'] = parent;
             }catch(e){}
 
-            try{
-                let result = await getSingleLocationTeam(loc.location_id);
-                toReturn.push({
-                    'data' : result[0], 'total_warden' : result[1], 'location' : loc
-                });
-            }catch(e){}
+            let subids = [0],
+                subLocModel = new Location(),
+                sublocationsDbData = <any> await subLocModel.getChildren(loc.location_id),
+                emModel = new UserEmRoleRelation(),
+                mobilityModel = new MobilityImpairedModel(),
+                dataResult = {
+                    data : [], location : loc, total_warden : 0
+                };
+
+            for(let sub of sublocationsDbData){
+                subids.push(sub.location_id);
+
+                let 
+                locAccUserModel = new LocationAccountUser(),
+                wardensSub = <any> await emModel.getWardensInLocationIds(sub.location_id, 0, accntId),
+                mobs = <any> await mobilityModel.getImpairedUsersInLocationIds(sub.location_id, accntId),
+                whereLocUser = [],
+                data = {
+                    location_id : sub.location_id,
+                    name : sub.name,
+                    peep_total : mobs.length,
+                    total_wardens : wardensSub.length,
+                    trp : []
+                };
+
+                data.trp = <any> await locAccUserModel.getTrpByLocationIds(sub.location_id);
+
+                dataResult['total_warden'] += wardensSub.length;
+                dataResult.data.push(data);
+            }
+
+            toReturn.push(dataResult);
         }
 
         return toReturn;
     }
 
     public async listLocations(req: AuthRequest, res: Response, toReturn?){
-        const locAccntRelObj = new LocationAccountRelation();
-        const userRoleRel = new UserRoleRelation();
-        let r = 0;
-        const filter = {};
-        let locationListing;
+        let 
+            locAccntRelObj = new LocationAccountRelation(),
+            userRoleRel = new UserRoleRelation(),
+            r = 0,
+            EMRole = new UserEmRoleRelation(),
+            temp,
+            totalWardens = 0,
+            userIds = [],
+            filter = {
+                archived : 0
+            },
+            response = <any> {
+                data : []
+            };
+
         try {
-            r = await userRoleRel.getByUserId(req.user.user_id, true);
-        } catch (e) {
-            console.log('location route get-parent-locations-by-account-d', e);
-            r = 0;
+          r = await userRoleRel.getByUserId(req.user.user_id, true);
+        } catch(e) {
+          console.log('location route get-parent-locations-by-account-d',e);
+          r = 0;
         }
         filter['responsibility'] = r;
-        if (r === defs['Tenant']) {
-            locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+        filter['no_parent_name'] = true;
 
-        } else if (r === defs['Manager']) {
-            filter['is_building'] = 1;
-            locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+        if (r == defs['Tenant']) {
+            const locationListingTRP = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+            response.data = locationListingTRP;
         }
-        // console.log(locationListing);
+
+        if (r == defs['Manager']) {
+            const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+            response.data = locationsForBuildingManager;
+        }
 
         if(toReturn){
-            return  {
-                data : locationListing
-            };
+            return  response;
         }else{
-            return  res.send({
-                data : locationListing
-            });
+            return  res.send(response);
         }
-    }
-
-    private mergeToParent(data){
-
-        for(let p in data){
-            let parent = data[p];
-
-            if(parent.sublocations === undefined){
-                parent['sublocations'] = [];
-            }
-
-            for(let c in data){
-                let child = data[c];
-                if('is_here' in child){
-                  if(child.parent_id == parent.location_id && child.is_here === true){
-                    parent.sublocations.push(child);
-                  }
-                }else{
-                      if(child.parent_id == parent.location_id){
-                          parent.sublocations.push(child);
-                      }
-                }
-            }
-        }
-
-        let finalData = [];
-        for(let i in data){
-            if(data[i]['parent_id'] == -1){
-                finalData.push(data[i]);
-            }
-        }
-
-        return finalData;
-    }
-
-    public addChildrenLocationToParent(data){
-        for(let i in data){
-            if('sublocations' in data[i] == false){
-                data[i]['sublocations'] = [];
-            }
-
-            for(let x in data){
-                if(data[x]['parent_id'] == data[i]['location_id']){
-                    if('sublocations' in data[i] == false){
-                        data[i]['sublocations'] = [];
-                    }
-
-                    let d = {};
-                    for(let l in data[x]){
-                        if(l.indexOf('@pi') == -1){
-                            d[l] = data[x][l];
-                        }
-                    }
-
-                    data[i]['sublocations'].push(d);
-                }
-            }
-
-        }
-
-        let finalData = [];
-        for(let i in data){
-            if(data[i]['parent_id'] == -1){
-                finalData.push( data[i] );
-            }
-        }
-
-        return finalData;
-    }
-
-    public async getRootLocationsOnAccount(accountId, userId){
-        const account = new Account(accountId);
-
-        let locationsOnAccount = [],
-            locations = <any> [],
-            roles = <any> [],
-            response = {
-                locations : <any> []
-            };
-
-        try {
-            // FRP & TRP
-            let userRoleModel = new UserRoleRelation(),
-                roles = await userRoleModel.getByUserId(userId);
-
-            locationsOnAccount = await account.getLocationsOnAccount(userId, 1, 0);
-
-            for (let loc of locationsOnAccount) {
-                locations.push(loc);
-            }
-
-        } catch (e) {
-            // Warden or Users
-            try{
-                let userEmRole = new UserEmRoleRelation(),
-                emRoles = <any> await userEmRole.getEmRolesByUserId(userId);
-
-                for (let em of emRoles) {
-                    locations.push(em);
-                }
-
-            }catch(e){  }
-        }
-
-        let parentLoc = [];
-        for (let loc of locations) {
-            let allSubLocationIds = [0],
-                deepLocModel = new Location(),
-                deepLocations = <any> [];
-
-            if(loc.parent_id == -1){
-                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
-                deepLocations.push(loc);
-            }else{
-                let ancLocModel = new Location(),
-                    ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
-
-                for(let anc of ancestores){
-                    if(anc.parent_id == -1){
-                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
-                        deepLocations.push(anc);
-                    }
-                }
-            }
-
-            for(let sub of deepLocations){
-                if(sub.parent_id > -1){
-                    allSubLocationIds.push(sub.location_id);
-                }
-            }
-
-            let locAccModel = new LocationAccountRelation(),
-                locAccTenant = <any> await locAccModel.getByWhereInLocationIds( allSubLocationIds.join(',') ),
-                numTenants = 0,
-                tenantsIds = [];
-
-            for(let ten of locAccTenant){
-                if(tenantsIds.indexOf( ten.account_id ) == -1){
-                    numTenants++;
-                    tenantsIds.push( ten.account_id );
-                }
-            }
-
-
-            let locMerged = this.addChildrenLocationToParent(deepLocations),
-                respLoc = (locMerged[0]) ? locMerged[0] : locMerged;
-
-            let alreadyHave = false;
-            for(let parent of parentLoc){
-                if(parent.location_id == respLoc.location_id){
-                    alreadyHave = true;
-                }
-            }
-
-            if(!alreadyHave){
-                parentLoc.push(respLoc);
-            }
-        }
-
-        return parentLoc;
     }
 
     public async locationTrainings(req: AuthRequest, res: Response){
@@ -637,8 +457,6 @@ export class ReportsRoute extends BaseRoute {
             locationModel = new Location(location_id);
 
         if(location_id == 0){
-            /*const account = new Account(accountId);
-            locations = <any> await this.getRootLocationsOnAccount(accountId, userId);*/
 
             try{
                 let responseLocations = <any> await this.listLocations(req,res, true);
@@ -646,12 +464,13 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){}
 
         }else{
-            try{
-                let location = await locationModel.load();
-                locations.push(location);
-            }catch(e){
-                response.status = false;
-                response.message = 'No location found';
+            let ids = location_id.split('-');
+            for(let i in ids){
+                try{
+                    locationModel.setID(ids[i]);
+                    let location = await locationModel.load();
+                    locations.push(location);
+                }catch(e){ }
             }
         }
 
@@ -717,12 +536,13 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){}
 
         }else{
-            try{
-                let location = await locationModel.load();
-                locations.push(location);
-            }catch(e){
-                response.status = false;
-                response.message = 'No location found';
+            let ids = location_id.split('-');
+            for(let i in ids){
+                try{
+                    locationModel.setID(ids[i]);
+                    let location = await locationModel.load();
+                    locations.push(location);
+                }catch(e){ }
             }
         }
 
@@ -784,12 +604,13 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){}
 
         }else{
-            try{
-                let location = await locationModel.load();
-                locations.push(location);
-            }catch(e){
-                response.status = false;
-                response.message = 'No location found';
+            let ids = location_id.split('-');
+            for(let i in ids){
+                try{
+                    locationModel.setID(ids[i]);
+                    let location = await locationModel.load();
+                    locations.push(location);
+                }catch(e){ }
             }
         }
 
