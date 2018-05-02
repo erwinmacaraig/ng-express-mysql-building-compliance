@@ -251,28 +251,84 @@ export class LocationAccountRelation extends BaseClass {
         if ('is_building' in filter) {
           filterStr += ` AND locations.is_building = ${filter['is_building']}`;
         }
-        const sql_get_locations = `
-          SELECT
-            location_account_relation.*,
-            IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name,
-            locations.is_building,
-            locations.parent_id,
-            locations.google_photo_url,
-            locations.admin_verified
-          FROM
-            location_account_relation
-          INNER JOIN
-            locations
-          ON
-            locations.location_id = location_account_relation.location_id
-          LEFT JOIN
-            locations as parent_locations
-          ON
-            locations.parent_id = parent_locations.location_id
-          WHERE
-            location_account_relation.account_id = ?
-            ${filterStr}
-          GROUP BY location_account_relation.location_id;`;
+        if('archived' in filter){
+            filterStr += ` AND locations.archived = ${filter['archived']}`;
+        }
+
+        let offsetLimit = ``;
+
+        if('limit' in filter){
+            offsetLimit = ' LIMIT '+filter['limit'];
+        }
+
+        if('offset' in filter && 'limit' in filter){
+            offsetLimit = ' LIMIT '+filter['offset']+','+filter['limit'];
+        }
+
+        let nameSearch = '';
+        if('name' in filter){
+            nameSearch = ' AND locations.name LIKE "%'+filter['name']+'%" ';
+        }
+
+        let orderBy = '';
+        if('sort' in filter){
+            if(filter['sort'] == 'name-asc'){
+                orderBy = ' ORDER BY name ASC ';
+            }else if(filter['sort'] == 'name-desc'){
+                orderBy = ' ORDER BY name DESC ';
+            }
+            
+        }
+
+        let selectParentName = ('no_parent_name' in filter) ? 'locations.name,' : `IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name,`; 
+
+        let sql_get_locations = `
+              SELECT
+                location_account_relation.*,
+                ${selectParentName}
+                locations.is_building,
+                locations.parent_id,
+                locations.google_photo_url,
+                locations.admin_verified
+              FROM
+                location_account_relation
+              INNER JOIN
+                locations
+              ON
+                locations.location_id = location_account_relation.location_id
+              LEFT JOIN
+                locations as parent_locations
+              ON
+                locations.parent_id = parent_locations.location_id
+              WHERE
+                location_account_relation.account_id = ?
+                ${filterStr}
+                ${nameSearch}
+              GROUP BY location_account_relation.location_id
+              ${orderBy}
+              ${offsetLimit};`;
+
+        if('count' in filter){
+            sql_get_locations = `
+              SELECT
+                COUNT(location_account_relation.location_account_relation_id) as count,
+                IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name
+              FROM
+                location_account_relation
+              INNER JOIN
+                locations
+              ON
+                locations.location_id = location_account_relation.location_id
+              LEFT JOIN
+                locations as parent_locations
+              ON
+                locations.parent_id = parent_locations.location_id
+              WHERE
+                location_account_relation.account_id = ?
+                ${filterStr}
+                ${nameSearch}
+              ${orderBy};`;
+        }
 
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_locations, [accountId], (error, results) => {
@@ -280,13 +336,18 @@ export class LocationAccountRelation extends BaseClass {
             console.log('location.account.relation.listAllLocationsOnAccount', error, sql_get_locations);
             throw Error('Cannot get all locations for this account');
           }
-          if (results.length > 0) {
-            for (const loc of results) {
-              resultSet.push(loc);
-            }
-            resolve(resultSet);
-          } else {
-            resolve([]);
+
+          if('count' in filter){
+              resolve(results);
+          }else{
+              if (results.length > 0) {
+                for (const loc of results) {
+                  resultSet.push(loc);
+                }
+                resolve(resultSet);
+              } else {
+                resolve([]);
+              }
           }
         });
         connection.end();

@@ -186,7 +186,7 @@ const appRoutes: Routes = [
     ]
   },
   {
-    path : 'reports', canActivate: [AuthGuard], component : ReportsComponent,
+    path : 'reports', canActivate: [AuthGuard],  component : ReportsComponent,
     children : [
       { path : 'choose', component : ChooseReportComponent },
       { path : 'locations', component : ReportsLocationsComponent },

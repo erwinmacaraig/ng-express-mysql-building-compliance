@@ -342,7 +342,7 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getWardensInLocationIds(locationIds, archived?){
+    public getWardensInLocationIds(locationIds, archived?, accountid?){
         archived = (archived) ? archived : 0;
 
         return new Promise((resolve, reject) => {
@@ -354,6 +354,9 @@ export class UserEmRoleRelation extends BaseClass {
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
                 WHERE em.location_id IN (`+locationIds+`) AND u.archived = `+archived+` AND er.em_roles_id IN (9,10)
             `;
+            if(accountid){
+                sql_load += ` AND u.account_id = `+accountid;
+            }
 
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
