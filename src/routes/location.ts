@@ -160,6 +160,7 @@ const defs = require('../config/defs.json');
         if (r == defs['Manager']) {
           const locationObject = new Location();
           let sublocationIds = [];
+          filter['is_building'] = 1;
           const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
           const accountObj = new Account(req.user.account_id);
           for(const loc of locationsForBuildingManager) {
@@ -169,7 +170,7 @@ const defs = require('../config/defs.json');
               'em_roles': [defs['em_roles']['WARDEN'], defs['em_roles']['FLOOR_WARDEN']],
               'location': sublocationIds
             });
-            
+
             loc['sublocation_count'] = sublocationIds.length;
             loc['num_wardens'] = totalWardenOnAccount.length;
 
