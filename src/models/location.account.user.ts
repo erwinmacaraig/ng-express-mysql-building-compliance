@@ -341,6 +341,29 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
+    public getTrpByLocationIds(locationIds){
+        return new Promise((resolve, reject) => {
+            const sql_load = `
+            SELECT ur.role_id, u.*, lau.location_id
+            FROM location_account_user lau
+            INNER JOIN users u
+            ON lau.user_id = u.user_id
+            INNER JOIN user_role_relation ur
+            ON ur.user_id = u.user_id
+            WHERE u.archived = 0 AND ur.role_id = 2 AND lau.location_id IN (${locationIds})  GROUP BY u.user_id`;
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
     public getByUserId(UserId: Number) {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_user WHERE user_id = ?';
@@ -502,84 +525,84 @@ export class LocationAccountUser extends BaseClass {
      * retrieve all accounts under the given list of
      * sub locations on which the roles are TRP ONLY
      */
-  public getAllAccountsInSublocations(locations = []){
+    public getAllAccountsInSublocations(locations = []){
 
-    return new Promise((resolve, reject) => {
-      this.getLocationDetails(locations).then((sublocations) => {
-        for (const sub of sublocations) {
-          sub['trp'] = [];
-        }
-        const locationsStr = locations.join(',');
-        const sql_get_tenants = `SELECT
-              accounts.account_name,
-              users.first_name,
-              users.last_name,
-              users.phone_number,
-              users.mobile_number,
-              users.email,
-              locations.name,
-              location_account_user.*
-          FROM location_account_user
-          INNER JOIN user_role_relation ON user_role_relation.user_id = location_account_user.user_id
-          INNER JOIN users ON users.user_id = location_account_user.user_id
-          INNER JOIN accounts ON accounts.account_id = users.account_id
-          INNER JOIN locations ON locations.location_id = location_account_user.location_id
-          WHERE
-            location_account_user.location_id IN (${locationsStr})
-          AND
-            user_role_relation.role_id = ${defs['Tenant']}
-          ORDER BY
-            accounts.account_name`;
-
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_get_tenants, [], (error, results, fields) => {
-          if (error) {
-            console.log('location.account.user.model.getAllAccountsInSublocations', error, sql_get_tenants);
-            throw Error('Cannot process request');
-          }
-          for (const s of sublocations) {
-            for (const r of results) {
-              if (s['location_id'] === r['location_id']) {
-                (s['trp']).push(r);
-              }
+        return new Promise((resolve, reject) => {
+          this.getLocationDetails(locations).then((sublocations) => {
+            for (const sub of sublocations) {
+              sub['trp'] = [];
             }
-          }
-          resolve(sublocations);
-        });
-      });
-    });
-  }
+            const locationsStr = locations.join(',');
+            const sql_get_tenants = `SELECT
+                  accounts.account_name,
+                  users.first_name,
+                  users.last_name,
+                  users.phone_number,
+                  users.mobile_number,
+                  users.email,
+                  locations.name,
+                  location_account_user.*
+              FROM location_account_user
+              INNER JOIN user_role_relation ON user_role_relation.user_id = location_account_user.user_id
+              INNER JOIN users ON users.user_id = location_account_user.user_id
+              INNER JOIN accounts ON accounts.account_id = users.account_id
+              INNER JOIN locations ON locations.location_id = location_account_user.location_id
+              WHERE
+                location_account_user.location_id IN (${locationsStr})
+              AND
+                user_role_relation.role_id = ${defs['Tenant']}
+              ORDER BY
+                accounts.account_name`;
 
-  private getLocationDetails (locations = []): Promise<Array<object>> {
-    return new Promise((resolve, reject) => {
-      const foundLocations = [];
-      if (locations.length === 0) {
-        resolve(foundLocations);
-        return;
-      }
-      const locationsStr = locations.join(',');
-      const sql_get_locations = `
-        SELECT
-          location_id,
-          name
-        FROM
-          locations
-        WHERE location_id IN (${locationsStr})
-      `;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_get_locations, [], (error, results) => {
-        if (error) {
-          console.log('location.account.user.getLocationDetails', error, sql_get_locations);
-          throw Error('Internal problem');
-        }
-        for (const r of results) {
-          foundLocations.push(r);
-        }
-        resolve(foundLocations);
-      });
-      connection.end();
-    });
-  }
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_get_tenants, [], (error, results, fields) => {
+              if (error) {
+                console.log('location.account.user.model.getAllAccountsInSublocations', error, sql_get_tenants);
+                throw Error('Cannot process request');
+              }
+              for (const s of sublocations) {
+                for (const r of results) {
+                  if (s['location_id'] === r['location_id']) {
+                    (s['trp']).push(r);
+                  }
+                }
+              }
+              resolve(sublocations);
+            });
+          });
+        });
+    }
+
+    private getLocationDetails (locations = []): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+          const foundLocations = [];
+          if (locations.length === 0) {
+            resolve(foundLocations);
+            return;
+          }
+          const locationsStr = locations.join(',');
+          const sql_get_locations = `
+            SELECT
+              location_id,
+              name
+            FROM
+              locations
+            WHERE location_id IN (${locationsStr})
+          `;
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql_get_locations, [], (error, results) => {
+            if (error) {
+              console.log('location.account.user.getLocationDetails', error, sql_get_locations);
+              throw Error('Internal problem');
+            }
+            for (const r of results) {
+              foundLocations.push(r);
+            }
+            resolve(foundLocations);
+          });
+          connection.end();
+        });
+    }
 
 
 }

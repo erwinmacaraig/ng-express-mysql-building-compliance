@@ -118,77 +118,17 @@ export class ReportsRoute extends BaseRoute {
     
     public async generateTeamReport(req: AuthRequest, res: Response, next: NextFunction) {
 
-        const getSingleLocationTeam = async (locationId) => {
-            const 
-                location = new Location(locationId),
-                userRoleRel = new UserRoleRelation();
-            let r = 0;
+        let 
+        userRoleRel = new UserRoleRelation(),
+        r = 0,
+        accntId = req.user.account_id;
             
-            try {
-                r = await userRoleRel.getByUserId(req.user.user_id, true);
-            } catch (e) {
-                console.log('location route get-parent-locations-by-account-d', e);
-                r = 0;
-            }
-
-            const 
-                sublocationsDbData = await location.getDeepLocationsByParentId(locationId),
-                sublocs = [],
-                EMRole = new UserEmRoleRelation();
-
-            Object.keys(sublocationsDbData).forEach((i) => {
-                sublocs.push(sublocationsDbData[i]['location_id']);
-            });
-
-            if (!sublocs.length) {
-                sublocs.push(locationId);
-            }
-
-            const 
-                locAcctUser = new LocationAccountUser(),
-                resultSet = await locAcctUser.getAllAccountsInSublocations(sublocs),
-                resultSetArr = [];
-            let users = [];
-
-            Object.keys(resultSet).forEach((key) => {
-                resultSetArr.push(resultSet[key]);
-            });
-
-            let 
-                wardenInTheWholeBuilding = 0,
-                temp;
-
-            const mobilityImpaired = new MobilityImpairedModel();
-            for (const rs of resultSetArr) {
-                let 
-                    injured = [],
-                    wardenArrays = [];
-
-                injured = await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, rs['location_id'], 'account');
-                injured = await injured.concat(await mobilityImpaired.listAllMobilityImpaired(req.user.account_id, rs['location_id'], 'emergency'));
-                rs['peep_total'] = (Array.from(new Set(injured))).length;
-                temp = null;
-                temp = await EMRole.getEMRolesOnAccountOnLocation(
-                    defs['em_roles']['WARDEN'],
-                    req.user.account_id,
-                    rs['location_id']
-                    );
-                wardenArrays = temp['users'];
-                temp = null;
-                temp = await EMRole.getEMRolesOnAccountOnLocation(
-                    defs['em_roles']['FLOOR_WARDEN'],
-                    req.user.account_id,
-                    rs['location_id']
-                    );
-                wardenArrays = wardenArrays.concat(temp['users']);
-                
-                users = users.concat(Array.from(new Set(wardenArrays)));
-                rs['total_wardens'] = (Array.from(new Set(wardenArrays))).length;
-            }
-
-            wardenInTheWholeBuilding = (Array.from(new Set(users))).length;
-            return [resultSetArr, wardenInTheWholeBuilding];
-        };
+        try {
+            r = await userRoleRel.getByUserId(req.user.user_id, true);
+        } catch (e) {
+            console.log('location route get-parent-locations-by-account-d', e);
+            r = 0;
+        }
 
         let 
             location_id = req.query.location_id,
@@ -221,12 +161,38 @@ export class ReportsRoute extends BaseRoute {
                 loc['parent'] = parent;
             }catch(e){}
 
-            try{
-                let result = await getSingleLocationTeam(loc.location_id);
-                toReturn.push({
-                    'data' : result[0], 'total_warden' : result[1], 'location' : loc
-                });
-            }catch(e){}
+            let subids = [0],
+                subLocModel = new Location(),
+                sublocationsDbData = <any> await subLocModel.getChildren(loc.location_id),
+                emModel = new UserEmRoleRelation(),
+                mobilityModel = new MobilityImpairedModel(),
+                dataResult = {
+                    data : [], location : loc, total_warden : 0
+                };
+
+            for(let sub of sublocationsDbData){
+                subids.push(sub.location_id);
+
+                let 
+                locAccUserModel = new LocationAccountUser(),
+                wardensSub = <any> await emModel.getWardensInLocationIds(sub.location_id, 0, accntId),
+                mobs = <any> await mobilityModel.getImpairedUsersInLocationIds(sub.location_id, accntId),
+                whereLocUser = [],
+                data = {
+                    location_id : sub.location_id,
+                    name : sub.name,
+                    peep_total : mobs.length,
+                    total_wardens : wardensSub.length,
+                    trp : []
+                };
+
+                data.trp = <any> await locAccUserModel.getTrpByLocationIds(sub.location_id);
+
+                dataResult['total_warden'] += wardensSub.length;
+                dataResult.data.push(data);
+            }
+
+            toReturn.push(dataResult);
         }
 
         return toReturn;

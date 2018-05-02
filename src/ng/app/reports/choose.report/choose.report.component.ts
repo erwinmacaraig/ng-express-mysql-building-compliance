@@ -117,10 +117,14 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
 
         $('body').off('click').on('click', (event) => {
             let elem = $(event.target);
-            if(elem.hasClass('.workspace') || elem[0].nodeName == 'BODY'){
-                $('.box-wrapper').removeClass('active').removeClass('inactive');
-                $('.box-wrapper .search-result').removeClass('active').addClass('inactive');
-                this.selectedReport.active = false;
+            if(elem.hasClass('.workspace') || elem[0].nodeName == 'BODY' || elem.hasClass('box-wrapper') || elem.hasClass('col s12')){
+                if($('.search-result.active').length > 0){
+                    $('.search-result.active').removeClass('active');
+                }else{
+                    $('.box-wrapper').removeClass('active').removeClass('inactive');
+                    $('.box-wrapper .search-result').removeClass('active').addClass('inactive');
+                    this.selectedReport.active = false;
+                }
             }
         });
 
