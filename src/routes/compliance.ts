@@ -211,7 +211,9 @@ import * as S3Zipper from 'aws-s3-zipper';
 			arrWhereCompliance = [],
             emrolesOnThisLocation,
             paths,
+            epcMeetingId = 2,
             evacDiagramId = 5,
+            epmId = 4,
             sundryId = 13;
 
         // Retrieve the highest account role
@@ -228,7 +230,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 role = 0;
             }
         }
-        console.log('Role is ' + role);
+        
         const utils = new Utils(),
             training = new TrainingCertification(),
             locationModel = new Location(locationID),
@@ -483,6 +485,44 @@ import * as S3Zipper from 'aws-s3-zipper';
         whereDocs.push(['compliance_documents.document_type = "Primary" ']);
         whereDocs.push(['compliance_documents.override_document = -1 ']);
         docs = await complianceDocsModel.getWhere(whereDocs);
+
+        let 
+            sublocsids = [0],
+            subLocsModel = new Location(),
+            sublocs = <any> await subLocsModel.getChildren(locationID);
+            
+        for(let sub of sublocs){
+            sublocsids.push(sub.location_id);
+        }
+
+        if(sublocsids.length > 1){
+           let 
+               complianceDocsModelSubLoc = new ComplianceDocumentsModel(),
+               whereDocsSub = [],
+               docsSub = <any> [];
+
+            whereDocsSub.push(['compliance_documents.building_id IN ( ' + sublocsids.join(',') + ')' ]);
+            whereDocsSub.push(['compliance_documents.account_id = ' + accountID]);
+            whereDocsSub.push(['compliance_documents.compliance_kpis_id IN ('+epcMeetingId+', '+epmId+') ']);
+            whereDocsSub.push(['compliance_documents.document_type = "Primary" ']);
+            whereDocsSub.push(['compliance_documents.override_document = -1 ']);
+            docsSub = await complianceDocsModelSubLoc.getWhere(whereDocsSub);
+
+            docs = docs.concat(docsSub);
+        }
+
+        docs = docs.sort((a, b) => {
+            let d1 = moment(a.date_of_activity),
+                d2 = moment(b.date_of_activity);
+            if(d1.isAfter(d2)){
+                return -1;
+            }else if(d1.isBefore(d2)){
+                return 1;
+            }else{
+                return 0;
+            }
+        });
+
         for(let d of docs){
             d.timestamp_formatted = (moment(d.timestamp_formatted).isValid()) ? moment(d.timestamp_formatted).format('DD/MM/YYYY') : '00/00/0000';
         }

@@ -1052,7 +1052,6 @@ const defs = require('../config/defs.json');
             }
         }
 
-
         for (let j = 0; j < sublocations.length; j++) {
           sublocationIdsArray.push(sublocations[j]['location_id']);
         }
@@ -1100,6 +1099,17 @@ const defs = require('../config/defs.json');
               sub['num_tenants'] = 0;
             }
         }
+
+        sublocations = sublocations.sort((a, b) => {
+            if(a.name.localeCompare(b.name, { sensitivity : false }) == 1){
+                return 1;
+            }
+            if(a.name.localeCompare(b.name, { sensitivity : false }) == -1){
+                return -1;
+            }
+
+            return 0;
+        });
 
       	response.sublocations = sublocations;
 	    // get immediate parent
