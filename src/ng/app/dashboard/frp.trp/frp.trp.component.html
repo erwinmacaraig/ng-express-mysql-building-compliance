@@ -58,7 +58,7 @@
 			    	</div>
 			    </div> -->
 
-			    <button class="btn orange waves-effect waves-light center-block display-block"> Manange Compliance </button>
+			    <button class="btn orange waves-effect waves-light center-block display-block"> Manage Compliance </button>
 			</div>
 
 
@@ -66,7 +66,7 @@
 
 		<div class="col l6 m12 s12">
 			<h5 class="orange-text margin-bottom-30">My Plans</h5>
-			<div class="grey lighten-5 table-container" style="max-height: 480px; overflow-y: scroll;">
+			<div class="grey lighten-5 table-container" style="max-height: 480px; overflow-y: auto;">
 				<table class="table striped">
 					<thead>
 						<tr class="grey darken-4 white-text">
@@ -120,7 +120,23 @@
                         </tr>
                     </tbody>
 				</table>
-				
+				<div style="margin-top: 18px;">
+                    <div class="col l12 m12 s12 center pagination" [hidden]="locations.length == 0 || pagination.total <= queries.limit || showPlansLoader">
+                        <div class="inline-block">
+                            <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
+                        </div>
+
+                        <div class="inline-block select">
+                            <select class="" #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+                                <option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+                            </select>
+                        </div>
+
+                        <div class="inline-block">
+                            <button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
+                        </div>
+                    </div>
+                </div>
 			</div>
 
 		</div>
@@ -146,7 +162,7 @@
 			</div> 
 			-->
 
-			<h5 class="orange-text margin-bottom-30">Building Trainings</h5>
+			<h5 class="orange-text margin-bottom-30">All Building Trainings Status</h5>
 
 			<div class="width100" *ngIf="showBuildingTrainingLoader">
 				<div class="loader-div" >

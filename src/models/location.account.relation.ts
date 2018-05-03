@@ -247,6 +247,9 @@ export class LocationAccountRelation extends BaseClass {
           if (filter['responsibility'] === defs['Manager']) {
             filterStr += ` AND location_account_relation.responsibility = 'Manager'`;
           }
+          if(filter['responsibility'] === 'both'){
+              filterStr += ` AND location_account_relation.responsibility IN ('Manager', 'Tenant')`;
+          }
         }
         if ('is_building' in filter) {
           filterStr += ` AND locations.is_building = ${filter['is_building']}`;
@@ -277,10 +280,10 @@ export class LocationAccountRelation extends BaseClass {
             }else if(filter['sort'] == 'name-desc'){
                 orderBy = ' ORDER BY name DESC ';
             }
-            
+
         }
 
-        let selectParentName = ('no_parent_name' in filter) ? 'locations.name,' : `IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name,`; 
+        let selectParentName = ('no_parent_name' in filter) ? 'locations.name,' : `IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name,`;
 
         let sql_get_locations = `
               SELECT
@@ -289,7 +292,8 @@ export class LocationAccountRelation extends BaseClass {
                 locations.is_building,
                 locations.parent_id,
                 locations.google_photo_url,
-                locations.admin_verified
+                locations.admin_verified,
+                locations.location_directory_name
               FROM
                 location_account_relation
               INNER JOIN
@@ -337,7 +341,7 @@ export class LocationAccountRelation extends BaseClass {
             throw Error('Cannot get all locations for this account');
           }
 
-          if('count' in filter){
+          if('count' in filter) {
               resolve(results);
           }else{
               if (results.length > 0) {

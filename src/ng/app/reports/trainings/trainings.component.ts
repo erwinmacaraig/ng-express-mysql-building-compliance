@@ -24,6 +24,18 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	routeSubs;
 	locationId = 0;
 
+    pagination = {
+        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+    };
+    queries =  {
+        limit : 25,
+        offset : 0,
+        location_id : 0,
+        course_method : 'none'
+    };
+
+    loadingTable = false;
+
 	constructor(
 		private router : Router,
 		private activatedRoute : ActivatedRoute,
@@ -39,72 +51,117 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 		this.routeSubs = this.activatedRoute.params.subscribe((params) => {
 			this.locationId = this.encryptDecrypt.decrypt( params.locationId );
 
-			this.getLocationReport();
+			this.getLocationReport((response) => {
+                this.dashboardPreloader.hide();
+                if(response.data.length > 0){
+                    this.pagination.currentPage = 1;
+                }
+            });
 		});
 
 	}
 
 	ngOnInit(){
 		this.reportService.getParentLocationsForReporting().subscribe((response) => {
-			console.log(response);
 			this.rootLocationsFromDb = response['data'];
-			setTimeout(() => {
-				$('select').material_select();
-			}, 200);
 		}, (e) => {
 			console.log(e);
 		});
 	}
 
 	ngAfterViewInit(){
-		$('select').material_select();
+		$('.left.filter-container select').material_select();
 		
-		$('#selectLocation').val(this.locationId).material_select('update');
+		/*$('#selectLocation').val(this.locationId).material_select('update');
 		$('#selectLocation').off('change.selectlocation').on('change.selectlocation', () => {
 
 			let selVal = $('#selectLocation').val(),
 			encId = this.encryptDecrypt.encrypt( selVal );
 
 			this.router.navigate([ '/reports/trainings/', encId]);
-		});
-
+		});*/
 
 		$('#selectFilter').off('change.filter').on('change.filter', () => {
 
 			let selVal = $('#selectFilter').val();
-			if(this.results.length > 0){
-				
-				let filtered = [];
-				for(let re of this.backupResults){
-					if(selVal == 'offline' && re.course_method == 'offline_by_evac'){
-						filtered.push(re);
-					}else if(selVal == 'online' && re.course_method == 'online_by_evac'){
-						filtered.push(re);
-					}else if(selVal == 'null'){
-						filtered.push(re);
-					}
-				}
-				this.results = filtered;
-				
-			}else{
-				$('#selectFilter').val(null).material_select('update');
-			}
+            if(selVal == 'offline'){
+                this.queries.course_method = 'offline';
+            }else if(selVal == 'online'){
+                this.queries.course_method = 'online';
+            }else{
+                this.queries.course_method = '';
+            }
+
+            this.queries.offset = 0;
+            this.loadingTable = true;
+
+            this.getLocationReport((response:any) => {
+                this.loadingTable = false;
+                if(response.data.length > 0){
+                    this.pagination.currentPage = 1;
+                }else{
+                    this.pagination.currentPage = 0;
+                }
+            });
 
 		});
+
+        this.dashboardPreloader.show();
 	}
 
-	getLocationReport(){
-		let 
-		locId = this.locationId,
-		formData = {
-			location_id : locId
-		};
+    pageChange(type){
 
-		this.dashboardPreloader.show();
-		this.reportService.getLocationTrainingReport(formData).subscribe((response) => {
+        let changeDone = false;
+        switch (type) {
+            case "prev":
+                if(this.pagination.currentPage > 1){
+                    this.pagination.currentPage = this.pagination.currentPage - 1;
+                    changeDone = true;
+                }
+                break;
+
+            case "next":
+                if(this.pagination.currentPage < this.pagination.pages){
+                    this.pagination.currentPage = this.pagination.currentPage + 1;
+                    changeDone = true;
+                }
+                break;
+            
+            default:
+                if(this.pagination.prevPage != parseInt(type)){
+                    this.pagination.currentPage = parseInt(type);
+                    changeDone = true;
+                }
+                break;
+        }
+
+        if(changeDone){
+            this.pagination.prevPage = parseInt(type);
+            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+            this.queries.offset = offset;
+            this.loadingTable = true;
+            this.getLocationReport((response:any) => {
+                this.loadingTable = false;
+            });
+        }
+    }
+
+	getLocationReport(callBack?){
+		this.queries.location_id = this.locationId;
+
+		this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
 			this.results = response['data'];
 			this.backupResults = JSON.parse( JSON.stringify(this.results) );
-			this.dashboardPreloader.hide();
+
+            this.pagination.pages = response.pagination.pages;
+            this.pagination.total = response.pagination.total;
+
+            this.pagination.selection = [];
+            for(let i = 1; i<=this.pagination.pages; i++){
+                this.pagination.selection.push({ 'number' : i });
+            }
+			
+            callBack(response);
 		});
 	}
 
@@ -116,7 +173,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 			}
 		}
 
-		let headerHtml = `<h5> Training Report For `+locName+` </h5>`;
+		let headerHtml = `<h5> Training Report </h5>`;
 
 		$('#printContainer').printThis({
 			importCSS: true,

@@ -58,10 +58,10 @@
             </td>
             <td>{{item['billing_address']}}</td>
             <td>
-              <select>
+              <select #selectedAction (change)="addressSelectedAction()">
                 <option value="0" class="blue-text" selected disabled>Select action</option>
-                <option value="view" class="blue-text">View</option>
-                <option value="archive" class="blue-text">Archive</option>
+                <option value="view-{{item['account_id']}}" class="blue-text">View</option>
+                <option value="archive-{{item['account_id']}}" class="blue-text">Archive</option>
               </select>
             </td>
           </tr>
