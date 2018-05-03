@@ -17,6 +17,7 @@ import { ComplianceKpisModel } from '../models/comliance.kpis.model';
 import { ComplianceDocumentsModel } from '../models/compliance.documents.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { TrainingCertification } from '../models/training.certification.model';
+import { Utils } from '../models/utils.model';
 import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calculator.model';
 import { ComplianceRoute } from './compliance';
 
@@ -80,18 +81,8 @@ export class ReportsRoute extends BaseRoute {
         * @route
         * generate list for team
         */
-       router.get('/reports/team/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-         new ReportsRoute().generateTeamReport(req, res, next).then((data) => {
-           return res.status(200).send({
-             'status': 'Success',
-             'data': data
-           });
-         }).catch((e) => {
-           console.log(e);
-           return res.status(400).send({
-             'status': 'Fail', 'data' : [], 'error': e
-           });
-         });
+       router.post('/reports/team', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+         new ReportsRoute().generateTeamReport(req, res, next);
        });
 
        router.post('/reports/location-trainings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -121,36 +112,58 @@ export class ReportsRoute extends BaseRoute {
         let 
         userRoleRel = new UserRoleRelation(),
         r = 0,
-        accntId = req.user.account_id;
-            
-        try {
-            r = await userRoleRel.getByUserId(req.user.user_id, true);
-        } catch (e) {
-            console.log('location route get-parent-locations-by-account-d', e);
-            r = 0;
-        }
-
-        let 
-            location_id = req.query.location_id,
-            locationModel = new Location(location_id),
-            locations = <any> [],
-            toReturn = <any> [];
+        location_id = req.body.location_id,
+        response = {
+            status : true, data : [], message : '',
+            pagination : {
+                total : 0,
+                pages : 0
+            }
+        },
+        offset = req.body.offset,
+        limit = req.body.limit,
+        accntId = req.user.account_id,
+        locationModel = new Location(location_id),
+        locations = <any> [],
+        toReturn = <any> [];
 
         if(location_id == 0){
+
             try{
-                let responseLocations = <any> await this.listLocations(req,res, true);
+                let responseLocations = <any> await this.listLocations(req,res, true, {
+                    'offset' : offset, 'limit' : limit, 'archived' : 0
+                });
                 locations = responseLocations.data;
+
+                let countLocations = <any> await this.listLocations(req,res, true, {
+                    'offset' : offset, 'limit' : limit, 'archived' : 0, 'count' : true
+                });
+
+                response.pagination.total = countLocations.data[0]['count'];
             }catch(e){}
+
         }else{
-            let ids = location_id.split('-');
+            let ids = location_id.split('-'),
+                locsIds = [0],
+                whereLoc = [];
+
             for(let i in ids){
-                try{
-                    locationModel.setID(ids[i]);
-                    let location = await locationModel.load();
-                    locations.push(location);
-                }catch(e){ }
+                locsIds.push(ids[i]);
             }
+
+            whereLoc.push([ 'location_id IN ('+locsIds+') AND archived = 0' ]);
+
+            try{
+                locations = <any> await locationModel.getWhere(whereLoc, offset+','+limit);
+                let countLocations = <any> await await locationModel.getWhere(whereLoc, offset+','+limit, true);
+
+                response.pagination.total = countLocations[0]['count'];
+
+                response['locations'] = locations;
+            }catch(e){  }
         }
+
+        console.log( response.pagination );
         
         for(let loc of locations){
             loc['parent'] = { name : '' };
@@ -195,10 +208,30 @@ export class ReportsRoute extends BaseRoute {
             toReturn.push(dataResult);
         }
 
-        return toReturn;
+        response.data = toReturn;
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
+
+        res.status(200).send(response);
     }
 
-    public async listLocations(req: AuthRequest, res: Response, toReturn?){
+    public async listLocations(req: AuthRequest, res: Response, toReturn?, filters?){
         let 
             locAccntRelObj = new LocationAccountRelation(),
             userRoleRel = new UserRoleRelation(),
@@ -220,17 +253,38 @@ export class ReportsRoute extends BaseRoute {
           console.log('location route get-parent-locations-by-account-d',e);
           r = 0;
         }
-        filter['responsibility'] = r;
+
+        if(filters){
+            if('responsibility' in filters){
+                filter['responsibility'] = filters['responsibility'];
+            }
+            if('archived' in filters){
+                filter['archived'] = filters['archived'];
+            }
+            if('limit' in filters){
+                filter['limit'] = filters['limit'];
+            }
+            if('offset' in filters){
+                filter['offset'] = filters['offset'];
+            }
+            if('count' in filters){
+                filter['count'] = filters['count'];
+            }
+        }else{
+            filter['responsibility'] = r;
+        }
+
         filter['no_parent_name'] = true;
 
         if (r == defs['Tenant']) {
             const locationListingTRP = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
             response.data = locationListingTRP;
-        }
-
-        if (r == defs['Manager']) {
+        }else if (r == defs['Manager']) {
             const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
             response.data = locationsForBuildingManager;
+        }else{
+            const locations = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+            response.data = locations;
         }
 
         if(toReturn){
@@ -243,8 +297,15 @@ export class ReportsRoute extends BaseRoute {
     public async locationTrainings(req: AuthRequest, res: Response){
         let 
         response = {
-            status : false, data : [], message : ''
+            status : false, data : [], message : '',
+            pagination : {
+                total : 0,
+                pages : 0
+            }
         },
+        offset = req.body.offset,
+        limit = req.body.limit,
+        course_method = req.body.course_method,
         d = {
             location : {},
             sublocations : []
@@ -255,19 +316,26 @@ export class ReportsRoute extends BaseRoute {
         locations = <any> [];
 
         if(location_id == 0){
+
             try{
-                let responseLocations = <any> await this.listLocations(req,res, true);
+                let responseLocations = <any> await this.listLocations(req,res, true, { 'archived' : 0 });
                 locations = responseLocations.data;
             }catch(e){}
 
         }else{
-            try{
-                let location = await locationModel.load();
-                locations.push(location);
-            }catch(e){
-                response.status = false;
-                response.message = 'No location found';
+            let ids = location_id.split('-'),
+                locsIds = [0],
+                whereLoc = [];
+
+            for(let i in ids){
+                locsIds.push(ids[i]);
             }
+
+            whereLoc.push([ 'location_id IN ('+locsIds+') AND archived = 0' ]);
+
+            try{
+                locations = <any> await locationModel.getWhere( whereLoc );
+            }catch(e){  }
         }
 
         let allUserIds = [0],
@@ -293,7 +361,7 @@ export class ReportsRoute extends BaseRoute {
                 }
 
             }catch(e){
-                response.message = 'No location found';
+                
             }
         }
 
@@ -306,8 +374,11 @@ export class ReportsRoute extends BaseRoute {
             }
         }
 
-        let trainCertModel = new TrainingCertification(),
-            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(',') );
+        let courseMethod = (course_method == 'online') ? 'online_by_evac' : (course_method == 'offline') ? 'offline_by_evac' : '',
+            trainCertModel = new TrainingCertification(),
+            trainCertCountModel = new TrainingCertification(),
+            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, false, courseMethod ),
+            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, true, courseMethod );
 
         for(let cert of certificates){
             for(let user of users){
@@ -320,7 +391,26 @@ export class ReportsRoute extends BaseRoute {
             cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
         }
 
+        response.pagination.total = certificatesCount[0]['count'];
+
         response.data = certificates;
+
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
 
 
         res.send(response);
@@ -371,9 +461,9 @@ export class ReportsRoute extends BaseRoute {
             today = moment(),
             TotalNumberOfKPIS = kpis.length - 1,
             sundryId = 13,
-            ecoIds = [0],
-            wardensId = [0],
-            wardensIdTrainedMap = {};
+            ecoIds = [0];
+
+
 
         locationData['kpis'] = JSON.parse(JSON.stringify(kpis));
         locationData['name'] = (locationData['name'].length == 0) ? locationData['formatted_address'] : locationData['name'];
@@ -386,36 +476,11 @@ export class ReportsRoute extends BaseRoute {
 
         for(let user of locationData['eco_users']){
             ecoIds.push(user.user_id);
-        }
+        }     
 
-        locationData['wardens'] =  await emRoleModel.getWardensInLocationIds(allSubLocationsId.join(','));
 
-        for(let ward of locationData['wardens']){
-            wardensId.push(ward.user_id);
-            wardensIdTrainedMap[ ward.user_id ] = { passed : false, viewed : false };
-        }
-
-        let wardensCerts = <any> await trainingCertificationModel.getCertificationsInUserIds(wardensId.join(',')),
-            trainedCount = 0;
-
-        locationData['wardensCerts'] = wardensCerts;
-
-        for(let ward of wardensCerts){
-            if(ward.validity == 'active' && ward.pass == 1){
-                if( wardensIdTrainedMap[ ward.user_id ] ){
-                    if(!wardensIdTrainedMap[ ward.user_id ]['viewed']){
-                        trainedCount++;
-                        wardensIdTrainedMap[ ward.user_id ]['viewed'] = true;
-                        wardensIdTrainedMap[ ward.user_id ]['passed'] = true;
-                    }
-                }
-            }
-        }
-
-        locationData['wardens_trained_count'] = trainedCount;
-
-        let percentWardens = Math.floor( trainedCount / locationData['wardens'].length * 100 );
-        locationData['wardens_trained_percent'] = ( isNaN(percentWardens) ) ? 0 : percentWardens;
+        locationData['wardens_trained_count'] = 0;
+        locationData['wardens_trained_percent'] = 0;
 
         try{
             let complianceRoute = new ComplianceRoute(),
@@ -424,6 +489,13 @@ export class ReportsRoute extends BaseRoute {
             locationData['compliances'] = locCompliance.data;
 
             for(let com of locationData['compliances']){
+
+                if(com.compliance_kpis_id == 6){
+                    locationData['wardens_trained_count'] = com.total_personnel_trained.total_passed;
+                    locationData['wardens_trained_percent'] = com.percentage_number;
+                }
+
+
                 if(com.valid == 1){
                     locCompRate++;
                 }
@@ -443,6 +515,8 @@ export class ReportsRoute extends BaseRoute {
 
     public async getComplianceSummary(req: AuthRequest, res: Response){
         let location_id = req.body.location_id,
+            offset = req.body.offset,
+            limit = req.body.limit,
             accountId = req.user.account_id,
             userId = req.user.user_id,
             response = {
@@ -451,7 +525,11 @@ export class ReportsRoute extends BaseRoute {
                     compliance_rating : '0/0',
                     kpis : [],
                     date : moment().format('DD/MM/YYYY')
-                }, message : ''
+                }, message : '',
+                pagination : {
+                    total : 0,
+                    pages : 0
+                }
             },
             locations = [],
             locationModel = new Location(location_id);
@@ -459,19 +537,35 @@ export class ReportsRoute extends BaseRoute {
         if(location_id == 0){
 
             try{
-                let responseLocations = <any> await this.listLocations(req,res, true);
+                let responseLocations = <any> await this.listLocations(req,res, true, {
+                    'offset' : offset, 'limit' : limit, 'archived' : 0
+                });
                 locations = responseLocations.data;
+
+                let countLocations = <any> await this.listLocations(req,res, true, {
+                    'offset' : offset, 'limit' : limit, 'archived' : 0, 'count' : true
+                });
+
+                response.pagination.total = countLocations.data[0]['count'];
             }catch(e){}
 
         }else{
-            let ids = location_id.split('-');
+            let ids = location_id.split('-'),
+                locsIds = [0],
+                whereLoc = [];
+
             for(let i in ids){
-                try{
-                    locationModel.setID(ids[i]);
-                    let location = await locationModel.load();
-                    locations.push(location);
-                }catch(e){ }
+                locsIds.push(ids[i]);
             }
+
+            whereLoc.push([ 'location_id IN ('+locsIds+') AND archived = 0' ]);
+
+            try{
+                locations = <any> await locationModel.getWhere(whereLoc, offset+','+limit);
+                let countLocations = <any> await await locationModel.getWhere(whereLoc, offset+','+limit, true);
+
+                response.pagination.total = countLocations[0]['count'];
+            }catch(e){  }
         }
 
         let kpisModel = new ComplianceKpisModel(),
@@ -487,8 +581,17 @@ export class ReportsRoute extends BaseRoute {
             try{
                 let locParentModel = new Location(loc.parent_id);
                 loc['parent'] = await locParentModel.load();
-            }catch(e){}
-            loc = <any> await this.buildLocationComplianceData(loc, 'Manager', kpis, { 'req' : req, 'res' : res });
+            }catch(e){
+                console.log(e);
+            }
+
+            try{
+                loc = <any> await this.buildLocationComplianceData(loc, 'Manager', kpis, { 'req' : req, 'res' : res });
+            }catch(e){
+                console.log(e);
+            }
+
+            
         }
 
         let overallRatingCount = 0;
@@ -500,10 +603,27 @@ export class ReportsRoute extends BaseRoute {
             overallRatingCount = overallRatingCount + nominator;
         }
 
-        overallRating = Math.floor(overallRatingCount / locations.length);
+        overallRating = Math.round(overallRatingCount / locations.length);
 
         response.data.compliance_rating = overallRating+'/'+TotalNumberOfKPIS;
         response.data.locations = locations;
+
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
 
         res.send(response);
     }
@@ -536,14 +656,19 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){}
 
         }else{
-            let ids = location_id.split('-');
+            let ids = location_id.split('-'),
+                locsIds = [0],
+                whereLoc = [];
+
             for(let i in ids){
-                try{
-                    locationModel.setID(ids[i]);
-                    let location = await locationModel.load();
-                    locations.push(location);
-                }catch(e){ }
+                locsIds.push(ids[i]);
             }
+
+            whereLoc.push([ 'location_id IN ('+locsIds+') AND archived = 0' ]);
+
+            try{
+                locations = <any> await locationModel.getWhere( whereLoc );
+            }catch(e){  }
         }
 
         for(let loc of locations){
@@ -591,11 +716,13 @@ export class ReportsRoute extends BaseRoute {
                 pages : 0
             }, message : ''
         },
+        utilsModel = new Utils(),
         locationModel = new Location(location_id),
         accountsModel = new Account(accountId),
         locations = <any>[],
         locIds = [],
-        offsetLimit = offset+','+limit;
+        offsetLimit = offset+','+limit,
+        url = 'https://s3-ap-southeast-2.amazonaws.com/mycompliancegroup-prod/';
 
         if(location_id == 0){
             try{
@@ -604,14 +731,19 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){}
 
         }else{
-            let ids = location_id.split('-');
+            let ids = location_id.split('-'),
+                locsIds = [0],
+                whereLoc = [];
+
             for(let i in ids){
-                try{
-                    locationModel.setID(ids[i]);
-                    let location = await locationModel.load();
-                    locations.push(location);
-                }catch(e){ }
+                locsIds.push(ids[i]);
             }
+
+            whereLoc.push([ 'location_id IN ('+locsIds+') AND archived = 0' ]);
+
+            try{
+                locations = <any> await locationModel.getWhere( whereLoc );
+            }catch(e){  }
         }
 
         for(let loc of locations){
@@ -627,7 +759,7 @@ export class ReportsRoute extends BaseRoute {
             logs = <any> await accountsModel.getActivityLog(locIds, offsetLimit);
 
         for(let log of logs){
-            log['timestamp_formatted'] = moment(log.timestamp).format('DD/MM/YYYY');
+            log['timestamp_formatted'] = moment(log.timestamp).format('DD/MM/YYYY hh:mma');
             for(let loc of locations){
                 if(log.building_id == loc.location_id){
                     log['location_name'] = loc.name;
@@ -635,6 +767,12 @@ export class ReportsRoute extends BaseRoute {
                     log['formatted_address'] = loc.formatted_address;
                 }
             }
+            log['url'] = '';
+
+            try{
+                let paths = await utilsModel.s3DownloadFilePathGen(accountId, log.building_id);
+                log['url'] = url + paths[log.compliance_kpis_id][0];
+            }catch(e){}
         }
 
         response.data = logs;

@@ -26,10 +26,8 @@ export class ReportService {
         return this.http.post(this.baseUrl + '/reports/location-trainings', formData, this.options);
     }
 
-    public generateTeamReportingOnLocation(location_id = -1) {
-        const httpParams = new HttpParams().set('location_id', location_id.toString());
-        this.options['params'] = httpParams;
-        return this.http.get(this.baseUrl + '/reports/team/', this.options);
+    public generateTeamReportingOnLocation(formdata) {
+        return this.http.post(this.baseUrl + '/reports/team', formdata, this.options);
     }
 
     public getComplianceSummary(formData){
