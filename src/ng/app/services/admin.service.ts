@@ -32,5 +32,13 @@ export class AdminService {
   getAccountInfo(accountId = 0) {
     return this.http.get(this.baseUrl + `/admin/account-information/${accountId}/`, this.options);
   }
+
+  getAllAccountUsers(accountId: number = 0, page: number = 0, query = '') {
+    let httpParams = new HttpParams().set('page_num', page.toString());
+    if (query.length > 0) {
+      httpParams = httpParams.set('search_key', query);
+    }
+    return this.http.get(this.baseUrl + `/admin/account-users/${accountId}/`, {'params':  httpParams});
+  }
 }
 

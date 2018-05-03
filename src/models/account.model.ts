@@ -497,6 +497,120 @@ export class Account extends BaseClass {
       });
     }
 
+    generateAdminAccountUsers(accountId: number = 0, users = []): Promise<Array<object>> {
+      let account = this.ID();
+      let userStr = '';
+      if (accountId) {
+        account = accountId;
+      }
+      if (users.length > 0) {
+        userStr = ' AND users.user_id IN (' + users.join(',') + ')';
+      }
+      return new Promise((resolve, reject) => {
+
+        const resultSet = [];
+        const sql = `SELECT
+            users.user_id,
+            users.first_name,
+            users.last_name,
+            users.email,
+            users.mobile_number,
+            user_role_relation.role_id,
+            IF (user_role_relation.role_id = 1, 'FRP', IF (user_role_relation.role_id = 2, 'TRP', '')) as account_role,
+            locations.location_id,
+            locations.name,
+            parent_locations.name as parent_name
+          FROM users
+          LEFT JOIN
+            user_role_relation
+          ON users.user_id = user_role_relation.user_id
+          LEFT JOIN
+            location_account_user
+          ON
+            location_account_user.user_id = users.user_id
+          LEFT JOIN
+            locations
+          ON
+            locations.location_id = location_account_user.location_id
+          LEFT JOIN
+            locations as parent_locations
+          ON
+            locations.parent_id = parent_locations.location_id
+          WHERE
+            users.account_id = ? ${userStr}
+        `;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [account], (error, results) => {
+          if (error) {
+            console.log('account.model.generateAdminAccountUsers', error, sql);
+            throw Error('Cannot populate list for account users');
+          }
+          Object.keys(results).forEach((index) => {
+            resultSet.push(results[index]);
+          });
+          resolve(resultSet);
+
+        });
+        connection.end();
+      });
+    }
+
+    generateAdminEMUsers(accountId: number = 0, users = []): Promise<Array<object>> {
+      let account = this.ID();
+      let userStr = '';
+
+      if (accountId) {
+        account = accountId;
+      }
+      if (users.length > 0) {
+        userStr = ' AND users.user_id IN (' + users.join(',') + ')';
+      }
+      return new Promise((resolve, reject) => {
+
+        const resultSet = [];
+        const sql = `SELECT
+        users.user_id,
+        users.first_name,
+        users.last_name,
+        users.email,
+        users.mobile_number,
+        user_em_roles_relation.em_role_id as role_id,
+        em_roles.role_name,
+        locations.location_id,
+        locations.name,
+        parent_locations.name as parent_name
+      FROM users
+      LEFT JOIN
+        user_em_roles_relation
+      ON
+        users.user_id = user_em_roles_relation.user_id
+      LEFT JOIN em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
+      LEFT JOIN
+        locations
+      ON
+        locations.location_id = user_em_roles_relation.location_id
+      LEFT JOIN
+        locations as parent_locations
+      ON
+        locations.parent_id = parent_locations.location_id
+      WHERE
+        users.account_id = ? ${userStr}
+        `;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [account], (error, results) => {
+          if (error) {
+            console.log('account.model.generateAdminEMUsers', error, sql);
+            throw Error('Cannot populate list for emergency users');
+          }
+          Object.keys(results).forEach((index) => {
+            resultSet.push(results[index]);
+          });
+          resolve(resultSet);
+
+        });
+        connection.end();
+      });
+    }
     /*
     public generateReportPEEPList(sublocations = []) {
       return new Promise((resolve, reject) => {

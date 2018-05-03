@@ -35,7 +35,7 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
 
     queries = {
         offset :  0,
-        limit : 5,
+        limit : 10,
         search : '',
         sort : ''
     };

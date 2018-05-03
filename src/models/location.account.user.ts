@@ -344,10 +344,12 @@ export class LocationAccountUser extends BaseClass {
     public getTrpByLocationIds(locationIds){
         return new Promise((resolve, reject) => {
             const sql_load = `
-            SELECT ur.role_id, u.*, lau.location_id
+            SELECT ur.role_id, u.*, lau.location_id, a.account_name
             FROM location_account_user lau
             INNER JOIN users u
             ON lau.user_id = u.user_id
+            INNER JOIN accounts a
+            ON a.account_id = u.account_id
             INNER JOIN user_role_relation ur
             ON ur.user_id = u.user_id
             WHERE u.archived = 0 AND ur.role_id = 2 AND lau.location_id IN (${locationIds})  GROUP BY u.user_id`;

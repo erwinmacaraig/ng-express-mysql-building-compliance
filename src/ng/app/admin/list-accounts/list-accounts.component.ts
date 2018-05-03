@@ -22,7 +22,8 @@ export class ListAccountsComponent implements OnInit, OnDestroy, AfterViewInit {
   public createRange;
   public currentPage = 0;
   @ViewChild('selectPage') selectedPage: ElementRef;
-  constructor(private adminService: AdminService) {}
+  @ViewChild('selectedAction') selectedAction: ElementRef;
+  constructor(private adminService: AdminService, private router: Router) {}
 
   ngOnInit() {
     this.adminService.getAccountListingForAdmin().subscribe((response) => {
@@ -86,5 +87,15 @@ export class ListAccountsComponent implements OnInit, OnDestroy, AfterViewInit {
         return response['data']['list'][key];
       });
     });
+  }
+
+  addressSelectedAction() {
+    const actionTaken = this.selectedAction.nativeElement.value;
+    const actionTakenParts = actionTaken.split('-');
+    switch (actionTakenParts[0]) {
+      case 'view':
+        this.router.navigate(['/admin', 'users-in-accounts', actionTakenParts[1]]);
+      break;
+    }
   }
 }

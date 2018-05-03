@@ -68,6 +68,7 @@ export class List {
                 billingAddress += `, ${r['billing_country']}`;
               }
               accounts[r['account_id']] = {
+                'account_id': r['account_id'],
                 'account_name': r['account_name'],
                 'billing_address': `${billingAddress}`,
                 'locations': [r['location_id']]

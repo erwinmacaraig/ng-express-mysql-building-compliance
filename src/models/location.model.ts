@@ -68,10 +68,12 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getWhere(arrWhere){
+	public getWhere(arrWhere, limit?, count?){
 		return new Promise((resolve, reject) => {
 			let sql_load = `SELECT * FROM locations `;
-
+            if(count){
+                sql_load = 'SELECT COUNT(location_id) as count FROM locations '
+            }
 			let c = 0;
 			for(let i in arrWhere){
 				if(c == 0){
@@ -83,22 +85,22 @@ export class Location extends BaseClass {
 				sql_load += arrWhere[i];
 			}
 
+            if(limit && !count){
+                sql_load += ' LIMIT '+limit;
+            }
+            
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
 				if (error) {
-					return console.log(error);
+                    console.log(error);
+					return false;
 				}
-				if(!results.length){
-					reject('Location not found');
-				}else{
+				for(let i in results){
+                    results[i]['sublocations'] = [];
+                }
 
-					for(let i in results){
-						results[i]['sublocations'] = [];
-					}
-
-					this.dbData = results;
-					resolve(this.dbData);
-				}
+                this.dbData = results;
+                resolve(this.dbData);
 
 			});
 			connection.end();
@@ -606,7 +608,7 @@ export class Location extends BaseClass {
 
             // FRP SECTION
             this.getParentsChildren(location).then((sublocations) => {
-              const subIds = [];
+              const subIds = [location_id];
               Object.keys(sublocations).forEach((key) => {
                 subIds.push(sublocations[key]['location_id']);
               });
