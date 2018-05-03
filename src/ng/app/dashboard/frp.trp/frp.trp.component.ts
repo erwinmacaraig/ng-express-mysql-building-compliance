@@ -54,6 +54,17 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
     selectedComplianceOverExt = '';
     selectedIndex = 0;
 
+    pagination = {
+        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+    };
+
+    queries = {
+        offset :  0,
+        limit : 7,
+        search : '',
+        sort : ''
+    };
+
 	constructor(
 		private authService : AuthService,
 		private donut : DonutService,
@@ -69,9 +80,9 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 		this.courseService.myCourses(this.userData['userId'], (response) => {
 			this.courses = response.data;
 		});
-
-		this.locationService.getParentLocationsForListing(this.userData['accountId'], (res) => {
-			this.locations = res.locations;
+       
+        this.getLocationsForListing((response:any) => {
+            this.locations = response.locations;
             for(let loc of this.locations){
                 loc['fetchingCompliance'] = true;
                 loc['compliance_percentage'] = 0;
@@ -87,17 +98,12 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                 });
             }
 
-            if (this.locations.length > 0) {
-                for (let i = 0; i < this.locations.length; i++) {
-                    this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
-                }
+            if(this.locations.length > 0){
+                this.pagination.currentPage = 1;
             }
-            this.showPlansLoader = false;
 
-			setTimeout(() => {
-				$('select').material_select();
-			}, 500);
-		});
+            this.showPlansLoader = false;
+        });
 
 		this.courseService.getCountsBuildingTrainings((response) => {
 			this.accountTrainings.total_users = response.data.total_users;
@@ -283,6 +289,80 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             this.loadDoneKpisAndCompliance();
         }); 
 	}
+
+    getLocationsForListing(callback){
+        this.locationService.getParentLocationsForListingPaginated(this.queries, (response) => {
+
+            this.locations = response.locations;
+            
+            if (this.locations.length > 0) {
+                for (let i = 0; i < this.locations.length; i++) {
+                    this.locations[i]['enc_location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
+                }
+            }
+
+            this.pagination.total = response.pagination.total;
+            this.pagination.pages = response.pagination.pages;
+            this.pagination.selection = [];
+            for(let i = 1; i<=this.pagination.pages; i++){
+                this.pagination.selection.push({ 'number' : i });
+            }
+
+            callback(response);
+        });
+    }
+
+    pageChange(type){
+
+        let changeDone = false;
+        switch (type) {
+            case "prev":
+                if(this.pagination.currentPage > 1){
+                    this.pagination.currentPage = this.pagination.currentPage - 1;
+                    changeDone = true;
+                }
+                break;
+
+            case "next":
+                if(this.pagination.currentPage < this.pagination.pages){
+                    this.pagination.currentPage = this.pagination.currentPage + 1;
+                    changeDone = true;
+                }
+                break;
+            
+            default:
+                if(this.pagination.prevPage != parseInt(type)){
+                    this.pagination.currentPage = parseInt(type);
+                    changeDone = true;
+                }
+                break;
+        }
+
+        if(changeDone){
+            this.pagination.prevPage = parseInt(type);
+            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+            this.queries.offset = offset;
+            this.showPlansLoader = true;
+            this.getLocationsForListing((response:any) => { 
+                this.locations = response.locations;
+                for(let loc of this.locations){
+                    loc['fetchingCompliance'] = true;
+                    loc['compliance_percentage'] = 0;
+                }
+
+                for(let loc of this.locations){
+                    this.complianceService.getLocationsLatestCompliance(loc.location_id, (compRes) => {
+                        loc['fetchingCompliance'] = false;
+                        loc['compliance_percentage'] = compRes.percent;
+                        loc['compliance'] = compRes.data;
+
+                        this.loadDoneKpisAndCompliance();
+                    });
+                }
+                this.showPlansLoader = false;
+            });
+        }
+    }
 
 	ngOnDestroy(){
 
