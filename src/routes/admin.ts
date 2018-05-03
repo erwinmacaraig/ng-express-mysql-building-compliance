@@ -67,7 +67,6 @@ export class AdminRoute extends BaseRoute {
       const user = new User();
       const row_count_obj = await user.getByAccountId(req.params.accountId);
       const row_count = Object.keys(row_count_obj).length;
-      console.log(row_count);
       let pages = 0;
       const item_per_page = 10;
       if (row_count) {

@@ -3,9 +3,15 @@
 <div class="row filter-container">
   <div class="col l4 m5 s12">
 		<div class="search-field">
-			<input type="text" placeholder="Search" id="searchUsers" (keyup)="searchByUserAndEmail($event)">
+			<input type="text" placeholder="Search User" id="searchUsers" (keyup)="searchByUserAndEmail($event)">
 			<span class="material-icons">search</span>
 		</div>
+  </div>
+  <div class="col l2 m4 s6">
+      <select class="filter-by">
+        <option value="0" selected>Filter By (All)</option>
+        <option value=""></option>
+      </select>
   </div>
   <div class="col l2 m6 s6">
 		<select class="sort-by">
@@ -20,6 +26,12 @@
 			<option value="archive" >Archive selected</option>
 		</select>
   </div>
+  <div class="col l2 m3 s12 ">
+		<button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/teams/add-user']">
+			<span class="image"></span>
+			Add New User
+		</button>
+	</div>
 </div>
 <div class="row">
   <div class="col  s12">
@@ -49,27 +61,38 @@
           <td>
             {{user['mobile_number']}}
           </td>
-          <td>
-            <table class="table table-peep">
+          <!--
+             <td colspan="3">
+            <table width="350px" [ngStyle]="{'border': '0'}">
               <tr *ngFor="let loc of user['locations-arr']">
-                <td>{{loc['location-name']}} {{loc['location-parent']}}</td>
+                <td width="150px" [ngStyle]="{'border': '0'}">{{loc['location-name']}} {{loc['location-parent']}}</td>
+                <td width="50px" [ngStyle]="{'border': '0'}"><span *ngFor="let ar of loc['account-role']" [ngStyle]="{'display': 'block'}">{{ar}}</span></td>
+                <td width="150px" [ngStyle]="{'border': '0'}"><span *ngFor="let em of loc['em-role']" [ngStyle]="{'display': 'block'}"> {{em}}</span></td>
               </tr>
             </table>
           </td>
+          -->
           <td>
-            <table class="table table-peep">
-              <tr *ngFor="let loc of user['locations-arr']">
-                <td><span *ngFor="let ar of loc['account-role']" [ngStyle]="{'display': 'block'}">{{ar}}</span></td>
-              </tr>
-            </table>
+            <div *ngFor="let loc of user['locations-arr']">
+                <span [ngStyle]="{'display': 'block'}">{{loc['location-name']}} {{loc['location-parent']}}<br></span>
+                <br>
+            </div>
           </td>
+
           <td>
-            <table class="table table-peep">
-              <tr *ngFor="let loc of user['locations-arr']">
-                <td><span *ngFor="let em of loc['em-role']" [ngStyle]="{'display': 'block'}"> {{em}}</span></td>
-              </tr>
-            </table>
+            <div *ngFor="let loc of user['locations-arr']">
+                <span *ngFor="let ar of loc['account-role']" [ngStyle]="{'display': 'block'}">{{ar}}<br></span>
+                <br>
+            </div>
           </td>
+
+          <td>
+            <div *ngFor="let loc of user['locations-arr']">
+              <span *ngFor="let em of loc['em-role']" [ngStyle]="{'display': 'block'}"> {{em}} <br></span>
+              <br>
+            </div>
+          </td>
+
           <td>Actions</td>
         </tr>
       </tbody>
