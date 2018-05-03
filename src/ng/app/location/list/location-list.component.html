@@ -25,7 +25,7 @@
 <div class="row filter-container">
 	<div class="col l6 m5 s12">
 		<div class="search-field">
-			<input type="text" placeholder="Search location" (keyup)="searchLocationEvent($event)" >
+			<input type="text" placeholder="Search location" #inputSearch >
 			<span class="material-icons">search</span>
 		</div>
 	</div>
@@ -41,15 +41,9 @@
 
 	<div class="col l3 m6 s6">
 		<select class="sort-by">
-			<option value="0" selected>Sort By</option>
+			<option value="" selected>Sort By</option>
 			<option value="name-asc" >Name (Asc)</option>
 			<option value="name-desc" >Name (Desc)</option>
-			<option value="mobility-asc" >Mobility (Asc)</option>
-			<option value="mobility-desc" >Mobility (Desc)</option>
-			<option value="sublocation-asc" >Sublocations (Asc)</option>
-			<option value="sublocation-desc" >Sublocations (Desc)</option>
-			<option value="wardens-asc" >Wardens (Asc)</option>
-			<option value="wardens-desc" >Wardens (Desc)</option>
 		</select>
 	</div>
 	<div class="col l3 m6 s12">
@@ -81,7 +75,7 @@
 					<th>Manage</th>
 				</tr>
 			</thead>
-			<tbody >
+			<tbody *ngIf="!loadingTable">
 				<tr *ngIf="locations.length == 0">
 					<td colspan="7" class="center-align">
 						<h6>No records found</h6>
@@ -167,9 +161,36 @@
 					</td>
 				</tr>
 			</tbody>
+            <tbody *ngIf="loadingTable">
+                <tr>
+                    <td colspan="7" class="center">
+                        Fetching records...
+                    </td>
+                </tr>
+            </tbody>
 		</table>
 	</div>
 </div>
+
+
+<div class="row">
+    <div class="col l12 m12 s12 center pagination" [hidden]="locations.length == 0 || pagination.total <= queries.limit || loadingTable">
+        <div class="inline-block">
+            <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
+        </div>
+
+        <div class="inline-block select">
+            <select class="" #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+                <option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+            </select>
+        </div>
+
+        <div class="inline-block">
+            <button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
+        </div>
+    </div>
+</div>
+
 <div preloader></div>
 
 <div id="modalArchive" class="modal">

@@ -598,6 +598,7 @@ export class User extends BaseClass {
         if ('query' in filter && filter['query'].length > 0) {
           sql = `SELECT user_id FROM users WHERE account_id = ? AND
           first_name LIKE '%${filter['query']}%' OR last_name LIKE '%${filter['query']}%'
+          OR email like '%${filter['query']}%'
           LIMIT 10`;
         }
         const connection = db.createConnection(dbconfig);

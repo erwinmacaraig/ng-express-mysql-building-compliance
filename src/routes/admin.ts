@@ -65,7 +65,9 @@ export class AdminRoute extends BaseRoute {
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const account = new Account(req.params.accountId);
       const user = new User();
-      const row_count = await user.getByAccountId(req.params.accountId).length;
+      const row_count_obj = await user.getByAccountId(req.params.accountId);
+      const row_count = Object.keys(row_count_obj).length;
+      console.log(row_count);
       let pages = 0;
       const item_per_page = 10;
       if (row_count) {
@@ -91,39 +93,41 @@ export class AdminRoute extends BaseRoute {
       const accountUsers = [];
       const allUserObject = {};
       const locations = {};
-      console.log(allUsers);
       for (let i = 0; i < allUsers.length; i++) {
         if (allUsers[i]['user_id'] in allUserObject) {
           if (allUsers[i]['location_id'] in allUserObject[allUsers[i]['user_id']]['locations']) {
-            if (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0) {
-              /*
-              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account_role'].push(
+            if (allUsers[i]['account_role'] && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)) {
+
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
                 allUsers[i]['account_role']
               );
-              */
+
 
             }
-            if (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0) {
-              // allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em_role'].push(allUsers[i]['role_name']);
-
+            if (allUsers[i]['role_name'] && (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0)) {
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
             }
 
 
           } else {
-            allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']] = {
-              'em-role': [allUsers[i]['role_name']],
-              'account-role': [allUsers[i]['account_role']],
-              'location-name': allUsers[i]['name'],
-              'location-parent': allUsers[i]['parent_name']
-            };
-            /*
-            if (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0) {
-              allUserObject[allUsers[i]['user_id']]['locations']['account-role'].push(allUsers[i]['account_role']);
+            if (allUsers[i]['location_id'] !== null) {
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']] = {
+                'em-role': [],
+                'account-role': [],
+                'location-name': allUsers[i]['name'],
+                'location-parent': allUsers[i]['parent_name']
+              };
+              if ((allUsers[i]['account_role']) && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)) {
+                allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
+                  allUsers[i]['account_role']
+                );
+              }
+              if ( (allUsers[i]['role_name']) && (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0)) {
+                allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
+              }
+
             }
-            if (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0) {
-              allUserObject[allUsers[i]['user_id']]['locations']['role_name'].push(allUsers[i]['role_name']);
-            }
-            */
+
           }
         } else {
           allUserObject[allUsers[i]['user_id']] = {
@@ -132,21 +136,45 @@ export class AdminRoute extends BaseRoute {
             'last_name': allUsers[i]['last_name'],
             'email': allUsers[i]['email'],
             'mobile_number': allUsers[i]['mobile_number'],
-            'locations': {}
+            'locations': {},
+            'locations-arr': []
           };
-          allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']] = {
-              'em-role': [allUsers[i]['role_name']],
-              'account-role': [allUsers[i]['account_role']],
+          // console.log(typeof allUsers[i]['location_id']);
+          // console.log(allUsers[i]['location_id'] === null);
+          if (allUsers[i]['location_id'] && allUsers[i]['location_id'] != null) {
+            allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']] = {
               'location-name': allUsers[i]['name'],
-              'location-parent': allUsers[i]['parent_name']
-          };
+              'location-parent': allUsers[i]['parent_name'],
+              'account-role': [],
+              'em-role': []
+            };
+            if (allUsers[i]['account_role'] && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)) {
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
+                allUsers[i]['account_role']
+              );
+            }
+            if (allUsers[i]['role_name'] && (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0)) {
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
+            }
+          }
         }
       }
       Object.keys(allUserObject).forEach((key) => {
+        if (Object.keys(allUserObject[key]['locations']).length > 0) {
+          allUserObject[key]['locations-arr'] =
+            Object.keys(allUserObject[key]['locations']).map((k) => {
+              return allUserObject[key]['locations'][k];
+            });
+        }
         accountUsers.push(allUserObject[key]);
       });
+
       return res.status(200).send({
-        data: accountUsers
+        data: {
+          'list': accountUsers,
+          'total_pages': pages,
+        } ,
+
       });
     });
   }

@@ -14,6 +14,7 @@ import { Observable } from 'rxjs/Rx';
 import { MessageService } from '../../services/messaging.service';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { ComplianceService } from '../../services/compliance.service';
 
 declare var $: any;
 declare var Materialize: any;
@@ -21,7 +22,7 @@ declare var Materialize: any;
     selector: 'app-view-locations-single',
     templateUrl: './view-single.component.html',
     styleUrls: ['./view-single.component.css'],
-    providers: [DashboardPreloaderService, EncryptDecryptService, DonutService]
+    providers: [DashboardPreloaderService, EncryptDecryptService, DonutService, ComplianceService]
 })
 export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
 
@@ -67,6 +68,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     showModalEditLoader = false;
     toEditLocations = [];
     toEditLocationsBackup = [];
+    showLoadingCompliance = true;
 
     constructor(
         private auth: AuthService,
@@ -77,7 +79,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         private router: Router,
         private donut: DonutService,
         private elemRef: ElementRef,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private complianceService: ComplianceService
         ){
         this.userData = this.auth.getUserData();
 
@@ -174,6 +177,25 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                         this.preloaderService.hide();
                     }, 250);
                 });
+
+                this.complianceService.getLocationsLatestCompliance(this.locationID, (compResponse) => {
+                    this.showLoadingCompliance = false;
+
+                    this.donut.updateDonutChart('#specificChart', compResponse.percent, true);
+                    let start = 0, end = 0;
+                    for(let d of compResponse.data){
+                        if(d.compliance_kpis_id != 13){
+                            if(d.valid == 1){
+                                start += 1;
+                            }
+
+                            end++;
+                        }
+                    }
+
+                    $('.completion .start.number').html(start);
+                    $('.completion .end.number').html(end);
+                });
             }
 
         });
@@ -183,10 +205,6 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
             this.locationsSublocations = response.data;
             this.sameSublocationCopy = JSON.parse( JSON.stringify(this.locationsSublocations) );
         });
-
-		// DONUT update
-        // Donut Service
-		// this.donut.updateDonutChart('#specificChart', 30, true);
 	}
 
     addNewSubLocationSubmit(form, e) {

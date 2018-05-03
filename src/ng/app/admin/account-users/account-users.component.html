@@ -1,7 +1,26 @@
 <app-admin-account-info [accountId]="accountId"></app-admin-account-info>
-<hr />
-<h1>Users here</h1>
-
+<hr>
+<div class="row filter-container">
+  <div class="col l4 m5 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search" id="searchUsers" (keyup)="searchByUserAndEmail($event)">
+			<span class="material-icons">search</span>
+		</div>
+  </div>
+  <div class="col l2 m6 s6">
+		<select class="sort-by">
+			<option value="0" selected>Sort By</option>
+			<option value="user-name-desc">User Name Descending</option>
+			<option value="user-name-asc">User Name Ascending</option>
+		</select>
+  </div>
+  <div class="col l2 m6 s12">
+		<select class="bulk-manage">
+			<option value="0" selected disabled>Select Action</option>
+			<option value="archive" >Archive selected</option>
+		</select>
+  </div>
+</div>
 <div class="row">
   <div class="col  s12">
     <table class="table striped table-peep">
@@ -11,14 +30,11 @@
             <input id="allUsers" class="filled-in" type="checkbox">
             <label for="allUsers">User Name</label>
           </p></th>
-
-          <th>
-            Location Name
-          </th>
           <th>
             Email
           </th>
           <th>Mobile No.</th>
+          <th>Location Name</th>
           <th>Account Role</th>
           <th>ECO Role</th>
           <th>Action</th>
@@ -28,27 +44,52 @@
         <tr *ngFor="let user of userObjects">
           <td>{{user['first_name']}} {{user['last_name']}}</td>
           <td>
-            <table class="table table-peep">
-              <tr *ngFor="let loc of user['locations']">
-                <td>{{loc['location-name']}} {{loc['location-parent']}}</td>
-              </tr>
-            </table>
-          </td>
-          <td>
             {{user['email']}}
           </td>
           <td>
             {{user['mobile_number']}}
           </td>
           <td>
-            role
+            <table class="table table-peep">
+              <tr *ngFor="let loc of user['locations-arr']">
+                <td>{{loc['location-name']}} {{loc['location-parent']}}</td>
+              </tr>
+            </table>
           </td>
           <td>
-            eco role
+            <table class="table table-peep">
+              <tr *ngFor="let loc of user['locations-arr']">
+                <td><span *ngFor="let ar of loc['account-role']" [ngStyle]="{'display': 'block'}">{{ar}}</span></td>
+              </tr>
+            </table>
+          </td>
+          <td>
+            <table class="table table-peep">
+              <tr *ngFor="let loc of user['locations-arr']">
+                <td><span *ngFor="let em of loc['em-role']" [ngStyle]="{'display': 'block'}"> {{em}}</span></td>
+              </tr>
+            </table>
           </td>
           <td>Actions</td>
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+<div class="row">
+  <div class="col l12 m12 s12 center pagination">
+    <div class="inline-block">
+      <button class="btn blue" (click)="prevPage()"> Prev </button>
+    </div>
+
+    <div class="inline-block select">
+      <select #selectPage ngModel [(ngModel)]="currentPage" (change)="pageChange()">
+        <option *ngFor="let p of createRange; let i = index" value="{{i}}">{{i+1}}</option>
+      </select>
+    </div>
+
+    <div class="inline-block">
+      <button class="btn blue" (click)="nextPage()"> Next </button>
+    </div>
   </div>
 </div>
