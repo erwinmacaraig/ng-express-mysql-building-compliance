@@ -23,6 +23,15 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     public locationIdDecrypted;
     rootLocationsFromDb = [];
 
+    pagination = {
+        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+    };
+    queries =  {
+        limit : 2,
+        offset : 0,
+        location_id : 0
+    };
+
     constructor (
         private router: Router,
         private authService: AuthService,
@@ -37,30 +46,46 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
     }
 
+    getTeamReport(callBack) {
+
+        this.queries.location_id = this.locationIdDecrypted;
+        this.reportService.generateTeamReportingOnLocation(this.queries)
+        .subscribe((response:any) => {
+            this.reportData = response['data'];
+
+            this.pagination.pages = response.pagination.pages;
+            this.pagination.total = response.pagination.total;
+
+            this.pagination.selection = [];
+            for(let i = 1; i<=this.pagination.pages; i++){
+                this.pagination.selection.push({ 'number' : i });
+            }
+
+            callBack(response);
+        }, (e) => {
+            this.dashboardPreloader.hide();
+            console.log(e);
+        });
+    }
+
     ngOnInit() {
         this.sub = this.route.params.subscribe(params => {
             this.locationIdDecrypted = this.encryptDecrypt.decrypt(params['location']);
             console.log(`Decrypted location id ${this.locationIdDecrypted}`);
 
             this.reportData = [];
-            this.reportService.generateTeamReportingOnLocation(this.locationIdDecrypted)
-            .subscribe((response) => {
-                console.log(response);
-                this.reportData = response['data'];
+            this.getTeamReport((response:any) => {
+                if(response.data.length > 0){
+                    this.pagination.currentPage = 1;
+                }
 
                 this.dashboardPreloader.hide();
-            }, (e) => {
-                this.dashboardPreloader.hide();
-                console.log(e);
             });
         });
 
         this.reportService.getParentLocationsForReporting().subscribe((response) => {
             console.log(response);
             this.rootLocationsFromDb = response['data'];
-            setTimeout(() => {
-                $('select').material_select();
-            }, 200);
         }, (e) => {
             console.log(e);
         });
@@ -68,7 +93,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
     ngAfterViewInit(){
         this.dashboardPreloader.show();
-        $('select').material_select();
+        /*$('select').material_select();
         $('#selectLocation').val(this.locationIdDecrypted).material_select('update');
         $('#selectLocation').off('change.selectlocation').on('change.selectlocation', () => {
 
@@ -76,7 +101,44 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
             encId = this.encryptDecrypt.encrypt( selVal );
             this.dashboardPreloader.show();
             this.router.navigate([ '/reports/teams/', encId]);
-        });
+        });*/
+    }
+
+    pageChange(type){
+
+        let changeDone = false;
+        switch (type) {
+            case "prev":
+                if(this.pagination.currentPage > 1){
+                    this.pagination.currentPage = this.pagination.currentPage - 1;
+                    changeDone = true;
+                }
+                break;
+
+            case "next":
+                if(this.pagination.currentPage < this.pagination.pages){
+                    this.pagination.currentPage = this.pagination.currentPage + 1;
+                    changeDone = true;
+                }
+                break;
+            
+            default:
+                if(this.pagination.prevPage != parseInt(type)){
+                    this.pagination.currentPage = parseInt(type);
+                    changeDone = true;
+                }
+                break;
+        }
+
+        if(changeDone){
+            this.dashboardPreloader.show();
+            this.pagination.prevPage = parseInt(type);
+            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+            this.queries.offset = offset;
+            this.getTeamReport((response:any) => {
+                this.dashboardPreloader.hide();
+            });
+        }
     }
 
     printResult(report, printContainer){

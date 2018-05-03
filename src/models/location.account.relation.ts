@@ -247,6 +247,9 @@ export class LocationAccountRelation extends BaseClass {
           if (filter['responsibility'] === defs['Manager']) {
             filterStr += ` AND location_account_relation.responsibility = 'Manager'`;
           }
+          if(filter['responsibility'] === 'both'){
+              filterStr += ` AND location_account_relation.responsibility IN ('Manager', 'Tenant')`;
+          }
         }
         if ('is_building' in filter) {
           filterStr += ` AND locations.is_building = ${filter['is_building']}`;
@@ -289,7 +292,8 @@ export class LocationAccountRelation extends BaseClass {
                 locations.is_building,
                 locations.parent_id,
                 locations.google_photo_url,
-                locations.admin_verified
+                locations.admin_verified,
+                locations.location_directory_name
               FROM
                 location_account_relation
               INNER JOIN

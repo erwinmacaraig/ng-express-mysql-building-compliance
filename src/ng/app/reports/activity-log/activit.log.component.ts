@@ -72,6 +72,9 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 
     getActivityReport(callBack){
         this.reportService.getActivityReport(this.queries).subscribe((response:any) => {
+            for(let log of response.data){
+                log['location_id'] = this.encDecService.encrypt(log['building_id']);
+            }
             this.pagination.pages = response.pagination.pages;
             this.pagination.total = response.pagination.total;
 

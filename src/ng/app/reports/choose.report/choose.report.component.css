@@ -117,6 +117,8 @@
     top: 48px;
     border: 1px solid #b5b5b5;
     display: none;
+    max-height: 240px;
+    overflow-y: auto;
 }
 
 .search-result.active{

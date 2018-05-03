@@ -603,11 +603,6 @@ import * as S3Zipper from 'aws-s3-zipper';
                                   emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'],
                                   {'em_role_id':  defs['em_roles']['WARDEN']}
                                 );
-                            tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
-                            comp['percentage'] = tempPercetage + '%';
-                            if(tempPercetage >= 100){
-                                comp['valid'] = 1;
-                            }
                             for (const p of comp['total_personnel_trained']['passed']) {
                               if (totalPassedArr.indexOf(p['user_id']) === -1) {
                                 totalPassedArr.push(p['user_id']);
@@ -662,15 +657,11 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['total_personnel_trained']['failed'].push(f);
                           }
                         }
-
-                        tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
-                        comp['percentage'] = tempPercetage + '%';
-                        if (tempPercetage >= 100) {
-                            comp['valid'] = 1;
-                        }
                       } catch (e) {
                         console.log(e);
                       }
+
+                      
 
                       // computation per location section (signifance: FRP)
                       if (Object.keys(comp['location_details']).length === 0) {
@@ -702,6 +693,12 @@ import * as S3Zipper from 'aws-s3-zipper';
                           }
                         }
                       }
+                    }
+
+                    tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
+                    comp['percentage'] = tempPercetage + '%';
+                    if(tempPercetage >= 100){
+                        comp['valid'] = 1;
                     }
                 break;
 

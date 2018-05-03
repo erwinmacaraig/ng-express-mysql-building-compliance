@@ -133,7 +133,9 @@ export class TrainingCertification extends BaseClass {
         'total_passed': 0,
         'passed': [],
         'failed': [],
-        'percentage': ''
+        'percentage': '',
+        'users' : [],
+        'results' : []
       };
       if (!users.length) {
         // reject('Invalid input');
@@ -145,7 +147,7 @@ export class TrainingCertification extends BaseClass {
 
       const users_string = users.join(',');
       const connection = db.createConnection(dbconfig);
-      console.log(filter);
+      
       if ('em_role_id' in filter) {
         filterStr += ` AND user_em_roles_relation.em_role_id = ${filter['em_role_id']}`;
       }
@@ -308,27 +310,44 @@ export class TrainingCertification extends BaseClass {
     });
   }
 
-  public getCertificatesByInUsersId(userIds) {
+  public getCertificatesByInUsersId(userIds, limit?, count?, courseMethod?) {
     return new Promise((resolve) => {
-
-      const sql = `
-        SELECT
-          training_requirement.training_requirement_name,
-          certifications.*,
-          training_requirement.num_months_valid,
-          DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
-          IF (DATE_ADD(certifications.certification_date,
-            INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
-          FROM
-            certifications
-          INNER JOIN
-           training_requirement
-          ON
-            training_requirement.training_requirement_id = certifications.training_requirement_id
-          WHERE
-            certifications.user_id IN (${userIds})
-          ORDER BY certifications.certification_date DESC
-      `;
+      const limitSql = (limit) ? ' LIMIT '+limit : '';
+      const courseMethodSql = (courseMethod) ? ' AND certifications.course_method = "'+courseMethod+'" ' : '';
+      let sql = '';
+      if(count){
+          sql = `
+            SELECT COUNT(training_requirement.training_requirement_id) as count
+              FROM
+                certifications
+              INNER JOIN
+               training_requirement
+              ON
+                training_requirement.training_requirement_id = certifications.training_requirement_id
+              WHERE
+                certifications.user_id IN (${userIds}) ${courseMethodSql}
+              ORDER BY certifications.certification_date DESC
+          `;
+      }else{
+          sql = `
+            SELECT
+              training_requirement.training_requirement_name,
+              certifications.*,
+              training_requirement.num_months_valid,
+              DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
+              IF (DATE_ADD(certifications.certification_date,
+                INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
+              FROM
+                certifications
+              INNER JOIN
+               training_requirement
+              ON
+                training_requirement.training_requirement_id = certifications.training_requirement_id
+              WHERE
+                certifications.user_id IN (${userIds}) ${courseMethodSql}
+              ORDER BY certifications.certification_date DESC ${limitSql}
+          `;
+      }
         const connection = db.createConnection(dbconfig);
 
       connection.query(sql, (error, results, fields) => {

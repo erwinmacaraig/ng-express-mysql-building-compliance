@@ -51,10 +51,14 @@
                 <tbody *ngIf="activityLogs.length > 0 && !loadingTable">
                     <tr *ngFor="let log of activityLogs">
                         <td>
-                            <span *ngIf="log.parent_name.length > 0">{{log.parent_name}}, </span>
-                            <span>{{log.location_name}}</span>
+                            <a [routerLink]="['/location/compliance/view/', log.location_id]">
+                                <span *ngIf="log.parent_name.length > 0">{{log.parent_name}}, </span>
+                                <span>{{log.location_name}}</span>
+                            </a>
                         </td>
-                        <td>{{log.file_name}}</td>
+                        <td>
+                            <a href="{{log.url}}" target="blank"> {{log.file_name}} </a>
+                        </td>
                         <td>{{log.timestamp_formatted}}</td>
                     </tr>
                 </tbody>
