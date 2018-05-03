@@ -327,7 +327,7 @@ export class User extends BaseClass {
         });
     }
 
-    public getByAccountId(accountId, archived?) {
+    public getByAccountId(accountId, archived?): any {
         return new Promise((resolve, reject) => {
             let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? ';
             if(!archived){
@@ -480,7 +480,7 @@ export class User extends BaseClass {
         });
     }
 
-    public getWithoutToken(){
+    public getWithoutToken() {
         return new Promise((resolve, reject) => {
             const sql = ` SELECT * FROM users WHERE user_id NOT IN (SELECT id FROM token WHERE id_type = 'user_id' AND verified = 0) `;
             const connection = db.createConnection(dbconfig);
@@ -581,6 +581,38 @@ export class User extends BaseClass {
             connection.end();
         });
 
+
+
+
+    }
+
+    public getSpliceUsers(accountId: number = 0, filter = {}): Promise<Array<number>> {
+      return new Promise((resolve, reject) => {
+        let page = 0;
+        const resultSet = [];
+        let sql;
+        if ('page' in filter) {
+          page = Math.abs(parseInt(filter['page'], 10)) * 10;
+          sql = `SELECT user_id FROM users WHERE account_id = ? LIMIT 10 OFFSET ${page}`;
+        }
+        if ('query' in filter && filter['query'].length > 0) {
+          sql = `SELECT user_id FROM users WHERE account_id = ? AND
+          first_name LIKE '%${filter['query']}%' OR last_name LIKE '%${filter['query']}%'
+          LIMIT 10`;
+        }
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [accountId], (error, results) => {
+          if (error) {
+            console.log('user.model.getSpliceUsers', error, sql);
+            throw Error('Internal server error. Cannot get users for the account');
+          }
+          for (const r of results) {
+            resultSet.push(r['user_id']);
+          }
+          resolve(resultSet);
+        });
+        connection.end();
+      });
     }
 
 }

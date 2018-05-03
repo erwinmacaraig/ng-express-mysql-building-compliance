@@ -264,6 +264,7 @@ export class LocationAccountRelation extends BaseClass {
           INNER JOIN
             locations
           ON
+          ON
             locations.location_id = location_account_relation.location_id
           LEFT JOIN
             locations as parent_locations
