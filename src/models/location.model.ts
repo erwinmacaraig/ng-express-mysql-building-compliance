@@ -878,12 +878,7 @@ export class Location extends BaseClass {
           return;
         }
         let offsetLimit = '';
-        if ('count' in filter) {
-          resolve([{
-            'count': locations.length
-          }]);
-          return;
-        }
+        
         if ('limit' in filter){
           offsetLimit = ' LIMIT '+filter['limit'];
         }
@@ -896,10 +891,24 @@ export class Location extends BaseClass {
         if('name' in filter && filter['name'].length > 0){
             nameSearch = ` AND locations.name LIKE '%${filter['name']}%' `;
         }
+
+        let orderBy = '';
+        if('sort' in filter){
+            if(filter['sort'] == 'name-asc'){
+                orderBy = ' ORDER BY name ASC ';
+            }else if(filter['sort'] == 'name-desc'){
+                orderBy = ' ORDER BY name DESC ';
+            }
+
+        }
+
         const myLocations = [];
         const locationStr = locations.join(',');
-        const sql_details = `SELECT * FROM locations WHERE location_id IN (${locationStr}) ${nameSearch} ${offsetLimit}`;
-        console.log(sql_details);
+        let sql_details = `SELECT * FROM locations WHERE location_id IN (${locationStr}) ${nameSearch} ${orderBy} ${offsetLimit}`;
+        if ('count' in filter) {
+          sql_details = `SELECT COUNT(location_id) as count FROM locations WHERE location_id IN (${locationStr}) ${nameSearch} ${orderBy} `;
+        }
+        // console.log(sql_details);
         const connection = db.createConnection(dbconfig);
         connection.query(sql_details, [], (error, results) => {
           if (error) {

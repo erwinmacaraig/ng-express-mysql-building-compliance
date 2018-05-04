@@ -455,7 +455,7 @@ export class Utils {
                 if (!compliance[results[i]['compliance_kpis_id']]) {
                   compliance[results[i]['compliance_kpis_id']] = [];
                 }
-                console.log('pushing ' + results[i]['file_name']);
+                // console.log('pushing ' + results[i]['file_name']);
                 compliance[results[i]['compliance_kpis_id']].push(`${results[i]['account_directory_name']}/${results[i]['location_directory_name']}/${results[i]['directory_name']}/${results[i]['document_type']}/${results[i]['file_name']}`);
               }
               resolve(compliance);

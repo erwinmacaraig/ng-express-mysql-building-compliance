@@ -703,6 +703,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                     }
 
                     tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
+                    if(isNaN(tempPercetage)){
+                        tempPercetage = 0;
+                    }
                     comp['percentage'] = tempPercetage + '%';
                     if(tempPercetage >= 100){
                         comp['valid'] = 1;
