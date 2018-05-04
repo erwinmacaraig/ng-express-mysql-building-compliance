@@ -22,6 +22,10 @@ export class AddAccountUserComponent  implements OnInit {
   ngOnInit() {
     this.route.params.subscribe((parameters) => {
       this.accountId = parameters['accntId'];
+
+      // get all locations tagged to this account
+      // buildings
+      // levels
     });
   }
 }
