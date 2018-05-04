@@ -315,9 +315,9 @@ export class LocationAccountRelation extends BaseClass {
               GROUP BY location_account_relation.location_id
               ${orderBy}`;
 
-      if ('responsibility' in filter && filter['responsibility'] === defs['Tenant']) {
-        sql_get_locations += ` ${offsetLimit}`;
-      }
+        if ('responsibility' in filter && filter['responsibility'] === defs['Tenant']) {
+            sql_get_locations += ` ${offsetLimit}`;
+        }
 
         if('count' in filter && filter['responsibility'] === defs['Tenant']){
             sql_get_locations = `
@@ -389,6 +389,4 @@ export class LocationAccountRelation extends BaseClass {
       });
 
     }
-
-
 }

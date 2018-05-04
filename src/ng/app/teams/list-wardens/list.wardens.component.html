@@ -86,21 +86,21 @@
 				</tr>
 				<tr *ngFor="let warden of wardenArr; let i = index">
 					<td>
-						<!-- <p class="checkbox">
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)">
-							<label for="location-{{i}}" >
-								{{warden['parent_name']}} - {{warden['name']}}
-							</label>
-						</p> -->
+
 						<p class="checkbox" >
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
-							<label for="location-{{i}}" >
-								<span *ngIf="warden.locations.length > 1">Multiple locations</span>
-								<span *ngIf="warden.locations.length == 1">
-									<span *ngIf="warden.locations[0].parent_name.trim().length > 0">{{ warden.locations[0].parent_name }}, </span>
-									{{warden.locations[0].name}}
-								</span>
-							</label>
+                            <input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
+                            <label for="location-{{i}}" >
+                                <a href="javascipt:void(0)" (click)="clickMultipleLocation(warden.locations)" *ngIf="warden.locations.length > 1">Multiple locations</a>
+                                <span *ngIf="warden.locations.length == 1">
+                                    <a [routerLink]="['/location/view/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] > 0">
+                                        <span *ngIf="warden.locations[0].parent_name">{{ warden.locations[0].parent_name }}, </span> {{warden.locations[0].name}}
+                                    </a>
+
+                                    <a [routerLink]="['/location/view-sublocation/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] == 0">
+                                        <span *ngIf="warden.locations[0].parent_name">{{ warden.locations[0].parent_name }}, </span> {{warden.locations[0].name}}
+                                    </a>
+                                </span>
+                            </label>
 						</p>
 					</td>
 					<td>
@@ -228,4 +228,30 @@
 		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
 		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
 	</div>
+</div>
+
+
+<div id="modalSelectMultipleLocations" class="modal">
+    
+    <form #formMultiple="ngForm" (submit)="submitSelectFromMultipleLocations(formMultiple)">
+        <div class="modal-content">
+            <h5>Multiple locations</h5>
+            <p style="font-size: 16px;">
+                Please select a location
+            </p>
+            <ul>
+                <li *ngFor="let loc of multipleLocations;">
+                    <input type="radio" ngModel name="location_id" id="rad-{{loc.location_id}}" value="{{loc.location_id}}" />
+                    <label for="rad-{{loc.location_id}}">
+                        <span *ngIf="loc.parent_name.length > 0">{{loc.parent_name}}, </span>{{loc.name}}
+                    </label>
+                </li>
+            </ul>
+        </div>
+        <div class="modal-footer" [hidden]="showModalLoader">
+            <a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+            <button type="submit" class="waves-effect waves-blue btn-flat" >See Location</button>
+        </div>
+    </form>
+
 </div>

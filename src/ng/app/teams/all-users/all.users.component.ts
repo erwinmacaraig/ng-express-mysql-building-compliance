@@ -50,6 +50,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		search : ''
 	};
 
+    multipleLocations = [];
+
 	searchMemberInput;
 
 	constructor(
@@ -79,6 +81,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 					if(this.listData[i]['locations'][l]['parent_name'] == null){
 						this.listData[i]['locations'][l]['parent_name'] = '';
 					}
+
+                    this.listData[i]['locations'][l]['enc_location_id'] = this.encDecrService.encrypt( this.listData[i]['locations'][l]['location_id'] );
 				}
 
 				for(let r in this.listData[i]['roles']){
@@ -348,5 +352,26 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			});
 		}
 	}
+
+    clickMultipleLocation(locations){
+        this.multipleLocations = locations;
+        $('#modalSelectMultipleLocations').modal('open');
+    }
+
+    submitSelectFromMultipleLocations(form){
+        if(form.valid){
+
+            $('#modalSelectMultipleLocations').modal('close');
+            for(let loc of this.multipleLocations){
+                if(loc.location_id == form.value.location_id){
+                    if(loc.sublocations_count > 0){
+                        this.router.navigate(['/location/view/',  this.encDecrService.encrypt(loc.location_id) ]);
+                    }else{
+                        this.router.navigate(['/location/view-sublocation/',  this.encDecrService.encrypt(loc.location_id) ]);
+                    }
+                }
+            }
+        }
+    }
 
 }

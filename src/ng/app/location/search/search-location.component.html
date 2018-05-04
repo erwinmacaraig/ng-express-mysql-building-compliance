@@ -4,8 +4,8 @@
 			<div class="image-container center-align">
 				<img src="assets/images/locations/search_location.png" alt="">
 				<h5 class="title">
-					<span class="search">Please search your location</span>
-					<span class="create">Create location on this address?</span>
+					<span class="search">Type in building address here</span>
+					<span class="create">Record this location</span>
 				</h5>
 			</div>
 			<div class="form-container">
@@ -49,7 +49,7 @@
 		</div>
 		<div class="col s12 m12 l12 center-align inputs-button-container">
 			<div class="inline-block">
-				<span>Occupiable Level</span>
+				<span>Occupiable Levels</span>
 				<div class="input-arrow-up-down" >
 					<input type="text" readonly class="input-level" value="0" #inpOccupiable>
 					<button class="btn-arrow-up waves-effect waves-light" (click)="addLevel('occupiable', inpOccupiable)"><i class="material-icons">arrow_drop_up</i></button>
@@ -57,7 +57,7 @@
 				</div>
 			</div>
 			<div class="inline-block">
-				<span>Carpark</span>
+				<span>Carpark Level</span>
 				<div class="input-arrow-up-down" >
 					<input type="text" readonly class="input-level" value="0" #inpCarPark>
 					<button class="btn-arrow-up waves-effect waves-light" (click)="addLevel('carpark', inpCarPark)"><i class="material-icons">arrow_drop_up</i></button>
@@ -343,7 +343,7 @@
 
 	<div class="modal-content" *ngIf="!modalCreateNewLocation.showLoader"  >
 		<h4 class="blue-text header" style="font-size: 22px;">
-			Confirm creation of new location
+			Confirm details of new location
 		</h4>
 		<p class="address" style="font-size: 16px;">{{formattedAddress}}</p>
 		<p class="address" style=" font-size: 18px; margin: 0px;"> Level Names </p>

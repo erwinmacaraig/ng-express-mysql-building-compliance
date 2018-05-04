@@ -1313,7 +1313,12 @@ const defs = require('../config/defs.json');
             limit = 10;
 
             filterCount['count'] = true;
-            locCount = await locAccntRelObjCount.listAllLocationsOnAccount(req.user.account_id, filterCount);
+            
+            try{
+                locCount = await locAccntRelObjCount.listAllLocationsOnAccount(req.user.account_id, filterCount);
+            }catch(e){
+                console.log(e);
+            }
 
             response.pagination = {
                 total : (locCount[0]) ? parseInt(locCount[0]['count']) : 0,
