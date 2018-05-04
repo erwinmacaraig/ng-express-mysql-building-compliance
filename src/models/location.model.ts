@@ -68,6 +68,23 @@ export class Location extends BaseClass {
 		});
 	}
 
+    public countSubLocations(parentId){
+        return new Promise((resolve) => {
+            const sql_load = `SELECT COUNT(location_id) as count FROM locations WHERE parent_id = ? AND archived = 0 `;
+            const param = [parentId];
+            const connection = db.createConnection(dbconfig);
+
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+
+                resolve( results[0]['count'] );
+            });
+            connection.end();
+        });
+    }
+
 	public getWhere(arrWhere, limit?, count?){
 		return new Promise((resolve, reject) => {
 			let sql_load = `SELECT * FROM locations `;

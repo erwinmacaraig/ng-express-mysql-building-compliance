@@ -241,6 +241,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         } catch (e) {
             paths = [];
         }
+
         try {
             emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, locationID, role);
             // console.log('======================', emrolesOnThisLocation, '=====================');
@@ -525,6 +526,12 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         for(let d of docs){
             d.timestamp_formatted = (moment(d.timestamp_formatted).isValid()) ? moment(d.timestamp_formatted).format('DD/MM/YYYY') : '00/00/0000';
+
+            if(d.compliance_kpis_id == epmId){
+                try {
+                    d['filePaths'] = await utils.s3DownloadFilePathGen(accountID, d.building_id);
+                } catch (e) { }
+            }
         }
 
         for (let c in compliances) {

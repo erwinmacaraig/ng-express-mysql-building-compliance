@@ -162,7 +162,6 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     }
 
     ngOnInit() {
-        $('select').material_select();
         $('.modal').modal({ dismissible: false });
 
         this.sub = this.route.params.subscribe((params) => {
@@ -323,16 +322,6 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
 
     }
 
-	getCountryName(abbr){
-		let name = '';
-		for(let i in this.countries){
-			if(this.countries[i]['abbr'] == abbr){
-				name = this.countries[i]['name'];
-			}
-		}
-
-		return name;
-	}
 
     onKeyUpTypeSublocation(value){
         let trimmed = value.trim(),

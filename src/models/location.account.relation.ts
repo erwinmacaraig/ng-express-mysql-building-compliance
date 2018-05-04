@@ -280,10 +280,10 @@ export class LocationAccountRelation extends BaseClass {
             }else if(filter['sort'] == 'name-desc'){
                 orderBy = ' ORDER BY name DESC ';
             }
-            
+
         }
 
-        let selectParentName = ('no_parent_name' in filter) ? 'locations.name,' : `IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name,`; 
+        let selectParentName = ('no_parent_name' in filter) ? 'locations.name,' : `IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name,`;
 
         let sql_get_locations = `
               SELECT
@@ -341,7 +341,7 @@ export class LocationAccountRelation extends BaseClass {
             throw Error('Cannot get all locations for this account');
           }
 
-          if('count' in filter){
+          if('count' in filter) {
               resolve(results);
           }else{
               if (results.length > 0) {
