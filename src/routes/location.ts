@@ -1241,29 +1241,8 @@ const defs = require('../config/defs.json');
             const building_locations = [];
             const other_locations = [];
             const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
-            /*
-            const locationReferencesArr = [];
-            for (let l of locationsForBuildingManager) {
-              const locationObjRef = await new Location(l['location_id']).getParentsChildren(l['location_id'], 1);
-              Object.keys(locationObjRef).forEach((key) => {
-                locationReferencesArr.push(locationObjRef[key]);
-              });
-            }
-             // loop through result and get all buildings
-            for (let x = 0; x < locationReferencesArr.length; x++) {
-              if (parseInt(locationReferencesArr[x]['is_building'], 10) === 1) {
-                building_locations.push(locationReferencesArr[x]);
-              } else {
-                other_locations.push(locationReferencesArr[x]);
-              }
-            }
-            response.buildings = building_locations;
-            response.other = other_locations;
-
-            */
-
             response.locations = locationsForBuildingManager;
-            // response.locations = building_locations;
+
         }
 
         for(let loc of response.locations){
