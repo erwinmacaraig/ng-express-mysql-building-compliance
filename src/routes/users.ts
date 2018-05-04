@@ -957,7 +957,6 @@ export class UsersRoute extends BaseRoute {
                     }catch(e){}
                 }
 
-
                 /*
                 **** THIS IS DEEP FETCHING OF LOCATIONS ***
                 let
@@ -1012,7 +1011,8 @@ export class UsersRoute extends BaseRoute {
                         location_id : 0,
                         name : '',
                         parent_id : -1,
-                        parent_name : ''
+                        parent_name : '',
+                        sublocations_count : 0
                     };
 
                     if('locations' in user == false){ user['locations'] = []; }
@@ -1037,6 +1037,9 @@ export class UsersRoute extends BaseRoute {
                                         exst = true;
                                     }
                                 }
+
+                                let locSubModel = new Location();
+                                userLocData.sublocations_count =  <any> await locSubModel.countSubLocations(loc.location_id)
 
                                 if(!exst){ user.locations.push(userLocData); }
                             }

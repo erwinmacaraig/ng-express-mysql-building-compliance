@@ -254,24 +254,23 @@ export class ReportsRoute extends BaseRoute {
           r = 0;
         }
 
-        if(filters){
-            if('responsibility' in filters){
-                filter['responsibility'] = filters['responsibility'];
-            }
-            if('archived' in filters){
-                filter['archived'] = filters['archived'];
-            }
-            if('limit' in filters){
-                filter['limit'] = filters['limit'];
-            }
-            if('offset' in filters){
-                filter['offset'] = filters['offset'];
-            }
-            if('count' in filters){
-                filter['count'] = filters['count'];
-            }
+        if('responsibility' in filters){
+            filter['responsibility'] = filters['responsibility'];
         }else{
             filter['responsibility'] = r;
+        }
+
+        if('archived' in filters){
+            filter['archived'] = filters['archived'];
+        }
+        if('limit' in filters){
+            filter['limit'] = filters['limit'];
+        }
+        if('offset' in filters){
+            filter['offset'] = filters['offset'];
+        }
+        if('count' in filters){
+            filter['count'] = filters['count'];
         }
 
         filter['no_parent_name'] = true;
@@ -651,7 +650,7 @@ export class ReportsRoute extends BaseRoute {
 
         if(location_id == 0){
             try{
-                let responseLocations = <any> await this.listLocations(req,res, true);
+                let responseLocations = <any> await this.listLocations(req,res, true, {  'archived' : 0 });
                 locations = responseLocations.data;
             }catch(e){}
 
@@ -726,7 +725,7 @@ export class ReportsRoute extends BaseRoute {
 
         if(location_id == 0){
             try{
-                let responseLocations = <any> await this.listLocations(req,res, true);
+                let responseLocations = <any> await this.listLocations(req,res, true, {'archived' : 0});
                 locations = responseLocations.data;
             }catch(e){}
 
