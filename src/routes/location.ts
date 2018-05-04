@@ -1182,7 +1182,7 @@ const defs = require('../config/defs.json');
 	}
 
 	public async getParentLocationsByAccount(req: AuthRequest, res: Response, archived?, pagination?) {
-	    const 
+	    const
             queries = req.body,
             locAccntRelObj = new LocationAccountRelation(),
             userRoleRel = new UserRoleRelation(),
@@ -1190,7 +1190,7 @@ const defs = require('../config/defs.json');
                 archived : (archived) ? archived : 0
             },
             mobilityImpaired = new MobilityImpairedModel();
-        let 
+        let
             r = 0,
             EMRole = new UserEmRoleRelation(),
             temp,
@@ -1236,14 +1236,44 @@ const defs = require('../config/defs.json');
         }
 
         if (r == defs['Manager']) {
-            const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
-            response.locations = locationsForBuildingManager;
+            const building_locations = [];
+            const other_locations = [];
+            try {
+              const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+              response.locations = locationsForBuildingManager;
+            } catch (e) {
+              console.log(e, 'Error getting locations for FRP');
+              response.locations = [];
+            }
+        }
+
+        const subLocsArr = [];
+        let subLocsStr = '';
+        const subLocationsObj = {};
+        for(let loc of response.locations){
+          subLocsArr.push(loc['location_id']);
+        }
+        subLocsStr = subLocsArr.join(',');
+        let child = await new Location().getParentsChildren(subLocsStr, 1);
+
+        for (let i of subLocsArr) {
+          subLocationsObj[i] = {
+            'count': 0,
+            'ids': []
+          };
+          for (let c of child) {
+            if(parseInt(c['parent_id'], 10) === parseInt(i)) {
+              subLocationsObj[i]['count']++;
+              subLocationsObj[i]['ids'].push(c['location_id']);
+            }
+          }
         }
 
         for(let loc of response.locations){
-            let sublocationIds = await new Location(loc.location_id).getParentsChildren(loc['location_id'], 0);
-            loc['sublocation_count'] = sublocationIds.length;
-
+             // let sublocationIds = await new Location(loc.location_id).getParentsChildren(loc['location_id'], 0);
+             // loc['sublocation_count'] = sublocationIds.length;
+            // loc['sublocation_count'] = 0;
+            loc['sublocation_count'] = subLocationsObj[loc['location_id']]['count'];
             let canLoginTenants = {},
                 locationAccountUserObj = new LocationAccountUser();
             try {
@@ -1253,8 +1283,9 @@ const defs = require('../config/defs.json');
                 loc['num_tenants'] = 0;
             }
 
-            let 
-                locsIds = JSON.parse(JSON.stringify(sublocationIds)),
+            let
+                // locsIds = JSON.parse(JSON.stringify(sublocationIds)),
+                locsIds = JSON.parse(JSON.stringify(subLocationsObj[loc['location_id']]['ids'])),
                 emRolesModel = new UserEmRoleRelation(),
                 wardens = [];
 
@@ -1271,17 +1302,23 @@ const defs = require('../config/defs.json');
                 impaired = <any> await mobilityModel.getImpairedUsersInLocationIds(locsIds.join(','), req.user.account_id);
 
             loc['mobility_impaired'] = impaired.length;
+
         }
 
         if(pagination){
-            let 
+            let
             filterCount = JSON.parse(JSON.stringify(filter)),
             locAccntRelObjCount = new LocationAccountRelation(),
             locCount = [],
             limit = 10;
 
             filterCount['count'] = true;
-            locCount = await locAccntRelObjCount.listAllLocationsOnAccount(req.user.account_id, filterCount);
+            
+            try{
+                locCount = await locAccntRelObjCount.listAllLocationsOnAccount(req.user.account_id, filterCount);
+            }catch(e){
+                console.log(e);
+            }
 
             response.pagination = {
                 total : (locCount[0]) ? parseInt(locCount[0]['count']) : 0,

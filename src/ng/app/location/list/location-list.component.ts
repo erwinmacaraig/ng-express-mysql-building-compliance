@@ -136,7 +136,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
   	}
 
 	ngOnInit(){
-		
+
 	}
 
 	getLocationsForListing(callback){
@@ -159,7 +159,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
                     loc['compliance_percentage'] = compRes.percent ;
                 });
             }
-    		
+
     		if (this.locations.length > 0) {
     			for (let i = 0; i < this.locations.length; i++) {
     				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
@@ -236,7 +236,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
                     changeDone = true;
                 }
                 break;
-            
+
             default:
                 if(this.pagination.prevPage != parseInt(type)){
                     this.pagination.currentPage = parseInt(type);
@@ -250,7 +250,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
             this.queries.offset = offset;
             this.loadingTable = true;
-            this.getLocationsForListing(() => { 
+            this.getLocationsForListing(() => {
                 this.loadingTable = false;
             });
         }

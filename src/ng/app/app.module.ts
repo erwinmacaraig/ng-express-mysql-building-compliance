@@ -116,7 +116,7 @@ import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
 import { AccountInfoComponent } from './admin/account-info/account-info.component';
 import { AccountUsersListComponent } from './admin/account-users/account-users.component';
-
+import { AddAccountUserComponent } from './admin/add-user/add-user.component';
 @NgModule({
   declarations: [
     SafeHtmlPipe,
@@ -207,7 +207,8 @@ import { AccountUsersListComponent } from './admin/account-users/account-users.c
     AdminComponent,
     ListAccountsComponent,
     AccountInfoComponent,
-    AccountUsersListComponent
+    AccountUsersListComponent,
+    AddAccountUserComponent
   ],
   imports: [
     BrowserModule,
