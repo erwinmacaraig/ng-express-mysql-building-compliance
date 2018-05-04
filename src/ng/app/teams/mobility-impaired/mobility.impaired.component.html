@@ -78,16 +78,21 @@
 				</tr>
 				<tr *ngFor="let peep of peepList; let i = index;">
 					<td>
-						<p class="checkbox" >
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)"  >
-							<label for="location-{{i}}" >
-								<span *ngIf="peep.locations.length > 1">Multiple locations</span>
-								<span *ngIf="peep.locations.length == 1">
-									<span *ngIf="peep.locations[0].parent_name.trim().length > 0">{{ peep.locations[0].parent_name }}, </span>
-									{{peep.locations[0].name}}
-								</span>
-							</label>
-						</p>
+                        <p class="checkbox" >
+                            <input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)"  >
+                            <label for="location-{{i}}" >
+                                <a href="javascipt:void(0)" (click)="clickMultipleLocation(peep.locations)" *ngIf="peep.locations.length > 1">Multiple locations</a>
+                                <span *ngIf="peep.locations.length == 1">
+                                    <a [routerLink]="['/location/view/', peep.locations[0]['enc_location_id']]" *ngIf="peep.locations[0]['sublocations_count'] > 0">
+                                        <span *ngIf="peep.locations[0].parent_name">{{ peep.locations[0].parent_name }}, </span> {{peep.locations[0].name}}
+                                    </a>
+
+                                    <a [routerLink]="['/location/view-sublocation/', peep.locations[0]['enc_location_id']]" *ngIf="peep.locations[0]['sublocations_count'] == 0">
+                                        <span *ngIf="peep.locations[0].parent_name">{{ peep.locations[0].parent_name }}, </span> {{peep.locations[0].name}}
+                                    </a>
+                                </span>
+                            </label>
+                        </p>
 					</td>
 					<td>
 						<div class="image-container lighten-3" [ngClass]="peep.bg_class">
@@ -284,4 +289,29 @@
 
 
 	</form>
+</div>
+
+<div id="modalSelectMultipleLocations" class="modal">
+    
+    <form #formMultiple="ngForm" (submit)="submitSelectFromMultipleLocations(formMultiple)">
+        <div class="modal-content">
+            <h5>Multiple locations</h5>
+            <p style="font-size: 16px;">
+                Please select a location
+            </p>
+            <ul>
+                <li *ngFor="let loc of multipleLocations;">
+                    <input type="radio" ngModel name="location_id" id="rad-{{loc.location_id}}" value="{{loc.location_id}}" />
+                    <label for="rad-{{loc.location_id}}">
+                        <span *ngIf="loc.parent_name.length > 0">{{loc.parent_name}}, </span>{{loc.name}}
+                    </label>
+                </li>
+            </ul>
+        </div>
+        <div class="modal-footer" [hidden]="showModalLoader">
+            <a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+            <button type="submit" class="waves-effect waves-blue btn-flat" >See Location</button>
+        </div>
+    </form>
+
 </div>
