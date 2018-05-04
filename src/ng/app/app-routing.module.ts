@@ -92,6 +92,8 @@ import { AssignCoursesComponent } from './assign-courses/assign.courses.componen
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
 import { AccountInfoComponent } from './admin/account-info/account-info.component';
+import { AccountUsersListComponent } from './admin/account-users/account-users.component';
+import { AddAccountUserComponent } from './admin/add-user/add-user.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -204,7 +206,8 @@ const appRoutes: Routes = [
     path: 'admin', canActivate: [AuthGuard], component: AdminComponent,
     children: [
       { path: 'accounts', component: ListAccountsComponent },
-      { path: 'account-info/:accntId', component: AccountInfoComponent }
+      { path: 'users-in-accounts/:accntId', component: AccountUsersListComponent },
+      { path: 'add-account-user/:accntId', component: AddAccountUserComponent }
 
     ]
   }

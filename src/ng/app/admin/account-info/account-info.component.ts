@@ -17,7 +17,7 @@ declare var $: any;
   providers: [AdminService]
 })
 export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
-  accountId = 0;
+  @Input() accountId: number;
   sub: Subscription;
   accountInfo = {
     'account_code': '',
@@ -38,15 +38,12 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
     'online_training': ''
   };
   account_billing = '';
-  @Input() account: number;
-  constructor(private adminService: AdminService, private route: ActivatedRoute, private router: Router) {}
+
+  constructor(private adminService: AdminService) {}
 
   ngOnInit() {
 
-    this.sub = this.route.params.subscribe((params) => {
-      this.accountId = +params['accntId'];
-      console.log(this.accountId);
-      console.log(params);
+
       this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
         if (response['message'] === 'Success') {
           Object.keys(this.accountInfo).forEach((key) => {
@@ -68,11 +65,9 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
             this.account_billing += `, ${this.accountInfo['billing_country']}`;
           }
           console.log(this.accountInfo);
-        } else {
-          this.router.navigate(['admin', 'accounts']);
         }
       });
-    });
+
 
   }
 

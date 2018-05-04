@@ -1,5 +1,7 @@
+
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
+import { Location } from './location.model';
 const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
 
@@ -246,6 +248,8 @@ export class LocationAccountRelation extends BaseClass {
           }
           if (filter['responsibility'] === defs['Manager']) {
             filterStr += ` AND location_account_relation.responsibility = 'Manager'`;
+
+
           }
           if(filter['responsibility'] === 'both'){
               filterStr += ` AND location_account_relation.responsibility IN ('Manager', 'Tenant')`;
@@ -268,9 +272,9 @@ export class LocationAccountRelation extends BaseClass {
             offsetLimit = ' LIMIT '+filter['offset']+','+filter['limit'];
         }
 
-        let nameSearch = '';
-        if('name' in filter){
-            nameSearch = ' AND locations.name LIKE "%'+filter['name']+'%" ';
+        let nameSearchForTRP = '';
+        if('name' in filter && filter['name'].length > 0 && ('responsibility' in filter && filter['responsibility'] === defs['Tenant'])){
+          nameSearchForTRP = ` AND locations.name LIKE '%${filter['name']}%'`;
         }
 
         let orderBy = '';
@@ -307,12 +311,15 @@ export class LocationAccountRelation extends BaseClass {
               WHERE
                 location_account_relation.account_id = ?
                 ${filterStr}
-                ${nameSearch}
+                ${nameSearchForTRP}
               GROUP BY location_account_relation.location_id
-              ${orderBy}
-              ${offsetLimit};`;
+              ${orderBy}`;
 
-        if('count' in filter){
+      if ('responsibility' in filter && filter['responsibility'] === defs['Tenant']) {
+        sql_get_locations += ` ${offsetLimit}`;
+      }
+
+        if('count' in filter && filter['responsibility'] === defs['Tenant']){
             sql_get_locations = `
               SELECT
                 COUNT(location_account_relation.location_account_relation_id) as count,
@@ -330,7 +337,6 @@ export class LocationAccountRelation extends BaseClass {
               WHERE
                 location_account_relation.account_id = ?
                 ${filterStr}
-                ${nameSearch}
               ${orderBy};`;
         }
 
@@ -341,23 +347,45 @@ export class LocationAccountRelation extends BaseClass {
             throw Error('Cannot get all locations for this account');
           }
 
-          if('count' in filter) {
+          if (filter['responsibility'] === defs['Manager']) {
+            const locationReferencesArr = [];
+            const building_locations = [];
+            const other_locations = [];
+            const originIds = [];
+            let originIdStr = '';
+            for (const loc of results) {
+              originIds.push(loc['location_id']);
+            }
+            originIdStr = originIds.join(',');
+            const locRef = new Location();
+            locRef.getParentsChildren(originIdStr, 0, true).then((locationObjRef) => {
+              locationObjRef = Array.from(new Set(locationObjRef));
+              return locRef.bulkLocationDetails(locationObjRef, filter);
+            }).then((locations) => {
+              resolve(locations);
+              return;
+            });
+          } else {
+            if ('count' in filter) {
+
               resolve(results);
-          }else{
-              if (results.length > 0) {
-                for (const loc of results) {
-                  resultSet.push(loc);
+            }else {
+                if (results.length > 0) {
+                  for (const loc of results) {
+                    resultSet.push(loc);
+                  }
+                  resolve(resultSet);
+                } else {
+                  resolve([]);
                 }
-                resolve(resultSet);
-              } else {
-                resolve([]);
-              }
+            }
           }
+
+
         });
         connection.end();
 
       });
 
     }
-
 }

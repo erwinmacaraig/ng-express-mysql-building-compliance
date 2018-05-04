@@ -1182,7 +1182,7 @@ const defs = require('../config/defs.json');
 	}
 
 	public async getParentLocationsByAccount(req: AuthRequest, res: Response, archived?, pagination?) {
-	    const 
+	    const
             queries = req.body,
             locAccntRelObj = new LocationAccountRelation(),
             userRoleRel = new UserRoleRelation(),
@@ -1190,14 +1190,16 @@ const defs = require('../config/defs.json');
                 archived : (archived) ? archived : 0
             },
             mobilityImpaired = new MobilityImpairedModel();
-        let 
+        let
             r = 0,
             EMRole = new UserEmRoleRelation(),
             temp,
             totalWardens = 0,
             userIds = [],
             response = <any> {
-                locations : []
+                locations : [],
+                buildings: [],
+                other: []
             };
 
         if(pagination){
@@ -1236,8 +1238,11 @@ const defs = require('../config/defs.json');
         }
 
         if (r == defs['Manager']) {
+            const building_locations = [];
+            const other_locations = [];
             const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
             response.locations = locationsForBuildingManager;
+
         }
 
         for(let loc of response.locations){
@@ -1253,7 +1258,7 @@ const defs = require('../config/defs.json');
                 loc['num_tenants'] = 0;
             }
 
-            let 
+            let
                 locsIds = JSON.parse(JSON.stringify(sublocationIds)),
                 emRolesModel = new UserEmRoleRelation(),
                 wardens = [];
@@ -1274,7 +1279,7 @@ const defs = require('../config/defs.json');
         }
 
         if(pagination){
-            let 
+            let
             filterCount = JSON.parse(JSON.stringify(filter)),
             locAccntRelObjCount = new LocationAccountRelation(),
             locCount = [],
