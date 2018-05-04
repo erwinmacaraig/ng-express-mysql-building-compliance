@@ -868,20 +868,19 @@ export class Location extends BaseClass {
           return;
         }
         if ('limit' in filter){
-          offsetLimit = ' LIMIT '+filter['limit'];
+          offsetLimit = 'LIMIT '+filter['limit'];
         }
 
         if('offset' in filter && 'limit' in filter){
-          offsetLimit = ' LIMIT '+filter['offset']+','+filter['limit'];
+          offsetLimit = 'LIMIT '+filter['offset']+','+filter['limit'];
         }
-
         let nameSearch = '';
         if('name' in filter && filter['name'].length > 0){
-            nameSearch = ` AND locations.name LIKE '%${filter['name']}%' `;
+            nameSearch = `AND locations.name LIKE '%${filter['name']}%' `;
         }
         const myLocations = [];
         const locationStr = locations.join(',');
-        const sql_details = `SELECT * FROM locations WHERE location_id IN (${locationStr}) ${nameSearch} ${offsetLimit}`;
+        const sql_details = `SELECT location_id, parent_id, name, formatted_address FROM locations WHERE location_id IN (${locationStr}) ${nameSearch} ${offsetLimit}`;
         console.log(sql_details);
         const connection = db.createConnection(dbconfig);
         connection.query(sql_details, [], (error, results) => {
