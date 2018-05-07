@@ -1,22 +1,25 @@
-import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
+import { Subscription } from 'rxjs/Subscription';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MessageService } from '../../services/messaging.service';
 import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { CourseService } from '../../services/course';
+import { Observable } from 'rxjs/Rx';
 
-declare var $ : any;
+declare var $: any;
 
 @Component({
 	selector : 'app-trainings-compliance-component',
 	templateUrl : './trainings.component.html',
 	styleUrls : [ './trainings.component.css' ],
-	providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService ]
+	providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService, CourseService ]
 })
 
 export class ReportsTrainingsComponent implements OnInit, OnDestroy {
-	
+
 	userData = {};
 	rootLocationsFromDb = [];
 	results = [];
@@ -31,11 +34,18 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         limit : 25,
         offset : 0,
         location_id : 0,
-        course_method : 'none'
+        course_method : 'none',
+        training_id : 0,
+        searchKey: '',
+        compliant: 1
     };
 
     loadingTable = false;
 
+    trainingRequirements = [];
+
+    searchSub: Subscription;
+  @ViewChild('searchMember') searchMember: ElementRef;
 	constructor(
 		private router : Router,
 		private activatedRoute : ActivatedRoute,
@@ -43,7 +53,8 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 		private messageService : MessageService,
 		private reportService : ReportService,
 		private encryptDecrypt : EncryptDecryptService,
-		private dashboardPreloader : DashboardPreloaderService
+		private dashboardPreloader : DashboardPreloaderService,
+        private courseService : CourseService
 		) {
 
 		this.userData = this.authService.getUserData();
@@ -59,28 +70,25 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             });
 		});
 
+        this.courseService.getTrainingRequirements((response) => {
+            this.trainingRequirements = response.data;
+
+            let selectFilter = $('#selectFilter');
+            for(let training of this.trainingRequirements){
+                selectFilter.append(' <option value="training-'+training.training_requirement_id+'">'+training.training_requirement_name+'</option> ');
+            }
+
+            selectFilter.material_select('update');
+        });
 	}
 
-	ngOnInit(){
-		this.reportService.getParentLocationsForReporting().subscribe((response) => {
-			this.rootLocationsFromDb = response['data'];
-		}, (e) => {
-			console.log(e);
-		});
+	ngOnInit() {
+
 	}
 
 	ngAfterViewInit(){
 		$('.left.filter-container select').material_select();
-		
-		/*$('#selectLocation').val(this.locationId).material_select('update');
-		$('#selectLocation').off('change.selectlocation').on('change.selectlocation', () => {
-
-			let selVal = $('#selectLocation').val(),
-			encId = this.encryptDecrypt.encrypt( selVal );
-
-			this.router.navigate([ '/reports/trainings/', encId]);
-		});*/
-
+    this.searchUser();
 		$('#selectFilter').off('change.filter').on('change.filter', () => {
 
 			let selVal = $('#selectFilter').val();
@@ -88,9 +96,14 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 this.queries.course_method = 'offline';
             }else if(selVal == 'online'){
                 this.queries.course_method = 'online';
+            }else if(selVal.indexOf('training-') > -1){
+                let trainingId = selVal.replace('training-', '');
+                this.queries.training_id = trainingId;
             }else{
                 this.queries.course_method = '';
+                this.queries.training_id = 0;
             }
+
 
             this.queries.offset = 0;
             this.loadingTable = true;
@@ -104,7 +117,62 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 }
             });
 
-		});
+    });
+
+    $('#selectLocation').off('change.location').on('change.location', () => {
+
+      this.queries.location_id = $('#selectLocation').val();
+      this.locationId = $('#selectLocation').val();
+      this.queries.offset = 0;
+      this.loadingTable = true;
+      this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
+        this.results = response['data'];
+        this.backupResults = JSON.parse( JSON.stringify(this.results) );
+        this.pagination.pages = response.pagination.pages;
+        this.pagination.total = response.pagination.total;
+
+        this.pagination.selection = [];
+        for(let i = 1; i<=this.pagination.pages; i++){
+            this.pagination.selection.push({ 'number' : i });
+        }
+        this.loadingTable = false;
+        console.log(this.queries);
+        if (this.queries.location_id == 0) {
+          this.rootLocationsFromDb = response['location-selection'];
+          setTimeout(() => { $('#selectLocation').material_select('udpate'); }, 100);
+        }
+      });
+
+    });
+
+        $('#compliantToggle').off('change.compliant').on('change.compliant', () => {
+            let checked = $('#compliantToggle').prop('checked');
+            if(checked){
+                this.queries.compliant = 1;
+            }else{
+                this.queries.compliant = 0;
+            }
+
+            this.queries.offset = 0;
+            this.loadingTable = true;
+
+            this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
+              this.results = response['data'];
+              this.backupResults = JSON.parse( JSON.stringify(this.results) );
+              this.pagination.pages = response.pagination.pages;
+              this.pagination.total = response.pagination.total;
+
+              this.pagination.selection = [];
+              for(let i = 1; i<=this.pagination.pages; i++){
+                  this.pagination.selection.push({ 'number' : i });
+              }
+              this.loadingTable = false;
+              if (this.queries.location_id == 0) {
+                this.rootLocationsFromDb = response['location-selection'];
+                setTimeout(() => { $('#selectLocation').material_select('udpate'); }, 100);
+              }
+            });
+        });
 
         this.dashboardPreloader.show();
 	}
@@ -126,7 +194,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                     changeDone = true;
                 }
                 break;
-            
+
             default:
                 if(this.pagination.prevPage != parseInt(type)){
                     this.pagination.currentPage = parseInt(type);
@@ -151,16 +219,19 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
 		this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
 			this.results = response['data'];
-			this.backupResults = JSON.parse( JSON.stringify(this.results) );
+      this.backupResults = JSON.parse( JSON.stringify(this.results) );
+      this.rootLocationsFromDb = response['location-selection'];
 
-            this.pagination.pages = response.pagination.pages;
-            this.pagination.total = response.pagination.total;
+      this.pagination.pages = response.pagination.pages;
+      this.pagination.total = response.pagination.total;
 
-            this.pagination.selection = [];
-            for(let i = 1; i<=this.pagination.pages; i++){
-                this.pagination.selection.push({ 'number' : i });
-            }
-			
+      this.pagination.selection = [];
+      for(let i = 1; i<=this.pagination.pages; i++){
+          this.pagination.selection.push({ 'number' : i });
+      }
+      setTimeout(() => { $('#selectLocation').material_select('udpate'); }, 100);
+      this.loadingTable = false;
+
             callBack(response);
 		});
 	}
@@ -184,7 +255,32 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(){
-		this.routeSubs.unsubscribe();
-	}
+    this.routeSubs.unsubscribe();
+    this.searchSub.unsubscribe();
+  }
+
+  searchUser() {
+
+    this.searchSub =  Observable.fromEvent(this.searchMember.nativeElement, 'keyup')
+    .debounceTime(800).subscribe((event: KeyboardEvent) => {
+      const searchKey = (<HTMLInputElement>event.target).value;
+      console.log(searchKey);
+      this.loadingTable = true;
+
+      this.queries.searchKey = searchKey;
+      this.reportService.getLocationTrainingReport(this.queries).subscribe((response: any) => {
+        this.results = response['data'];
+        this.backupResults = JSON.parse( JSON.stringify(this.results) );
+        this.pagination.pages = response.pagination.pages;
+        this.pagination.total = response.pagination.total;
+        this.pagination.selection = [];
+        for (let i = 1; i <= this.pagination.pages; i++) {
+          this.pagination.selection.push({ 'number' : i });
+        }
+        this.loadingTable = false;
+      });
+
+    });
+  }
 
 }

@@ -317,19 +317,21 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getUsersInLocationIds(locationIds, archived?){
+    public getUsersInLocationIds(locationIds, archived?, config = {}){
         archived = (archived) ? archived : 0;
-
         return new Promise((resolve, reject) => {
-            let sql_load = `
+          let configFilter = '';
+          if ('searchKey' in config && config['searchKey'].length > 0) {
+            configFilter += `AND CONCAT(u.first_name, ' ', u.last_name) LIKE "%${config['searchKey']}%"`;
+          }
+            const sql_load = `
                 SELECT
                     u.*, em.em_role_id, er.role_name
                 FROM user_em_roles_relation em
                 INNER JOIN users u ON em.user_id = u.user_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
-                WHERE em.location_id IN (`+locationIds+`) AND u.archived = `+archived+`
-            `;
-
+                WHERE em.location_id IN (${locationIds}) AND u.archived = ${archived} ${configFilter}`;
+            console.log(sql_load);
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
