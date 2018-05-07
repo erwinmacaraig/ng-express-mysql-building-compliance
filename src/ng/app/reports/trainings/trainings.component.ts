@@ -117,6 +117,11 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             this.pagination.selection.push({ 'number' : i });
         }
         this.loadingTable = false;
+        console.log(this.queries);
+        if (this.queries.location_id == 0) {
+          this.rootLocationsFromDb = response['location-selection'];
+          setTimeout(() => { $('#selectLocation').material_select('udpate'); }, 100);
+        }
       });
 
     });
@@ -132,13 +137,21 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             this.queries.offset = 0;
             this.loadingTable = true;
 
-            this.getLocationReport((response:any) => {
-                this.loadingTable = false;
-                if(response.data.length > 0){
-                    this.pagination.currentPage = 1;
-                }else{
-                    this.pagination.currentPage = 0;
-                }
+            this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
+              this.results = response['data'];
+              this.backupResults = JSON.parse( JSON.stringify(this.results) );
+              this.pagination.pages = response.pagination.pages;
+              this.pagination.total = response.pagination.total;
+
+              this.pagination.selection = [];
+              for(let i = 1; i<=this.pagination.pages; i++){
+                  this.pagination.selection.push({ 'number' : i });
+              }
+              this.loadingTable = false;
+              if (this.queries.location_id == 0) {
+                this.rootLocationsFromDb = response['location-selection'];
+                setTimeout(() => { $('#selectLocation').material_select('udpate'); }, 100);
+              }
             });
         });
 
@@ -198,7 +211,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
           this.pagination.selection.push({ 'number' : i });
       }
       setTimeout(() => { $('#selectLocation').material_select('udpate'); }, 100);
-
+      this.loadingTable = false;
 
             callBack(response);
 		});
@@ -228,10 +241,12 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
   }
 
   searchUser() {
+
     this.searchSub =  Observable.fromEvent(this.searchMember.nativeElement, 'keyup')
     .debounceTime(800).subscribe((event: KeyboardEvent) => {
       const searchKey = (<HTMLInputElement>event.target).value;
       console.log(searchKey);
+      this.loadingTable = true;
 
       this.queries.searchKey = searchKey;
       this.reportService.getLocationTrainingReport(this.queries).subscribe((response: any) => {
@@ -243,6 +258,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         for (let i = 1; i <= this.pagination.pages; i++) {
           this.pagination.selection.push({ 'number' : i });
         }
+        this.loadingTable = false;
       });
 
     });
