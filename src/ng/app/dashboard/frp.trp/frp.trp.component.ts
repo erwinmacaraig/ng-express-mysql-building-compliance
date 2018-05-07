@@ -200,7 +200,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                 this.countOfBuildings = this.locations.length;
 
                 if(totalPercentage > 0){
-                    this.complianceChart.options.elements.center.text = Math.floor(totalPercentage / (totalLocations * 100) * 100) + '%';
+                    this.complianceChart.options.elements.center.text = Math.round(totalPercentage / (totalLocations * 100) * 100) + '%';
                 }else{
                     this.complianceChart.options.elements.center.text = '00%';
                 }

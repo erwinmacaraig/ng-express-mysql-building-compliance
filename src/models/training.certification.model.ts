@@ -320,43 +320,49 @@ export class TrainingCertification extends BaseClass {
       if(pass == 1){
           passSql += '  AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW() ';
       }else if(pass == 0){
-          passSql += ' AND certifications.pass = 0 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) < NOW() ';
+          passSql += ` 
+            AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) < NOW()
+            OR users.user_id IN (${userIds}) ${courseMethodSql} AND certifications.certifications_id IS NULL
+            OR users.user_id IN (${userIds}) ${courseMethodSql} AND certifications.pass = 0
+           `;
       }
 
       if(count){
           sql = `
-            SELECT COUNT(training_requirement.training_requirement_id) as count
-              FROM
-                certifications
-              INNER JOIN
-               training_requirement
-              ON
-                training_requirement.training_requirement_id = certifications.training_requirement_id
-              WHERE
-                certifications.user_id IN (${userIds}) ${courseMethodSql} ${passSql}
-              ORDER BY certifications.certification_date DESC
+            SELECT 
+              COUNT(training_requirement.training_requirement_id) as count
+            FROM
+              users
+              LEFT JOIN certifications ON certifications.user_id = users.user_id
+              LEFT JOIN training_requirement ON training_requirement.training_requirement_id = certifications.training_requirement_id
+            WHERE
+              users.user_id IN (${userIds}) ${courseMethodSql} ${passSql}
+            ORDER BY certifications.certification_date DESC
           `;
       }else{
           sql = `
             SELECT
               training_requirement.training_requirement_name,
-              certifications.*,
               training_requirement.num_months_valid,
+              certifications.course_method,
+              certifications.certification_date,
+              certifications.pass,
+              certifications.registered,
+              users.user_id, users.first_name, users.last_name,
               DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
-              IF (DATE_ADD(certifications.certification_date,
-                INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
-              FROM
-                certifications
-              INNER JOIN
-               training_requirement
-              ON
-                training_requirement.training_requirement_id = certifications.training_requirement_id
-              WHERE
-                certifications.user_id IN (${userIds}) ${courseMethodSql} ${passSql}
-              ORDER BY certifications.certification_date DESC ${limitSql}
+                          IF (DATE_ADD(certifications.certification_date,
+                            INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
+            FROM
+              users
+              LEFT JOIN certifications ON certifications.user_id = users.user_id
+              LEFT JOIN training_requirement ON training_requirement.training_requirement_id = certifications.training_requirement_id
+
+            WHERE users.user_id IN (${userIds}) ${courseMethodSql} ${passSql}
+
+            ORDER BY certifications.certification_date DESC ${limitSql}
           `;
       }
-        const connection = db.createConnection(dbconfig);
+      const connection = db.createConnection(dbconfig);
 
       connection.query(sql, (error, results, fields) => {
 

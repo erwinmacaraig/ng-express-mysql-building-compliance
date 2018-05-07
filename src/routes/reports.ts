@@ -368,6 +368,8 @@ export class ReportsRoute extends BaseRoute {
         let locAccUser = new UserEmRoleRelation(),
             users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(',') );
 
+        response['users'] = users;
+
         for(let user of users){
             if(allUserIds.indexOf(user.user_id) == -1){
                 allUserIds.push(user.user_id);
@@ -380,15 +382,11 @@ export class ReportsRoute extends BaseRoute {
             certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, false, courseMethod, compliant ),
             certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, true, courseMethod, compliant );
 
+        response['certificates'] = certificates;
+
         for(let cert of certificates){
-            for(let user of users){
-                if(user.user_id == cert.user_id){
-                    cert['first_name'] = user.first_name;
-                    cert['last_name'] = user.last_name;
-                    cert['email'] = user.email;
-                }
-            }
-            cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
+            cert['certification_date_formatted'] = (cert['certification_date'] == null) ? 'n/a' : moment(cert['certification_date']).format('DD/MM/YYYY');
+            cert['training_requirement_name'] = (cert['training_requirement_name'] == null) ? '--' : cert['training_requirement_name'];
         }
 
         response.pagination.total = certificatesCount[0]['count'];
