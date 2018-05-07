@@ -31,7 +31,8 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         limit : 25,
         offset : 0,
         location_id : 0,
-        course_method : 'none'
+        course_method : 'none',
+        compliant: 1
     };
 
     loadingTable = false;
@@ -92,6 +93,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 this.queries.course_method = '';
             }
 
+
             this.queries.offset = 0;
             this.loadingTable = true;
 
@@ -105,6 +107,27 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             });
 
 		});
+
+        $('#compliantToggle').off('change.compliant').on('change.compliant', () => {
+            let checked = $('#compliantToggle').prop('checked');
+            if(checked){
+                this.queries.compliant = 1;
+            }else{
+                this.queries.compliant = 0;
+            }
+
+            this.queries.offset = 0;
+            this.loadingTable = true;
+
+            this.getLocationReport((response:any) => {
+                this.loadingTable = false;
+                if(response.data.length > 0){
+                    this.pagination.currentPage = 1;
+                }else{
+                    this.pagination.currentPage = 0;
+                }
+            });
+        });
 
         this.dashboardPreloader.show();
 	}
