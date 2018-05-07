@@ -34,7 +34,8 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         offset : 0,
         location_id : 0,
         course_method : 'none',
-        searchKey: ''
+        searchKey: '',
+        compliant: 1
     };
 
     loadingTable = false;
@@ -66,26 +67,13 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
 	}
 
-	ngOnInit(){
-		this.reportService.getParentLocationsForReporting().subscribe((response) => {
-			this.rootLocationsFromDb = response['data'];
-		}, (e) => {
-			console.log(e);
-		});
+	ngOnInit() {
+
 	}
 
 	ngAfterViewInit(){
 		$('.left.filter-container select').material_select();
     this.searchUser();
-		/*$('#selectLocation').val(this.locationId).material_select('update');
-		$('#selectLocation').off('change.selectlocation').on('change.selectlocation', () => {
-
-			let selVal = $('#selectLocation').val(),
-			encId = this.encryptDecrypt.encrypt( selVal );
-
-			this.router.navigate([ '/reports/trainings/', encId]);
-		});*/
-
 		$('#selectFilter').off('change.filter').on('change.filter', () => {
 
 			let selVal = $('#selectFilter').val();
@@ -96,6 +84,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             }else{
                 this.queries.course_method = '';
             }
+
 
             this.queries.offset = 0;
             this.loadingTable = true;
@@ -109,7 +98,49 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 }
             });
 
-		});
+    });
+
+    $('#selectLocation').off('change.location').on('change.location', () => {
+
+      this.queries.location_id = $('#selectLocation').val();
+      this.locationId = $('#selectLocation').val();
+      this.queries.offset = 0;
+      this.loadingTable = true;
+      this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
+        this.results = response['data'];
+        this.backupResults = JSON.parse( JSON.stringify(this.results) );
+        this.pagination.pages = response.pagination.pages;
+        this.pagination.total = response.pagination.total;
+
+        this.pagination.selection = [];
+        for(let i = 1; i<=this.pagination.pages; i++){
+            this.pagination.selection.push({ 'number' : i });
+        }
+        this.loadingTable = false;
+      });
+
+    });
+
+        $('#compliantToggle').off('change.compliant').on('change.compliant', () => {
+            let checked = $('#compliantToggle').prop('checked');
+            if(checked){
+                this.queries.compliant = 1;
+            }else{
+                this.queries.compliant = 0;
+            }
+
+            this.queries.offset = 0;
+            this.loadingTable = true;
+
+            this.getLocationReport((response:any) => {
+                this.loadingTable = false;
+                if(response.data.length > 0){
+                    this.pagination.currentPage = 1;
+                }else{
+                    this.pagination.currentPage = 0;
+                }
+            });
+        });
 
         this.dashboardPreloader.show();
 	}
@@ -156,15 +187,18 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
 		this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
 			this.results = response['data'];
-			this.backupResults = JSON.parse( JSON.stringify(this.results) );
+      this.backupResults = JSON.parse( JSON.stringify(this.results) );
+      this.rootLocationsFromDb = response['location-selection'];
 
-            this.pagination.pages = response.pagination.pages;
-            this.pagination.total = response.pagination.total;
+      this.pagination.pages = response.pagination.pages;
+      this.pagination.total = response.pagination.total;
 
-            this.pagination.selection = [];
-            for(let i = 1; i<=this.pagination.pages; i++){
-                this.pagination.selection.push({ 'number' : i });
-            }
+      this.pagination.selection = [];
+      for(let i = 1; i<=this.pagination.pages; i++){
+          this.pagination.selection.push({ 'number' : i });
+      }
+      setTimeout(() => { $('#selectLocation').material_select('udpate'); }, 100);
+
 
             callBack(response);
 		});

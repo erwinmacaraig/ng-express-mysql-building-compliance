@@ -50,8 +50,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
     KPIS = [];
     KPISnames = [];
     selectedComplianceName = '';
-    selectedComplianceOver = '';
-    selectedComplianceOverExt = '';
+
     selectedIndex = 0;
 
     pagination = {
@@ -64,6 +63,8 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
         search : '',
         sort : ''
     };
+
+    countOfBuildings = 0;
 
 	constructor(
 		private authService : AuthService,
@@ -196,8 +197,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                     totalPercentage = totalPercentage + loc.compliance_percentage;
                 }
 
-                this.selectedComplianceOver = validCompliace + '/' + totalLocations;
-                this.selectedComplianceOverExt = ' compliant location';
+                this.countOfBuildings = this.locations.length;
 
                 if(totalPercentage > 0){
                     this.complianceChart.options.elements.center.text = Math.floor(totalPercentage / (totalLocations * 100) * 100) + '%';
@@ -213,6 +213,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
         if(this.locations.length == 0){
             this.complianceChart.options.elements.center.text = '00%';
             this.complianceChart.update();
+            this.countOfBuildings = 0;
         }
     }
 
@@ -287,6 +288,9 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             this.complianceChart = new Chart(this.ctx, config);
 
             this.loadDoneKpisAndCompliance();
+
+            this.complianceChart.options.elements.center.text = 'loading';
+            this.complianceChart.update();
         }); 
 	}
 
@@ -339,6 +343,9 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
         }
 
         if(changeDone){
+            this.complianceChart.options.elements.center.text = 'loading';
+            this.complianceChart.update();
+
             this.pagination.prevPage = parseInt(type);
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
             this.queries.offset = offset;

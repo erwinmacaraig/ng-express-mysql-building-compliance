@@ -301,11 +301,13 @@ export class ReportsRoute extends BaseRoute {
                 total : 0,
                 pages : 0
             },
-            'location-origin': req.body.location_id
+            'location-origin': req.body.location_id,
+            'location-selection': []
         },
         offset = req.body.offset,
         limit = req.body.limit,
         course_method = req.body.course_method,
+        compliant = req.body.compliant,
         d = {
             location : {},
             sublocations : []
@@ -337,7 +339,7 @@ export class ReportsRoute extends BaseRoute {
                 locations = <any> await locationModel.getWhere( whereLoc );
             }catch(e){  }
         }
-
+        response['location-selection'] = locations;
         let allUserIds = [0],
             allLocationIds = [0],
             allLocations = [];
@@ -380,8 +382,8 @@ export class ReportsRoute extends BaseRoute {
         let courseMethod = (course_method == 'online') ? 'online_by_evac' : (course_method == 'offline') ? 'offline_by_evac' : '',
             trainCertModel = new TrainingCertification(),
             trainCertCountModel = new TrainingCertification(),
-            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, false, courseMethod ),
-            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, true, courseMethod );
+            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, false, courseMethod, compliant ),
+            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, true, courseMethod, compliant );
 
         for(let cert of certificates){
             for(let user of users){

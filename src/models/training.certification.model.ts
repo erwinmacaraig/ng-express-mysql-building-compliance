@@ -310,11 +310,19 @@ export class TrainingCertification extends BaseClass {
     });
   }
 
-  public getCertificatesByInUsersId(userIds, limit?, count?, courseMethod?) {
+  public getCertificatesByInUsersId(userIds, limit?, count?, courseMethod?, pass?) {
     return new Promise((resolve) => {
       const limitSql = (limit) ? ' LIMIT '+limit : '';
       const courseMethodSql = (courseMethod) ? ' AND certifications.course_method = "'+courseMethod+'" ' : '';
-      let sql = '';
+      let sql = '',
+          passSql = '';
+
+      if(pass == 1){
+          passSql += '  AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW() ';
+      }else if(pass == 0){
+          passSql += ' AND certifications.pass = 0 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) < NOW() ';
+      }
+
       if(count){
           sql = `
             SELECT COUNT(training_requirement.training_requirement_id) as count
@@ -325,7 +333,7 @@ export class TrainingCertification extends BaseClass {
               ON
                 training_requirement.training_requirement_id = certifications.training_requirement_id
               WHERE
-                certifications.user_id IN (${userIds}) ${courseMethodSql}
+                certifications.user_id IN (${userIds}) ${courseMethodSql} ${passSql}
               ORDER BY certifications.certification_date DESC
           `;
       }else{
@@ -344,7 +352,7 @@ export class TrainingCertification extends BaseClass {
               ON
                 training_requirement.training_requirement_id = certifications.training_requirement_id
               WHERE
-                certifications.user_id IN (${userIds}) ${courseMethodSql}
+                certifications.user_id IN (${userIds}) ${courseMethodSql} ${passSql}
               ORDER BY certifications.certification_date DESC ${limitSql}
           `;
       }
