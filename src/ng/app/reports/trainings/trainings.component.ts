@@ -5,6 +5,7 @@ import { MessageService } from '../../services/messaging.service';
 import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { CourseService } from '../../services/course';
 
 declare var $ : any;
 
@@ -12,7 +13,7 @@ declare var $ : any;
 	selector : 'app-trainings-compliance-component',
 	templateUrl : './trainings.component.html',
 	styleUrls : [ './trainings.component.css' ],
-	providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService ]
+	providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService, CourseService ]
 })
 
 export class ReportsTrainingsComponent implements OnInit, OnDestroy {
@@ -32,10 +33,13 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         offset : 0,
         location_id : 0,
         course_method : 'none',
-        compliant: 1
+        compliant: 1,
+        training_id : 0
     };
 
     loadingTable = false;
+
+    trainingRequirements = [];
 
 	constructor(
 		private router : Router,
@@ -44,7 +48,8 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 		private messageService : MessageService,
 		private reportService : ReportService,
 		private encryptDecrypt : EncryptDecryptService,
-		private dashboardPreloader : DashboardPreloaderService
+		private dashboardPreloader : DashboardPreloaderService,
+        private courseService : CourseService
 		) {
 
 		this.userData = this.authService.getUserData();
@@ -60,6 +65,16 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             });
 		});
 
+        this.courseService.getTrainingRequirements((response) => {
+            this.trainingRequirements = response.data;
+
+            let selectFilter = $('#selectFilter');
+            for(let training of this.trainingRequirements){
+                selectFilter.append(' <option value="training-'+training.training_requirement_id+'">'+training.training_requirement_name+'</option> ');
+            }
+
+            selectFilter.material_select('update');
+        });
 	}
 
 	ngOnInit(){
@@ -89,8 +104,12 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 this.queries.course_method = 'offline';
             }else if(selVal == 'online'){
                 this.queries.course_method = 'online';
+            }else if(selVal.indexOf('training-') > -1){
+                let trainingId = selVal.replace('training-', '');
+                this.queries.training_id = trainingId;
             }else{
                 this.queries.course_method = '';
+                this.queries.training_id = 0;
             }
 
 
