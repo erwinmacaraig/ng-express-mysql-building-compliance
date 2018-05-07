@@ -106,10 +106,10 @@ export class ReportsRoute extends BaseRoute {
       * @generateTeamReport
       * process reporting info for a given root location
       */
-    
+
     public async generateTeamReport(req: AuthRequest, res: Response, next: NextFunction) {
 
-        let 
+        let
         userRoleRel = new UserRoleRelation(),
         r = 0,
         location_id = req.body.location_id,
@@ -164,7 +164,7 @@ export class ReportsRoute extends BaseRoute {
         }
 
         console.log( response.pagination );
-        
+
         for(let loc of locations){
             loc['parent'] = { name : '' };
             try{
@@ -186,7 +186,7 @@ export class ReportsRoute extends BaseRoute {
             for(let sub of sublocationsDbData){
                 subids.push(sub.location_id);
 
-                let 
+                let
                 locAccUserModel = new LocationAccountUser(),
                 wardensSub = <any> await emModel.getWardensInLocationIds(sub.location_id, 0, accntId),
                 mobs = <any> await mobilityModel.getImpairedUsersInLocationIds(sub.location_id, accntId),
@@ -232,7 +232,7 @@ export class ReportsRoute extends BaseRoute {
     }
 
     public async listLocations(req: AuthRequest, res: Response, toReturn?, filters?){
-        let 
+        let
             locAccntRelObj = new LocationAccountRelation(),
             userRoleRel = new UserRoleRelation(),
             r = 0,
@@ -294,13 +294,15 @@ export class ReportsRoute extends BaseRoute {
     }
 
     public async locationTrainings(req: AuthRequest, res: Response){
-        let 
+      let
         response = {
             status : false, data : [], message : '',
             pagination : {
                 total : 0,
                 pages : 0
-            }
+            },
+            'location-origin': req.body.location_id,
+            'location-selection': []
         },
         offset = req.body.offset,
         limit = req.body.limit,
@@ -338,7 +340,7 @@ export class ReportsRoute extends BaseRoute {
                 locations = <any> await locationModel.getWhere( whereLoc );
             }catch(e){  }
         }
-
+        response['location-selection'] = locations;
         let allUserIds = [0],
             allLocationIds = [0],
             allLocations = [];
@@ -362,12 +364,15 @@ export class ReportsRoute extends BaseRoute {
                 }
 
             }catch(e){
-                
+
             }
         }
-
+        const config = {};
+        if (req.body.searchKey !== null && req.body.searchKey.length > 0) {
+          config['searchKey'] = req.body.searchKey;
+        }
         let locAccUser = new UserEmRoleRelation(),
-            users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(',') );
+            users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
 
         response['users'] = users;
 
@@ -466,7 +471,7 @@ export class ReportsRoute extends BaseRoute {
 
         locationData['kpis'] = JSON.parse(JSON.stringify(kpis));
         locationData['name'] = (locationData['name'].length == 0) ? locationData['formatted_address'] : locationData['name'];
-        
+
         for(let sub of deepLocations){
             allSubLocationsId.push( sub.location_id );
         }
@@ -475,7 +480,7 @@ export class ReportsRoute extends BaseRoute {
 
         for(let user of locationData['eco_users']){
             ecoIds.push(user.user_id);
-        }     
+        }
 
 
         locationData['wardens_trained_count'] = 0;
@@ -504,7 +509,7 @@ export class ReportsRoute extends BaseRoute {
             locationData['compliances'] = [];
         }
 
-        
+
         locationData['number_of_sublocations'] = deepLocations.length;
         locationData['compliance_rating'] = locCompRate+'/'+TotalNumberOfKPIS;
         locationData['status'] = (locCompRate == TotalNumberOfKPIS) ? 'Compliant' : 'Not Compliant';
@@ -590,7 +595,7 @@ export class ReportsRoute extends BaseRoute {
                 console.log(e);
             }
 
-            
+
         }
 
         let overallRatingCount = 0;
@@ -671,7 +676,7 @@ export class ReportsRoute extends BaseRoute {
         }
 
         for(let loc of locations){
-            let 
+            let
             overallRating = 0,
             statement = JSON.parse(JSON.stringify(d));
 
@@ -702,14 +707,14 @@ export class ReportsRoute extends BaseRoute {
     }
 
     public async getActivityReport(req: AuthRequest, res: Response){
-        let 
+        let
         location_id = req.body.location_id,
         limit = req.body.limit,
         offset = req.body.offset,
         accountId = req.user.account_id,
         userId = req.user.user_id,
         response = {
-            status : false, data : [], 
+            status : false, data : [],
             pagination : {
                 total : 0,
                 pages : 0
