@@ -1,16 +1,24 @@
 <div class="container">
 	<div class="row" style="margin-top: 35px;">
 
-		<div class="col l12 m12 s12">
+		<div class="col s2">
 			<h5 class="left">Training</h5>
 
 			<div class="left filter-container">
-				<!-- <div class="select-container">
-                    <select class="select-location" id="selectLocation">
-                        <option value="0" [selected]="locationId == 0">All Location</option>
-                        <option value="{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb" [selected]="locationId == loc.location_id">{{loc.name}}</option>
-                    </select>
-                </div> -->
+      <!--
+      <div class="select-container">
+          <select class="select-location" id="selectLocation">
+              <option value="0" [selected]="locationId == 0">All Location</option>
+              <option value="{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb" [selected]="locationId == loc.location_id">{{loc.name}}</option>
+          </select>
+       </div>
+-->
+
+
+          <div class="search-field">
+            <input type="text" placeholder="Search member name or email" id="searchMemberInput" #searchMember>
+            <span class="material-icons">search</span>
+          </div>
 
 				<div class="select-container">
 					<select class="select-location" id="selectFilter">
@@ -26,7 +34,7 @@
 					<div class="text">Export to</div>
 					<div class="image pdf"></div>
 				</a>
-				
+
 				<a href="javascript:void(0)">
 					<div class="image excel"></div>
 				</a>
@@ -40,12 +48,12 @@
 
 			<div class="clearfix"></div>
 		</div>
-		
+
 
 	</div>
 
 	<div class="row">
-		
+
 		<div class="col l12 m12 s12" id="printContainer">
 			<table class="striped">
 				<thead>

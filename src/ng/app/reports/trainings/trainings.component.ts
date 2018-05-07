@@ -1,12 +1,14 @@
-import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
+import { Subscription } from 'rxjs/Subscription';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MessageService } from '../../services/messaging.service';
 import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { Observable } from 'rxjs/Rx';
 
-declare var $ : any;
+declare var $: any;
 
 @Component({
 	selector : 'app-trainings-compliance-component',
@@ -16,7 +18,7 @@ declare var $ : any;
 })
 
 export class ReportsTrainingsComponent implements OnInit, OnDestroy {
-	
+
 	userData = {};
 	rootLocationsFromDb = [];
 	results = [];
@@ -31,11 +33,14 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         limit : 25,
         offset : 0,
         location_id : 0,
-        course_method : 'none'
+        course_method : 'none',
+        searchKey: ''
     };
 
     loadingTable = false;
 
+    searchSub: Subscription;
+  @ViewChild('searchMember') searchMember: ElementRef;
 	constructor(
 		private router : Router,
 		private activatedRoute : ActivatedRoute,
@@ -71,7 +76,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
 	ngAfterViewInit(){
 		$('.left.filter-container select').material_select();
-		
+    this.searchUser();
 		/*$('#selectLocation').val(this.locationId).material_select('update');
 		$('#selectLocation').off('change.selectlocation').on('change.selectlocation', () => {
 
@@ -126,7 +131,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                     changeDone = true;
                 }
                 break;
-            
+
             default:
                 if(this.pagination.prevPage != parseInt(type)){
                     this.pagination.currentPage = parseInt(type);
@@ -160,7 +165,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             for(let i = 1; i<=this.pagination.pages; i++){
                 this.pagination.selection.push({ 'number' : i });
             }
-			
+
             callBack(response);
 		});
 	}
@@ -184,7 +189,29 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(){
-		this.routeSubs.unsubscribe();
-	}
+    this.routeSubs.unsubscribe();
+    this.searchSub.unsubscribe();
+  }
+
+  searchUser() {
+    this.searchSub =  Observable.fromEvent(this.searchMember.nativeElement, 'keyup')
+    .debounceTime(800).subscribe((event: KeyboardEvent) => {
+      const searchKey = (<HTMLInputElement>event.target).value;
+      console.log(searchKey);
+
+      this.queries.searchKey = searchKey;
+      this.reportService.getLocationTrainingReport(this.queries).subscribe((response: any) => {
+        this.results = response['data'];
+        this.backupResults = JSON.parse( JSON.stringify(this.results) );
+        this.pagination.pages = response.pagination.pages;
+        this.pagination.total = response.pagination.total;
+        this.pagination.selection = [];
+        for (let i = 1; i <= this.pagination.pages; i++) {
+          this.pagination.selection.push({ 'number' : i });
+        }
+      });
+
+    });
+  }
 
 }
