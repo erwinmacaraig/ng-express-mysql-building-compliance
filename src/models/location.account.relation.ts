@@ -364,6 +364,8 @@ export class LocationAccountRelation extends BaseClass {
             }).then((locations) => {
               resolve(locations);
               return;
+            }).catch((e) => {
+              console.log(`There was a problem getting the location details`, e);
             });
           } else {
             if ('count' in filter) {

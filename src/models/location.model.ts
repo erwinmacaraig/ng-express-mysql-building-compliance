@@ -878,18 +878,17 @@ export class Location extends BaseClass {
           return;
         }
         let offsetLimit = '';
-        
+
         if ('limit' in filter){
-          offsetLimit = ' LIMIT '+filter['limit'];
+          offsetLimit = 'LIMIT '+filter['limit'];
         }
 
         if('offset' in filter && 'limit' in filter){
-          offsetLimit = ' LIMIT '+filter['offset']+','+filter['limit'];
+          offsetLimit = 'LIMIT '+filter['offset']+','+filter['limit'];
         }
-
         let nameSearch = '';
         if('name' in filter && filter['name'].length > 0){
-            nameSearch = ` AND locations.name LIKE '%${filter['name']}%' `;
+            nameSearch = `AND locations.name LIKE '%${filter['name']}%' `;
         }
 
         let orderBy = '';
@@ -908,7 +907,6 @@ export class Location extends BaseClass {
         if ('count' in filter) {
           sql_details = `SELECT COUNT(location_id) as count FROM locations WHERE location_id IN (${locationStr}) ${nameSearch} ${orderBy} `;
         }
-        // console.log(sql_details);
         const connection = db.createConnection(dbconfig);
         connection.query(sql_details, [], (error, results) => {
           if (error) {
