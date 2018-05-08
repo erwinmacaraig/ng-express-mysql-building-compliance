@@ -77,18 +77,17 @@
 					<td>
 						<p class="checkbox" >
 							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)"  >
-							<label for="location-{{i}}" >
-								<a  (click)="clickMultipleLocation(list.locations)" *ngIf="list.locations.length > 1">Multiple locations</a>
-								<span *ngIf="list.locations.length == 1">
-                                    <a [routerLink]="['/location/view/', list.locations[0]['enc_location_id']]" *ngIf="list.locations[0]['sublocations_count'] > 0">
-                                        <span *ngIf="list.locations[0].parent_name">{{ list.locations[0].parent_name }}, </span> {{list.locations[0].name}}
-                                    </a>
+							<label for="location-{{i}}" ></label>
+                            <a  (click)="clickMultipleLocation(list.locations)" *ngIf="list.locations.length > 1">Multiple locations</a>
+                            <span *ngIf="list.locations.length == 1">
+                                <a [routerLink]="['/location/view/', list.locations[0]['enc_location_id']]" *ngIf="list.locations[0]['sublocations_count'] > 0">
+                                    <span *ngIf="list.locations[0].parent_name">{{ list.locations[0].parent_name }}, </span> {{list.locations[0].name}}
+                                </a>
 
-                                    <a [routerLink]="['/location/view-sublocation/', list.locations[0]['enc_location_id']]" *ngIf="list.locations[0]['sublocations_count'] == 0">
-                                        <span *ngIf="list.locations[0].parent_name">{{ list.locations[0].parent_name }}, </span> {{list.locations[0].name}}
-                                    </a>
-								</span>
-							</label>
+                                <a [routerLink]="['/location/view-sublocation/', list.locations[0]['enc_location_id']]" *ngIf="list.locations[0]['sublocations_count'] == 0">
+                                    <span *ngIf="list.locations[0].parent_name">{{ list.locations[0].parent_name }}, </span> {{list.locations[0].name}}
+                                </a>
+                            </span>
 						</p>
 					</td>
 					<td>

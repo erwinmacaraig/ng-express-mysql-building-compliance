@@ -80,18 +80,17 @@
 					<td>
                         <p class="checkbox" >
                             <input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)"  >
-                            <label for="location-{{i}}" >
-                                <a  (click)="clickMultipleLocation(peep.locations)" *ngIf="peep.locations.length > 1">Multiple locations</a>
-                                <span *ngIf="peep.locations.length == 1">
-                                    <a [routerLink]="['/location/view/', peep.locations[0]['enc_location_id']]" *ngIf="peep.locations[0]['sublocations_count'] > 0">
-                                        <span *ngIf="peep.locations[0].parent_name">{{ peep.locations[0].parent_name }}, </span> {{peep.locations[0].name}}
-                                    </a>
+                            <label for="location-{{i}}" ></label>
+                            <a  (click)="clickMultipleLocation(peep.locations)" *ngIf="peep.locations.length > 1">Multiple locations</a>
+                            <span *ngIf="peep.locations.length == 1">
+                                <a [routerLink]="['/location/view/', peep.locations[0]['enc_location_id']]" *ngIf="peep.locations[0]['sublocations_count'] > 0">
+                                    <span *ngIf="peep.locations[0].parent_name">{{ peep.locations[0].parent_name }}, </span> {{peep.locations[0].name}}
+                                </a>
 
-                                    <a [routerLink]="['/location/view-sublocation/', peep.locations[0]['enc_location_id']]" *ngIf="peep.locations[0]['sublocations_count'] == 0">
-                                        <span *ngIf="peep.locations[0].parent_name">{{ peep.locations[0].parent_name }}, </span> {{peep.locations[0].name}}
-                                    </a>
-                                </span>
-                            </label>
+                                <a [routerLink]="['/location/view-sublocation/', peep.locations[0]['enc_location_id']]" *ngIf="peep.locations[0]['sublocations_count'] == 0">
+                                    <span *ngIf="peep.locations[0].parent_name">{{ peep.locations[0].parent_name }}, </span> {{peep.locations[0].name}}
+                                </a>
+                            </span>
                         </p>
 					</td>
 					<td>
