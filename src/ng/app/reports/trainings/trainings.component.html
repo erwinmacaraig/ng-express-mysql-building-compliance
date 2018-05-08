@@ -7,7 +7,7 @@
 			<div class="left filter-container">
 
       <div class="select-container">
-          <select class="select-location" id="selectLocation">
+          <select multiple class="select-location" id="selectLocation" ngModel [(ngModel)]="selectedlocationIndex">
               <option value="0">All Location</option>
               <option value="{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb">{{loc.name}}</option>
           </select>
