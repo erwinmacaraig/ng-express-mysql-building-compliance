@@ -242,7 +242,6 @@ export class CourseRoute extends BaseRoute {
             let sublocations = [];
             filter['responsibility'] = role;
             const locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
-            console.log(locationListing);
 
             for (const l of locationListing) {
               locationIdsOnAccnt.push(l['location_id']);
@@ -255,15 +254,7 @@ export class CourseRoute extends BaseRoute {
               Object.keys(sublocationsDbData).forEach((i) => {
                 sublocs.push(sublocationsDbData[i]['location_id']);
               });
-              /*
-              for (const loc of locationIdsOnAccnt) {
-                sublocationsDbData = await location.getDeepLocationsByParentId(loc);
-                Object.keys(sublocationsDbData).forEach((i) => {
-                  sublocs.push(sublocationsDbData[i]['location_id']);
-                });
-              }
-              */
-              console.log('=======================', sublocs, '=========================');
+
               sublocations = sublocations.concat(sublocs);
             } else if (role === defs['Tenant']) {
               sublocations = sublocations.concat(locationIdsOnAccnt);
