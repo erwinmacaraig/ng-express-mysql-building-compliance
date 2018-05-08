@@ -33,12 +33,13 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
     queries =  {
         limit : 25,
         offset : 0,
-        location_id : 0,
+        location_id: null,
         course_method : 'none',
         training_id : 0,
         searchKey: '',
         compliant: 1
     };
+    selectedlocationIndex = [];
 
     loadingTable = false;
 
@@ -60,7 +61,8 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 		this.userData = this.authService.getUserData();
 
 		this.routeSubs = this.activatedRoute.params.subscribe((params) => {
-			this.locationId = this.encryptDecrypt.decrypt( params.locationId );
+      this.locationId = this.encryptDecrypt.decrypt( params.locationId );
+      this.selectedlocationIndex = this.locationId.toString().split('-');
 
 			this.getLocationReport((response) => {
                 this.dashboardPreloader.hide();
@@ -83,6 +85,10 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit() {
+   this.reportService.getParentLocationsForReporting().subscribe((response) => {
+    this.rootLocationsFromDb = response['data'];
+    // console.log(this.rootLocationsFromDb);
+    });
 
 	}
 
@@ -121,8 +127,18 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
     $('#selectLocation').off('change.location').on('change.location', () => {
 
-      this.queries.location_id = $('#selectLocation').val();
-      this.locationId = $('#selectLocation').val();
+      // check for 0
+      const selectedIndexes =  $('#selectLocation').val();
+      const values = [];
+      for (let i of selectedIndexes) {
+        const temp = i.split(': ');
+        values.push(temp[1]);
+      }
+      if (values.indexOf('0') === -1) {
+        this.queries.location_id = values.join('-');
+      } else {
+        this.locationId = this.queries.location_id = 0;
+      }
       this.queries.offset = 0;
       this.loadingTable = true;
       this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
@@ -132,16 +148,12 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         this.pagination.total = response.pagination.total;
 
         this.pagination.selection = [];
-        for(let i = 1; i<=this.pagination.pages; i++){
+        for (let i = 1; i <= this.pagination.pages; i++){
             this.pagination.selection.push({ 'number' : i });
         }
         this.loadingTable = false;
-        console.log(this.queries);
-        if (this.queries.location_id == 0) {
-          this.rootLocationsFromDb = response['location-selection'];
-          setTimeout(() => { $('#selectLocation').material_select('udpate'); }, 100);
-        }
       });
+
 
     });
 
@@ -167,10 +179,6 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                   this.pagination.selection.push({ 'number' : i });
               }
               this.loadingTable = false;
-              if (this.queries.location_id == 0) {
-                this.rootLocationsFromDb = response['location-selection'];
-                setTimeout(() => { $('#selectLocation').material_select('udpate'); }, 100);
-              }
             });
         });
 
@@ -220,13 +228,11 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 		this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
 			this.results = response['data'];
       this.backupResults = JSON.parse( JSON.stringify(this.results) );
-      this.rootLocationsFromDb = response['location-selection'];
-
       this.pagination.pages = response.pagination.pages;
       this.pagination.total = response.pagination.total;
 
       this.pagination.selection = [];
-      for(let i = 1; i<=this.pagination.pages; i++){
+      for (let i = 1; i<=this.pagination.pages; i++){
           this.pagination.selection.push({ 'number' : i });
       }
       setTimeout(() => { $('#selectLocation').material_select('udpate'); }, 100);
@@ -239,7 +245,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	printResult(){
 		let locName = 'All Locations';
 		for(let loc of this.rootLocationsFromDb){
-			if(loc['location_id'] == this.locationId){
+			if(loc['location_id'] == this.locationId) {
 				locName = loc.name;
 			}
 		}
@@ -264,7 +270,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
     this.searchSub =  Observable.fromEvent(this.searchMember.nativeElement, 'keyup')
     .debounceTime(800).subscribe((event: KeyboardEvent) => {
       const searchKey = (<HTMLInputElement>event.target).value;
-      console.log(searchKey);
+      // console.log(searchKey);
       this.loadingTable = true;
 
       this.queries.searchKey = searchKey;

@@ -67,14 +67,14 @@ export class ReportsRoute extends BaseRoute {
             locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
 
           } else if (r === defs['Manager']) {
-            filter['is_building'] = 1;
+            // filter['is_building'] = 1;
             locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
           }
+
           // console.log(locationListing);
           return  res.send({
               data : locationListing
           });
-
         });
 
        /**
@@ -163,7 +163,7 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){  }
         }
 
-        console.log( response.pagination );
+        // console.log( response.pagination );
 
         for(let loc of locations){
             loc['parent'] = { name : '' };
@@ -308,7 +308,6 @@ export class ReportsRoute extends BaseRoute {
         limit = req.body.limit,
         course_method = req.body.course_method,
         compliant = req.body.compliant,
-        trainingId = req.body.training_id,
         d = {
             location : {},
             sublocations : []
@@ -318,14 +317,14 @@ export class ReportsRoute extends BaseRoute {
         sublocationModel = new Location(),
         locations = <any> [];
 
-        if(location_id == 0){
+        if (location_id == 0) {
 
             try{
                 let responseLocations = <any> await this.listLocations(req,res, true, { 'archived' : 0 });
                 locations = responseLocations.data;
             }catch(e){}
 
-        }else{
+        } else{
             let ids = location_id.split('-'),
                 locsIds = [0],
                 whereLoc = [];
@@ -374,8 +373,6 @@ export class ReportsRoute extends BaseRoute {
         let locAccUser = new UserEmRoleRelation(),
             users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
 
-        response['users'] = users;
-
         for(let user of users){
             if(allUserIds.indexOf(user.user_id) == -1){
                 allUserIds.push(user.user_id);
@@ -385,14 +382,18 @@ export class ReportsRoute extends BaseRoute {
         let courseMethod = (course_method == 'online') ? 'online_by_evac' : (course_method == 'offline') ? 'offline_by_evac' : '',
             trainCertModel = new TrainingCertification(),
             trainCertCountModel = new TrainingCertification(),
-            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, false, courseMethod, compliant, trainingId ),
-            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, true, courseMethod, compliant, trainingId );
-
-        response['certificates'] = certificates;
+            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, false, courseMethod, compliant ),
+            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, true, courseMethod, compliant );
 
         for(let cert of certificates){
-            cert['certification_date_formatted'] = (cert['certification_date'] == null) ? 'n/a' : moment(cert['certification_date']).format('DD/MM/YYYY');
-            cert['training_requirement_name'] = (cert['training_requirement_name'] == null) ? '--' : cert['training_requirement_name'];
+            for(let user of users){
+                if(user.user_id == cert.user_id){
+                    cert['first_name'] = user.first_name;
+                    cert['last_name'] = user.last_name;
+                    cert['email'] = user.email;
+                }
+            }
+            cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
         }
 
         response.pagination.total = certificatesCount[0]['count'];
