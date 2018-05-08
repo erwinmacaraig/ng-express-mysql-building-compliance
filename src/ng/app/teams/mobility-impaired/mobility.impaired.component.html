@@ -81,7 +81,7 @@
                         <p class="checkbox" >
                             <input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)"  >
                             <label for="location-{{i}}" >
-                                <a href="javascipt:void(0)" (click)="clickMultipleLocation(peep.locations)" *ngIf="peep.locations.length > 1">Multiple locations</a>
+                                <a  (click)="clickMultipleLocation(peep.locations)" *ngIf="peep.locations.length > 1">Multiple locations</a>
                                 <span *ngIf="peep.locations.length == 1">
                                     <a [routerLink]="['/location/view/', peep.locations[0]['enc_location_id']]" *ngIf="peep.locations[0]['sublocations_count'] > 0">
                                         <span *ngIf="peep.locations[0].parent_name">{{ peep.locations[0].parent_name }}, </span> {{peep.locations[0].name}}
@@ -109,9 +109,9 @@
 					</td>
 					<td class="peep-completion">
 						<span *ngIf="peep.mobility_impaired_details.length > 0">
-							<a href="javascipt:void(0)" class="view-peep-link" [attr.user_id]="peep.user_id" [attr.user_invitations_id]="peep.user_invitations_id">View</a>
+							<a  class="view-peep-link" [attr.user_id]="peep.user_id" [attr.user_invitations_id]="peep.user_invitations_id">View</a>
 						</span>
-						<a href="javascipt:void(0)" (click)="clickCompletePeepInfo(peep)" 
+						<a  (click)="clickCompletePeepInfo(peep)" 
 						*ngIf="peep.mobility_impaired_details.length == 0" >Complete peep information</a>
 						<span *ngIf="!peep.user_id"> Waiting for user validation </span>
 					</td>
@@ -191,8 +191,8 @@
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
 	</div>
 </div>
 
@@ -222,8 +222,8 @@
 		</ul>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
 	</div>
 </div>
 
@@ -281,7 +281,7 @@
 
 		<div class="row button-container">
 			<div class="col s12 m12 l12">
-				<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+				<a  class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
 				<button class="btn orange waves-light waves-effect" [disabled]="formMobility.invalid">Submit</button>
 			</div>
 		</div>
@@ -309,7 +309,7 @@
             </ul>
         </div>
         <div class="modal-footer" [hidden]="showModalLoader">
-            <a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+            <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
             <button type="submit" class="waves-effect waves-blue btn-flat" >See Location</button>
         </div>
     </form>

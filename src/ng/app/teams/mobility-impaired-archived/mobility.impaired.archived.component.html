@@ -96,9 +96,9 @@
 					</td>
 					<td class="peep-completion">
 						<span *ngIf="peep.mobility_impaired_details.length > 0">
-							<a href="javascipt:void(0)" class="view-peep-link" [attr.user_id]="peep.user_id" [attr.user_invitations_id]="peep.user_invitations_id">View</a>
+							<a  class="view-peep-link" [attr.user_id]="peep.user_id" [attr.user_invitations_id]="peep.user_invitations_id">View</a>
 						</span>
-						<a href="javascipt:void(0)" (click)="clickCompletePeepInfo(peep)" 
+						<a  (click)="clickCompletePeepInfo(peep)" 
 						*ngIf="peep.mobility_impaired_details.length == 0" >Complete peep information</a>
 						<span *ngIf="!peep.user_id"> Waiting for user validation </span>
 					</td>
@@ -178,8 +178,8 @@
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
 	</div>
 </div>
 
@@ -209,8 +209,8 @@
 		</ul>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
 	</div>
 </div>
 
@@ -267,7 +267,7 @@
 
 		<div class="row button-container">
 			<div class="col s12 m12 l12">
-				<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+				<a  class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
 				<button class="btn orange waves-light waves-effect" [disabled]="formMobility.invalid">Submit</button>
 			</div>
 		</div>

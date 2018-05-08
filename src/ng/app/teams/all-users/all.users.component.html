@@ -78,7 +78,7 @@
 						<p class="checkbox" >
 							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)"  >
 							<label for="location-{{i}}" >
-								<a href="javascipt:void(0)" (click)="clickMultipleLocation(list.locations)" *ngIf="list.locations.length > 1">Multiple locations</a>
+								<a  (click)="clickMultipleLocation(list.locations)" *ngIf="list.locations.length > 1">Multiple locations</a>
 								<span *ngIf="list.locations.length == 1">
                                     <a [routerLink]="['/location/view/', list.locations[0]['enc_location_id']]" *ngIf="list.locations[0]['sublocations_count'] > 0">
                                         <span *ngIf="list.locations[0].parent_name">{{ list.locations[0].parent_name }}, </span> {{list.locations[0].name}}
@@ -189,8 +189,8 @@
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
 	</div>
 </div>
 
@@ -221,8 +221,8 @@
 		</ul>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
 	</div>
 </div>
 
@@ -244,7 +244,7 @@
             </ul>
         </div>
         <div class="modal-footer" [hidden]="showModalLoader">
-            <a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+            <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
             <button type="submit" class="waves-effect waves-blue btn-flat" >See Location</button>
         </div>
     </form>
