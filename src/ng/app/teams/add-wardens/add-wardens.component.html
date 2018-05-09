@@ -64,12 +64,12 @@
 							</select>
 						</td>
 						<td >
-							<a href="javascript:void(0)" [class.disabled]="user.eco_role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
+							<a  [class.disabled]="user.eco_role_id == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
 							<input type="hidden" name="selectedLocation{{i}}" [(ngModel)]="user.account_location_id" required pattern="[1-9][0-9]*">
 						</td>
 						<td class="with-remove">
 							<input type="text" [(ngModel)]="user.mobile_number" placeholder="Contact Information" name="mobile{{i}}">
-							<a href="javascript:void(0)" class="remove" (click)="removeAddedUser(i)" [hidden]="i == 0">X</a>
+							<a  class="remove" (click)="removeAddedUser(i)" [hidden]="i == 0">X</a>
 						</td>
 					</tr>
 				</tbody>

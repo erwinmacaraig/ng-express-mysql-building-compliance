@@ -200,7 +200,7 @@
 	</div>
 	<div class="modal-footer" *ngIf="!showModalRemoveWardenLoader">
 		<button class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</button>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="yesRemoveWarden()">Yes</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="yesRemoveWarden()">Yes</a>
 	</div>
 </div>
 
@@ -312,7 +312,7 @@
 
 			<div class="row button-container">
 				<div class="col s12 m12 l12 right-align">
-					<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+					<a  class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
 					<button type="submit" class="btn orange waves-light waves-effect" [disabled]="formProfile.invalid">Submit</button>
 				</div>
 			</div>
@@ -382,7 +382,7 @@
 
 			<div class="row button-container">
 				<div class="col s12 m12 l12 right-align">
-					<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+					<a  class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
 					<button type="submit" class="btn orange waves-light waves-effect"
 					[disabled]="
 					formCredential.invalid ||
@@ -399,7 +399,7 @@
 <div id="modalAssignLocations" class="modal">
 	<div class="modal-content" [hidden]="showLocationSelection">
 		<h5>Assign {{viewData.user.first_name+' '+viewData.user.last_name}} To Locations
-			<a href="javascipt:void(0)" class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
+			<a  class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
 		</h5>
 
 
@@ -416,7 +416,7 @@
 			<tbody>
 				<tr *ngFor="let loc of toEditLocations; let i = index;">
 					<td>
-						<a href="javascript:void(0)" class="blue-text change-location">
+						<a  class="blue-text change-location">
 							<span *ngIf="loc.parent_name !== null">{{loc.parent_name}},</span> {{loc.name}}
 						</a>
 						<input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
@@ -431,7 +431,7 @@
 						</select>
 					</td>
 					<td>
-						<a href="javascipt:void(0)" class="red-text delete">Delete</a>
+						<a  class="red-text delete">Delete</a>
 					</td>
 				</tr>
 			</tbody>
@@ -448,7 +448,7 @@
 
 	<div class="modal-content" [hidden]="!showLocationSelection">
 		<h5>Select Location for {{viewData.user.first_name + ' ' + viewData.user.last_name}}
-			<a href="javascipt:void(0)" class="red-text right" style="font-size: 18px;" (click)="showLocationSelection = false">Cancel</a>
+			<a  class="red-text right" style="font-size: 18px;" (click)="showLocationSelection = false">Cancel</a>
 		</h5>
 	</div>
 </div>

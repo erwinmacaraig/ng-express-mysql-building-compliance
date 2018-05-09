@@ -197,7 +197,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                     totalPercentage = totalPercentage + loc.compliance_percentage;
                 }
 
-                this.countOfBuildings = this.locations.length;
+                this.countOfBuildings = this.pagination.total;
 
                 if(totalPercentage > 0){
                     this.complianceChart.options.elements.center.text = Math.round(totalPercentage / (totalLocations * 100) * 100) + '%';
@@ -279,9 +279,11 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
         this.complianceService.getKPIS((response) => {
             this.KPIS = response.data;
             for(let k of this.KPIS){
-                config.data.labels.push(k.name);
-                this.KPISnames.push(k.name);
-                config.data.datasets[0].data.push(11.11);
+                if(k.compliance_kpis_id != 13){
+                    config.data.labels.push(k.name);
+                    this.KPISnames.push(k.name);
+                    config.data.datasets[0].data.push(11.11);
+                }
             }
 
             this.ctx = this.compliancePieChart.nativeElement.getContext('2d');

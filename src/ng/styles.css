@@ -292,3 +292,7 @@ td.select-blue .dropdown-content li{
     left: 2px !important;
     width: 206px !important;
 }
+
+a:hover{
+    cursor: pointer;
+}

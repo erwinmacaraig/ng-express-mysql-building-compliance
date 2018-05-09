@@ -4,7 +4,7 @@
 
 		<div class="right-actions">
 			<div class="archived-container">
-				<a href="javascript:void(0)" [routerLink]="['/teams/list-wardens']">
+				<a  [routerLink]="['/teams/list-wardens']">
 					<div class="image"></div>
 					View Active List
 				</a>
@@ -178,8 +178,8 @@
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
 	</div>
 </div>
 
@@ -210,7 +210,7 @@
 		</ul>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
 	</div>
 </div>
