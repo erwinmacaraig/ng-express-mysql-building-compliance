@@ -1,110 +1,113 @@
-<div class="container" *ngFor="let report of reportData">
-	<div class="row" style="margin-top: 35px;">
+<div #printContainer>
+    <div class="container print-no-margin-left-right" *ngFor="let report of reportData; let i = index;" >
+    	<div class="row" style="margin-top: 35px;">
 
-		<div class="col l12 m12 s12">
-			<h5 class="left"> <span *ngIf="report.location.parent.name.length > 0">{{report.location.parent.name}}, </span>{{report.location.name}}  Statement of Compliance</h5>
+    		<div class="col l12 m12 s12">
+    			<h5 class="left"> <span *ngIf="report.location.parent.name.length > 0">{{report.location.parent.name}}, </span>{{report.location.name}} </h5>
 
-			<div class="right right-buttons">
-				<a >
-					<div class="text">Export to</div>
-					<div class="image pdf"></div>
-				</a>
-				
-				<a >
-					<div class="image excel"></div>
-				</a>
+    			<div class="right right-buttons no-print" data-html2canvas-ignore *ngIf="i == 0">
+    				<a #aPdf (click)="pdfExport(aPdf, printContainer)">
+    					<div class="text">Export to</div>
+    					<div class="image pdf"></div>
+    				</a>
+    				
+    				<a >
+    					<div class="image excel"></div>
+    				</a>
 
-				<a  (click)="printResult(report, printContainer)">
-					<div class="text">Print</div>
-					<div class="image print"></div>
-				</a>
+    				<a  (click)="printResult(report, printContainer)">
+    					<div class="text">Print</div>
+    					<div class="image print"></div>
+    				</a>
 
-			</div>
+    			</div>
 
-			<div class="clearfix"></div>
-		</div>
-		
+    			<div class="clearfix"></div>
+    		</div>
+    		
 
-	</div>
+    	</div>
 
-	<div #printContainer>
-		<div class="row">
-			
-			<div class="col l12 m12 s12">
-				<table class="striped">
-					<thead>
-						<tr class="grey darken-5 white-text">
-							<th>Compliance Requirement</th>
-                            <th>Legislative Reference</th>
-							<th>Activity Date</th>
-							<th style="width: 140px;">Status</th>
-							<th style="width: 138px;"></th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr *ngIf="report.kpis.length == 0">
-							<td colspan="5" class="center">
-								No record found
-							</td>
-						</tr>
-						<tr *ngFor="let kpi of report.kpis">
-							<td>{{kpi.name}}</td>
-                            <td>
-                                <span *ngIf="kpi.compliance_kpis_id == 2">AS 3745:2010 s.2.4</span>
-                                <span *ngIf="kpi.compliance_kpis_id == 3">Qld Building Fire Safety Regulations & Best Practice</span>
-                                <span *ngIf="kpi.compliance_kpis_id == 4">AS 3745:2010 s.3, s.4 & s.8</span>
-                                <span *ngIf="kpi.compliance_kpis_id == 5">AS 3745:2010 s.3.5</span>
-                                <span *ngIf="kpi.compliance_kpis_id == 6">AS 3745:2010 s.6.3 & s.6.5 </span>
-                                <span *ngIf="kpi.compliance_kpis_id == 8">AS 3745:2010 s.6.3 & s.6.5 </span>
-                                <span *ngIf="kpi.compliance_kpis_id == 9">AS 3745:2010 s.7 </span>  
-                                <span *ngIf="kpi.compliance_kpis_id == 12">AS 3745:2010 s.6.3 & s.6.5</span>
-                                <span *ngIf="kpi.compliance_kpis_id == 13"> -- </span>
-                            </td>
-							<td>
-                                <span *ngIf="kpi.compliance.docs">
-                                    <span *ngIf="kpi.compliance.docs[0]">{{ kpi.compliance.docs[0]['date_of_activity_formatted'] }}</span>
-                                    <span *ngIf="!kpi.compliance.docs[0]">n/a</span>
-                                </span>
-                                <span *ngIf="!kpi.compliance.docs"> n/a </span>
-							</td>
-							<td>
-								<span class="grey-text text" *ngIf="kpi.compliance.valid == 0 && kpi.compliance_kpis_id != 13">
-									Not Compliant
-								</span>
-								<span class="blue-text text" *ngIf="kpi.compliance.valid == 1 && kpi.compliance_kpis_id != 13">
-									Compliant
-								</span>
-                                <span *ngIf="kpi.compliance_kpis_id == 13"> -- </span>
-							</td>
-							<td>
-								<span class="red-text" style="font-size: 12px !important;" *ngIf="kpi.overdue">
-									( <i class="material-icons red-text">error_outline</i> Overdue )
-								</span>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+    	<div >
+    		<div class="row">
+    			
+    			<div class="col l12 m12 s12">
+    				<table class="striped">
+    					<thead>
+    						<tr class="grey darken-5 white-text">
+    							<th>Compliance Requirement</th>
+                                <th>Legislative Reference</th>
+    							<th>Activity Date</th>
+    							<th style="width: 140px;">Status</th>
+    							<!-- <th style="width: 138px;"></th> -->
+    						</tr>
+    					</thead>
+    					<tbody>
+    						<tr *ngIf="report.kpis.length == 0">
+    							<td colspan="5" class="center">
+    								No record found
+    							</td>
+    						</tr>
+    						<tr *ngFor="let kpi of report.kpis">
+    							<td>{{kpi.name}}</td>
+                                <td>
+                                    <span *ngIf="kpi.compliance_kpis_id == 2">AS 3745:2010 s.2.4</span>
+                                    <span *ngIf="kpi.compliance_kpis_id == 3">Qld Building Fire Safety Regulations & Best Practice</span>
+                                    <span *ngIf="kpi.compliance_kpis_id == 4">AS 3745:2010 s.3, s.4 & s.8</span>
+                                    <span *ngIf="kpi.compliance_kpis_id == 5">AS 3745:2010 s.3.5</span>
+                                    <span *ngIf="kpi.compliance_kpis_id == 6">AS 3745:2010 s.6.3 & s.6.5 </span>
+                                    <span *ngIf="kpi.compliance_kpis_id == 8">AS 3745:2010 s.6.3 & s.6.5 </span>
+                                    <span *ngIf="kpi.compliance_kpis_id == 9">AS 3745:2010 s.7 </span>  
+                                    <span *ngIf="kpi.compliance_kpis_id == 12">AS 3745:2010 s.6.3 & s.6.5</span>
+                                </td>
+    							<td>
+                                    <span *ngIf="kpi.compliance.docs">
+                                        <span *ngIf="kpi.compliance.docs[0]">{{ kpi.compliance.docs[0]['date_of_activity_formatted'] }}</span>
+                                        <span *ngIf="!kpi.compliance.docs[0]">n/a</span>
+                                    </span>
+                                    <span *ngIf="!kpi.compliance.docs"> n/a </span>
+    							</td>
+    							<td>
+    								<span class="grey-text text" *ngIf="kpi.compliance.valid == 0 && kpi.compliance_kpis_id != 13">
+    									Not Compliant
+    								</span>
+    								<span class="blue-text text" *ngIf="kpi.compliance.valid == 1 && kpi.compliance_kpis_id != 13">
+    									Compliant
+    								</span>
+    							</td>
+    							<!-- <td>
+                                    <span class="red-text" style="font-size: 12px !important;" *ngIf="kpi.overdue">
+                                        ( <i class="material-icons red-text">error_outline</i> Overdue )
+                                    </span>
+                                </td> -->
+    						</tr>
+    					</tbody>
+    				</table>
+    			</div>
 
-		</div>
+    		</div>
 
-		<div class="row">
-			<div class="col l12 m12 s12 col-buttons right-align">
-				
-				<button class="btn blue waves-effect waves-light no-print hide">Compliance Document</button>
+    		<div class="row">
+    			<div class="col l12 m12 s12 col-buttons right-align">
+    				
+    				<button class="btn blue waves-effect waves-light no-print hide">Compliance Document</button>
 
-				<button class="btn orange btn-compliance-rating">
-					<div class="text">
-						Compliance Rating
-					</div>
-					<div class="white center">
-						{{report.compliance_rating}}
-					</div>
-				</button>
+    				<button class="btn orange btn-compliance-rating">
+    					<div class="text">
+    						Compliance Rating
+    					</div>
+    					<div class="white center">
+    						{{report.compliance_rating}}
+    					</div>
+    				</button>
 
-			</div>
-		</div>
-	</div>
-
-
+    			</div>
+    		</div>
+    	</div>
+    </div>
 </div>
+
+<div id="cloneContainer" style="">
+    <div class="clones"></div>
+</div>
+<div id="canvasContainer" style="display: none;"></div>
