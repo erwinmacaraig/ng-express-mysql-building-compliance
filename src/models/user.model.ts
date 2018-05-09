@@ -327,9 +327,12 @@ export class User extends BaseClass {
         });
     }
 
-    public getByAccountId(accountId, archived?): any {
+    public getByAccountId(accountId, archived?, search?): any {
         return new Promise((resolve, reject) => {
             let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? ';
+            if(search){
+                sql_load += ' AND CONCAT(first_name, " ", last_name) LIKE "%'+search+'%" ';
+            }
             if(!archived){
                 archived = 0;
             }

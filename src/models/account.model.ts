@@ -89,8 +89,8 @@ export class Account extends BaseClass {
               return console.log(error);
             }
             this.dbData = results;
-            if (length) {
-              resolve(results.length);
+            if (results.length) {
+              resolve(results);
             } else {
               resolve(this.dbData);
             }
@@ -455,6 +455,9 @@ export class Account extends BaseClass {
         }
         if ('all' in filter) {
           uniqStr = '';
+        }
+        if('search' in filter){
+            filterStr += ' AND CONCAT(users.first_name, " ", users.last_name) LIKE "%'+filter['search']+'%" ';
         }
 
         const sql_all = `
