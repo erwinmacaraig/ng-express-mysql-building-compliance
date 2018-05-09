@@ -133,7 +133,7 @@
         <div class="tags" *ngFor="let loc of selectedReport.locations" [hidden]="loc == 0">
             <div class="text">{{loc.name}}</div>
             <div class="icon">
-                <a href="javascript:void(0)" (click)="removeFromSelected(loc)"> <i class="material-icons red-text" >close</i> </a>
+                <a  (click)="removeFromSelected(loc)"> <i class="material-icons red-text" >close</i> </a>
             </div>
         </div>
         

@@ -3,7 +3,7 @@
 	<ul>
 
 		<li class="add-location pink-theme " [routerLink]="['/location', 'search']">
-			<a href="javascript:void(0)" >
+			<a  >
 				<img src="assets/images/locations/add_location.png" class="default">
 				<img src="assets/images/locations/add_location_hover.png" class="hover">
 				<span>
@@ -13,7 +13,7 @@
 		</li>
 
 		<li class="view-location green-theme" [routerLink]="['/location', 'list']" *ngIf="!showEmailVerification">
-			<a href="javascript:void(0)" >
+			<a  >
 				<img src="assets/images/locations/view_all_location.png" class="default">
 				<img src="assets/images/locations/view_all_locations_hover.png" class="hover">
 				<span>
@@ -28,7 +28,7 @@
     <div class="red alert-email-verification darken-3 align-center" *ngIf="showEmailVerification"  style="margin-bottom: -58px;">
       <div *ngIf="showResponse">{{responseMessage}}</div>
       <div *ngIf="!showResponse">
-        Please validate your account by opening your email. <a href="javascript:void(0)" id="aClickResend" (click)="resendEmailVerification()"> Click here to resend </a>
+        Please validate your account by opening your email. <a  id="aClickResend" (click)="resendEmailVerification()"> Click here to resend </a>
       </div>
     </div>
 	<router-outlet></router-outlet>

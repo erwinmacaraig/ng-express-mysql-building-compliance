@@ -37,13 +37,13 @@
 					<a [routerLink]="['/shop/compliance-package']" *ngIf="showUpgradePremium"><img src="assets/images/premium_bttn.png" ></a>
 				</li> -->
 				<li>
-					<a href="javascript:void(0)"><img src="assets/images/search.png" ></a>
+					<a ><img src="assets/images/search.png" ></a>
 				</li>
 				<li>
-					<a href="javascript:void(0)"><img src="assets/images/mail.png" ></a>
+					<a ><img src="assets/images/mail.png" ></a>
 				</li>
 				<li>
-					<a href="javascript:void(0)" class="user-right-click-nav">
+					<a  class="user-right-click-nav">
 						<div class="users-name">{{ username }}</div>
 						<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
 						<img alt="Report" class="img-user-initials" [src]="filterUrl(usersImageURL)" *ngIf=" hasUserImage " >
@@ -54,7 +54,7 @@
 		</div>
 
 		<div class="burger right">
-			<a href="javascript:void(0)" class="burger-link"><i class="material-icons small"> <span>dehaze</span> </i></a>
+			<a  class="burger-link"><i class="material-icons small"> <span>dehaze</span> </i></a>
 		</div>
 	</nav>
 </div>
@@ -62,21 +62,21 @@
 
 	<ul class="navbar">
 		<li>
-			<a href="javascript:void(0)">
+			<a >
 				<img alt="Training" src="assets/images/search.png" >
 				<span>Search</span>
 			</a>
 		</li>
 
 		<li>
-			<a href="javascript:void(0)">
+			<a >
 				<img alt="Team" src="assets/images/mail.png" >
 				<span> Email </span>
 			</a>
 		</li>
 
 		<li>
-			<a href="javascript:void(0)" class="user-right-click-nav">
+			<a  class="user-right-click-nav">
 				<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
 				<img alt="Report" class="img-user-initials" [src]="filterUrl(usersImageURL)" *ngIf=" hasUserImage " >
 				<div class="users-name">{{ userData.name }}</div>
@@ -100,7 +100,7 @@
 				<div class="vertical-nav-title">
 					<div style="float:left;"><h5 myaccount>My Accounts</h5></div>
 					<div style="float:right; padding-right:1rem; padding-top:1rem; ">
-						<a href="javascript:void(0)" id="closeRightNav">
+						<a  id="closeRightNav">
 							<img alt="" src="assets/images/close.png">
 						</a>
 					</div>
@@ -111,7 +111,7 @@
 
 		<div class="col sm12">
 			<div class="wrapper upload-photo">
-				<a href="javascript:void(0)" id="changePhotoLink">
+				<a  id="changePhotoLink">
 					<div class="img-container"><img id="myAccountPhoto" alt="EvacConnect" [src]="filterUrl(usersImageURL) "> </div>
 					<div><h6>Upload Photo</h6></div>
 				</a>

@@ -207,7 +207,7 @@
 	</div>
 	<div class="modal-footer" *ngIf="!showModalRemoveWardenLoader">
 		<button class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</button>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="yesRemoveWarden()">Yes</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="yesRemoveWarden()">Yes</a>
 	</div>
 </div>
 
@@ -319,7 +319,7 @@
 
 			<div class="row button-container">
 				<div class="col s12 m12 l12 right-align">
-					<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+					<a  class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
 					<button type="submit" class="btn orange waves-light waves-effect" [disabled]="formProfile.invalid">Submit</button>
 				</div>
 			</div>
@@ -389,7 +389,7 @@
 
 			<div class="row button-container">
 				<div class="col s12 m12 l12 right-align">
-					<a href="javascipt:void(0)" class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+					<a  class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
 					<button type="submit" class="btn orange waves-light waves-effect"
 					[disabled]="
 					formCredential.invalid ||
@@ -408,7 +408,7 @@
 	<div [hidden]="showSelectLocation">
 		<div class="modal-content"  >
 			<h5>Assign {{ viewData.user.first_name + ' ' + viewData.user.last_name}} To Locations
-				<a href="javascipt:void(0)" class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
+				<a  class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
 			</h5>
 
 
@@ -425,11 +425,11 @@
 				<tbody>
 					<tr *ngFor="let loc of toEditLocations; let i = index;">
 						<td *ngIf="!loc.deleted">
-							<a href="javascript:void(0)" class="blue-text change-location" (click)="clickSelectLocation(loc)" *ngIf="loc.location_id > 0">
+							<a  class="blue-text change-location" (click)="clickSelectLocation(loc)" *ngIf="loc.location_id > 0">
 								<span [innerHTML]="generateLocationName(loc.location_id)"></span>
 							</a>
 
-							<a href="javascript:void(0)" class="blue-text change-location" (click)="clickSelectLocation(loc)" *ngIf="loc.location_id == 0">
+							<a  class="blue-text change-location" (click)="clickSelectLocation(loc)" *ngIf="loc.location_id == 0">
 								Select Location
 							</a>
 
@@ -446,7 +446,7 @@
 							</select>
 						</td>
 						<td *ngIf="!loc.deleted">
-							<a href="javascipt:void(0)" class="red-text delete" (click)="removeAssigned(i)">Delete</a>
+							<a  class="red-text delete" (click)="removeAssigned(i)">Delete</a>
 						</td>
 					</tr>
 				</tbody>
