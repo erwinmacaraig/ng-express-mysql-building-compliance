@@ -1,4 +1,5 @@
 
+
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { AuthRequest } from '../interfaces/auth.interface';
@@ -196,6 +197,21 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
+    router.get('/admin/check-user-email/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+      const user = new User();
+      const emailInput = req.query.user_email;
+      user.getByEmail(emailInput).then((data) => {
+        return res.status(200).send({
+          forbidden: true
+        });
+      }).catch((e) => {
+        return res.status(200).send({
+          forbidden: false
+        });
+      });
+
+    });
   }
+
 
 }

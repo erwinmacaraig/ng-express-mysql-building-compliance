@@ -1,12 +1,15 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input } from '@angular/core';
-import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { ViewChild, ElementRef } from '@angular/core';
-import { Subscription } from 'rxjs/Rx';
-import { FormBuilder, FormGroup, FormArray } from '@angular/forms';
+import { Subscription, Observable } from 'rxjs/Rx';
+import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
+
+
 import { AdminService } from './../../services/admin.service';
+
 declare var $: any;
 
 @Component({
@@ -69,7 +72,16 @@ export class AddAccountUserComponent  implements OnInit {
     },
 
   ];
-  constructor(private formBuilder: FormBuilder, private adminService: AdminService, private route: ActivatedRoute) {}
+  private baseUrl: String;
+
+  constructor(public http: HttpClient,
+    private platformLocation: PlatformLocation,
+    private formBuilder: FormBuilder,
+    private adminService: AdminService,
+    private route: ActivatedRoute) {
+
+    this.baseUrl = (platformLocation as any).location.origin;
+  }
 
   ngOnInit() {
     this.route.params.subscribe((parameters) => {
@@ -77,7 +89,6 @@ export class AddAccountUserComponent  implements OnInit {
       this.userForm = this.formBuilder.group({
         users: this.formBuilder.array([this.createFormItem()])
       });
-
 
       this.adminService.getAllLocationsOnAccount(this.accountId).subscribe((response) => {
         this.buildings = response['data']['buildings'];
@@ -91,10 +102,10 @@ export class AddAccountUserComponent  implements OnInit {
   }
   createFormItem(): FormGroup {
     return this.formBuilder.group({
-      first_name: '',
-      last_name: '',
-      password: '',
-      email: '',
+      first_name: ['', Validators.required],
+      last_name: ['', Validators.required],
+      password: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email], this.forbiddenEmails.bind(this)],
       role: 0,
       location: 0,
       contact: ''
@@ -104,6 +115,27 @@ export class AddAccountUserComponent  implements OnInit {
   addUserFormItem(): void {
     this.users = this.userForm.get('users') as FormArray;
     this.users.push(this.createFormItem());
+  }
+
+  addUserOnSubmit() {
+    console.log(this.userForm);
+  }
+
+  forbiddenEmails(control: FormControl): Promise<any> | Observable<any> {
+    const httpParams = new HttpParams().set('user_email', control.value);
+    return new Promise((resolve, reject) => {
+      this.http.get(this.baseUrl + '/admin/check-user-email/', {'params': httpParams}).subscribe((response) => {
+        if (response['forbidden']) {
+          resolve({
+            emailIsForbidden: true
+          });
+        } else {
+          resolve(null);
+        }
+
+      });
+    });
+
   }
 }
 
