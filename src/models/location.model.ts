@@ -421,6 +421,22 @@ export class Location extends BaseClass {
 		});
 	}
 
+    public getDeepLocationsMinimizedDataByParentId(parentId){
+        return new Promise((resolve) => {
+            const sql_load = `SELECT location_id, parent_id, name
+            FROM (SELECT location_id, parent_id, name FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
+            (SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
 	public getSublocations(user_id?: number, role_id?: number) {
 		return new Promise((resolve, reject) => {
 			const location: {[key: number]: Array<Object>} = {};

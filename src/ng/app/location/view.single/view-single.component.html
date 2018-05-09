@@ -211,12 +211,12 @@
 				   	<ul style="margin: 0px; max-height: 275px; overflow-y: auto;">
 					    <li style="border-bottom: 1px solid #ddd;font-size: 16px;padding: 10px 0px;" *ngFor="let sub of sameSublocation">
 						    <span>{{sub.name}}</span>
-						    <a href="javascript:void(0)" class="right select-sub blue-text" #selectElement (click)="selectAddNewSubResult(sub, selectElement)" style="margin-right: 10px;">select</a>
+						    <a  class="right select-sub blue-text" #selectElement (click)="selectAddNewSubResult(sub, selectElement)" style="margin-right: 10px;">select</a>
 						</li>
 					</ul>
 				</div>
 				<div class="button-container right-align">
-					<a href="javascript:void(0)" class="btn grey lighten-1 waves-effect waves-light modal-action modal-close">Cancel</a>
+					<a  class="btn grey lighten-1 waves-effect waves-light modal-action modal-close">Cancel</a>
 					<button type="submit" class="btn orange waves-effect waves-light">Submit</button>
 				</div>
 			</form>
@@ -251,7 +251,7 @@
 		</div>
 
 		<div class="button-container center-align" *ngIf="!showLoaderModalSublocation">
-			<a href="javascript:void(0)" class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
+			<a  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
     		<button type="submit" class="waves-effect waves-light btn orange btn-flat" (click)="onClickYesArchive()">Yes</button>
 		</div>
 
@@ -282,7 +282,7 @@
 				<h5> Edit Details </h5>
 			</div>
 			<div class="col l5 m5 s12 right-align add-sublocation-container">
-				<a href="javascript:void(0)" class="blue-text" (click)="addSublocation()">+ Add Sublocation</a>
+				<a  class="blue-text" (click)="addSublocation()">+ Add Sublocation</a>
 			</div>
 		</div>
 		<form #formEditLocation="ngForm" (submit)="submitEditLocation(formEditLocation)">
@@ -300,7 +300,7 @@
 
 			<div class="row">
 				<div class="col s12 right-align">
-					<a href="javascript:void(0)" class="btn grey lighten-1 waves-effect waves-light modal-action modal-close" (click)="cancelEditLocation(formEditLocation)">Cancel</a>
+					<a  class="btn grey lighten-1 waves-effect waves-light modal-action modal-close" (click)="cancelEditLocation(formEditLocation)">Cancel</a>
 					<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formEditLocation.valid">Submit</button>
 				</div>
 			</div>

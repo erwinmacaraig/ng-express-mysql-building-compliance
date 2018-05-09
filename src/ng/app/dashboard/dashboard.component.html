@@ -3,7 +3,7 @@
 	<div class="red alert-email-verification darken-3 align-center" *ngIf="showEmailVerification"  style="margin-bottom: -58px;">
 		<div *ngIf="showResponse">{{responseMessage}}</div>
 		<div *ngIf="!showResponse">
-			Please validate your account by opening your email. <a href="javascript:void(0)" id="aClickResend" (click)="resendEmailVerification()"> Click here to resend </a>
+			Please validate your account by opening your email. <a  id="aClickResend" (click)="resendEmailVerification()"> Click here to resend </a>
 		</div>
 	</div>
 	<router-outlet></router-outlet>

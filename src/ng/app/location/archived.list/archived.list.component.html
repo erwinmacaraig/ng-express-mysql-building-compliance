@@ -165,8 +165,8 @@
 		</div>
 	</div>
 	<div class="modal-footer" [hidden]="modalArchive.loader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" *ngIf="selectedRestore.length  > 0" class="waves-effect waves-blue btn-flat" (click)="restoreClick()">Restore</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  *ngIf="selectedRestore.length  > 0" class="waves-effect waves-blue btn-flat" (click)="restoreClick()">Restore</a>
 	</div>
 </div>
 
@@ -201,8 +201,8 @@
 		</div>
 	</div>
 	<div class="modal-footer" [hidden]="modalArchiveBulk.loader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkRestoreClick()">Restore</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkRestoreClick()">Restore</a>
 	</div>
 </div>
 

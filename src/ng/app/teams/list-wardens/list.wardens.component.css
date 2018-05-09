@@ -252,6 +252,7 @@ table td .checkbox [type="checkbox"]+label{
 
 table td .checkbox [type="checkbox"]+label{
 	color: #333;
+    height: 15px;
 }
 
 table thead tr th .checkbox label{
