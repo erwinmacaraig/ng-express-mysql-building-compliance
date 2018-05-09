@@ -5,6 +5,10 @@ import { MessageService } from '../../services/messaging.service';
 import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import html2canvas from 'html2canvas';
+import * as jsPDF from 'jspdf';
+import * as moment from 'moment';
+
 
 declare var $ : any;
 
@@ -173,6 +177,40 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 			header : headerHtml
 		});
 	}
+
+    pdfExport(aPdf, printContainer){
+        let 
+            $printContainer = $(printContainer).clone(),
+            $titleClone = $('.summary-of-compliance-title').clone(),
+            aPdfHTML = aPdf.innerHTML;
+
+        $titleClone.append(' pg. '+this.pagination.currentPage);
+        $printContainer.find('.row.no-print').remove();
+
+        $printContainer.prepend($titleClone);
+
+        let trLen = $printContainer.find('tr').length,
+            trHeight = 100;
+
+        for(let i = 1; i<=(10-trLen); i++){
+            $('<div style="height:'+trHeight+'px; width:100%;"> </div>').insertAfter( $printContainer.find('.btn-compliance-rating') );
+        }
+
+        $('#cloneContainer').html($printContainer);
+
+        html2canvas($('#cloneContainer')[0]).then(function(canvas) {
+            let 
+            pdf = new jsPDF("l", "mm", "a4"),
+            imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+            $('#canvasContainer').html(canvas);
+            pdf.addImage(imgData, 'JPG', 7, 5, 280, 190 );
+            pdf.save('summary-of-compliance-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
+
+            $('#cloneContainer').html('');
+
+        });
+    }
 
 	ngOnDestroy(){
 		this.routeSubs.unsubscribe();

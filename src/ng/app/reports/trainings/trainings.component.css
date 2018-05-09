@@ -179,7 +179,7 @@ table tr td .material-icons{
 
 
 .switch{
-    width: 145px;
+    width: 220px;
     position: relative;
     height: 45px;
 }
@@ -215,12 +215,12 @@ table tr td .material-icons{
 
 .switch .yes{
     top: 24%;
-    left: 8%;
+    left: 7%;
 }
 
 .switch .no{
     top: 24%;
-    right: 12%;
+    right: 6%;
 }
 
 .switch .highlight{
@@ -236,11 +236,11 @@ table tr td .material-icons{
 }
 
 .switch input[type="checkbox"]:not(:checked) + .yes + .no + .highlight{
-    right: 5%;
-    width: 30%;
+    right: 3%;
+    width: 50%;
 }
 
 .switch input[type="checkbox"]:checked + .yes + .no + .highlight{
-    right: 45%;
-    width: 50%;
+    right: 61%;
+    width: 34%;
 }
