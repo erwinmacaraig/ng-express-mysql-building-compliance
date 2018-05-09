@@ -7,7 +7,9 @@ import { List } from '../models/list.model';
 import { Account } from '../models/account.model';
 import { User } from './../models/user.model';
 import { parse } from 'url';
+import { LocationAccountRelation } from '../models/location.account.relation';
 
+const defs = require('../config/defs.json');
 export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
@@ -176,5 +178,24 @@ export class AdminRoute extends BaseRoute {
 
       });
     });
+
+    router.get('/admin/location-listing/:accountId/',
+    new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const locAccntRelObj = new LocationAccountRelation();
+      let locationsForManager;
+      let locationsForTRP;
+
+      locationsForManager = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Manager']});
+      locationsForTRP = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
+      return res.status(200).send({
+        data: {
+          buildings: locationsForManager,
+          levels: locationsForTRP
+        }
+      });
+    });
+
   }
+
 }

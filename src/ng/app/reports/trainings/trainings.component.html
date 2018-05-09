@@ -1,33 +1,33 @@
 <div class="container">
-	<div class="row" style="margin-top: 35px;">
+    <div class="row" style="margin-top: 35px;">
+        <div class="col s12">
+            <h5>Training Report</h5>
+        </div>
+        <div class="col s12">
 
-		<div class="col s12">
-			<h5 class="left">Training</h5>
+            <div class="left filter-container">
 
-			<div class="left filter-container">
-
-      <div class="select-container">
-          <select class="select-location" id="selectLocation">
-              <option value="0">All Location</option>
-              <option value="{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb">{{loc.name}}</option>
-          </select>
-       </div>
-
-
-
-          <div class="search-field">
-            <input type="text" placeholder="Search member name" id="searchMemberInput" #searchMember>
-            <span class="material-icons">search</span>
-          </div>
+                <div class="select-container locations" style="margin-left: 0px;">
+                    <select multiple class="select-location" id="selectLocation"  >
+                        <option value="0" class="select-location-option id-0">All Location</option>
+                        <option value="{{loc.location_id}}" class="select-location-option id-{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb" >{{loc.name}}</option>
+                    </select>
+                </div>
 
 
-				<div class="select-container">
-					<select class="select-location" id="selectFilter">
-						<option value="null" selected>Filter</option>
-						<option value="offline">Face to Face</option>
-            <option value="online">Online Training</option>
-					</select>
-				</div>
+                <div class="search-field">
+                    <input type="text" placeholder="Search member name" id="searchMemberInput" #searchMember>
+                    <span class="material-icons">search</span>
+                </div>
+
+
+                <div class="select-container">
+                    <select class="select-filter" id="selectFilter">
+                        <option value="null" selected>Filter</option>
+                        <option value="offline">Face to Face</option>
+                        <option value="online">Online Training</option>
+                    </select>
+                </div>
 
                 <div class="switch-container">
 
@@ -39,43 +39,43 @@
                         <div class="background"></div>
                     </div>
                 </div>
-			</div>
+            </div>
 
-			<div class="right right-buttons">
-				<a href="javascript:void(0)">
-					<div class="text">Export to</div>
-					<div class="image pdf"></div>
-				</a>
+            <div class="right right-buttons">
+                <a >
+                    <div class="text">Export to</div>
+                    <div class="image pdf"></div>
+                </a>
 
-				<a href="javascript:void(0)">
-					<div class="image excel"></div>
-				</a>
+                <a >
+                    <div class="image excel"></div>
+                </a>
 
-				<a href="javascript:void(0)" (click)="printResult()">
-					<div class="text">Print</div>
-					<div class="image print"></div>
-				</a>
+                <a  (click)="printResult()">
+                    <div class="text">Print</div>
+                    <div class="image print"></div>
+                </a>
 
-			</div>
+            </div>
 
-			<div class="clearfix"></div>
-		</div>
+            <div class="clearfix"></div>
+        </div>
 
 
-	</div>
+    </div>
 
-	<div class="row">
+    <div class="row">
 
-		<div class="col l12 m12 s12" id="printContainer">
-			<table class="striped">
-				<thead>
-					<tr class="grey darken-5 white-text">
-						<th>User</th>
-						<th>Training Name</th>
-						<th>Training Date</th>
-						<th>Status</th>
-					</tr>
-				</thead>
+        <div class="col l12 m12 s12" id="printContainer">
+            <table class="striped">
+                <thead>
+                    <tr class="grey darken-5 white-text">
+                        <th>User</th>
+                        <th>Training Name</th>
+                        <th>Training Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
                 <tbody [hidden]="!loadingTable">
                     <tr>
                         <td colspan="4" class="center">
@@ -83,26 +83,26 @@
                         </td>
                     </tr>
                 </tbody>
-				<tbody [hidden]="loadingTable">
-					<tr *ngIf="results.length == 0">
-						<td colspan="4" class="center">
-							<h6>No result found</h6>
-						</td>
-					</tr>
-					<tr *ngFor="let re of results">
-						<td>{{re.first_name}} {{re.last_name}}</td>
-						<td>{{re.training_requirement_name}}</td>
-						<td>{{re.certification_date_formatted}}</td>
-						<td>
-							<span *ngIf="re.status == 'valid' && re.pass == 1 " class="blue-text">Compliant</span>
-							<span *ngIf="re.status != 'valid' || re.pass == 0 " class="grey-text">Not Compliant</span>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+                <tbody [hidden]="loadingTable">
+                    <tr *ngIf="results.length == 0">
+                        <td colspan="4" class="center">
+                            <h6>No result found</h6>
+                        </td>
+                    </tr>
+                    <tr *ngFor="let re of results">
+                        <td>{{re.first_name}} {{re.last_name}}</td>
+                        <td>{{re.training_requirement_name}}</td>
+                        <td>{{re.certification_date_formatted}}</td>
+                        <td>
+                            <span *ngIf="re.status == 'valid' && re.pass == 1 " class="blue-text">Compliant</span>
+                            <span *ngIf="re.status != 'valid' || re.pass == 0 " class="grey-text">Not Compliant</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-	</div>
+    </div>
 
     <div class="row no-print">
         <div class="col l12 m12 s12 center pagination" [hidden]="results.length == 0 || pagination.total <= queries.limit || loadingTable">

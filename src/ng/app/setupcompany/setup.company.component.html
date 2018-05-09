@@ -42,12 +42,12 @@
 									<h6 *ngIf=" searchedAccounts.length  > 0 ">Did you mean?</h6>
 									<ul>
 										<li *ngFor="let account of searchedAccounts">
-											<a href="javascript:void(0)" attr.account-id="{{account.account_id}}" (click)="selectCompanyFromListEvent(account, formSetupCompany)" >{{account.account_name}}</a>
+											<a  attr.account-id="{{account.account_id}}" (click)="selectCompanyFromListEvent(account, formSetupCompany)" >{{account.account_name}}</a>
 										</li>
 									</ul>
 
 									<div class="cant-find-my-company"  *ngIf="showCreateButton">
-										<a href="javascript:void(0)" >
+										<a  >
 											We couldn't find anything for '{{inpCompanyName.value}}'
 										</a>
 										<br>

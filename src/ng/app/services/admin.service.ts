@@ -40,5 +40,9 @@ export class AdminService {
     }
     return this.http.get(this.baseUrl + `/admin/account-users/${accountId}/`, {'params':  httpParams});
   }
+
+  getAllLocationsOnAccount(accountId: number = 0) {
+    return this.http.get(this.baseUrl + `/admin/location-listing/${accountId}/`, this.options);
+  }
 }
 
