@@ -259,8 +259,9 @@ export class CourseRoute extends BaseRoute {
             } else if (role === defs['Tenant']) {
               sublocations = sublocations.concat(locationIdsOnAccnt);
             }
-            const em_roles = await account.getAllEMRolesOnThisAccount(accountId, {'location' : sublocations, 'all': 1});
-            // console.log(em_roles);
+            const em_roles = await account.getAllEMRolesOnThisAccount(accountId, {'all': 1});
+            // console.log('********************', em_roles.length, '****************************');
+            // console.log('=============================', sublocations.length, '============================');
             const em_roles_user = {};
             const allUsers = [];
             for (const em of em_roles) {
