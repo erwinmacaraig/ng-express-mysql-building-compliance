@@ -218,8 +218,8 @@
 		</div>
 	</div>
 	<div class="modal-footer" [hidden]="modalArchive.loader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" *ngIf="selectedArchive.length  > 0" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  *ngIf="selectedArchive.length  > 0" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
 	</div>
 </div>
 
@@ -254,8 +254,8 @@
 		</div>
 	</div>
 	<div class="modal-footer" [hidden]="modalArchiveBulk.loader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
 	</div>
 </div>
 
@@ -385,7 +385,7 @@
 			<div class="row">
 				<div class="col l12 m12 s12">
 					<div class="button-container right-align" >
-						<a href="javascript:void(0)" class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
+						<a  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
 			    		<button type="submit" class="waves-effect waves-light btn orange btn-flat" [disabled]="!formAddTenant.valid">Submit</button>
 					</div>
 				</div>

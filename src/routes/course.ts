@@ -236,30 +236,32 @@ export class CourseRoute extends BaseRoute {
             const role = await userRoleModel.getByUserId(req.user.user_id, true);
             const locAccntRelObj = new LocationAccountRelation();
             const location = new Location();
-            console.log('============', role );
+
             const filter = {};
             const locationIdsOnAccnt = [];
             let sublocations = [];
             filter['responsibility'] = role;
             const locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+
             for (const l of locationListing) {
               locationIdsOnAccnt.push(l['location_id']);
             }
             if (role === defs['Manager']) {
               let sublocationsDbData;
               const sublocs = [0];
-              for (const loc of locationIdsOnAccnt) {
-                sublocationsDbData = await location.getDeepLocationsByParentId(loc);
-                Object.keys(sublocationsDbData).forEach((i) => {
-                  sublocs.push(sublocationsDbData[i]['location_id']);
-                });
-              }console.log(sublocs);
+              const locationIdsOnAccntStr = locationIdsOnAccnt.join(',');
+              sublocationsDbData = await location.getDeepLocationsByParentId(locationIdsOnAccntStr);
+              Object.keys(sublocationsDbData).forEach((i) => {
+                sublocs.push(sublocationsDbData[i]['location_id']);
+              });
+
               sublocations = sublocations.concat(sublocs);
             } else if (role === defs['Tenant']) {
               sublocations = sublocations.concat(locationIdsOnAccnt);
             }
-            const em_roles = await account.getAllEMRolesOnThisAccount(accountId, {'location' : sublocations, 'all': 1});
-            // console.log(em_roles);
+            const em_roles = await account.getAllEMRolesOnThisAccount(accountId, {'all': 1});
+            // console.log('********************', em_roles.length, '****************************');
+            // console.log('=============================', sublocations.length, '============================');
             const em_roles_user = {};
             const allUsers = [];
             for (const em of em_roles) {

@@ -695,3 +695,7 @@ table th:first-child{
     text-align: center;
     padding: 0px;
 }
+
+a:hover{
+    cursor: pointer;
+}

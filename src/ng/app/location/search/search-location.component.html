@@ -22,7 +22,7 @@
 					</div>
 					<div class="search-icon-container">
 						<img class="glass" src="assets/images/locations/search_icon.png" alt="">
-						<a href="javascript:void(0)" class="close-link" (click)="clearSearch()">
+						<a  class="close-link" (click)="clearSearch()">
 							<img class="close" src="assets/images/locations/close_search.png" alt="">
 						</a>
 					</div>
@@ -306,12 +306,12 @@
 				   	<ul style="margin: 0px; max-height: 275px; overflow-y: auto;">
 					    <li style="border-bottom: 1px solid #ddd;font-size: 16px;padding: 10px 0px;" *ngFor="let sub of sameSublocation">
 						    <span>{{sub.name}}</span>
-						    <a href="javascript:void(0)" class="right select-sub blue-text" #selectElement (click)="selectAddNewSubResult(sub, selectElement)" style="margin-right: 10px;">select</a>
+						    <a  class="right select-sub blue-text" #selectElement (click)="selectAddNewSubResult(sub, selectElement)" style="margin-right: 10px;">select</a>
 						</li>
 					</ul>
 				</div>
 				<div class="button-container right-align">
-					<a href="javascript:void(0)" class="btn grey lighten-1 waves-effect waves-light modal-action modal-close">Cancel</a>
+					<a  class="btn grey lighten-1 waves-effect waves-light modal-action modal-close">Cancel</a>
 					<button type="submit" class="btn orange waves-effect waves-light">Submit</button>
 				</div>
 			</form>
