@@ -159,7 +159,9 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     pdfExport(printContainer){
         let $printContainer = $(printContainer).clone();
 
-        $printContainer.removeClass('container');
+        $printContainer.removeClass('container').css({
+            'margin-left' : '50px', 'margin-right' : '50px'
+        });
         $printContainer.prepend('<h5>Team Report</h5>');
         $printContainer.find('.no-print').remove();
         $('#cloneContainer').html($printContainer);
