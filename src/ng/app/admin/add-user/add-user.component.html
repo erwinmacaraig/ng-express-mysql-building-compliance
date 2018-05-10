@@ -60,15 +60,36 @@
               </span>
               </td>
               <td>
-                  <select formControName="role" style="display: block;">
-                    <option value="0">Roles</option>
+                <!-- style="display: block;" " -->
+                  <select formControName="role" (change)="switchLocationDropDown($event, i)" style="display: block;">
+                    <option disabled selected value="0">Roles</option>
                     <option *ngFor="let r of roles" [value]="r.role_id">{{r.role_name}}</option>
                   </select>
+                  <span *ngIf="!userForm.controls['users'].controls[i].controls.role.valid">
+                    Please select user role.
+                  </span>
                 </td>
-              <td >
-                  <a href="javascript:void(0)" class="blue-text"> Select Location </a>
-                  <input formControlName="location" type="hidden" name="">
+              <td *ngIf="selectedRole[i] == 1; else leveldropdown">
+                  <select formControlName="location" style="display: block;">
+                    <option disabled selected value="0">Select Building Location</option>
+                    <option *ngFor="let building of buildings" [value]="building.location_id">{{building.name}}</option>
+                  </select>
+                  <span *ngIf="!userForm.controls['users'].controls[i].controls.location.valid && userForm.controls['users'].controls[i].controls.location.touched">
+                     Locations is required.
+                  </span>
               </td>
+              <ng-template #leveldropdown>
+                <td>
+                  <select formControlName="location" style="display: block;">
+                    <option disabled selected value="0">Select Level Location</option>
+                    <option *ngFor="let level of levels" [value]="level.location_id">{{level.name}}</option>
+                  </select>
+                  <span *ngIf="!userForm.controls['users'].controls[i].controls.location.valid && userForm.controls['users'].controls[i].controls.location.touched">
+                      Locations is required.
+                   </span>
+                </td>
+              </ng-template>
+
               <td>
                 <input formControlName="contact" type="text" placeholder="Mobile number" name="mobile_">
               </td>

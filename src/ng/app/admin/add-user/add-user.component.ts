@@ -18,21 +18,27 @@ declare var $: any;
   styleUrls: ['./add-user.component.css'],
   providers: [AdminService]
 })
-export class AddAccountUserComponent  implements OnInit {
+export class AddAccountUserComponent  implements OnInit, AfterViewInit {
   accountId = 0;
   userForm: FormGroup;
   users;
 
   buildings = [];
   levels = [];
+  forbiddenRoleList = [-1];
+  selectedRole = [];
   roles = [
     {
       role_id: 1,
-      role_name: 'Tenant Responsible Person'
+      role_name: 'FRP'
+    },
+    {
+      role_id: 2,
+      role_name: 'TRP'
     },
     {
       role_id: 8,
-      role_name: 'General Occupant',
+      role_name: 'GOFR',
     },
     {
       role_id: 9,
@@ -52,7 +58,7 @@ export class AddAccountUserComponent  implements OnInit {
     },
     {
       role_id: 13,
-      role_name: 'Emergency Planning Committee Member',
+      role_name: 'EPC Member',
     },
     {
       role_id: 14,
@@ -100,14 +106,19 @@ export class AddAccountUserComponent  implements OnInit {
       // levels
     });
   }
+
+  ngAfterViewInit() {
+    // $('select').material_select();
+  }
+
   createFormItem(): FormGroup {
     return this.formBuilder.group({
       first_name: ['', Validators.required],
       last_name: ['', Validators.required],
       password: ['', Validators.required],
       email: ['', [Validators.required, Validators.email], this.forbiddenEmails.bind(this)],
-      role: 0,
-      location: 0,
+      role: ['', Validators.required],
+      location: ['', Validators.required],
       contact: ''
     });
   }
@@ -118,7 +129,22 @@ export class AddAccountUserComponent  implements OnInit {
   }
 
   addUserOnSubmit() {
-    console.log(this.userForm);
+    const controlsArr = (<FormArray>this.userForm.get('users')).controls;
+    const values = [];
+    for (const ctrl of controlsArr) {
+      values.push({
+        first_name: ctrl.get('first_name').value,
+        last_name: ctrl.get('last_name').value,
+        password: ctrl.get('password').value,
+        email: ctrl.get('email').value,
+        role: ctrl.get('role').value,
+        location: ctrl.get('location').value,
+        contact: ctrl.get('contact').value
+      });
+    }
+    console.log(values);
+    console.log(JSON.stringify(values));
+
   }
 
   forbiddenEmails(control: FormControl): Promise<any> | Observable<any> {
@@ -135,7 +161,21 @@ export class AddAccountUserComponent  implements OnInit {
 
       });
     });
-
   }
+
+  forbiddenRoles(control: FormControl): {[s: string]: boolean} {
+    console.log('control value = ' + control.value);
+    if (this.forbiddenRoleList.indexOf(+control.value) !== -1) {
+      return { 'roleIsForbidden': true };
+    } else {
+      return null;
+    }
+  }
+  switchLocationDropDown(e: any, index: number) {
+    this.selectedRole[index] = +e.target.value;
+    (<FormArray>this.userForm.get('users')).controls[index].get('role').setValue(+e.target.value);
+    console.log(this.selectedRole);
+  }
+
 }
 
