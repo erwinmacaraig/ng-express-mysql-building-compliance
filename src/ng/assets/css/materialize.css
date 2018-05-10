@@ -9413,4 +9413,13 @@ button.picker__today:focus, button.picker__clear:focus, button.picker__close:foc
     {
         display: none !important;
     }
+
+    .print-no-margin-left-right{
+        margin-left: 0px;
+        margin-right: 0px;
+    }
+
+    .container{
+        width: 100%;
+    }
 }

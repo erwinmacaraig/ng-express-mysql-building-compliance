@@ -27,6 +27,7 @@
         "../../node_modules/jquery/dist/jquery.min.js",
         "../../node_modules/moment/moment.js",
         "../../node_modules/materialize-css/dist/js/materialize.min.js",
+        "../..//node_modules/jspdf/dist/jspdf.min.js",
         "assets/js/printthis.js"
       ],
       "environmentSource": "environments/environment.ts",
