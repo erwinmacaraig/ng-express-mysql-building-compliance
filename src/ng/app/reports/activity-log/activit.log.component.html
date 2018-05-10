@@ -5,12 +5,12 @@
 			<h5 class="left">Activity Log</h5>
 
 			<div class="right right-buttons">
-				<a >
+				<a #aPdf (click)="pdfExport(aPdf, printContainer)">
 					<div class="text">Export to</div>
 					<div class="image pdf"></div>
 				</a>
 				
-				<a >
+				<a (click)="csvExport()">
 					<div class="image excel"></div>
 				</a>
 
@@ -27,7 +27,7 @@
 
 	</div>
 
-	<div class="row" id="printContainer">
+	<div class="row" id="printContainer" #printContainer>
 		
 		<div class="col l12 m12 s12">
 			<table class="striped">
@@ -35,7 +35,7 @@
 					<tr class="grey darken-5 white-text">
 						<th>Locations</th>
 						<th>File Name</th>
-						<th>Date</th>
+						<th style="width: 170px;">Date</th>
 					</tr>
 				</thead>
                 <tbody *ngIf="loadingTable">
@@ -89,3 +89,9 @@
 
 	 
 </div>
+
+
+<div id="cloneContainer" style="">
+    <div class="clones"></div>
+</div>
+<div id="canvasContainer" style="display: none;"></div>

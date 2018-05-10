@@ -5,6 +5,7 @@ import { MessageService } from '../../services/messaging.service';
 import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { ExportToCSV } from '../../services/export.to.csv';
 import html2canvas from 'html2canvas';
 import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
@@ -15,7 +16,7 @@ declare var $ : any;
 	selector : 'app-statement-compliance-component',
 	templateUrl : './statement.compliance.component.html',
 	styleUrls : [ './statement.compliance.component.css' ],
-	providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService ]
+	providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService, ExportToCSV ]
 })
 
 export class ReportsLocationsStatementComplianceComponent implements OnInit, OnDestroy {
@@ -33,7 +34,8 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 		private messageService : MessageService,
 		private reportService : ReportService,
 		private encryptDecrypt : EncryptDecryptService,
-		private dashboardPreloader : DashboardPreloaderService
+		private dashboardPreloader : DashboardPreloaderService,
+        private exportToCSV : ExportToCSV
 		) {
 
 		this.userData = this.authService.getUserData();
@@ -158,6 +160,84 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 
             });
         });
+    }
+
+    csvExport(){
+        let csvData = {},
+            columns = [  "Compliance Requirement", "Legislative Reference", "Activity Date", "Status"  ],
+            getLength = () => {
+                return Object.keys(csvData).length;
+            },
+            references = {
+
+                '2' : 'AS 3745:2010 s.2.4',
+                '3' : 'Qld Building Fire Safety Regulations & Best Practice',
+                '4' : 'AS 3745:2010 s.3, s.4 & s.8',
+                '5' : 'AS 3745:2010 s.3.5',
+                '6' : 'AS 3745:2010 s.6.3 & s.6.5',
+                '8' : 'AS 3745:2010 s.6.3 & s.6.5',
+                '9' : 'AS 3745:2010 s.7',
+                '12' : 'AS 3745:2010 s.6.3 & s.6.5'
+
+            };
+
+        for(let report of this.reportData){
+
+            let locName = (report.location.parent.name.length > 0) ? report.location.parent.name + ' - ' : '' ;
+            locName += report.location.name;
+
+            csvData[ getLength() ] = [  locName  ];
+            csvData[ getLength() ] = columns;
+
+            if(report.kpis.length == 0){
+                csvData[ getLength() ] = [  'No record found'  ];
+            }else{
+
+                for(let kpi of report.kpis){
+                    let d = [];
+
+                    d.push( kpi.name );
+                    d.push( references[kpi.compliance_kpis_id] );
+
+                    if(!kpi.compliance.docs){
+                        d.push( 'n/a' );
+                    }else{
+                        if(kpi.compliance.docs[0]){
+                            d.push( kpi.compliance.docs[0]['date_of_activity_formatted'] );
+                        }else{
+                            d.push( 'n/a' );
+                        }
+                    }
+
+                    if(kpi.compliance.valid == 0){
+                        d.push( 'Not Compliant' );
+                    }else{
+                        d.push( 'Compliant' );
+                    }
+                    
+
+                    csvData[ getLength() ] = d;
+                }
+
+            }
+
+            let compRatingRow = [];
+            for(let i in columns){
+                if( parseInt(i) == (columns.length - 1) ){
+                    compRatingRow.push('Compliance Rating : '+report.compliance_rating);
+                }else{
+                    compRatingRow.push('');
+                }
+            }
+
+            csvData[  getLength() ] = compRatingRow;
+            csvData[  getLength() ] = [];
+            csvData[  getLength() ] = [];
+
+        }
+
+        this.exportToCSV.setData(csvData, 'statement-of-compliance-report-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
+        this.exportToCSV.export();
     }
 
 	ngOnDestroy(){

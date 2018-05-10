@@ -5,6 +5,10 @@ import { MessageService } from '../../services/messaging.service';
 import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { ExportToCSV } from '../../services/export.to.csv';
+import html2canvas from 'html2canvas';
+import * as jsPDF from 'jspdf';
+import * as moment from 'moment';
 
 declare var $ : any;
 
@@ -12,7 +16,7 @@ declare var $ : any;
 	selector : 'app-activity-log-compliance-component',
 	templateUrl : './activit.log.component.html',
 	styleUrls : [ './activit.log.component.css' ],
-	providers : [ AuthService, MessageService, EncryptDecryptService, DashboardPreloaderService, ReportService ]
+	providers : [ AuthService, MessageService, EncryptDecryptService, DashboardPreloaderService, ReportService, ExportToCSV ]
 })
 
 export class ReportsActivityLogComponent implements OnInit, OnDestroy {
@@ -39,7 +43,8 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 		private messageService : MessageService,
         private encDecService : EncryptDecryptService,
         private dashboardService : DashboardPreloaderService,
-        private reportService : ReportService
+        private reportService : ReportService,
+        private exportToCSV : ExportToCSV
 		) {
 
 		this.userData = this.authService.getUserData();
@@ -134,6 +139,71 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
             loadCSS: [ "/assets/css/materialize.css" ],
             header : headerHtml
         });
+    }
+
+    pdfExport(aPdf, printContainer){
+        let 
+            $printContainer = $(printContainer).clone(),
+            $titleClone = $('<h5>Activity Log</h5>'),
+            aPdfHTML = aPdf.innerHTML;
+
+        $titleClone.append(' (pg. '+this.pagination.currentPage+')');
+        $titleClone.insertBefore($printContainer.find('table'));
+
+        let trLen = $printContainer.find('tr').length,
+            trHeight = 100;
+
+        for(let i = 1; i<=(this.queries.limit - trLen); i++){
+            $('<div style="height:'+trHeight+'px; width:100%;"> </div>').insertAfter( $printContainer.find('table') );
+        }
+
+        $('#cloneContainer').html($printContainer);
+
+        html2canvas($('#cloneContainer')[0]).then(function(canvas) {
+            let 
+            pdf = new jsPDF("p", "mm", "a4"),
+            imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+            $('#canvasContainer').html(canvas);
+            pdf.addImage(imgData, 'JPG', 10, 5, 150, 285 );
+            pdf.save('activity-log-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
+
+            $('#cloneContainer').html('');
+
+        });
+    }
+
+    csvExport(){
+        let csvData = {},
+            columns = [  "Locations", "File Name", "Date" ],
+            getLength = () => {
+                return Object.keys(csvData).length;
+            };
+
+        let title =  "Activity Log ";
+        if(this.pagination.total > this.queries.limit){
+            title += " pg."+this.pagination.currentPage;
+        }
+
+        csvData[ getLength() ] = [title];
+        csvData[ getLength() ] = columns;
+
+        if(this.activityLogs.length == 0){
+            csvData[ getLength() ] = [ "No record found" ];
+        }else{
+
+            for(let log of this.activityLogs){
+                let locName = (log.parent_name.length > 0) ? log.parent_name + ' - ' : '' ;
+                
+                locName += log.location_name;
+
+                csvData[ getLength() ] = [ locName, log.file_name, log.timestamp_formatted ];
+            }
+
+        }
+
+        this.exportToCSV.setData(csvData, 'activity-log-report-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
+        this.exportToCSV.export();
     }
 
 	ngOnDestroy(){
