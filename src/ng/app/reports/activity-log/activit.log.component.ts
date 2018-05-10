@@ -5,6 +5,7 @@ import { MessageService } from '../../services/messaging.service';
 import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { ExportToCSV } from '../../services/export.to.csv';
 import html2canvas from 'html2canvas';
 import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
@@ -15,7 +16,7 @@ declare var $ : any;
 	selector : 'app-activity-log-compliance-component',
 	templateUrl : './activit.log.component.html',
 	styleUrls : [ './activit.log.component.css' ],
-	providers : [ AuthService, MessageService, EncryptDecryptService, DashboardPreloaderService, ReportService ]
+	providers : [ AuthService, MessageService, EncryptDecryptService, DashboardPreloaderService, ReportService, ExportToCSV ]
 })
 
 export class ReportsActivityLogComponent implements OnInit, OnDestroy {
@@ -42,7 +43,8 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 		private messageService : MessageService,
         private encDecService : EncryptDecryptService,
         private dashboardService : DashboardPreloaderService,
-        private reportService : ReportService
+        private reportService : ReportService,
+        private exportToCSV : ExportToCSV
 		) {
 
 		this.userData = this.authService.getUserData();
@@ -169,6 +171,39 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
             $('#cloneContainer').html('');
 
         });
+    }
+
+    csvExport(){
+        let csvData = {},
+            columns = [  "Locations", "File Name", "Date" ],
+            getLength = () => {
+                return Object.keys(csvData).length;
+            };
+
+        let title =  "Activity Log ";
+        if(this.pagination.total > this.queries.limit){
+            title += " pg."+this.pagination.currentPage;
+        }
+
+        csvData[ getLength() ] = [title];
+        csvData[ getLength() ] = columns;
+
+        if(this.activityLogs.length == 0){
+            csvData[ getLength() ] = [ "No record found" ];
+        }else{
+
+            for(let log of this.activityLogs){
+                let locName = (log.parent_name.length > 0) ? log.parent_name + ' - ' : '' ;
+                
+                locName += log.location_name;
+
+                csvData[ getLength() ] = [ locName, log.file_name, log.timestamp_formatted ];
+            }
+
+        }
+
+        this.exportToCSV.setData(csvData, 'activity-log-report-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
+        this.exportToCSV.export();
     }
 
 	ngOnDestroy(){
