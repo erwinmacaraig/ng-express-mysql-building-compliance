@@ -9,7 +9,7 @@
 
 <div class="row">
   <div class="col s12">
-    <form>
+    <form [formGroup]="userForm" novalidate (ngSubmit)="addUserOnSubmit()">
       <table class="table striped">
         <thead>
           <tr>
@@ -22,7 +22,59 @@
             <th>Contact Information</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody formArrayName="users">
+          <tr *ngFor="let u of userForm.get('users').controls; let i = index;"
+            [formGroupName]="i">
+            <td>
+                <input formControlName="first_name" type="text" placeholder="First Name" class="first-name" #first_name>
+
+                <span
+                  *ngIf="!userForm.controls['users'].controls[i].controls.first_name.valid &&
+                  userForm.controls['users'].controls[i].controls.first_name.touched">
+                    This first name is required.
+                </span>
+              </td>
+              <td>
+                <input formControlName="last_name" type="text" placeholder="Last Name" #last_name>
+                <span *ngIf="!userForm.controls['users'].controls[i].controls.last_name.valid
+                  && userForm.controls['users'].controls[i].controls.last_name.touched">
+                  Please enter last name.
+                </span>
+              </td>
+              <td>
+                <input formControlName="password" type="text" placeholder="Password">
+                <span *ngIf="!userForm.controls['users'].controls[i].controls.password.valid
+                  && userForm.controls['users'].controls[i].controls.password.touched">
+                  Please specify a password.
+                </span>
+              </td>
+              <td>
+                <input formControlName="email" type="text" placeholder="Email" #email>
+
+              <span *ngIf="!userForm.controls['users'].controls[i].controls.email.valid &&
+                userForm.controls['users'].controls[i].controls.email.touched">
+                Please provide a valid email.
+              </span>
+              <span *ngIf="!userForm.controls['users'].controls[i].controls.email.valid && userForm.controls['users'].controls[i].controls.email.errors['emailIsForbidden']">
+                Email already taken.
+              </span>
+              </td>
+              <td>
+                  <select formControName="role" style="display: block;">
+                    <option value="0">Roles</option>
+                    <option *ngFor="let r of roles" [value]="r.role_id">{{r.role_name}}</option>
+                  </select>
+                </td>
+              <td >
+                  <a href="javascript:void(0)" class="blue-text"> Select Location </a>
+                  <input formControlName="location" type="hidden" name="">
+              </td>
+              <td>
+                <input formControlName="contact" type="text" placeholder="Mobile number" name="mobile_">
+              </td>
+
+          </tr>
+          <!--
           <tr>
             <td>
               <input type="text" placeholder="First Name" class="first-name" name="first_name_" required>
@@ -48,12 +100,12 @@
             <td>
               <input type="text" placeholder="Mobile number" name="mobile_">
             </td>
-          </tr>
+          </tr> -->
         </tbody>
         <tfoot>
             <tr>
               <td colspan="7">
-                <button class="btn blue">
+                <button class="btn blue" (click)="addUserFormItem()">
                   + Add more row
                 </button>
               </td>
