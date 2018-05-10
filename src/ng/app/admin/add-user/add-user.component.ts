@@ -1,12 +1,15 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input } from '@angular/core';
-import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { ViewChild, ElementRef } from '@angular/core';
-import { Subscription } from 'rxjs/Rx';
-import { FormBuilder, FormGroup, FormArray } from '@angular/forms';
+import { Subscription, Observable } from 'rxjs/Rx';
+import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
+
+
 import { AdminService } from './../../services/admin.service';
+
 declare var $: any;
 
 @Component({
@@ -15,21 +18,27 @@ declare var $: any;
   styleUrls: ['./add-user.component.css'],
   providers: [AdminService]
 })
-export class AddAccountUserComponent  implements OnInit {
+export class AddAccountUserComponent  implements OnInit, AfterViewInit {
   accountId = 0;
   userForm: FormGroup;
   users;
 
   buildings = [];
   levels = [];
+  forbiddenRoleList = [-1];
+  selectedRole = [];
   roles = [
     {
       role_id: 1,
-      role_name: 'Tenant Responsible Person'
+      role_name: 'FRP'
+    },
+    {
+      role_id: 2,
+      role_name: 'TRP'
     },
     {
       role_id: 8,
-      role_name: 'General Occupant',
+      role_name: 'GOFR',
     },
     {
       role_id: 9,
@@ -49,7 +58,7 @@ export class AddAccountUserComponent  implements OnInit {
     },
     {
       role_id: 13,
-      role_name: 'Emergency Planning Committee Member',
+      role_name: 'EPC Member',
     },
     {
       role_id: 14,
@@ -69,7 +78,16 @@ export class AddAccountUserComponent  implements OnInit {
     },
 
   ];
-  constructor(private formBuilder: FormBuilder, private adminService: AdminService, private route: ActivatedRoute) {}
+  private baseUrl: String;
+
+  constructor(public http: HttpClient,
+    private platformLocation: PlatformLocation,
+    private formBuilder: FormBuilder,
+    private adminService: AdminService,
+    private route: ActivatedRoute) {
+
+    this.baseUrl = (platformLocation as any).location.origin;
+  }
 
   ngOnInit() {
     this.route.params.subscribe((parameters) => {
@@ -77,7 +95,6 @@ export class AddAccountUserComponent  implements OnInit {
       this.userForm = this.formBuilder.group({
         users: this.formBuilder.array([this.createFormItem()])
       });
-
 
       this.adminService.getAllLocationsOnAccount(this.accountId).subscribe((response) => {
         this.buildings = response['data']['buildings'];
@@ -89,14 +106,19 @@ export class AddAccountUserComponent  implements OnInit {
       // levels
     });
   }
+
+  ngAfterViewInit() {
+    // $('select').material_select();
+  }
+
   createFormItem(): FormGroup {
     return this.formBuilder.group({
-      first_name: '',
-      last_name: '',
-      password: '',
-      email: '',
-      role: 0,
-      location: 0,
+      first_name: ['', Validators.required],
+      last_name: ['', Validators.required],
+      password: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email], this.forbiddenEmails.bind(this)],
+      role: ['', Validators.required],
+      location: ['', Validators.required],
       contact: ''
     });
   }
@@ -105,5 +127,55 @@ export class AddAccountUserComponent  implements OnInit {
     this.users = this.userForm.get('users') as FormArray;
     this.users.push(this.createFormItem());
   }
+
+  addUserOnSubmit() {
+    const controlsArr = (<FormArray>this.userForm.get('users')).controls;
+    const values = [];
+    for (const ctrl of controlsArr) {
+      values.push({
+        first_name: ctrl.get('first_name').value,
+        last_name: ctrl.get('last_name').value,
+        password: ctrl.get('password').value,
+        email: ctrl.get('email').value,
+        role: ctrl.get('role').value,
+        location: ctrl.get('location').value,
+        contact: ctrl.get('contact').value
+      });
+    }
+    console.log(values);
+    console.log(JSON.stringify(values));
+
+  }
+
+  forbiddenEmails(control: FormControl): Promise<any> | Observable<any> {
+    const httpParams = new HttpParams().set('user_email', control.value);
+    return new Promise((resolve, reject) => {
+      this.http.get(this.baseUrl + '/admin/check-user-email/', {'params': httpParams}).subscribe((response) => {
+        if (response['forbidden']) {
+          resolve({
+            emailIsForbidden: true
+          });
+        } else {
+          resolve(null);
+        }
+
+      });
+    });
+  }
+
+  forbiddenRoles(control: FormControl): {[s: string]: boolean} {
+    console.log('control value = ' + control.value);
+    if (this.forbiddenRoleList.indexOf(+control.value) !== -1) {
+      return { 'roleIsForbidden': true };
+    } else {
+      return null;
+    }
+  }
+  switchLocationDropDown(e: any, index: number) {
+    this.selectedRole[index] = +e.target.value;
+    (<FormArray>this.userForm.get('users')).controls[index].get('role').setValue(+e.target.value);
+    console.log(this.selectedRole);
+  }
+
 }
 
