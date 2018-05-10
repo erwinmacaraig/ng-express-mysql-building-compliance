@@ -23,7 +23,7 @@
           </tr>
         </thead>
         <tbody formArrayName="users">
-          <tr *ngFor="let u of userForm.get('users').controls; let i = index;"
+          <tr *ngFor="let u of userForm.get('users')['controls']; let i = index;"
             [formGroupName]="i">
             <td>
                 <input formControlName="first_name" type="text" placeholder="First Name" class="first-name" #first_name>
