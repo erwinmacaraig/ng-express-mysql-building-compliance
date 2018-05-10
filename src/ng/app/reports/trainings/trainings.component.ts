@@ -322,7 +322,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             imgData = canvas.toDataURL('image/jpeg', 1.0);
 
             $('#canvasContainer').html(canvas);
-            pdf.addImage(imgData, 'JPG', 7, 5, 195, 280 );
+            pdf.addImage(imgData, 'JPG', 7, 5, 195, 270 );
             pdf.save('training-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
 
             $('#cloneContainer').html('');

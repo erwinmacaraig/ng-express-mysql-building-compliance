@@ -5,6 +5,10 @@ import { MessageService } from '../../services/messaging.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { ReportService } from '../../services/report.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import html2canvas from 'html2canvas';
+import * as jsPDF from 'jspdf';
+import * as moment from 'moment';
+
 
 declare var $: any;
 
@@ -141,21 +145,50 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         }
     }
 
-    printResult(report, printContainer){
-        let locName = 'All Location';
-        for(let loc of this.rootLocationsFromDb){
-            if(loc['location_id'] == report.location.location_id){
-                locName = loc.name;
-            }
-        }
-
-        let headerHtml = `<h5> Team Report For `+locName+` </h5>`;
+    printResult(printContainer){
+        let headerHtml = `<h5> Team Report </h5>`;
 
         $(printContainer).printThis({
             importCSS: true,
             importStyle: true,
             loadCSS: [ "/assets/css/materialize.css" ],
             header : headerHtml
+        });
+    }
+
+    pdfExport(printContainer){
+        let $printContainer = $(printContainer).clone();
+
+        $printContainer.removeClass('container');
+        $printContainer.prepend('<h5>Team Report</h5>');
+        $printContainer.find('.no-print').remove();
+        $('#cloneContainer').html($printContainer);
+
+        html2canvas($('#cloneContainer')[0]).then(function(canvas) {
+            let 
+            pdf = new jsPDF("p", "mm", "a4"),
+            pageHeight = 297, // 1122.52px
+            imgWidth = 210, //793.70px
+            imgData = canvas.toDataURL('image/jpeg', 1.0),
+            imgHeight = canvas.height * imgWidth / canvas.width,
+            heightLeft = imgHeight,
+            position = 5;
+
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft >= 0) {
+              position = heightLeft - imgHeight;
+              position += 5;
+              pdf.addPage();
+              pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+              heightLeft -= pageHeight;
+            }
+
+            $('#canvasContainer').html(canvas);
+            pdf.save('teams-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
+            $('#cloneContainer').html('');
+
         });
     }
 
