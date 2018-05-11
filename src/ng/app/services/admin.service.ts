@@ -44,5 +44,9 @@ export class AdminService {
   getAllLocationsOnAccount(accountId: number = 0) {
     return this.http.get(this.baseUrl + `/admin/location-listing/${accountId}/`, this.options);
   }
+
+  submitNewUsers(users: string) {
+    return this.http.post(this.baseUrl + '/admin/add-new-user/', {'users': users}, this.options);
+  }
 }
 

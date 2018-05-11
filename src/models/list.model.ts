@@ -80,5 +80,75 @@ export class List {
         connection.end();
       });
     }
+    /**
+     *
+     * @param buildingLocations
+     * @description
+     * Method to get the immediate sublevel given a building
+     * @author
+     * Erwin Macaraig
+     */
+    generateSublocationsForListing(buildingLocations = []): Promise<Object> {
+      return new Promise((resolve, reject) => {
+        if (buildingLocations.length === 0) {
+          resolve([]);
+          return;
+        }
+        const buildingLocationsStr = buildingLocations.join(',');
+        const sublocations: {[k: number]: object} = {};
+        const loc = {
+          'id': 0,
+          'name': ''
+        };
+        const resultSet = [];
+        const sql = `SELECT
+                      locations.location_id,
+                      locations.parent_id,
+                      locations.name,
+                      parent_location.name as parent_location_name
+                 FROM locations
+                 INNER JOIN locations AS parent_location
+                 ON locations.parent_id = parent_location.location_id
+                 WHERE locations.parent_id IN (${buildingLocationsStr})
+                 ORDER BY locations.parent_id`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [], (error, results) => {
+          if (error) {
+            console.log('list.model.generateSublocationsForListing', error, sql);
+            throw Error('There was an error generating the list of sublocations');
+          }
+          for (const r of results) {
+            if (r['parent_id'] in sublocations) {
+              loc['id'] = r['location_id'];
+              loc['name'] = r['name'];
+              sublocations[r['parent_id']]['sublocations'].push({
+                'id': r['location_id'],
+                'name': r['name']
+              });
+            } else {
+              const locationParentIndex = r['parent_id'];
+
+              sublocations[locationParentIndex] = {
+                parent_location_id: locationParentIndex,
+                sublocations: [{
+                  'id': r['location_id'],
+                  'name': r['name']
+                }],
+                parent_location_name: r['parent_location_name']
+              };
+            }
+          }
+          Object.keys(sublocations).forEach((parent) => {
+            resultSet.push(sublocations[parent]);
+          });
+          resolve({
+            resultArray: resultSet,
+            resultObject: sublocations
+          });
+        });
+        connection.end();
+
+      });
+    }
 
 }

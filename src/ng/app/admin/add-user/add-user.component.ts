@@ -22,7 +22,7 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
   accountId = 0;
   userForm: FormGroup;
   users;
-
+  sub: Subscription;
   buildings = [];
   levels = [];
   forbiddenRoleList = [-1];
@@ -100,10 +100,6 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
         this.buildings = response['data']['buildings'];
         this.levels = response['data']['levels'];
       });
-
-      // get all locations tagged to this account
-      // buildings
-      // levels
     });
   }
 
@@ -123,7 +119,8 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
     });
   }
 
-  addUserFormItem(): void {
+  addUserFormItem(e: Event): void {
+    e.preventDefault();
     this.users = this.userForm.get('users') as FormArray;
     this.users.push(this.createFormItem());
   }
@@ -139,12 +136,19 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
         email: ctrl.get('email').value,
         role: ctrl.get('role').value,
         location: ctrl.get('location').value,
-        contact: ctrl.get('contact').value
+        contact: ctrl.get('contact').value,
+        account_id: this.accountId
       });
     }
-    console.log(values);
     console.log(JSON.stringify(values));
+    this.sub = this.adminService.submitNewUsers(JSON.stringify(values)).subscribe((response) => {
+      (<FormArray>this.userForm.get('users')).reset();
+      for (let index = 1;
+      index <= (<FormArray>this.userForm.get('users')).length; index++) {
+        (<FormArray>this.userForm.get('users')).removeAt(index);
+      }
 
+    });
   }
 
   forbiddenEmails(control: FormControl): Promise<any> | Observable<any> {
@@ -175,6 +179,14 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
     this.selectedRole[index] = +e.target.value;
     (<FormArray>this.userForm.get('users')).controls[index].get('role').setValue(+e.target.value);
     console.log(this.selectedRole);
+  }
+
+  cancelUserForm() {
+    (<FormArray>this.userForm.get('users')).reset();
+    for (let index = 1;
+      index <= (<FormArray>this.userForm.get('users')).length; index++) {
+        (<FormArray>this.userForm.get('users')).removeAt(index);
+    }
   }
 
 }

@@ -6,10 +6,13 @@ import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { List } from '../models/list.model';
 import { Account } from '../models/account.model';
+import { Location } from '../models/location.model';
 import { User } from './../models/user.model';
+import { Token } from './../models/token.model';
 import { parse } from 'url';
 import { LocationAccountRelation } from '../models/location.account.relation';
-
+import * as moment from 'moment';
+const md5 = require('md5');
 const defs = require('../config/defs.json');
 export class AdminRoute extends BaseRoute {
 
@@ -186,13 +189,30 @@ export class AdminRoute extends BaseRoute {
       const locAccntRelObj = new LocationAccountRelation();
       let locationsForManager;
       let locationsForTRP;
+      const buildingIds = [];
 
       locationsForManager = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Manager']});
-      locationsForTRP = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
+      for (const location of locationsForManager) {
+        buildingIds.push(location['location_id']);
+      }
+      // GET ALL SUBLEVELS
+      const list = new List();
+      let levelLocations;
+      if (buildingIds.length == 0) {
+        locationsForTRP = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
+        for (const location of locationsForTRP) {
+          buildingIds.push(location['parent_id']);
+        }
+        const locationObj = new Location();
+        locationsForManager = await locationObj.bulkLocationDetails(buildingIds);
+      }
+
+      levelLocations = await list.generateSublocationsForListing(buildingIds);
+
       return res.status(200).send({
         data: {
           buildings: locationsForManager,
-          levels: locationsForTRP
+          levels: levelLocations['resultArray']
         }
       });
     });
@@ -209,9 +229,88 @@ export class AdminRoute extends BaseRoute {
           forbidden: false
         });
       });
-
     });
+
+    router.post('/admin/add-new-user/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const userForm = JSON.parse(req.body.users);
+      console.log(userForm);
+
+      let createData = {
+        first_name: '',
+        last_name: '',
+        email: '',
+        mobile_number: '',
+        can_login: 1,
+        password: '',
+        invited_by_user: req.user.user_id,
+        account_id: 0,
+        token: ''
+      };
+
+      for (const u of userForm) {
+        const user = new User();
+        const token = new Token();
+
+        createData.first_name = u['first_name'];
+        createData.last_name = u['last_name'];
+        createData.email = u['email'];
+        createData.mobile_number = u['contact'];
+        createData.password = md5('Ideation' + u['password'] + 'Max');
+        createData.account_id = u['account_id'];
+        createData.can_login = 1;
+        createData.invited_by_user =  req.user.user_id;
+        createData.token = md5(u['email']);
+
+        await user.create(createData);
+        createData = {
+          first_name: '',
+          last_name: '',
+          email: '',
+          mobile_number: '',
+          can_login: 1,
+          password: '',
+          invited_by_user: req.user.user_id,
+          account_id: 0,
+          token: ''
+        };
+
+        await token.create({
+          id: user.ID(),
+          id_type: 'user_id',
+          token: md5(u['email']),
+          action: 'verify',
+          verified: 1,
+          expiration_date: moment().format('YYYY-MM-DD HH-mm-ss')
+        });
+
+        if (parseInt(u['role'], 10) > 2) {
+          // EM Roles
+        } else {
+          // Account
+          const locationAccntRel = new LocationAccountRelation();
+          try {
+              await locationAccntRel.getLocationAccountRelation({
+                  'location_id': u['location_id'],
+                  'account_id': u['account_id'],
+                  'responsibility': defs['role_text'][u['role']]
+              });
+          } catch (err) {
+              await locationAccntRel.create({
+                  'location_id': u['location_id'],
+                  'account_id': u['account_id'],
+                  'responsibility': defs['role_text'][u['role']]
+              });
+          }
+
+        }
+      }
+
+      return res.status(200).send({
+        message: 'Success',
+        data: userForm
+      });
+    });
+
+  // ===============
   }
-
-
 }
