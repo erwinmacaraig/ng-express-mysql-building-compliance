@@ -907,33 +907,30 @@ export class UsersRoute extends BaseRoute {
 
         if(query.roles && query.users_locations){
             let accountModel = new Account(),
+                locAccUserModel = new LocationAccountUser(),
                 emRolesModel = new UserEmRoleRelation(),
                 locationsDB = <any> [],
-                locations = <any> [];
-            try{
-                locationsDB = await accountModel.getLocationsOnAccount(userID, 1, 0);
-                for (let loc of locationsDB) {
-                    locations.push(loc);
-                }
-            }catch(e){}
+                locations = <any> [],
+                locationIds = [],
+                locationsEmRoles = <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')),
+                locationFRPTRP = <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','));
 
-
-            let locationsEmRoles = <any> await emRolesModel.getLocationsByUserIds(userIds.join(','));
             for(let loc of locationsEmRoles){
-                let exist = false;
-                for(let locDB of locations){
-                    if(locDB.location_id == loc.location_id){
-                        exist = true;
-                    }
-                }
-                if(!exist){
+                if(!locationIds[ loc.location_id ]){
                     locations.push(loc);
+                    locationIds.push(loc.location_id);
+                }
+            }
+            
+
+            for(let loc of locationFRPTRP){
+                if(!locationIds[ loc.location_id ]){
+                    locations.push(loc);
+                    locationIds.push(loc.location_id);
                 }
             }
 
-            for (let loc of locationsDB) {
-                locations.push(loc);
-            }
+            response['locations'] = locations;
 
             let locationsData = [],
                 parents = {};
@@ -956,94 +953,48 @@ export class UsersRoute extends BaseRoute {
                         }
                     }catch(e){}
                 }
-
-                /*
-                **** THIS IS DEEP FETCHING OF LOCATIONS ***
-                let
-                    deepLocModel = new Location(),
-                    deepLocations = <any> [];
-
-                if(loc.parent_id == -1){
-                    deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
-                    deepLocations.push(loc);
-                }else{
-                    let ancLocModel = new Location(),
-                        ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
-
-                    for(let anc of ancestores){
-                        if(anc.parent_id == -1){
-                            deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
-                            deepLocations.push(anc);
-                        }
-                    }
-                }
-
-                let isIn = false;
-                for(let dl of deepLocations){
-                    for(let ld of locationsData){
-                        if(dl.location_id == ld.location_id){
-                            isIn = true;
-                        }
-                    }
-
-                    if(!isIn){
-                        locationsData.push(dl);
-                    }
-                }
-                */
             }
 
             for(let loc of locationsData){
                 loc.name = (loc.name.trim().length == 0) ? loc.formatted_address : loc.name;
             }
+ 
+            for(let user of response.data['users']){
+                if('locations' in user == false){ user['locations'] = []; }
+                for(let loc of locationsData){
+                    if(loc.user_id == user.user_id){
+                        let userLocData = {
+                            user_id : user.user_id,
+                            location_id : loc.location_id,
+                            name : loc.name,
+                            parent_id : -1,
+                            parent_name : '',
+                            sublocations_count : 0
+                        };
 
-            let locAccUserModel = new LocationAccountUser(),
-                usersLocsMap = <any> await locAccUserModel.getManyLocationsByAccountIdAndUserIds(accountId, userIds.join(','));
+                        userLocData.location_id = loc.location_id;
+                        userLocData.name = loc.name;
+                        userLocData.parent_id = loc.parent_id;
 
-            for(let loc of locationsEmRoles){
-                usersLocsMap.push(loc);
-            }
-
-            for(let map of usersLocsMap){
-                for(let user of response.data['users']){
-                    let userLocData = {
-                        user_id : user.user_id,
-                        location_id : 0,
-                        name : '',
-                        parent_id : -1,
-                        parent_name : '',
-                        sublocations_count : 0
-                    };
-
-                    if('locations' in user == false){ user['locations'] = []; }
-                    if(map.user_id == user.user_id){
-                        for(let loc of locationsData){
-                            if(loc.location_id == map.location_id){
-                                userLocData.location_id = loc.location_id;
-                                userLocData.name = loc.name;
-                                userLocData.parent_id = loc.parent_id;
-
-                                if(loc.parent_id > -1){
-                                    for(let par of locationsData){
-                                        if(par.location_id == loc.parent_id){
-                                            userLocData.parent_name = par.name;
-                                        }
-                                    }
+                        if(loc.parent_id > -1){
+                            for(let par of locationsData){
+                                if(par.location_id == loc.parent_id){
+                                    userLocData.parent_name = par.name;
                                 }
-
-                                let exst = false;
-                                for(let ul of user['locations']){
-                                    if( ul.location_id == loc.location_id ){
-                                        exst = true;
-                                    }
-                                }
-
-                                let locSubModel = new Location();
-                                userLocData.sublocations_count =  <any> await locSubModel.countSubLocations(loc.location_id)
-
-                                if(!exst){ user.locations.push(userLocData); }
                             }
                         }
+
+                        let exst = false;
+                        for(let ul of user['locations']){
+                            if( ul.location_id == loc.location_id ){
+                                exst = true;
+                            }
+                        }
+
+                        let locSubModel = new Location();
+                        userLocData.sublocations_count =  <any> await locSubModel.countSubLocations(loc.location_id)
+
+                        if(!exst){ user.locations.push(userLocData); }
                     }
                 }
             }
@@ -1081,7 +1032,9 @@ export class UsersRoute extends BaseRoute {
                 }
 
             }
+
         }
+
 
         if(query.user_training){
 
@@ -1196,7 +1149,7 @@ export class UsersRoute extends BaseRoute {
             response.data['pagination'] = pagination;
         }
 
-        res.send(response);
+        res.status(200).send(response);
     }
 
 	public async getUsersByAccountIdNoneAuth(req: Request, res: Response){

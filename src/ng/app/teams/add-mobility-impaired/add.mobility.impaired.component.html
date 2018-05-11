@@ -107,41 +107,33 @@
 			</div>
 		</div>
 		
-		<form #formLoc="ngForm" (submit)="submitSelectLocationModal(formLoc, $event)">
+		<form #formLoc (submit)="submitSelectLocationModal(formLoc, $event)">
 
-		<div class="list-region" style="overflow-y: auto; height: 340px;">
-			<p *ngIf="locations.length == 0">No location found</p>
-			<ul *ngIf="locations.length > 0">
-				<ng-template #recursiveList let-locations>
-					<li *ngFor="let location of locations" class="list-division" [id]="location.location_id" [ngClass]="{ 'show-drop-down' : (location.showDropDown) ? location.showDropDown : false }">
-						<div class="name-radio-plus">
-							<div class="input">
-								<input ngModel required type="radio" name="selectLocation" [value]="location.location_id" [id]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }" >
-								<label [for]="'check-'+location.location_id" [ngClass]="{ hide : location.sublocations.length > 0 }"></label>
-								<div class="plus-minus">
-									<input type="checkbox" (change)="onChangeDropDown($event)" [ngClass]="{ hide : location.sublocations.length == 0 }" [checked]="(location.showDropDown) ? location.showDropDown : false" />
-									<span class="sign" [ngClass]="{ hide : location.sublocations.length == 0 }" ></span>
-									<span *ngIf="location.parent"> <span *ngIf="location.parent.name">{{location.parent.name}}, </span> </span>
-									<span *ngIf="location.name.length > 0">{{location.name}}</span>
-									<span *ngIf="location.name.length == 0">{{location.formatted_address}}</span>
-								</div>
-							</div>
-						</div>
-						<ul *ngIf="location.sublocations.length > 0">
-					        <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: location.sublocations }"></ng-container>
-						</ul>
-					</li>
-				</ng-template>
-				<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: locations }"></ng-container>
-    		</ul>
-		</div>
+            <div class="list-region" style="overflow-y: auto; height: 340px;">
+                <p *ngIf="locations.length == 0">No location found</p>
+                
+                <ul class="locations"></ul>
 
-		<div class="button-container center">
-			<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
-			<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLoc.valid" *ngIf="locations.length > 0"> Submit </button>
-		</div>
+                <!-- <ul *ngIf="locations.length > 0" class="">
+                    <li *ngFor="let location of locations" class="list-division" [id]="location.location_id" >
+                        <div class="name-radio-plus">
+                            <div class="input">
+                                <input ngModel required type="radio" name="selectLocation" [value]="location.location_id" [id]="'check-'+location.location_id"   >
+                                <label [for]="'check-'+location.location_id">
+                                    {{location.name}}
+                                </label>
+                            </div>
+                        </div>
+                    </li>
+                </ul> -->
+            </div>
 
-		</form>
+            <div class="button-container center">
+                <a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
+                <button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLocValid" *ngIf="locations.length > 0"> Submit </button>
+            </div>
+
+        </form>
 
 	</div>
 </div>

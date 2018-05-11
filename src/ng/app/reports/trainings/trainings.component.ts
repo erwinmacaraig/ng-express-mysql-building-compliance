@@ -97,35 +97,6 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
                     urlparam = values.join('-');
 
-                    if(this.arrLocationIds.join('-') != urlparam){
-
-                        if( this.arrLocationIds[0] && values.length > 1 ){
-                            $('.select-wrapper.select-location ul li input[type="checkbox"]').each((i, elem) => {
-                                if(i == 0){
-                                    elem.checked = false;
-                                }
-                            });
-
-                            let newvalues = values.splice( values.indexOf(0) , 1 ),
-                                txtVal = $('.select-wrapper.select-location input.select-dropdown').val();
-                            $('#selectLocation').val(newvalues);
-                            $('.select-wrapper.select-location input.select-dropdown').val(  txtVal.replace('All Location', '') );
-                        }
-
-                        if( values.indexOf('0') > -1 && values.length > 1){
-                            
-                        }else if( values.indexOf('0') > -1 ){
-                            $('.select-wrapper.select-location ul li input[type="checkbox"]').each((i, elem) => {
-                                if(i > 0){
-                                    elem.checked = false;
-                                }
-                            });
-
-                            $('#selectLocation').val([0]);
-                            $('.select-wrapper.select-location input.select-dropdown').val( 'All Location' );
-                        }
-
-                    }
 
                 });
             },100);
@@ -185,15 +156,19 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
             urlparam = values.join('-');
 
-            if( this.arrLocationIds.join('-') == urlparam || values.length == 0 || values.indexOf('0') > -1 && values.length > 1 ){
-                $('#selectLocation').val(this.arrLocationIds);
-                return false;
-            }
+            if( this.arrLocationIds.join('-') != urlparam ){
+                if(values.indexOf('0') > -1){
+                    $('#selectLocation option').prop('selected', false);
+                    $('#selectLocation option[value="0"]').prop('selected', true);
+                    $('#selectLocation').material_select();
+                    urlparam = '0';
+                }
 
-            this.queries.offset = 0;
-            this.loadingTable = true;
-            this.dashboardPreloader.show();
-            this.router.navigate(['/reports/trainings/' + this.encryptDecrypt.encrypt(urlparam)]);
+                this.queries.offset = 0;
+                this.loadingTable = true;
+                this.dashboardPreloader.show();
+                this.router.navigate(['/reports/trainings/' + this.encryptDecrypt.encrypt(urlparam)]);
+            }
 
         });
 
