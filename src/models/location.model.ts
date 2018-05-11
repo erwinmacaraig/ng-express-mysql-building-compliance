@@ -504,7 +504,7 @@ export class Location extends BaseClass {
 			});
 			connection.end();
 		});
-  }
+    }
 
 	public getParentsChildren(parentId, raw = 1, buildings_only:boolean = false): any {
 		return new Promise((resolve) => {
