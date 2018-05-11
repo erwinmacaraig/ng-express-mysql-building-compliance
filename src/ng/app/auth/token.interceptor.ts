@@ -7,6 +7,7 @@ import { HttpRequest,
 
 import { AuthService } from '../services/auth.service';
 import { Observable } from 'rxjs/Observable';
+import * as moment from 'moment';
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
@@ -16,9 +17,12 @@ export class TokenInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<any>, next: HttpHandler):
             Observable<HttpEvent<any>> {
 
+
+    let unix = moment().toISOString();
     request = request.clone({
       setHeaders: {
-        Authorization: 'Bearer '+this.auth.getToken()
+        Authorization: 'Bearer '+this.auth.getToken(),
+        timestamp : unix
       }
     });
 
