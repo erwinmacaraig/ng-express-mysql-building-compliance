@@ -7,6 +7,7 @@ import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { CourseService } from '../../services/course';
+import { ExportToCSV } from '../../services/export.to.csv';
 import { Observable } from 'rxjs/Rx';
 import html2canvas from 'html2canvas';
 import * as jsPDF from 'jspdf';
@@ -18,7 +19,7 @@ declare var $: any;
 	selector : 'app-trainings-compliance-component',
 	templateUrl : './trainings.component.html',
 	styleUrls : [ './trainings.component.css' ],
-	providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService, CourseService ]
+	providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService, CourseService, ExportToCSV ]
 })
 
 export class ReportsTrainingsComponent implements OnInit, OnDestroy {
@@ -58,7 +59,8 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 		private reportService : ReportService,
 		private encryptDecrypt : EncryptDecryptService,
 		private dashboardPreloader : DashboardPreloaderService,
-        private courseService : CourseService
+        private courseService : CourseService,
+        private exportToCSV : ExportToCSV
 		) {
 
 		this.userData = this.authService.getUserData();
@@ -95,35 +97,6 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
                     urlparam = values.join('-');
 
-                    if(this.arrLocationIds.join('-') != urlparam){
-
-                        if( this.arrLocationIds[0] && values.length > 1 ){
-                            $('.select-wrapper.select-location ul li input[type="checkbox"]').each((i, elem) => {
-                                if(i == 0){
-                                    elem.checked = false;
-                                }
-                            });
-
-                            let newvalues = values.splice( values.indexOf(0) , 1 ),
-                                txtVal = $('.select-wrapper.select-location input.select-dropdown').val();
-                            $('#selectLocation').val(newvalues);
-                            $('.select-wrapper.select-location input.select-dropdown').val(  txtVal.replace('All Location', '') );
-                        }
-
-                        if( values.indexOf('0') > -1 && values.length > 1){
-                            
-                        }else if( values.indexOf('0') > -1 ){
-                            $('.select-wrapper.select-location ul li input[type="checkbox"]').each((i, elem) => {
-                                if(i > 0){
-                                    elem.checked = false;
-                                }
-                            });
-
-                            $('#selectLocation').val([0]);
-                            $('.select-wrapper.select-location input.select-dropdown').val( 'All Location' );
-                        }
-
-                    }
 
                 });
             },100);
@@ -183,15 +156,19 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
             urlparam = values.join('-');
 
-            if( this.arrLocationIds.join('-') == urlparam || values.length == 0 || values.indexOf('0') > -1 && values.length > 1 ){
-                $('#selectLocation').val(this.arrLocationIds);
-                return false;
-            }
+            if( this.arrLocationIds.join('-') != urlparam ){
+                if(values.indexOf('0') > -1){
+                    $('#selectLocation option').prop('selected', false);
+                    $('#selectLocation option[value="0"]').prop('selected', true);
+                    $('#selectLocation').material_select();
+                    urlparam = '0';
+                }
 
-            this.queries.offset = 0;
-            this.loadingTable = true;
-            this.dashboardPreloader.show();
-            this.router.navigate(['/reports/trainings/' + this.encryptDecrypt.encrypt(urlparam)]);
+                this.queries.offset = 0;
+                this.loadingTable = true;
+                this.dashboardPreloader.show();
+                this.router.navigate(['/reports/trainings/' + this.encryptDecrypt.encrypt(urlparam)]);
+            }
 
         });
 
@@ -281,13 +258,6 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
 	printResult(){
-		let locName = 'All Locations';
-		for(let loc of this.rootLocationsFromDb){
-			if(loc['location_id'] == this.locationId) {
-				locName = loc.name;
-			}
-		}
-
 		let headerHtml = `<h5> Training Report </h5>`;
 
 		$('#printContainer').printThis({
@@ -322,12 +292,50 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             imgData = canvas.toDataURL('image/jpeg', 1.0);
 
             $('#canvasContainer').html(canvas);
-            pdf.addImage(imgData, 'JPG', 7, 5, 195, 280 );
+            pdf.addImage(imgData, 'JPG', 7, 5, 195, 270 );
             pdf.save('training-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
 
             $('#cloneContainer').html('');
 
         });
+    }
+
+    csvExport(){
+        let csvData = {},
+            columns = [  "User", "Training Name", "Training Date", "Status" ],
+            getLength = () => {
+                return Object.keys(csvData).length;
+            };
+
+        let title =  "Training Report ";
+        if(this.pagination.total > this.queries.limit){
+            title += " pg."+this.pagination.currentPage;
+        }
+
+        csvData[ getLength() ] = [title];
+
+        if(this.results.length == 0){
+            csvData[ getLength() ] = " No record found ";
+        }else{
+
+            for(let re of this.results){
+                let d = [];
+                d.push( re.first_name+' '+re.last_name );
+                d.push( re.training_requirement_name );
+                d.push( re.certification_date_formatted );
+                if(re.status == 'valid' && re.pass == 1){
+                    d.push( 'Compliant' );
+                }else{
+                    d.push( 'Not Compliant' );
+                }
+                csvData[ getLength() ] = d;
+            }
+
+        }
+
+
+        this.exportToCSV.setData(csvData, 'trainings-report-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
+        this.exportToCSV.export();
     }
 
     ngOnDestroy(){

@@ -5,6 +5,7 @@ import { MessageService } from '../../services/messaging.service';
 import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { ExportToCSV } from '../../services/export.to.csv';
 import html2canvas from 'html2canvas';
 import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
@@ -16,7 +17,7 @@ declare var $ : any;
 	selector : 'app-reports-locations-summary-compliance-component',
 	templateUrl : './summary.of.compliance.component.html',
 	styleUrls : [ './summary.of.compliance.component.css' ],
-	providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService ]
+	providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService, ExportToCSV ]
 })
 
 export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnDestroy {
@@ -53,7 +54,8 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 		private messageService : MessageService,
 		private reportService : ReportService,
 		private encryptDecrypt : EncryptDecryptService,
-		private dashboardPreloader : DashboardPreloaderService
+		private dashboardPreloader : DashboardPreloaderService,
+        private exportToCSV : ExportToCSV
 		) {
 
 		this.userData = this.authService.getUserData();
@@ -210,6 +212,69 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
             $('#cloneContainer').html('');
 
         });
+    }
+
+    csvExport(){
+        let csvData = {},
+            columns = [  "Locations" ],
+            getLength = () => {
+                return Object.keys(csvData).length;
+            };
+
+        for(let kpi of this.reportData.kpis){
+            columns.push(kpi.name);
+        }
+
+        columns.push( "Total ECO", "% Trained Wardens", "Compliance Rating" )
+
+        let title = "Summary of Compliance ("+moment().format("DD/MM/YYYY")+")";
+
+        if(this.pagination.total > this.queries.limit){
+            title += " pg."+this.pagination.currentPage;
+        }
+
+        csvData[ getLength() ] = [title];
+        csvData[ getLength() ] = columns;
+
+        for(let loc of this.reportData.locations){
+
+            let locName = (loc.parent.name.length > 0) ? loc.parent.name + ' - ' : '' ;
+            locName += loc.name;
+
+            let row = [ locName ];
+
+            for(let kpi of loc.kpis){
+                if(kpi.compliance.valid == 1){
+                    row.push( 'Compliant' );
+                }else{
+                    row.push( 'Not Compliant' );
+                }
+            }
+
+            if(!loc.eco_users){
+                row.push( '0' );
+            }else{
+                row.push( loc.eco_users.length );
+            }
+
+            row.push( loc.wardens_trained_percent+'%' );
+            row.push( ' '+loc.compliance_rating );
+
+            csvData[ getLength() ] = row;
+        }
+
+        let compRatingRow = []; 
+        for(let i in columns){
+            if( parseInt(i) == (columns.length - 1) ){
+                compRatingRow.push('Compliance Rating : '+this.reportData.totalComplianceRating);
+            }else{
+                compRatingRow.push('');
+            }
+        }
+        csvData[ getLength() ] = compRatingRow;
+
+        this.exportToCSV.setData(csvData, 'summary-of-compliance-report-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
+        this.exportToCSV.export();
     }
 
 	ngOnDestroy(){
