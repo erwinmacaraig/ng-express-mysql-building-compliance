@@ -1,13 +1,15 @@
 import { LocationsService } from './../../services/locations';
 import { AuthService } from './../../services/auth.service';
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef } from '@angular/core';
+import { AdminService } from './../../services/admin.service';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
-import { ViewChild } from '@angular/core';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -17,7 +19,7 @@ declare var $: any;
   selector: 'app-add-mobility-impaired',
   templateUrl: './add.mobility.impaired.component.html',
   styleUrls: ['./add.mobility.impaired.component.css'],
-  providers : [UserService]
+  providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService]
 })
 export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 	@ViewChild('addMobilityImpairedForm') addMobilityImpairedForm: NgForm;
@@ -45,6 +47,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     public ecoRoles;
     public ecoDisplayRoles = [];
     public locations = [];
+    public buildings = [];
+    public levels = [];
     public locationsCopy = [];
     public userData = {};
     public selectedUser = {};
@@ -53,13 +57,18 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     public CSVFileToUpload;
 
     searchModalLocationSubs;
+    formLocValid = false;
 
     constructor(
-        private authService: AuthService,
+        private authService: AuthService, 
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService,
+        private dashboardPreloaderService : DashboardPreloaderService,
         private userService : UserService,
-        private router : Router
+        private router : Router,
+        private actRoute : ActivatedRoute,
+        private encdecrypt : EncryptDecryptService,
+        private adminService : AdminService
         ) {
 
         this.userData = this.authService.getUserData();
@@ -88,15 +97,19 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
                         role_name : roles[i]['role_name']
                     });
                 }
-                this.addMoreRow();
             }, (err) => {
                 console.log('Server Error. Unable to get the list');
             }
         );
-        this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
-            this.locations = response.locations;
 
-            this.locationsCopy = JSON.parse( JSON.stringify(this.locations) );
+        this.dashboardPreloaderService.show();
+
+        this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {
+            this.buildings = response.data.buildings;
+            this.levels = response.data.levels;
+
+            this.dashboardPreloaderService.hide();
+            this.addMoreRow();
         });
     }
 
@@ -172,93 +185,80 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         let resp = [],
             copy = JSON.parse(JSON.stringify(data));
         if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
-            let temp = [];
-            for(let i in data){
-                let innerTemp = JSON.parse(JSON.stringify(data[i]));
-                innerTemp.sublocations = [];
-                temp.push(innerTemp);
-            }
-            resp = temp;
+            resp = JSON.parse( JSON.stringify( this.buildings ) );
         }else{
-            resp = copy;
+            resp = JSON.parse( JSON.stringify( this.levels ) );
         }
 
+        this.locationsCopy = JSON.parse( JSON.stringify( resp ) );
         return resp;
+    }
+
+    buildLocationsListInModal(){
+        let 
+        ulModal = $('#modalLocations ul.locations');
+
+        ulModal.html('');
+
+        $('body').off('click.radio').on('click.radio', 'input[type="radio"][name="selectLocation"]', () => {
+            $('#modalLocations')[0].scrollTop = 0;
+            this.formLocValid = true;
+        });
+
+        let maxDisplay = 25,
+            count = 1;
+        for(let loc of this.locations){
+            if(count <= maxDisplay){
+                let $li = $(`
+                    <li class="list-division" id="${loc.location_id}">
+                        <div class="name-radio-plus">
+                            <div class="input">
+                                <input required type="radio" name="selectLocation"  value="${loc.location_id}" id="check-${loc.location_id}"   >
+                                <label for="check-${loc.location_id}">${loc.name}</label>
+                            </div>
+                        </div>
+                    </li>`);
+
+                ulModal.append($li);
+                count++;
+            }
+        }
+    }
+
+    changeRoleEvent(user){
+        user.location_name = 'Select Location';
+        user.location_id = 0;
+        user.account_location_id = 0;
+
+        this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
+        this.buildLocationsListInModal();
     }
 
     showLocationSelection(user){
         this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
+        this.buildLocationsListInModal();
         $('#modalLocations').modal('open');
         this.selectedUser = user;
+        this.formLocValid = false;
     }
-
-    searchChildLocation(data, locationId){
-        for(let i in data){
-            if(data[i]['location_id'] == locationId){
-                return data[i];
-            }
-
-            let tmp = this.searchChildLocation(data[i].sublocations, locationId);
-            if(tmp){
-                if(Object.keys(tmp).length > 0){
-                    return tmp;
-                }
-            }
-        }
-    }
-
-    findParent(data, parentId){
-        for(let i in data){
-            if(data[i]['location_id'] == parentId){
-                return data[i];
-            }
-
-            let tmp = this.findParent(data[i].sublocations, parentId);
-            if(tmp){
-                if(Object.keys(tmp).length > 0){
-                    return tmp;
-                }
-            }
-        }
-    }
-
-    getLastParent(locationId){
-        let selected = this.searchChildLocation(this.locations, locationId);
-        let parent = this.findParent(this.locations, selected.location_id);
-        if(Object.keys(parent).length > 0){
-            if(parent.parent_id > -1){
-                return this.getLastParent(parent.parent_id);
-            }else{
-                return parent;
-            }
-        }else{
-            return parent;
-        }
-    }
-
+    
     submitSelectLocationModal(form, event){
         event.preventDefault();
-        if(form.valid){
-            let selectedLocationId = form.controls.selectLocation.value,
-            selected = this.searchChildLocation(this.locations, selectedLocationId),
-            parent;
-
-            if(selected.parent){
-                parent = selected.parent;
-            }
+        if(this.formLocValid){
+            let 
+            selectedLocationId = $(form).find('input[type="radio"]:checked').val();
 
             this.selectedUser['account_location_id'] = selectedLocationId;
-
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
                 this.selectedUser['eco_location_id'] = selectedLocationId;
             }
 
             this.selectedUser['location_name'] = '';
-            try{
-                let parent = this.searchChildLocation(this.locations, selected.parent_id);
-                this.selectedUser['location_name'] += parent.name +', ';
-            }catch(e){}
-            this.selectedUser['location_name'] += selected['name'];
+            for(let loc of this.locationsCopy){
+                if(loc.location_id == selectedLocationId){
+                    this.selectedUser['location_name'] = loc.name;
+                }
+            }
 
             console.log(this.addedUsers);
             this.cancelLocationModal();
@@ -384,40 +384,15 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
             .debounceTime(500)
             .subscribe((event) => {
-            
+            this.formLocValid = false;
             let value = event['target'].value,
                 result = [];
 
             let findRelatedName = (data, mainParent?) => {
                 for(let i in data){
-                    if(data[i]['sublocations'].length > 0){
-                        if(data[i]['parent_id'] == -1){
-                            findRelatedName(data[i]['sublocations'], data[i]);
-                        }else{
-                            if(mainParent){
-                                findRelatedName(data[i]['sublocations'], mainParent);
-                            }else{
-                                findRelatedName(data[i]['sublocations']);
-                            }
-                        }
-                    }
-
                     if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
-                        let isIn = false,
-                            compareId = (mainParent) ? mainParent['location_id'] : data[i]['location_id'];
-                        for(let x in result){
-                            if(result[x]['location_id'] == compareId){
-                                isIn = true;
-                            }
-                        }
-                        if(mainParent && !isIn){
-                            result.push(mainParent);
-                        }else if(!isIn){
-                            result.push(data[i]);
-                        }
+                        result.push(data[i]);
                     }
-
-                    data[i]['showDropDown'] = true;
                 }
 
                 return result;
@@ -431,8 +406,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
                 this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
             }
 
-            this.locations = this.filterLocationsToDisplayByUserRole(this.selectedUser, this.locations);
-
+            this.buildLocationsListInModal();
         });
     }
 
