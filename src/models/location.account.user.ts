@@ -78,6 +78,34 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
+    public getLocationsByUserIds(userIds) {
+        return new Promise((resolve, reject) => {
+            const sql_load = `SELECT
+                    lau.user_id,
+                    l.name,
+                    l.parent_id,
+                    l.location_id,
+                    l.formatted_address,
+                    l.google_place_id,
+                    l.google_photo_url,
+                    l.is_building
+                    FROM location_account_user lau
+                    INNER JOIN locations l ON l.location_id = lau.location_id
+                    WHERE lau.user_id IN (`+userIds+`)`;
+
+            const connection = db.createConnection(dbconfig);
+
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
     public getMany(arrWhere){
         return new Promise((resolve, reject) => {
             let sql_load = '',
