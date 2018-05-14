@@ -1241,11 +1241,15 @@ const defs = require('../config/defs.json');
             try {
               const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
               response.locations = locationsForBuildingManager;
+
+              response['locationsForBuildingManager'] = locationsForBuildingManager;
             } catch (e) {
               console.log(e, 'Error getting locations for FRP');
               response.locations = [];
             }
         }
+
+
 
         const subLocsArr = [];
         let subLocsStr = '';

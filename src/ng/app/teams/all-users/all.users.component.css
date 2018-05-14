@@ -254,6 +254,16 @@ select option:disabled{
     color: gray !important;
 }
 
+#modalMobility .btn,
+#modalMobilityHealty .btn{
+    font-size: 15px !important;
+    line-height: 43px;
+}
+
+#modalMobilityHealty{
+    width: 35%;
+}
+
 @media only screen and (max-width: 1400px) {
     #modalArchiveBulk,
     #modalArchive{
@@ -263,14 +273,21 @@ select option:disabled{
 
 @media only screen and (max-width: 1024px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalMobilityHealty{
         width: 60%;
+    }
+
+    #modalMobility{
+        width : 90%;
     }
 }
 
 @media only screen and (max-width: 500px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalMobility,
+    #modalMobilityHealty{
         width: 90%;
     }
 }

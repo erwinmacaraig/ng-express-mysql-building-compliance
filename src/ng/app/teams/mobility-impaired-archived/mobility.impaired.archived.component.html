@@ -120,6 +120,7 @@
 							<option value="view" class="blue-text" *ngIf="peep.id_encrypted">View</option>
 							<option value="restore" class="blue-text" *ngIf="peep.user_id != userData.userId">Restore</option>
 							<option value="restore" class="blue-text" *ngIf="peep.user_invitations_id > 0">Restore</option>
+                            <option value="healthy" class="blue-text" >Mark as healthy</option>
 						</select>
 					</td>
 				</tr>
@@ -247,7 +248,7 @@
 			<div class="col s12 l6 m6">
 				<div class="input-field" >
 					<span style=" font-size: 16px;">Mobility Impaired Upto</span>
-					<ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+					<ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options" [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
 					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required>
 				</div>
 			</div>
@@ -265,14 +266,41 @@
 			</div>
 		</div>
 
-		<div class="row button-container">
-			<div class="col s12 m12 l12">
-				<a  class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
-				<button class="btn orange waves-light waves-effect" [disabled]="formMobility.invalid">Submit</button>
-			</div>
-		</div>
 	</div>
+
+    <div class="modal-footer" [hidden]="showModalLoader">
+        <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+        <button type="submit" class="waves-effect waves-blue btn-flat" [disabled]="formMobility.invalid">Submit</button>
+    </div>
 
 
 	</form>
+</div>
+
+<div id="modalMobilityHealty" class="modal">
+
+    <div class="modal-content center" [hidden]="!showModalLoader">
+        <div class="preloader-wrapper active">
+            <div class="spinner-layer spinner-red-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-content">
+        <h5>Confirm action</h5>
+        
+        <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
+    </div>
+
+    <div class="modal-footer" [hidden]="showModalLoader">
+        <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+        <button type="submit" class="waves-effect waves-blue btn-flat" (click)="markUserAsHealthy()">Confirm</button>
+    </div>
 </div>
