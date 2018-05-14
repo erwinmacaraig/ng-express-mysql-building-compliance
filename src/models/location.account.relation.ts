@@ -342,47 +342,51 @@ export class LocationAccountRelation extends BaseClass {
 
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_locations, [accountId], (error, results) => {
-          if (error) {
-            console.log('location.account.relation.listAllLocationsOnAccount', error, sql_get_locations);
-            throw Error('Cannot get all locations for this account');
-          }
-
-          if (filter['responsibility'] === defs['Manager']) {
-            const locationReferencesArr = [];
-            const building_locations = [];
-            const other_locations = [];
-            const originIds = [];
-            let originIdStr = '';
-            for (const loc of results) {
-              originIds.push(loc['location_id']);
+            if (error) {
+                console.log('location.account.relation.listAllLocationsOnAccount', error, sql_get_locations);
+                throw Error('Cannot get all locations for this account');
             }
-            originIdStr = originIds.join(',');
-            const locRef = new Location();
-            locRef.getParentsChildren(originIdStr, 0, true).then((locationObjRef) => {
-              locationObjRef = Array.from(new Set(locationObjRef));
-              return locRef.bulkLocationDetails(locationObjRef, filter);
-            }).then((locations) => {
-              resolve(locations);
-              return;
-            }).catch((e) => {
-              console.log(`There was a problem getting the location details`, e);
-            });
-          } else {
-            if ('count' in filter) {
-              resolve(results);
-            }else {
-                if (results.length > 0) {
-                  for (const loc of results) {
-                    resultSet.push(loc);
-                  }
-                  resolve(resultSet);
-                } else {
-                  resolve([]);
+
+            if (filter['responsibility'] === defs['Manager']) {
+                const locationReferencesArr = [];
+                const building_locations = [];
+                const other_locations = [];
+                const originIds = [];
+                let originIdStr = '';
+                for (const loc of results) {
+                    if(loc.is_building == 1){
+                        building_locations.push(loc);
+                    }
+                    originIds.push(loc['location_id']);
+                }
+                originIdStr = originIds.join(',');
+                const locRef = new Location();
+                locRef.getParentsChildren(originIdStr, 0, true).then((locationObjRef) => {
+                    locationObjRef = Array.from(new Set(locationObjRef));
+                    for(let loc of building_locations){
+                        locationObjRef.push(loc.location_id);
+                    }
+                    return locRef.bulkLocationDetails(locationObjRef, filter);
+                }).then((locations) => {
+                    resolve(locations);
+                    return;
+                }).catch((e) => {
+                    console.log(`There was a problem getting the location details`, e);
+                });
+            } else {
+                if ('count' in filter) {
+                    resolve(results);
+                }else {
+                    if (results.length > 0) {
+                        for (const loc of results) {
+                            resultSet.push(loc);
+                        }
+                        resolve(resultSet);
+                    } else {
+                        resolve([]);
+                    }
                 }
             }
-          }
-
-
         });
         connection.end();
 

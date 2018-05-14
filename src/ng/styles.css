@@ -296,3 +296,11 @@ td.select-blue .dropdown-content li{
 a:hover{
     cursor: pointer;
 }
+
+.ngx-datepicker-container .ngx-datepicker-calendar-container{
+    z-index: 999;
+}
+
+span.day-unit.is-today {
+    background: none !important;
+}
