@@ -41,7 +41,7 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
 
     options: DatepickerOptions = {
         displayFormat: 'MMM D[,] YYYY',
-        minDate: new Date(Date.now())
+        minDate: moment().toDate()
     };
 
     datepickerModel : Date;
@@ -79,7 +79,7 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
         private dashboardService : DashboardPreloaderService,
         private locationService: LocationsService
         ) {
-        this.datepickerModel = new Date();
+        this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
     }
 
@@ -260,12 +260,17 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
         let selected = event.target.value;
         if(selected == 'view'){
             this.router.navigate(["/teams/view-user/", peep.id_encrypted]);
+        }else if(selected == 'healthy'){
+            this.selectedPeep = peep;
+            $('#modalMobilityHealty').modal('open');
         }else{
             event.target.value = "0";
             this.showModalLoader = false;
             this.selectedToArchive = peep;
             $('#modalArchive').modal('open');
         }
+
+        event.target.value = 0;
     }
 
     unArchiveClick(){
@@ -492,6 +497,30 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
 
             });
         }
+    }
+
+     markUserAsHealthy(){
+        this.showModalLoader = true;
+
+        let paramData = {
+            user_id : this.selectedPeep['user_id'],
+            mobility_impaired : 0
+        };
+        this.userService.markAsHealthy(paramData, (response) => {
+
+            let newList = [];
+            for(let user of this.peepList){
+                if(user['user_id'] != this.selectedPeep['user_id']){
+                    newList.push(user);
+                }
+            }
+
+            this.peepList = newList;
+  
+            $('#modalMobilityHealty').modal('close');
+            this.showModalLoader = false;
+
+        });
     }
 
     pageChange(type){

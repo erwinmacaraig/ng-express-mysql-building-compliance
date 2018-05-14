@@ -247,6 +247,15 @@ export class UserService {
 		});
 	}
 
+    markAsHealthy(formData, callBack){
+        this.http.post(this.baseUrl+"/users/mobility-as-healthy", formData)
+        .subscribe(res => {
+            callBack(res);
+        }, err => {
+            callBack( JSON.parse(err.error) );
+        });
+    }
+
 	getTenantsInLocation(locId, callBack){
 		this.http.get(this.baseUrl+"/users/get-tenants/"+locId)
 		.subscribe(res => {
@@ -254,7 +263,7 @@ export class UserService {
 		}, err => {
 			callBack( JSON.parse(err.error) );
 		});
-  }
+    }
 
     sendTRPInvitation(trpInfo: object = {}) {
         const body = {};

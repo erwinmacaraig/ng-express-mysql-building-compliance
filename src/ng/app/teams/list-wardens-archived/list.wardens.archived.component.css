@@ -353,6 +353,10 @@ table tr td.with-image .impaired{
     font-size: 14px;
 }
 
+#modalMobilityHealty{
+    width: 35%;
+}
+
 @media only screen and (max-width: 1400px) {
     #modalArchiveBulk,
     #modalArchive{
@@ -362,14 +366,21 @@ table tr td.with-image .impaired{
 
 @media only screen and (max-width: 1024px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalMobilityHealty{
         width: 60%;
+    }
+
+    #modalMobility{
+        width : 90%;
     }
 }
 
 @media only screen and (max-width: 500px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalMobility,
+    #modalMobilityHealty{
         width: 90%;
     }
 }
