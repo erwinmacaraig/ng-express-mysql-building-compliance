@@ -44,7 +44,9 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     datepickerModel : Date;
     isShowDatepicker = false;
     datepickerModelFormatted = '';
-    selectedPeep = {};
+    selectedPeep = {
+        first_name : '', last_name : ''
+    };
 
     loadingTable = false;
 
