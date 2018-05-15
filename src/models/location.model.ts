@@ -476,7 +476,7 @@ export class Location extends BaseClass {
 						unassignedResults.push({
 							'location_id' : results[i]['location_id'],
 							'name' : results[i]['name'],
-                            'parent_id' : results[i]['parent_id'],
+              'parent_id' : results[i]['parent_id'],
 							'is_building' : results[i]['is_building'],
 							'children' : []
 						});

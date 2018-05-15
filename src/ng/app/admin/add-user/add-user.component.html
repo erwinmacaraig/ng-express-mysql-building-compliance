@@ -26,7 +26,11 @@
           <tr *ngFor="let u of userForm.get('users')['controls']; let i = index;"
             [formGroupName]="i">
             <td>
-                <input formControlName="first_name" type="text" placeholder="First Name" class="first-name" #first_name>
+                <input
+                  formControlName="first_name"
+                  type="text"
+                  placeholder="First Name"
+                  class="first-name">
 
                 <span
                   *ngIf="!userForm.controls['users'].controls[i].controls.first_name.valid &&
@@ -55,7 +59,8 @@
                 userForm.controls['users'].controls[i].controls.email.touched">
                 Please provide a valid email.
               </span>
-              <span *ngIf="!userForm.controls['users'].controls[i].controls.email.valid && userForm.controls['users'].controls[i].controls.email.errors['emailIsForbidden']">
+              <span *ngIf="!userForm.controls['users'].controls[i].controls.email.valid && userForm.controls['users'].controls[i].controls.email['errors']
+              && userForm.controls['users'].controls[i].controls.email.errors['emailIsForbidden']">
                 Email already taken.
               </span>
               </td>
@@ -65,7 +70,7 @@
                     <option disabled selected value="0">Roles</option>
                     <option *ngFor="let r of roles" [value]="r.role_id">{{r.role_name}}</option>
                   </select>
-                  <span *ngIf="!userForm.controls['users'].controls[i].controls.role.valid">
+                  <span *ngIf="!userForm.controls['users'].controls[i].controls.role.valid && userForm.controls['users'].controls[i].controls.role.touched">
                     Please select user role.
                   </span>
                 </td>
@@ -81,8 +86,10 @@
               <ng-template #leveldropdown>
                 <td>
                   <select formControlName="location" style="display: block;">
-                    <option disabled selected value="0">Select Level Location</option>
-                    <option *ngFor="let level of levels" [value]="level.location_id">{{level.name}}</option>
+                    <optgroup *ngFor="let parent of levels" label="{{parent['parent_location_name']}}">
+                      <option *ngFor="let sub of parent['sublocations']" [value]="sub['id']">{{sub.name}}</option>
+                    </optgroup>
+
                   </select>
                   <span *ngIf="!userForm.controls['users'].controls[i].controls.location.valid && userForm.controls['users'].controls[i].controls.location.touched">
                       Locations is required.
@@ -126,16 +133,16 @@
         <tfoot>
             <tr>
               <td colspan="7">
-                <button class="btn blue" (click)="addUserFormItem()">
+                <a href="#" class="btn blue" (click)="addUserFormItem($event)">
                   + Add more row
-                </button>
+                </a>
               </td>
             </tr>
           </tfoot>
       </table>
       <div class="button-container right-align">
-        <button class="btn grey lighten-1 waves-effect waves-light cancel"> Cancel </button>
-        <button class="btn orange waves-effect waves-light"> Submit </button>
+        <a (click)="cancelUserForm()" class="btn grey lighten-1 waves-effect waves-light cancel"> Cancel </a>
+        <input type="submit" class="btn orange waves-effect waves-light"  value="Submit" />
       </div>
     </form>
   </div>
