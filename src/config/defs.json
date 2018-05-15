@@ -2,8 +2,9 @@
   "Manager": 1,
   "Tenant": 2,
   "role_text": [
-    "Tenant",
-    "Manager"
+    "User",
+    "Manager",
+    "Tenant"
   ],
   "em_roles": {
     "GENERAL_OCCUPANT": 8,

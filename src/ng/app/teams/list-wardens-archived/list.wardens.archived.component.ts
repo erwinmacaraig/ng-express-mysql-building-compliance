@@ -64,7 +64,9 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
     datepickerModel : Date;
     isShowDatepicker = false;
     datepickerModelFormatted = '';
-    selectedPeep = {};
+    selectedPeep = {
+        first_name : '', last_name : ''
+    };
 
 	constructor(
 		private userService : UserService,
