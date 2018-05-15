@@ -216,6 +216,14 @@ table tr td .image img{
     font-size: 14px;
 }
 
+.ngx-datepicker-container .ngx-datepicker-calendar-container{
+    z-index: 999;
+}
+
+#modalMobilityHealty{
+    width: 35%;
+}
+
 @media only screen and (max-width: 1400px) {
     #modalArchiveBulk,
     #modalArchive{
@@ -237,7 +245,8 @@ table tr td .image img{
 @media only screen and (max-width: 500px) {
     #modalArchiveBulk,
     #modalArchive,
-    #modalMobility{
+    #modalMobility.
+    #modalMobilityHealty{
         width: 90%;
     }
 }

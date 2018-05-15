@@ -145,6 +145,10 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().saveMobilityImpairedDetails(req, res, next);
 	    });
 
+        router.post('/users/mobility-as-healthy', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+            new  UsersRoute().markMobilityAsHealthy(req, res, next);
+        });
+
         router.get('/users/get-profile-by-token/:token', (req: Request, res: Response) => {
             new  UsersRoute().getProfileByToken(req, res);
         });
@@ -2614,8 +2618,8 @@ export class UsersRoute extends BaseRoute {
 		let
 		response = <any>{
 			status : true, data : [], message : ''
-    },
-    user,
+        },
+        user,
 		mobilityImpairedModel = new MobilityImpairedModel();
 
 		let saveData = {
@@ -2635,70 +2639,105 @@ export class UsersRoute extends BaseRoute {
 		}
 
 		if('user_id' in req.body){
-			saveData['user_id'] = req.body.user_id;
-      saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
-      user = new User(req.body.user_id);
-      try {
-        await user.load();
-        await user.create({
-          'mobility_impaired': 1
-        });
-      } catch(e) {
-        console.log(e);
-        user = {};
-      }
+	        saveData['user_id'] = req.body.user_id;
+            saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+            user = new User(req.body.user_id);
+            try {
+                await user.load();
+                await user.create({
+                    'mobility_impaired': 1
+                });
+            } catch(e) {
+                console.log(e);
+                user = {};
+            }
 		}else if('user_invitations_id' in req.body){
 			saveData['user_invitations_id'] = req.body.user_invitations_id;
 			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
 		}
 
-    await mobilityImpairedModel.create(saveData);
+        await mobilityImpairedModel.create(saveData);
 
-    // retrieve TRP
-    // send notification to TRP
-    const location = new Location();
-    console.log(req.body.locations);
-    console.log(typeof req.body.locations);
-    if (req.body.locations) {
-      try {
-        const trpOnLoc = await location.getTRPOnLocation([req.body.locations], defs['Tenant']);
-        const trps = [];
-        for (let t of trpOnLoc) {
-          trps.push(t['email']);
+        let arrWhere = [];
+
+        arrWhere.push( "user_id = " + req.body.user_id );
+        arrWhere.push( "duration_date > NOW()" );
+
+        try {
+            let mobilityDetails = <any> await mobilityImpairedModel.getMany( arrWhere );
+            for(let userMobil of mobilityDetails){
+                userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+            }
+            
+            response.data = mobilityDetails;
+
+        } catch (e) {
+            console.log(e);
+            user['mobility_impaired_details'] = [];
         }
-        const opts = {
-          from : '',
-          fromName : 'EvacConnect',
-          to : trps,
-          cc: [],
-          body : '',
-          attachments: [],
-          subject : 'EvacConnect - Mobility Impaired Registration'
-        };
-        const email = new EmailSender(opts);
-        let emailBody = email.getEmailHTMLHeader();
-        emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
-          <h4> ${user.get('first_name')} ${user.get('last_name')} has registered as mobility impaired.</h4> <br/>
 
-         `;
+        // retrieve TRP
+        // send notification to TRP
+        const location = new Location();
+        console.log(req.body.locations);
+        console.log(typeof req.body.locations);
+        if (req.body.locations) {
+            try {
+                const trpOnLoc = await location.getTRPOnLocation([req.body.locations], defs['Tenant']);
+                const trps = [];
+                for (let t of trpOnLoc) {
+                    trps.push(t['email']);
+                }
+                const opts = {
+                    from : '',
+                    fromName : 'EvacConnect',
+                    to : trps,
+                    cc: [],
+                    body : '',
+                    attachments: [],
+                    subject : 'EvacConnect - Mobility Impaired Registration'
+                };
+                const email = new EmailSender(opts);
+                let emailBody = email.getEmailHTMLHeader();
+                emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+                <h4> ${user.get('first_name')} ${user.get('last_name')} has registered as mobility impaired.</h4> <br/>
 
-        emailBody += email.getEmailHTMLFooter();
-        email.assignOptions({
-          body : emailBody
-        });
-        email.send((data) => {
-          console.log(data);
-        },(err) => {
-          console.log(err);
-        });
-      } catch (e) {
-        console.log(e);
-        console.log('cannot send notification');
-      }
-    }
+                `;
+
+                emailBody += email.getEmailHTMLFooter();
+                email.assignOptions({
+                    body : emailBody
+                });
+                email.send((data) => {
+                    console.log(data);
+                },(err) => {
+                    console.log(err);
+                });
+            } catch (e) {
+                console.log(e);
+                console.log('cannot send notification');
+            }
+        }
 
 		res.send(response);
 	}
+
+    public async markMobilityAsHealthy(req: AuthRequest, res: Response, next: NextFunction){
+        let
+        response = {
+            status : true, message : ''
+        },
+        userModel = new User(req.body.user_id);
+        try{
+            await userModel.load();
+            userModel.set('mobility_impaired', 0);
+            await userModel.dbUpdate();
+        }catch(e){
+            response.message = 'No user found';
+        }
+
+        res.status(200).send(response);
+    }
 
 
     //////

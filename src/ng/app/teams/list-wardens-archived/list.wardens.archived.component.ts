@@ -13,6 +13,7 @@ import * as moment from 'moment';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { DatepickerOptions } from 'ng2-datepicker';
 
 declare var $: any;
 @Component({
@@ -55,6 +56,16 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 
     searchMemberInput;
 
+    options: DatepickerOptions = {
+        displayFormat: 'MMM D[,] YYYY',
+        minDate: moment().toDate()
+    };
+
+    datepickerModel : Date;
+    isShowDatepicker = false;
+    datepickerModelFormatted = '';
+    selectedPeep = {};
+
 	constructor(
 		private userService : UserService,
 		private authService : AuthService,
@@ -64,6 +75,9 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 		private router : Router
 		){
 		this.userData = this.authService.getUserData();
+
+        this.datepickerModel = moment().add(1, 'days').toDate();
+        this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 	}
 
 	getListData(callBack?){
@@ -133,6 +147,7 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
         });
 
         $('.row.filter-container select').material_select();
+        $('#modalMobility select').material_select();
         this.filterByEvent();
         this.sortByEvent();
         this.dashboardService.show();
@@ -220,7 +235,15 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 		let selected = event.target.value;
 		if(selected == 'view'){
 			this.router.navigate(["/teams/view-user/", list.id_encrypted]);
-		}else{
+		}else if(selected == 'peep'){
+            this.selectedPeep = list;
+            event.target.value = 0;
+            $('#modalMobility').modal('open');
+        }else if(selected == 'healthy'){
+            this.selectedPeep = list;
+            event.target.value = 0;
+            $('#modalMobilityHealty').modal('open');
+        }else{
 			event.target.value = "0";
 			this.showModalLoader = false;
 			this.selectedToArchive = list;
@@ -317,6 +340,75 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 			this.selectedFromList = [];
 		});
 	}
+
+    onChangeDatePicker(event){
+        if(!moment(this.datepickerModel).isValid()){
+            this.datepickerModel = new Date();
+            this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+        }else{
+            this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+        }
+        this.isShowDatepicker = false;
+    }
+
+    showDatePicker(){
+        this.isShowDatepicker = true;
+    }
+
+    modalPeepFormSubmit(f, event){
+        event.preventDefault();
+
+        if(f.valid){
+            let paramData = JSON.parse(JSON.stringify(f.value));
+            paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
+            paramData['user_id'] = this.selectedPeep['user_id'];
+
+            if(this.selectedPeep['mobility_impaired_details'].length > 0){
+                paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
+            }
+
+            paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val();
+
+            this.showModalLoader = true;
+
+            this.userService.sendMobilityImpaireInformation(paramData, (response) => {
+
+                for(let user of this.wardenArr){
+                    if(user['user_id'] == this.selectedPeep['user_id']){
+                        user['mobility_impaired'] = 1;
+                        user['mobility_impaired_details'] = response.data;
+                    }
+                }
+
+                f.reset();
+                $('#modalMobility').modal('close');
+                this.showModalLoader = false;
+
+            });
+        }
+    }
+
+    markUserAsHealthy(){
+        this.showModalLoader = true;
+
+        let paramData = {
+            user_id : this.selectedPeep['user_id'],
+            mobility_impaired : 0
+        };
+        this.userService.markAsHealthy(paramData, (response) => {
+
+            for(let user of this.wardenArr){
+                if(user['user_id'] == this.selectedPeep['user_id']){
+                    user['mobility_impaired'] = 0;
+                    user['mobility_impaired_details'] = [];
+                }
+            }
+  
+            $('#modalMobilityHealty').modal('close');
+            this.showModalLoader = false;
+
+        });
+    }
 
 	pageChange(type){
 

@@ -289,7 +289,7 @@ table tbody tr td .progress{
     height: 10px;
     display: block;
     width: 100%;
-    background-color: #dc44534d;
+    background-color: rgba(246, 218, 218, 1);
     border-radius: 2px;
     margin: 0px;
     overflow: hidden;
