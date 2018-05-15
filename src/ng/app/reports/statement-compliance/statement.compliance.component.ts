@@ -11,6 +11,7 @@ import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
 
 declare var $ : any;
+declare var jsPDF: any;
 
 @Component({
 	selector : 'app-statement-compliance-component',
@@ -27,6 +28,19 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 	reportData = <any>[];
 
 	routeSubs;
+
+    references = {
+
+        '2' : 'AS 3745:2010 s.2.4',
+        '3' : 'Qld Building Fire Safety Regulations & Best Practice',
+        '4' : 'AS 3745:2010 s.3, s.4 & s.8',
+        '5' : 'AS 3745:2010 s.3.5',
+        '6' : 'AS 3745:2010 s.6.3 & s.6.5',
+        '8' : 'AS 3745:2010 s.6.3 & s.6.5',
+        '9' : 'AS 3745:2010 s.7',
+        '12' : 'AS 3745:2010 s.6.3 & s.6.5'
+
+    };
 
 	constructor(
 		private activatedRoute : ActivatedRoute,
@@ -96,70 +110,86 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 	}
 
     pdfExport(aPdf, printContainer){
-        let 
-            $printContainer = $(printContainer).clone(),
-            $containers = $printContainer.find('.container'),
-            $toCanvas = $('<div class="pdf-separator"></div>'),
-            aPdfHTML = aPdf.innerHTML;
+        let
+        columns = [
+            {
+                title : 'Compliance Requirement', dataKey : 'compreq'
+            },
+            {
+                title : 'Legislative Reference', dataKey : 'legis'
+            },
+            {
+                title : 'Activity Date', dataKey : 'activity'
+            },
+            {
+                title : 'Status', dataKey : 'status'
+            }
+        ],
+        pdf = new jsPDF("p", "pt"),
+        topMargin = 40,
+        count = 0;
 
-        $toCanvas.append('<div style="margin-left:30px;margin-right:30px;"> <h3>Statement of Compliance Report</h3> </div>');
-        $('#cloneContainer > .clones').html('');
-        $containers.each((i, elem) => {
+        for(let report of this.reportData){
+            let
+            rows = [],
+            locName = (report.location.parent.name.length > 0) ? report.location.parent.name + ' - ' : '' ;
+            locName += report.location.name;
 
-            if( i % 3 == 0  && i > 0){
-                $toCanvas = $('<div class="pdf-separator"></div>');
+
+            if(count == 0){
+                pdf.text(locName, 20, topMargin);
+            }else{
+                pdf.text(locName, 20, pdf.autoTable.previous.finalY + 70 );
             }
 
-            elem.classList = "report-content";
-            elem.style = "margin-left:30px;margin-right:30px;";
-            $(elem).find('.row:first-child').removeAttr('style');
-            $toCanvas.append(elem);
 
-            $('#cloneContainer > .clones').append($toCanvas);
-        });
-
-
-        $('#canvasContainer').html('');
-        $('#cloneContainer .pdf-separator').each((i, elem) => {
-
-            let repsConts = $(elem).find('.report-content');
-            if( repsConts.length == 1 || repsConts.length == 2 ){
-                for( let i = 1; i <= (3 - repsConts.length); i++ ){
-                    let clone = $(repsConts[0]).clone();
-                    clone.css('visibility', 'hidden');
-                    $(elem).append( clone );
+            for(let kpi of report.kpis){
+                let actTxt = '',
+                    statusTxt = 'n/a';
+                if(kpi.compliance.docs[0]){
+                    actTxt = kpi.compliance.docs[0]['date_of_activity_formatted'];
                 }
+
+                if(kpi.compliance.valid == 0){
+                    statusTxt = 'Not Compliant';
+                }else{
+                    statusTxt = 'Compliant';
+                }
+
+                rows.push({
+                    compreq : kpi.name,
+                    legis : this.references[kpi.compliance_kpis_id],
+                    activity : actTxt,
+                    status : statusTxt
+                });
             }
 
-            html2canvas(elem).then(function(canvas) {
-                $('#canvasContainer').append(canvas);
+            let startYvalue = pdf.autoTable.previous.finalY + 20;
+            if(count == 0){
+                startYvalue = 50;
+            }
 
-                if( i ==  $('#cloneContainer .pdf-separator').length - 1 ){
-
-                    if($('#canvasContainer > canvas').length > 0){
-                        let 
-                        pdf = new jsPDF("p", "mm", "a4"),
-                        imgWidth = 210,
-                        canvasFirst = $('#canvasContainer > canvas')[0],
-                        imgHeight = canvasFirst.height * imgWidth / canvasFirst.width,
-                        imgData = canvasFirst.toDataURL('image/jpeg', 1.0);
-                        pdf.addImage(imgData, 'JPG', 0, 5, imgWidth, imgHeight );
-                        $('#canvasContainer > canvas').each((canIndex, canElem) => {
-                            if( canIndex > 0 ){
-                                imgData = canElem.toDataURL('image/jpeg', 1.0);
-                                pdf.addPage();
-                                pdf.addImage(imgData, 'JPG', 0, 5, imgWidth, imgHeight );
-                            }
-                        });
-
-                        pdf.save('statement-of-compliance-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
-
-                        $('#cloneContainer > .clones').html('');
-                    }
-                }
-
+            pdf.autoTable(columns, rows, {
+                theme : 'grid',
+                margin: 20,
+                startY: startYvalue,
+                styles : {
+                    fontSize: 8,
+                    overflow: 'linebreak'
+                },
+                headerStyles : {
+                    fillColor: [50, 50, 50], textColor: 255
+                },
+                columnStyles : { location : { columnWidth : 140 } }
             });
-        });
+
+            pdf.text( " Compliance Rating : "+report.compliance_rating , 20, pdf.autoTable.previous.finalY + 10);
+
+            count++;
+           
+        }
+
+        pdf.save('statement-of-compliance-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
     }
 
     csvExport(){
@@ -167,18 +197,6 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
             columns = [  "Compliance Requirement", "Legislative Reference", "Activity Date", "Status"  ],
             getLength = () => {
                 return Object.keys(csvData).length;
-            },
-            references = {
-
-                '2' : 'AS 3745:2010 s.2.4',
-                '3' : 'Qld Building Fire Safety Regulations & Best Practice',
-                '4' : 'AS 3745:2010 s.3, s.4 & s.8',
-                '5' : 'AS 3745:2010 s.3.5',
-                '6' : 'AS 3745:2010 s.6.3 & s.6.5',
-                '8' : 'AS 3745:2010 s.6.3 & s.6.5',
-                '9' : 'AS 3745:2010 s.7',
-                '12' : 'AS 3745:2010 s.6.3 & s.6.5'
-
             };
 
         for(let report of this.reportData){
@@ -197,7 +215,7 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
                     let d = [];
 
                     d.push( kpi.name );
-                    d.push( references[kpi.compliance_kpis_id] );
+                    d.push( this.references[kpi.compliance_kpis_id] );
 
                     if(!kpi.compliance.docs){
                         d.push( 'n/a' );

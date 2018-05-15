@@ -12,6 +12,7 @@ import * as moment from 'moment';
 
 
 declare var $ : any;
+declare var jsPDF: any;
 
 @Component({
 	selector : 'app-reports-locations-summary-compliance-component',
@@ -47,6 +48,13 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 
     sundryId = 13;
 
+    pdfLoader = false;
+    csvLoader = false;
+    exportData = [];
+    exportDataRatings = [];
+    exportDataComplianceRating = '';
+    exportFetchMarker = {};
+
 	constructor(
 		private router : Router,
 		private activatedRoute : ActivatedRoute,
@@ -68,6 +76,11 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
                 if(response['data']['locations'].length > 0){
                     this.pagination.currentPage = 1;
                 }
+
+
+                this.generateReportDataForExport();
+
+
             });
 		});
 
@@ -79,53 +92,139 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
         this.dashboardPreloader.show();
     }
 
-	getComplianceSummaryReport(callBack){
+    generateReportDataForExport(){
+
+        this.pdfLoader = true;
+        this.csvLoader = true;
+        
+
+        let 
+        divider = 50,
+        divRes = this.pagination.total / divider,
+        divResString = divRes.toString(),
+        remainderSplit = divResString.split('.'),
+        remainder = (remainderSplit[1]) ? parseInt(remainderSplit[1]) : 0;
+
+        divRes = (remainder > 0) ? divRes + 1 : divRes; 
+
+        for(let i = 1; i<=divRes; i++){
+            let offset = (i * divider) - divider;
+            this.queries.offset = (offset > 0) ? offset - 1 : 0;
+            this.queries.limit = divider;
+
+            this.exportFetchMarker[i] = false;
+
+            this.getComplianceSummaryReport((response:any) => {
+
+                
+                this.exportDataRatings.push(response['data']['compliance_rating']);
+
+                for(let loc of response['data']['locations']){
+                    loc['kpis'] = JSON.parse( JSON.stringify( this.reportData.kpis ) );
+                    let kpis = loc.kpis,
+                        compliances = loc.compliances;
+                    for(let k of kpis){
+                       if(!k['compliance'] && this.sundryId !== k.compliance_kpis_id){ k['compliance'] = {}; }
+                        for(let c of compliances){
+                            if(c.compliance_kpis_id == k.compliance_kpis_id){
+                                k['compliance'] = c;
+                            }
+                        } 
+                    }
+                }
+
+                this.exportFetchMarker[i] = response['data']['locations'];
+                let allLoaded = true;
+                for(let x in this.exportFetchMarker){
+                    if(!this.exportFetchMarker[x]){
+                        allLoaded = false;
+                    }
+                }
+                
+                if(allLoaded){
+
+                    for(let x in this.exportFetchMarker){
+                        this.exportData = this.exportData.concat( this.exportFetchMarker[x] );
+                    }
+                    
+                    let numerators = [],
+                        denaminator = 0;
+                    for(let ratings of this.exportDataRatings){
+                        let splitted = ratings.split('/');
+                        numerators.push( parseInt(splitted[0]) );
+                        denaminator = parseInt( splitted[1] );
+                    }
+                    let totalNum = 0,
+                        average = 0;
+                    for(let num of numerators){
+                        totalNum = totalNum + num;
+                    }
+
+                    average = Math.round( divRes / totalNum  );
+
+                    this.exportDataComplianceRating = <any> average+'/'+denaminator;
+
+                    this.pdfLoader = false;
+                    this.csvLoader = false;
+
+                    console.log( this.exportData );
+                }
+
+            }, true);
+
+            this.queries.offset = 0;
+            this.queries.limit = 10;
+
+        }
+    }
+
+	getComplianceSummaryReport(callBack, forExport?){
 
         this.queries.location_id = this.locationId;
 		
 		this.reportService.getComplianceSummary(this.queries).subscribe((response:any) => {
 
-			this.reportData.locations = response['data']['locations'];
-            this.reportData.totalComplianceRating = response['data']['compliance_rating'];
-            
-            let kpis = [];
-            for(let kp of response['data']['kpis']){
-                if(this.sundryId !== kp.compliance_kpis_id){
-                    kpis.push(kp);
+            if(!forExport){
+    			this.reportData.locations = response['data']['locations'];
+                this.reportData.totalComplianceRating = response['data']['compliance_rating'];
+                
+                let kpis = [];
+                for(let kp of response['data']['kpis']){
+                    if(this.sundryId !== kp.compliance_kpis_id){
+                        kpis.push(kp);
+                    }
+                }
+                this.reportData.kpis = kpis;
+
+    			this.reportData.date = response['data']['date'];
+
+                for(let loc of this.reportData.locations){
+                    loc['kpis'] = JSON.parse( JSON.stringify( this.reportData.kpis ) );
+                    let kpis = loc.kpis,
+                        compliances = loc.compliances;
+                    for(let k of kpis){
+                       if(!k['compliance'] && this.sundryId !== k.compliance_kpis_id){ k['compliance'] = {}; }
+                        for(let c of compliances){
+                            if(c.compliance_kpis_id == k.compliance_kpis_id){
+                                k['compliance'] = c;
+                            }
+                        } 
+                    }
+                }
+
+    			 
+    			for(let loc of this.reportData.locations){
+    				loc['locIdEnc'] = this.encryptDecrypt.encrypt( loc.location_id );
+    			}
+
+                this.pagination.pages = response.pagination.pages;
+                this.pagination.total = response.pagination.total;
+
+                this.pagination.selection = [];
+                for(let i = 1; i<=this.pagination.pages; i++){
+                    this.pagination.selection.push({ 'number' : i });
                 }
             }
-            this.reportData.kpis = kpis;
-
-			this.reportData.date = response['data']['date'];
-
-            for(let loc of this.reportData.locations){
-                loc['kpis'] = JSON.parse( JSON.stringify( this.reportData.kpis ) );
-                let kpis = loc.kpis,
-                    compliances = loc.compliances;
-                for(let k of kpis){
-                   if(!k['compliance'] && this.sundryId !== k.compliance_kpis_id){ k['compliance'] = {}; }
-                    for(let c of compliances){
-                        if(c.compliance_kpis_id == k.compliance_kpis_id){
-                            k['compliance'] = c;
-                        }
-                    } 
-                }
-            }
-
-			 
-			for(let loc of this.reportData.locations){
-				loc['locIdEnc'] = this.encryptDecrypt.encrypt( loc.location_id );
-			}
-
-            this.pagination.pages = response.pagination.pages;
-            this.pagination.total = response.pagination.total;
-
-            this.pagination.selection = [];
-            for(let i = 1; i<=this.pagination.pages; i++){
-                this.pagination.selection.push({ 'number' : i });
-            }
-
-            console.log( this.reportData.locations );
 
             callBack(response);
 		});
@@ -160,7 +259,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
         if(changeDone){
             this.pagination.prevPage = parseInt(type);
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset;
+            this.queries.offset = offset - 1;
             this.loadingTable = true;
             this.getComplianceSummaryReport((response:any) => {
                 this.loadingTable = false;
@@ -182,44 +281,72 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 
     pdfExport(aPdf, printContainer){
         let 
-            $printContainer = $(printContainer).clone(),
-            $titleClone = $('.summary-of-compliance-title').clone(),
-            aPdfHTML = aPdf.innerHTML;
+        columns = [],
+        rows = [],
+        pdf = new jsPDF("l", "pt"),
+        $printContainer = $(printContainer).clone(),
+        titleText = $('.summary-of-compliance-title').text(),
+        th = $printContainer.find('thead tr th');
 
-        $titleClone.append(' pg. '+this.pagination.currentPage);
-        $printContainer.find('.row.no-print').remove();
 
-        $printContainer.prepend($titleClone);
+        th.each((index, elem) => {
+            let k = $(elem).attr('key'),
+                keywidth = $(elem).attr('keywidth');
 
-        let trLen = $printContainer.find('tr').length,
-            trHeight = 100;
+            columns.push({
+                title : $(elem).text(),
+                dataKey : k
+            });
+        });
 
-        for(let i = 1; i<=(10-trLen); i++){
-            $('<div style="height:'+trHeight+'px; width:100%;"> </div>').insertAfter( $printContainer.find('.btn-compliance-rating') );
+        for(let data of this.exportData){
+            let locName = (data.parent.name.length > 0) ? data.parent.name+', '+data.name : data.name,
+                ecoLen = (!data.eco_users) ? 0 : data.eco_users.length,
+                rowData = {};
+
+            rowData['location'] = locName;
+            for(let kpi of data.kpis){
+                let compliantText = (kpi.compliance.valid == 1) ? 'Compliant' : 'Not Compliant',
+                compliantClass = (kpi.compliance.valid == 1) ? 'blue-text' : 'grey-text';
+                rowData[kpi.compliance_kpis_id] = compliantText;
+            }
+            rowData['eco'] = ecoLen;
+            rowData['wardens'] = data.wardens_trained_percent+'%';
+            rowData['ratings'] = data.compliance_rating;
+
+            rows.push(rowData);
         }
 
-        $('#cloneContainer').html($printContainer);
+        pdf.text(titleText, 20, 40);
 
-        html2canvas($('#cloneContainer')[0]).then(function(canvas) {
-            let 
-            pdf = new jsPDF("l", "mm", "a4"),
-            imgData = canvas.toDataURL('image/jpeg', 1.0);
-
-            $('#canvasContainer').html(canvas);
-            pdf.addImage(imgData, 'JPG', 7, 5, 280, 190 );
-            pdf.save('summary-of-compliance-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
-
-            $('#cloneContainer').html('');
-
+        pdf.autoTable(columns, rows, {
+            theme : 'grid',
+            margin: 20,
+            startY: 50,
+            styles : {
+                fontSize: 8,
+                overflow: 'linebreak'
+            },
+            headerStyles : {
+                fillColor: [50, 50, 50], textColor: 255
+            },
+            columnStyles : { location : { columnWidth : 140 } }
         });
+
+        pdf.text("Compliance Rating : "+this.exportDataComplianceRating, 20, pdf.autoTable.previous.finalY  + 20);
+
+        pdf.save('summary-of-compliance-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
     }
 
     csvExport(){
-        let csvData = {},
+        let thisClass = this,
+            csvData = {},
             columns = [  "Locations" ],
             getLength = () => {
                 return Object.keys(csvData).length;
             };
+
+        thisClass.csvLoader = true;
 
         for(let kpi of this.reportData.kpis){
             columns.push(kpi.name);
@@ -229,14 +356,14 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 
         let title = "Summary of Compliance ("+moment().format("DD/MM/YYYY")+")";
 
-        if(this.pagination.total > this.queries.limit){
+        /*if(this.pagination.total > this.queries.limit){
             title += " pg."+this.pagination.currentPage;
-        }
+        }*/
 
         csvData[ getLength() ] = [title];
         csvData[ getLength() ] = columns;
 
-        for(let loc of this.reportData.locations){
+        for(let loc of this.exportData){
 
             let locName = (loc.parent.name.length > 0) ? loc.parent.name + ' - ' : '' ;
             locName += loc.name;
@@ -266,7 +393,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
         let compRatingRow = []; 
         for(let i in columns){
             if( parseInt(i) == (columns.length - 1) ){
-                compRatingRow.push('Compliance Rating : '+this.reportData.totalComplianceRating);
+                compRatingRow.push('Compliance Rating : '+this.exportDataComplianceRating);
             }else{
                 compRatingRow.push('');
             }
@@ -275,6 +402,8 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 
         this.exportToCSV.setData(csvData, 'summary-of-compliance-report-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
         this.exportToCSV.export();
+
+        thisClass.csvLoader = false;
     }
 
 	ngOnDestroy(){

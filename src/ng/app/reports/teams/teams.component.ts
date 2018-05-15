@@ -140,7 +140,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
             this.dashboardPreloader.show();
             this.pagination.prevPage = parseInt(type);
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset;
+            this.queries.offset = offset - 1;
             this.getTeamReport((response:any) => {
                 this.dashboardPreloader.hide();
             });

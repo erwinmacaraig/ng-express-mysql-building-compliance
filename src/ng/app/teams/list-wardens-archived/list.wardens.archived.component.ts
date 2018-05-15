@@ -439,7 +439,7 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 		if(changeDone){
 			this.pagination.prevPage = parseInt(type);
 			let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-			this.queries.offset = offset;
+			this.queries.offset = offset - 1;
 			this.loadingTable = true;
 			this.getListData(() => { 
 				this.loadingTable = false;
