@@ -133,18 +133,29 @@ export class CourseUserRelation extends BaseClass {
     });
   }
 
-  public getRelation(user: number = 0, course: number = 0): Promise<number> {
+  public getRelation(filter = {}): Promise<number> {
     return new Promise((resolve, reject) => {
+      let whereClause = '';
+      const values = [];
+      if ('user' in filter) {
+        whereClause += ` AND user_id = ?`;
+        values.push(filter['user']);
+      }
+      if ('course' in filter) {
+        whereClause += ` AND course_id = ?`;
+        values.push(filter['course']);
+      }
+      if ('training_requirement' in filter) {
+        whereClause += ` AND training_requirement_id = ?`;
+        values.push(filter['training_requirement']);
+      }
       const sql_get = `SELECT
                         course_user_relation_id
                       FROM
                         course_user_relation
-                      WHERE
-                        user_id = ?
-                      AND
-                        course_id = ?`;
+                      WHERE 1=1 ${whereClause}`;
       const connection = db.createConnection(dbconfig);
-      connection.query(sql_get, [user, course], (error, results, fields) => {
+      connection.query(sql_get, values, (error, results, fields) => {
           if (error) {
               console.log('course-user-relation.model', error, sql_get);
               throw new Error('There was an error getting relationship');
@@ -160,6 +171,55 @@ export class CourseUserRelation extends BaseClass {
       connection.end();
     });
   }
+
+  public getRelationDetails(filter = {}): Promise<object> {
+    return new Promise((resolve, reject) => {
+      let whereClause = '';
+      const values = [];
+      if ('user' in filter) {
+        whereClause += ` AND course_user_relation.user_id = ?`;
+        values.push(filter['user']);
+      }
+      if ('course' in filter) {
+        whereClause += ` AND course_user_relation.course_id = ?`;
+        values.push(filter['course']);
+      }
+      if ('training_requirement' in filter) {
+        whereClause += ` AND course_user_relation.training_requirement_id = ?`;
+        values.push(filter['training_requirement']);
+      }
+      const sql_get = `SELECT
+                        course_user_relation.course_user_relation_id,
+                        course_user_relation.user_id,
+                        course_user_relation.course_id,
+                        course_user_relation.training_requirement_id,
+                        scorm_course.course_launcher
+                      FROM
+                        course_user_relation
+                      INNER JOIN
+                        scorm_course
+                      ON
+                        course_user_relation.course_id = scorm_course.course_id
+                      WHERE 1=1
+                        ${whereClause}`;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_get, values, (error, results, fields) => {
+          if (error) {
+              console.log('course-user-relation.model', error, sql_get);
+              throw new Error('There was an error getting relationship');
+          }
+          if (results.length) {
+              resolve(results[0]);
+          } else {
+              reject({
+                  'message': 'There are no relation between user and course'
+              });
+          }
+      });
+      connection.end();
+    });
+  }
+
 
   public getAllCourseForUser(user: number = 0, disabled?): Promise<Array<object>> {
     return new Promise((resolve, reject) => {
@@ -299,9 +359,8 @@ export class CourseUserRelation extends BaseClass {
       });
       connection.end();
       }
-
     });
   }
-
+  public
 
 }

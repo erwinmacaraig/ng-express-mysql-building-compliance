@@ -26,12 +26,24 @@
     			</div>
 
     			<div class="right right-buttons no-print" *ngIf="i == 0">
-    				<a #aPdf (click)="pdfExport(printContainer)">
+                    <div style="width: 35px;" *ngIf="pdfLoader">
+                        <div class="progress" style="margin: 2px auto;">
+                            <div class="indeterminate"></div>
+                        </div>
+                    </div>
+
+    				<a #aPdf (click)="pdfExport(printContainer)" *ngIf="!pdfLoader">
     					<div class="text">Export to</div>
     					<div class="image pdf"></div>
     				</a>
 
-    				<a (click)="csvExport()">
+                    <div style="width: 35px;" *ngIf="csvLoader">
+                        <div class="progress" style="margin: 2px auto;">
+                            <div class="indeterminate"></div>
+                        </div>
+                    </div>
+
+    				<a (click)="csvExport()" *ngIf="!csvLoader">
     					<div class="image excel"></div>
     				</a>
 
@@ -129,8 +141,9 @@
 </div>
 
 <div class="container">
+
     <div class="row no-print">
-        <div class="col l12 m12 s12 center pagination" [hidden]="reportData.length == 0 || pagination.total <= queries.limit ">
+        <div class="col l12 m12 s12 center pagination" [hidden]="reportData.length == 0 || pagination.pages < 2 ">
             <div class="inline-block">
                 <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
             </div>

@@ -5,12 +5,24 @@
 			<h5 class="left summary-of-compliance-title">Summary of Compliance ({{reportData.date}})</h5>
 
 			<div class="right right-buttons">
-				<a #aPdf (click)="pdfExport(aPdf, printContainer)">
+                <div style="width: 35px;" *ngIf="pdfLoader">
+                    <div class="progress" style="margin: 2px auto;">
+                        <div class="indeterminate"></div>
+                    </div>
+                </div>
+
+				<a #aPdf (click)="pdfExport(aPdf, printContainer)" *ngIf="!pdfLoader">
 					<div class="text">Export to</div>
 					<div class="image pdf"></div>
 				</a>
+
+                <div style="width: 35px;" *ngIf="csvLoader">
+                    <div class="progress" style="margin: 2px auto;">
+                        <div class="indeterminate"></div>
+                    </div>
+                </div>
 				
-				<a (click)="csvExport()">
+				<a (click)="csvExport()" *ngIf="!csvLoader">
 					<div class="image excel"></div>
 				</a>
 
@@ -35,11 +47,11 @@
 				<table class="striped">
 					<thead>
 						<tr class="grey darken-5 white-text">
-							<th style="width: 9%">Locations</th>
-							<th style="width: 8%" *ngFor="let kpi of reportData.kpis"> {{kpi.name}} </th>
-                            <th style="width: 1%;">Total ECO</th>
-                            <th style="width: 1%;">% Trained Wardens</th>
-                            <th style="width: 1%;">Compliance Rating</th>
+							<th key="location" style="width: 9%" [attr.keywidth]="9">Locations</th>
+							<th [attr.key]="kpi.compliance_kpis_id" style="width: 8%" [attr.keywidth]="8" *ngFor="let kpi of reportData.kpis"> {{kpi.name}} </th>
+                            <th key="eco" style="width: 1%;" [attr.keywidth]="1">Total ECO</th>
+                            <th key="wardens" style="width: 1%;" [attr.keywidth]="1">% Trained Wardens</th>
+                            <th key="ratings" style="width: 1%;" [attr.keywidth]="1">Compliance Rating</th>
 						</tr>
 					</thead>
                     <tbody [hidden]="!loadingTable">
@@ -111,7 +123,7 @@
 		</div>
 
         <div class="row no-print">
-            <div class="col l12 m12 s12 center pagination" [hidden]="reportData.locations.length == 0 || pagination.total <= queries.limit || loadingTable">
+            <div class="col l12 m12 s12 center pagination" [hidden]="reportData.locations.length == 0 || pagination.pages < 2 || loadingTable">
                 <div class="inline-block">
                     <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
                 </div>

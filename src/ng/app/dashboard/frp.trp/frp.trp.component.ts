@@ -350,7 +350,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
             this.pagination.prevPage = parseInt(type);
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset;
+            this.queries.offset = offset - 1;
             this.showPlansLoader = true;
             this.getLocationsForListing((response:any) => { 
                 this.locations = response.locations;

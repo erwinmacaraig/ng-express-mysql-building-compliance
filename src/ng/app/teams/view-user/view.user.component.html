@@ -102,6 +102,144 @@
 	</div>
 </div>
 
+
+<div class="inline-block right-content">
+  <div class="row">
+    <div class="col s12 m12 l12">
+      <h5>Required Trainings</h5>
+    </div>
+    <div class="col s12 m12 l12">
+      <div class="grid" id="gridContainer">
+        <div class="grid-container" *ngFor="let tr of viewData.valid_trainings">
+            <p class="blue-text"> {{tr.role_name}}</p>
+            <div class="grid-item card grey lighten-3">
+                <div class="top" >
+                  <div class="image check inline-block" ></div>
+                  <div class="text inline-block green-text">Compliant</div>
+                </div>
+                <div class="middle-image">
+                  <div class="image green-image"></div>
+                </div>
+                <div class="middle-text">
+                  {{tr.training_requirement_name}}
+                  <p class="blue-text">{{ formatDate(tr.certification_date) }}</p>
+                </div>
+                <div class="buttons">
+                  <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{tr.scorm_course_id}}&amp;c={{tr.certifications_id}}"
+                target="_blank" class="btn blue waves-effect waves-light">Download Certificate</a>
+                </div>
+              </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="viewData.required_trainings.length > 0" class="row">
+    <div class="col s12 m12 l12">
+        <div class="grid" id="gridContainer">
+          <div class="grid-container" *ngFor="let tr of viewData.required_trainings">
+            <p class="blue-text"> {{tr.role_name}}</p>
+            <div class="grid-item card grey lighten-3" >
+                <div class="top" >
+                  <div class="image close inline-block" ></div>
+                  <div class="text inline-block red-text">Non-Compliant</div>
+
+                </div>
+                <div class="middle-image">
+                  <div class="image red-image"></div>
+                </div>
+                <div class="middle-text">
+                  {{tr.training_requirement_name}}
+                  <p class="blue-text"></p>
+                </div>
+                <div class="buttons">
+                  <button class="btn red lighten-1 waves-effect waves-light" (click)="emailReminderInvitation(tr)">Send Invitation</button>
+                </div>
+              </div>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <div class="row">
+      <div class="col s12 m12 l12">
+        <h5 *ngIf="viewData.trainings.length > 0">Available Online Trainings</h5>
+        <h5 *ngIf="viewData.trainings.length == 0">No Available Online Trainings</h5>
+      </div>
+      <div class="col s12 m12 l12">
+        <div class="grid" id="gridContainer">
+          <div class="grid-container" *ngFor="let training of viewData.trainings">
+              <p class="blue-text"></p>
+              <div class="grid-item card grey lighten-3">
+                  <div class="top" >
+                    <div class="image inline-block"></div>
+                    <div class="text inline-block green-text"></div>
+                  </div>
+                  <div class="middle-image">
+                    <div class="image green-image"></div>
+                  </div>
+                  <div class="middle-text">
+                    {{training.training_requirement_name}}
+                    <p class="blue-text"></p>
+                  </div>
+                  <div class="buttons">
+                    <button class="btn blue waves-effect waves-light" (click)="loadTrainingCourse(training)">Take Training</button>
+                  </div>
+                </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+  <div class="row">
+    <div class="col s12 m12 l12">
+      <h5>Previous Trainings</h5>
+    </div>
+    <div class="col s12 m12 l12">
+      <div class="grid" id="gridContainer">
+        <h4 *ngIf="viewData.certificates.length == 0">No previous trainings record found</h4>
+        <div class="grid-container" *ngFor="let cert of viewData.certificates">
+        <p class="blue-text"> </p>
+        <div class="grid-item card grey lighten-3">
+            <div class="top">
+                <div class="image inline-block" [ngClass]="{
+                  'close' : cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired',
+                  'check' : cert.status == 'valid' && cert.pass == 1
+                }"> </div>
+
+                <div class="text inline-block" [ngClass]="{
+                  'red-text' : cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired',
+                  'green-text' : cert.status == 'valid' && cert.pass == 1
+                }">
+                  <span *ngIf="cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired'">Invalid</span>
+                  <span *ngIf="cert.status == 'valid' && cert.pass == 1">Valid</span>
+                </div>
+
+              <div class="middle-image">
+                <div class="image" [ngClass]="{
+                  'red-image' : cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired',
+                  'green-image' : cert.status == 'valid' && cert.pass == 1
+                }"></div>
+              </div>
+              <div class="middle-text">
+                {{cert.training_requirement_name}}
+                <p class="blue-text"> {{cert.expiry_date_formatted}} </p>
+              </div>
+
+              <div class="buttons">
+                <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{cert.scorm_course_id}}&amp;c={{cert.certifications_id}}"
+                target="_blank" class="btn blue waves-effect waves-light">Download Certificate</a>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<!--
 <div class="inline-block right-content">
 	<div class="row">
 		<div class="col s12 m12 l12">
@@ -129,7 +267,7 @@
 					</div>
 
 					<div class="buttons">
-						<!-- <button class="btn red lighten-1 waves-effect waves-light" [routerLink]="['/trainings/my-training']">Go To Training</button> -->
+
 					</div>
 				</div>
 
@@ -175,7 +313,7 @@
 					</div>
 
 					<div class="buttons">
-						<!-- <button class="btn blue waves-effect waves-light">Download Certificate</button> -->
+
 						<button (click)="emailThisCertificate(cert.user_id, cert.certifications_id)" class="btn orange lighten-1 waves-effect waves-light">Email Certificate</button>
 					</div>
 				</div>
@@ -184,7 +322,7 @@
 
 		</div>
 	</div>
-</div>
+</div> -->
 
 <div id="modalRemoveWarden" class="modal">
 	<div class="modal-content center" *ngIf="showModalRemoveWardenLoader">

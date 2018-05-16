@@ -45,7 +45,9 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 		locations : [],
 		trainings : [],
 		certificates : [],
-		badge_class : ''
+    badge_class : '',
+    valid_trainings: [],
+    required_trainings: []
 	};
 	showRemoveWardenButton = false;
 	showModalRemoveWardenLoader = false;
@@ -149,7 +151,9 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 			this.viewData.eco_roles = response.data.eco_roles;
 			this.viewData.locations = response.data.locations;
 			this.viewData.trainings = response.data.trainings;
-			this.viewData.certificates = response.data.certificates;
+      this.viewData.certificates = response.data.certificates;
+      this.viewData.valid_trainings = response.data.valid_trainings;
+      this.viewData.required_trainings = response.data.required_trainings;
 
 			for(let x in this.viewData.certificates){
 				this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
@@ -555,5 +559,21 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     // todo
     submitAssignLocation(f: NgForm) {
 
+    }
+
+    formatDate(dt: string): string {
+      return moment(dt).format('DD/MM/YYYY')
+    }
+
+    emailReminderInvitation(training = {}) {
+
+      training['user_id'] = this.decryptedID;
+      // console.log(training);
+
+      this.courseService.emailTrainingInvite(training).subscribe((response) => {
+        alert('Invitation sent.');
+      }, (error: HttpErrorResponse) => {
+        alert ('Error sending invitation. Try again later.');
+      });
     }
 }

@@ -331,7 +331,7 @@ export class UserEmRoleRelation extends BaseClass {
                 INNER JOIN users u ON em.user_id = u.user_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
                 WHERE em.location_id IN (${locationIds}) AND u.archived = ${archived} ${configFilter}`;
-            console.log(sql_load);
+            
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {

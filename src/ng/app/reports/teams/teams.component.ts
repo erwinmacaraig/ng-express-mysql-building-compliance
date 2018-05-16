@@ -12,6 +12,7 @@ import * as moment from 'moment';
 
 
 declare var $: any;
+declare var jsPDF: any;
 
 @Component({
     selector : 'app-teams-compliance-component',
@@ -32,10 +33,15 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
     };
     queries =  {
-        limit : 2,
+        limit : 10,
         offset : 0,
         location_id : 0
     };
+
+    pdfLoader = false;
+    csvLoader = false;
+    exportData = [];
+    exportFetchMarker = {};
 
     constructor (
         private router: Router,
@@ -52,19 +58,21 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
     }
 
-    getTeamReport(callBack) {
+    getTeamReport(callBack, forExport?) {
 
         this.queries.location_id = this.locationIdDecrypted;
         this.reportService.generateTeamReportingOnLocation(this.queries)
         .subscribe((response:any) => {
-            this.reportData = response['data'];
+            if(!forExport){
+                this.reportData = response['data'];
 
-            this.pagination.pages = response.pagination.pages;
-            this.pagination.total = response.pagination.total;
+                this.pagination.pages = response.pagination.pages;
+                this.pagination.total = response.pagination.total;
 
-            this.pagination.selection = [];
-            for(let i = 1; i<=this.pagination.pages; i++){
-                this.pagination.selection.push({ 'number' : i });
+                this.pagination.selection = [];
+                for(let i = 1; i<=this.pagination.pages; i++){
+                    this.pagination.selection.push({ 'number' : i });
+                }
             }
 
             callBack(response);
@@ -86,6 +94,8 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
                 }
 
                 this.dashboardPreloader.hide();
+
+                this.generateReportDataForExport();
             });
         });
 
@@ -95,6 +105,56 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         }, (e) => {
             console.log(e);
         });
+    }
+
+    generateReportDataForExport(){
+
+        this.pdfLoader = true;
+        this.csvLoader = true;
+        
+
+        let 
+        divider = 50,
+        divRes = this.pagination.total / divider,
+        divResString = divRes.toString(),
+        remainderSplit = divResString.split('.'),
+        remainder = (remainderSplit[1]) ? parseInt(remainderSplit[1]) : 0;
+
+        divRes = (remainder > 0) ? divRes + 1 : divRes; 
+
+        for(let i = 1; i<=divRes; i++){
+            let offset = (i * divider) - divider;
+            this.queries.offset = (offset > 0) ? offset - 1 : 0;
+            this.queries.limit = divider;
+
+            this.exportFetchMarker[i] = false;
+
+            this.getTeamReport((response:any) => {
+
+                this.exportFetchMarker[i] = response['data'];
+                let allLoaded = true;
+                for(let x in this.exportFetchMarker){
+                    if(!this.exportFetchMarker[x]){
+                        allLoaded = false;
+                    }
+                }
+                
+                if(allLoaded){
+
+                    for(let x in this.exportFetchMarker){
+                        this.exportData = this.exportData.concat( this.exportFetchMarker[x] );
+                    }
+
+                    this.pdfLoader = false;
+                    this.csvLoader = false;
+                }
+
+            }, true);
+
+            this.queries.offset = 0;
+            this.queries.limit = 10;
+
+        }
     }
 
     ngAfterViewInit(){
@@ -140,7 +200,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
             this.dashboardPreloader.show();
             this.pagination.prevPage = parseInt(type);
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset;
+            this.queries.offset = offset - 1;
             this.getTeamReport((response:any) => {
                 this.dashboardPreloader.hide();
             });
@@ -159,41 +219,114 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     }
 
     pdfExport(printContainer){
-        let $printContainer = $(printContainer).clone();
+        let
+        pdf = new jsPDF("p", "pt"),
+        columns = [
+            { title : 'Company', dataKey : 'company' },
+            { title : 'Sub Location', dataKey : 'sublocation' },
+            { title : 'Contact Person', dataKey : 'contactperson' },
+            { title : 'Email', dataKey : 'email' },
+            { title : 'Warden', dataKey : 'warden' },
+            { title : 'P.E.E.P', dataKey : 'peep' }
+        ],
+        topMargin = 40,
+        count = 0;
 
-        $printContainer.removeClass('container').css({
-            'margin-left' : '50px', 'margin-right' : '50px'
-        });
-        $printContainer.prepend('<h5>Team Report</h5>');
-        $printContainer.find('.no-print').remove();
-        $('#cloneContainer').html($printContainer);
-
-        html2canvas($('#cloneContainer')[0]).then(function(canvas) {
+        for(let report of this.exportData){
             let 
-            pdf = new jsPDF("p", "mm", "a4"),
-            pageHeight = 297, // 1122.52px
-            imgWidth = 210, //793.70px
-            imgData = canvas.toDataURL('image/jpeg', 1.0),
-            imgHeight = canvas.height * imgWidth / canvas.width,
-            heightLeft = imgHeight,
-            position = 5;
+            rows = [],
+            locName = (report.location.parent.name.length > 0) ? report.location.parent.name+', '+report.location.name : report.location.name;
+            locName += '\nCurrent Team Information';
 
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-
-            while (heightLeft >= 0) {
-              position = heightLeft - imgHeight;
-              position += 5;
-              pdf.addPage();
-              pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-              heightLeft -= pageHeight;
+            pdf.setFontSize(14);
+            pdf.splitTextToSize(locName, 180);
+            if(count == 0){
+                pdf.text(locName, 20, topMargin);
+            }else{
+                pdf.text(locName, 20, pdf.autoTable.previous.finalY + 60 );
             }
 
-            $('#canvasContainer').html(canvas);
-            pdf.save('teams-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
-            $('#cloneContainer').html('');
+            for(let field of report.data){
+                let comps = [],
+                    persons = [],
+                    email = [];
+                for(let accnt of field['trp']){
+                    comps.push(accnt['account_name']);
 
-        });
+                    if(accnt['mobile_number'].length > 0){
+                        persons.push(accnt['first_name']+' '+accnt['last_name']+' ('+accnt['mobile_number']+')'  );
+                    }else{
+                        persons.push(accnt['first_name']+' '+accnt['last_name']  );
+                    }
+
+                    email.push( accnt['email'] );
+                }
+
+                rows.push({
+                    'data' : true,
+                    'company' : comps.join(','),
+                    'sublocation' : field['name'],
+                    'contactperson' : persons.join(','),
+                    'email' : email.join(','),
+                    'warden' : field['total_wardens'],
+                    'peep' : field['peep_total']
+                });
+            }
+
+            let startYvalue = pdf.autoTable.previous.finalY + 80;
+            if(count == 0){
+                startYvalue = 60;
+            }
+
+            if(rows.length == 0){
+                rows.push({ data : false });
+            }
+
+            pdf.autoTable(columns, rows, {
+                theme : 'grid',
+                margin: 20,
+                startY: startYvalue,
+                styles : {
+                    fontSize: 8,
+                    overflow: 'linebreak'
+                },
+                headerStyles : {
+                    fillColor: [50, 50, 50], textColor: 255
+                },
+                columnStyles : { location : { columnWidth : 140 } },
+                drawRow: function(row, data) {
+                    if(!row.raw.data){
+                        pdf.setFontSize(8);
+                        pdf.rect(data.settings.margin.left, row.y, data.table.width, 20, 'S');
+                        pdf.autoTableText("No record found", data.settings.margin.left + data.table.width / 2, row.y + row.height / 2, {
+                            halign: 'center',
+                            valign: 'middle'
+                        });
+                        data.cursor.y += 20;
+                    }
+                },
+                drawCell: function (cell, data) {
+                    if(!data.row.raw.data){
+                        return false;
+                    }
+                }
+            });
+
+            if(rows[0]['data'] === true ){
+                pdf.text("Total No. Of Wardens : "+report.total_warden, 20, pdf.autoTable.previous.finalY + 20);
+            }
+
+            count++;
+        }
+
+        let pages = pdf.internal.getNumberOfPages();
+        for(let i=1; i<=pages; i++){
+            pdf.setPage(i);
+            pdf.setFontSize(8);
+            pdf.text('Downloaded from EvacServices : '+moment().format('DD/MM/YYYY hh:mmA'), (pdf.internal.pageSize.width / 2) + 80, pdf.internal.pageSize.height - 10 );
+        }
+
+        pdf.save('teams-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
     }
 
     csvExport(){
@@ -210,7 +343,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
         csvData[ getLength() ] = [title];
 
-        for(let report of this.reportData){
+        for(let report of this.exportData){
 
             let locName = (report.location.parent.name.length > 0) ? report.location.parent.name+' - ' : '';
             locName += report.location.name + ' Current Team Information ';
@@ -238,7 +371,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
                     d.push(comp);
                     d.push( field['name'] );
 
-                    for(let i of field['trp']){
+                    for(let i in field['trp']){
                         let names = field['trp'][i]['first_name']+' '+field['trp'][i]['last_name'];
                         if(field['trp'][i]['mobile_number'].length > 0){
                             names += ' ('+field['trp'][i]['mobile_number']+') ';
@@ -250,7 +383,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
                     }
                     d.push(trps);
 
-                    for(let i of field['trp']){
+                    for(let i in field['trp']){
                         let e = field['trp'][i]['email'];
                         if(parseInt(i) != field['trp'].length - 1){
                             e += ' | ';
