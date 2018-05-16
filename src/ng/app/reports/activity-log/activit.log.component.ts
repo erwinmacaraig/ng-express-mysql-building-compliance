@@ -231,7 +231,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         pdf.autoTable(columns, rows, {
             theme : 'grid',
             margin: 20,
-            startY: 60,
+            startY: 50,
             styles : {
                 fontSize: 8,
                 overflow: 'linebreak'
@@ -239,12 +239,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
             headerStyles : {
                 fillColor: [50, 50, 50], textColor: 255
             },
-            columnStyles : { locations : { columnWidth : 140 }, date : { columnWidth : 70 } },
-            drawRow: function(row){
-                if(row.index > 0 && row.index % 24 == 0){
-                    pdf.autoTableAddPage();
-                }
-            }
+            columnStyles : { locations : { columnWidth : 140 }, date : { columnWidth : 70 } }
         });
 
         let pages = pdf.internal.getNumberOfPages();
