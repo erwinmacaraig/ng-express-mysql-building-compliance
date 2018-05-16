@@ -1,4 +1,4 @@
-
+import { TrainingRequirements } from './../models/training.requirements';
 import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
 
@@ -925,7 +925,7 @@ export class UsersRoute extends BaseRoute {
                     locationIds.push(loc.location_id);
                 }
             }
-            
+
 
             for(let loc of locationFRPTRP){
                 if(!locationIds[ loc.location_id ]){
@@ -962,7 +962,7 @@ export class UsersRoute extends BaseRoute {
             for(let loc of locationsData){
                 loc.name = (loc.name.trim().length == 0) ? loc.formatted_address : loc.name;
             }
- 
+
             for(let user of response.data['users']){
                 if('locations' in user == false){ user['locations'] = []; }
                 for(let loc of locationsData){
@@ -1358,14 +1358,20 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async getUserLocationsTrainingsEcoRoles(req: Request, res: Response, next: NextFunction){
+    const user_em_roles = [];
+    let training_requirement_ids = [];
+    let training_requirement_ids_obj;
+    let required_missing_trainings;
 		let response = {
 			status : false,
 			data : {
 				user : {},
-				locations : {},
+        locations : {},
+        valid_trainings: [],
 				trainings : <any>[],
 				certificates : <any>[],
-				eco_roles : <any>[]
+        eco_roles : <any>[],
+        required_trainings: []
 			},
 			message : ''
 		},
@@ -1381,7 +1387,7 @@ export class UsersRoute extends BaseRoute {
 
 		response.data.eco_roles = emRoles;
         const training_requirements = await new TrainingCertification().getRequiredTrainings();
-        /*console.log(training_requirements);*/
+        // console.log(training_requirements);
         try {
 
             let user = await userModel.load(),
@@ -1393,6 +1399,40 @@ export class UsersRoute extends BaseRoute {
 
                 locations = await userModel.getAllMyEMLocations();
 
+
+                // we need to get the roles regardless of what the location is because
+                // what is important here is the corresponding training to the role attached to the user
+                for (const em_on_loc of locations) {
+                  if (user_em_roles.indexOf(em_on_loc['em_role_id']) == -1) {
+                    user_em_roles.push(em_on_loc['em_role_id']);
+                    for (let i = 0; i < training_requirements[em_on_loc['em_role_id']]['training_requirement_id'].length; i++) {
+                      if (training_requirement_ids.indexOf(training_requirements[em_on_loc['em_role_id']]['training_requirement_id'][i]) == -1) {
+                        training_requirement_ids.push(training_requirements[em_on_loc['em_role_id']]['training_requirement_id'][i]);
+                      }
+                    }
+                  }
+                }
+
+                // you will need to find the corresponding training in the certifications table
+                required_missing_trainings  = await new TrainingCertification().getTrainings(userId, training_requirement_ids);
+                const tr = new TrainingRequirements();
+                try {
+                  response.data.required_trainings = await tr.requirements_details(required_missing_trainings, user_em_roles);
+                } catch (e) {
+                    console.log(e);
+                }
+
+                for (const t of response.data.required_trainings) {
+                  try {
+                    const course_user_rel = new CourseUserRelation();
+                    const temp = await course_user_rel.getRelationDetails({'user': userId, 'training_requirement': t['training_requirement_id']});
+                    t['course_user_relation_id'] = temp['course_user_relation_id'];
+                    t['course_launcher'] = temp['course_launcher'];
+                  } catch (e) {
+                    t['course_user_relation_id'] = 0;
+                    t['course_launcher'] = '';
+                  }
+                }
                 if( user['mobility_impaired'] == 1 ){
                     let mobilityModel = new MobilityImpairedModel(),
                     arrWhere = [];
@@ -1427,40 +1467,19 @@ export class UsersRoute extends BaseRoute {
                     console.log(e);
                 }
 
-                try{
+                try {
+
                     for (const loc of locations) {
                         if ('em_role_id' in loc) {
                             loc['training_requirement_name'] = training_requirements[loc['em_role_id']]['training_requirement_name'];
                             loc['training_requirement_id'] = training_requirements[loc['em_role_id']]['training_requirement_id'];
                         }
                     }
+
+
+
+
                 }catch(er){}
-
-                /*let
-                usersFrpTrpRole = <any> await userRoleModel.getManyByUserIds(userId),
-                locationsOfAccountUser = <any> await locationAccountUserModel.getLocationsByUserIdAndAccountId(userId, user['account_id']),
-                isFRP = false,
-                isTRP = false;
-
-                for(let frptrp of usersFrpTrpRole){
-                    if(frptrp.role_id == 1){
-                        isFRP = true;
-                    }else if(frptrp.role_id == 2){
-                        isTRP = true;
-                    }
-                }
-
-                for(let loc of locationsOfAccountUser){
-                    if(isFRP){
-                        loc['role_id'] = 1;
-                        loc['role_name'] = 'Building Manager';
-                    }else if(isTRP){
-                        loc['role_id'] = 2;
-                        loc['role_name'] = 'Tenancy Responsible Personnel';
-                    }
-               }
-
-               locations = locations.concat(locationsOfAccountUser);*/
             }
 
             response.data.locations = locations;
@@ -1487,6 +1506,14 @@ export class UsersRoute extends BaseRoute {
               c['token'] = md5(userModel.ID().toString() + userModel.get('first_name') + userModel.get('last_name') + c['certification_date']);
             }
             response.data.certificates = certificates;
+            certificates = null;
+            certificates = await userModel.getAllCertifications({
+              'pass': 1,
+              'training_requirement_id': training_requirement_ids,
+              'current': 1
+            });
+            response.data.valid_trainings = certificates;
+
         } catch(e){
             console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
         }
@@ -2668,7 +2695,7 @@ export class UsersRoute extends BaseRoute {
             for(let userMobil of mobilityDetails){
                 userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
             }
-            
+
             response.data = mobilityDetails;
 
         } catch (e) {

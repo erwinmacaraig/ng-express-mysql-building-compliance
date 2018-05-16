@@ -152,12 +152,21 @@
   clear: both;
 }
 
+.grid-container{
+  margin: 10px;
+  float: left;
+}
+
+.grid-container > p:first-child{
+  font-size: 18px;
+  margin:0px;
+}
+
 .grid .grid-item{
     width: 260px;
     box-shadow: none;
     border-radius: 10px;
     float: left;
-    margin: 10px;
     height: 350px;
     position: relative;
 }
@@ -482,4 +491,24 @@ table tr td .image img{
 
 .modal .btn{
     font-size: 14px !important;
+}
+
+
+#training iframe {
+  height: 90%;
+  width: 97%;
+  position: absolute;
+}
+
+#training{
+  top: 11% !important;
+  left: 1%;
+  width: 98vw;
+  height: 92vh;
+  max-height: 100vh;
+}
+
+#training .modal-footer{
+  position: absolute;
+  bottom: 10px;
 }

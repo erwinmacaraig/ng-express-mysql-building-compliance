@@ -147,7 +147,7 @@ export class TrainingCertification extends BaseClass {
 
       const users_string = users.join(',');
       const connection = db.createConnection(dbconfig);
-      
+
       if ('em_role_id' in filter) {
         filterStr += ` AND user_em_roles_relation.em_role_id = ${filter['em_role_id']}`;
       }
@@ -321,7 +321,7 @@ export class TrainingCertification extends BaseClass {
       if(pass == 1){
           passSql += '  AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW() ';
       }else if(pass == 0){
-          passSql += ` 
+          passSql += `
             AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) < NOW() ${trainingIdSql}
             OR users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} AND certifications.certifications_id IS NULL
             OR users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} AND certifications.pass = 0
@@ -330,7 +330,7 @@ export class TrainingCertification extends BaseClass {
 
       if(count){
           sql = `
-            SELECT 
+            SELECT
               COUNT(training_requirement.training_requirement_id) as count
             FROM
               users
@@ -483,8 +483,60 @@ export class TrainingCertification extends BaseClass {
         });
         connection.end();
       }
-
     });
   }
+  /**
+   * @param user_id - User
+   * @param training_requirements
+   * Array of training requirements
+   * @returns
+   * Return an array of required training ids
+   */
+  public getTrainings(user_id: number = 0, training_requirements = []): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      if (training_requirements.length === 0) {
+        resolve([]);
+        return;
+      }
+      const missingTrainings = [];
+      const takenRequiredTrainings = [];
+      const resultSet = [];
+
+      const training_requirements_str = training_requirements.join(',');
+      const sql = `SELECT
+                    certifications.*,
+                    training_requirement.training_requirement_name
+                FROM
+                  certifications
+                INNER JOIN
+                  training_requirement ON training_requirement.training_requirement_id = certifications.training_requirement_id
+                WHERE
+                  certifications.user_id = ${user_id}
+                AND
+                  DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()
+                AND
+                  certifications.pass = 1
+                AND training_requirement.training_requirement_id IN (${training_requirements_str});`;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql, [], (error, results) => {
+        if (error) {
+          console.log('training.certifications.model.getTrainings', error, sql);
+          throw Error('Cannot query certifications for this user');
+        }
+        for (const r of results) {
+          takenRequiredTrainings.push(r['training_requirement_id']);
+        }
+
+        for (const tr of training_requirements) {
+          if (takenRequiredTrainings.indexOf(tr) === -1) {
+            missingTrainings.push(tr);
+          }
+        }
+        resolve(missingTrainings);
+      });
+    });
+  }
+
+
 
 }
