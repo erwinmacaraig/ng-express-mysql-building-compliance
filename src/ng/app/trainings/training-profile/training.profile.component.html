@@ -84,7 +84,8 @@
                     <p class="blue-text">{{ formatDate(tr.certification_date) }}</p>
                   </div>
                   <div class="buttons">
-                    <button class="btn red lighten-1 waves-effect waves-light">Go To Training</button>
+                    <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{tr.scorm_course_id}}&amp;c={{tr.certifications_id}}"
+                  target="_blank" class="btn blue waves-effect waves-light">Download Certificate</a>
                   </div>
                 </div>
           </div>
@@ -109,8 +110,8 @@
                     {{tr.training_requirement_name}}
                     <p class="blue-text"></p>
                   </div>
-                  <div class="buttons">
-                    <button class="btn red lighten-1 waves-effect waves-light">Go To Training</button>
+                  <div class="buttons" *ngIf="tr.course_user_relation_id != 0">
+                    <button (click)="loadTrainingCourse(tr)" class="btn red lighten-1 waves-effect waves-light">Go To Training</button>
                   </div>
                 </div>
             </div>
@@ -140,7 +141,7 @@
                       <p class="blue-text"></p>
                     </div>
                     <div class="buttons">
-                      <button class="btn blue waves-effect waves-light">Take Training</button>
+                      <button class="btn blue waves-effect waves-light" (click)="loadTrainingCourse(training)">Take Training</button>
                     </div>
                   </div>
             </div>
@@ -521,3 +522,14 @@
 
 	</div>
 </div> -->
+
+<div *ngIf="toggle">
+    <div class="modal" id="training">
+      <div class="modal-content">
+        <iframe [src]="selectedCourse.formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule(selectedCourse)" >Close</button>
+      </div>
+    </div>
+  </div>

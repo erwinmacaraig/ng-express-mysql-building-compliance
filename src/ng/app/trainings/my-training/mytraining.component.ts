@@ -62,7 +62,7 @@ export class MyTrainingsComponent implements OnInit, OnDestroy {
 
     this.userData = this.authService.getUserData();
     this.baseUrl = (platformLocation as any).location.origin;
-	}
+  }
 
   ngOnInit() {
     $('.modal').modal({
