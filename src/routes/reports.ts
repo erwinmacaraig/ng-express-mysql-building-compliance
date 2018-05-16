@@ -315,9 +315,16 @@ export class ReportsRoute extends BaseRoute {
         location_id = req.body.location_id,
         locationModel = new Location(location_id),
         sublocationModel = new Location(),
-        locations = <any> [];
+        locations = <any> [],
+        getAll = (req.body.getall) ? req.body.getall : false,
+        filterExceptLocation = (req.body.nofilter_except_location) ? req.body.nofilter_except_location : false;
 
-        if (location_id == 0) {
+        if(getAll || filterExceptLocation){
+            training_id = false;
+            compliant = -1;
+        }
+
+        if (location_id == 0 || getAll) {
 
             try{
                 let responseLocations = <any> await this.listLocations(req,res, true, { 'archived' : 0 });
@@ -346,11 +353,11 @@ export class ReportsRoute extends BaseRoute {
             users = [];
 
         const config = {};
-        if (req.body.searchKey !== null && req.body.searchKey.length > 0) {
+        if ( (req.body.searchKey !== null && req.body.searchKey.length > 0) && !getAll && !filterExceptLocation) {
           config['searchKey'] = req.body.searchKey;
         }
 
-        if (location_id == 0) {
+        if (location_id == 0 || getAll) {
 
             let accountModel = new Account();
 
@@ -393,11 +400,12 @@ export class ReportsRoute extends BaseRoute {
             }
         }
 
-        let courseMethod = (course_method == 'online') ? 'online_by_evac' : (course_method == 'offline') ? 'offline_by_evac' : '',
+        let offsetLimit = (getAll || filterExceptLocation) ? false : offset+','+limit,
+            courseMethod = (course_method == 'online' && !getAll && !filterExceptLocation) ? 'online_by_evac' : (course_method == 'offline' && !getAll && !filterExceptLocation) ? 'offline_by_evac' : '',
             trainCertModel = new TrainingCertification(),
             trainCertCountModel = new TrainingCertification(),
-            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, false, courseMethod, compliant, training_id ),
-            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offset+','+limit, true, courseMethod, compliant, training_id );
+            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, false, courseMethod, compliant, training_id ),
+            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, true, courseMethod, compliant, training_id );
 
         for(let cert of certificates){
             for(let user of users){
