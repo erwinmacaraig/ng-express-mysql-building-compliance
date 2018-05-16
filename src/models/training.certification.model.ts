@@ -364,7 +364,7 @@ export class TrainingCertification extends BaseClass {
           `;
       }
       const connection = db.createConnection(dbconfig);
-
+      
       connection.query(sql, (error, results, fields) => {
 
         if(error){

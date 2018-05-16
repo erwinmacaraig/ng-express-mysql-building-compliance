@@ -14,6 +14,7 @@ import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
 
 declare var $: any;
+declare var jsPDF: any;
 
 @Component({
 	selector : 'app-trainings-compliance-component',
@@ -42,7 +43,9 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         course_method : 'none',
         training_id : 0,
         searchKey: '',
-        compliant: 1
+        compliant: 1,
+        getall : false,
+        nofilter_except_location : false
     };
 
     loadingTable = false;
@@ -51,6 +54,12 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
     searchSub: Subscription;
     @ViewChild('searchMember') searchMember: ElementRef;
+
+    pdfLoader = false;
+    csvLoader = false;
+    exportData = [];
+    exportFetchMarker = {};
+
 	constructor(
 		private router : Router,
 		private activatedRoute : ActivatedRoute,
@@ -74,6 +83,8 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 if(response.data.length > 0){
                     this.pagination.currentPage = 1;
                 }
+
+                this.generateReportDataForExport();
             });
         });
 
@@ -200,6 +211,23 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         this.dashboardPreloader.show();
 	}
 
+    generateReportDataForExport(){
+        this.pdfLoader = true;
+        this.csvLoader = true;
+
+        let backUpQueries = this.queries;
+
+        this.queries.nofilter_except_location = true;
+
+        this.getLocationReport((response:any) => {
+            this.exportData = response.data;
+            this.pdfLoader = false;
+            this.csvLoader = false;
+        }, true);
+
+        this.queries.nofilter_except_location = false;
+    }
+
     pageChange(type){
 
         let changeDone = false;
@@ -231,28 +259,29 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
             this.queries.offset = offset - 1;
             this.loadingTable = true;
+
             this.getLocationReport((response:any) => {
                 this.loadingTable = false;
             });
         }
     }
 
-	getLocationReport(callBack?){
-		this.queries.location_id = this.locationId;
-
+	getLocationReport(callBack?, forExport?){
+        this.queries.location_id = this.locationId;
 		this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
-			this.results = response['data'];
-            this.backupResults = JSON.parse( JSON.stringify(this.results) );
-            this.pagination.pages = response.pagination.pages;
-            this.pagination.total = response.pagination.total;
+            if(!forExport){
+    			this.results = response['data'];
+                this.backupResults = JSON.parse( JSON.stringify(this.results) );
+                this.pagination.pages = response.pagination.pages;
+                this.pagination.total = response.pagination.total;
 
-            this.pagination.selection = [];
-            for (let i = 1; i<=this.pagination.pages; i++){
-                this.pagination.selection.push({ 'number' : i });
+                this.pagination.selection = [];
+                for (let i = 1; i<=this.pagination.pages; i++){
+                    this.pagination.selection.push({ 'number' : i });
+                }
+                
+                this.loadingTable = false;
             }
-            
-            this.loadingTable = false;
-
             callBack(response);
         });
 	}
@@ -270,34 +299,58 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
     pdfExport(aPdf, printContainer){
         let 
-            $printContainer = $(printContainer).clone(),
-            $titleClone = $('<h5>Training Report</h5>'),
-            aPdfHTML = aPdf.innerHTML;
+        pdf = new jsPDF("p", "pt"),
+        columns = [
+            {
+                title : 'User', dataKey : 'user'
+            },
+            {
+                title : 'Training Name', dataKey : 'name'
+            },
+            {
+                title : 'Training Date', dataKey : 'date'
+            },
+            {
+                title : 'Status', dataKey : 'status'
+            }
+        ],
+        rows = [];
 
-        $titleClone.append(' pg. '+this.pagination.currentPage);
-        $printContainer.prepend($titleClone);
+        pdf.text('Training Report', 20, 40);
 
-        let trLen = $printContainer.find('tr').length,
-            trHeight = 100;
+        for(let re of this.exportData){
+            let statusTxt = (re.status == 'valid' && re.pass == 1) ? 'Compliant' : 'Not Compliant';
 
-        for(let i = 1; i<=(this.queries.limit-trLen); i++){
-            $('<div style="height:'+trHeight+'px; width:100%;"> </div>').insertAfter( $printContainer.find('table') );
+            rows.push({
+                user : re.first_name+' '+re.last_name,
+                name : re.training_requirement_name,
+                date : re.certification_date_formatted,
+                status : statusTxt
+            });
         }
 
-        $('#cloneContainer').html($printContainer);
-
-        html2canvas($('#cloneContainer')[0]).then(function(canvas) {
-            let 
-            pdf = new jsPDF("p", "mm", "a4"),
-            imgData = canvas.toDataURL('image/jpeg', 1.0);
-
-            $('#canvasContainer').html(canvas);
-            pdf.addImage(imgData, 'JPG', 7, 5, 195, 270 );
-            pdf.save('training-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
-
-            $('#cloneContainer').html('');
-
+        pdf.autoTable(columns, rows, {
+            theme : 'grid',
+            margin: 20,
+            startY: 60,
+            styles : {
+                fontSize: 8,
+                overflow: 'linebreak'
+            },
+            headerStyles : {
+                fillColor: [50, 50, 50], textColor: 255
+            },
+            columnStyles : { status : { columnWidth : 70 }, date : { columnWidth : 70 } }
         });
+
+        let pages = pdf.internal.getNumberOfPages();
+        for(let i=1; i<=pages; i++){
+            pdf.setPage(i);
+            pdf.setFontSize(8);
+            pdf.text('Downloaded from EvacServices : '+moment().format('DD/MM/YYYY hh:mmA'), (pdf.internal.pageSize.width / 2) + 80, pdf.internal.pageSize.height - 10 );
+        }
+
+        pdf.save('training-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
     }
 
     csvExport(){
@@ -318,7 +371,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             csvData[ getLength() ] = " No record found ";
         }else{
 
-            for(let re of this.results){
+            for(let re of this.exportData){
                 let d = [];
                 d.push( re.first_name+' '+re.last_name );
                 d.push( re.training_requirement_name );

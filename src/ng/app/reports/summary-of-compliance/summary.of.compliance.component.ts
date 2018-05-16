@@ -288,13 +288,12 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
         titleText = $('.summary-of-compliance-title').text(),
         th = $printContainer.find('thead tr th');
 
-
         th.each((index, elem) => {
             let k = $(elem).attr('key'),
                 keywidth = $(elem).attr('keywidth');
 
             columns.push({
-                title : $(elem).text(),
+                title : $(elem).text().trim(),
                 dataKey : k
             });
         });
@@ -317,6 +316,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
             rows.push(rowData);
         }
 
+        pdf.setFontSize(12);
         pdf.text(titleText, 20, 40);
 
         pdf.autoTable(columns, rows, {
@@ -330,10 +330,22 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
             headerStyles : {
                 fillColor: [50, 50, 50], textColor: 255
             },
-            columnStyles : { location : { columnWidth : 140 } }
+            columnStyles : { 
+                location : { columnWidth : 140 },
+                eco : { columnWidth : 50 },
+                wardens : { columnWidth : 50 },
+                ratings : { columnWidth : 50 }
+            }
         });
 
         pdf.text("Compliance Rating : "+this.exportDataComplianceRating, 20, pdf.autoTable.previous.finalY  + 20);
+
+        let pages = pdf.internal.getNumberOfPages();
+        for(let i=1; i<=pages; i++){
+            pdf.setPage(i);
+            pdf.setFontSize(8);
+            pdf.text('Downloaded from EvacServices : '+moment().format('DD/MM/YYYY hh:mmA'), pdf.internal.pageSize.width - 210, pdf.internal.pageSize.height - 10 );
+        }
 
         pdf.save('summary-of-compliance-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
     }

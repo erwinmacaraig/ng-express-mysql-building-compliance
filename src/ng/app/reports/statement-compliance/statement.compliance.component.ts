@@ -135,24 +135,21 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
             locName = (report.location.parent.name.length > 0) ? report.location.parent.name + ' - ' : '' ;
             locName += report.location.name;
 
-
+            pdf.setFontSize(12);
             if(count == 0){
                 pdf.text(locName, 20, topMargin);
             }else{
-                pdf.text(locName, 20, pdf.autoTable.previous.finalY + 70 );
+                pdf.text(locName, 20, pdf.autoTable.previous.finalY + 60 );
             }
 
-
             for(let kpi of report.kpis){
-                let actTxt = '',
-                    statusTxt = 'n/a';
+                let actTxt = 'n/a',
+                    statusTxt = 'Not Compliant';
                 if(kpi.compliance.docs[0]){
                     actTxt = kpi.compliance.docs[0]['date_of_activity_formatted'];
                 }
 
-                if(kpi.compliance.valid == 0){
-                    statusTxt = 'Not Compliant';
-                }else{
+                if(kpi.compliance.valid == 1){
                     statusTxt = 'Compliant';
                 }
 
@@ -164,7 +161,7 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
                 });
             }
 
-            let startYvalue = pdf.autoTable.previous.finalY + 20;
+            let startYvalue = pdf.autoTable.previous.finalY + 70;
             if(count == 0){
                 startYvalue = 50;
             }
@@ -183,10 +180,16 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
                 columnStyles : { location : { columnWidth : 140 } }
             });
 
-            pdf.text( " Compliance Rating : "+report.compliance_rating , 20, pdf.autoTable.previous.finalY + 10);
+            pdf.text( "Compliance Rating : "+report.compliance_rating , 20, pdf.autoTable.previous.finalY + 20);
 
-            count++;
-           
+            count++; 
+        }
+
+        let pages = pdf.internal.getNumberOfPages();
+        for(let i=1; i<=pages; i++){
+            pdf.setPage(i);
+            pdf.setFontSize(8);
+            pdf.text('Downloaded from EvacServices : '+moment().format('DD/MM/YYYY hh:mmA'), (pdf.internal.pageSize.width / 2) + 80, pdf.internal.pageSize.height - 10 );
         }
 
         pdf.save('statement-of-compliance-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
