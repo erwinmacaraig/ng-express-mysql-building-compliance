@@ -11,38 +11,45 @@ import { UserService } from '../../services/users';
 import { CourseService } from '../../services/course';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as enLocale from 'date-fns/locale/en';
+import { ComplianceService } from './../../services/compliance.service';
+import { DomSanitizer } from '@angular/platform-browser';
 
 declare var $: any;
 declare var Materialize: any;
 declare var moment: any;
+declare var user_course_relation: any;
+
 @Component({
   selector: 'app-view-training-profile',
   templateUrl: './training.profile.component.html',
   styleUrls: ['./training.profile.component.css'],
-  providers: [DashboardPreloaderService, EncryptDecryptService, UserService, CourseService]
+  providers: [DashboardPreloaderService, EncryptDecryptService, UserService, CourseService, ComplianceService]
 })
 export class TrainingProfile implements OnInit, OnDestroy {
   @ViewChild('formMobility') formMobility : NgForm;
   @ViewChild("durationDate") durationDate: ElementRef;
   @ViewChild("formProfile") formProfile: NgForm;
   @ViewChild("formCredential") formCredential : NgForm;
-	userData = {};
-	encryptedID = '';
-	decryptedID = '';
-	viewData = {
-		user : {
+  userData = {};
+  encryptedID = '';
+  decryptedID = '';
+  viewData = {
+  user : {
       profilePic : '',
       last_name: '',
       first_name: '',
-			last_login : '',
-			mobility_impaired_details : {}
-		},
-		role_text : '',
-		eco_roles : [],
-		locations : [],
-		trainings : [],
-		certificates : [],
-		badge_class : ''
+      last_login : '',
+      mobility_impaired_details : {}
+    },
+    role_text : '',
+    eco_roles : [],
+    locations : [],
+    trainings : [],
+    certificates : [],
+    badge_class : '',
+    valid_trainings: [],
+    required_trainings: [],
+    all_trainings: []
 	};
 	showRemoveWardenButton = false;
 	showModalRemoveWardenLoader = false;
@@ -71,8 +78,14 @@ export class TrainingProfile implements OnInit, OnDestroy {
 
 	toEditLocations = [];
 
-	showLocationSelection = false;
+  showLocationSelection = false;
   seenRequiredTrainings = [];
+  toggle = false;
+  selectedCourse;
+  private baseUrl;
+  courses = [];
+
+
 	constructor(
     private auth: AuthService,
     private preloaderService: DashboardPreloaderService,
@@ -82,12 +95,15 @@ export class TrainingProfile implements OnInit, OnDestroy {
     private router: Router,
     private courseService : CourseService,
     private userService: UserService,
-    private elemRef: ElementRef
-		){
+    private elemRef: ElementRef,
+    private sanitizer: DomSanitizer,
+    private complianceService: ComplianceService,
+    private platformLocation: PlatformLocation
+  ) {
 
-
+    this.baseUrl = (platformLocation as any).location.origin;
 		this.datepickerModel = new Date();
-    	this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+    this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 
 	}
 
@@ -97,22 +113,31 @@ export class TrainingProfile implements OnInit, OnDestroy {
 			this.viewData.role_text = response.data.role_text;
 			this.viewData.eco_roles = response.data.eco_roles;
 			this.viewData.trainings = response.data.trainings;
-			this.viewData.certificates = response.data.certificates;
+      this.viewData.certificates = response.data.certificates;
+      this.viewData.valid_trainings = response.data.valid_trainings;
+      this.viewData.required_trainings = response.data.required_trainings;
+
+
+
+      // console.log(this.viewData.all_trainings);
 
       /* Filter out locations so locations will contain locations with EM Role */
       for(let i = 0; i < response.data.locations.length; i++) {
         if (response.data.locations[i]['em_roles_id'] !== null) {
           this.viewData.locations.push(response.data.locations[i]);
         }
+        /*
         if (response.data.locations[i]['training_requirement_name']) {
           for (let j = 0; j < response.data.locations[i]['training_requirement_name'].length; j++) {
             if (this.seenRequiredTrainings.indexOf(response.data.locations[i]['training_requirement_name'][i]) === -1) {
               this.seenRequiredTrainings.push(response.data.locations[i]['training_requirement_name'][i]);
             }
           }
-        }
-
+        } */
       }
+
+
+
 
       // console.log(this.seenRequiredTrainings);
 			for(let x in this.viewData.certificates){
@@ -447,5 +472,44 @@ export class TrainingProfile implements OnInit, OnDestroy {
     (e) => {
       alert('There was a problem sending certificate.');
     });
+    }
+
+    formatDate(dt: string): string {
+      return moment(dt).format('DD/MM/YYYY')
+    }
+
+    public loadTrainingCourse(course: object = {}) {
+      this.toggle = true;
+      user_course_relation = course['course_user_relation_id'] || 0;
+      this.selectedCourse = course;
+      this.selectedCourse['formatted_launcher_url'] =
+            this.sanitizer.bypassSecurityTrustResourceUrl(this.baseUrl + '/' + this.selectedCourse['course_launcher']);
+      this.complianceService.initializeLRS(user_course_relation).subscribe((data) => {
+        setTimeout(() => {
+        console.log(this.selectedCourse);
+          $('.modal').modal({
+            dismissible : false,
+            startingTop : '0%',
+            endingTop: '5%'
+          });
+          $('#training').modal('open');
+        }, 600);
+      }, (error) => {
+          alert('There was an error loading course. Try again later');
+      });
+    }
+
+    public onCloseCourseModule(course: object = {}) {
+
+      this.complianceService.getAllRegisteredCourses().subscribe((data) => {
+        console.log(data);
+        if (data['courses'].length > 0) {
+          this.courses = data['courses'];
+          console.log('At onCloseCourseModule', this.courses);
+        }
+      }, (error) => {
+        console.log('At onCloseCourseModule', error);
+        this.courses = [];
+      });
     }
 }

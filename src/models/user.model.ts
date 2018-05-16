@@ -389,7 +389,9 @@ export class User extends BaseClass {
           break;
           case 'training_requirement_id':
             const trainingRequirementIds = (filter['training_requirement_id']).join(',');
-            filterStr += ` AND certifications.training_requirement_id IN (${trainingRequirementIds}) `;
+            if (trainingRequirementIds.length > 0 ) {
+              filterStr += ` AND certifications.training_requirement_id IN (${trainingRequirementIds}) `;
+            }
           break;
           case 'certifications_id':
             filterStr += ` AND certifications.certifications_id = ${filter[key]}`;
@@ -401,6 +403,7 @@ export class User extends BaseClass {
       });
       const sql_certifications = `SELECT
         training_requirement.training_requirement_name,
+        em_roles.role_name,
         training_requirement.scorm_course_id,
         certifications.*,
         training_requirement.num_months_valid,
@@ -413,6 +416,14 @@ export class User extends BaseClass {
          training_requirement
         ON
           training_requirement.training_requirement_id = certifications.training_requirement_id
+        INNER JOIN
+          em_role_training_requirements
+        ON
+          em_role_training_requirements.training_requirement_id = training_requirement.training_requirement_id
+        INNER JOIN
+          em_roles
+        ON
+          em_roles.em_roles_id = em_role_training_requirements.em_role_id
         WHERE
           certifications.user_id = ? ${filterStr}`;
 
@@ -445,22 +456,23 @@ export class User extends BaseClass {
                 userId = user_id;
             }
             const sql = `SELECT
+              users.user_id,
+              user_em_roles_relation.em_role_id,
+              user_em_roles_relation.em_role_id as role_id,
+              em_roles.role_name,
               locations.location_id,
               locations.parent_id,
               locations.name,
               locations.is_building,
-              user_em_roles_relation.user_em_roles_relation_id,
-              user_em_roles_relation.em_role_id,
-              user_em_roles_relation.em_role_id,
-              user_em_roles_relation.em_role_id as role_id,
-              lp.name as parent_name,
-              em_roles.role_name
+              lp.name as parent_name
               FROM
-              user_em_roles_relation
+              users
+              INNER JOIN
+              user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
               INNER JOIN locations ON user_em_roles_relation.location_id = locations.location_id
               INNER JOIN em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
               LEFT JOIN locations lp ON lp.location_id = locations.parent_id
-              WHERE user_em_roles_relation.user_id = ?`;
+              WHERE users.user_id = ?`;
 
             const connection = db.createConnection(dbconfig);
             connection.query(sql, [userId], (error, results, fields) => {

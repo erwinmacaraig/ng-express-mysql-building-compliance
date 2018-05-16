@@ -119,6 +119,34 @@ export class TrainingRequirements extends BaseClass {
         });
     }
 
+    public requirements_details(requirement_ids = [], em_roles = []): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        if (!requirement_ids.length || !em_roles.length) {
+          resolve([]);
+          return;
+        }
+        const requirements = requirement_ids.join(',');
+        const roles = em_roles.join(',');
+
+        const sql = `SELECT em_roles.em_roles_id, training_requirement.*, em_roles.role_name FROM training_requirement
+            INNER JOIN em_role_training_requirements ON
+            training_requirement.training_requirement_id = em_role_training_requirements.training_requirement_id
+            INNER JOIN em_roles ON em_role_training_requirements.em_role_id = em_roles.em_roles_id
+            WHERE training_requirement.training_requirement_id IN (${requirements})
+            AND em_roles.em_roles_id IN (${roles})`;
+
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [], (error, results) => {
+          if (error) {
+            console.log('training_requirements.requirement_details', error, sql);
+            throw Error('Cannot get requirements');
+          }
+          resolve(results);
+
+        });
+      });
+    }
+
     public create(createData) {
         return new Promise((resolve, reject) => {
             Object.keys(createData).forEach((key) => {

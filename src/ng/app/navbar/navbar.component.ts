@@ -6,6 +6,7 @@ import { NgForm } from '@angular/forms';
 import { ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MessageService } from '../services/messaging.service';
+import { EncryptDecryptService } from '../services/encrypt.decrypt';
 
 import * as jQuery from 'jquery';
 
@@ -18,7 +19,7 @@ declare var navigator: any;
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],
-  providers : [UserService]
+  providers : [UserService, EncryptDecryptService]
 })
 export class NavbarComponent implements OnInit, AfterViewInit {
 	@ViewChild('formFile') formFile: NgForm;
@@ -26,6 +27,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 	public userData = {
     name: '',
   };
+  public encryptedUserId;
 	public userRoles;
 	public showUpgradePremium: boolean = true;
 	public usersImageURL: String;
@@ -52,7 +54,8 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 	constructor(
 		private auth: AuthService,
     	private userService: UserService,
-    	private messageService: MessageService
+      private messageService: MessageService,
+      private encryptDecrypt: EncryptDecryptService
 	) {
 	    this.userData = this.auth.getUserData();
 	    this.usersImageURL = 'assets/images/camera_upload_hover.png';
@@ -68,9 +71,10 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 	}
 
 	ngOnInit() {
-    	this.username = this.userData['name'];
+    this.username = this.userData['name'];
 		this.usersInitial = this.getInitials(this.username);
-		this.userRoles = this.userData['roles'];
+    this.userRoles = this.userData['roles'];
+    this.encryptedUserId = this.encryptDecrypt.encrypt(this.userData['userId']);
 		this.showEvent();
 		this.closeEvent();
 		this.setElements();
