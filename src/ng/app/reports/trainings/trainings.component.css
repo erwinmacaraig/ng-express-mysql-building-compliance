@@ -141,7 +141,7 @@ table tr td .material-icons{
     padding: 0px 20px;
     border-radius: 5px;
     height: 50px;
-    vertical-align: bottom;
+    vertical-align: top;
     position: relative;
 }
 
@@ -170,7 +170,7 @@ table tr td .material-icons{
 .switch-container{
     margin: 0px 5px;
     display: inline-block;
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .switch-container p{
