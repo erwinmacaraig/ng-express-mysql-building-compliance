@@ -117,7 +117,7 @@ export class TrainingProfile implements OnInit, OnDestroy {
       this.viewData.valid_trainings = response.data.valid_trainings;
       this.viewData.required_trainings = response.data.required_trainings;
 
-      this.viewData.all_trainings = response.data.valid_trainings.concat(response.data.required_trainings);
+
 
       // console.log(this.viewData.all_trainings);
 

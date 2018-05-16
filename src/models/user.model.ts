@@ -389,7 +389,9 @@ export class User extends BaseClass {
           break;
           case 'training_requirement_id':
             const trainingRequirementIds = (filter['training_requirement_id']).join(',');
-            filterStr += ` AND certifications.training_requirement_id IN (${trainingRequirementIds}) `;
+            if (trainingRequirementIds.length > 0 ) {
+              filterStr += ` AND certifications.training_requirement_id IN (${trainingRequirementIds}) `;
+            }
           break;
           case 'certifications_id':
             filterStr += ` AND certifications.certifications_id = ${filter[key]}`;
