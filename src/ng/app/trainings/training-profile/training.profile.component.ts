@@ -42,7 +42,10 @@ export class TrainingProfile implements OnInit, OnDestroy {
 		locations : [],
 		trainings : [],
 		certificates : [],
-		badge_class : ''
+    badge_class : '',
+    valid_trainings: [],
+    required_trainings: [],
+    all_trainings: []
 	};
 	showRemoveWardenButton = false;
 	showModalRemoveWardenLoader = false;
@@ -97,22 +100,31 @@ export class TrainingProfile implements OnInit, OnDestroy {
 			this.viewData.role_text = response.data.role_text;
 			this.viewData.eco_roles = response.data.eco_roles;
 			this.viewData.trainings = response.data.trainings;
-			this.viewData.certificates = response.data.certificates;
+      this.viewData.certificates = response.data.certificates;
+      this.viewData.valid_trainings = response.data.valid_trainings;
+      this.viewData.required_trainings = response.data.required_trainings;
+
+      this.viewData.all_trainings = response.data.valid_trainings.concat(response.data.required_trainings);
+
+      // console.log(this.viewData.all_trainings);
 
       /* Filter out locations so locations will contain locations with EM Role */
       for(let i = 0; i < response.data.locations.length; i++) {
         if (response.data.locations[i]['em_roles_id'] !== null) {
           this.viewData.locations.push(response.data.locations[i]);
         }
+        /*
         if (response.data.locations[i]['training_requirement_name']) {
           for (let j = 0; j < response.data.locations[i]['training_requirement_name'].length; j++) {
             if (this.seenRequiredTrainings.indexOf(response.data.locations[i]['training_requirement_name'][i]) === -1) {
               this.seenRequiredTrainings.push(response.data.locations[i]['training_requirement_name'][i]);
             }
           }
-        }
-
+        } */
       }
+
+
+
 
       // console.log(this.seenRequiredTrainings);
 			for(let x in this.viewData.certificates){
@@ -447,5 +459,9 @@ export class TrainingProfile implements OnInit, OnDestroy {
     (e) => {
       alert('There was a problem sending certificate.');
     });
+    }
+
+    formatDate(dt: string): string {
+      return moment(dt).format('DD/MM/YYYY')
     }
 }

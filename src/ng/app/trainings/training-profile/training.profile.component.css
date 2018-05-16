@@ -152,12 +152,21 @@
   clear: both;
 }
 
+.grid-container{
+  margin: 10px;
+  float: left;
+}
+
+.grid-container > p:first-child{
+  font-size: 18px;
+  margin:0px;
+}
+
 .grid .grid-item{
     width: 260px;
     box-shadow: none;
     border-radius: 10px;
     float: left;
-    margin: 10px;
     height: 350px;
     position: relative;
 }

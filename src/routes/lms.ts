@@ -97,7 +97,7 @@ export class LMSRoute extends BaseRoute {
     let relation = 0;
     const scorm = new Scorm();
     try {
-      relation = await courseUserRelation.getRelation(req.body.userId, req.body.courseId);
+      relation = await courseUserRelation.getRelation({'user': req.body.userId, 'course': req.body.courseId});
       courseData['course_user_relation_id'] = relation;
       // console.log('relation = ' + relation);
     } catch (e) {
