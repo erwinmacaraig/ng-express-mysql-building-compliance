@@ -172,7 +172,7 @@ export class TeamRoute extends BaseRoute {
         from : '',
         fromName : 'EvacConnect',
         to : [],
-        cc: [],
+        cc: ['jmanoharan@evacgroup.com.au', 'adelfin@evacgroup.com.au',  'emacaraig@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Training Invite'
@@ -193,7 +193,7 @@ export class TeamRoute extends BaseRoute {
       emailBody += email.getEmailHTMLFooter();
       email.assignOptions({
           body : emailBody,
-          to: ['jmanoharan@evacgroup.com.au', 'adelfin@evacgroup.com.au',  'emacaraig@evacgroup.com.au']
+          to: [userDbData['email']]
       });
       await email.send((result) => {
         console.log('Success', result);
