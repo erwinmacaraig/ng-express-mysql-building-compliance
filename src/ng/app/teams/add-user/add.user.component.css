@@ -387,6 +387,8 @@ a.disabled{
     color: #ddd !important;
 }
 
+ul li {margin-left: 0; padding-left: 2.5em;}
+
 @media only screen
   and (max-width: 1440px) {
     #modaCsvUpload,
