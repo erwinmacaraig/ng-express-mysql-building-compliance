@@ -68,7 +68,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     formLocValid = false;
 
     constructor(
-        private authService: AuthService, 
+        private authService: AuthService,
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService,
         private dashboardPreloaderService : DashboardPreloaderService,
@@ -268,7 +268,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     filterLocationsToDisplayByUserRole(user, data){
         let resp = [],
             copy = JSON.parse(JSON.stringify(data));
-        if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
+        if (user.eco_role_id == 11 || user.eco_role_id == 15 || user.eco_role_id == 16 || user.eco_role_id == 18){
             resp = JSON.parse( JSON.stringify( this.buildings ) );
         }else{
             resp = JSON.parse( JSON.stringify( this.levels ) );
@@ -279,9 +279,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     }
 
     buildLocationsListInModal(){
-        let 
-        ulModal = $('#modalLocations ul.locations');
-
+        const ulModal = $('#modalLocations ul.locations');
         ulModal.html('');
 
         $('body').off('click.radio').on('click.radio', 'input[type="radio"][name="selectLocation"]', () => {
@@ -291,6 +289,54 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 
         let maxDisplay = 25,
             count = 1;
+
+            if (parseInt(this.selectedUser['eco_role_id'], 10) === 11 ||
+                parseInt(this.selectedUser['eco_role_id'], 10) === 15 ||
+                parseInt(this.selectedUser['eco_role_id'], 10) === 16 ||
+                parseInt(this.selectedUser['eco_role_id'], 10) === 18
+           ) {
+          for (let loc of this.locations) {
+            if (count <= maxDisplay) {
+                let $li = $(`
+                    <li class="list-division" id="${loc.location_id}">
+                        <div class="name-radio-plus">
+                            <div class="input">
+                                <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
+                                <label for="check-${loc.location_id}">${loc.name}</label>
+                            </div>
+                        </div>
+                    </li>`);
+
+                ulModal.append($li);
+                count++;
+            }
+          }
+        } else {
+          for (const loc of this.locations) {
+            if (count <= maxDisplay) {
+              const $lh = $(`<lh><h6>${loc['parent_location_name']}</h6></lh>`);
+              ulModal.append($lh);
+              if ('sublocations' in loc) {
+                for (const subloc of loc.sublocations) {
+                  const $li = $(`
+                      <li class="list-division" id="${subloc.id}">
+                          <div class="name-radio-plus">
+                              <div class="input">
+                                  <input required type="radio"
+                                  name="selectLocation"
+                                  value="${subloc.id}" id="check-${subloc.id}">
+                                  <label for="check-${subloc.id}">${subloc.name}</label>
+                              </div>
+                          </div>
+                      </li>`);
+                  ulModal.append($li);
+                }
+              }
+              count++;
+            }
+          }
+        }
+            /*
         for(let loc of this.locations){
             if(count <= maxDisplay){
                 let $li = $(`
@@ -307,29 +353,31 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
                 count++;
             }
         }
+        */
     }
 
     changeRoleEvent(user){
         user.location_name = 'Select Location';
         user.location_id = 0;
         user.account_location_id = 0;
-
+        this.selectedUser = user;
         this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
         this.buildLocationsListInModal();
     }
 
     showLocationSelection(user){
+        this.selectedUser = user;
         this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
         this.buildLocationsListInModal();
         $('#modalLocations').modal('open');
-        this.selectedUser = user;
         this.formLocValid = false;
     }
 
     submitSelectLocationModal(form, event){
         event.preventDefault();
+        let locationFound = false;
         if(this.formLocValid){
-            let 
+            let
             selectedLocationId = $(form).find('input[type="radio"]:checked').val();
 
             this.selectedUser['account_location_id'] = selectedLocationId;
@@ -341,7 +389,22 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
             for(let loc of this.locationsCopy){
                 if(loc.location_id == selectedLocationId){
                     this.selectedUser['location_name'] = loc.name;
+                    locationFound = true;
+                    break;
                 }
+            }
+            if (!locationFound) {
+              for (const loc of this.locationsCopy) {
+                if ('sublocations' in loc) {
+                  for (const sublocs of loc['sublocations']) {
+                    if (sublocs['id'] == selectedLocationId) {
+                      this.selectedUser['location_name'] = `${loc['parent_location_name']}, ${sublocs['name']}`;
+                      locationFound = true;
+                      break;
+                    }
+                  }
+                }
+              }
             }
 
             console.log(this.addedUsers);
@@ -445,15 +508,31 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
             let value = event['target'].value,
                 result = [];
 
-            let findRelatedName = (data, mainParent?) => {
-                for(let i in data){
-                    if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
-                        result.push(data[i]);
-                    }
-                }
+            let findRelatedName;
 
-                return result;
+            if (parseInt(this.selectedUser['eco_role_id'], 10) === 11 ||
+                parseInt(this.selectedUser['eco_role_id'], 10) === 15 ||
+                parseInt(this.selectedUser['eco_role_id'], 10) === 16 ||
+                parseInt(this.selectedUser['eco_role_id'], 10) === 18
+            ) {
+            findRelatedName = (data, mainParent?) => {
+              for(let i in data){
+                  if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+                      result.push(data[i]);
+                  }
+              }
+              return result;
             };
+            } else {
+            findRelatedName = (data, mainParent?) => {
+              for(let i in data){
+                  if(data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                      result.push(data[i]);
+                  }
+              }
+              return result;
+            };
+            }
 
             if(value.length > 0){
                 result = [];
