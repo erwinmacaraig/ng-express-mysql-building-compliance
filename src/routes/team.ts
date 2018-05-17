@@ -163,6 +163,50 @@ export class TeamRoute extends BaseRoute {
         });
       });
     });
+
+    router.post('/team/training/send-invite/',
+    new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const user = new User(req.body.user_id);
+      const userDbData = await user.load();
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : [],
+        cc: [],
+        body : '',
+        attachments: [],
+        subject : 'EvacConnect Training Invite'
+      };
+      const email = new EmailSender(opts);
+      let emailBody = email.getEmailHTMLHeader();
+      emailBody += `
+      <p>Hi <strong>${userDbData['first_name']} ${userDbData['last_name']}</strong>,</p>
+
+      <p>
+      You are reminded to take the <strong>${req.body.training_requirement_name} training</strong>
+      for your role as <strong>${req.body.role_name}</strong>.
+      <br />
+      </p>
+      <p>Thank you.</p>
+
+      `;
+      emailBody += email.getEmailHTMLFooter();
+      email.assignOptions({
+          body : emailBody,
+          to: ['jmanoharan@evacgroup.com.au', 'adelfin@evacgroup.com.au',  'emacaraig@evacgroup.com.au']
+      });
+      await email.send((result) => {
+        console.log('Success', result);
+        return res.status(200).send({
+          message: 'Success'
+        });
+      }, (err) => {
+        console.log('Failed', err);
+        return res.status(400).send({
+          message: 'Failed'
+        });
+      });
+    });
   }
 
   /**
@@ -1372,6 +1416,8 @@ export class TeamRoute extends BaseRoute {
         res.statusCode = 200;
         res.send(response);
     }
+
+
 
   /**
   public async buildPEEPList(req: AuthRequest, res: Response, archived?) {

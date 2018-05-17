@@ -64,4 +64,8 @@ export class CourseService {
         });
     }
 
+    emailTrainingInvite(training_details = {}) {
+      return this.http.post(this.baseUrl + '/team/training/send-invite/', training_details, this.options);
+    }
+
 }
