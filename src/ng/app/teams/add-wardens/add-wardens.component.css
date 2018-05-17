@@ -230,6 +230,8 @@ td.with-remove a.remove:hover{
     max-height: 100%;
 }
 
+ul li {margin-left: 0; padding-left: 2.5em;}
+
 #modaCsvUpload .modal-header{
     margin: 20px 0px;
 }

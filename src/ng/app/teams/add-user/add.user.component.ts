@@ -199,7 +199,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
         let maxDisplay = 25,
             count = 1;
-        console.log(this.selectedUser);
+
         if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
             parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
             parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
@@ -429,30 +429,30 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
             let findRelatedName;
 
-                if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
-                    parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
-                    parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
-                    parseInt(this.selectedUser['account_role_id'], 10) === 16 ||
-                    parseInt(this.selectedUser['account_role_id'], 10) === 18
-               ) {
-                findRelatedName = (data, mainParent?) => {
-                  for(let i in data){
-                      if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
-                          result.push(data[i]);
-                      }
-                  }
-                  return result;
-                };
-               } else {
-                findRelatedName = (data, mainParent?) => {
-                  for(let i in data){
-                      if(data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
-                          result.push(data[i]);
-                      }
-                  }
-                  return result;
-                };
-               }
+            if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 16 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 18
+            ) {
+              findRelatedName = (data, mainParent?) => {
+                for(let i in data){
+                    if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+                        result.push(data[i]);
+                    }
+                }
+                return result;
+              };
+            } else {
+              findRelatedName = (data, mainParent?) => {
+                for(let i in data){
+                    if(data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                        result.push(data[i]);
+                    }
+                }
+                return result;
+              };
+            }
 
 
 
