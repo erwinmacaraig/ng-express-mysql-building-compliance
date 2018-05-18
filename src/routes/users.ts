@@ -1403,9 +1403,11 @@ export class UsersRoute extends BaseRoute {
                 for (const em_on_loc of locations) {
                   if (user_em_roles.indexOf(em_on_loc['em_role_id']) == -1) {
                     user_em_roles.push(em_on_loc['em_role_id']);
-                    for (let i = 0; i < training_requirements[em_on_loc['em_role_id']]['training_requirement_id'].length; i++) {
-                      if (training_requirement_ids.indexOf(training_requirements[em_on_loc['em_role_id']]['training_requirement_id'][i]) == -1) {
-                        training_requirement_ids.push(training_requirements[em_on_loc['em_role_id']]['training_requirement_id'][i]);
+                    if (em_on_loc['em_role_id'] in training_requirements) {
+                      for (let i = 0; i < training_requirements[em_on_loc['em_role_id']]['training_requirement_id'].length; i++) {
+                        if (training_requirement_ids.indexOf(training_requirements[em_on_loc['em_role_id']]['training_requirement_id'][i]) == -1) {
+                          training_requirement_ids.push(training_requirements[em_on_loc['em_role_id']]['training_requirement_id'][i]);
+                        }
                       }
                     }
                   }
@@ -1413,6 +1415,7 @@ export class UsersRoute extends BaseRoute {
 
                 // you will need to find the corresponding training in the certifications table
                 required_missing_trainings  = await new TrainingCertification().getTrainings(userId, training_requirement_ids);
+
                 const tr = new TrainingRequirements();
                 try {
                   response.data.required_trainings = await tr.requirements_details(required_missing_trainings, user_em_roles);
@@ -1499,7 +1502,7 @@ export class UsersRoute extends BaseRoute {
         }
 
         try{
-            let certificates = await userModel.getAllCertifications({'pass': 1});
+            let certificates = await userModel.getAllCertifications({'pass': 1, 'em_roles': user_em_roles});
             for (let c of certificates) {
               c['token'] = md5(userModel.ID().toString() + userModel.get('first_name') + userModel.get('last_name') + c['certification_date']);
             }
@@ -1508,7 +1511,8 @@ export class UsersRoute extends BaseRoute {
             certificates = await userModel.getAllCertifications({
               'pass': 1,
               'training_requirement_id': training_requirement_ids,
-              'current': 1
+              'current': 1,
+              'em_roles': user_em_roles
             });
             response.data.valid_trainings = certificates;
 

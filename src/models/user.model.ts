@@ -399,6 +399,13 @@ export class User extends BaseClass {
           case 'current':
             filterStr += ` AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()`;
           break;
+          case 'em_roles':
+            if (filter['em_roles'].length > 0) {
+              const em_roles = (filter['em_roles']).join(',');
+              filterStr += ` AND em_role_training_requirements.em_role_id IN (${em_roles})`;
+            }
+
+          break;
         }
       });
       const sql_certifications = `SELECT
@@ -427,6 +434,7 @@ export class User extends BaseClass {
         WHERE
           certifications.user_id = ? ${filterStr}`;
 
+      
       const connection = db.createConnection(dbconfig);
       connection.query(sql_certifications, [uid], (error, results, fields) => {
         if (error) {

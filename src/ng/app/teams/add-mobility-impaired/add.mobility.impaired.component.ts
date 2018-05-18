@@ -60,7 +60,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     formLocValid = false;
 
     constructor(
-        private authService: AuthService, 
+        private authService: AuthService,
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService,
         private dashboardPreloaderService : DashboardPreloaderService,
@@ -195,7 +195,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
     buildLocationsListInModal(){
-        let 
+        let
         ulModal = $('#modalLocations ul.locations');
 
         ulModal.html('');
@@ -207,13 +207,19 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 
         let maxDisplay = 25,
             count = 1;
-        for(let loc of this.locations){
-            if(count <= maxDisplay){
+            if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
+            parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
+            parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
+            parseInt(this.selectedUser['account_role_id'], 10) === 16 ||
+            parseInt(this.selectedUser['account_role_id'], 10) === 18
+           ) {
+          for (let loc of this.locations) {
+            if (count <= maxDisplay) {
                 let $li = $(`
                     <li class="list-division" id="${loc.location_id}">
                         <div class="name-radio-plus">
                             <div class="input">
-                                <input required type="radio" name="selectLocation"  value="${loc.location_id}" id="check-${loc.location_id}"   >
+                                <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
                                 <label for="check-${loc.location_id}">${loc.name}</label>
                             </div>
                         </div>
@@ -222,6 +228,31 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
                 ulModal.append($li);
                 count++;
             }
+          }
+        } else {
+          for (const loc of this.locations) {
+            if (count <= maxDisplay) {
+              const $lh = $(`<lh><h6>${loc['parent_location_name']}</h6></lh>`);
+              ulModal.append($lh);
+              if ('sublocations' in loc) {
+                for (const subloc of loc.sublocations) {
+                  const $li = $(`
+                      <li class="list-division" id="${subloc.id}">
+                          <div class="name-radio-plus">
+                              <div class="input">
+                                  <input required type="radio"
+                                  name="selectLocation"
+                                  value="${subloc.id}" id="check-${subloc.id}">
+                                  <label for="check-${subloc.id}">${subloc.name}</label>
+                              </div>
+                          </div>
+                      </li>`);
+                  ulModal.append($li);
+                }
+              }
+              count++;
+            }
+          }
         }
     }
 
@@ -229,23 +260,24 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         user.location_name = 'Select Location';
         user.location_id = 0;
         user.account_location_id = 0;
-
+        this.selectedUser = user;
         this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
         this.buildLocationsListInModal();
     }
 
     showLocationSelection(user){
+        this.selectedUser = user;
         this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
         this.buildLocationsListInModal();
         $('#modalLocations').modal('open');
-        this.selectedUser = user;
         this.formLocValid = false;
     }
-    
+
     submitSelectLocationModal(form, event){
         event.preventDefault();
+        let locationFound = false;
         if(this.formLocValid){
-            let 
+            let
             selectedLocationId = $(form).find('input[type="radio"]:checked').val();
 
             this.selectedUser['account_location_id'] = selectedLocationId;
@@ -255,10 +287,25 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 
             this.selectedUser['location_name'] = '';
             for(let loc of this.locationsCopy){
-                if(loc.location_id == selectedLocationId){
-                    this.selectedUser['location_name'] = loc.name;
+              if(loc.location_id == selectedLocationId){
+                  this.selectedUser['location_name'] = loc.name;
+                  locationFound = true;
+                  break;
+              }
+          }
+          if (!locationFound) {
+            for (const loc of this.locationsCopy) {
+              if ('sublocations' in loc) {
+                for (const sublocs of loc['sublocations']) {
+                  if (sublocs['id'] == selectedLocationId) {
+                    this.selectedUser['location_name'] = `${loc['parent_location_name']}, ${sublocs['name']}`;
+                    locationFound = true;
+                    break;
+                  }
                 }
+              }
             }
+          }
 
             console.log(this.addedUsers);
             this.cancelLocationModal();
@@ -292,7 +339,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
             this.addedUsers = data;
             if(Object.keys(this.addedUsers).length == 0){
                 // this.addMoreRow();
-                
+
                 this.router.navigate(["/teams/mobility-impaired"]);
             }
         }, (error: HttpErrorResponse) => {
