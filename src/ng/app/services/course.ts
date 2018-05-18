@@ -68,4 +68,16 @@ export class CourseService {
       return this.http.post(this.baseUrl + '/team/training/send-invite/', training_details, this.options);
     }
 
+    getAllEmRolesTrainings(callBack){
+        this.http.get('/courses/get-all-em-trainings').subscribe((res) => {
+            callBack(res);
+        });
+    }
+
+    sendTrainingInvitation(form, callBack){
+        this.http.post('/courses/send-training-invitation', form, this.options).subscribe((response) => {
+            callBack(response);
+        });
+    }
+
 }

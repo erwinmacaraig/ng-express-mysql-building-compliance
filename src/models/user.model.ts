@@ -595,10 +595,6 @@ export class User extends BaseClass {
             });
             connection.end();
         });
-
-
-
-
     }
 
     public getSpliceUsers(accountId: number = 0, filter = {}): Promise<Array<number>> {

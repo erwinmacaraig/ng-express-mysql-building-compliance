@@ -159,5 +159,31 @@ export class TrainingRequirements extends BaseClass {
         });
     }
 
+    public allEmRolesTrainings(){
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT
+                    emt.em_role_training_requirements_id,
+                    em.role_name,
+                    emt.em_role_id,
+                    tr.training_requirement_name,
+                    tr.num_months_valid
+                FROM em_role_training_requirements emt
+                INNER JOIN em_roles em ON emt.em_role_id = em.em_roles_id
+                INNER JOIN training_requirement tr ON emt.training_requirement_id = tr.training_requirement_id
+            `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, (error, results, fields) => {
+                if (error) {
+                    throw new Error('Error allEmRolesTrainings');
+                } else {
+                    resolve(results);
+                    this.dbData = results;
+                }
+            });
+            connection.end();
+        });
+    }
+
 
 }

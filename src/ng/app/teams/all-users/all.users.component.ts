@@ -5,8 +5,10 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/users';
 import { AuthService } from '../../services/auth.service';
+import { AccountsDataProviderService  } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { CourseService } from '../../services/course';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -18,7 +20,7 @@ declare var $: any;
   selector: 'app-all-users',
   templateUrl: './all.users.component.html',
   styleUrls: ['./all.users.component.css'],
-  providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService]
+  providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService, CourseService, AccountsDataProviderService]
 })
 export class AllUsersComponent implements OnInit, OnDestroy {
 
@@ -49,7 +51,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		pagination : true,
 		user_training : true,
 		users_locations : true,
-		search : ''
+		search : '',
+        online_trainings : true
 	};
 
     multipleLocations = [];
@@ -68,17 +71,33 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         first_name : '', last_name : ''
     };
 
+    selectedToInvite = [];
+
+    emTrainings = [];
+
+    allAreSelected = false;
+    sendInviteToAll = false;
+    sendInviteToAllNonCompliant = false;
+
+    isOnlineTrainingAvailable = false;
+
 	constructor(
 		private userService : UserService,
 		private authService : AuthService,
 		private dashboardService : DashboardPreloaderService,
 		private encDecrService : EncryptDecryptService,
-		private router : Router
+		private router : Router,
+        private courseService : CourseService,
+        private accountService : AccountsDataProviderService
 		){
 		this.userData = this.authService.getUserData();
 
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+
+        this.courseService.getAllEmRolesTrainings((response) => {
+            this.emTrainings = response.data;
+        });
 	}
 
 	getListData(callBack?){
@@ -113,6 +132,33 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 						}
 					}
 				}
+
+                this.listData[i]['sendinvitation'] = false;
+                let hasEcoRole = false;
+                for(let r in this.listData[i]['roles']){
+                    if( this.listData[i]['roles'][r]['role_id'] != 1 && this.listData[i]['roles'][r]['role_id'] != 2 ){
+                        hasEcoRole = true;
+                    }
+                }
+
+                if(hasEcoRole){
+                    this.listData[i]['sendinvitation'] = true;
+                }
+
+                let isSelected = false;
+                this.listData[i]['isselected'] = false;
+                for(let sel of this.selectedFromList){
+                    if(sel.user_id == this.listData[i]['user_id']){
+                        this.listData[i]['isselected'] = true;
+                        isSelected = true;
+                    }
+                }
+
+                if(!isSelected && this.allAreSelected){
+                    this.listData[i]['isselected'] = true;
+                    this.selectedFromList.push(this.listData[i]);
+                }
+
 			}
 
 			setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
@@ -146,7 +192,15 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			dismissible: false
 		});
 
-		$('.row.filter-container select').material_select();
+        this.accountService.isOnlineTrainingValid((response) => {
+            if(response.valid){
+                this.isOnlineTrainingAvailable = true;
+            }
+            setTimeout(() => {
+                $('.row.filter-container select').material_select();
+            }, 100);
+        });
+
         $('#modalMobility select').material_select();
 
 		this.filterByEvent();
@@ -248,6 +302,11 @@ export class AllUsersComponent implements OnInit, OnDestroy {
             this.selectedPeep = list;
             event.target.value = 0;
             $('#modalMobilityHealty').modal('open');
+        }else if(selected == 'invite'){
+            this.selectedToInvite = [];
+            this.selectedToInvite.push(list);
+            event.target.value = 0;
+            $('#modalSendInvitation').modal('open');
         }
 	}
 
@@ -268,8 +327,10 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		let checkboxes = $('table tbody input[type="checkbox"]:not([disabled])');
 		if(event.target.checked){
 			checkboxes.prop('checked', true);
+            this.allAreSelected = true;
 		}else{
 			checkboxes.prop('checked', false);
+            this.allAreSelected = false;
 		}
 
 		checkboxes.each((indx, elem) => {
@@ -286,6 +347,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	singleCheckboxChangeEvent(list, event){
 		let copy = JSON.parse(JSON.stringify(this.selectedFromList));
 		if(event.target.checked){
+            list.isselected = true;
 			this.selectedFromList.push(list);
 		}else{
 			let temp = [];
@@ -314,13 +376,34 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	bulkManageActionEvent(){
 		$('select.bulk-manage').on('change', () => {
 			let sel = $('select.bulk-manage').val();
-
+            $('select.bulk-manage').val("0").material_select();
 			if(sel == 'archive'){
-				$('select.bulk-manage').val("0").material_select();
 				if(this.selectedFromList.length > 0){
 					$('#modalArchiveBulk').modal('open');
 				}
-			}
+			}else if(sel == 'invite-selected'){
+                if(!this.allAreSelected){
+                    this.selectedToInvite = [];
+                    for(let user of this.selectedFromList){
+                        if(user.sendinvitation){
+                            this.selectedToInvite.push(user);
+                        }
+                    }
+                    if(this.selectedToInvite.length > 0){
+                        $('#modalSendInvitation').modal('open');
+                    }
+                }else{
+                    this.sendInviteToAll = true;
+                    $('#modalSendInvitation').modal('open');
+                }
+                
+            }else if(sel == 'invite-all-non-compliant'){
+                this.sendInviteToAllNonCompliant = true;
+                $('#modalSendInvitation').modal('open');
+            }else if(sel == 'invite-all'){
+                this.sendInviteToAll = true;
+                $('#modalSendInvitation').modal('open');
+            }
 
 		});
 	}
@@ -372,7 +455,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		if(changeDone){
 			this.pagination.prevPage = parseInt(type);
 			let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-			this.queries.offset = offset - 1;
+			this.queries.offset = offset;
 			this.loadingTable = true;
 			this.getListData(() => { 
 				this.loadingTable = false;
@@ -467,6 +550,32 @@ export class AllUsersComponent implements OnInit, OnDestroy {
             $('#modalMobilityHealty').modal('close');
             this.showModalLoader = false;
 
+        });
+    }
+
+    clickCancelSendInvitation(){
+        this.sendInviteToAllNonCompliant = false;
+        this.sendInviteToAll = false;
+    }
+
+    clickSendInvitation(){
+        let form = {
+            all : false,
+            non_compliant : false,
+            ids : []
+        };
+
+        form.all = (this.allAreSelected) ? true : (this.sendInviteToAll) ? true : false;
+        form.non_compliant = (this.sendInviteToAllNonCompliant) ? true : false;
+
+        for(let user of this.selectedToInvite){
+            form.ids.push(user.user_id);
+        }
+
+        this.showModalLoader = true;
+        this.courseService.sendTrainingInvitation(form, (response) => {
+            $('#modalSendInvitation').modal('close');
+            this.showModalLoader = false;
         });
     }
 

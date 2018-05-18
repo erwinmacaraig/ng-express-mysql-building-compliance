@@ -21,6 +21,7 @@ import { RegisterRoute } from './register';
 import { ForgotPasswordRequestRoute } from './forgot.password';
 import { UsersRoute } from './users';
 import { LocationRoute } from './location';
+import { CourseRoute } from './course';
 
 
 
@@ -90,6 +91,9 @@ export class TokenRoute extends BaseRoute {
 			case "locationverification":
 				new LocationRoute().verifyNewLocation(req, res, tokenData);
 				break;
+            case "training-invite":
+                new CourseRoute().trainingInviteEmailAction(req, res, tokenData);
+                break;
 			default:
 				response.message = 'No action found';
 				res.send(response);

@@ -459,15 +459,20 @@ export class Account extends BaseClass {
         if('search' in filter){
             filterStr += ' AND CONCAT(users.first_name, " ", users.last_name) LIKE "%'+filter['search']+'%" ';
         }
+        if('user_ids' in filter){
+            filterStr += ' AND users.user_id IN ('+filter['user_ids']+') ';
+        }
 
         const sql_all = `
           SELECT
           	users.user_id,
             users.first_name,
             users.last_name,
+            users.email,
             user_em_roles_relation.location_id,
             user_em_roles_relation.em_role_id,
-            em_roles.role_name
+            em_roles.role_name,
+            IF(ploc.name IS NOT NULL, CONCAT(ploc.name,', ',locations.name), locations.name) as location_name
           FROM
           	users
           INNER JOIN
@@ -478,10 +483,14 @@ export class Account extends BaseClass {
             em_roles
           ON
            user_em_roles_relation.em_role_id = em_roles.em_roles_id
+          INNER JOIN 
+              locations ON user_em_roles_relation.location_id = locations.location_id
+          LEFT JOIN 
+              locations ploc ON locations.parent_id = ploc.location_id
           WHERE
             users.account_id = ? ${filterStr}
           AND
-           archived = 0 ${uniqStr}
+           users.archived = 0 ${uniqStr}
           ORDER BY
           	users.user_id;
         `;
@@ -489,6 +498,69 @@ export class Account extends BaseClass {
         connection.query(sql_all, [account], (error, results) => {
           if (error) {
             console.log('account.model.getAllEMRolesOnThisAccount', error, sql_all);
+            throw Error('Cannot generate the list of emergency roles');
+          }
+          for (const r of results) {
+            resultSet.push(r);
+          }
+          resolve(resultSet);
+        });
+        connection.end();
+      });
+    }
+
+    public getAllEMRolesOnThisAccountNotCompliant(accountId = 0, filter = {} ): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let account = this.ID();
+        let filterStr = '';
+        let uniqStr = `GROUP BY users.user_id`;
+        const resultSet = [];
+        if (accountId) {
+          account = accountId;
+        }
+        if ('location' in filter && filter['location'].length > 0) {
+          filterStr += ' AND uer.location_id IN (' + filter['location'].join(',') + ')';
+        }
+        if ('em_roles' in filter) {
+          filterStr += ' AND uer.em_role_id IN (' + filter['em_roles'].join(',')  + ')';
+        }
+        if ('all' in filter) {
+          uniqStr = '';
+        }
+        if('search' in filter){
+            filterStr += ' AND CONCAT(u.first_name, " ", u.last_name) LIKE "%'+filter['search']+'%" ';
+        }
+        if('user_ids' in filter){
+            filterStr += ' AND u.user_id IN ('+filter['user_ids']+') ';
+        }
+
+        const sql_all = `
+            SELECT
+                u.user_id, u.first_name, u.last_name, u.email, uer.location_id, uer.em_role_id, 
+                uer.user_em_roles_relation_id, er.role_name, train.training_requirement_name, train.training_requirement_id,
+                IF(ploc.name IS NOT NULL, CONCAT(ploc.name,', ',locations.name), locations.name) as location_name
+            FROM users u 
+            INNER JOIN user_em_roles_relation uer ON u.user_id = uer.user_id
+            INNER JOIN em_roles er ON uer.em_role_id = er.em_roles_id
+            INNER JOIN em_role_training_requirements ertr ON er.em_roles_id = ertr.em_role_id
+            INNER JOIN training_requirement train ON train.training_requirement_id = ertr.training_requirement_id
+            INNER JOIN locations ON uer.location_id = locations.location_id
+            LEFT JOIN locations ploc ON locations.parent_id = ploc.location_id
+            WHERE u.user_id NOT IN (
+                SELECT 
+                    c.user_id
+                FROM certifications c
+                INNER JOIN training_requirement tr ON c.training_requirement_id = tr.training_requirement_id
+                INNER JOIN em_role_training_requirements emtr ON c.training_requirement_id = emtr.training_requirement_id
+                WHERE c.pass = 1 AND DATE_ADD(c.certification_date, INTERVAL tr.num_months_valid MONTH) > NOW() 
+            )
+
+            AND u.account_id = ? AND u.archived = 0 ${filterStr};
+        `;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_all, [account], (error, results) => {
+          if (error) {
+            console.log('account.model.getAllEMRolesOnThisAccountNotCompliant', error, sql_all);
             throw Error('Cannot generate the list of emergency roles');
           }
           for (const r of results) {

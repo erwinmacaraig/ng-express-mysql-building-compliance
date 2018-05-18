@@ -34,11 +34,86 @@ constructor() {
     super();
 }
 
-public validate(req: Request, res: Response, next: NextFunction) {
+public async successValidation(req: Request, res: Response, userModel, signedInExpiry, toReturn?){
+    const token = jwt.sign(
+    {
+        user_db_token: userModel.get('token'),
+        user: userModel.get('user_id')
+    },
+    process.env.KEY, { expiresIn: signedInExpiry }
+    );
+
+    let response = {
+        status: 'Authentication Success',
+        message: 'Successfully logged in',
+        token: token,
+        data: {
+            userId: userModel.get('user_id'),
+            name: userModel.get('first_name')+' '+userModel.get('last_name'),
+            email: userModel.get('email'),
+            accountId: userModel.get('account_id'),
+            roles : [],
+            profilePic : ''
+        }
+    };
+
+    let fileModel = new Files(),
+        fileData = <any> [],
+        wardenRoles = [];
+    
+    try{
+        fileData = <any> await fileModel.getByUserIdAndType(userModel.get('user_id'), 'profile');
+    }catch(e){
+        fileData = false;
+    }
+
+    if(fileData !== false){
+        response.data.profilePic = fileData[0].url;
+    }
+
+    try{
+        wardenRoles = <any> await new UserEmRoleRelation().getEmRolesByUserId(userModel.get('user_id'));
+        for(let role of wardenRoles){
+            response.data['roles'].push({
+                role_id : role['em_roles_id'],
+                role_name : role['role_name'],
+                is_warden_role : role['is_warden_role']
+            });
+        }
+    }catch(e){ }
+
+    try{
+        let userRoles = await new UserRoleRelation().getByUserId(userModel.get('user_id'));
+        for (let role of userRoles){
+            response.data['roles'].push(role);
+        }
+    }catch(e){ }
+
+    const now = moment().format('YYYY-MM-DD HH-mm-ss');
+    userModel.set('last_login', now);
+
+    try{
+        await userModel.dbUpdate();
+    }catch(e){ }
+
+    if(toReturn){
+        return response;
+    }else{
+        res.status(200).send(response);
+    }
+
+}
+
+public validate(req: Request, res: Response, next: NextFunction, returnData?) {
     // set to 2 hours
     let signedInExpiry = 7200;
     if (req.body.keepSignedin) {
         signedInExpiry = signedInExpiry * 12;
+    }
+
+    if(returnData){
+        req.body['username'] = returnData.username;
+        req.body['password'] = returnData.password;
     }
 
     const user = new User();
@@ -46,96 +121,7 @@ public validate(req: Request, res: Response, next: NextFunction) {
         () => {
 
             if(user.get('verified') == 1){
-                const token = jwt.sign(
-                {
-                    user_db_token: user.get('token'),
-                    user: user.get('user_id')
-                },
-                process.env.KEY, { expiresIn: signedInExpiry }
-                );
-
-                let response = {
-                    status: 'Authentication Success',
-                    message: 'Successfully logged in',
-                    token: token,
-                    data: {
-                        userId: user.get('user_id'),
-                        name: user.get('first_name')+' '+user.get('last_name'),
-                        email: user.get('email'),
-                        accountId: user.get('account_id'),
-                        roles : [],
-                        profilePic : ''
-                    }
-                },
-
-                getWardenRoles = (callBack) =>{
-                    new UserEmRoleRelation().getEmRolesByUserId(user.get('user_id')).then(
-                        (userRoles) => {
-                            for(let i in userRoles) {
-                                /*
-                                response.data['roles'][ Object.keys( response.data['roles'] ).length ] = {
-                                    role_id : userRoles[i]['em_roles_id'],
-                                    role_name : userRoles[i]['role_name'],
-                                    is_warden_role : userRoles[i]['is_warden_role']
-                                };
-                                */
-                                (response.data['roles']).push({
-                                  role_id : userRoles[i]['em_roles_id'],
-                                  role_name : userRoles[i]['role_name'],
-                                  is_warden_role : userRoles[i]['is_warden_role']
-                              });
-                            }
-                            callBack();
-                        },
-                        (a) => {
-                            callBack();
-                        }
-                    );
-                },
-
-                fileCB = (fileData) => {
-                    if(fileData !== false){
-                        response.data.profilePic = fileData[0].url;
-                    }
-
-                    new UserRoleRelation().getByUserId(user.get('user_id')).then(
-                        (userRoles) => {
-                            getWardenRoles(() => {
-                              for (let i in userRoles){
-                                console.log(userRoles[i]);
-                                   // response.data['roles'][ Object.keys( response.data['roles'] ).length ] = userRoles[i];
-                                  (response.data['roles']).push(userRoles[i]);
-                              }
-
-                                const now = moment().format('YYYY-MM-DD HH-mm-ss');
-                                user.set('last_login', now);
-                                user.dbUpdate().then(() => {
-                                  res.status(200).send(response);
-                                });
-
-                            });
-                        },
-                        (m) => {
-                            getWardenRoles(() => {
-                              const now = moment().format('YYYY-MM-DD HH-mm-ss');
-                              user.set('last_login', now);
-                              user.dbUpdate().then(() => {
-                                res.status(200).send(response);
-                              });
-                            });
-                        }
-                    );
-                }
-
-                let fileModel = new Files();
-                fileModel.getByUserIdAndType(user.get('user_id'), 'profile').then(
-                    (fileData) => {
-                        fileCB(fileData);
-                    },
-                    () => {
-                        fileCB(false);
-                    }
-                );
+                this.successValidation(req, res, user, signedInExpiry);
             }else{
                 let action = user.get('action'),
                     now = moment(),

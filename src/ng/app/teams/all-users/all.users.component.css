@@ -260,13 +260,15 @@ select option:disabled{
     line-height: 43px;
 }
 
-#modalMobilityHealty{
+#modalMobilityHealty,
+#modalSendInvitation{
     width: 35%;
 }
 
 @media only screen and (max-width: 1400px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalSendInvitation{
         width: 50%;
     }
 }
@@ -278,7 +280,8 @@ select option:disabled{
         width: 60%;
     }
 
-    #modalMobility{
+    #modalMobility,
+    #modalSendInvitation{
         width : 90%;
     }
 }

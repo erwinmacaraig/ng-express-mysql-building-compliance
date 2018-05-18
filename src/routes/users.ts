@@ -1036,9 +1036,7 @@ export class UsersRoute extends BaseRoute {
                 }
 
             }
-
         }
-
 
         if(query.user_training){
 
