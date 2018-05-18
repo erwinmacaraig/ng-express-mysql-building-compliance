@@ -434,6 +434,7 @@ export class User extends BaseClass {
         WHERE
           certifications.user_id = ? ${filterStr}`;
 
+      
       const connection = db.createConnection(dbconfig);
       connection.query(sql_certifications, [uid], (error, results, fields) => {
         if (error) {
