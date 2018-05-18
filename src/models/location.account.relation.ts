@@ -287,7 +287,7 @@ export class LocationAccountRelation extends BaseClass {
 
         }
 
-        let selectParentName = ('no_parent_name' in filter) ? 'locations.name,' : `IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name,`;
+        let selectParentName = ('no_parent_name' in filter) ? 'locations.name,' : `IF (parent_locations.name IS NULL, locations.name, IF (CHAR_LENGTH(parent_locations.name) = 0,  locations.name, CONCAT(parent_locations.name, ', ', locations.name))) as name,`;
 
         let sql_get_locations = `
               SELECT
@@ -339,7 +339,6 @@ export class LocationAccountRelation extends BaseClass {
                 ${filterStr}
               ${orderBy};`;
         }
-
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_locations, [accountId], (error, results) => {
             if (error) {
