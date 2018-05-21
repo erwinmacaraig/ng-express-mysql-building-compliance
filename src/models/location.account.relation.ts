@@ -57,17 +57,18 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
-    public getByAccountIdAndLocationId(accountId, locationId) {
+    public getByAccountIdAndLocationId(accountId, locationId): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM location_account_relation WHERE account_id = ? AND location_id = ? ORDER BY location_account_relation_id DESC';
+            const sql_load = `SELECT * FROM location_account_relation WHERE account_id = ?
+            AND location_id = ? ORDER BY location_account_relation_id DESC`;
             const param = [accountId, locationId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
               if (error) {
-                return console.log(error);
+                console.log('location.account.relation.getByAccountIdAndLocationId', error);
+                throw Error('Internal Server Error');
               }
-              this.dbData = results;
-              resolve(this.dbData);
+              resolve(results);
             });
             connection.end();
         });
