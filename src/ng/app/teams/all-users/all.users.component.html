@@ -41,6 +41,9 @@
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Select Action</option>
 			<option value="archive" >Archive selected</option>
+            <option value="invite-selected" *ngIf="isOnlineTrainingAvailable">Send training invite to selected</option>
+            <option value="invite-all-non-compliant" *ngIf="isOnlineTrainingAvailable">Send training invite to all non-compliant</option>
+            <option value="invite-all" *ngIf="isOnlineTrainingAvailable">Send training invtite to all</option>
 		</select>
 	</div>
 
@@ -76,7 +79,7 @@
 				<tr *ngFor="let list of listData; let i = index;">
 					<td>
 						<p class="checkbox" >
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)"  >
+							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)" [checked]="list.isselected"  >
 							<label for="location-{{i}}" ></label>
                             <a  (click)="clickMultipleLocation(list.locations)" *ngIf="list.locations.length > 1">Multiple locations</a>
                             <span *ngIf="list.locations.length == 1">
@@ -134,6 +137,7 @@
                                 <span *ngIf="list.mobility_impaired == 0">Mark as peep</span>
                                 <span *ngIf="list.mobility_impaired == 1">Mark as healthy</span>
                             </option>
+                            <option value="invite" *ngIf="list.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
 						</select>
 					</td>
 				</tr>
@@ -271,7 +275,7 @@
 
     <form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
 
-    <div class="modal-content">
+    <div class="modal-content" [hidden]="showModalLoader">
         <h5>Mobility Impaired Information For {{selectedPeep.first_name}} {{selectedPeep.last_name}}</h5>
         <div class="row">
             <div class="col s12 l6 m6">
@@ -338,7 +342,7 @@
         </div>
     </div>
 
-    <div class="modal-content">
+    <div class="modal-content" [hidden]="showModalLoader">
         <h5>Confirm action</h5>
         
         <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
@@ -347,5 +351,50 @@
     <div class="modal-footer" [hidden]="showModalLoader">
         <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
         <button type="submit" class="waves-effect waves-blue btn-flat" (click)="markUserAsHealthy()">Confirm</button>
+    </div>
+</div>
+
+<div id="modalSendInvitation" class="modal">
+
+    <div class="modal-content center" [hidden]="!showModalLoader">
+        <div class="preloader-wrapper active">
+            <div class="spinner-layer spinner-red-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-content" [hidden]="showModalLoader">
+        <h5>Confirm action</h5>
+
+        <div *ngIf="selectedToInvite.length == 1 && !sendInviteToAll && !sendInviteToAllNonCompliant">
+            <h6>Send training invitation to {{selectedToInvite[0].first_name}} {{selectedToInvite[0].last_name}}?</h6>
+        </div>
+        <div *ngIf="selectedToInvite.length > 1 && !sendInviteToAll && !sendInviteToAllNonCompliant">
+            <h6>Send training invitation to the following:</h6>
+            <ul>
+                <li *ngFor="let user of selectedToInvite; let i = index" style="font-size: 14px; margin-bottom: 2px;">
+                    {{i + 1}}.) {{user.first_name}} {{user.last_name}}
+                </li>
+            </ul>
+        </div>
+        <div *ngIf="sendInviteToAll && !sendInviteToAllNonCompliant">
+            <h6>Send training invitation to all?</h6>
+        </div>
+        <div *ngIf="sendInviteToAllNonCompliant && !sendInviteToAll">
+            <h6>Send training invitation to all non-compliant?</h6>
+        </div>
+        
+    </div>
+
+    <div class="modal-footer" [hidden]="showModalLoader">
+        <a  class="modal-action modal-close waves-effect waves-red btn-flat" (click)="clickCancelSendInvitation()">Cancel</a>
+        <button type="submit" class="waves-effect waves-blue btn-flat" (click)="clickSendInvitation()" [disabled]="selectedToInvite.length == 0 && (!sendInviteToAll && !sendInviteToAllNonCompliant) ">Confirm</button>
     </div>
 </div>

@@ -554,7 +554,7 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
         if(changeDone){
             this.pagination.prevPage = parseInt(type);
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset - 1;
+            this.queries.offset = offset;
             this.loadingTable = true;
             this.getListData(() => { 
                 this.loadingTable = false;

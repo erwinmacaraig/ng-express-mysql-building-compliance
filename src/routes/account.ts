@@ -67,6 +67,10 @@ const validator = require('validator');
 	   		new AccountRoute().getAll(req, res);
 	   	});
 
+        router.get('/accounts/is-online-training-valid', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new AccountRoute().isOnlineTrainingValid(req, res);
+        });   
+
    	}
 
 	/**
@@ -90,6 +94,22 @@ const validator = require('validator');
 		response.data = <any> await account.getAll();
 		res.send(response);
 	}
+
+    public async isOnlineTrainingValid(req: AuthRequest, res: Response){
+        let  response = { valid : false },
+        account = new Account(req.user.account_id);
+
+        try{
+
+            let accData = <any> await account.load();
+            if(accData.online_training == 1){
+                response.valid = true;
+            }
+
+        }catch(e){}
+
+        res.send(response);
+    }
 
 	public getAccountByUserId(req: AuthRequest, res: Response){
 		let  response = {

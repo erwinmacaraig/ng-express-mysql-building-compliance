@@ -259,7 +259,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
         if(changeDone){
             this.pagination.prevPage = parseInt(type);
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset - 1;
+            this.queries.offset = offset;
             this.loadingTable = true;
             this.getComplianceSummaryReport((response:any) => {
                 this.loadingTable = false;

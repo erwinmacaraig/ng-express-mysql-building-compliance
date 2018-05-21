@@ -220,7 +220,8 @@ table tr td .image img{
     z-index: 999;
 }
 
-#modalMobilityHealty{
+#modalMobilityHealty,
+#modalSendInvitation{
     width: 35%;
 }
 
@@ -233,7 +234,8 @@ table tr td .image img{
 
 @media only screen and (max-width: 1024px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalSendInvitation{
         width: 60%;
     }
 
@@ -246,7 +248,8 @@ table tr td .image img{
     #modalArchiveBulk,
     #modalArchive,
     #modalMobility.
-    #modalMobilityHealty{
+    #modalMobilityHealty,
+    #modalSendInvitation{
         width: 90%;
     }
 }

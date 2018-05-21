@@ -8,6 +8,8 @@ import { LocationsService } from './../../services/locations';
 import { AuthService } from '../../services/auth.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { UserService } from '../../services/users';
+import { AccountsDataProviderService  } from '../../services/accounts';
+import { CourseService } from '../../services/course';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as enLocale from 'date-fns/locale/en';
@@ -21,7 +23,7 @@ declare var $: any;
     selector: 'app-mobility-impaired',
     templateUrl: './mobility.impaired.component.html',
     styleUrls: ['./mobility.impaired.component.css'],
-    providers : [EncryptDecryptService, UserService, DashboardPreloaderService]
+    providers : [EncryptDecryptService, UserService, DashboardPreloaderService, AccountsDataProviderService, CourseService]
 })
 export class MobilityImpairedComponent implements OnInit, OnDestroy {
     public peepList = <any>[];
@@ -71,6 +73,16 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     multipleLocations = [];
 
+    selectedToInvite = [];
+
+    emTrainings = [];
+
+    allAreSelected = false;
+    sendInviteToAll = false;
+    sendInviteToAllNonCompliant = false;
+
+    isOnlineTrainingAvailable = false;
+
     constructor(
         private authService : AuthService,
         private router : Router,
@@ -78,10 +90,16 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         private encDecrService : EncryptDecryptService,
         private dataProvider: PersonDataProviderService,
         private dashboardService : DashboardPreloaderService,
-        private locationService: LocationsService
+        private locationService: LocationsService,
+        private courseService : CourseService,
+        private accountService : AccountsDataProviderService
         ) {
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+
+        this.courseService.getAllEmRolesTrainings((response) => {
+            this.emTrainings = response.data;
+        });
     }
 
     getListData(callBack?){
@@ -102,6 +120,32 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                     if(this.peepList[i]['locations'][l]['parent_name'] == null){
                         this.peepList[i]['locations'][l]['parent_name'] = '';
                     }
+                }
+
+                this.peepList[i]['sendinvitation'] = false;
+                let hasEcoRole = false;
+                for(let r in this.peepList[i]['roles']){
+                    if( this.peepList[i]['roles'][r]['role_id'] != 1 && this.peepList[i]['roles'][r]['role_id'] != 2 ){
+                        hasEcoRole = true;
+                    }
+                }
+
+                if(hasEcoRole){
+                    this.peepList[i]['sendinvitation'] = true;
+                }
+
+                let isSelected = false;
+                this.peepList[i]['isselected'] = false;
+                for(let sel of this.selectedFromList){
+                    if(sel.user_id == this.peepList[i]['user_id']){
+                        this.peepList[i]['isselected'] = true;
+                        isSelected = true;
+                    }
+                }
+
+                if(!isSelected && this.allAreSelected){
+                    this.peepList[i]['isselected'] = true;
+                    this.selectedFromList.push(this.peepList[i]);
                 }
             }
 
@@ -136,7 +180,14 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             dismissible: false
         });
 
-        $('.row.filter-container select').material_select();
+        this.accountService.isOnlineTrainingValid((response) => {
+            if(response.valid){
+                this.isOnlineTrainingAvailable = true;
+            }
+            setTimeout(() => {
+                $('.row.filter-container select').material_select();
+            }, 100);
+        });
         this.filterByEvent();
         this.sortByEvent();
         this.bulkManageActionEvent();
@@ -265,7 +316,12 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         }else if(selected == 'healthy'){
             this.selectedPeep = peep;
             $('#modalMobilityHealty').modal('open');
-        }else{
+        }else if(selected == 'invite'){
+            this.selectedToInvite = [];
+            this.selectedToInvite.push(peep);
+            event.target.value = 0;
+            $('#modalSendInvitation').modal('open');
+        }else if(selected == 'archive'){
             event.target.value = "0";
             this.showModalLoader = false;
             this.selectedToArchive = peep;
@@ -299,8 +355,10 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         let checkboxes = $('table tbody input[type="checkbox"]');
         if(event.target.checked){
             checkboxes.prop('checked', true);
+            this.allAreSelected = true;
         }else{
             checkboxes.prop('checked', false);
+            this.allAreSelected = false;
         }
 
         checkboxes.each((indx, elem) => {
@@ -317,6 +375,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     singleCheckboxChangeEvent(list, event){
         let copy = JSON.parse(JSON.stringify(this.selectedFromList));
         if(event.target.checked){
+            list.isselected = true;
             if(list.user_id){
                 this.selectedFromList.push(list);
             }
@@ -361,6 +420,28 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 if(this.selectedFromList.length > 0){
                     $('#modalArchiveBulk').modal('open');
                 }
+            }else if(sel == 'invite-selected'){
+                if(!this.allAreSelected){
+                    this.selectedToInvite = [];
+                    for(let user of this.selectedFromList){
+                        if(user.sendinvitation){
+                            this.selectedToInvite.push(user);
+                        }
+                    }
+                    if(this.selectedToInvite.length > 0){
+                        $('#modalSendInvitation').modal('open');
+                    }
+                }else{
+                    this.sendInviteToAll = true;
+                    $('#modalSendInvitation').modal('open');
+                }
+                
+            }else if(sel == 'invite-all-non-compliant'){
+                this.sendInviteToAllNonCompliant = true;
+                $('#modalSendInvitation').modal('open');
+            }else if(sel == 'invite-all'){
+                this.sendInviteToAll = true;
+                $('#modalSendInvitation').modal('open');
             }
 
         });
@@ -546,7 +627,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         if(changeDone){
             this.pagination.prevPage = parseInt(type);
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset - 1;
+            this.queries.offset = offset;
             this.loadingTable = true;
             this.getListData(() => {
                 this.loadingTable = false;
@@ -573,6 +654,32 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 }
             }
         }
+    }
+
+    clickCancelSendInvitation(){
+        this.sendInviteToAllNonCompliant = false;
+        this.sendInviteToAll = false;
+    }
+
+    clickSendInvitation(){
+        let form = {
+            all : false,
+            non_compliant : false,
+            ids : []
+        };
+
+        form.all = (this.allAreSelected) ? true : (this.sendInviteToAll) ? true : false;
+        form.non_compliant = (this.sendInviteToAllNonCompliant) ? true : false;
+
+        for(let user of this.selectedToInvite){
+            form.ids.push(user.user_id);
+        }
+
+        this.showModalLoader = true;
+        this.courseService.sendTrainingInvitation(form, (response) => {
+            $('#modalSendInvitation').modal('close');
+            this.showModalLoader = false;
+        });
     }
 
     ngOnDestroy(){}

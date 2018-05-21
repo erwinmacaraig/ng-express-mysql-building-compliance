@@ -11,12 +11,17 @@ import { TrainingRequirements } from '../models/training.requirements';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { TrainingCertification } from '../models/training.certification.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
+import { EmailSender } from '../models/email.sender';
+import { Token } from '../models/token.model';
 
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 
 import * as moment from 'moment';
 const defs = require('../config/defs');
+
+import * as CryptoJS from 'crypto-js';
+import { AuthenticateLoginRoute } from './authenticate_login';
 
 export class CourseRoute extends BaseRoute {
 
@@ -49,6 +54,14 @@ export class CourseRoute extends BaseRoute {
 	   	router.get('/courses/counts-building-trainings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 	   		new CourseRoute().getCountsBuildingTrainings(req, res);
 	   	});
+
+        router.get('/courses/get-all-em-trainings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new CourseRoute().getAllEmTrainings(req, res);
+        });
+
+        router.post('/courses/send-training-invitation', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new CourseRoute().sendTrainingInvitation(req, res);
+        });
    	}
 
    	response = {
@@ -60,25 +73,26 @@ export class CourseRoute extends BaseRoute {
 	constructor() {
 		super();
 	}
-  public async getMyCourses(req: AuthRequest, res: Response){
-    const userId = req.params.user_id;
-    const response = {
-      status : false, data : [], message : ''
-    };
-    const courseUserRelation = new CourseUserRelation();
-    try {
-      const courses = <any> await courseUserRelation.getAllCourseForUser(userId);
-      for(const cor of courses){
-        cor['timestamp_formatted'] = moment(cor['dtTimeStamp']).format('MMM. DD, YYYY');
-      }
-      response.status = true;
-      response.data = courses;
-    } catch(e) {
-      console.log('course.ts', e, 'getMyCourses');
-      response.data = [];
+
+    public async getMyCourses(req: AuthRequest, res: Response){
+        const userId = req.params.user_id;
+        const response = {
+            status : false, data : [], message : ''
+        };
+        const courseUserRelation = new CourseUserRelation();
+        try {
+            const courses = <any> await courseUserRelation.getAllCourseForUser(userId);
+            for(const cor of courses){
+                cor['timestamp_formatted'] = moment(cor['dtTimeStamp']).format('MMM. DD, YYYY');
+            }
+            response.status = true;
+            response.data = courses;
+        } catch(e) {
+            console.log('course.ts', e, 'getMyCourses');
+            response.data = [];
+        }
+        res.send(response);
     }
-    res.send(response);
-  }
 
 	public async disableUsersFromCourses(req: Request, res: Response){
 		let accountId = req.body.account_id,
@@ -210,6 +224,18 @@ export class CourseRoute extends BaseRoute {
 		res.send(this.response);
 	}
 
+    public async getAllEmTrainings(req: AuthRequest, res: Response){
+        let
+        response = {
+            data : [], message : ''
+        },
+        trainingRequirementsModel = new TrainingRequirements();
+
+        response.data = <any> await trainingRequirementsModel.allEmRolesTrainings();
+
+        res.status(200).send(response);
+    }
+
 	public async getCountsBuildingTrainings(req: AuthRequest, res: Response){
 		let response = {
 			data : {
@@ -227,8 +253,8 @@ export class CourseRoute extends BaseRoute {
 		account = new Account(accountId),
 		locationsOnAccount = <any> [],
 		locations = <any> [],
-    responseLocations = [];
-    const trainingCertModel = new TrainingCertification();
+        responseLocations = [];
+        const trainingCertModel = new TrainingCertification();
 
 		try {
             // FRP & TRP
@@ -293,7 +319,173 @@ export class CourseRoute extends BaseRoute {
 
         } catch (e) { }
 
-    res.send(response);
-  }
+        res.send(response);
+    }
+
+    public async sendTrainingInvitation(req: AuthRequest, res: Response){
+        let
+        response = {
+            status : true, data : [], message : ''
+        },
+        accountModel = new Account(req.user.account_id),
+        trainingRequirementsModel = new TrainingRequirements(),
+        users = [],
+        all = (req.body.all) ? req.body.all : false,
+        non_compliant = (req.body.non_compliant) ? req.body.non_compliant : false,
+        ids = (req.body.ids) ? req.body.ids : false,
+        trainings = <any> await trainingRequirementsModel.allEmRolesTrainings(),
+        account = {};
+
+        try{
+
+            account = await accountModel.load();
+            accountModel = new Account();
+
+            if(all){
+                users = <any> await accountModel.getAllEMRolesOnThisAccount(req.user.account_id);
+            }else if(ids.length > 0){
+                users = <any> await accountModel.getAllEMRolesOnThisAccount(req.user.account_id, { user_ids : ids.join(',') });
+            }else if(non_compliant){
+                users = <any> await accountModel.getAllEMRolesOnThisAccountNotCompliant(req.user.account_id);
+            }
+
+            for(let user of users){
+                user['trainings'] = [];
+                user['account'] = account;
+                if( this.isEmailValid(user.email) ){
+                    for(let tr of trainings){
+                        if(tr.em_role_id == user.em_role_id){
+                            user['trainings'].push( tr );
+                        }
+                    }
+
+                    await this.sendEmailTrainingInvitation(user, req, res);
+                }
+            }
+
+        }catch(e){}
+
+        response.data = users;
+
+        res.send(response);
+    }
+
+    public async sendEmailTrainingInvitation(user, req, res){
+        let 
+        emailModel = new EmailSender(),
+        emailBody = emailModel.getEmailHTMLHeader(),
+        fullname = this.capitalizeFirstLetter(user.first_name)+' '+this.capitalizeFirstLetter(user.last_name),
+        traininglist = [],
+        trainingsTxt = '',
+        account = user.account;
+
+        for(let tr of user.trainings){
+            traininglist.push(tr.training_requirement_name)
+        }
+
+        trainingsTxt = traininglist.join(', ');
+
+        let currentDate = moment(),
+            expirationDate = currentDate.add(1, 'day'),
+            expDateFormat = expirationDate.format('YYYY-MM-DD HH:mm:ss'),
+            saveData = {
+                id : user.user_id,
+                id_type : 'user_id',
+                token : user.user_id+''+this.generateRandomChars(50),
+                action : 'forgot-password',
+                expiration_date : expDateFormat
+            },
+            tokenTraining = this.generateRandomChars(40),
+            tokenModel = new Token(),
+            tokenTrainModel = new Token(),
+            multiTokenModel = new Token();
+
+        let tokens = await multiTokenModel.getAllByUserId(user.user_id);
+        for(let t in tokens){
+            if(tokens[t]['action'] == 'forgot-password'){
+                let tokenDelete = new Token(tokens[t]['token_id']);
+                await tokenDelete.delete();
+            }
+        }
+
+        let forgotPassLink = req.protocol + '://' + req.get('host') +'/token/'+saveData['token'],
+            trainingLink = req.protocol + '://'+req.get('host') + '/token/'+tokenTraining;
+        await tokenModel.create(saveData);
+
+        saveData['token'] = tokenTraining;
+        saveData['action'] = 'training-invite';
+        await tokenTrainModel.create(saveData);
+
+        emailBody += `
+            <h3 style="text-transform:capitalize;">Hi ${fullname},</h3> 
+            <br/> <br/>
+            Please do ${trainingsTxt} for ${user.location_name} of ${account.account_name} <br/>
+            
+            <br/><br/><br/>
+            
+            <h5>If you have logged in before <a href="${trainingLink}" style="color:#2980b9;">Click here</a></h5>
+            <h5>If you forgotten your password or have not yet set a password, <a href="${forgotPassLink}" style="color:#c0392b;">Click here</a></h5>
+        `;
+
+        emailBody += emailModel.getEmailHTMLFooter();
+
+        emailModel.assignOptions({
+            body : emailBody,
+            to: [user.email],
+            subject : 'EvacConnect Training Invitation'
+        });
+
+        await emailModel.send(() => {}, () => {});
+
+    }
+
+    public async trainingInviteEmailAction(req, res, tokenData){
+        let
+        tokenModel = new Token(tokenData.token_id),
+        userModel = new User(tokenData.id),
+        authRoute = new AuthenticateLoginRoute(),
+        userRole = new UserRoleRelation(),
+        hasFrpTrpRole = false;
+
+        try{
+            await tokenModel.load();
+
+            let 
+            user = <any> await userModel.load(),
+            loginResponse = <any> await authRoute.successValidation(req, res, userModel, 7200, true);
+
+            try{
+                await userRole.getByUserId(user.user_id);
+                hasFrpTrpRole = true;
+            }catch(e){}
+
+            let
+            stringUserData = JSON.stringify(loginResponse.data),
+            userIdEnc = CryptoJS.AES.encrypt(''  + user.user_id + '', 'NifLed').toString().split('/').join('___'),
+            redirectUrlWarden = req.protocol + '://'+req.get('host') + '/trainings/my-training-profile/'+userIdEnc,
+            redirectUrlFRP = req.protocol + '://'+req.get('host') + '/teams/view-user/'+userIdEnc,
+            redirectURL = (hasFrpTrpRole) ? redirectUrlFRP : redirectUrlWarden;
+
+
+
+            let script = `
+                <h4>Redirecting...</h4>
+                <script>
+                    localStorage.setItem('currentUser', '${loginResponse.token}');
+                    localStorage.setItem('userData', '${stringUserData}');
+
+                    setTimeout(function(){
+                        window.location.replace("${redirectURL}")
+                    }, 1000);
+                </script>
+            `;
+
+            res.status(200).send(script);
+
+        }catch(e){
+            console.log(e);
+            res.send('<h3>Invalid user </h3>')
+        }
+    }
 
 }
