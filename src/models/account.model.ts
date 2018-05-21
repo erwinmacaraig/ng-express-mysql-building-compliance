@@ -472,7 +472,7 @@ export class Account extends BaseClass {
             user_em_roles_relation.location_id,
             user_em_roles_relation.em_role_id,
             em_roles.role_name,
-            IF(ploc.name IS NOT NULL, CONCAT(ploc.name,', ',locations.name), locations.name) as location_name
+            IF(ploc.name IS NOT NULL, CONCAT( IF(TRIM(ploc.name) <> '', CONCAT(ploc.name, ', '), ''), locations.name), locations.name) as location_name
           FROM
           	users
           INNER JOIN
@@ -538,7 +538,7 @@ export class Account extends BaseClass {
             SELECT
                 u.user_id, u.first_name, u.last_name, u.email, uer.location_id, uer.em_role_id, 
                 uer.user_em_roles_relation_id, er.role_name, train.training_requirement_name, train.training_requirement_id,
-                IF(ploc.name IS NOT NULL, CONCAT(ploc.name,', ',locations.name), locations.name) as location_name
+                IF(ploc.name IS NOT NULL, CONCAT( IF(TRIM(ploc.name) <> '', CONCAT(ploc.name, ', '), ''), locations.name), locations.name) as location_name
             FROM users u 
             INNER JOIN user_em_roles_relation uer ON u.user_id = uer.user_id
             INNER JOIN em_roles er ON uer.em_role_id = er.em_roles_id
