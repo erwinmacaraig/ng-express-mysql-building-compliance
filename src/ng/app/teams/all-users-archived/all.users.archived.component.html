@@ -36,13 +36,13 @@
 			<option value="restore" >Restore selected</option>
 		</select>
 	</div>
-	
+
 </div>
 
 
 <div class="row">
 	<div class="col l12 m12 s12">
-		
+
 		<table class="table striped table-peep">
 			<thead>
 				<tr>
@@ -80,7 +80,7 @@
 						</p>
 					</td>
 					<td>
-						<div class="image-container lighten-3" [ngClass]="list.bg_class">
+						<div class="image-container lighten-3" [ngClass]="list.bg_class" *ngIf="list.profile_pic.trim().length > 0">
 							<div class="image">
 								<img *ngIf="list.profile_pic.trim().length > 0" [src]="list.profile_pic.trim()"  >
 							</div>
@@ -96,9 +96,9 @@
 					<td class="with-image role-name">
 						<div *ngIf="list.mobility_impaired == 1" class="impaired"></div>
 						<span *ngFor="let role of list.roles; let ri = index;" class="name">
-							{{role.role_name}}<i *ngIf=" list.roles.length - 1 != ri ">,</i> 
+							{{role.role_name}}<i *ngIf=" list.roles.length - 1 != ri ">,</i>
 						</span>
-						<!-- 
+						<!--
 						<div class="image frp" *ngIf="list.role_id == 1 && list.user_info.mobility_impaired == 0"></div>
 						<div class="image trp" *ngIf="list.role_id == 2 && list.user_info.mobility_impaired == 0"></div>
 						<div class="image user" *ngIf="list.role_id != 1 && list.role_id != 2 && list.user_info.mobility_impaired == 0"></div>
@@ -175,7 +175,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want to restore 
+			Are you sure you want to restore
 			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
 		</p>
 	</div>
@@ -304,7 +304,7 @@
 
     <div class="modal-content">
         <h5>Confirm action</h5>
-        
+
         <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
     </div>
 

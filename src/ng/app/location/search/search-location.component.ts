@@ -597,6 +597,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
             this.modalCreateNewLocation[ 'plantroom' ] = [];
 
            if(total > 0){
+
                for(let i in this.LEVELS){
                     if( this.modalCreateNewLocation[ i ] ){
 
@@ -628,6 +629,17 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
                         }
                     }
                 }
+
+                if(inpLevelVal > total){
+                   let subs = inpLevelVal - total;
+                   for(let i = 1; i<=subs; i++){
+                       this.modalCreateNewLocation['occupiable'].push({
+                           number : this.modalCreateNewLocation['occupiable'].length + 1,
+                           name : 'Level'
+                       });
+                   }
+               }
+                
            }else if(inpLevelVal > 0){
                 for(let i = 1; i <= inpLevelVal; i++){
                     this.modalCreateNewLocation[ 'occupiable' ].push({

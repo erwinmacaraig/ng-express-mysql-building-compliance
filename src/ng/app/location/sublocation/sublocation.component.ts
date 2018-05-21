@@ -26,7 +26,7 @@ declare var Materialize: any;
     providers: [EncryptDecryptService, AccountsDataProviderService]
 })
 export class SublocationComponent implements OnInit, OnDestroy {
-    @ViewChild('formAddTenant') formAddTenant : NgForm;
+    @ViewChild('formAddTenant') formAddTenant: NgForm;
     userData = <any> {};
     isFrp = false;
     isTrp = false;
@@ -88,22 +88,6 @@ export class SublocationComponent implements OnInit, OnDestroy {
             }
 
         }
-
-        // this.mutationOversable = new MutationObserver((mutationsList) => {
-        //     mutationsList.forEach((mutation) => {
-        //         if(mutation.target.nodeName != '#text'){
-        //             let target = $(mutation.target);
-        //             if(target.find('select:not(.initialized)').length > 0){
-
-        //                 target.find('select:not(.initialized)').material_select();
-
-        //             }
-        //         }
-        //     });
-        // });
-
-        // this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
-
     }
 
     getLocationData(callBack){
@@ -157,7 +141,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
             this.getLocationData(() => {
                 this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
                     this.tenants = tenantsResponse.data;
-                    console.log(this.tenants);
+                    // console.log(this.tenants);
 
                 });
             });
@@ -251,22 +235,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
               $('#modalAddNewTenant').modal('close');
               const errorObject = JSON.parse(e.error);
               alert(errorObject.message);
-
             });
-
-            /*
-            this.accountService.update(formData).subscribe((response) => {
-                this.getLocationData(() => {
-                    this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
-                        this.tenants = tenantsResponse.data;
-                        this.showModalNewTenantLoader = false;
-                        $('#modalAddNewTenant').modal('close');
-                    });
-                });
-            });
-            */
-
-
         }
     }
 

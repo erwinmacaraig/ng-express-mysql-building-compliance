@@ -85,4 +85,13 @@ export class AccountsDataProviderService {
 		return this.http.post(this.baseUrl+"/accounts/create", formData, this.options);
 	}
 
+    isOnlineTrainingValid(callBack){
+        this.http.get(this.baseUrl+"/accounts/is-online-training-valid", this.options)
+          .subscribe(res => {
+            callBack(res);
+          }, err => {
+            callBack( JSON.parse(err.error) );
+          });
+    }
+
 }

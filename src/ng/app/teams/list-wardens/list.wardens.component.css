@@ -346,7 +346,8 @@ table tr td.with-image .impaired{
 }
 
 #modalArchiveBulk,
-#modalArchive{
+#modalArchive,
+#modalSendInvitation{
     width: 35%;
 }
 
@@ -368,7 +369,8 @@ table tr td.with-image .impaired{
 @media only screen and (max-width: 1024px) {
     #modalArchiveBulk,
     #modalArchive,
-    #modalMobilityHealty{
+    #modalMobilityHealty,
+    #modalSendInvitation{
         width: 60%;
     }
 
@@ -381,7 +383,8 @@ table tr td.with-image .impaired{
     #modalArchiveBulk,
     #modalArchive,
     #modalMobility,
-    #modalMobilityHealty{
+    #modalMobilityHealty,
+    #modalSendInvitation{
         width: 90%;
     }
 }
