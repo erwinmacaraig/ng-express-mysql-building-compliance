@@ -1,14 +1,14 @@
 <div class="container-fluid">
 
 	<div class="row margin-bottom-30">
-		
+
 		<div class="col l3 m12 s12 my-compliance-container">
 			<h5 class="orange-text margin-bottom-30">My Compliance</h5>
 
 			<div class="svg-container">
 
                 <canvas #compliancePieChart width="200" height="200"></canvas>
-	    
+
 		        <!-- <svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"  overflow="visible" x="666.6666666666667" y="666.6666666666667" viewBox="0 0 500 500">
 		            <g>
 
@@ -39,9 +39,9 @@
 		        </svg> -->
 
 		    </div>
-			
+
 			<div class="center-block text-button-container">
-				
+
 			    <div class="display-table compliance-title-container center-block">
                     <!-- <div class="cell image green"></div> -->
                     <div class="cell text center">
@@ -58,7 +58,21 @@
 			    	</div>
 			    </div> -->
 
-			    <button class="btn orange waves-effect waves-light center-block display-block"> Manage Compliance </button>
+          <!-- <button class="btn orange waves-effect waves-light center-block display-block"> Manage Compliance </button> -->
+          <!-- <div class="container">
+            <div class="input-field col s12">
+              <input id="location" type="text" class="validate" [formControl]="search">
+              <label for="location">Search location</label>
+            </div>
+            <div class="suggestions" *ngIf="filteredList.length > 0">
+              <ul *ngFor="let item of filteredList">
+                <li>
+                  <a>{{item['name']}}</a>
+                </li>
+              </ul>
+
+            </div>
+          </div> -->
 			</div>
 
 
@@ -107,13 +121,13 @@
                             <td class="with-bar">
                                 <div *ngIf="loc.fetchingCompliance" class="progress fetching">
                                     <div class="indeterminate"></div>
-                                </div> 
+                                </div>
                                 <div *ngIf="!loc.fetchingCompliance" class="text" [ngClass]="{ 'green-text' : loc.compliance_percentage == 100 }">{{loc.compliance_percentage}}%</div>
                                 <div *ngIf="!loc.fetchingCompliance" class="progress-container" >
                                     <div class="progress" [ngClass]="{ 'green-theme' : loc.compliance_percentage == 100 }">
                                         <div class="determinate" [ngStyle]="{ 'width' : loc.compliance_percentage+'%' }"></div>
                                     </div>
-                                </div>                
+                                </div>
                             </td>
                             <td> 0/0 </td>
                             <!--<td>  <button class="btn light-blue waves-effect waves-light">Shop</button>  </td>-->
@@ -144,22 +158,22 @@
 		<div class="col l3 m12 s12">
 			<!-- BLOGS
 			<h5 class="orange-text margin-bottom-30">Community</h5>
-			
+
 			<div class="blog">
 				<img src="/assets/images/blog.png"  >
-			
+
 				<div class="content">
 					<h5>Facility Manager Strategies to Achieve Safety</h5>
-			
+
 					<h6 class="grey-text">By Dalton | August 4th, 2017</h6>
-			
+
 					<p style="font-size: 16px;">
 						A facility Manage plays a key role to maintain and enchance compliance in life safety of the building
 					</p>
 				</div>
-			
+
 				<a  class="blue-text font-size-16">View all ></a>
-			</div> 
+			</div>
 			-->
 
 			<h5 class="orange-text margin-bottom-30">All Building Trainings Status</h5>
@@ -185,7 +199,7 @@
 				</div>
 			</div>
 
-			
+
 			<div class="width100 display-table" *ngIf="!showBuildingTrainingLoader">
 				<div id="specificChart" class="donut-size cell" >
 					<div class="pie-wrapper">
@@ -199,7 +213,7 @@
 						<div class="shadow"></div>
 					</div>
 				</div>
-				
+
 				<div class="cell" >
 					<h5>{{accountTrainings.total_users}} Total Users</h5>
 					<p class="font-size-16 blue-text">
@@ -221,7 +235,7 @@
 	</div>
 
 	<div class="row">
-		
+
 		<div class="col l3 m6 s12">
 			<h5 class="orange-text margin-bottom-30" >
 				Training License
@@ -410,5 +424,5 @@
 		</div>
 
 	</div>
-	
+
 </div>

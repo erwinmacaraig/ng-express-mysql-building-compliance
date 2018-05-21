@@ -35,8 +35,6 @@
 	<div class="col l2 m6 s6">
 		<select class="sort-by">
 			<option value="0" selected>Sort By</option>
-			<option value="loc-name-desc">Location Name Descending</option>
-			<option value="loc-name-asc">Location Name Ascending</option>
 			<option value="user-name-desc">User Name Descending</option>
 			<option value="user-name-asc">User Name Ascending</option>
 		</select>
@@ -45,6 +43,9 @@
 		<select class="bulk-manage">
 			<option value="0" selected>Manage Action</option>
 			<option value="archive" >Archive selected</option>
+            <option value="invite-selected" *ngIf="isOnlineTrainingAvailable">Send training invite to selected</option>
+            <option value="invite-all-non-compliant" *ngIf="isOnlineTrainingAvailable">Send training invite to all non-compliant</option>
+            <option value="invite-all" *ngIf="isOnlineTrainingAvailable">Send training invtite to all</option>
 		</select>
 	</div>
 
@@ -94,7 +95,7 @@
                         </p>
 					</td>
 					<td>
-						<div class="image-container lighten-3" [ngClass]="peep.bg_class">
+						<div class="image-container lighten-3" [ngClass]="peep.bg_class" *ngIf="peep.profile_pic.length > 0">
 							<div class="image">
 								<img *ngIf="peep.profile_pic.length > 0" [src]="peep.profile_pic"  >
 							</div>
@@ -110,7 +111,7 @@
 						<span *ngIf="peep.mobility_impaired_details.length > 0">
 							<a  class="view-peep-link" [attr.user_id]="peep.user_id" [attr.user_invitations_id]="peep.user_invitations_id">View</a>
 						</span>
-						<a  (click)="clickCompletePeepInfo(peep)" 
+						<a  (click)="clickCompletePeepInfo(peep)"
 						*ngIf="peep.mobility_impaired_details.length == 0" >Complete peep information</a>
 						<span *ngIf="!peep.user_id"> Waiting for user validation </span>
 					</td>
@@ -133,6 +134,7 @@
 							<option value="archive" class="blue-text" *ngIf="peep.user_id != userData.userId">Archive</option>
                             <option value="archive" class="blue-text" *ngIf="peep.user_invitations_id > 0">Archive</option>
 							<option value="healthy" class="blue-text" >Mark as healthy</option>
+                            <option value="invite" *ngIf="peep.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
 						</select>
 					</td>
 				</tr>
@@ -186,7 +188,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want to archive 
+			Are you sure you want to archive
 			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
 		</p>
 	</div>
@@ -242,7 +244,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
 
 	<div class="modal-content">
@@ -297,7 +299,7 @@
 </div>
 
 <div id="modalSelectMultipleLocations" class="modal">
-    
+
     <form #formMultiple="ngForm" (submit)="submitSelectFromMultipleLocations(formMultiple)">
         <div class="modal-content">
             <h5>Multiple locations</h5>
@@ -339,7 +341,7 @@
 
     <div class="modal-content">
         <h5>Confirm action</h5>
-        
+
         <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
 
     </div>
@@ -347,5 +349,50 @@
     <div class="modal-footer" [hidden]="showModalLoader">
         <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
         <button type="submit" class="waves-effect waves-blue btn-flat" (click)="markUserAsHealthy()">Confirm</button>
+    </div>
+</div>
+
+<div id="modalSendInvitation" class="modal">
+
+    <div class="modal-content center" [hidden]="!showModalLoader">
+        <div class="preloader-wrapper active">
+            <div class="spinner-layer spinner-red-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-content" [hidden]="showModalLoader">
+        <h5>Confirm action</h5>
+
+        <div *ngIf="selectedToInvite.length == 1 && !sendInviteToAll && !sendInviteToAllNonCompliant">
+            <h6>Send training invitation to {{selectedToInvite[0].first_name}} {{selectedToInvite[0].last_name}}?</h6>
+        </div>
+        <div *ngIf="selectedToInvite.length > 1 && !sendInviteToAll && !sendInviteToAllNonCompliant">
+            <h6>Send training invitation to the following:</h6>
+            <ul>
+                <li *ngFor="let user of selectedToInvite; let i = index" style="font-size: 14px; margin-bottom: 2px;">
+                    {{i + 1}}.) {{user.first_name}} {{user.last_name}}
+                </li>
+            </ul>
+        </div>
+        <div *ngIf="sendInviteToAll && !sendInviteToAllNonCompliant">
+            <h6>Send training invitation to all?</h6>
+        </div>
+        <div *ngIf="sendInviteToAllNonCompliant && !sendInviteToAll">
+            <h6>Send training invitation to all non-compliant?</h6>
+        </div>
+
+    </div>
+
+    <div class="modal-footer" [hidden]="showModalLoader">
+        <a  class="modal-action modal-close waves-effect waves-red btn-flat" (click)="clickCancelSendInvitation()">Cancel</a>
+        <button type="submit" class="waves-effect waves-blue btn-flat" (click)="clickSendInvitation()" [disabled]="selectedToInvite.length == 0 && (!sendInviteToAll && !sendInviteToAllNonCompliant) ">Confirm</button>
     </div>
 </div>

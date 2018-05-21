@@ -210,13 +210,29 @@ export class AdminRoute extends BaseRoute {
         const locationObj = new Location();
         locationsForManager = await locationObj.bulkLocationDetails(buildingIds);
       }
-
       levelLocations = await list.generateSublocationsForListing(buildingIds);
+      /*
+      console.log('======================= BUILDING IDS ======================== ');
+      console.log(buildingIds);
+      console.log('*********************** LEVEL LOCATIONS ***************************');
+      console.log(levelLocations);
+      */
+      // get locations for location_account_relation and merged it in buildingIds
+      const locationsForTrpFromLAR =
+        await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
 
+      const uniqLocationsUnderFRP = [];
+      for (const location of locationsForTrpFromLAR) {
+        if (levelLocations['resultLocationIds'].indexOf(location['location_id']) === -1) {
+          uniqLocationsUnderFRP.push(location['location_id']);
+        }
+      }
+      const locationInLAR = await list.generateLocationDetailsForAddUsers(uniqLocationsUnderFRP);
       return res.status(200).send({
         data: {
           buildings: locationsForManager,
-          levels: levelLocations['resultArray']
+          levels: levelLocations['resultArray'].concat(locationInLAR),
+          lar: locationInLAR
         }
       });
     });

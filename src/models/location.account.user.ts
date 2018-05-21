@@ -542,6 +542,7 @@ export class LocationAccountUser extends BaseClass {
                 seenAccountsArr.push(results[i]['account_id']);
               }
             }
+            // console.log(resultSetObj);
             resolve(resultSetObj);
           }
         });

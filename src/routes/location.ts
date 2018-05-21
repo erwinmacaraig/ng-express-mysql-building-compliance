@@ -15,6 +15,7 @@ import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { TrainingCertification } from '../models/training.certification.model';
 import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calculator.model';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
+
 import * as fs from 'fs';
 import * as path from 'path';
 import * as CryptoJS from 'crypto-js';
@@ -1095,8 +1096,14 @@ const defs = require('../config/defs.json');
             try {
               const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], sub.location_id);
               sub['num_tenants'] = Object.keys(canLoginTenants).length;
+
+              if (sub['num_tenants'] == 0) {
+                const locationAccountRel = new LocationAccountRelation();
+                const temp = await locationAccountRel.getByAccountIdAndLocationId(req.user.account_id, sub.location_id);
+                sub['num_tenants'] = temp.length;
+              }
             } catch (e) {
-              sub['num_tenants'] = 0;
+              sub['num_tenants']  = 0;
             }
         }
 
@@ -1274,9 +1281,6 @@ const defs = require('../config/defs.json');
         }
 
         for(let loc of response.locations){
-             // let sublocationIds = await new Location(loc.location_id).getParentsChildren(loc['location_id'], 0);
-             // loc['sublocation_count'] = sublocationIds.length;
-            // loc['sublocation_count'] = 0;
             loc['sublocation_count'] = subLocationsObj[loc['location_id']]['count'];
             let canLoginTenants = {},
                 locationAccountUserObj = new LocationAccountUser();
@@ -1284,7 +1288,10 @@ const defs = require('../config/defs.json');
                 canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], loc['location_id']);
                 loc['num_tenants'] = Object.keys(canLoginTenants).length;
             } catch(e) {
-                loc['num_tenants'] = 0;
+                // loc['num_tenants'] = 0;
+                const locationAccountRel = new LocationAccountRelation();
+                const temp = await locationAccountRel.getByAccountIdAndLocationId(req.user.account_id, loc['location_id']);
+                loc['num_tenants'] = temp.length;
             }
 
             let

@@ -96,6 +96,7 @@ export class List {
         }
         const buildingLocationsStr = buildingLocations.join(',');
         const sublocations: {[k: number]: object} = {};
+        const locationIds = [];
         const loc = {
           'id': 0,
           'name': ''
@@ -118,6 +119,9 @@ export class List {
             throw Error('There was an error generating the list of sublocations');
           }
           for (const r of results) {
+            if (locationIds.indexOf(r['location_id']) === -1) {
+              locationIds.push(r['location_id']);
+            }
             if (r['parent_id'] in sublocations) {
               loc['id'] = r['location_id'];
               loc['name'] = r['name'];
@@ -143,11 +147,96 @@ export class List {
           });
           resolve({
             resultArray: resultSet,
-            resultObject: sublocations
+            resultObject: sublocations,
+            resultLocationIds: locationIds
           });
         });
         connection.end();
 
+      });
+    }
+
+    public generateLocationDetailsForAddUsers(locations = []): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        if (!locations.length) {
+          resolve(locations);
+          return;
+        }
+        const locationIdStr = locations.join(',');
+        const theLocations: {[k: number]: object} = {};
+        const loc = {
+          'id': 0,
+          'name': ''
+        };
+        const resultSet = [];
+        const sql = `SELECT
+                locations.location_id,
+                locations.parent_id,
+                locations.name,
+                parent_location.name as parent_location_name
+           FROM locations
+           LEFT JOIN locations AS parent_location
+           ON locations.parent_id = parent_location.location_id
+           WHERE locations.location_id IN (${locationIdStr})
+           ORDER BY locations.parent_id`;
+
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [], (error, results) => {
+          if (error) {
+            console.log('list.model.generateLocationDetailsForAddUsers', error, sql);
+            throw Error('There was an error generating the list of sublocations');
+          }
+          for (const r of results) {
+            if (r['parent_id'] === -1) {
+              if (r['location_id'] in theLocations) {
+                loc['id'] = r['location_id'];
+                loc['name'] = r['name'];
+                theLocations[r['parent_id']]['sublocations'].push({
+                  'id': r['location_id'],
+                  'name': r['name']
+                });
+              } else {
+                theLocations[r['location_id']] = {
+                  parent_location_id: r['parent_id'],
+                  sublocations: [{
+                    'id': r['location_id'],
+                    'name': r['name']
+                  }],
+                  parent_location_name: ''
+                };
+              }
+            } else {
+              if (r['parent_id'] in theLocations) {
+                loc['id'] = r['location_id'];
+                loc['name'] = r['name'];
+                theLocations[r['parent_id']]['sublocations'].push({
+                  'id': r['location_id'],
+                  'name': r['name']
+                });
+              } else {
+                let locName = '';
+                if (r['parent_location_name'] == null || r['parent_location_name'].length == 0) {
+                  locName = '_';
+                } else {
+                  locName = r['parent_location_name'];
+                }
+                theLocations[r['parent_id']] = {
+                  parent_location_id: r['parent_id'],
+                  sublocations: [{
+                    'id': r['location_id'],
+                    'name': r['name']
+                  }],
+                  parent_location_name: locName
+                };
+              }
+            }
+          }
+          Object.keys(theLocations).forEach((parent) => {
+            resultSet.push(theLocations[parent]);
+          });
+          resolve(resultSet);
+        });
+        connection.end();
       });
     }
 
