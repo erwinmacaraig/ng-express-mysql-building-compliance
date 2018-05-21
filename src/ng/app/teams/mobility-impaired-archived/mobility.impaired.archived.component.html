@@ -82,7 +82,7 @@
 						</p>
 					</td>
 					<td>
-						<div class="image-container lighten-3" [ngClass]="peep.bg_class">
+						<div class="image-container lighten-3" [ngClass]="peep.bg_class" *ngIf="peep.profile_pic.length > 0">
 							<div class="image">
 								<img *ngIf="peep.profile_pic.length > 0" [src]="peep.profile_pic"  >
 							</div>
@@ -98,7 +98,7 @@
 						<span *ngIf="peep.mobility_impaired_details.length > 0">
 							<a  class="view-peep-link" [attr.user_id]="peep.user_id" [attr.user_invitations_id]="peep.user_invitations_id">View</a>
 						</span>
-						<a  (click)="clickCompletePeepInfo(peep)" 
+						<a  (click)="clickCompletePeepInfo(peep)"
 						*ngIf="peep.mobility_impaired_details.length == 0" >Complete peep information</a>
 						<span *ngIf="!peep.user_id"> Waiting for user validation </span>
 					</td>
@@ -174,7 +174,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want to restore 
+			Are you sure you want to restore
 			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
 		</p>
 	</div>
@@ -230,7 +230,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
 
 	<div class="modal-content">
@@ -295,7 +295,7 @@
 
     <div class="modal-content">
         <h5>Confirm action</h5>
-        
+
         <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
     </div>
 
