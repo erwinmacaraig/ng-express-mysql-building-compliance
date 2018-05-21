@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
+import { NgForm, FormControl } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { UserService } from '../../services/users';
@@ -29,7 +29,10 @@ declare var $: any;
 
 export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
-	userData = {};
+  userData = {};
+  public search = new FormControl();
+  public filteredList = [];
+  items: any;
 
 	courses = [];
 	locations = [];
@@ -44,6 +47,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 	showPlansLoader = true;
 
     @ViewChild('compliancePieChart') compliancePieChart : ElementRef;
+
     complianceChart: Chart;
     ctx;
 
@@ -71,7 +75,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 		private donut : DonutService,
 		private courseService : CourseService,
 		private dashboardService : DashboardPreloaderService,
-		private locationService : LocationsService,
+		private locationService: LocationsService,
 		private encryptDecrypt : EncryptDecryptService,
         private complianceService : ComplianceService
 		){
@@ -81,7 +85,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 		this.courseService.myCourses(this.userData['userId'], (response) => {
 			this.courses = response.data;
 		});
-       
+
         this.getLocationsForListing((response:any) => {
             this.locations = response.locations;
             for(let loc of this.locations){
@@ -127,10 +131,30 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 	}
 
 	ngOnInit(){
+
+    this.search.valueChanges
+    .debounceTime(400)
+    .distinctUntilChanged()
+    .subscribe((term) => {
+      if (term.length == 0) {
+        this.filteredList = [];
+      } else {
+        this.locationService.getParentLocationsForListingPaginated({
+          'limit': 10,
+          'offset': 0,
+          'sort': '',
+          'search': term
+        }, (data) => {
+          this.filteredList = data.locations;
+          console.log(this.filteredList);
+        });
+      }
+    });
+
         Chart.pluginService.register({
             beforeDraw: function (chart) {
                 if (chart.config.options.elements.center) {
-                    var 
+                    var
                     ctx = chart.chart.ctx,
                     centerConfig = chart.config.options.elements.center,
                     fontStyle = centerConfig.fontStyle || 'Arial',
@@ -138,14 +162,14 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                     color = '#444',
                     sidePadding = centerConfig.sidePadding || 20,
                     sidePaddingCalculated = (sidePadding/100) * (chart.innerRadius * 2)
-                    
+
                     ctx.font = "40px " + fontStyle;
-                    
-                    var 
+
+                    var
                     stringWidth = ctx.measureText(txt).width,
                     elementWidth = (chart.innerRadius * 2) - sidePaddingCalculated;
 
-                    var 
+                    var
                     widthRatio = elementWidth / stringWidth,
                     newFontSize = Math.floor(30 * widthRatio),
                     elementHeight = (chart.innerRadius * 2),
@@ -153,11 +177,11 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    
-                    var 
+
+                    var
                     centerX = ((chart.chartArea.left + chart.chartArea.right) / 2),
                     centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
-                    
+
                     ctx.font = fontSizeToUse+"px " + fontStyle;
                     ctx.fillStyle = color;
 
@@ -177,7 +201,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             }
 
             if(isAllLoaded){
-                
+
                 let selectedKpi = this.KPIS[this.selectedIndex],
                     validCompliace = 0,
                     totalLocations = this.locations.length,
@@ -229,13 +253,13 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 		// this.dashboardService.show();
 
 		$('.workspace.container').css('padding', '2% 5%');
-		
+
 
 		// DONUT update
         // Donut Service
 		// this.donut.updateDonutChart('#specificChart', 30, true);
-        
-        let 
+
+        let
         colors = ['#835cb7', '#f0932b', '#eb4d4b', '#6ab04c', '#30336b', '#22a6b3', '#be2edd', '#95afc0', '#badc58', '#01a3a4', '#10ac84', '#8395a7'],
         thisInstance = this,
         config = {
@@ -261,7 +285,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                     center: {
                         text: 'loading',
                         color: '#FF6384',
-                        fontStyle: 'Arial', 
+                        fontStyle: 'Arial',
                         sidePadding: 20
                     }
                 },
@@ -293,14 +317,14 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
             this.complianceChart.options.elements.center.text = 'loading';
             this.complianceChart.update();
-        }); 
+        });
 	}
 
     getLocationsForListing(callback){
         this.locationService.getParentLocationsForListingPaginated(this.queries, (response) => {
 
             this.locations = response.locations;
-            
+
             if (this.locations.length > 0) {
                 for (let i = 0; i < this.locations.length; i++) {
                     this.locations[i]['enc_location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
@@ -335,7 +359,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                     changeDone = true;
                 }
                 break;
-            
+
             default:
                 if(this.pagination.prevPage != parseInt(type)){
                     this.pagination.currentPage = parseInt(type);
@@ -352,7 +376,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
             this.queries.offset = offset;
             this.showPlansLoader = true;
-            this.getLocationsForListing((response:any) => { 
+            this.getLocationsForListing((response:any) => {
                 this.locations = response.locations;
                 for(let loc of this.locations){
                     loc['fetchingCompliance'] = true;

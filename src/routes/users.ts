@@ -960,7 +960,7 @@ export class UsersRoute extends BaseRoute {
             }
 
             for(let loc of locationsData){
-                loc.name = (loc.name.trim().length == 0) ? loc.formatted_address : loc.name;
+                loc.name = ((loc.name != null) && loc.name.trim().length == 0) ? loc.formatted_address : loc.name;
             }
 
             for(let user of response.data['users']){
