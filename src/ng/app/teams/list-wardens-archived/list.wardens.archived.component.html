@@ -72,7 +72,7 @@
 					<td>
 						<!-- <p class="checkbox">
 							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)">
-							<label for="location-{{i}}" > 
+							<label for="location-{{i}}" >
 								{{warden['parent_name']}} - {{warden['name']}}
 							</label>
 						</p> -->
@@ -89,7 +89,7 @@
 						</p>
 					</td>
 					<td>
-						<div class="image-container lighten-3" [ngClass]="warden.bg_class">
+						<div class="image-container lighten-3" [ngClass]="warden.bg_class" *ngIf="warden.profile_pic.length > 0">
 							<div class="image">
 								<img *ngIf="warden.profile_pic.length > 0" [src]="warden.profile_pic"  >
 							</div>
@@ -105,7 +105,7 @@
 							<!-- <div class="image"></div> -->
 							<div *ngIf="warden.mobility_impaired == 1" class="impaired"></div>
 							<span *ngFor="let role of warden.roles; let ri = index;" class="name">
-								{{role.role_name}}<i *ngIf=" warden.roles.length - 1 != ri ">,</i> 
+								{{role.role_name}}<i *ngIf=" warden.roles.length - 1 != ri ">,</i>
 							</span>
 						</div>
 					</td>
@@ -177,7 +177,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want to archive 
+			Are you sure you want to archive
 			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
 		</p>
 	</div>
@@ -306,7 +306,7 @@
 
     <div class="modal-content">
         <h5>Confirm action</h5>
-        
+
         <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
     </div>
 

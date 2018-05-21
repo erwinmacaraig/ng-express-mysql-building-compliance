@@ -94,7 +94,7 @@
 						</p>
 					</td>
 					<td>
-						<div class="image-container lighten-3" [ngClass]="list.bg_class">
+						<div class="image-container lighten-3" [ngClass]="list.bg_class" *ngIf="list.profile_pic.trim().length > 0">
 							<div class="image">
 								<img *ngIf="list.profile_pic.trim().length > 0" [src]="list.profile_pic.trim()"  >
 							</div>
@@ -233,7 +233,7 @@
 </div>
 
 <div id="modalSelectMultipleLocations" class="modal">
-    
+
     <form #formMultiple="ngForm" (submit)="submitSelectFromMultipleLocations(formMultiple)">
         <div class="modal-content">
             <h5>Multiple locations</h5>
@@ -344,7 +344,7 @@
 
     <div class="modal-content" [hidden]="showModalLoader">
         <h5>Confirm action</h5>
-        
+
         <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
     </div>
 
@@ -390,7 +390,7 @@
         <div *ngIf="sendInviteToAllNonCompliant && !sendInviteToAll">
             <h6>Send training invitation to all non-compliant?</h6>
         </div>
-        
+
     </div>
 
     <div class="modal-footer" [hidden]="showModalLoader">

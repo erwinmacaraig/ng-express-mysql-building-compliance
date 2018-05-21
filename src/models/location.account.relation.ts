@@ -57,17 +57,18 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
-    public getByAccountIdAndLocationId(accountId, locationId) {
+    public getByAccountIdAndLocationId(accountId, locationId): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM location_account_relation WHERE account_id = ? AND location_id = ? ORDER BY location_account_relation_id DESC';
+            const sql_load = `SELECT * FROM location_account_relation WHERE account_id = ?
+            AND location_id = ? ORDER BY location_account_relation_id DESC`;
             const param = [accountId, locationId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
               if (error) {
-                return console.log(error);
+                console.log('location.account.relation.getByAccountIdAndLocationId', error);
+                throw Error('Internal Server Error');
               }
-              this.dbData = results;
-              resolve(this.dbData);
+              resolve(results);
             });
             connection.end();
         });
@@ -284,7 +285,6 @@ export class LocationAccountRelation extends BaseClass {
             }else if(filter['sort'] == 'name-desc'){
                 orderBy = ' ORDER BY name DESC ';
             }
-
         }
 
         let selectParentName = ('no_parent_name' in filter) ? 'locations.name,' : `IF (parent_locations.name IS NULL, locations.name, IF (CHAR_LENGTH(parent_locations.name) = 0,  locations.name, CONCAT(parent_locations.name, ', ', locations.name))) as name,`;
@@ -318,7 +318,6 @@ export class LocationAccountRelation extends BaseClass {
         if ('responsibility' in filter && filter['responsibility'] === defs['Tenant']) {
             sql_get_locations += ` ${offsetLimit}`;
         }
-
         if('count' in filter && filter['responsibility'] === defs['Tenant']){
             sql_get_locations = `
               SELECT
@@ -345,7 +344,6 @@ export class LocationAccountRelation extends BaseClass {
                 console.log('location.account.relation.listAllLocationsOnAccount', error, sql_get_locations);
                 throw Error('Cannot get all locations for this account');
             }
-
             if (filter['responsibility'] === defs['Manager']) {
                 const locationReferencesArr = [];
                 const building_locations = [];
@@ -353,7 +351,7 @@ export class LocationAccountRelation extends BaseClass {
                 const originIds = [];
                 let originIdStr = '';
                 for (const loc of results) {
-                    if(loc.is_building == 1){
+                    if(loc.is_building == 1 || loc.parent_id == -1){
                         building_locations.push(loc);
                     }
                     originIds.push(loc['location_id']);

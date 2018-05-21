@@ -43,7 +43,7 @@
 							Siblings
 						</div>
 						<div class="content">
-                            <h6 class="center" *ngIf="parentData.sublocations.length == 0">No Siblings</h6>
+              <h6 class="center" *ngIf="parentData.sublocations.length == 0">No Siblings</h6>
 							<ul class="sub-list" *ngIf="parentData.sublocations.length > 0">
 								<li *ngFor="let location of parentData.sublocations"
 								[ngClass]="{active : encryptDecrypt.decrypt(location.location_id) == locationID}">
@@ -64,15 +64,15 @@
 						<div class="inline-block image-wrapper">
 							<div class="image-container">
 								<div class="image">
-									<img src="assets/images/locations/default_profile_location.png" alt="" *ngIf="!locationData.google_photo_url">
-									<img src="{{locationData.google_photo_url}}" alt="" *ngIf="locationData.google_photo_url">
+									<img src="assets/images/locations/default_profile_location.png" alt="" *ngIf="locationData.google_photo_url != null && !locationData.google_photo_url">
+									<img src="{{locationData.google_photo_url}}" alt="" *ngIf="locationData.google_photo_url != null && locationData.google_photo_url">
 								</div>
 							</div>
 						</div>
 						<div class="inline-block details">
 							<table class="no-borders">
 								<tr>
-									<td><h5> <span *ngIf="parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}} </h5></td>
+									<td><h5> <span *ngIf="parentData.name != null && parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}} </h5></td>
 								</tr>
 								<tr>
 									<td>{{locationData.formatted_address}}</td>
@@ -229,7 +229,7 @@
 	<div class="modal-content" *ngIf="!showModalNewTenantLoader">
 
 		<h5>Add New Tenant </h5>
-		<h6><span *ngIf="parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}}</h6>
+		<h6><span *ngIf="parentData.name != null && parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}}</h6>
 
 		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)">
 
