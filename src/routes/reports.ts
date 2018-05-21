@@ -357,6 +357,8 @@ export class ReportsRoute extends BaseRoute {
           config['searchKey'] = req.body.searchKey;
         }
 
+        config['account_id'] = req.user.account_id;
+
         if (location_id == 0 || getAll) {
 
             let accountModel = new Account();

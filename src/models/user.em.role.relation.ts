@@ -322,7 +322,10 @@ export class UserEmRoleRelation extends BaseClass {
         return new Promise((resolve, reject) => {
           let configFilter = '';
           if ('searchKey' in config && config['searchKey'].length > 0) {
-            configFilter += `AND CONCAT(u.first_name, ' ', u.last_name) LIKE "%${config['searchKey']}%"`;
+            configFilter += `AND CONCAT(u.first_name, ' ', u.last_name) LIKE "%${config['searchKey']}%" `;
+          }
+          if('account_id' in config){
+              configFilter += ` AND u.account_id = ${config['account_id']} `;
           }
             const sql_load = `
                 SELECT

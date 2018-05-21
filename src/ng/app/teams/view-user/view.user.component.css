@@ -272,6 +272,34 @@ a.btn{
     line-height: 45px;
 }
 
+.modal.modal-sublocations .search-container{
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 10px;
+    width: 100% !important;
+}
+
+.modal.modal-sublocations .search-container .input-container{
+    display: inline-block;
+    vertical-align: middle;
+    width: 94%;
+}
+
+.modal.modal-sublocations .search-container .input-container input{
+    margin-bottom: 0px;
+    border-bottom: 0px !important;
+}
+
+.modal.modal-sublocations .search-container .input-container input:focus{
+    border-bottom: 0px !important;
+    box-shadow: none !important;
+}
+
+.modal.modal-sublocations .search-container .icon-container{
+    display: inline-block;
+    vertical-align: middle;
+}
+
 #modalMobility .btn{
     font-size: 15px !important;
     line-height: 43px;
@@ -284,6 +312,11 @@ a.btn{
 
 #modalLocations{
     width: 70%;
+}
+
+#modalAssignLocations{
+    width: 50%;
+    overflow-y: hidden;
 }
 
 #modalLocations table{
@@ -337,6 +370,10 @@ a.btn{
     #modalArchiveBulk{
         width: 50%;
     }
+
+    #modalAssignLocations{
+        width: 80%;
+    }
 }
 
 @media only screen and (max-width: 1024px) {
@@ -348,14 +385,17 @@ a.btn{
         width : 90%;
     }
 
-    #modalLocations{
+    #modalLocations,
+    #modalAssignLocations{
         width: 95%;
     }
 }
 
 @media only screen and (max-width: 500px) {
-    #modalMobility{
-        width: 90%;
+    #modalMobility,
+    #modalAssignLocations,
+    #modalAssignLocations{
+        width: 95%;
     }
 }
 

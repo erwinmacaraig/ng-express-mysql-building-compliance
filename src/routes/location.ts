@@ -1297,7 +1297,7 @@ const defs = require('../config/defs.json');
                 locsIds.push(loc.location_id);
             }
 
-            wardens = <any> await emRolesModel.getWardensInLocationIds(locsIds.join(','));
+            wardens = <any> await emRolesModel.getWardensInLocationIds(locsIds.join(','), 0, req.user.account_id);
 
             loc['num_wardens'] = wardens.length;
             loc['wardens'] = wardens;
