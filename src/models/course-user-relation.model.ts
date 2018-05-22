@@ -315,16 +315,17 @@ export class CourseUserRelation extends BaseClass {
    */
   public getNumberOfAssignedCourses(user = [], disabled?) {
     return new Promise((resolve, reject) => {
-      const user_course_total = {};
+      const user_course_total: {[key: number]: {}} = {};
       let userIdString;
       if (disabled === undefined) {
         disabled = 0;
       }
+
       if (!user.length) {
         reject({});
       } else {
         userIdString = user.join(',');
-        const sql_get = `SELECT user_id, course_user_relation_id
+        const sql_get = `SELECT user_id, course_user_relation_id, training_requirement_id
         FROM
           course_user_relation
         INNER JOIN
@@ -335,7 +336,6 @@ export class CourseUserRelation extends BaseClass {
           course_user_relation.user_id IN (${userIdString}) AND course_user_relation.disabled = ?
         ORDER BY
           user_id`;
-
       const connection = db.createConnection(dbconfig);
       connection.query(sql_get, [disabled], (error, results, fields) => {
         if (error) {
@@ -348,12 +348,18 @@ export class CourseUserRelation extends BaseClass {
           for (let i = 0; i < results.length; i++) {
             if (results[i]['user_id'] in user_course_total) {
               user_course_total[results[i]['user_id']]['count'] = user_course_total[results[i]['user_id']]['count'] + 1;
+              if (user_course_total[results[i]['user_id']]['trids']
+                .indexOf(results[i]['training_requirement_id']) === -1 ) {
+                  user_course_total[results[i]['user_id']]['trids'].push((results[i]['training_requirement_id']));
+                }
             } else {
               user_course_total[results[i]['user_id']] = {
-                'count': 1
+                'count': 1,
+                'trids': [results[i]['training_requirement_id']]
               };
             }
           }
+
           resolve(user_course_total);
         }
       });
