@@ -338,6 +338,8 @@ export class LocationAccountRelation extends BaseClass {
                 ${filterStr}
               ${orderBy};`;
         }
+
+        console.log(sql_get_locations);
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_locations, [accountId], (error, results) => {
             if (error) {

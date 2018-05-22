@@ -1,6 +1,7 @@
 <div class="row">
 	<div class="col m12">
-		<h5 class="text left">Location List</h5>
+        <h5 class="text left" *ngIf="!paramArchived">Location List</h5>
+		<h5 class="text left" *ngIf="paramArchived">Location Archived List</h5>
 
 		<div class="right table-align">
 			<!-- <h5 class="medium-text">Show only not compliant</h5>
@@ -12,10 +13,14 @@
 				<div class="background"></div>
 			</div>-->
 
-			<a href="#" class="archived" [routerLink]="['/location/archived/list']">
+			<a href="#" class="archived" *ngIf="!paramArchived" [routerLink]="['/location/list']" [queryParams]="{ archived : true }">
 				<span class="image"></span>
 				View Archive
 			</a>
+            <a href="#" class="archived" *ngIf="paramArchived" [routerLink]="['/location/list']">
+                <span class="image"></span>
+                View Active
+            </a>
 		</div>
 
 		<div style="clear: both;"></div>
