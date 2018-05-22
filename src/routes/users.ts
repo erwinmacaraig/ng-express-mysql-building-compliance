@@ -157,8 +157,8 @@ export class UsersRoute extends BaseRoute {
             new  UsersRoute().setProfile(req, res);
         });
 
-        router.post('/users/location-role-assignment', new MiddlewareAuth().authenticate, (req: Request, res: Response) => {
-            new  UsersRoute().locationRoleAssignments(req, res);
+        router.post('/users/location-role-assignment', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+            new  UsersRoute().locationRoleAssignments(req, res, next);
         });
 
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -781,7 +781,10 @@ export class UsersRoute extends BaseRoute {
         archived : 0,
         queryRoles = [],
         userIds = [0],
+        userIdObj = [],
         emRolesDef = defs.em_roles;
+
+        const training_requirements = await new TrainingCertification().getRequiredTrainings();
 
         modelQueries.select['users'] = ['first_name', 'last_name', 'account_id', 'user_id', 'user_name', 'email', 'mobile_number', 'phone_number', 'mobility_impaired', 'last_login', 'archived'];
 
@@ -875,7 +878,6 @@ export class UsersRoute extends BaseRoute {
 
         for(let user of response.data['users']){
             userIds.push(user.user_id);
-
             let lastLoginMoment = moment(user.last_login);
             if(lastLoginMoment.isValid()){
                 user.last_login = lastLoginMoment.format('DD/MM/YYYY hh:mma');
@@ -1010,6 +1012,7 @@ export class UsersRoute extends BaseRoute {
 
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
+                if('trids' in user == false){ user['trids'] = []; }
                 if('locations' in user == false){ user['locations'] = []; }
 
                 let usersRolesIds = [];
@@ -1025,32 +1028,37 @@ export class UsersRoute extends BaseRoute {
                 }
 
                 for(let em of usersEmRoles){
-                    let role = { role_name : '', role_id : 0 };
+                    let role = { role_name : '', role_id : 0 , trids: []};
 
                     if(queryRoles.indexOf('users') > -1 && em.user_id == user.user_id && usersRolesIds.indexOf(em.em_role_id) == -1){
                         role.role_name = em.role_name;
                         role.role_id = em.em_role_id;
                         user['roles'].push(role);
                         usersRolesIds.push(em.em_role_id);
+                        if (em.em_role_id in training_requirements) {
+                          role.trids = role.trids.concat(training_requirements[em.em_role_id]['training_requirement_id']);
+                          user['trids'] = user['trids'].concat(training_requirements[em.em_role_id]['training_requirement_id']);
+                        }
                     }
                 }
 
             }
         }
-
+        // console.log(response.data['users']);
         if(query.user_training){
 
             let user_course_total,
                 user_training_total,
                 training = new TrainingCertification(),
                 userCourseRel = new CourseUserRelation();
-
+            /*
             try {
                 user_course_total = await userCourseRel.getNumberOfAssignedCourses(userIds);
 
             } catch (e) {
                 user_course_total = {};
             }
+
             try {
                 user_training_total = await training.getNumberOfTrainings(userIds, {
                   'pass': 1,
@@ -1059,19 +1067,51 @@ export class UsersRoute extends BaseRoute {
             } catch(e) {
                 user_training_total = {};
             }
+            */
+          for(let user of response.data['users']) {
+              try {
+              user_training_total = await training.getNumberOfTrainings([user.user_id], {
+                'pass': 1,
+                'current': 1,
+                'training_requirement': user['trids']
+              });
+              user['trainings'] = user_training_total[user.user_id]['count'];
 
+            } catch(e) {
+              user_training_total = {};
+              user['trainings'] = 0;
+            }
+            try {
+              user_course_total = await userCourseRel.getNumberOfAssignedCourses([user.user_id]);
+              // console.log('1086', user_course_total);
+              user['assigned_courses'] = user_course_total[user.user_id]['count'];
+              user['assigned_courses_tr'] = user_course_total[user.user_id]['trids'];
+              user['misc_trainings'] = user['trids'].filter(x => !user['assigned_courses_tr'].includes(x))
+              .concat(user['assigned_courses_tr'].filter(x => !user['trids'].includes(x)));
+            } catch (e) {
+                console.log(e);
+                user_course_total = {};
+                user['assigned_courses'] = 0;
+                user['assigned_courses_tr'] = [];
+                user['misc_trainings'] = [];
+            }
+          }
+          /*
             for(let user of response.data['users']){
                 if (user.user_id in user_course_total) {
                     user['assigned_courses'] = user_course_total[user.user_id]['count'];
                 } else {
                     user['assigned_courses'] = 0;
                 }
+
                 if (user.user_id in user_training_total) {
                     user['trainings'] = user_training_total[user.user_id]['count'];
                 } else {
                     user['trainings'] = 0;
                 }
+
             }
+            */
         }
 
         if(query.impaired && queryRoles.indexOf('users') > -1){
@@ -1355,25 +1395,31 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async getUserLocationsTrainingsEcoRoles(req: Request, res: Response, next: NextFunction){
-    const user_em_roles = [];
-    let training_requirement_ids = [];
-    let training_requirement_ids_obj;
-    let required_missing_trainings;
+	public async getUserLocationsTrainingsEcoRoles(req: Request, res: Response, next: NextFunction, toReturn?, userIdParam?){
+        const user_em_roles = [];
+        let training_requirement_ids = [];
+        let training_requirement_ids_obj;
+        let required_missing_trainings;
 		let response = {
 			status : false,
 			data : {
-				user : {},
-        locations : {},
-        valid_trainings: [],
+				user : {
+                    profilePic : '',
+                    badge_class : '',
+                    last_login : '',
+                    first_name : '',
+                    last_name : ''
+                },
+                locations : {},
+                valid_trainings: [],
 				trainings : <any>[],
 				certificates : <any>[],
-        eco_roles : <any>[],
-        required_trainings: []
+                eco_roles : <any>[],
+                required_trainings: []
 			},
 			message : ''
 		},
-		userId = req.params['user_id'],
+		userId = (userIdParam) ? userIdParam : req.params['user_id'],
 		userModel = new User(userId),
 		locationAccountUserModel = new LocationAccountUser(),
 		fileModel = new Files(),
@@ -1381,7 +1427,8 @@ export class UsersRoute extends BaseRoute {
 		emRolesModel = new UserEmRoleRelation(),
 		emRoles = await emRolesModel.getEmRoles(),
 		mobilityModel = new MobilityImpairedModel(),
-        userRoleModel = new UserRoleRelation();
+        userRoleModel = new UserRoleRelation(),
+        locAccUserModel = new LocationAccountUser();
 
 		response.data.eco_roles = emRoles;
         const training_requirements = await new TrainingCertification().getRequiredTrainings();
@@ -1477,14 +1524,42 @@ export class UsersRoute extends BaseRoute {
                         }
                     }
 
-
-
-
                 }catch(er){}
+
+
+                let isFRP = false,
+                    isTRP = false;
+                try{
+                    let frptrpRoles = <any> await userRoleModel.getByUserId(user['user_id']);
+                    for(let ftrole of frptrpRoles){
+                        if(ftrole.role_id == 1){
+                            isFRP = true;
+                        }
+                        if(ftrole.role_id == 2){
+                            isTRP = true;
+                        }
+                    }
+                }catch(e){}
+
+                try{
+                    let frptrpLocations = <any> await locAccUserModel.getLocationsByUserIds([user['user_id']]);
+                    for(let frptrp of frptrpLocations){
+                        frptrp['em_role_id'] = 0;
+                        frptrp['role_name'] = '';
+                        if(isFRP && frptrp.is_building){
+                            frptrp['role_id'] = 1;
+                            frptrp['role_name'] = 'Building Manager';
+                        }else if(isTRP){
+                            frptrp['role_id'] = 2;
+                            frptrp['role_name'] = 'Tenancy Responsible Personnel';
+                        }
+                        locations.push(frptrp);
+                    }
+                }catch(e){}
             }
 
             response.data.locations = locations;
-			response.data.user = user;
+			response.data.user = <any> user;
 			response.status = true;
 		}catch(e){
             response.status = false;
@@ -1521,7 +1596,11 @@ export class UsersRoute extends BaseRoute {
         }
 
         res.statusCode = 200;
-        res.send(response);
+        if(toReturn){
+            return response;
+        }else{
+            res.send(response);
+        }
     }
 
 	public async setLocationAccountUserToArchive(req: Request, res: Response, next: NextFunction){
@@ -2877,11 +2956,11 @@ export class UsersRoute extends BaseRoute {
         return canLoginTenantArr;
 	}
 
-    public async locationRoleAssignments(req:AuthRequest, res:Response){
+    public async locationRoleAssignments(req:AuthRequest, res:Response, next: NextFunction){
 
         let
         response = {
-            status : false, message : '', data : []
+            status : false, message : '', data : {}
         },
         userId = req.body.user_id,
         assignments = JSON.parse(req.body.assignments),
@@ -3019,42 +3098,11 @@ export class UsersRoute extends BaseRoute {
 
             }
 
-            let locations = <any>[],
-                locationAccountUserModel = new LocationAccountUser(),
-                usersFrpTrpRole = <any> await userRoleModel.getManyByUserIds(userId),
-                locationsOfAccountUser = <any> await locationAccountUserModel.getLocationsByUserIdAndAccountId(userId, user['account_id']),
-                isFRP = false,
-                isTRP = false;
-
-            locations = await userModel.getAllMyEMLocations();
-
-            for(let frptrp of usersFrpTrpRole){
-                if(frptrp.role_id == 1){
-                    isFRP = true;
-                }else if(frptrp.role_id == 2){
-                    isTRP = true;
-                }
-            }
-
-            for(let loc of locationsOfAccountUser){
-                if(isFRP){
-                    loc['role_id'] = 1;
-                    loc['role_name'] = 'Building Manager';
-                }else if(isTRP){
-                    loc['role_id'] = 2;
-                    loc['role_name'] = 'Tenancy Responsible Personnel';
-                }
-           }
-
-           // locations = locations.concat(locationsOfAccountUser);
-
-           response.data = locations;
-           response['usersFrpTrpRole'] = usersFrpTrpRole;
-
         }catch(e){
             response.message = 'No user found';
         }
 
+        response = <any> await this.getUserLocationsTrainingsEcoRoles(req, res, next, true, userId);
 
         res.send(response);
 

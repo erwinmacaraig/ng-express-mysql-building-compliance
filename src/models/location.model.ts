@@ -105,7 +105,7 @@ export class Location extends BaseClass {
             if(limit && !count){
                 sql_load += ' LIMIT '+limit;
             }
-
+            
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
 				if (error) {

@@ -11,6 +11,8 @@ import { UserService } from '../../services/users';
 import { CourseService } from '../../services/course';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as enLocale from 'date-fns/locale/en';
+import { AdminService } from './../../services/admin.service';
+import { Observable } from 'rxjs/Rx';
 
 declare var $: any;
 declare var Materialize: any;
@@ -19,13 +21,14 @@ declare var moment: any;
   selector: 'app-view-user-component',
   templateUrl: './view.user.component.html',
   styleUrls: ['./view.user.component.css'],
-  providers: [DashboardPreloaderService, EncryptDecryptService, UserService, CourseService]
+  providers: [DashboardPreloaderService, EncryptDecryptService, UserService, CourseService, AdminService]
 })
 export class ViewUserComponent implements OnInit, OnDestroy {
 	@ViewChild('formMobility') formMobility : NgForm;
 	@ViewChild("durationDate") durationDate: ElementRef;
 	@ViewChild("formProfile") formProfile: NgForm;
 	@ViewChild("formCredential") formCredential : NgForm;
+    @ViewChild('modalSearchLocation') modalSearchLocation: ElementRef;
 	userData = {};
 	encryptedID = '';
 	decryptedID = '';
@@ -67,7 +70,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 	selectedPeep = {};
 
-	selectedLocationData = {};
+    selectedLocationData = {};
 	showSelectLocation = false;
 
 	showModalProdfileLoader = false;
@@ -77,8 +80,17 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 	locations = [];
 	locationsBackup = [];
+    locationsCopy = [];
 
 	toEditLocations = [];
+
+    buildings = [];
+    levels = [];
+    isImFRP = false;
+    isImTRP = false;
+    searchModalLocationSubs;
+
+    formLocValid = false;
 
 	constructor(
 		private auth: AuthService,
@@ -89,12 +101,22 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         private router: Router,
         private courseService : CourseService,
         private userService: UserService,
-        private elemRef: ElementRef
+        private elemRef: ElementRef,
+        private adminService: AdminService
 		){
 
 		this.userData = this.auth.getUserData();
 		this.datepickerModel = new Date();
     	this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+
+        for(let role of this.userData['roles']){
+            if(role.role_id == 1){
+                this.isImFRP = true;
+            }
+            if(role.role_id == 2){
+                this.isImTRP = true;
+            }
+        }
 
 		this.route.params.subscribe((params) => {
 			this.encryptedID = params['encrypted'];
@@ -144,27 +166,31 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         return responseCode;
     }
 
+    setLoadedProfile(response){
+        this.viewData.user = response.data.user;
+        this.viewData.role_text = response.data.role_text;
+        this.viewData.eco_roles = response.data.eco_roles;
+        this.viewData.locations = response.data.locations;
+        this.viewData.trainings = response.data.trainings;
+        this.viewData.certificates = response.data.certificates;
+        this.viewData.valid_trainings = response.data.valid_trainings;
+        this.viewData.required_trainings = response.data.required_trainings;
+
+        for(let x in this.viewData.certificates){
+            this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
+        }
+
+        this.toEditLocations = JSON.parse( JSON.stringify(response.data.locations) );
+
+
+        if(this.viewData.user.last_login.length > 0 ){
+            this.viewData.user['last_login'] = moment(this.viewData.user['last_login']).format('MMM. DD, YYYY hh:mm A');
+        }
+    }
+
 	loadProfile(callBack?){
 		this.userService.getUserLocationTrainingsEcoRoles(this.decryptedID, (response) => {
-			this.viewData.user = response.data.user;
-			this.viewData.role_text = response.data.role_text;
-			this.viewData.eco_roles = response.data.eco_roles;
-			this.viewData.locations = response.data.locations;
-			this.viewData.trainings = response.data.trainings;
-      this.viewData.certificates = response.data.certificates;
-      this.viewData.valid_trainings = response.data.valid_trainings;
-      this.viewData.required_trainings = response.data.required_trainings;
-
-			for(let x in this.viewData.certificates){
-				this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
-			}
-
-			this.toEditLocations = JSON.parse( JSON.stringify(response.data.locations) );
-
-
-			if(this.viewData.user.last_login.length > 0 ){
-				this.viewData.user['last_login'] = moment(this.viewData.user['last_login']).format('MMM. DD, YYYY hh:mm A');
-			}
+			this.setLoadedProfile(response);
 
 			this.preloaderService.hide();
 
@@ -179,7 +205,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
-
+        this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {
+            this.buildings = response.data.buildings;
+            this.levels = response.data.levels;
+        });
 	}
 
 	ngAfterViewInit(){
@@ -204,10 +233,11 @@ export class ViewUserComponent implements OnInit, OnDestroy {
                 $('#durationDate').prop('disabled', false);
             }
 
-            $('#modalMobility select[name="is_permanent"]').material_select('update');
+            $('#modalMobility select[name="is_permanent"]').material_select();
         });
 
         this.selectLocationEvent();
+        this.onKeyUpSearchModalLocationEvent();
 
 		setTimeout(() => {
             $('#selectLocation').trigger('change');
@@ -365,7 +395,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     			}, 200);
     		}
 
-    		selectAction.val('0').material_select('update');
+    		selectAction.val('0').material_select();
 
     	});
     }
@@ -458,8 +488,92 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     }
 
     onChangeSelectRole(location, roleId){
-    	location.role_id = roleId;
-        let rolesForMains = [1,11,15,16,17];
+        this.selectedLocationData = location;
+
+    	let rolesForBuildingsOnly = [1,11,15,16,18];
+
+        if( rolesForBuildingsOnly.indexOf( parseInt(roleId) ) > -1 ){
+            this.locations = this.buildings;
+        }else{
+            this.locations = this.levels;
+        }
+
+        this.locationsCopy = JSON.parse( JSON.stringify(this.locations) );
+
+        location.role_id = roleId;
+        
+        if(
+            (this.selectedLocationData['is_building'] == 1 && rolesForBuildingsOnly.indexOf( parseInt(roleId) ) == -1) ||
+            (this.selectedLocationData['is_building'] == 0 && rolesForBuildingsOnly.indexOf( parseInt(roleId) ) > -1)
+            ){
+            this.selectedLocationData['location_id'] = 0;
+        }
+
+        this.buildLocationsListInModal();
+    }
+
+    buildLocationsListInModal(){
+        const ulModal = $('#modalAssignLocations ul.locations');
+        ulModal.html('');
+        $('body').off('click.radio').on('click.radio', 'input[type="radio"][name="selectLocation"]', () => {
+            $('#modalAssignLocations')[0].scrollTop = 0;
+            this.formLocValid = true;
+        });
+
+        console.log( this.selectedLocationData );
+
+        let maxDisplay = 25,
+            count = 1;
+
+        if (parseInt(this.selectedLocationData['role_id'], 10) === 1 ||
+            parseInt(this.selectedLocationData['role_id'], 10) === 11 ||
+            parseInt(this.selectedLocationData['role_id'], 10) === 15 ||
+            parseInt(this.selectedLocationData['role_id'], 10) === 16 ||
+            parseInt(this.selectedLocationData['role_id'], 10) === 18
+           ) {
+          for (let loc of this.locations) {
+            if (count <= maxDisplay) {
+                let $li = $(`
+                    <li class="list-division" id="${loc.location_id}">
+                        <div class="name-radio-plus">
+                            <div class="input">
+                                <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
+                                <label for="check-${loc.location_id}">${loc.name}</label>
+                                <span hidden class="parent-id">${loc.parent_id}</span>
+                            </div>
+                        </div>
+                    </li>`);
+
+                ulModal.append($li);
+                count++;
+            }
+          }
+        } else {
+          for (const loc of this.locations) {
+            if (count <= maxDisplay) {
+              const $lh = $(`<lh lh-id="${loc['parent_location_id']}"><h6>${loc['parent_location_name']}</h6></lh>`);
+              ulModal.append($lh);
+              if ('sublocations' in loc) {
+                for (const subloc of loc.sublocations) {
+                  const $li = $(`
+                      <li class="list-division" id="${subloc.id}">
+                          <div class="name-radio-plus">
+                              <div class="input">
+                                  <input required type="radio"
+                                  name="selectLocation"
+                                  value="${subloc.id}" id="check-${subloc.id}" lh-target="${loc['parent_location_id']}">
+                                  <label for="check-${subloc.id}">${subloc.name}</label>
+                                  <span hidden class="parent-id">${loc.parent_location_id}</span>
+                              </div>
+                          </div>
+                      </li>`);
+                  ulModal.append($li);
+                }
+              }
+              count++;
+            }
+          }
+        }
     }
 
     onChangeDropDown(event){
@@ -471,38 +585,44 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     }
 
     clickSelectLocation(loc){
-
-    	if(loc.role_id == 1 ){
-    		let filterLocs = [];
-    		for(let i in this.locationsBackup){
-    			if( this.locationsBackup[i]['parent_id'] == -1 ){
-    				let dLoc = JSON.parse( JSON.stringify(this.locationsBackup[i]) );
-    				dLoc.sublocations = [];
-    				filterLocs.push( dLoc  );
-    			}
-    		}
-
-    		this.locations = filterLocs;
-    	}else{
-    		this.locations = this.locationsBackup;
-    	}
-
     	this.selectedLocationData = loc;
+
+        this.onChangeSelectRole(loc, loc.role_id);
+        this.buildLocationsListInModal();
     	this.showSelectLocation = true;
+        
     }
 
     submitSelectLocationModal(formLoc, event){
-    	if(formLoc.valid){
-    		let locId = formLoc.value.selectLocation;
-    		this.selectedLocationData['location_id'] = locId;
+        event.preventDefault();
+        let locationFound = false;
+        if(this.formLocValid){
+            let
+            radio = $(formLoc).find('input[type="radio"]:checked'),
+            lhTarget = radio.attr('lh-target'),
+            selectedLocationId = radio.val(),
+            locationName = radio.parent().find('label').text(),
+            parentId = radio.parent().find('span.parent-id').text();
 
+            if(lhTarget){
+                let parentName = $('lh[lh-id="'+lhTarget+'"]').text();
+                locationName = parentName + ', '+locationName;
+                parentId = lhTarget;
+            }
 
-    		this.showSelectLocation = false;
-    	}
+            this.selectedLocationData['location_id'] = selectedLocationId;
+            this.selectedLocationData['parent_id'] = parentId;
+            this.selectedLocationData['name'] = locationName;
+
+            console.log(this.selectedLocationData);
+            console.log(this.toEditLocations);
+            this.cancelLocationModal();
+        }
     }
 
     cancelLocationModal(){
     	this.showSelectLocation = false;
+        this.modalSearchLocation.nativeElement.value = "";
     }
 
     saveLocationAssignments(event){
@@ -530,10 +650,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
                 $('#modalAssignLocations a').attr('disabled', false);
 
                 if(response.status){
-                    this.viewData.locations = response.data;
+                    this.setLoadedProfile(response);
                     setTimeout(() => {
                         $('#modalAssignLocations').modal('close');
-                        $('#selectLocation').material_select('update');
+                        $('#selectLocation').material_select();
                         setTimeout(() => {
                             $('#selectLocation').trigger('change');
                         },300);
@@ -544,8 +664,55 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         }
     }
 
-    ngOnDestroy(){
+    onKeyUpSearchModalLocationEvent(){
+        this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
+            .debounceTime(500)
+            .subscribe((event) => {
+            
+            let value = event['target'].value,
+                result = [];
 
+            let findRelatedName;
+            this.formLocValid = false;
+
+            if (parseInt(this.selectedLocationData['role_id'], 10) === 1 ||
+                parseInt(this.selectedLocationData['role_id'], 10) === 11 ||
+                parseInt(this.selectedLocationData['role_id'], 10) === 15 ||
+                parseInt(this.selectedLocationData['role_id'], 10) === 16 ||
+                parseInt(this.selectedLocationData['role_id'], 10) === 18
+            ) {
+              findRelatedName = (data, mainParent?) => {
+                for(let i in data){
+                    if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+                        result.push(data[i]);
+                    }
+                }
+                return result;
+              };
+            } else {
+              findRelatedName = (data, mainParent?) => {
+                for(let i in data){
+                    if(data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                        result.push(data[i]);
+                    }
+                }
+                return result;
+              };
+            }
+
+            if(value.length > 0){
+                result = [];
+                findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
+                this.locations = result;
+            }else{
+                this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
+            }
+            this.buildLocationsListInModal();
+        });
+    }
+
+    ngOnDestroy(){
+        this.searchModalLocationSubs.unsubscribe();
     }
     emailThisCertificate(userId=0, certId=0) {
       this.userService.emailCertificate(userId, certId).subscribe(() => {
