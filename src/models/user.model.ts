@@ -465,14 +465,15 @@ export class User extends BaseClass {
             }
             const sql = `SELECT
               users.user_id,
+              user_em_roles_relation.user_em_roles_relation_id,
               user_em_roles_relation.em_role_id,
               user_em_roles_relation.em_role_id as role_id,
               em_roles.role_name,
               locations.location_id,
               locations.parent_id,
-              locations.name,
               locations.is_building,
-              lp.name as parent_name
+              lp.name as parent_name,
+              IF(lp.name IS NOT NULL, CONCAT( IF(TRIM(lp.name) <> '', CONCAT(lp.name, ', '), ''), locations.name), locations.name) as name
               FROM
               users
               INNER JOIN

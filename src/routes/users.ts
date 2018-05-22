@@ -157,8 +157,8 @@ export class UsersRoute extends BaseRoute {
             new  UsersRoute().setProfile(req, res);
         });
 
-        router.post('/users/location-role-assignment', new MiddlewareAuth().authenticate, (req: Request, res: Response) => {
-            new  UsersRoute().locationRoleAssignments(req, res);
+        router.post('/users/location-role-assignment', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+            new  UsersRoute().locationRoleAssignments(req, res, next);
         });
 
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -1355,25 +1355,31 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async getUserLocationsTrainingsEcoRoles(req: Request, res: Response, next: NextFunction){
-    const user_em_roles = [];
-    let training_requirement_ids = [];
-    let training_requirement_ids_obj;
-    let required_missing_trainings;
+	public async getUserLocationsTrainingsEcoRoles(req: Request, res: Response, next: NextFunction, toReturn?, userIdParam?){
+        const user_em_roles = [];
+        let training_requirement_ids = [];
+        let training_requirement_ids_obj;
+        let required_missing_trainings;
 		let response = {
 			status : false,
 			data : {
-				user : {},
-        locations : {},
-        valid_trainings: [],
+				user : {
+                    profilePic : '',
+                    badge_class : '',
+                    last_login : '',
+                    first_name : '',
+                    last_name : ''
+                },
+                locations : {},
+                valid_trainings: [],
 				trainings : <any>[],
 				certificates : <any>[],
-        eco_roles : <any>[],
-        required_trainings: []
+                eco_roles : <any>[],
+                required_trainings: []
 			},
 			message : ''
 		},
-		userId = req.params['user_id'],
+		userId = (userIdParam) ? userIdParam : req.params['user_id'],
 		userModel = new User(userId),
 		locationAccountUserModel = new LocationAccountUser(),
 		fileModel = new Files(),
@@ -1381,7 +1387,8 @@ export class UsersRoute extends BaseRoute {
 		emRolesModel = new UserEmRoleRelation(),
 		emRoles = await emRolesModel.getEmRoles(),
 		mobilityModel = new MobilityImpairedModel(),
-        userRoleModel = new UserRoleRelation();
+        userRoleModel = new UserRoleRelation(),
+        locAccUserModel = new LocationAccountUser();
 
 		response.data.eco_roles = emRoles;
         const training_requirements = await new TrainingCertification().getRequiredTrainings();
@@ -1477,14 +1484,42 @@ export class UsersRoute extends BaseRoute {
                         }
                     }
 
-
-
-
                 }catch(er){}
+
+
+                let isFRP = false,
+                    isTRP = false;
+                try{
+                    let frptrpRoles = <any> await userRoleModel.getByUserId(user['user_id']);
+                    for(let ftrole of frptrpRoles){
+                        if(ftrole.role_id == 1){
+                            isFRP = true;
+                        }
+                        if(ftrole.role_id == 2){
+                            isTRP = true;
+                        }
+                    }
+                }catch(e){}
+
+                try{
+                    let frptrpLocations = <any> await locAccUserModel.getLocationsByUserIds([user['user_id']]);
+                    for(let frptrp of frptrpLocations){
+                        frptrp['em_role_id'] = 0;
+                        frptrp['role_name'] = '';
+                        if(isFRP && frptrp.is_building){
+                            frptrp['role_id'] = 1;
+                            frptrp['role_name'] = 'Building Manager';
+                        }else if(isTRP){
+                            frptrp['role_id'] = 2;
+                            frptrp['role_name'] = 'Tenancy Responsible Personnel';
+                        }
+                        locations.push(frptrp);
+                    }
+                }catch(e){}
             }
 
             response.data.locations = locations;
-			response.data.user = user;
+			response.data.user = <any> user;
 			response.status = true;
 		}catch(e){
             response.status = false;
@@ -1521,7 +1556,11 @@ export class UsersRoute extends BaseRoute {
         }
 
         res.statusCode = 200;
-        res.send(response);
+        if(toReturn){
+            return response;
+        }else{
+            res.send(response);
+        }
     }
 
 	public async setLocationAccountUserToArchive(req: Request, res: Response, next: NextFunction){
@@ -2877,11 +2916,11 @@ export class UsersRoute extends BaseRoute {
         return canLoginTenantArr;
 	}
 
-    public async locationRoleAssignments(req:AuthRequest, res:Response){
+    public async locationRoleAssignments(req:AuthRequest, res:Response, next: NextFunction){
 
         let
         response = {
-            status : false, message : '', data : []
+            status : false, message : '', data : {}
         },
         userId = req.body.user_id,
         assignments = JSON.parse(req.body.assignments),
@@ -3019,42 +3058,11 @@ export class UsersRoute extends BaseRoute {
 
             }
 
-            let locations = <any>[],
-                locationAccountUserModel = new LocationAccountUser(),
-                usersFrpTrpRole = <any> await userRoleModel.getManyByUserIds(userId),
-                locationsOfAccountUser = <any> await locationAccountUserModel.getLocationsByUserIdAndAccountId(userId, user['account_id']),
-                isFRP = false,
-                isTRP = false;
-
-            locations = await userModel.getAllMyEMLocations();
-
-            for(let frptrp of usersFrpTrpRole){
-                if(frptrp.role_id == 1){
-                    isFRP = true;
-                }else if(frptrp.role_id == 2){
-                    isTRP = true;
-                }
-            }
-
-            for(let loc of locationsOfAccountUser){
-                if(isFRP){
-                    loc['role_id'] = 1;
-                    loc['role_name'] = 'Building Manager';
-                }else if(isTRP){
-                    loc['role_id'] = 2;
-                    loc['role_name'] = 'Tenancy Responsible Personnel';
-                }
-           }
-
-           // locations = locations.concat(locationsOfAccountUser);
-
-           response.data = locations;
-           response['usersFrpTrpRole'] = usersFrpTrpRole;
-
         }catch(e){
             response.message = 'No user found';
         }
 
+        response = <any> await this.getUserLocationsTrainingsEcoRoles(req, res, next, true, userId);
 
         res.send(response);
 

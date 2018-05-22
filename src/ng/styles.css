@@ -304,3 +304,7 @@ a:hover{
 span.day-unit.is-today {
     background: none !important;
 }
+
+app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
+    font-size: 14px !important;
+}
