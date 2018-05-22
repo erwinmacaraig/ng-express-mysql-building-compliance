@@ -108,7 +108,7 @@ export class EmailSender {
             }
         };
 
-        /*
+        /*grunt
         this.ses.sendRawEmail(params, function(err, data) {
             if(err) {
                 error(err);

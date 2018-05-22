@@ -1260,8 +1260,6 @@ const defs = require('../config/defs.json');
             }
         }
 
-        response['locationsFetched'] = JSON.parse(JSON.stringify(response.locations));
-
 
 
         const subLocsArr = [];

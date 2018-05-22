@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Output, EventEmitt
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router, ActivatedRoute, NavigationStart } from '@angular/router';
+import { Router, ActivatedRoute, NavigationStart, NavigationEnd } from '@angular/router';
 import { LocationsService } from '../../services/locations';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
@@ -139,7 +139,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
         }
 
         this.routerSubs = router.events.subscribe(event => {
-            if(event instanceof NavigationStart){
+            if(event instanceof NavigationEnd){
 
                 if(event.url.indexOf('archived=true') > -1){
                     this.paramArchived = true;
@@ -211,6 +211,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
             }
 
             this.preloaderService.hide();
+
+            $('.filter-container select').material_select();
 
             if (localStorage.getItem('showemailverification') !== null) {
               this.router.navigate(['/location', 'search']);
@@ -286,7 +288,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				val = target.val();
 
 			if(val == 'archive'){
-				$('select.bulk-manage').val("0").material_select("update");
+				$('select.bulk-manage').val("0").material_select();
 				if(this.arraySelectedLocs.length > 0){
 					$('#modalArchiveBulk').modal('open');
 				}
@@ -302,13 +304,13 @@ export class LocationListComponent implements OnInit, OnDestroy {
 			for(let i in this.arraySelectedLocs){
 				locs.push({
 					location_id : this.encryptDecrypt.decrypt(this.arraySelectedLocs[i]['location_id']),
-					archived : 1
+					archived : (!this.paramArchived) ? 1 : 0
 				});
 			}
 
 			this.arraySelectedLocs = [];
 
-			$('select.bulk-manage').val("0").material_select("update");
+			$('select.bulk-manage').val("0").material_select();
 			$('#allSelect').prop('checked', false);
 
 			this.locationService.archiveMultipleLocation({
@@ -329,7 +331,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 			locs.push({
 				location_id : this.encryptDecrypt.decrypt(this.selectedArchive['location_id']),
-				archived : 1
+				archived : (!this.paramArchived) ? 1 : 0
 			});
 
 			this.locationService.archiveMultipleLocation({

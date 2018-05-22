@@ -375,8 +375,6 @@ export class UserEmRoleRelation extends BaseClass {
                 sql_load += ` AND l.location_id IN (${locationIds}) `;
             }
 
-            console.log(sql_load);
-
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
