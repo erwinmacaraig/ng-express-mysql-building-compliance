@@ -1299,7 +1299,7 @@ const defs = require('../config/defs.json');
                 locsIds = JSON.parse(JSON.stringify(subLocationsObj[loc['location_id']]['ids'])),
                 emRolesModel = new UserEmRoleRelation(),
                 wardens = [];
-                locsIds.push(0);
+
             if(loc.parent_id > -1){
                 locsIds.push(loc.location_id);
             }

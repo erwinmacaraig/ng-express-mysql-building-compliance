@@ -348,7 +348,7 @@ export class ReportsRoute extends BaseRoute {
         }
 
         let allUserIds = [0],
-            allLocationIds = [0],
+            allLocationIds = [],
             allLocations = [],
             users = [];
 
