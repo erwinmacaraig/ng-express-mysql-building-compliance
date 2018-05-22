@@ -373,10 +373,10 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         this.formLocValid = false;
     }
 
-    submitSelectLocationModal(form, event){
+    submitSelectLocationModal(form, event) {
         event.preventDefault();
         let locationFound = false;
-        if(this.formLocValid){
+        if(this.formLocValid) {
             let
             selectedLocationId = $(form).find('input[type="radio"]:checked').val();
 
@@ -399,6 +399,9 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
                   for (const sublocs of loc['sublocations']) {
                     if (sublocs['id'] == selectedLocationId) {
                       this.selectedUser['location_name'] = `${loc['parent_location_name']}, ${sublocs['name']}`;
+                      if (/^[_-\s]$/.test(loc['parent_location_name'])) {
+                        this.selectedUser['location_name'] = `${sublocs['name']}`;
+                      }
                       locationFound = true;
                       break;
                     }
@@ -407,7 +410,14 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
               }
             }
 
-            console.log(this.addedUsers);
+            for (const u of this.addedUsers) {
+              if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(u['email'])) {
+                u.errors['invalid'] = `${u['email']} is invalid`;
+              }
+            }
+
+
+            // console.log(this.addedUsers);
             this.cancelLocationModal();
         }
     }
@@ -419,25 +429,24 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         // this.locations = this.locationsCopy;
     }
 
-    addBulkWarden() {
+    addBulkWarden(f) {
+      let allInputValid = true;
+      if (this.addedUsers.length > 0 && f.valid) {
+        for (const u of this.addedUsers) {
+          if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(u['email'])) {
+            u.errors['invalid'] = `${u['email']} is invalid`;
+            allInputValid = false;
+          }
+        }
+      }
+      if (allInputValid) {
         this.userService.createBulkUsers(this.addedUsers, (response) => {
-            this.addedUsers = response.data;
-            if(this.addedUsers.length == 0){
-                this.router.navigate(["/teams/list-wardens"]);
-            }
-        });
-
-        /*const strWardens = JSON.stringify(this.addedUsers);
-        this.dataProvider.addBulkWarden(strWardens).subscribe((data) => {
-          this.addedUsers = data;
-          if(Object.keys(this.addedUsers).length == 0){
-              // this.addMoreRow();
+          this.addedUsers = response.data;
+          if(this.addedUsers.length == 0){
               this.router.navigate(["/teams/list-wardens"]);
           }
-        },
-      (data) => {
-        console.log('there was an error');
-      });*/
+        });
+      }
     }
 
     selectCSVButtonClick(inputFileCSV) {
@@ -448,7 +457,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         this.bulkEmailInvite = (this.emailInviteForm.controls.inviteTxtArea.value).split(',');
         const validEmails = [];
         const email_regex =
-        /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
+        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i;
         for (let x = 0; x < this.bulkEmailInvite.length; x++) {
           if (email_regex.test(this.bulkEmailInvite[x].trim())) {
             validEmails.push(this.bulkEmailInvite[x].trim());
