@@ -341,7 +341,7 @@ export class UserEmRoleRelation extends BaseClass {
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
                 INNER JOIN locations l ON l.location_id = em.location_id
                 WHERE u.archived = ${archived} ${configFilter}`;
-            
+
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
@@ -374,9 +374,6 @@ export class UserEmRoleRelation extends BaseClass {
             if(locationIds){
                 sql_load += ` AND l.location_id IN (${locationIds}) `;
             }
-
-            console.log(sql_load);
-
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
@@ -492,7 +489,7 @@ export class UserEmRoleRelation extends BaseClass {
       });
 
     }
-    
+
     public getManyByUserIds(userIds) {
       return new Promise((resolve, reject) => {
           const sql_load = 'SELECT em.*, er.role_name  FROM user_em_roles_relation em INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id WHERE em.user_id IN ('+userIds+')';
