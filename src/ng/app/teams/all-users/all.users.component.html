@@ -126,7 +126,12 @@
 						-->
 					</td>
 					<td>
-						<span [ngClass]="{'red-text': list.assigned_courses == 0 && list.trainings == 0, 'green-text': list.assigned_courses > 0 || list.trainings > 0}">{{list.assigned_courses}}/{{list.trainings}}</span>
+            <!-- <span [ngClass]="{'red-text': list.assigned_courses == 0 && list.trainings == 0, 'green-text': list.assigned_courses > 0 || list.trainings > 0}">{{list.assigned_courses}}/{{list.trainings}}</span> -->
+            <span *ngIf="list.trainings == 0" class="red-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
+            <span *ngIf="list.trainings > 0 && list.trainings < (list.trids.length + list.misc_trainings.length)" class="orange-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
+            <span *ngIf="list.trainings == (list.trids.length + list.misc_trainings.length)" class="green-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
+
+
 					</td>
 					<td>
 						<select (change)="onSelectFromTable($event, list)">

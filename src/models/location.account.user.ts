@@ -81,16 +81,19 @@ export class LocationAccountUser extends BaseClass {
     public getLocationsByUserIds(userIds) {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
+                    lau.location_account_user_id,
                     lau.user_id,
-                    l.name,
                     l.parent_id,
                     l.location_id,
                     l.formatted_address,
                     l.google_place_id,
                     l.google_photo_url,
-                    l.is_building
+                    l.is_building,
+                    IF(ploc.name IS NOT NULL, CONCAT( IF(TRIM(ploc.name) <> '', CONCAT(ploc.name, ', '), ''), l.name), l.name) as name,
+                    ploc.name as parent_name
                     FROM location_account_user lau
                     INNER JOIN locations l ON l.location_id = lau.location_id
+                    LEFT JOIN locations ploc ON ploc.location_id = l.parent_id
                     WHERE lau.user_id IN (`+userIds+`)`;
 
             const connection = db.createConnection(dbconfig);

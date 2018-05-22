@@ -351,7 +351,8 @@ export class LocationAccountRelation extends BaseClass {
                 const originIds = [];
                 let originIdStr = '';
                 for (const loc of results) {
-                    if(loc.is_building == 1 || loc.parent_id == -1){
+                    // || loc.parent_id == -1
+                    if(loc.is_building == 1){
                         building_locations.push(loc);
                     }
                     originIds.push(loc['location_id']);

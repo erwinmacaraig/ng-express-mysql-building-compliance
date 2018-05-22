@@ -348,7 +348,7 @@ export class ReportsRoute extends BaseRoute {
         }
 
         let allUserIds = [0],
-            allLocationIds = [0],
+            allLocationIds = [],
             allLocations = [],
             users = [];
 
@@ -356,6 +356,8 @@ export class ReportsRoute extends BaseRoute {
         if ( (req.body.searchKey !== null && req.body.searchKey.length > 0) && !getAll && !filterExceptLocation) {
           config['searchKey'] = req.body.searchKey;
         }
+
+        config['account_id'] = req.user.account_id;
 
         if (location_id == 0 || getAll) {
 

@@ -299,6 +299,9 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
                 for (const sublocs of loc['sublocations']) {
                   if (sublocs['id'] == selectedLocationId) {
                     this.selectedUser['location_name'] = `${loc['parent_location_name']}, ${sublocs['name']}`;
+                    if (/^[_-\s]$/.test(loc['parent_location_name'])) {
+                      this.selectedUser['location_name'] = `${sublocs['name']}`;
+                    }
                     locationFound = true;
                     break;
                   }
@@ -306,9 +309,13 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
               }
             }
           }
-
-            console.log(this.addedUsers);
-            this.cancelLocationModal();
+          for (const u of this.addedUsers) {
+            if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(u['email'])) {
+              u.errors['invalid'] = `${u['email']} is invalid`;
+            }
+          }
+          console.log(this.addedUsers);
+          this.cancelLocationModal();
         }
     }
 
@@ -319,19 +326,32 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         // this.locations = this.locationsCopy;
     }
 
-    public submitPEEP() {
-
+    public submitPEEP(f) {
+      let allInputValid = false;
+      if (f.valid) {
         for(let i in this.addedUsers){
-            this.addedUsers[i]['role_id'] = (this.addedUsers[i]['account_role_id'] == 1 || this.addedUsers[i]['account_role_id'] == 2) ? this.addedUsers[i]['account_role_id'] : 0;
-            this.addedUsers[i]['eco_role_id'] = (this.addedUsers[i]['account_role_id'] != 1 || this.addedUsers[i]['account_role_id'] != 2) ? this.addedUsers[i]['account_role_id'] : 0;
+          this.addedUsers[i]['role_id'] = (this.addedUsers[i]['account_role_id'] == 1 ||
+          this.addedUsers[i]['account_role_id'] == 2) ? this.addedUsers[i]['account_role_id'] : 0;
+          this.addedUsers[i]['eco_role_id'] = (this.addedUsers[i]['account_role_id'] != 1 || this.addedUsers[i]['account_role_id'] != 2) ? this.addedUsers[i]['account_role_id'] : 0;
         }
-
-        this.userService.createBulkUsers(this.addedUsers, (response) => {
+        for (const u of this.addedUsers) {
+          if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(u['email'])) {
+            u.errors['invalid'] = `${u['email']} is invalid`;
+            allInputValid = false;
+          }
+        }
+        if (allInputValid) {
+          this.userService.createBulkUsers(this.addedUsers, (response) => {
             this.addedUsers = response.data;
             if(this.addedUsers.length == 0){
                 this.router.navigate(["/teams/mobility-impaired"]);
             }
-        });
+          });
+        }
+
+      }
+
+
 
         /*const strPEEP = JSON.stringify(this.addedUsers);
         this.dataProvider.addPEEP(strPEEP).subscribe((data) => {
@@ -364,7 +384,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         this.bulkEmailInvite = (this.emailInviteForm.controls.inviteTxtArea.value).split(',');
         const validEmails = [];
         const email_regex =
-        /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
+        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i;
         for (let x = 0; x < this.bulkEmailInvite.length; x++) {
           if (email_regex.test(this.bulkEmailInvite[x].trim())) {
             validEmails.push(this.bulkEmailInvite[x].trim());
