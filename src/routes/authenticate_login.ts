@@ -52,6 +52,7 @@ public async successValidation(req: Request, res: Response, userModel, signedInE
             name: userModel.get('first_name')+' '+userModel.get('last_name'),
             email: userModel.get('email'),
             accountId: userModel.get('account_id'),
+            evac_role: userModel.get('evac_role'),
             roles : [],
             profilePic : ''
         }
@@ -60,7 +61,7 @@ public async successValidation(req: Request, res: Response, userModel, signedInE
     let fileModel = new Files(),
         fileData = <any> [],
         wardenRoles = [];
-    
+
     try{
         fileData = <any> await fileModel.getByUserIdAndType(userModel.get('user_id'), 'profile');
     }catch(e){

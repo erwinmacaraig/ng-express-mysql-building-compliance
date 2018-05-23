@@ -35,7 +35,8 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 	public usersInitial: String = 'AA';
 
 	public mySubscription: Subscription;
-	public username: string;
+  public username: string;
+  public evac_role: string;
 	public showLinks = {
 		locations : false,
 		training : false,
@@ -74,6 +75,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
     this.username = this.userData['name'];
 		this.usersInitial = this.getInitials(this.username);
     this.userRoles = this.userData['roles'];
+    this.evac_role = this.userData['evac_role'];
     this.encryptedUserId = this.encryptDecrypt.encrypt(this.userData['userId']);
 		this.showEvent();
 		this.closeEvent();
