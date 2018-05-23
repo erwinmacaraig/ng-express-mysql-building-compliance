@@ -406,8 +406,10 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         });
 
         $('#allLocations').prop('checked', false);
+        this.allAreSelected = false;
         if(countChecked == checkboxes.length){
             $('#allLocations').prop('checked', true);
+            this.allAreSelected = true;
         }
     }
 
@@ -416,7 +418,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             let sel = $('select.bulk-manage').val();
 
             if(sel == 'archive'){
-                $('select.bulk-manage').val("0").material_select();
                 if(this.selectedFromList.length > 0){
                     $('#modalArchiveBulk').modal('open');
                 }
@@ -443,6 +444,8 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 this.sendInviteToAll = true;
                 $('#modalSendInvitation').modal('open');
             }
+
+            $('select.bulk-manage').val("0").material_select();
 
         });
     }

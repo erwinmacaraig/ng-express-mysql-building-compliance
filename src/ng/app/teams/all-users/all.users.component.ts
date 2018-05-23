@@ -368,15 +368,16 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         });
 
         $('#allLocations').prop('checked', false);
+        this.allAreSelected = false;
         if(countChecked == checkboxes.length){
             $('#allLocations').prop('checked', true);
+            this.allAreSelected = true;
         }
 	}
 
 	bulkManageActionEvent(){
 		$('select.bulk-manage').on('change', () => {
 			let sel = $('select.bulk-manage').val();
-            $('select.bulk-manage').val("0").material_select();
 			if(sel == 'archive'){
 				if(this.selectedFromList.length > 0){
 					$('#modalArchiveBulk').modal('open');
@@ -404,6 +405,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
                 this.sendInviteToAll = true;
                 $('#modalSendInvitation').modal('open');
             }
+
+            $('select.bulk-manage').val("0").material_select();
 
 		});
 	}

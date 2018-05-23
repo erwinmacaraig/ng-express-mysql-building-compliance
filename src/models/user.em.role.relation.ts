@@ -511,6 +511,7 @@ export class UserEmRoleRelation extends BaseClass {
             const sql_load = `SELECT
                     uemr.user_id,
                     uemr.em_role_id as role_id,
+                    er.role_name,
                     l.name,
                     l.parent_id,
                     l.location_id,
@@ -520,6 +521,7 @@ export class UserEmRoleRelation extends BaseClass {
                     l.is_building
                     FROM user_em_roles_relation uemr
                     INNER JOIN locations l ON l.location_id = uemr.location_id
+                    INNER JOIN em_roles er ON er.em_roles_id = uemr.em_role_id
                     WHERE uemr.user_id IN (`+userIds+`)`;
 
             const connection = db.createConnection(dbconfig);
