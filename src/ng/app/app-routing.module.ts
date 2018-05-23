@@ -128,7 +128,8 @@ const appRoutes: Routes = [
   /*{ path: '**', redirectTo: '/dashboard'},*/
   { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
-    { path: 'archived/list', component: ArchivedLocationListComponent },
+    { path: 'list?archived=true', component: LocationListComponent },
+    // { path: 'archived/list', component: ArchivedLocationListComponent },
     { path: 'search', component: SearchLocationComponent },
     { path: 'view/:encrypted', component: ViewSingleLocation },
     { path: 'view-sublocation/:encrypted', component: SublocationComponent },

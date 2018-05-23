@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Output, EventEmitt
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute, NavigationStart, NavigationEnd } from '@angular/router';
 import { LocationsService } from '../../services/locations';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
@@ -82,10 +82,14 @@ export class LocationListComponent implements OnInit, OnDestroy {
         offset :  0,
         limit : 10,
         search : '',
-        sort : ''
+        sort : '',
+        archived : 0
     };
 
     searchSubs;
+
+    paramArchived = <any> false;
+    routerSubs;
 
   constructor (
       private platformLocation: PlatformLocation,
@@ -97,13 +101,14 @@ export class LocationListComponent implements OnInit, OnDestroy {
       private encryptDecrypt: EncryptDecryptService,
       private complianceService : ComplianceService,
       private router: Router,
+      private actRouter: ActivatedRoute,
       private elemRef : ElementRef,
       private userService : UserService
   ) {
-      this.baseUrl = (platformLocation as any).location.origin;
-      this.options = { headers : this.headers };
-      this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-      this.userData = this.auth.getUserData();
+        this.baseUrl = (platformLocation as any).location.origin;
+        this.options = { headers : this.headers };
+        this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
+        this.userData = this.auth.getUserData();
 
     	this.accntService.getById(this.userData['accountId'], (response) => {
 	      	this.accountData = response.data;
@@ -132,6 +137,23 @@ export class LocationListComponent implements OnInit, OnDestroy {
                 this.isTRP = true;
             }
         }
+
+        this.routerSubs = router.events.subscribe(event => {
+            if(event instanceof NavigationEnd){
+
+                this.queries.offset = 0;
+                if(event.url.indexOf('archived=true') > -1){
+                    this.paramArchived = true;
+                    this.queries.archived = 1;
+                }else{
+                    this.paramArchived = false;
+                    this.queries.archived = 0;
+                }
+
+                this.ngAfterViewInit();
+
+            }
+        });
 
   	}
 
@@ -173,19 +195,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 	ngAfterViewInit(){
 		this.preloaderService.show();
-		this.getLocationsForListing((response) => {
-
-            if(this.pagination.pages > 0){
-                this.pagination.currentPage = 1;
-                this.pagination.prevPage = 1;
-            }
-
-    		this.preloaderService.hide();
-
-	        if (localStorage.getItem('showemailverification') !== null) {
-	          this.router.navigate(['/location', 'search']);
-	        }
-    	});
+		
 		$('.nav-list-locations').addClass('active');
 		$('.location-navigation .active').removeClass('active');
 		$('.location-navigation .view-location').addClass('active');
@@ -193,6 +203,22 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		$('.modal').modal({
 			dismissible: false
 		});
+
+        this.getLocationsForListing((response) => {
+
+            if(this.pagination.pages > 0){
+                this.pagination.currentPage = 1;
+                this.pagination.prevPage = 1;
+            }
+
+            this.preloaderService.hide();
+
+            $('.filter-container select').material_select();
+
+            if (localStorage.getItem('showemailverification') !== null) {
+              this.router.navigate(['/location', 'search']);
+            }
+        });
 
 
 		this.selectRowEvent();
@@ -263,7 +289,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				val = target.val();
 
 			if(val == 'archive'){
-				$('select.bulk-manage').val("0").material_select("update");
+				$('select.bulk-manage').val("0").material_select();
 				if(this.arraySelectedLocs.length > 0){
 					$('#modalArchiveBulk').modal('open');
 				}
@@ -279,13 +305,13 @@ export class LocationListComponent implements OnInit, OnDestroy {
 			for(let i in this.arraySelectedLocs){
 				locs.push({
 					location_id : this.encryptDecrypt.decrypt(this.arraySelectedLocs[i]['location_id']),
-					archived : 1
+					archived : (!this.paramArchived) ? 1 : 0
 				});
 			}
 
 			this.arraySelectedLocs = [];
 
-			$('select.bulk-manage').val("0").material_select("update");
+			$('select.bulk-manage').val("0").material_select();
 			$('#allSelect').prop('checked', false);
 
 			this.locationService.archiveMultipleLocation({
@@ -306,7 +332,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 			locs.push({
 				location_id : this.encryptDecrypt.decrypt(this.selectedArchive['location_id']),
-				archived : 1
+				archived : (!this.paramArchived) ? 1 : 0
 			});
 
 			this.locationService.archiveMultipleLocation({
@@ -523,6 +549,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	ngOnDestroy(){
 		this.mutationOversable.disconnect();
         this.searchSubs.unsubscribe();
+        this.routerSubs.unsubscribe();
 	}
 
 	getInitial(name:String){

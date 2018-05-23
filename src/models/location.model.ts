@@ -506,38 +506,37 @@ export class Location extends BaseClass {
 		});
     }
 
-	public getParentsChildren(parentId, raw = 1, buildings_only:boolean = false): any {
+	public getParentsChildren(parentId, raw = 1, buildings_only:boolean = false, archived?): any {
 		return new Promise((resolve) => {
-
-
-      let locationIds = [];
-      let sql = `SELECT *
-			FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
-			(SELECT @pi := ('${parentId}')) initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql, (err, results, fields) => {
-				if (err) {
-					console.log(sql);
-					throw new Error('Internal error. There was a problem processing your query');
-        }
-        if (raw) {
-          resolve(results);
-        } else if (buildings_only) {
-          for (const r of results) {
-            if (parseInt(r['is_building'], 10) === 1) {
-              locationIds.push(r['location_id']);
-            }
-          }
-          resolve(locationIds);
-        } else {
-          for (const r of results) {
-            locationIds.push(r['location_id']);
-          }
-          resolve(locationIds);
-        }
-			});
-			connection.end();
-		});
+            let archiveStr = (archived) ? archived : '0';
+            let locationIds = [];
+            let sql = `SELECT *
+            FROM (SELECT * FROM locations WHERE archived = ${archiveStr} ORDER BY parent_id, location_id) sublocations,
+            (SELECT @pi := ('${parentId}')) initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, (err, results, fields) => {
+                if (err) {
+                    console.log(sql);
+                    throw new Error('Internal error. There was a problem processing your query');
+                }
+                if (raw) {
+                    resolve(results);
+                } else if (buildings_only) {
+                    for (const r of results) {
+                        if (parseInt(r['is_building'], 10) === 1) {
+                            locationIds.push(r['location_id']);
+                        }
+                    }
+                    resolve(locationIds);
+                } else {
+                    for (const r of results) {
+                        locationIds.push(r['location_id']);
+                    }
+                    resolve(locationIds);
+                }
+            });
+            connection.end();
+        });
 	}
 
 	public getAncestryIds(sublocId){
@@ -907,6 +906,11 @@ export class Location extends BaseClass {
             nameSearch = `AND locations.name LIKE '%${filter['name']}%' `;
         }
 
+        let archivedStr = '';
+        if('archived' in filter){
+            archivedStr += ` AND locations.archived = ${filter['archived']}`;
+        }
+
         let orderBy = '';
         if('sort' in filter){
             if(filter['sort'] == 'name-asc'){
@@ -919,9 +923,9 @@ export class Location extends BaseClass {
 
         const myLocations = [];
         const locationStr = locations.join(',');
-        let sql_details = `SELECT * FROM locations WHERE location_id IN (${locationStr}) ${nameSearch} ${orderBy} ${offsetLimit}`;
+        let sql_details = `SELECT * FROM locations WHERE location_id IN (${locationStr}) ${nameSearch} ${archivedStr} ${orderBy} ${offsetLimit}`;
         if ('count' in filter) {
-          sql_details = `SELECT COUNT(location_id) as count FROM locations WHERE location_id IN (${locationStr}) ${nameSearch} ${orderBy} `;
+          sql_details = `SELECT COUNT(location_id) as count FROM locations WHERE location_id IN (${locationStr}) ${nameSearch} ${archivedStr} ${orderBy} `;
         }
         const connection = db.createConnection(dbconfig);
         connection.query(sql_details, [], (error, results) => {

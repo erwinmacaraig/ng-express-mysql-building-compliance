@@ -1237,6 +1237,10 @@ const defs = require('../config/defs.json');
             filter['sort'] = queries.sort;
         }
 
+        if('archived' in queries){
+            filter['archived'] = queries.archived;
+        }
+
         if (r == defs['Tenant']) {
             const locationListingTRP = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
             response.locations = locationListingTRP;
