@@ -141,6 +141,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
         this.routerSubs = router.events.subscribe(event => {
             if(event instanceof NavigationEnd){
 
+                this.queries.offset = 0;
                 if(event.url.indexOf('archived=true') > -1){
                     this.paramArchived = true;
                     this.queries.archived = 1;
