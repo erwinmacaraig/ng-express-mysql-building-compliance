@@ -120,13 +120,15 @@
 
 		<div class="col sm12">
 			<ul class="links">
-		        <li><a [routerLink]="['/dashboard/company-information']">Company Information</a></li>
-		        <li><a [routerLink]="['/dashboard/person-info']">Personal Information</a></li>
-		        <!-- <li *ngIf="showSendInviteLink"><a [routerLink]="['/dashboard/send-invite']">Send Invitation</a></li> -->
-				<!-- <li *ngIf="showShopLink"><a [routerLink]="['/shop/compliance-package']">Shop</a></li> -->
-				<!-- <li><a href="/">Subscription</a></li> -->
-				<li><a href="/">Security & Privacy</a></li>
-				<li><a href="/signout">Sign Out</a></li>
+        <li><a [routerLink]="['/dashboard/company-information']">Company Information</a></li>
+        <li><a [routerLink]="['/dashboard/person-info']">Personal Information</a></li>
+        <!-- <li *ngIf="showSendInviteLink"><a [routerLink]="['/dashboard/send-invite']">Send Invitation</a></li> -->
+        <!-- <li *ngIf="showShopLink"><a [routerLink]="['/shop/compliance-package']">Shop</a></li> -->
+        <!-- <li><a href="/">Subscription</a></li> -->
+        <li *ngIf="evac_role == 'admin'"><a [routerLink]="['/admin', 'accounts']" target="_blank">Administration</a></li>
+        <li><a href="/">Security & Privacy</a></li>
+
+        <li><a href="/signout">Sign Out</a></li>
 			</ul>
 		</div>
 	</div>
