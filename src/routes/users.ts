@@ -781,7 +781,10 @@ export class UsersRoute extends BaseRoute {
         archived : 0,
         queryRoles = [],
         userIds = [0],
+        userIdObj = [],
         emRolesDef = defs.em_roles;
+
+        const training_requirements = await new TrainingCertification().getRequiredTrainings();
 
         modelQueries.select['users'] = ['first_name', 'last_name', 'account_id', 'user_id', 'user_name', 'email', 'mobile_number', 'phone_number', 'mobility_impaired', 'last_login', 'archived'];
 
@@ -875,7 +878,6 @@ export class UsersRoute extends BaseRoute {
 
         for(let user of response.data['users']){
             userIds.push(user.user_id);
-
             let lastLoginMoment = moment(user.last_login);
             if(lastLoginMoment.isValid()){
                 user.last_login = lastLoginMoment.format('DD/MM/YYYY hh:mma');
@@ -1010,6 +1012,9 @@ export class UsersRoute extends BaseRoute {
 
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
+                if('account_roles' in user == false){ user['account_roles'] = []; }
+                if('em_roles' in user == false){ user['em_roles'] = []; }
+                if('trids' in user == false){ user['trids'] = []; }
                 if('locations' in user == false){ user['locations'] = []; }
 
                 let usersRolesIds = [];
@@ -1021,36 +1026,43 @@ export class UsersRoute extends BaseRoute {
                         role.role_id = (rol.role_id == 1) ? 1 : 2;
                         user['roles'].push(role);
                         usersRolesIds.push(rol.role_id);
+                        user['account_roles'].push(role);
                     }
                 }
 
                 for(let em of usersEmRoles){
-                    let role = { role_name : '', role_id : 0 };
+                    let role = { role_name : '', role_id : 0 , trids: []};
 
                     if(queryRoles.indexOf('users') > -1 && em.user_id == user.user_id && usersRolesIds.indexOf(em.em_role_id) == -1){
                         role.role_name = em.role_name;
                         role.role_id = em.em_role_id;
                         user['roles'].push(role);
                         usersRolesIds.push(em.em_role_id);
+                        if (em.em_role_id in training_requirements) {
+                          role.trids = role.trids.concat(training_requirements[em.em_role_id]['training_requirement_id']);
+                          user['trids'] = user['trids'].concat(training_requirements[em.em_role_id]['training_requirement_id']);
+                        }
+                        user['em_roles'].push(role);
                     }
                 }
 
             }
         }
-
+        // console.log(response.data['users']);
         if(query.user_training){
 
             let user_course_total,
                 user_training_total,
                 training = new TrainingCertification(),
                 userCourseRel = new CourseUserRelation();
-
+            /*
             try {
                 user_course_total = await userCourseRel.getNumberOfAssignedCourses(userIds);
 
             } catch (e) {
                 user_course_total = {};
             }
+
             try {
                 user_training_total = await training.getNumberOfTrainings(userIds, {
                   'pass': 1,
@@ -1059,19 +1071,51 @@ export class UsersRoute extends BaseRoute {
             } catch(e) {
                 user_training_total = {};
             }
+            */
+          for(let user of response.data['users']) {
+              try {
+              user_training_total = await training.getNumberOfTrainings([user.user_id], {
+                'pass': 1,
+                'current': 1,
+                'training_requirement': user['trids']
+              });
+              user['trainings'] = user_training_total[user.user_id]['count'];
 
+            } catch(e) {
+              user_training_total = {};
+              user['trainings'] = 0;
+            }
+            try {
+              user_course_total = await userCourseRel.getNumberOfAssignedCourses([user.user_id]);
+              // console.log('1086', user_course_total);
+              user['assigned_courses'] = user_course_total[user.user_id]['count'];
+              user['assigned_courses_tr'] = user_course_total[user.user_id]['trids'];
+              user['misc_trainings'] = user['trids'].filter(x => !user['assigned_courses_tr'].includes(x))
+              .concat(user['assigned_courses_tr'].filter(x => !user['trids'].includes(x)));
+            } catch (e) {
+                console.log(e);
+                user_course_total = {};
+                user['assigned_courses'] = 0;
+                user['assigned_courses_tr'] = [];
+                user['misc_trainings'] = [];
+            }
+          }
+          /*
             for(let user of response.data['users']){
                 if (user.user_id in user_course_total) {
                     user['assigned_courses'] = user_course_total[user.user_id]['count'];
                 } else {
                     user['assigned_courses'] = 0;
                 }
+
                 if (user.user_id in user_training_total) {
                     user['trainings'] = user_training_total[user.user_id]['count'];
                 } else {
                     user['trainings'] = 0;
                 }
+
             }
+            */
         }
 
         if(query.impaired && queryRoles.indexOf('users') > -1){

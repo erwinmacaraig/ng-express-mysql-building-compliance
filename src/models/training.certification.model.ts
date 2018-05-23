@@ -364,7 +364,7 @@ export class TrainingCertification extends BaseClass {
           `;
       }
       const connection = db.createConnection(dbconfig);
-      
+
       connection.query(sql, (error, results, fields) => {
 
         if(error){
@@ -459,7 +459,11 @@ export class TrainingCertification extends BaseClass {
                     WHERE
                         certifications.user_id IN (${userIdString})
                       ${filterString}
-                    ORDER BY user_id`;
+                    GROUP BY
+                      certifications.certifications_id
+                    ORDER BY
+                      user_id
+                    `;
         const connection = db.createConnection(dbconfig);
         connection.query(sql, [], (error, results, fields) => {
           if (error) {
