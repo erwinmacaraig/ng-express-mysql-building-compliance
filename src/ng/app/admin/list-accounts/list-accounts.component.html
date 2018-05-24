@@ -1,4 +1,14 @@
-
+<!--
+<div class="row">
+    <div class="col l12 m12 s12">
+      <ul id="accountnavlist">
+        <li><a>item 1</a></li>
+        <li><a>item 2</a></li>
+        <li><a>item 3</a></li>
+      </ul>
+    </div>
+</div>
+-->
 <div class="row filter-container">
   <div class="col l4 m5 s12">
 		<div class="search-field">
@@ -58,10 +68,10 @@
             </td>
             <td>{{item['billing_address']}}</td>
             <td>
-              <select #selectedAction (change)="addressSelectedAction()">
+              <select id="account-{{item['account_id']}}" (change)="addressSelectedAction(item['account_id'])">
                 <option value="0" class="blue-text" selected disabled>Select action</option>
-                <option value="view-{{item['account_id']}}" class="blue-text">View</option>
-                <option value="archive-{{item['account_id']}}" class="blue-text">Archive</option>
+                <option value="view" class="blue-text">View</option>
+                <option value="archive" class="blue-text">Archive</option>
               </select>
             </td>
           </tr>
