@@ -158,4 +158,26 @@ export class UserRoleRelation extends BaseClass {
         });
     }
 
+    public getUserRoleRelationId(whereConfig = {}): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+       let whereClause = `WHERE 1=1`;
+       if ('user_id' in whereConfig) {
+         whereClause += ` AND user_id = ${whereConfig['user_id']}`;
+       }
+       if ('role_id' in whereConfig) {
+         whereClause += ` AND role_id = ${whereConfig['role_id']}`;
+       }
+        const sql = `SELECT * FROM user_role_relation ${whereClause}`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [], (error, results) => {
+          if (error) {
+            console.log('user.role.relation.model.getUserRoleRelationId', sql, error);
+            throw Error('Cannot get user role relation');
+          }
+          resolve(results);
+        });
+        connection.end();
+      });
+    }
+
 }
