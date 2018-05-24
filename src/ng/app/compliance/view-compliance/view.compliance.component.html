@@ -1416,21 +1416,26 @@
 </div>
 
 
-<div class="modal" id="modalManageUpload" style="overflow: visible;">
-    
-    <div class="preloader-wrapper active" [hidden]="!showModalUploadDocsLoader">
-        <div class="spinner-layer spinner-red-only">
-            <div class="circle-clipper left">
-                <div class="circle"></div>
-            </div>
-            <div class="gap-patch">
-                <div class="circle"></div>
-            </div>
-            <div class="circle-clipper right">
-                <div class="circle"></div>
+<div class="modal" id="modalManageUpload" style="overflow: visible;"  >
+
+    <div class="modal-content" *ngIf="showModalUploadDocsLoader">
+        <div class="center" >
+            <div class="preloader-wrapper active" >
+                <div class="spinner-layer spinner-red-only">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="gap-patch">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    
 
     <form #form="ngForm" [hidden]="showModalUploadDocsLoader">
 
@@ -1464,15 +1469,19 @@
 
             <div class="col l12">
                 <button class="btn orange waves-light waves-effect" (click)="selectFile(inpFileUploadDocs)" style="margin: 2% 0%; font-size: 14px !important;">Select File</button>
-                <div class="file-name" style="display: inline;padding: 0% 2%;font-size: 14px;" *ngIf="inpFileUploadDocs.files[0]"> {{inpFileUploadDocs.files[0].name }} </div>
-                <input type="file" ngModel name="file" required class="file" hidden #inpFileUploadDocs (change)="onFileSelected($event)" />
+                
+                <div class="file-name" style="display: inline;padding: 0% 2%;font-size: 14px;" *ngIf="inpFileUploadDocs.files[0]">{{inpFileUploadDocs.files[0].name }}</div>
+                
+                <div style="display: inline;padding: 0% 2%;font-size: 14px;" *ngIf="docsFileSizeIsMax"> File is too large. File must be less than 2Mb </div>
+                
+                <input type="file" ngModel name="file" required class="file" hidden #inpFileUploadDocs (change)="onFileSelected($event, form)" />
             </div>
 
             <div class="col l12">
-                <div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
+                <div class="switch-container"  >
                     <p class="give-access-text">Give access to TRP</p>
                     <div class="switch" >
-                    <input type="checkbox" ngModel name="viewable_by_trp">
+                    <input type="checkbox" ngModel name="viewable_by_trp"  >
                         <div class="yes">Yes</div>
                         <div class="no">No</div>
                         <div class="highlight"></div>
