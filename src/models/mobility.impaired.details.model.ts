@@ -136,10 +136,17 @@ export class MobilityImpairedModel extends BaseClass {
             archived = 0;
         }
         return new Promise((resolve, reject) => {
-          if (locationIds.length == 0) {
-            resolve([]);
-            return;
-          }
+
+            let locSql = '';
+            if(locationIds.length > 0){
+                locSql = ` WHERE location_id IN (${locationIds}) `;
+            }
+
+            if (locationIds.length == 0) {
+                resolve([]);
+                return;
+            }
+
             let sql = `
                 SELECT
                     user_id,
@@ -149,10 +156,10 @@ export class MobilityImpairedModel extends BaseClass {
                 FROM users
                 WHERE
                     archived = ${archived} AND account_id = ${accountId} AND mobility_impaired = 1 AND
-                    user_id IN (SELECT user_id FROM location_account_user WHERE location_id IN (${locationIds}))
+                    user_id IN (SELECT user_id FROM location_account_user ${locSql}) 
                 OR
                     archived = ${archived} AND account_id = ${accountId} AND mobility_impaired = 1 AND
-                    user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id IN (${locationIds}))
+                    user_id IN (SELECT user_id FROM user_em_roles_relation ${locSql}) 
 
                 GROUP BY users.user_id
 

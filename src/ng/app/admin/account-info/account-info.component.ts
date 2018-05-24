@@ -44,7 +44,7 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
 
 
-      this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
+      this.sub = this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
         if (response['message'] === 'Success') {
           Object.keys(this.accountInfo).forEach((key) => {
             this.accountInfo[key] = response['data'][key];

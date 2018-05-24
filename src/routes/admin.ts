@@ -15,6 +15,7 @@ import { LocationAccountUser } from '../models/location.account.user';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 
 import * as moment from 'moment';
+import { UserRoleRelation } from '../models/user.role.relation.model';
 const md5 = require('md5');
 const defs = require('../config/defs.json');
 const validator = require('validator');
@@ -335,22 +336,35 @@ export class AdminRoute extends BaseRoute {
                   user_id: user.ID()
                 });
 
-              } catch (e) {
-                console.log('Cannot create entry in db with ', createData);
-              }
-              try {
-                  await locationAccntRel.getLocationAccountRelation({
-                      'location_id': u['location'],
-                      'account_id': u['account_id'],
-                      'responsibility': defs['role_text'][u['role']]
+                } catch (e) {
+                  console.log('Cannot create entry in db with ', createData);
+                }
+                try {
+                    await locationAccntRel.getLocationAccountRelation({
+                        'location_id': u['location'],
+                        'account_id': u['account_id'],
+                        'responsibility': defs['role_text'][u['role']]
+                    });
+                } catch (err) {
+                    await locationAccntRel.create({
+                        'location_id': u['location'],
+                        'account_id': u['account_id'],
+                        'responsibility': defs['role_text'][u['role']]
+                    });
+                }
+                // User Role Relation
+                const userRoleRelObj = new UserRoleRelation();
+                let accountRole = [];
+                accountRole = await userRoleRelObj.getUserRoleRelationId({
+                  user_id: user.ID(),
+                  role_id: u['role']
+                });
+                if (accountRole.length === 0) {
+                  await userRoleRelObj.create({
+                    user_id: user.ID(),
+                    role_id: u['role']
                   });
-              } catch (err) {
-                  await locationAccntRel.create({
-                      'location_id': u['location'],
-                      'account_id': u['account_id'],
-                      'responsibility': defs['role_text'][u['role']]
-                  });
-              }
+                }
             }
           } // end catch clause for making sure email is unique
         } else {

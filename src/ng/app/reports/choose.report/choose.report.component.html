@@ -28,39 +28,39 @@
 
 		<div class="boxes-container ">
 
-			<div class="box-wrapper box-statement-of-compliance">
-				<div class="box" #boxStatement (click)="clickBox(boxStatement, $event)">
-
-					<div class="image summary-of-compliance"></div>
-
-					<div class="search-container">
-                        <ng-container *ngTemplateOutlet="inputTemplate"></ng-container>
-                        <ng-container *ngTemplateOutlet="searchResult"></ng-container>
-					</div>
-
-					<button class="btn blue waves-effect waves-light" [disabled]="collection.soc.locations.length === 0" (click)="clickGenerate()" >Statement of Compliance</button>
-
-				</div>
-			</div>
-
-            <div class="box-wrapper box-summary-of-portfolio" *ngIf="isFrp === true">
-				<div class="box" #boxPortfolio (click)="clickBox(boxPortfolio, $event)">
-
-					<div class="image summary-of-portfolio"></div>
-
-					<div class="search-container two">
-                        <ng-container *ngTemplateOutlet="inputTemplate"></ng-container>
-                        <ng-container *ngTemplateOutlet="searchResult"></ng-container>
-					</div>
-
-                    <div class="select-all">
-                        <input type="checkbox" class="filled-in"  id="checkPortfolio" #checkPortfolio (click)="clickAllLocation('sop', checkPortfolio)"><label for="checkPortfolio">All Locations</label>
+			<!-- <div class="box-wrapper box-statement-of-compliance">
+                <div class="box" #boxStatement (click)="clickBox(boxStatement, $event)">
+            
+                    <div class="image summary-of-compliance"></div>
+            
+                    <div class="search-container">
+                                    <ng-container *ngTemplateOutlet="inputTemplate"></ng-container>
+                                    <ng-container *ngTemplateOutlet="searchResult"></ng-container>
                     </div>
-
-					<button class="btn blue waves-effect waves-light" [disabled]="collection.sop.locations.length === 0"  (click)="clickGenerate()" >Summary of Portfolio Compliance</button>
-
-				</div>
-			</div>
+            
+                    <button class="btn blue waves-effect waves-light" [disabled]="collection.soc.locations.length === 0" (click)="clickGenerate()" >Statement of Compliance</button>
+            
+                </div>
+            </div>
+            
+                        <div class="box-wrapper box-summary-of-portfolio" *ngIf="isFrp === true">
+                <div class="box" #boxPortfolio (click)="clickBox(boxPortfolio, $event)">
+            
+                    <div class="image summary-of-portfolio"></div>
+            
+                    <div class="search-container two">
+                                    <ng-container *ngTemplateOutlet="inputTemplate"></ng-container>
+                                    <ng-container *ngTemplateOutlet="searchResult"></ng-container>
+                    </div>
+            
+                                <div class="select-all">
+                                    <input type="checkbox" class="filled-in"  id="checkPortfolio" #checkPortfolio (click)="clickAllLocation('sop', checkPortfolio)"><label for="checkPortfolio">All Locations</label>
+                                </div>
+            
+                    <button class="btn blue waves-effect waves-light" [disabled]="collection.sop.locations.length === 0"  (click)="clickGenerate()" >Summary of Portfolio Compliance</button>
+            
+                </div>
+            </div> -->
 
 			<div class="box-wrapper box-activity-log">
 				<div class="box" #boxActivity (click)="clickBox(boxActivity, $event)">

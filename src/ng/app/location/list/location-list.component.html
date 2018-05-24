@@ -1,6 +1,7 @@
 <div class="row">
 	<div class="col m12">
-		<h5 class="text left">Location List</h5>
+        <h5 class="text left" *ngIf="!paramArchived">Location List</h5>
+		<h5 class="text left" *ngIf="paramArchived">Location Archived List</h5>
 
 		<div class="right table-align">
 			<!-- <h5 class="medium-text">Show only not compliant</h5>
@@ -12,10 +13,14 @@
 				<div class="background"></div>
 			</div>-->
 
-			<a href="#" class="archived" [routerLink]="['/location/archived/list']">
+			<a href="#" class="archived" *ngIf="!paramArchived" [routerLink]="['/location/list']" [queryParams]="{ archived : true }">
 				<span class="image"></span>
 				View Archive
 			</a>
+            <a href="#" class="archived" *ngIf="paramArchived" [routerLink]="['/location/list']">
+                <span class="image"></span>
+                View Active
+            </a>
 		</div>
 
 		<div style="clear: both;"></div>
@@ -49,7 +54,8 @@
 	<div class="col l3 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Manage Action</option>
-			<option value="archive" >Archive selected</option>
+			<option value="archive" *ngIf="!paramArchived">Archive selected</option>
+            <option value="archive" *ngIf="paramArchived">Restore selected</option>
 		</select>
 	</div>
 
@@ -155,7 +161,8 @@
 							<option value="addwardens-{{location.location_id}}">Add Wardens</option>
 							<option value="view-{{location.location_id}}">View Location</option>
 							<option value="compliance-{{location.location_id}}">View Compliance</option>
-							<option value="archive-{{location.location_id}}">Archive</option>
+                            <option *ngIf="!paramArchived" value="archive-{{location.location_id}}">Archive</option>
+							<option *ngIf="paramArchived" value="archive-{{location.location_id}}">Restore</option>
 							<!-- <option value="benchmark-{{location.location_id}}">Benchmark</option> -->
 						</select>
 					</td>
@@ -212,14 +219,20 @@
 
 		<h5 *ngIf="selectedArchive.length == 0">No location selected</h5>
 		<div *ngIf="selectedArchive.length > 0">
-			<p style="font-size: 16px;">
+			<p style="font-size: 16px;" *ngIf="!paramArchived">
 				Are you sure you want archive location : {{selectedArchive.name}}?
 			</p>
+            <p style="font-size: 16px;" *ngIf="paramArchived">
+                Are you sure you want restore location : {{selectedArchive.name}}?
+            </p>
 		</div>
 	</div>
 	<div class="modal-footer" [hidden]="modalArchive.loader">
 		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a  *ngIf="selectedArchive.length  > 0" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a  *ngIf="selectedArchive.length  > 0" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">
+            <span *ngIf="!paramArchived">Archive</span>
+            <span *ngIf="paramArchived">Restore</span>
+        </a>
 	</div>
 </div>
 
@@ -243,9 +256,12 @@
 
 		<h5 *ngIf="arraySelectedLocs.length == 0">No location selected</h5>
 		<div *ngIf="arraySelectedLocs.length > 0">
-			<p style="font-size: 16px;">
+			<p style="font-size: 16px;" *ngIf="!paramArchived">
 				Are you sure you want archive the following location?
 			</p>
+            <p style="font-size: 16px;" *ngIf="paramArchived">
+                Are you sure you want restore the following location?
+            </p>
 			<ul>
 				<li *ngFor="let loc of arraySelectedLocs;">
 					<span>{{loc.name}}</span>
@@ -255,7 +271,10 @@
 	</div>
 	<div class="modal-footer" [hidden]="modalArchiveBulk.loader">
 		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a  *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+        <a  *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">
+            <span *ngIf="!paramArchived">Archive</span>
+            <span *ngIf="paramArchived">Restore</span>
+        </a>
 	</div>
 </div>
 

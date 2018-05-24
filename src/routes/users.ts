@@ -1012,6 +1012,8 @@ export class UsersRoute extends BaseRoute {
 
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
+                if('account_roles' in user == false){ user['account_roles'] = []; }
+                if('em_roles' in user == false){ user['em_roles'] = []; }
                 if('trids' in user == false){ user['trids'] = []; }
                 if('locations' in user == false){ user['locations'] = []; }
 
@@ -1024,6 +1026,7 @@ export class UsersRoute extends BaseRoute {
                         role.role_id = (rol.role_id == 1) ? 1 : 2;
                         user['roles'].push(role);
                         usersRolesIds.push(rol.role_id);
+                        user['account_roles'].push(role);
                     }
                 }
 
@@ -1039,6 +1042,7 @@ export class UsersRoute extends BaseRoute {
                           role.trids = role.trids.concat(training_requirements[em.em_role_id]['training_requirement_id']);
                           user['trids'] = user['trids'].concat(training_requirements[em.em_role_id]['training_requirement_id']);
                         }
+                        user['em_roles'].push(role);
                     }
                 }
 
