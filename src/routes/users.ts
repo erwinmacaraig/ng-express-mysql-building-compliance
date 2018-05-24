@@ -912,14 +912,20 @@ export class UsersRoute extends BaseRoute {
         }
 
         if(query.roles && query.users_locations){
+            let queryRoles = query.roles.split(','),
+                getFRP = ( queryRoles.indexOf('frp') > -1 ) ? true : false,
+                getTRP = ( queryRoles.indexOf('trp') > -1) ? true : false,
+                getUSERS = ( queryRoles.indexOf('users') > -1 ) ? true : false;
+
             let accountModel = new Account(),
                 locAccUserModel = new LocationAccountUser(),
                 emRolesModel = new UserEmRoleRelation(),
                 locationsDB = <any> [],
                 locations = <any> [],
                 locationIds = [],
-                locationsEmRoles = <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')),
-                locationFRPTRP = <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','));
+                locationsEmRoles = (getUSERS) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : [],
+                locationFRPTRP =  (getFRP || getTRP) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(',')) : [];
+
 
             for(let loc of locationsEmRoles){
                 if(!locationIds[ loc.location_id ]){
@@ -940,6 +946,7 @@ export class UsersRoute extends BaseRoute {
 
             let locationsData = [],
                 parents = {};
+
             for (let loc of locations) {
                 let locParentModel = new Location(loc.parent_id),
                     parent = <any> {};
@@ -967,15 +974,19 @@ export class UsersRoute extends BaseRoute {
 
             for(let user of response.data['users']){
                 if('locations' in user == false){ user['locations'] = []; }
+                if('locs' in user == false){ user['locs'] = []; }
                 for(let loc of locationsData){
-                    if(loc.user_id == user.user_id){
+                    
+                    if( loc.user_id == user.user_id ){
+
                         let userLocData = {
                             user_id : user.user_id,
                             location_id : loc.location_id,
                             name : loc.name,
                             parent_id : -1,
                             parent_name : '',
-                            sublocations_count : 0
+                            sublocations_count : 0,
+                            role_id : (loc['role_id']) ? loc['role_id'] : 0
                         };
 
                         userLocData.location_id = loc.location_id;
@@ -1001,7 +1012,12 @@ export class UsersRoute extends BaseRoute {
                         userLocData.sublocations_count =  <any> await locSubModel.countSubLocations(loc.location_id)
 
                         if(!exst){ user.locations.push(userLocData); }
+
+                        
+                        user['locs'].push(loc);
+                        
                     }
+
                 }
             }
 

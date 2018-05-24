@@ -54,12 +54,14 @@ html{
     transform-origin: 0 0;
 }
 
-.input-field input:focus{
+.input-field input:focus,
+.input-field textarea:focus{
 	border-bottom: 1px solid #39a1ff !important;
     box-shadow: none !important;
 }
 
-.input-field input:focus + label{
+.input-field input:focus + label,
+.input-field textarea:focus + label{
 	color: #39a1ff !important;
 }
 

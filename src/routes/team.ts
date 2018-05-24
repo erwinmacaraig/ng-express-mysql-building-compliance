@@ -164,50 +164,10 @@ export class TeamRoute extends BaseRoute {
       });
     });
 
-    router.post('/team/training/send-invite/',
-    new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-      const user = new User(req.body.user_id);
-      const userDbData = await user.load();
-      const opts = {
-        from : '',
-        fromName : 'EvacConnect',
-        to : [],
-        cc: ['jmanoharan@evacgroup.com.au', 'adelfin@evacgroup.com.au',  'emacaraig@evacgroup.com.au'],
-        body : '',
-        attachments: [],
-        subject : 'EvacConnect Training Invite'
-      };
-      const email = new EmailSender(opts);
-      let emailBody = email.getEmailHTMLHeader();
-      emailBody += `
-      <p>Hi <strong>${userDbData['first_name']} ${userDbData['last_name']}</strong>,</p>
-
-      <p>
-      You are reminded to take the <strong>${req.body.training_requirement_name} training</strong>
-      for your role as <strong>${req.body.role_name}</strong>.
-      <br />
-      </p>
-      <p>Thank you.</p>
-
-      `;
-      emailBody += email.getEmailHTMLFooter();
-      email.assignOptions({
-          body : emailBody,
-          to: [userDbData['email']]
-      });
-      await email.send((result) => {
-        console.log('Success', result);
-        return res.status(200).send({
-          message: 'Success'
-        });
-      }, (err) => {
-        console.log('Failed', err);
-        return res.status(400).send({
-          message: 'Failed'
-        });
-      });
+    router.post('/team/training/send-invite/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+        new TeamRoute().trainingSendInvite(req, res);
     });
-  }
+}
 
   /**
    * Constructor
@@ -1173,6 +1133,98 @@ export class TeamRoute extends BaseRoute {
         response.status = true;
         res.statusCode = 200;
         res.send(response);
+    }
+
+    public async trainingSendInvite(req: AuthRequest, res: Response){
+        const user = new User(req.body.user_id);
+        
+        try{
+
+            const userDbData = await user.load();
+            const opts = {
+                from : '',
+                fromName : 'EvacConnect',
+                to : [],
+                cc: ['jmanoharan@evacgroup.com.au', 'adelfin@evacgroup.com.au',  'emacaraig@evacgroup.com.au'],
+                body : '',
+                attachments: [],
+                subject : 'EvacConnect Training Invite'
+            };
+
+            let currentDate = moment(),
+                expirationDate = currentDate.add(1, 'day'),
+                expDateFormat = expirationDate.format('YYYY-MM-DD HH:mm:ss'),
+                saveData = {
+                    id : user.get('user_id'),
+                    id_type : 'user_id',
+                    token : user.get('user_id')+''+this.generateRandomChars(50),
+                    action : 'forgot-password',
+                    expiration_date : expDateFormat
+                },
+                tokenTraining = this.generateRandomChars(40),
+                tokenModel = new Token(),
+                tokenTrainModel = new Token(),
+                multiTokenModel = new Token();
+
+            try{
+                let tokens = await multiTokenModel.getAllByUserId(user.get('user_id'));
+                for(let t in tokens){
+                    if(tokens[t]['action'] == 'forgot-password'){
+                        let tokenDelete = new Token(tokens[t]['token_id']);
+                        await tokenDelete.delete();
+                    }
+                }
+            }catch(e){}
+
+            let forgotPassLink = req.protocol + '://' + req.get('host') +'/token/'+saveData['token'],
+                trainingLink = req.protocol + '://'+req.get('host') + '/token/'+tokenTraining;
+            await tokenModel.create(saveData);
+
+            saveData['token'] = tokenTraining;
+            saveData['action'] = 'training-invite';
+            await tokenTrainModel.create(saveData);
+
+
+            const email = new EmailSender(opts);
+            let emailBody = email.getEmailHTMLHeader();
+            emailBody += `
+            <p>Hi <strong>${userDbData['first_name']} ${userDbData['last_name']}</strong>,</p>
+
+            <p>
+            You are reminded to take the <strong>${req.body.training_requirement_name} training</strong>
+            for your role as <strong>${req.body.role_name}</strong>.
+                <br />
+            </p>
+
+            <br/>
+            <h5>If you have logged in before <a href="${trainingLink}" style="color:#2980b9;">Click here</a></h5>
+            <h5>If you forgotten your password or have not yet set a password, <a href="${forgotPassLink}" style="color:#c0392b;">Click here</a></h5>
+            <br/>
+            <p>Thank you.</p>
+
+            `;
+            emailBody += email.getEmailHTMLFooter();
+            email.assignOptions({
+                body : emailBody,
+                to: [userDbData['email']]
+            });
+            await email.send((result) => {
+                console.log('Success', result);
+                return res.status(200).send({
+                    message: 'Success'
+                });
+            }, (err) => {
+                console.log('Failed', err);
+                return res.status(400).send({
+                    message: 'Failed'
+                });
+            });
+
+        }catch(e){
+            return res.status(400).send({
+                message: 'Failed'
+            });
+        }
     }
 
   /*public async buildWardenList(req: AuthRequest, res: Response, archived?) {
