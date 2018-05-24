@@ -404,12 +404,9 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         formData.append('building_id', this.locationID.toString());
         formData.append('compliance_kpis_id', this.selectedKPIS['compliance_kpis_id']);
         formData.append('viewable_by_trp', form.value.viewable_by_trp);
-        formData.append('file', this.inpFileUploadDocs.nativeElement.files[0]);
+        formData.append('file', this.inpFileUploadDocs.nativeElement.files[0], this.inpFileUploadDocs.nativeElement.files[0].name);
         formData.append('date_of_activity', form.value.date_of_activity);
         formData.append('description', form.value.description);
-        console.log(this.inpFileUploadDocs);
-        console.log(form);
-        console.log(formData);
 
         this.showModalUploadDocsLoader = true;
         $('#modalManageUpload').css('width', 'fit-content');
