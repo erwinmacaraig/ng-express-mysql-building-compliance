@@ -3,6 +3,8 @@ import * as Promise from 'promise';
 import * as csv from 'fast-csv';
 import * as fs from 'fs';
 import { Location } from './location.model';
+import { Account } from './account.model';
+import { ComplianceKpisModel } from './comliance.kpis.model';
 
 const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');

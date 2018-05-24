@@ -1,5 +1,3 @@
-
-
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { AuthRequest } from '../interfaces/auth.interface';
@@ -13,6 +11,8 @@ import { parse } from 'url';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { LocationAccountUser } from '../models/location.account.user';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
+import { UtilsSync } from '../models/util.sync';
+import { FileUploader } from '../models/upload-file';
 
 import * as moment from 'moment';
 import { UserRoleRelation } from '../models/user.role.relation.model';
@@ -376,6 +376,40 @@ export class AdminRoute extends BaseRoute {
         'message': 'Success',
         'invalid-users': invalidUsers
       });
+    });
+
+    router.post('/admin/upload/compliance-documents/',
+    new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+
+      const building_id = req.body.building_id;
+      const account_id = req.body.account_id;
+      const kpis = req.body.compliance_kpis_id;
+      const dtActivity = req.body.dtActivty;
+      const description = req.body.description;
+      const viewable_by_trp = req.body.viewable_by_trp;
+
+      // build upload path directory
+      const util = new UtilsSync();
+      const dirUploadPath = await util.getAccountUploadDir(account_id, building_id, kpis);
+      const uploader = new FileUploader(req, res, next);
+
+      uploader.uploadFile(false, dirUploadPath).then((url) => {
+        console.log(`Successfully uploaded ${uploader.filename}`);
+        return res.status(200).send({
+          message: 'Success'
+        });
+      }).catch((e) => {
+        return res.status(400).send({
+          message: 'Fail'
+        });
+
+      });
+
+
+
+
+
     });
 
   // ===============
