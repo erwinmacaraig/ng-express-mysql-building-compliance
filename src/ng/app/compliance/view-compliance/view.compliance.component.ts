@@ -99,6 +99,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     };
     @ViewChild('inpFileUploadDocs') inpFileUploadDocs : ElementRef;
     showModalUploadDocsLoader = false;
+    docsFileSizeIsMax = false;
 
 	constructor(
   		private router : Router,
@@ -355,6 +356,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
         if(Object.keys(this.selectedKPIS).length > 0){
             $('#modalManageUpload').modal('open');
+            this.docsFileSizeIsMax = false;
         }
 
         console.log(this.KPIS);
@@ -375,8 +377,21 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         this.isShowDatepicker = true;
     }
 
-    onFileSelected(event){
+    onFileSelected(event, form){
         event.preventDefault();
+        let filsizeValid = false;
+        if(event.target.files[0]){
+            if(event.target.files[0].size < 2000000){
+                filsizeValid = true;
+            }
+        }
+        
+        if(!filsizeValid){
+            form.controls.file.reset();
+            this.docsFileSizeIsMax = true;
+        }else{
+            this.docsFileSizeIsMax = false;
+        }
     }
 
     selectFile(inpFile){
@@ -389,16 +404,19 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         formData.append('building_id', this.locationID.toString());
         formData.append('compliance_kpis_id', this.selectedKPIS['compliance_kpis_id']);
         formData.append('viewable_by_trp', form.value.viewable_by_trp);
-        formData.append('file', this.inpFileUploadDocs['files']);
+        formData.append('file', this.inpFileUploadDocs.nativeElement.files[0]);
         formData.append('date_of_activity', form.value.date_of_activity);
         formData.append('description', form.value.description);
+        console.log(this.inpFileUploadDocs);
         console.log(form);
         console.log(formData);
 
         this.showModalUploadDocsLoader = true;
+        $('#modalManageUpload').css('width', 'fit-content');
 
         this.adminService.uploadComplianceDocs(formData).subscribe((response) => {
             this.showModalUploadDocsLoader = false;
+            $('#modalManageUpload').css('width');
             console.log(response);
         });
     }
