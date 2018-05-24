@@ -96,8 +96,9 @@ export class IndexRoute extends BaseRoute {
 
   uploadUserPhoto(req: Request, res: Response, next: NextFunction) {
      const fu = new FileUploader(req, res, next);
-     const link = fu.uploadFile().then(
+     const link = fu.uploadFile(false, 'Buildings/5/').then(
        (url) => {
+         console.log('Success UPLOAD');
          return res.send('<img src="' + fu.getUploadedFileLocation() + '" />');
        }
      ).catch((e) => {
