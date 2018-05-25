@@ -50,7 +50,7 @@ export class AdminService {
   }
 
   uploadComplianceDocs(formData) {
-    return this.http.post(this.baseUrl + '/admin/upload/compliance-documents/', formData, this.options);
+    return this.http.post(this.baseUrl + '/admin/upload/compliance-documents/', formData);
   }
 }
 
