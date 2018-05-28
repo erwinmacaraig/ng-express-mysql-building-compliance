@@ -33,7 +33,7 @@ export class ComplianceModel extends BaseClass {
         });
     }
 
-    public getWhere(arrWhere){
+    public getWhere(arrWhere): Promise<Array<object>> {
         return new Promise((resolve) => {
 
             let sql = `SELECT * FROM compliance`;
@@ -56,7 +56,11 @@ export class ComplianceModel extends BaseClass {
                     return console.log(error);
                 }
 
-                this.dbData = results;
+
+                if (results.length === 1) {
+                  this.dbData = results[0];
+                  this.id = results[0]['compliance_id'];
+                }
                 resolve(results);
             });
             connection.end();

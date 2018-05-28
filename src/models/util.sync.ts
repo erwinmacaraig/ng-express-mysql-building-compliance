@@ -1,4 +1,6 @@
 import {Location} from './location.model';
+import { Account } from './account.model';
+import { ComplianceKpisModel } from './comliance.kpis.model';
 
 /**
  * @class
@@ -48,4 +50,17 @@ export class UtilsSync {
     }
     return records;
   }
+
+  public async getAccountUploadDir(
+    account_id: number = 0,
+    building_id: number = 0,
+    compliance_item: number = 0,
+    document_type: string = 'Primary'
+  ): Promise<string> {
+    const account_dbData =  await new Account(account_id).load();
+    const building_dbData = await new Location(building_id).load();
+    const kpis_dbData = await new ComplianceKpisModel(compliance_item).load();
+    return `${account_dbData['account_directory_name']}/${building_dbData['location_directory_name']}/${kpis_dbData['directory_name']}/${document_type}/`;
+  }
+
 }

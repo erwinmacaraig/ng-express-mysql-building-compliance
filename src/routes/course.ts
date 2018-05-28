@@ -400,13 +400,15 @@ export class CourseRoute extends BaseRoute {
             tokenTrainModel = new Token(),
             multiTokenModel = new Token();
 
-        let tokens = await multiTokenModel.getAllByUserId(user.user_id);
-        for(let t in tokens){
-            if(tokens[t]['action'] == 'forgot-password'){
-                let tokenDelete = new Token(tokens[t]['token_id']);
-                await tokenDelete.delete();
+        try{
+            let tokens = await multiTokenModel.getAllByUserId(user.user_id);
+            for(let t in tokens){
+                if(tokens[t]['action'] == 'forgot-password'){
+                    let tokenDelete = new Token(tokens[t]['token_id']);
+                    await tokenDelete.delete();
+                }
             }
-        }
+        }catch(e){}
 
         let forgotPassLink = req.protocol + '://' + req.get('host') +'/token/'+saveData['token'],
             trainingLink = req.protocol + '://'+req.get('host') + '/token/'+tokenTraining;

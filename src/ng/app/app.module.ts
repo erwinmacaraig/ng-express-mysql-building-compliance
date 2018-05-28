@@ -218,8 +218,8 @@ import { NavComponent } from './admin/nav/nav.component';
     HttpClientModule,
     AppRoutingModule,
     AgmCoreModule.forRoot({
-      // apiKey: 'AIzaSyDiE9BDUZGheckC5U_yQqbQlVrEBENs9HA',
-      apiKey : 'AIzaSyD4QEsIs8QgjTj0bOIizxUZqIk7zVgFxzk ',
+      apiKey: 'AIzaSyDiE9BDUZGheckC5U_yQqbQlVrEBENs9HA',
+      // apiKey : 'AIzaSyD4QEsIs8QgjTj0bOIizxUZqIk7zVgFxzk',
       libraries: ['places']
     }),
     // todo: move to location module

@@ -8,10 +8,11 @@ import { AuthService } from '../../services/auth.service';
 import { SignupService } from '../../services/signup.service';
 import { ComplianceService } from '../../services/compliance.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { AdminService } from '../../services/admin.service';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { Observable } from 'rxjs/Rx';
-
+import { DatepickerOptions } from 'ng2-datepicker';
 import * as FileSaver from 'file-saver';
 
 declare var $: any;
@@ -21,7 +22,7 @@ declare var moment: any;
 	selector : 'app-view-compliance',
 	templateUrl : './view.compliance.component.html',
 	styleUrls : [ './view.compliance.component.css' ],
-  providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService]
+  providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService, AdminService]
 })
 export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("notesTemplate") notesTemplate : ElementRef;
@@ -82,6 +83,24 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	public totalPercentage;
 
     evacDiagramSublocations = <any>[];
+
+    options: DatepickerOptions = {
+        displayFormat: 'YYYY-MM-DD',
+        minDate: moment().toDate()
+    };
+
+    datepickerModel : Date;
+    isShowDatepicker = false;
+    datepickerModelFormatted = '';
+    validTillDate = '';
+    selectedKPIS = {
+        name : '',
+        short_code : ''
+    };
+    @ViewChild('inpFileUploadDocs') inpFileUploadDocs : ElementRef;
+    showModalUploadDocsLoader = false;
+    docsFileSizeIsMax = false;
+
 	constructor(
   		private router : Router,
   		private route: ActivatedRoute,
@@ -91,16 +110,25 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		private dashboard : DashboardPreloaderService,
 		private complianceService : ComplianceService,
 		private locationService : LocationsService,
-		private encryptDecrypt : EncryptDecryptService
+		private encryptDecrypt : EncryptDecryptService,
+        private adminService : AdminService
 		){
 
 		this.userData = this.authService.getUserData();
+
+        this.setDatePickerDefaultDate();
 
 		this.route.params.subscribe((params) => {
 			this.encryptedID = decodeURIComponent(params['encrypted']);
 			this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
 		});
 	}
+
+    setDatePickerDefaultDate(){
+        this.datepickerModel = moment().add(1, 'days').toDate();
+        this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
+        this.validTillDate = moment(this.datepickerModel).add(1, 'years').format('YYYY-MM-DD');
+    }
 
 	setKPISdataForDisplay() {
         let counter = 0;
@@ -211,32 +239,32 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 	ngAfterViewInit(){
 		$('.workspace.container').css('position', 'relative');
-    this.dashboard.show();
+        this.dashboard.show();
 
-    $('.modal').modal({
-      dismissible: false
-    });
+        $('.modal').modal({
+          dismissible: false
+        });
 	}
 
 	clickSelectComplianceFromList(compliance){
-    this.selectedCompliance = compliance;
-    console.log(this.selectedCompliance);
-		let attr = compliance.short_code,
-			allTr = $("tr[compliance]"),
-			tr = $("tr[compliance='"+attr+"']");
+        this.selectedCompliance = compliance;
+        console.log(this.selectedCompliance);
+    		let attr = compliance.short_code,
+    			allTr = $("tr[compliance]"),
+    			tr = $("tr[compliance='"+attr+"']");
 
-		allTr.removeClass('active');
-		tr.addClass('active');
+    		allTr.removeClass('active');
+    		tr.addClass('active');
 
-		/*$('.row-diagram-details .content').html('');
-		if(targetPreview.length > 0){
-			$('.row-diagram-details .content').html( targetPreview.html() );
-		}*/
-		$('select').material_select();
+    		/*$('.row-diagram-details .content').html('');
+    		if(targetPreview.length > 0){
+    			$('.row-diagram-details .content').html( targetPreview.html() );
+    		}*/
+    		$('select').material_select();
 
-		this.selectedComplianceTitle = compliance.name;
-		this.selectedComplianceDescription = compliance.description;
-		this.selectedComplianceClasses = compliance.icon_class;
+    		this.selectedComplianceTitle = compliance.name;
+    		this.selectedComplianceDescription = compliance.description;
+    		this.selectedComplianceClasses = compliance.icon_class;
 
 	}
 
@@ -262,61 +290,139 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	ngOnDestroy() {
+    }
 
-  }
-
-  downloadAllPack() {
-    this.dashboard.show();
-    //
-    this.complianceService.downloadAllComplianceDocumentPack(this.locationID).subscribe((data) => {
-      this.dashboard.hide();
-      const blob = new Blob([data.body], {type: 'application/zip'});
-      const filename = 'compliance-docs.zip';
-      FileSaver.saveAs(blob, filename);
-    }, (err) => {
-      this.dashboard.hide();
-      console.log(err);
-      console.log('There was an error');
-    });
-  }
+    downloadAllPack() {
+        this.dashboard.show();
+        //
+        this.complianceService.downloadAllComplianceDocumentPack(this.locationID).subscribe((data) => {
+          this.dashboard.hide();
+          const blob = new Blob([data.body], {type: 'application/zip'});
+          const filename = 'compliance-docs.zip';
+          FileSaver.saveAs(blob, filename);
+        }, (err) => {
+          this.dashboard.hide();
+          console.log(err);
+          console.log('There was an error');
+        });
+    }
 
 
-  downloadKPIFile(kpi_file, filename) {
-    console.log(kpi_file);
-    console.log(filename);
-    this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
-      const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
-      FileSaver.saveAs(blob, filename);
-      console.log(data);
-    },
-    (error) => {
-      console.log('There was an error', error);
-    });
-  }
+    downloadKPIFile(kpi_file, filename) {
+        console.log(kpi_file);
+        console.log(filename);
+        this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
+          const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
+          FileSaver.saveAs(blob, filename);
+          console.log(data);
+        },
+        (error) => {
+          console.log('There was an error', error);
+        });
+    }
 
-  assignAccessToTRP(e, compliance) {
-    this.selectedCompliance = compliance;
-    const temp = this.selectedCompliance.compliance.docs[0].viewable_by_trp;
-    this.selectedCompliance.compliance.docs[0].viewable_by_trp =
-       !this.selectedCompliance.compliance.docs[0].viewable_by_trp;
+    assignAccessToTRP(e, compliance) {
+        this.selectedCompliance = compliance;
+        const temp = this.selectedCompliance.compliance.docs[0].viewable_by_trp;
+        this.selectedCompliance.compliance.docs[0].viewable_by_trp =
+           !this.selectedCompliance.compliance.docs[0].viewable_by_trp;
 
-    this.complianceService.toggleTRPViewAccess(
-      this.selectedCompliance.compliance.docs[0].compliance_documents_id,
-      this.selectedCompliance.compliance.docs[0].viewable_by_trp).subscribe((data) => {
+        this.complianceService.toggleTRPViewAccess(
+        this.selectedCompliance.compliance.docs[0].compliance_documents_id,
+        this.selectedCompliance.compliance.docs[0].viewable_by_trp).subscribe((data) => {
         console.log('Toggled View TRP to ' + this.selectedCompliance.compliance.docs[0].viewable_by_trp);
-      }, (error) => {
+        }, (error) => {
         this.selectedCompliance.compliance.docs[0].viewable_by_trp = temp;
         console.log(error);
-      });
-  }
+        });
+    }
 
-  public viewWardenList(location_id:number = 0) {
-    this.userService.getTenantsInLocation(location_id, (tenantsResponse) => {
-      this.tenants = tenantsResponse.data;
-      // this.showModalNewTenantLoader = false;
-      $('#modalWardenList').modal('open');
-      console.log(this.tenants);
-  });
-  }
+    public viewWardenList(location_id:number = 0) {
+        this.userService.getTenantsInLocation(location_id, (tenantsResponse) => {
+          this.tenants = tenantsResponse.data;
+          // this.showModalNewTenantLoader = false;
+          $('#modalWardenList').modal('open');
+          console.log(this.tenants);
+        });
+    }
+
+    showModalUploadDocs(shortCode){
+        for(let kpi of this.KPIS){
+            if(kpi.short_code == shortCode){
+                this.selectedKPIS = kpi;
+                this.validTillDate = moment(this.datepickerModel).add(this.selectedKPIS['validity_in_months'], 'months').format('YYYY-MM-DD');
+            }
+        }
+
+        if(Object.keys(this.selectedKPIS).length > 0){
+            $('#modalManageUpload').modal('open');
+            this.docsFileSizeIsMax = false;
+        }
+
+        console.log(this.KPIS);
+    }
+
+    onChangeDatePicker(event){
+        if(!moment(this.datepickerModel).isValid()){
+            this.datepickerModel = new Date();
+            this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
+        }else{
+            this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
+        }
+        this.validTillDate = moment(this.datepickerModel).add(this.selectedKPIS['validity_in_months'], 'months').format('YYYY-MM-DD');
+        this.isShowDatepicker = false;
+    }
+
+    showDatePicker(){
+        this.isShowDatepicker = true;
+    }
+
+    onFileSelected(event, form){
+        event.preventDefault();
+        let filsizeValid = false;
+        if(event.target.files[0]){
+            if(event.target.files[0].size < 2000000){
+                filsizeValid = true;
+            }
+        }
+
+        if(!filsizeValid){
+            form.controls.file.reset();
+            this.docsFileSizeIsMax = true;
+        }else{
+            this.docsFileSizeIsMax = false;
+        }
+    }
+
+    selectFile(inpFile){
+        inpFile.click();
+    }
+
+    submitUploadDocs(form:NgForm){
+        let formData = new FormData();
+        formData.append('account_id', this.userData['accountId']);
+        formData.append('building_id', this.locationID.toString());
+        formData.append('compliance_kpis_id', this.selectedKPIS['compliance_kpis_id']);
+        formData.append('viewable_by_trp', form.value.viewable_by_trp);
+        formData.append('file', this.inpFileUploadDocs.nativeElement.files[0], this.inpFileUploadDocs.nativeElement.files[0].name);
+        formData.append('date_of_activity', form.value.date_of_activity);
+        formData.append('description', form.value.description);
+
+        this.showModalUploadDocsLoader = true;
+        $('#modalManageUpload').css('width', 'fit-content');
+
+        this.adminService.uploadComplianceDocs(formData).subscribe((response) => {
+            this.showModalUploadDocsLoader = false;
+            $('#modalManageUpload').css('width');
+            console.log(response);
+        });
+    }
+
+    cancelUploadDocs(form){
+        form.controls.file.reset();
+        form.controls.description.reset();
+        $('#modalManageUpload form input[name="description"]').trigger('autoresize');
+        this.setDatePickerDefaultDate();
+    }
 
 }
