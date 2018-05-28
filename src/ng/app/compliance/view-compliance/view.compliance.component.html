@@ -137,7 +137,7 @@
                     (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
                     class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0" style="width:46%;">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']" style="width:45%;">Shop</button>
-                    <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs('epc')" style="display: block;width: 95%;">Manage</button>
+                    <!-- <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs('epc')" style="display: block;width: 95%;">Manage</button> -->
 				</div>
 			</div>
 			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
@@ -658,7 +658,7 @@
 						{{doc.file_name}}
 					</td>
 					<td>
-						
+
 					</td>
 					<td style="padding: 2px;">
 						<a  class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
@@ -718,7 +718,7 @@
 						{{doc.file_name}}
 					</td>
 					<td>
-						
+
 					</td>
 					<td style="padding: 2px;">
 						<a  class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
@@ -787,7 +787,7 @@
                         </a>
                     </td>
                 </tr>
-                <!--  
+                <!--
 				<tr>
 					<td class="with-icon">
 						<div class="image check"></div>
@@ -1099,7 +1099,7 @@
 						{{doc.file_name}}
 					</td>
 					<td>
-						
+
 					</td>
 					<td style="padding: 2px;">
 						<a  class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
@@ -1312,8 +1312,8 @@
 
 							<div class="arrow"></div>
 						</td>
-						<td class="with-bar red-theme" 
-                            [ngClass]="{ 'green-theme' : k.compliance['percentage_number'] >= 100 }" 
+						<td class="with-bar red-theme"
+                            [ngClass]="{ 'green-theme' : k.compliance['percentage_number'] >= 100 }"
                             *ngIf="k.type == 'percent' && k.compliance_kpis_id != 5 && k.compliance_kpis_id != 13">
 							<div class="text">{{k.compliance.percentage}}</div>
 							<div class="progress-container">
@@ -1432,18 +1432,18 @@
             </div>
         </div>
     </div>
-    
+
 
     <form #form="ngForm" [hidden]="showModalUploadDocsLoader">
 
     <div class="modal-content">
         <h5>Upload document for {{this.selectedKPIS.name}}</h5>
-        
+
         <div class="row" style="margin-top: 35px;">
-            
+
             <div class="col m12 l6">
                 <div class="input-field">
-                    
+
                     <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
                     <input id="dateOfActivity" autocomplete="off" type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="date_of_activity" (click)="showDatePicker()" required >
                     <label for="dateOfActivity" class="active" >Date of Activity</label>
@@ -1466,11 +1466,8 @@
 
             <div class="col l12">
                 <button class="btn orange waves-light waves-effect" (click)="selectFile(inpFileUploadDocs)" style="margin: 2% 0%; font-size: 14px !important;">Select File</button>
-                
                 <div class="file-name" style="display: inline;padding: 0% 2%;font-size: 14px;" *ngIf="inpFileUploadDocs.files[0]">{{inpFileUploadDocs.files[0].name }}</div>
-                
                 <div style="display: inline;padding: 0% 2%;font-size: 14px;" *ngIf="docsFileSizeIsMax"> File is too large. File must be less than 20Mb </div>
-                
                 <input type="file" ngModel name="file" required class="file" hidden #inpFileUploadDocs (change)="onFileSelected($event, form)" />
             </div>
 
@@ -1486,10 +1483,10 @@
                     </div>
                 </div>
             </div>
-            
+
 
         </div>
-        
+
     </div>
     <div class="modal-footer">
         <a class="modal-action modal-close waves-effect waves-red btn-flat" (click)="cancelUploadDocs(form)">Cancel</a>

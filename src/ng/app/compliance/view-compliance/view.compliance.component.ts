@@ -385,7 +385,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 filsizeValid = true;
             }
         }
-        
+
         if(!filsizeValid){
             form.controls.file.reset();
             this.docsFileSizeIsMax = true;

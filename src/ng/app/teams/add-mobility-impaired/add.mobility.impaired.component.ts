@@ -448,33 +448,67 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
     onKeyUpSearchModalLocationEvent(){
-        this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
-            .debounceTime(500)
-            .subscribe((event) => {
-            this.formLocValid = false;
-            let value = event['target'].value,
-                result = [];
+      this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
+      .debounceTime(500)
+      .subscribe((event) => {
+      this.formLocValid = false;
+      let value = event['target'].value,
+          result = [];
+      let seenSubLocIndex = [];
+      const seenIndex = [];
+      let findRelatedName;
 
-            let findRelatedName = (data, mainParent?) => {
-                for(let i in data){
-                    if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
-                        result.push(data[i]);
-                    }
-                }
+      if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
+          parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
+          parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
+          parseInt(this.selectedUser['account_role_id'], 10) === 16 ||
+          parseInt(this.selectedUser['account_role_id'], 10) === 18
+      ) {
+        findRelatedName = (data, mainParent?) => {
+          for(let i in data) {
+              if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+                  result.push(data[i]);
+              }
+          }
+          return result;
+        };
+      } else {
 
-                return result;
-            };
-
-            if(value.length > 0){
-                result = [];
-                findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
-                this.locations = result;
-            }else{
-                this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
+        findRelatedName = (data, mainParent?) => {
+          for ( let i = 0; i < data.length; i++) {
+            if (data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+              result.push(data[i]);
             }
+          }
+          for ( let i = 0; i < data.length; i++) {
+              seenSubLocIndex = [];
+              for (let s = 0; s < data[i]['sublocations'].length; s++) {
+                if (data[i]['sublocations'][s]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                  if (seenIndex.indexOf(i)) {
+                    seenIndex.push(i);
+                  }
+                  seenSubLocIndex.push(data[i]['sublocations'][s]);
+                  data[i]['sublocations'] = seenSubLocIndex;
+                }
+              }
+            }
+            for (let si = 0; si < seenIndex.length; si++) {
+              result.push(data[seenIndex[si]]);
+            }
+          return result;
+        };
+      }
 
-            this.buildLocationsListInModal();
-        });
+      if(value.length > 0){
+          result = [];
+          findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
+          this.locations = result;
+      }else{
+          this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
+      }
+
+        this.buildLocationsListInModal();
+      });
     }
 
     ngOnDestroy(){
