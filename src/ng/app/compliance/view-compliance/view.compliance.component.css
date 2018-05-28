@@ -157,16 +157,16 @@
 .row-table-content .progress-loading-container .loading .tip-percentage{
     position: absolute;
     top: -43px;
-    right: -17px;
+    right: -20px;
 }
 
 .row-table-content .progress-loading-container .loading .percentage{
-    width: 35px;
+    width: 40px;
     height: 30px;
     line-height: 30px;
     background-color: #525151;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 12px;
     color: #fff;
     text-align: center;
 }

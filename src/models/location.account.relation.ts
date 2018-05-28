@@ -246,7 +246,8 @@ export class LocationAccountRelation extends BaseClass {
         if ('responsibility' in filter) {
           if (filter['responsibility'] === defs['Tenant']) {
             filterStr += ` AND lar.responsibility = 'Tenant'`;
-            filter['is_building'] = 0;
+            // not needed due to TRP whole occupier
+            // filter['is_building'] = 0;
           }
           if (filter['responsibility'] === defs['Manager']) {
             filterStr += ` AND lar.responsibility = 'Manager'`;

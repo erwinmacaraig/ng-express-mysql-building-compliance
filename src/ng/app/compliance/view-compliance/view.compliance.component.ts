@@ -221,7 +221,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                     this.latestComplianceData = responseCompl.data;
                     this.setKPISdataForDisplay();
 
-                    this.totalPercentage = responseCompl.percent + '%';
+                    this.totalPercentage = responseCompl.percent;
 
                     setTimeout(() => {
                         $('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
@@ -381,7 +381,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         event.preventDefault();
         let filsizeValid = false;
         if(event.target.files[0]){
-            if(event.target.files[0].size < 2000000){
+            if(event.target.files[0].size < 20000000){
                 filsizeValid = true;
             }
         }
@@ -412,9 +412,17 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         $('#modalManageUpload').css('width', 'fit-content');
 
         this.adminService.uploadComplianceDocs(formData).subscribe((response) => {
-            this.showModalUploadDocsLoader = false;
-            $('#modalManageUpload').css('width');
-            console.log(response);
+            this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
+                this.latestComplianceData = responseCompl.data;
+                this.setKPISdataForDisplay();
+
+                this.totalPercentage = responseCompl.percent;
+
+                setTimeout(() => {
+                    this.showModalUploadDocsLoader = false;
+                    $('#modalManageUpload').css('width');
+                }, 100);
+            });
         });
     }
 

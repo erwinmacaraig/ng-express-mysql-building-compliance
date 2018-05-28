@@ -49,90 +49,90 @@ import * as S3Zipper from 'aws-s3-zipper';
    	* @method create
    	* @static
    	*/
-  public static create(router: Router) {
-    router.get('/compliance/kpis', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-      new ComplianceRoute().getKPIS(req, res, next);
-    });
-
-    router.post('/compliance/locations-latest-compliance',
-      new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-        new ComplianceRoute().getLocationsLatestCompliance(req, res);
-    });
-
-    router.get('/compliance/download-compliance-documents-pack/',
-    new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-      new ComplianceRoute().downloadDocumentCompliancePack(req, res, next);
-    });
-
-    router.get('/compliance/download-compliance-file/',
-        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-            const uploader = new FileUploader(req, res, next);
-            uploader.getFile().then((data) => {
-                console.log(data);
-                res.end();
-            });
-    });
-
-    router.post('/compliance/toggleTPRViewAccess/',
-        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-          const compliance_documents_id = ('compliance_documents_id' in req.body) ? req.body.compliance_documents_id : 0;
-          const viewable_by_trp = ('viewable_by_trp' in req.body) ? req.body.viewable_by_trp : 0;
-          const complianceDocObj = new ComplianceDocumentsModel(compliance_documents_id);
-          complianceDocObj.load().then((loadData) => {
-            return complianceDocObj.create({'viewable_by_trp': viewable_by_trp});
-          }).then((createResults) => {
-            return res.status(200).send({'viewable_by_trp': viewable_by_trp});
-          }).catch((e) => {
-            return res.status(400).send({'message':  'Change Failed.'});
-          });
-    });
-
-    router.post('/compliance/warden-calculations/',
-        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-      // http://ec2-13-55-135-227.ap-southeast-2.compute.amazonaws.com/apis/warden_number_calculator/
-      const createData = req.body;
-      const headers = {
-        'User-Agent': 'Evacconnect-client',
-        'Accept': 'application/json'
-      };
-
-      const options = {
-        url: 'http://ec2-13-55-135-227.ap-southeast-2.compute.amazonaws.com/apis/warden_number_calculator/',
-        method: 'POST',
-        headers: headers,
-        json: true,
-        body: req.body
-      };
-     request(options, (error, response, body) => {
-        if (error) {
-          console.log('error from calling api', error);
-          return res.send({
-            'status':  'Cannot query server for calculations'
-          });
-        }
-        let resultObj;
-        resultObj = JSON.parse(body.slice(body.indexOf('{'), body.length));
-        const wardenCalc = new WardenBenchmarkingCalculator();
-        createData['total_estimated_wardens'] = resultObj['total_estimated_wardens']['value'];
-        createData['updated_by'] = req.user.user_id;
-        wardenCalc.create(createData).then(() => {
-          return res.send({
-            'message': 'Success',
-            'data': resultObj
-          });
-        }).catch((e) => {
-          return res.status(400).send({
-            'message': 'Calculation was successful but cannot store results',
-            'error': e
-          });
+    public static create(router: Router) {
+        router.get('/compliance/kpis', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+          new ComplianceRoute().getKPIS(req, res, next);
         });
-     });
-    });
 
-    router.post('/compliance/get-sublocations-evac-diagrams', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        new ComplianceRoute().getSublocationsEvacDiagrams(req, res);
-    });
-  }
+        router.post('/compliance/locations-latest-compliance',
+          new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+            new ComplianceRoute().getLocationsLatestCompliance(req, res);
+        });
+
+        router.get('/compliance/download-compliance-documents-pack/',
+        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+          new ComplianceRoute().downloadDocumentCompliancePack(req, res, next);
+        });
+
+        router.get('/compliance/download-compliance-file/',
+            new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+                const uploader = new FileUploader(req, res, next);
+                uploader.getFile().then((data) => {
+                    console.log(data);
+                    res.end();
+                });
+        });
+
+        router.post('/compliance/toggleTPRViewAccess/',
+            new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+              const compliance_documents_id = ('compliance_documents_id' in req.body) ? req.body.compliance_documents_id : 0;
+              const viewable_by_trp = ('viewable_by_trp' in req.body) ? req.body.viewable_by_trp : 0;
+              const complianceDocObj = new ComplianceDocumentsModel(compliance_documents_id);
+              complianceDocObj.load().then((loadData) => {
+                return complianceDocObj.create({'viewable_by_trp': viewable_by_trp});
+              }).then((createResults) => {
+                return res.status(200).send({'viewable_by_trp': viewable_by_trp});
+              }).catch((e) => {
+                return res.status(400).send({'message':  'Change Failed.'});
+              });
+        });
+
+        router.post('/compliance/warden-calculations/',
+            new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+          // http://ec2-13-55-135-227.ap-southeast-2.compute.amazonaws.com/apis/warden_number_calculator/
+          const createData = req.body;
+          const headers = {
+            'User-Agent': 'Evacconnect-client',
+            'Accept': 'application/json'
+          };
+
+          const options = {
+            url: 'http://ec2-13-55-135-227.ap-southeast-2.compute.amazonaws.com/apis/warden_number_calculator/',
+            method: 'POST',
+            headers: headers,
+            json: true,
+            body: req.body
+          };
+         request(options, (error, response, body) => {
+            if (error) {
+              console.log('error from calling api', error);
+              return res.send({
+                'status':  'Cannot query server for calculations'
+              });
+            }
+            let resultObj;
+            resultObj = JSON.parse(body.slice(body.indexOf('{'), body.length));
+            const wardenCalc = new WardenBenchmarkingCalculator();
+            createData['total_estimated_wardens'] = resultObj['total_estimated_wardens']['value'];
+            createData['updated_by'] = req.user.user_id;
+            wardenCalc.create(createData).then(() => {
+              return res.send({
+                'message': 'Success',
+                'data': resultObj
+              });
+            }).catch((e) => {
+              return res.status(400).send({
+                'message': 'Calculation was successful but cannot store results',
+                'error': e
+              });
+            });
+         });
+        });
+
+        router.post('/compliance/get-sublocations-evac-diagrams', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new ComplianceRoute().getSublocationsEvacDiagrams(req, res);
+        });
+    }
 
     public downloadDocumentCompliancePack(req: AuthRequest, res: Response, next: NextFunction) {
 
@@ -203,6 +203,8 @@ import * as S3Zipper from 'aws-s3-zipper';
 	public async getLocationsLatestCompliance(req: AuthRequest, res: Response, toReturn?, formData?) {
 		let locationID = (formData) ? formData.location_id : req.body.location_id,
 			accountID = req.user.account_id,
+            userId = req.user.user_id,
+            accountModel = new Account(accountID),
 			locAccModel = new LocationAccountRelation(),
 			complianceModel = new ComplianceModel(),
 			kpisModel = new ComplianceKpisModel(),
@@ -214,17 +216,29 @@ import * as S3Zipper from 'aws-s3-zipper';
             epcMeetingId = 2,
             evacDiagramId = 5,
             epmId = 4,
-            sundryId = 13;
+            sundryId = 13,
+            fsaId = 3,
+            account= <any> {},
+            epcCommitteeOnHQ = false;
+
+        /*
+        * epcCommitteeOnHQ if true, no documents required for compliance
+        */
+
+        try{
+            account = await accountModel.load();
+            epcCommitteeOnHQ = (account.epc_committee_on_hq == 1) ? true : false;
+        }catch(e){}
 
         // Retrieve the highest account role
         let role = 0;
         const userRoleRelObj = new UserRoleRelation();
         try {
-            role = await userRoleRelObj.getByUserId(req.user.user_id, true, locationID);
+            role = await userRoleRelObj.getByUserId(userId, true, locationID);
         } catch (e) {
             console.log(e);
             try {
-                role = await userRoleRelObj.getByUserId(req.user.user_id, true);
+                role = await userRoleRelObj.getByUserId(userId, true);
             } catch (err) {
                 console.log(err);
                 role = 0;
@@ -571,6 +585,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 'failed': []
             };
             comp['percentage'] = '0%';
+            comp['points'] = 0;
 
             if (m === 'Traffic' || m === 'evac') {
 
@@ -838,11 +853,144 @@ import * as S3Zipper from 'aws-s3-zipper';
                 comp['num_wardens'] = (wardens[0]) ? wardens[0]['count'] : 0;
             }
 
+            if(comp.compliance_kpis_id == fsaId){
+                comp['validity_status'] = 'valid';
+            }
+
             comp['percentage_number'] = parseInt(comp['percentage'].replace('%', '').trim());
+        }
+
+        /*
+        ** New Compliance Percentage Computation Based On User's Role 
+        ** Indexed with KPIS IDS
+        */
+        let 
+        frpRates = {
+            2 : { kpis : 'EPC Meeting', valid : 10, no_docs : 0, expired_docs : 5, epc_headoffice_points : 10 },
+            3 : { kpis : 'Fire Safety Advisor', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            6 : { kpis : 'Warden Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            8 : { kpis : 'General Occupant Training', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
+        },
+        trpRates = {
+            2 : { kpis : 'EPC Meeting', valid : 0, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            3 : { kpis : 'Fire Safety Advisor', valid : 15, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            6 : { kpis : 'Warden Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            8 : { kpis : 'General Occupant Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            9 : { kpis : 'Evacuation Exercise', valid : 10, no_docs : 0, expired_docs : 5, epc_headoffice_points : 20 },
+            12 : { kpis : 'Chief Warden Training', valid : 0, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
+        },
+        trpWholeOcccupierRates = {
+            2 : { kpis : 'EPC Meeting', valid : 5, no_docs : 0, expired_docs : 2.5, epc_headoffice_points : 5 },
+            3 : { kpis : 'Fire Safety Advisor', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 15, no_docs : 0, expired_docs : 7.5, epc_headoffice_points : 15 },
+            5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            6 : { kpis : 'Warden Training', valid : 20, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            8 : { kpis : 'General Occupant Training', valid : 15, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
+        },
+        locAccUserModel = new LocationAccountUser(),
+        locationModelForTRP = new Location(locationID),
+        ancetriesIds = await locationModelForTRP.getAncestryIds(locationID),
+        loc = <any> {},
+        ancIdsArray = [],
+        ancestries = [],
+        userComplianceRole = '',
+        userLocationData = <any> {},
+        isWholeBuildingOccupier = (role == 1) ?  true : false,
+        rates = JSON.parse(JSON.stringify(frpRates));
+
+        try{
+            loc = await locationModelForTRP.load();
+
+            if(ancetriesIds[0]){
+                let tempId = ancetriesIds[0]['ids'].split(',');
+                for(let id of tempId){
+                    if(id > 0){
+                        ancIdsArray.push(id);
+                    }
+                }
+
+                if(ancIdsArray.length > 0){
+                    ancestries = <any> await locationModelForTRP.getByInIds(ancIdsArray.join(','));
+                }
+
+            }
+            ancestries.push(loc);
+
+            // Sort from highest id to lowest id
+            ancestries.sort((a, b) => {
+                if(a.location_id < b.location_id){
+                    return 1;
+                }else if(a.location_id > b.location_id){
+                    return -1;
+                }else{
+                    return 0;
+                }
+            });
+
+            this.response['locations'] = ancestries;
+        }catch(e){
 
         }
 
+        let theBuilding = {};
+        for(let loc of ancestries){
+            if(loc.is_building == 1){
+                theBuilding = loc;
+            }else if(loc.parent_id == -1 && Object.keys(theBuilding).length == 0){
+                theBuilding = loc;
+            }
+        }
 
+        this.response['building'] = theBuilding;
+
+        try{
+            userLocationData = await locAccUserModel.getByLocationIdAndUserId(locationID, userId);
+            if(role == 2){
+                isWholeBuildingOccupier = (loc.location_id == locationID) ? true : false;
+            }
+        }catch(e){}
+
+        userComplianceRole = (role == 1) ? 'frp' : (isWholeBuildingOccupier) ? 'trpWholeOccupier' : 'trp';
+
+        this.response['userLocationData'] = userLocationData;
+        this.response['userComplianceRole'] = userComplianceRole;
+
+        if(userComplianceRole == 'trp'){
+            rates = JSON.parse(JSON.stringify(trpRates));
+        }else if(userComplianceRole == 'trpWholeOccupier'){
+            rates = JSON.parse(JSON.stringify(trpWholeOcccupierRates));
+        }
+
+        for(let comp of compliances){
+            let tempPoints = comp.points;
+            if( rates[ comp.compliance_kpis_id ] ){
+
+                if(epcCommitteeOnHQ && rates[comp.compliance_kpis_id]['epc_headoffice_points'] > 0 ){
+                    tempPoints = rates[comp.compliance_kpis_id]['valid'];
+                    comp['validity_status'] = 'valid';
+                }else{
+
+                    if(comp['validity_status'] == 'valid' || comp['valid'] == 1){
+                        tempPoints = rates[comp.compliance_kpis_id]['valid'];
+                    }else if(comp['validity_status'] == 'expiring' || comp['validity_status'] == 'invalid'){
+                        tempPoints = rates[comp.compliance_kpis_id]['expired_docs'];
+                    }
+
+                }
+            }
+
+            comp['points'] = tempPoints;
+        }
+
+        this.response['rates'] = rates;
 		this.response.status = true;
 		this.response.data = compliances;
         this.response['percent'] = 0;
@@ -852,14 +1000,12 @@ import * as S3Zipper from 'aws-s3-zipper';
         for (let comp of compliances) {
             if(sundryId != comp.compliance_kpis_id){
                 totalcount++;
-                if(comp['valid'] == 1){
-                    validcount++;
-                }
+                validcount = validcount + comp.points;
             }
         }
 
         if(totalcount > 0){
-            this.response['percent'] = Math.round( (validcount / totalcount) * 100 );
+            this.response['percent'] = Math.floor((validcount / 100) * 100);
         }
 
 		res.statusCode = 200;
