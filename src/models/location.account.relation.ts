@@ -246,7 +246,8 @@ export class LocationAccountRelation extends BaseClass {
         if ('responsibility' in filter) {
           if (filter['responsibility'] === defs['Tenant']) {
             filterStr += ` AND lar.responsibility = 'Tenant'`;
-            filter['is_building'] = 0;
+            // filter['is_building'] = 0; - there are people assigned as Tenant that occupies the whole building
+            // that is why the assumption is incorrect, thus commenting this line
           }
           if (filter['responsibility'] === defs['Manager']) {
             filterStr += ` AND lar.responsibility = 'Manager'`;
@@ -340,14 +341,14 @@ export class LocationAccountRelation extends BaseClass {
             LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
             LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
 
-            LEFT JOIN  location_account_relation lar 
-            ON lar.location_id = l.location_id 
-            OR p1.location_id = lar.location_id 
-            OR p2.location_id = lar.location_id 
+            LEFT JOIN  location_account_relation lar
+            ON lar.location_id = l.location_id
+            OR p1.location_id = lar.location_id
+            OR p2.location_id = lar.location_id
             OR p3.location_id = lar.location_id
             OR p4.location_id = lar.location_id
 
-            WHERE 
+            WHERE
             lar.account_id = ?
             ${filterStr}
             ${nameSearchForTRP}
@@ -368,14 +369,14 @@ export class LocationAccountRelation extends BaseClass {
                     LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
                     LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
 
-                    INNER JOIN  location_account_relation lar 
-                    ON lar.location_id = l.location_id 
-                    OR p1.location_id = lar.location_id 
-                    OR p2.location_id = lar.location_id 
+                    INNER JOIN  location_account_relation lar
+                    ON lar.location_id = l.location_id
+                    OR p1.location_id = lar.location_id
+                    OR p2.location_id = lar.location_id
                     OR p3.location_id = lar.location_id
                     OR p4.location_id = lar.location_id
 
-                    WHERE 
+                    WHERE
                     lar.account_id = ?
                     ${filterStr}
                     ${nameSearchForTRP}
