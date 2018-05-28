@@ -448,10 +448,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
             let value = event['target'].value,
                 result = [];
             let seenSubLocIndex = [];
-
             const seenIndex = [];
-            const finalResult = [];
-
             let findRelatedName;
 
             if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
@@ -499,7 +496,6 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 result = [];
                 findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
                 this.locations = result;
-                console.log(this.locations);
             }else{
                 this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
             }
