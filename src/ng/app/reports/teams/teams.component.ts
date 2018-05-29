@@ -7,7 +7,7 @@ import { ReportService } from '../../services/report.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { ExportToCSV } from '../../services/export.to.csv';
 import html2canvas from 'html2canvas';
-import * as jsPDF from 'jspdf';
+// import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
 
 

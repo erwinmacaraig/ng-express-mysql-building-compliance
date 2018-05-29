@@ -7,12 +7,12 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { ExportToCSV } from '../../services/export.to.csv';
 import html2canvas from 'html2canvas';
-import * as jsPDF from 'jspdf';
+// import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
 
 
 declare var $ : any;
-declare var jsPDF: any;
+// declare var jsPDF: any;
 
 @Component({
 	selector : 'app-reports-locations-summary-compliance-component',
