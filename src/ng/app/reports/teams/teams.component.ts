@@ -111,16 +111,16 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
         this.pdfLoader = true;
         this.csvLoader = true;
-        
 
-        let 
+
+        let
         divider = 50,
         divRes = this.pagination.total / divider,
         divResString = divRes.toString(),
         remainderSplit = divResString.split('.'),
         remainder = (remainderSplit[1]) ? parseInt(remainderSplit[1]) : 0;
 
-        divRes = (remainder > 0) ? divRes + 1 : divRes; 
+        divRes = (remainder > 0) ? divRes + 1 : divRes;
 
         for(let i = 1; i<=divRes; i++){
             let offset = (i * divider) - divider;
@@ -138,7 +138,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
                         allLoaded = false;
                     }
                 }
-                
+
                 if(allLoaded){
 
                     for(let x in this.exportFetchMarker){
@@ -187,7 +187,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
                     changeDone = true;
                 }
                 break;
-            
+
             default:
                 if(this.pagination.prevPage != parseInt(type)){
                     this.pagination.currentPage = parseInt(type);
@@ -208,6 +208,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     }
 
     printResult(printContainer){
+      /*
         let headerHtml = `<h5> Team Report </h5>`;
 
         $(printContainer).printThis({
@@ -216,9 +217,11 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
             loadCSS: [ "/assets/css/materialize.css" ],
             header : headerHtml
         });
+        */
     }
 
     pdfExport(printContainer){
+      /*
         let
         pdf = new jsPDF("p", "pt"),
         columns = [
@@ -233,7 +236,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         count = 0;
 
         for(let report of this.exportData){
-            let 
+            let
             rows = [],
             locName = (report.location.parent.name.length > 0) ? report.location.parent.name+', '+report.location.name : report.location.name;
             locName += '\nCurrent Team Information';
@@ -327,6 +330,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         }
 
         pdf.save('teams-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
+        */
     }
 
     csvExport(){

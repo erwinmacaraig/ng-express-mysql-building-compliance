@@ -22,7 +22,7 @@ declare var jsPDF: any;
 })
 
 export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnDestroy {
-	
+
 	userData = {};
 	locationId = 0;
 
@@ -96,16 +96,16 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 
         this.pdfLoader = true;
         this.csvLoader = true;
-        
 
-        let 
+
+        let
         divider = 50,
         divRes = this.pagination.total / divider,
         divResString = divRes.toString(),
         remainderSplit = divResString.split('.'),
         remainder = (remainderSplit[1]) ? parseInt(remainderSplit[1]) : 0;
 
-        divRes = (remainder > 0) ? divRes + 1 : divRes; 
+        divRes = (remainder > 0) ? divRes + 1 : divRes;
 
         for(let i = 1; i<=divRes; i++){
             let offset = (i * divider) - divider;
@@ -116,7 +116,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 
             this.getComplianceSummaryReport((response:any) => {
 
-                
+
                 this.exportDataRatings.push(response['data']['compliance_rating']);
 
                 for(let loc of response['data']['locations']){
@@ -129,7 +129,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
                             if(c.compliance_kpis_id == k.compliance_kpis_id){
                                 k['compliance'] = c;
                             }
-                        } 
+                        }
                     }
                 }
 
@@ -140,13 +140,13 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
                         allLoaded = false;
                     }
                 }
-                
+
                 if(allLoaded){
 
                     for(let x in this.exportFetchMarker){
                         this.exportData = this.exportData.concat( this.exportFetchMarker[x] );
                     }
-                    
+
                     let numerators = [],
                         denaminator = 0;
                     for(let ratings of this.exportDataRatings){
@@ -181,13 +181,13 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 	getComplianceSummaryReport(callBack, forExport?){
 
         this.queries.location_id = this.locationId;
-		
+
 		this.reportService.getComplianceSummary(this.queries).subscribe((response:any) => {
 
             if(!forExport){
     			this.reportData.locations = response['data']['locations'];
                 this.reportData.totalComplianceRating = response['data']['compliance_rating'];
-                
+
                 let kpis = [];
                 for(let kp of response['data']['kpis']){
                     if(this.sundryId !== kp.compliance_kpis_id){
@@ -208,11 +208,11 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
                             if(c.compliance_kpis_id == k.compliance_kpis_id){
                                 k['compliance'] = c;
                             }
-                        } 
+                        }
                     }
                 }
 
-    			 
+
     			for(let loc of this.reportData.locations){
     				loc['locIdEnc'] = this.encryptDecrypt.encrypt( loc.location_id );
     			}
@@ -247,7 +247,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
                     changeDone = true;
                 }
                 break;
-            
+
             default:
                 if(this.pagination.prevPage != parseInt(type)){
                     this.pagination.currentPage = parseInt(type);
@@ -269,18 +269,18 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 
 	printResult(){
 
-		let headerHtml = `<h5> Summary of Compliance (`+this.reportData.date+`)</h5>`;
+		/* let headerHtml = `<h5> Summary of Compliance (`+this.reportData.date+`)</h5>`;
 
 		$('#printContainer').printThis({
 			importCSS: true,
 			importStyle: true,
 			loadCSS: [ "/assets/css/materialize.css" ],
 			header : headerHtml
-		});
+		}); */
 	}
 
     pdfExport(aPdf, printContainer){
-        let 
+        /* let
         columns = [],
         rows = [],
         pdf = new jsPDF("l", "pt"),
@@ -330,7 +330,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
             headerStyles : {
                 fillColor: [50, 50, 50], textColor: 255
             },
-            columnStyles : { 
+            columnStyles : {
                 location : { columnWidth : 140 },
                 eco : { columnWidth : 50 },
                 wardens : { columnWidth : 50 },
@@ -347,7 +347,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
             pdf.text('Downloaded from EvacServices : '+moment().format('DD/MM/YYYY hh:mmA'), pdf.internal.pageSize.width - 210, pdf.internal.pageSize.height - 10 );
         }
 
-        pdf.save('summary-of-compliance-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
+        pdf.save('summary-of-compliance-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf'); */
     }
 
     csvExport(){
@@ -402,7 +402,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
             csvData[ getLength() ] = row;
         }
 
-        let compRatingRow = []; 
+        let compRatingRow = [];
         for(let i in columns){
             if( parseInt(i) == (columns.length - 1) ){
                 compRatingRow.push('Compliance Rating : '+this.exportDataComplianceRating);

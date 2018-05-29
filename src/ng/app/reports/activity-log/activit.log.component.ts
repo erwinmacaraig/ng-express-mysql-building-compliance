@@ -21,7 +21,7 @@ declare var jsPDF: any;
 })
 
 export class ReportsActivityLogComponent implements OnInit, OnDestroy {
-	
+
 	userData = {};
     locationId = 0;
     activityLogs = [];
@@ -63,7 +63,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         this.routerSubs = this.router.params.subscribe((params) => {
             this.locationId = this.encDecService.decrypt( params.location );
 
-            
+
             this.queries.location_id = this.locationId;
             this.getActivityReport((response:any) => {
                 if(this.pagination.pages > 0){
@@ -87,16 +87,16 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 
         this.pdfLoader = true;
         this.csvLoader = true;
-        
 
-        let 
+
+        let
         divider = 150,
         divRes = this.pagination.total / divider,
         divResString = divRes.toString(),
         remainderSplit = divResString.split('.'),
         remainder = (remainderSplit[1]) ? parseInt(remainderSplit[1]) : 0;
 
-        divRes = (remainder > 0) ? divRes + 1 : divRes; 
+        divRes = (remainder > 0) ? divRes + 1 : divRes;
 
         for(let i = 1; i<=divRes; i++){
             let offset = (i * divider) - divider;
@@ -115,7 +115,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
                         allLoaded = false;
                     }
                 }
-                
+
                 if(allLoaded){
                     for(let x in this.exportFetchMarker){
                         this.exportData = this.exportData.concat( this.exportFetchMarker[x] );
@@ -168,7 +168,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
                     changeDone = true;
                 }
                 break;
-            
+
             default:
                 if(this.pagination.prevPage != parseInt(type)){
                     this.pagination.currentPage = parseInt(type);
@@ -190,7 +190,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
     }
 
     printResult(){
-
+        /*
         let headerHtml = `<h5> Activity Log </h5>`;
 
         $('#printContainer').printThis({
@@ -199,10 +199,12 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
             loadCSS: [ "/assets/css/materialize.css" ],
             header : headerHtml
         });
+        */
     }
 
     pdfExport(aPdf, printContainer){
-        let 
+      /*
+        let
         pdf = new jsPDF("p", "pt"),
         columns = [
             {
@@ -250,6 +252,8 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         }
 
         pdf.save('activity-log-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
+        */
+       return;
 
     }
 
@@ -274,7 +278,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 
             for(let log of this.exportData){
                 let locName = (log.parent_name.length > 0) ? log.parent_name + ' - ' : '' ;
-                
+
                 locName += log.location_name;
 
                 csvData[ getLength() ] = [ locName, log.file_name, log.timestamp_formatted ];
