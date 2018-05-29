@@ -220,8 +220,8 @@ import { LocationsInAccountComponent } from './admin/locations-in-accounts/locat
     HttpClientModule,
     AppRoutingModule,
     AgmCoreModule.forRoot({
-      // apiKey: 'AIzaSyDiE9BDUZGheckC5U_yQqbQlVrEBENs9HA',
-      apiKey : 'AIzaSyDmkSaP4MEhSdZxmndpExIbDEaJ3_kZpTk',
+      apiKey: 'AIzaSyDiE9BDUZGheckC5U_yQqbQlVrEBENs9HA',
+      // apiKey : 'AIzaSyDmkSaP4MEhSdZxmndpExIbDEaJ3_kZpTk',
       libraries: ['places']
     }),
     // todo: move to location module
