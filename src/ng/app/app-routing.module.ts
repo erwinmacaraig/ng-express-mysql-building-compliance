@@ -94,7 +94,7 @@ import { ListAccountsComponent } from './admin/list-accounts/list-accounts.compo
 import { AccountInfoComponent } from './admin/account-info/account-info.component';
 import { AccountUsersListComponent } from './admin/account-users/account-users.component';
 import { AddAccountUserComponent } from './admin/add-user/add-user.component';
-
+import { LocationsInAccountComponent } from './admin/locations-in-accounts/locations-in-account.component';
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -208,7 +208,8 @@ const appRoutes: Routes = [
     children: [
       { path: 'accounts', component: ListAccountsComponent },
       { path: 'users-in-accounts/:accntId', component: AccountUsersListComponent },
-      { path: 'add-account-user/:accntId', component: AddAccountUserComponent }
+      { path: 'add-account-user/:accntId', component: AddAccountUserComponent },
+      { path: 'locations-in-account/:accntId', component: LocationsInAccountComponent },
 
     ]
   }
