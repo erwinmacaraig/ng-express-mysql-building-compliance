@@ -198,7 +198,7 @@ export class Location extends BaseClass {
 				archived = 0;
 			}
 
-			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived;
+			const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived + ` ORDER BY location_id ASC `;
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
 				if (error) {
@@ -599,7 +599,7 @@ export class Location extends BaseClass {
 				connection.end();
 			});
 		});
-  }
+    }
 
     /**
     *
