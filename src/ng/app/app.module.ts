@@ -118,6 +118,7 @@ import { AccountInfoComponent } from './admin/account-info/account-info.componen
 import { AccountUsersListComponent } from './admin/account-users/account-users.component';
 import { AddAccountUserComponent } from './admin/add-user/add-user.component';
 import { NavComponent } from './admin/nav/nav.component';
+import { LocationsInAccountComponent } from './admin/locations-in-accounts/locations-in-account.component';
 @NgModule({
   declarations: [
     SafeHtmlPipe,
@@ -210,7 +211,8 @@ import { NavComponent } from './admin/nav/nav.component';
     AccountInfoComponent,
     AccountUsersListComponent,
     AddAccountUserComponent,
-    NavComponent
+    NavComponent,
+    LocationsInAccountComponent
   ],
   imports: [
     BrowserModule,
@@ -219,7 +221,7 @@ import { NavComponent } from './admin/nav/nav.component';
     AppRoutingModule,
     AgmCoreModule.forRoot({
       apiKey: 'AIzaSyDiE9BDUZGheckC5U_yQqbQlVrEBENs9HA',
-      // apiKey : 'AIzaSyD4QEsIs8QgjTj0bOIizxUZqIk7zVgFxzk',
+      // apiKey : 'AIzaSyDmkSaP4MEhSdZxmndpExIbDEaJ3_kZpTk',
       libraries: ['places']
     }),
     // todo: move to location module
