@@ -10,11 +10,11 @@ import { CourseService } from '../../services/course';
 import { ExportToCSV } from '../../services/export.to.csv';
 import { Observable } from 'rxjs/Rx';
 import html2canvas from 'html2canvas';
-import * as jsPDF from 'jspdf';
+// import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
 
 declare var $: any;
-declare var jsPDF: any;
+// declare var jsPDF: any;
 
 @Component({
 	selector : 'app-trainings-compliance-component',
@@ -125,7 +125,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         });
 	}
 
-	ngOnInit() {   
+	ngOnInit() {
 	}
 
 	ngAfterViewInit(){
@@ -279,7 +279,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 for (let i = 1; i<=this.pagination.pages; i++){
                     this.pagination.selection.push({ 'number' : i });
                 }
-                
+
                 this.loadingTable = false;
             }
             callBack(response);
@@ -287,6 +287,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
 	printResult(){
+    /*
 		let headerHtml = `<h5> Training Report </h5>`;
 
 		$('#printContainer').printThis({
@@ -294,11 +295,13 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 			importStyle: true,
 			loadCSS: [ "/assets/css/materialize.css" ],
 			header : headerHtml
-		});
+    });
+    */
 	}
 
     pdfExport(aPdf, printContainer){
-        let 
+      /*
+        let
         pdf = new jsPDF("p", "pt"),
         columns = [
             {
@@ -351,6 +354,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         }
 
         pdf.save('training-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
+        */
     }
 
     csvExport(){
