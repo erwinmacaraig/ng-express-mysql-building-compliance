@@ -7,11 +7,11 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { ExportToCSV } from '../../services/export.to.csv';
 import html2canvas from 'html2canvas';
-import * as jsPDF from 'jspdf';
+// import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
 
 declare var $ : any;
-declare var jsPDF: any;
+// declare var jsPDF: any;
 
 @Component({
 	selector : 'app-statement-compliance-component',
@@ -21,7 +21,7 @@ declare var jsPDF: any;
 })
 
 export class ReportsLocationsStatementComplianceComponent implements OnInit, OnDestroy {
-	
+
 	userData = {};
 	locationId = 0;
 
@@ -99,17 +99,18 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 
 	printResult(report, printContainer){
 
-		let headerHtml = `<h5> Statement of Compliance Report </h5>`;
+		/* let headerHtml = `<h5> Statement of Compliance Report </h5>`;
 
 		$(printContainer).printThis({
 			importCSS: true,
 			importStyle: true,
 			loadCSS: [ "/assets/css/materialize.css" ],
 			header : headerHtml
-		});
+    }); */
+
 	}
 
-    pdfExport(aPdf, printContainer){
+    pdfExport(aPdf, printContainer){/*
         let
         columns = [
             {
@@ -182,7 +183,7 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 
             pdf.text( "Compliance Rating : "+report.compliance_rating , 20, pdf.autoTable.previous.finalY + 20);
 
-            count++; 
+            count++;
         }
 
         let pages = pdf.internal.getNumberOfPages();
@@ -193,7 +194,7 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
         }
 
         pdf.save('statement-of-compliance-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
-    }
+     */}
 
     csvExport(){
         let csvData = {},
@@ -235,7 +236,7 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
                     }else{
                         d.push( 'Compliant' );
                     }
-                    
+
 
                     csvData[ getLength() ] = d;
                 }
