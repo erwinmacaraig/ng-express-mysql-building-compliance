@@ -47,7 +47,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("general_occupant_trainingTableTemplate") general_occupant_trainingTableTemplate : ElementRef;
 	@ViewChild("sundryTableTemplate") sundryTableTemplate : ElementRef;
 
-
 	userData = {};
     complianceSublocations = [];
 	selectedComplianceTitle = '';
@@ -101,6 +100,56 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     showModalUploadDocsLoader = false;
     docsFileSizeIsMax = false;
 
+    showEPCform = false;
+
+    dateOfEvacServicesObj = {
+        model : <Date> {},
+        showPicker : false,
+        formatted : '',
+        options : {
+            displayFormat: 'DD/MM/YYYY',
+            minDate: moment().toDate()
+        },
+        onChangeEvent : (event) => {
+            if(!moment(this.dateOfEvacServicesObj.model).isValid()){
+                this.dateOfEvacServicesObj.model = new Date();
+                this.dateOfEvacServicesObj.formatted = moment(this.dateOfEvacServicesObj.model).format('DD/MM/YYYY');
+            }else{
+                this.dateOfEvacServicesObj.formatted  = moment(this.dateOfEvacServicesObj.model).format('DD/MM/YYYY');
+            }
+
+            this.dateOfEvacServicesObj.showPicker = false;
+        },
+        showDatePicker : () => {
+            this.dateOfEvacServicesObj.showPicker = true;
+        }
+    };
+
+    lastEpcMeetingObj = {
+        model : <Date> {},
+        showPicker : false,
+        formatted : '',
+        options : {
+            displayFormat: 'DD/MM/YYYY',
+            minDate: moment().toDate()
+        },
+        onChangeEvent : (event) => {
+            if(!moment(this.lastEpcMeetingObj.model).isValid()){
+                this.lastEpcMeetingObj.model = new Date();
+                this.lastEpcMeetingObj.formatted = moment(this.lastEpcMeetingObj.model).format('DD/MM/YYYY');
+            }else{
+                this.lastEpcMeetingObj.formatted  = moment(this.lastEpcMeetingObj.model).format('DD/MM/YYYY');
+            }
+
+            this.lastEpcMeetingObj.showPicker = false;
+        },
+        showDatePicker : () => {
+            this.lastEpcMeetingObj.showPicker = true;
+        }
+    };
+
+    attendies = [];
+
 	constructor(
   		private router : Router,
   		private route: ActivatedRoute,
@@ -122,12 +171,30 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 			this.encryptedID = decodeURIComponent(params['encrypted']);
 			this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
 		});
+
+        for(let i=0; i<=9; i++){
+            this.attendies.push({
+                name : '', company : ''
+            });
+        }
 	}
+
+    addAttendies(){
+        this.attendies.push({
+            name : '', company : ''
+        });
+    }
 
     setDatePickerDefaultDate(){
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
         this.validTillDate = moment(this.datepickerModel).add(1, 'years').format('YYYY-MM-DD');
+
+        this.dateOfEvacServicesObj.model = new Date();
+        this.dateOfEvacServicesObj.formatted = moment(this.dateOfEvacServicesObj.model).format('DD/MM/YYYY');
+
+        this.lastEpcMeetingObj.model = new Date();
+        this.lastEpcMeetingObj.formatted = moment(this.dateOfEvacServicesObj.model).format('DD/MM/YYYY');
     }
 
 	setKPISdataForDisplay() {
@@ -362,6 +429,10 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         console.log(this.KPIS);
     }
 
+    showEPCformEvent(){
+        this.showEPCform = true;
+    }
+
     onChangeDatePicker(event){
         if(!moment(this.datepickerModel).isValid()){
             this.datepickerModel = new Date();
@@ -431,6 +502,14 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         form.controls.description.reset();
         $('#modalManageUpload form input[name="description"]').trigger('autoresize');
         this.setDatePickerDefaultDate();
+    }
+
+    cancelEpcForm(){
+        this.showEPCform = false;
+    }
+
+    submitEPCform(formEPC){
+        console.log(formEPC);
     }
 
 }

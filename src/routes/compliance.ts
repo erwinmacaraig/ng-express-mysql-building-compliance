@@ -853,7 +853,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 comp['num_wardens'] = (wardens[0]) ? wardens[0]['count'] : 0;
             }
 
-            if(comp.compliance_kpis_id == fsaId){
+            if(comp.compliance_kpis_id == fsaId && comp.compliance_status == 1){
                 comp['validity_status'] = 'valid';
             }
 
@@ -976,6 +976,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 if(epcCommitteeOnHQ && rates[comp.compliance_kpis_id]['epc_headoffice_points'] > 0 ){
                     tempPoints = rates[comp.compliance_kpis_id]['valid'];
                     comp['validity_status'] = 'valid';
+                    comp['valid'] = 1;
                 }else{
 
                     if(comp['validity_status'] == 'valid' || comp['valid'] == 1){

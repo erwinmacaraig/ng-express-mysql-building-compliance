@@ -493,7 +493,8 @@ table th:first-child{
     margin-top: 5%;
 }
 
-.documents-container .document{
+.documents-container .document,
+.margin-bootom-10{
     margin-bottom: 10px;
 }
 
@@ -698,4 +699,10 @@ table th:first-child{
 
 a:hover{
     cursor: pointer;
+}
+
+[type="radio"]:not(:checked)+label,
+[type="radio"]:checked+label{
+    padding-left: 25px !important;
+    margin-right: 15px !important;
 }
