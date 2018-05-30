@@ -110,6 +110,7 @@ import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent } from './reports/trainings/trainings.component';
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
+import { EpcMinutesMeetingComponent } from './compliance/epc-minutes-meeting/epc.minutes.meeting';
 
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
@@ -205,6 +206,7 @@ import { LocationsInAccountComponent } from './admin/locations-in-accounts/locat
     ReportsTrainingsComponent,
     ReportsActivityLogComponent,
     AssignCoursesComponent,
+    EpcMinutesMeetingComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,
