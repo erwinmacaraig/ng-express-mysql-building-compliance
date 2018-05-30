@@ -1,0 +1,276 @@
+.archived{
+	font-size: 14px;
+    position: absolute;
+    right: 30px;
+    top: 26px;
+    color: #4f4f4f;
+}
+
+.archived .image{
+	background: url(/assets/images/team_icons.png) no-repeat;
+    width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.filter-container > .col{
+	height: 50px !important;
+}
+
+.filter-container .add-peep .image{
+	background: url(/assets/images/team_icons.png) no-repeat;
+    width: 35px;
+    height: 35px;
+    background-position: 18% 36%;
+    vertical-align: middle;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.filter-container .btn{
+	width: 100%;
+    padding: 0px;
+    height: 50px !important;
+}
+
+.filter-container .search-field{
+	background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 5px;
+    height: 50px;
+    vertical-align: bottom;
+    position: relative;
+}
+
+.filter-container .search-field input{
+	margin: 3px 14px 0px 0px !important;
+    padding: 0px;
+    display: inline-block;
+    width: 90%;
+    border-bottom: 0px;
+}
+
+.filter-container .search-field input:focus{
+	border-bottom: 0px;
+    box-shadow: none;
+}
+
+.filter-container .search-field .material-icons{
+	width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    position: absolute;
+    top: 29%;
+    right: 4%;
+}
+
+table thead tr th{
+	background-color: #2f2f2f;
+    color: #fff;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: 1px solid #2f2f2f;
+    border-radius: 0px;
+}
+
+table tbody td{
+	border: 1px solid #ddd;
+	font-size: 14px;
+}
+
+table tfoot td{
+	padding: 0px;
+}
+
+table tfoot td button{
+	width: 100%;
+    border-radius: 0px !important;
+    font-size: 14px !important;
+    height: 45px !important;
+    line-height: 35px;
+}
+
+table select{
+    display: block;
+    background-color: inherit;
+    font-size: 14px;
+}
+
+table select:focus{
+    outline: 0px;
+}
+
+table tbody td input{
+    margin: 0px;
+    border: 0px;
+    font-size: 14px;
+}
+
+table tbody td input:focus{
+    border-bottom: 0px;
+    box-shadow: 0 1px 0 0 #0089ec;
+}
+
+table tbody td a{
+    font-size: 14px;
+}
+
+
+table tr td.trainings .percent{
+    width: 35px;
+    text-align: center;
+}
+
+table tr td.trainings .percent,
+table tr td.trainings .bar {
+    display: inline-block;
+    color: #b71928;
+    font-size: 14px;
+}
+
+table tr td.trainings .bar {
+    background-color: #b71928;
+    width: 70%;
+    height: 11px;
+}
+
+table tr td .checkbox{
+	margin: 0px 10px;
+}
+
+table tr td .checkbox [type="checkbox"]+label{
+	padding-left: 30px;
+    height: 20px;
+    line-height: 20px;
+    color: #333;
+}
+
+table tr td .checkbox [type="checkbox"].filled-in:not(:checked)+label:after{
+	background-color: #fff;
+    border: 1px solid #aaaaaa;
+}
+
+
+table tr td .text{
+    display: inline-block;
+}
+
+table tr td .image-container{
+	width: 50px;
+    height: 50px;
+	display: inline-block;
+  	text-align: center;
+  	vertical-align: middle;
+  	background-color: #fff;
+    border-radius: 30px;
+    margin: 0px 10px;
+    overflow: hidden;
+}
+
+table tr td .image{
+	overflow: hidden;
+}
+
+table tr td .image img{
+  max-width: 50px;
+  max-height: 50px;
+}
+
+table tr td.with-image .image{
+    display: inline-block;
+    width: 45px;
+    height: 45px;
+    border-radius: 30px;
+    vertical-align: middle;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 45px;
+}
+
+table tr td.with-image .image.frp{
+    background-image: url(/assets/images/signup/buildingmanager_icon.png);
+}
+
+table tr td.with-image .image.trp{
+    background-image: url(/assets/images/signup/tenantmanager_icon.png);
+}
+
+table tr td.with-image .image.user{
+    background-image: url(/assets/images/signup/eco_icon.png);
+}
+
+table tr td.with-image .impaired{
+    width: 40px;
+    height: 40px;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #dc4453;
+    border-radius: 45px;
+    margin: 0px 0px;
+    overflow: hidden;
+    background-image: url(/assets/images/team_icons.png);
+    background-repeat: no-repeat;
+    background-size: 440px;
+    background-position: 73.2% 71.4%;
+}
+
+.inline-block{
+    display: inline-block;
+}
+
+.pagination button{
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+    vertical-align: inherit;
+}
+
+.pagination select:not(.to-materialize){
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+}
+
+.pagination .select{
+    margin: 0px 10px;
+}
+
+#modalArchiveBulk,
+#modalArchive{
+    width: 35%;
+}
+
+#modalArchiveBulk ul li{
+    font-size: 14px;
+}
+
+select option:disabled{
+    color: gray !important;
+}
+
+@media only screen and (max-width: 1400px) {
+    #modalArchiveBulk,
+    #modalArchive{
+        width: 50%;
+    }
+}
+
+@media only screen and (max-width: 1024px) {
+    #modalArchiveBulk,
+    #modalArchive{
+        width: 60%;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    #modalArchiveBulk,
+    #modalArchive{
+        width: 90%;
+    }
+}

@@ -52,5 +52,9 @@ export class AdminService {
   uploadComplianceDocs(formData) {
     return this.http.post(this.baseUrl + '/admin/upload/compliance-documents/', formData );
   }
+
+  taggedLocationsOnAccount(accountId: number = 0) {
+    return this.http.get(this.baseUrl + `/admin/account-locations/${accountId}/`, this.options);
+  }
 }
 

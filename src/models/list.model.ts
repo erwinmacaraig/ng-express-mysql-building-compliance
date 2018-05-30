@@ -5,6 +5,44 @@ const dbconfig = require('../config/db');
 export class List {
     constructor() {}
 
+    public listTaggedLocationsOnAccount(account: number = 0, filter: object = {}): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        const sql = `SELECT
+          locations.parent_id,
+          locations.location_id,
+          locations.is_building,
+          locations.name,
+          locations.formatted_address,
+          p1.name as p1_name,
+          p1.location_id as p1_location_id,
+          p2.name as p2_name,
+          p2.location_id as p2_location_id,
+          p3.name as p3_name,
+          p3.location_id as p3_location_id,
+          p4.name as p4_name,
+          p4.location_id as p4_location_id,
+          p5.name as p5_name,
+          p5.location_id as p5_location_id,
+          location_account_relation.account_id,
+          location_account_relation.responsibility
+        FROM locations INNER JOIN location_account_relation ON locations.location_id = location_account_relation.location_id
+        LEFT JOIN locations as p1 ON p1.location_id = locations.parent_id
+        LEFT JOIN locations as p2 ON p2.location_id = p1.parent_id
+        LEFT JOIN locations as p3 ON p3.location_id = p2.parent_id
+        LEFT JOIN locations as p4 ON p4.location_id = p3.parent_id
+        LEFT JOIN locations as p5 ON p5.location_id = p4.parent_id
+        WHERE location_account_relation.account_id = ? ORDER BY locations.location_id`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [account], (error, results) => {
+          if (error) {
+            console.log(`list.model.listTaggedLocationsOnAccount`, error, sql);
+            throw Error('Cannot generate list for the account');
+          }
+          resolve(results);
+        });
+      });
+    }
+
     public generateAccountsAdminList(accountIds = []): Promise<object> {
       return new Promise((resolve, reject) => {
         let accntIdStr = '';
@@ -106,12 +144,14 @@ export class List {
                       locations.location_id,
                       locations.parent_id,
                       locations.name,
-                      parent_location.name as parent_location_name
+                      locations.formatted_address,
+                      parent_location.name as parent_location_name,
+                      parent_location.formatted_address as parent_location_formatted_address
                  FROM locations
                  INNER JOIN locations AS parent_location
                  ON locations.parent_id = parent_location.location_id
                  WHERE locations.parent_id IN (${buildingLocationsStr})
-                 ORDER BY locations.parent_id`;
+                 ORDER BY locations.parent_id`; console.log(sql);
         const connection = db.createConnection(dbconfig);
         connection.query(sql, [], (error, results) => {
           if (error) {
@@ -127,18 +167,21 @@ export class List {
               loc['name'] = r['name'];
               sublocations[r['parent_id']]['sublocations'].push({
                 'id': r['location_id'],
-                'name': r['name']
+                'name': r['name'],
+                'formatted_address': r['formatted_address']
               });
             } else {
               const locationParentIndex = r['parent_id'];
 
               sublocations[locationParentIndex] = {
                 parent_location_id: locationParentIndex,
+                parent_location_name: r['parent_location_name'],
+                formatted_address: r['parent_location_formatted_address'],
                 sublocations: [{
                   'id': r['location_id'],
-                  'name': r['name']
-                }],
-                parent_location_name: r['parent_location_name']
+                  'name': r['name'],
+                  'formatted_address': r['formatted_address']
+                }]
               };
             }
           }
@@ -173,7 +216,9 @@ export class List {
                 locations.location_id,
                 locations.parent_id,
                 locations.name,
-                parent_location.name as parent_location_name
+                locations.formatted_address,
+                parent_location.name as parent_location_name,
+                parent_location.formatted_address as parent_location_formatted_address
            FROM locations
            LEFT JOIN locations AS parent_location
            ON locations.parent_id = parent_location.location_id
@@ -193,16 +238,19 @@ export class List {
                 loc['name'] = r['name'];
                 theLocations[r['parent_id']]['sublocations'].push({
                   'id': r['location_id'],
-                  'name': r['name']
+                  'name': r['name'],
+                  'formatted_address': r['formatted_address']
                 });
               } else {
                 theLocations[r['location_id']] = {
                   parent_location_id: r['parent_id'],
                   sublocations: [{
                     'id': r['location_id'],
-                    'name': r['name']
+                    'name': r['name'],
+                    'formatted_address': r['formatted_address']
                   }],
-                  parent_location_name: ''
+                  parent_location_name: '',
+                  formatted_address: r['formatted_address']
                 };
               }
             } else {
@@ -211,7 +259,8 @@ export class List {
                 loc['name'] = r['name'];
                 theLocations[r['parent_id']]['sublocations'].push({
                   'id': r['location_id'],
-                  'name': r['name']
+                  'name': r['name'],
+                  'formatted_address': r['formatted_address']
                 });
               } else {
                 let locName = '';
@@ -222,11 +271,13 @@ export class List {
                 }
                 theLocations[r['parent_id']] = {
                   parent_location_id: r['parent_id'],
+                  parent_location_name: locName,
+                  formatted_address: r['parent_location_formatted_address'],
                   sublocations: [{
                     'id': r['location_id'],
-                    'name': r['name']
-                  }],
-                  parent_location_name: locName
+                    'name': r['name'],
+                    'formatted_address': r['formatted_address']
+                  }]
                 };
               }
             }
