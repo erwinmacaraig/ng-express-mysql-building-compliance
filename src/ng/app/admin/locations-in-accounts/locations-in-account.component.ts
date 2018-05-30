@@ -20,8 +20,7 @@ declare var $: any;
 export class LocationsInAccountComponent implements OnInit, AfterViewInit {
 
   accountId = 0;
-  buildings = [];
-  levels = [];
+  locations = [];
   constructor(public http: HttpClient,
     private adminService: AdminService,
     private route: ActivatedRoute) {
@@ -31,9 +30,8 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.route.params.subscribe((parameters) => {
       this.accountId = parameters['accntId'];
-      this.adminService.getAllLocationsOnAccount(this.accountId).subscribe((response) => {
-        this.buildings = response['data']['buildings'];
-        this.levels = response['data']['levels'];
+      this.adminService.taggedLocationsOnAccount(this.accountId).subscribe((response) => {
+        this.locations = response['data'];
 
         console.log(response);
       });

@@ -31,6 +31,31 @@ const AWSCredential = require('../config/aws-access-credentials.json');
 export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
+
+    router.get('/admin/account-locations/:accountId/', async (req: Request, res: Response, next: NextFunction) => {
+      const list = new List();
+      const accountId = req.params.accountId;
+      const tempHierarchy = [];
+      let temp = [];
+      const accountLocations: Array<object> = await list.listTaggedLocationsOnAccount(accountId);
+      for (const location of accountLocations) {
+        location['display_name'] = '';
+        // loop through the assumed heirarchy
+        temp = [];
+        let tempColName = '';
+        for (let p = 5; p > 0; p--) {
+          tempColName = `p${p}_name`;
+          if (location[tempColName] != null) {
+            temp.push(location[tempColName]);
+          }
+        }
+        temp.push(location['name']);
+        location['display_name'] = temp.join(' >> ');
+      }
+      return res.status(200).send({
+        data: accountLocations
+      });
+    });
     router.get('/admin/accounts/list/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
       const accountList = new List();
       const account = new Account();
