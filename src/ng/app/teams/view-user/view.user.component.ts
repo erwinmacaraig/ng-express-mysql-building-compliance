@@ -501,7 +501,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         this.locationsCopy = JSON.parse( JSON.stringify(this.locations) );
 
         location.role_id = roleId;
-        
+
         if(
             (this.selectedLocationData['is_building'] == 1 && rolesForBuildingsOnly.indexOf( parseInt(roleId) ) == -1) ||
             (this.selectedLocationData['is_building'] == 0 && rolesForBuildingsOnly.indexOf( parseInt(roleId) ) > -1)
@@ -590,7 +590,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         this.onChangeSelectRole(loc, loc.role_id);
         this.buildLocationsListInModal();
     	this.showSelectLocation = true;
-        
+
     }
 
     submitSelectLocationModal(formLoc, event){
@@ -668,10 +668,11 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
             .debounceTime(500)
             .subscribe((event) => {
-            
+
             let value = event['target'].value,
                 result = [];
-
+            let seenSubLocIndex = [];
+            const seenIndex = [];
             let findRelatedName;
             this.formLocValid = false;
 
@@ -691,11 +692,26 @@ export class ViewUserComponent implements OnInit, OnDestroy {
               };
             } else {
               findRelatedName = (data, mainParent?) => {
-                for(let i in data){
-                    if(data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
-                        result.push(data[i]);
-                    }
+                for ( let i = 0; i < data.length; i++) {
+                  if (data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                    result.push(data[i]);
+                  }
                 }
+                for ( let i = 0; i < data.length; i++) {
+                    seenSubLocIndex = [];
+                    for (let s = 0; s < data[i]['sublocations'].length; s++) {
+                      if (data[i]['sublocations'][s]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                        if (seenIndex.indexOf(i)) {
+                          seenIndex.push(i);
+                        }
+                        seenSubLocIndex.push(data[i]['sublocations'][s]);
+                        data[i]['sublocations'] = seenSubLocIndex;
+                      }
+                    }
+                  }
+                  for (let si = 0; si < seenIndex.length; si++) {
+                    result.push(data[seenIndex[si]]);
+                  }
                 return result;
               };
             }

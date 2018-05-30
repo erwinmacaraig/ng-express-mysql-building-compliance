@@ -62,7 +62,7 @@
         <nav>
             <div class="nav-wrapper">
               <ul id="nav-mobile" class="left hide-on-med-and-down">
-                <li><a>Locations</a></li>
+                <li><a [routerLink]="['/admin', 'locations-in-account', accountId]">Locations</a></li>
                 <li><a [routerLink]="['/admin', 'users-in-accounts', accountId]">Users</a></li>
                 <li><a>Subscriptions</a></li>
                 <li><a>Trainings</a></li>

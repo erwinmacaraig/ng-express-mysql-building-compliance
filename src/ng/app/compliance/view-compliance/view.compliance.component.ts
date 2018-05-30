@@ -11,6 +11,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AdminService } from '../../services/admin.service';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { MessageService } from '../../services/messaging.service';
 import { Observable } from 'rxjs/Rx';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as FileSaver from 'file-saver';
@@ -22,7 +23,7 @@ declare var moment: any;
 	selector : 'app-view-compliance',
 	templateUrl : './view.compliance.component.html',
 	styleUrls : [ './view.compliance.component.css' ],
-  providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService, AdminService]
+    providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService, AdminService]
 })
 export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("notesTemplate") notesTemplate : ElementRef;
@@ -46,7 +47,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("fire_safety_advisorTableTemplate") fire_safety_advisorTableTemplate : ElementRef;
 	@ViewChild("general_occupant_trainingTableTemplate") general_occupant_trainingTableTemplate : ElementRef;
 	@ViewChild("sundryTableTemplate") sundryTableTemplate : ElementRef;
-
 
 	userData = {};
     complianceSublocations = [];
@@ -101,6 +101,58 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     showModalUploadDocsLoader = false;
     docsFileSizeIsMax = false;
 
+    showEPCform = false;
+
+    dateOfEvacServicesObj = {
+        model : <Date> {},
+        showPicker : false,
+        formatted : '',
+        options : {
+            displayFormat: 'DD/MM/YYYY',
+            minDate: moment().toDate()
+        },
+        onChangeEvent : (event) => {
+            if(!moment(this.dateOfEvacServicesObj.model).isValid()){
+                this.dateOfEvacServicesObj.model = new Date();
+                this.dateOfEvacServicesObj.formatted = moment(this.dateOfEvacServicesObj.model).format('DD/MM/YYYY');
+            }else{
+                this.dateOfEvacServicesObj.formatted  = moment(this.dateOfEvacServicesObj.model).format('DD/MM/YYYY');
+            }
+
+            this.dateOfEvacServicesObj.showPicker = false;
+        },
+        showDatePicker : () => {
+            this.dateOfEvacServicesObj.showPicker = true;
+        }
+    };
+
+    lastEpcMeetingObj = {
+        model : <Date> {},
+        showPicker : false,
+        formatted : '',
+        options : {
+            displayFormat: 'DD/MM/YYYY',
+            minDate: moment().toDate()
+        },
+        onChangeEvent : (event) => {
+            if(!moment(this.lastEpcMeetingObj.model).isValid()){
+                this.lastEpcMeetingObj.model = new Date();
+                this.lastEpcMeetingObj.formatted = moment(this.lastEpcMeetingObj.model).format('DD/MM/YYYY');
+            }else{
+                this.lastEpcMeetingObj.formatted  = moment(this.lastEpcMeetingObj.model).format('DD/MM/YYYY');
+            }
+
+            this.lastEpcMeetingObj.showPicker = false;
+        },
+        showDatePicker : () => {
+            this.lastEpcMeetingObj.showPicker = true;
+        }
+    };
+
+    attendies = [];
+
+    msgSubs;
+
 	constructor(
   		private router : Router,
   		private route: ActivatedRoute,
@@ -111,7 +163,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		private complianceService : ComplianceService,
 		private locationService : LocationsService,
 		private encryptDecrypt : EncryptDecryptService,
-        private adminService : AdminService
+        private adminService : AdminService,
+        private messageService : MessageService
 		){
 
 		this.userData = this.authService.getUserData();
@@ -122,6 +175,18 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 			this.encryptedID = decodeURIComponent(params['encrypted']);
 			this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
 		});
+
+        this.msgSubs = this.messageService.getMessage().subscribe((message) => {
+            if(message.epcform){
+                if(message.epcform == 'hide'){
+                    this.showEPCform = false;
+                }
+            }else if(message.getLocationId){
+                this.messageService.sendMessage({
+                    'locationId' : this.locationID
+                });
+            }
+        });
 	}
 
     setDatePickerDefaultDate(){
@@ -221,7 +286,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                     this.latestComplianceData = responseCompl.data;
                     this.setKPISdataForDisplay();
 
-                    this.totalPercentage = responseCompl.percent + '%';
+                    this.totalPercentage = responseCompl.percent;
+
+                    this.messageService.sendMessage({
+                        'epcData' : responseCompl.epcData
+                    });
 
                     setTimeout(() => {
                         $('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
@@ -290,6 +359,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	ngOnDestroy() {
+        this.msgSubs.unsubscribe();
     }
 
     downloadAllPack() {
@@ -362,6 +432,10 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         console.log(this.KPIS);
     }
 
+    showEPCformEvent(){
+        this.showEPCform = true;
+    }
+
     onChangeDatePicker(event){
         if(!moment(this.datepickerModel).isValid()){
             this.datepickerModel = new Date();
@@ -381,7 +455,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         event.preventDefault();
         let filsizeValid = false;
         if(event.target.files[0]){
-            if(event.target.files[0].size < 2000000){
+            if(event.target.files[0].size < 20000000){
                 filsizeValid = true;
             }
         }
@@ -412,9 +486,21 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         $('#modalManageUpload').css('width', 'fit-content');
 
         this.adminService.uploadComplianceDocs(formData).subscribe((response) => {
-            this.showModalUploadDocsLoader = false;
-            $('#modalManageUpload').css('width');
-            console.log(response);
+            this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
+                this.latestComplianceData = responseCompl.data;
+                this.setKPISdataForDisplay();
+
+                this.totalPercentage = responseCompl.percent;
+
+                this.messageService.sendMessage({
+                    'epcData' : responseCompl.epcData
+                });
+
+                setTimeout(() => {
+                    this.showModalUploadDocsLoader = false;
+                    $('#modalManageUpload').css('width');
+                }, 100);
+            });
         });
     }
 

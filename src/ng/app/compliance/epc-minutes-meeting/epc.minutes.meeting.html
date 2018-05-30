@@ -1,0 +1,203 @@
+<h5 style="font-size: 28px; margin: 0% 0% 2% 0%;">Annual Emergency Planning Committee Meeting Minutes and Attendance</h5>
+    
+<form #formEPC="ngForm" (submit)="submitEPCform(formEPC)">
+
+    <div class="row">
+        <div class="col l6 m12 s12" style="padding-right: 7%;">
+            <h5>Facility Details</h5>
+            <div class="input-field">
+                <input id="propertyNumber" type="text" ngModel name="property_number" required  />
+                <label for="propertyNumber">Property number</label>
+            </div>
+            <div class="input-field">
+                <input id="propertyName" type="text"  ngModel name="property_name" required />
+                <label for="propertyName">Property name</label>
+            </div>
+            <div class="input-field">
+                <input id="inpAddress" type="text" ngModel name="property_address" required  />
+                <label for="inpAddress">Address</label>
+            </div>
+        </div>
+
+        <div class="col l6 m12 s12" style="padding-right: 7%;">
+            <h5>EvacServices Representative Name</h5>
+            
+            <div class="margin-bootom-10">
+                <input type="radio" name="evac_representative" value="michael_rabbidge" id="representativeRabbidge" ngModel required >
+                <label for="representativeRabbidge">Michael Rabbidge</label>
+            </div>
+
+            <div class="margin-bootom-10">
+                <input type="radio" name="evac_representative" value="karlee_ison" id="representativeIson" ngModel required >
+                <label for="representativeIson">Karlee Ison</label>
+            </div>
+
+            <div class="margin-bootom-10">
+                <input type="radio" name="evac_representative" value="matthew_lloyd" id="representativeLloyd" ngModel required >
+                <label for="representativeLloyd">Matthew Lloyd</label>
+            </div>
+
+            <div class="margin-bootom-10">
+                <input type="radio" name="evac_representative" value="michael_payne" id="representativePayne" ngModel required >
+                <label for="representativePayne">Michael Payne</label>
+            </div>
+
+            <div class="margin-bootom-10">
+                <input type="radio" name="evac_representative" #repOther value="other" id="representativeOther" ngModel required >
+                <label for="representativeOther">Other</label>
+            </div>
+
+            <div class="input-field">
+                <input id="representativeInputOther" type="text" ngModel name="rep_others_name" [disabled]="!repOther.checked" />
+                <label for="representativeInputOther">Other</label>
+            </div>
+        </div>
+
+        <div class="col l6 m12 s12" style="padding-right: 7%;">
+            <h5>FRP/TRP/Chief Warden details</h5>
+            <div class="input-field">
+                <input id="frpTrpChiefName" type="text" required ngModel name="frptrpchief_name" />
+                <label for="frpTrpChiefName">Name</label>
+            </div>
+            <div class="input-field">
+                <input id="frpTrpChiefContactNumber" type="text" required ngModel name="frptrpchief_contact" />
+                <label for="frpTrpChiefContactNumber">Contact number</label>
+            </div>
+            <div class="input-field">
+                <input id="frpTrpChiefEmail" type="email" #inpEmail="ngModel" pattern='[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$' required ngModel name="frptrpchief_email" />
+                <label for="frpTrpChiefEmail">Email</label>
+            </div>
+        </div>
+
+        <div class="col l6 m12 s12" style="padding-right: 7%;">
+            <div class="input-field">
+                <span style="font-size: 16px;">Date of EvacServices Attendance</span>
+                <ng-datepicker [(ngModel)]="dateOfEvacServicesObj.model" (ngModelChange)="dateOfEvacServicesObj.onChangeEvent($event)" [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="dateOfEvacServicesObj.showPicker"></ng-datepicker>
+                <input type="text" [(ngModel)]="dateOfEvacServicesObj.formatted" ngModel name="date_evacservices_attendance" (click)="dateOfEvacServicesObj.showDatePicker()" required >
+            </div>
+
+            <div class="switch-container"  >
+                <p class="give-access-text">Has an EPC meeting been completed within the past 12 Months?</p>
+                <div class="switch" >
+                    <input type="checkbox" ngModel="" #checkboxEpcMeething12Months name="has_epc_meeting_within_12_months" checked="checked"  >
+                    <div class="yes">Yes</div>
+                    <div class="no">No</div>
+                    <div class="highlight"></div>
+                    <div class="background"></div>
+                </div>
+            </div>
+
+            <div class="input-field">
+                <span style="font-size: 16px;">When was the last EPC meeting held?</span>
+                <ng-datepicker [(ngModel)]="lastEpcMeetingObj.model" (ngModelChange)="lastEpcMeetingObj.onChangeEvent($event)" [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="lastEpcMeetingObj.showPicker"></ng-datepicker>
+                <input type="text" [(ngModel)]="lastEpcMeetingObj.formatted" ngModel name="last_epc_meeting_date" (click)="lastEpcMeetingObj.showDatePicker()" required >
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12" style="padding-right: 7%;">
+            <h5>Attendees</h5>
+            <table class="table striped highlight">
+                <thead>
+                    <tr class="grey darken-4 white-text">
+                        <th style="width: 5%;"></th>
+                        <th>Attendee Name</th>
+                        <th>Company</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let att of attendies; let i = index;" >
+                        <td>{{i + 1}}</td>
+                        <td>
+                            <div class="input-field">
+                                <input type="text" [(ngModel)]="att.name" [ngModelOptions]="{standalone: true}" name="attendies_name">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-field">
+                                <input type="text" [(ngModel)]="att.company" [ngModelOptions]="{standalone: true}" name="attendies_company">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="right-align">
+                            <button class="btn blue waves-effect waves-light" (click)="addAttendies()" style="font-size: 15px !important;">+Add</button>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="col l12 m12 s12" style="padding-right: 7%;">
+            <h5>EPC Meeting Minutes</h5>
+            <table class="table highlight  striped">
+                <thead>
+                    <tr class="grey darken-4 white-text">
+                        <th style="width: 30%;"></th>
+                        <th>Action or Response</th>
+                        <th>By Who</th>
+                        <th>By When</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let ques of epcMeetingMinutesQuestionsArray; let i = index;">
+                        <td style="text-transform: capitalize;">
+                            {{ques.question}}
+                        </td>
+                        <td>
+                            <div class="input-field">
+                                <input type="text" [(ngModel)]="ques.action" [ngModelOptions]="{standalone: true}" name="action" >
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-field">
+                                <input type="text" [(ngModel)]="ques.bywho" [ngModelOptions]="{standalone: true}" name="bywho" >
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-field">
+                                <input type="text" [(ngModel)]="ques.bywhen" [ngModelOptions]="{standalone: true}" name="bywhen" >
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+     <div class="row">
+        <div class="col l6 m12 s12" style="padding-right: 7%;">
+            <h5>Notes or Comments</h5>
+            <div class="input-field">
+                <textarea class="materialize-textarea" ngModel name="notes" placeholder="Add comment here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 right-align" style="padding-right: 7%;  margin: 5% 0%;">
+            <button type="button" class="btn grey waves-effect waves-light" style="font-size: 15px !important;" (click)="cancelEpcForm()" [disabled]="formSubmitted">Cancel</button>
+            <button type="submit" class="btn orange waves-effect waves-light" style="font-size: 15px !important;" [disabled]="!formEPC.valid || formSubmitted || true">
+                
+                <span *ngIf="!formSubmitted && !formSuccess">Submit</span>
+                <div class="preloader-wrapper small active" style="margin-top: 12px;width: 20px;height: 20px;" *ngIf="formSubmitted && !formSuccess">
+                    <div class="spinner-layer spinner-blue-only">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div><div class="gap-patch">
+                            <div class="circle"></div>
+                        </div><div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                </div>
+                <i class="material-icons green-text" *ngIf="formSuccess">check</i>
+
+            </button>
+        </div>
+    </div>
+
+</form>
