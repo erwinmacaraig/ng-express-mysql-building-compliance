@@ -486,7 +486,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
         .debounceTime(800).subscribe((event:KeyboardEvent) => {
             thisClass.queries.limit = 10;
             thisClass.queries.offset = 0;
-            thisClass.queries.search = event.srcElement['value'];
+            thisClass.queries.search = this.inputSearch.nativeElement['value'];
             thisClass.queries.sort = $('.sort-by select').val();
             thisClass.loadingTable = true;
             thisClass.getLocationsForListing((response) => {

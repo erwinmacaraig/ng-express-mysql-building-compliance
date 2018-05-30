@@ -19,6 +19,7 @@ import { Utils } from '../models/utils.model';
 import { FileUploader } from '../models/upload-file';
 import { TrainingCertification } from './../models/training.certification.model';
 import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_calculator.model';
+import { EpcMinutesMeeting } from './../models/epc.meeting.minutes';
 import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -131,6 +132,10 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         router.post('/compliance/get-sublocations-evac-diagrams', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ComplianceRoute().getSublocationsEvacDiagrams(req, res);
+        });
+
+        router.post('/compliance/save-epc-minutes-of-meeting', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new ComplianceRoute().saveEpcMinutesOfMeeting(req, res);
         });
     }
 
@@ -991,6 +996,22 @@ import * as S3Zipper from 'aws-s3-zipper';
             comp['points'] = tempPoints;
         }
 
+        let epcModel = new EpcMinutesMeeting(),
+            epcWhere = [],
+            epcData = {};
+
+        epcWhere.push(['location_id = '+locationID]);
+        epcWhere.push(['account_id = '+accountID]);
+        await epcModel.getWhere(epcWhere);
+        if(epcModel.getDBData()[0]){
+            epcData = epcModel.getDBData()[0];
+            epcData['data'] = JSON.parse(epcData['data']);
+            epcData['date_created_formatted'] = moment(epcData['date_created']).format('DD/MM/YYYY');
+            epcData['date_updated_formatted'] = moment(epcData['date_updated']).format('DD/MM/YYYY');
+        }
+
+        this.response['epcData'] = epcData;
+
         this.response['rates'] = rates;
 		this.response.status = true;
 		this.response.data = compliances;
@@ -1104,6 +1125,45 @@ import * as S3Zipper from 'aws-s3-zipper';
         response.data.sublocations = sublocations;
 
         res.status(200).send(response);
+    }
+
+    public async saveEpcMinutesOfMeeting(req: AuthRequest, res: Response){
+        let response = {
+            status :  false, data : {}, message : ''
+        },
+        epcModel = new EpcMinutesMeeting();
+
+        let saveData = {
+            'account_id' : req.body.account_id,
+            'location_id' : req.body.location_id,
+            'data' : JSON.stringify(req.body.data),
+            'date_created' : moment().format('YYYY-MM-DD'),
+            'created_by' : req.user.user_id,
+            'date_updated' : moment().format('YYYY-MM-DD HH:mm:ss'),
+            'updated_by' : req.user.user_id
+        };
+
+        if(req.body.id){
+
+            if(req.body.id > 0){
+                epcModel.setID(req.body.id);
+
+                try{
+                    saveData = <any> await epcModel.load();
+                    saveData['updated_by'] = req.user.user_id;
+                    saveData['date_updated'] = moment().format('YYYY-MM-DD HH:mm:ss');
+                    saveData['data'] = JSON.stringify(req.body.data);
+                }catch(e){}
+            }
+        }
+
+        await epcModel.create(saveData);
+
+        response.status = true;
+        saveData['epc_meeting_minutes_id'] = epcModel.ID();
+        response.data = saveData;
+
+        res.send(response);
     }
 
 }

@@ -11,6 +11,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AdminService } from '../../services/admin.service';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { MessageService } from '../../services/messaging.service';
 import { Observable } from 'rxjs/Rx';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as FileSaver from 'file-saver';
@@ -22,7 +23,7 @@ declare var moment: any;
 	selector : 'app-view-compliance',
 	templateUrl : './view.compliance.component.html',
 	styleUrls : [ './view.compliance.component.css' ],
-  providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService, AdminService]
+    providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService, AdminService]
 })
 export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("notesTemplate") notesTemplate : ElementRef;
@@ -150,6 +151,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
     attendies = [];
 
+    msgSubs;
+
 	constructor(
   		private router : Router,
   		private route: ActivatedRoute,
@@ -160,7 +163,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		private complianceService : ComplianceService,
 		private locationService : LocationsService,
 		private encryptDecrypt : EncryptDecryptService,
-        private adminService : AdminService
+        private adminService : AdminService,
+        private messageService : MessageService
 		){
 
 		this.userData = this.authService.getUserData();
@@ -172,29 +176,23 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 			this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
 		});
 
-        for(let i=0; i<=9; i++){
-            this.attendies.push({
-                name : '', company : ''
-            });
-        }
-	}
-
-    addAttendies(){
-        this.attendies.push({
-            name : '', company : ''
+        this.msgSubs = this.messageService.getMessage().subscribe((message) => {
+            if(message.epcform){
+                if(message.epcform == 'hide'){
+                    this.showEPCform = false;
+                }
+            }else if(message.getLocationId){
+                this.messageService.sendMessage({
+                    'locationId' : this.locationID
+                });
+            }
         });
-    }
+	}
 
     setDatePickerDefaultDate(){
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
         this.validTillDate = moment(this.datepickerModel).add(1, 'years').format('YYYY-MM-DD');
-
-        this.dateOfEvacServicesObj.model = new Date();
-        this.dateOfEvacServicesObj.formatted = moment(this.dateOfEvacServicesObj.model).format('DD/MM/YYYY');
-
-        this.lastEpcMeetingObj.model = new Date();
-        this.lastEpcMeetingObj.formatted = moment(this.dateOfEvacServicesObj.model).format('DD/MM/YYYY');
     }
 
 	setKPISdataForDisplay() {
@@ -290,6 +288,10 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
                     this.totalPercentage = responseCompl.percent;
 
+                    this.messageService.sendMessage({
+                        'epcData' : responseCompl.epcData
+                    });
+
                     setTimeout(() => {
                         $('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
                         this.dashboard.hide();
@@ -357,6 +359,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	ngOnDestroy() {
+        this.msgSubs.unsubscribe();
     }
 
     downloadAllPack() {
@@ -489,6 +492,10 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
                 this.totalPercentage = responseCompl.percent;
 
+                this.messageService.sendMessage({
+                    'epcData' : responseCompl.epcData
+                });
+
                 setTimeout(() => {
                     this.showModalUploadDocsLoader = false;
                     $('#modalManageUpload').css('width');
@@ -502,14 +509,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         form.controls.description.reset();
         $('#modalManageUpload form input[name="description"]').trigger('autoresize');
         this.setDatePickerDefaultDate();
-    }
-
-    cancelEpcForm(){
-        this.showEPCform = false;
-    }
-
-    submitEPCform(formEPC){
-        console.log(formEPC);
     }
 
 }
