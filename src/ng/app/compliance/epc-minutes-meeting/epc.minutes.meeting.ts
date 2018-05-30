@@ -161,7 +161,7 @@ export class EpcMinutesMeetingComponent implements OnInit, OnDestroy{
             if(message.locationId){
                 this.locationID = message.locationId;
             }
-            if(message.epcData){
+            if(message.epcData && message.epcData['data']){
                 this.attendies = message.epcData.data.attendies;
                 for(let i in this.epcMeetingMinutesQuestionsArray){
                     if(message.epcData.data.questionnaires[ this.epcMeetingMinutesQuestionsArray[i]['question']  ]){
