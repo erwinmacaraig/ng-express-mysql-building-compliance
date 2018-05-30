@@ -305,6 +305,7 @@ a:hover{
 
 span.day-unit.is-today {
     background: none !important;
+    color: #3d495c !important;
 }
 
 app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
