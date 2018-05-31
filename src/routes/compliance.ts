@@ -220,6 +220,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             paths,
             epcMeetingId = 2,
             evacDiagramId = 5,
+            evacExerId = 9,
             epmId = 4,
             sundryId = 13,
             fsaId = 3,
@@ -767,8 +768,8 @@ import * as S3Zipper from 'aws-s3-zipper';
                 case 12:
                     // Chief Warden Training
                     if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation) {
-                        comp['total_personnel'] =  comp['chief_warden_total'] =
-                          emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['count'];
+                            comp['total_personnel'] =  comp['chief_warden_total'] =
+                            emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['count'];
                         comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']];
                         try {
                             comp['total_personnel_trained'] =
@@ -776,7 +777,13 @@ import * as S3Zipper from 'aws-s3-zipper';
                                 emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['users'],
                                 {'em_role_id': defs['em_roles']['CHIEF_WARDEN']}
                             );
-                            tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
+
+                            /* If 1 Chief warden passed the training, this compliance is valid */
+                            if( comp['total_personnel_trained']['total_passed'] > 0 ){
+                                tempPercetage = 100;
+                            }
+
+                            // tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
                             if(tempPercetage >= 100){
                                 comp['valid'] = 1;
@@ -974,6 +981,8 @@ import * as S3Zipper from 'aws-s3-zipper';
             rates = JSON.parse(JSON.stringify(trpWholeOcccupierRates));
         }
 
+        this.response['epcCommitteeOnHQ'] = epcCommitteeOnHQ;
+
         for(let comp of compliances){
             let tempPoints = comp.points;
             if( rates[ comp.compliance_kpis_id ] ){
@@ -994,6 +1003,12 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
 
             comp['points'] = tempPoints;
+
+            // under dev
+            if(comp.compliance_kpis_id == evacExerId && 1 > 2){
+                comp['compliance_status'] = 1;
+                comp['valid'] = 1;
+            }
         }
 
         let epcModel = new EpcMinutesMeeting(),

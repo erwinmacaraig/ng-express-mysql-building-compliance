@@ -307,16 +307,18 @@
 		<h5>Add New Tenant </h5>
 		<h6><span *ngIf="selectedLocation.name.length > 0">{{selectedLocation.name}}</span>  <span *ngIf="selectedLocation.name.length == 0">{{selectedLocation.formatted_address}}</span> </h6>
 
-		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)">
+        <h6 [hidden]="!showLoadingSublocations">Fetching locations...</h6>
+
+		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)" [hidden]="showLoadingSublocations">
 
 			<div class="row">
 				<div class="col l12 m12 s12">
 					<div class="select-field"  >
-						<select ngModel  name="location_id" class="location-id" required>
-							<option value="null" disabled>Select Sub Location</option>
+						<select ngModel name="location_id" class="location-id"  required>
+							<option value="0" disabled>Select Location</option>
 							<option *ngFor="let sub of selectedLocation.sublocations;" [value]="sub.location_id" >{{sub.name}}</option>
 						</select>
-						<label class="select-label">Select Sub Location</label>
+						<!-- <label class="select-label">Select Sub Location</label> -->
 					</div>
 					<div class="input-field">
 	          			<input id="company_name" type="text" name="account_name" ngModel required>
@@ -342,7 +344,7 @@
 						</label>
 					</div>
 
-<!--
+                <!--
 
 					<div class="input-field">
 	                  	<input id="company_name" type="text" name="account_name" ngModel required>
@@ -397,7 +399,7 @@
 						<input id="domain" type="text" name="account_domain" ngModel required pattern="^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$">
 						<label for="domain">Account Domain name</label>
 					</div>
-					-->
+                -->
 				</div>
 			</div>
 
