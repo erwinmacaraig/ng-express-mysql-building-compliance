@@ -8,7 +8,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './auth/token.interceptor';
 import { CommonModule } from '@angular/common';
-
+import { ngfModule, ngf } from 'angular-file';
 // services section
 import { AuthService } from './services/auth.service';
 import { AuthGuard } from './services/auth-guard.service';
@@ -120,6 +120,8 @@ import { AccountUsersListComponent } from './admin/account-users/account-users.c
 import { AddAccountUserComponent } from './admin/add-user/add-user.component';
 import { NavComponent } from './admin/nav/nav.component';
 import { LocationsInAccountComponent } from './admin/locations-in-accounts/locations-in-account.component';
+import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upload-compliance-docs.component';
+
 @NgModule({
   declarations: [
     SafeHtmlPipe,
@@ -214,7 +216,8 @@ import { LocationsInAccountComponent } from './admin/locations-in-accounts/locat
     AccountUsersListComponent,
     AddAccountUserComponent,
     NavComponent,
-    LocationsInAccountComponent
+    LocationsInAccountComponent,
+    UploadComplianceDocComponent
   ],
   imports: [
     BrowserModule,
@@ -229,7 +232,8 @@ import { LocationsInAccountComponent } from './admin/locations-in-accounts/locat
     // todo: move to location module
     ReactiveFormsModule,
     NgDatepickerModule,
-    CommonModule
+    CommonModule,
+    ngfModule
   ],
   providers: [
     AuthService,
