@@ -128,4 +128,8 @@ export class ComplianceService {
         });
     }
 
+    public evacExerciseCompleted(formData){
+        return this.http.post(this.baseUrl + '/compliance/evac-exercise-completed', formData);
+    }
+
 }

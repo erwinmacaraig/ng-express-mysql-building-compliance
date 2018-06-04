@@ -137,6 +137,10 @@ import * as S3Zipper from 'aws-s3-zipper';
         router.post('/compliance/save-epc-minutes-of-meeting', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ComplianceRoute().saveEpcMinutesOfMeeting(req, res);
         });
+
+        router.post('/compliance/evac-exercise-completed', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new ComplianceRoute().evacExerciseCompleted(req, res);
+        });
     }
 
     public downloadDocumentCompliancePack(req: AuthRequest, res: Response, next: NextFunction) {
@@ -615,7 +619,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 // 8 General Occupant
                 // 11 General Occupant
             }
-            let tempPercetage;
+            let tempPercetage = 0;
             const totalPassedArr = [];
             const totalFailedArr = [];
 
@@ -865,8 +869,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                 comp['num_wardens'] = (wardens[0]) ? wardens[0]['count'] : 0;
             }
 
-            if(comp.compliance_kpis_id == fsaId && comp.compliance_status == 1){
+            if(comp.compliance_status == 1){
                 comp['validity_status'] = 'valid';
+                comp['valid'] = 1;
             }
 
             comp['percentage_number'] = parseInt(comp['percentage'].replace('%', '').trim());
@@ -1005,10 +1010,10 @@ import * as S3Zipper from 'aws-s3-zipper';
             comp['points'] = tempPoints;
 
             // under dev
-            if(comp.compliance_kpis_id == evacExerId && 1 > 2){
+            /*if(comp.compliance_kpis_id == evacExerId && role == 1){
                 comp['compliance_status'] = 1;
                 comp['valid'] = 1;
-            }
+            }*/
         }
 
         let epcModel = new EpcMinutesMeeting(),
@@ -1143,12 +1148,16 @@ import * as S3Zipper from 'aws-s3-zipper';
     }
 
     public async saveEpcMinutesOfMeeting(req: AuthRequest, res: Response){
-        let response = {
+        let 
+        response = {
             status :  false, data : {}, message : ''
         },
-        epcModel = new EpcMinutesMeeting();
+        epcModel = new EpcMinutesMeeting(),
+        complianceModel = new ComplianceModel(),
+        complianceWhere = [];
 
-        let saveData = {
+        let 
+        saveData = {
             'account_id' : req.body.account_id,
             'location_id' : req.body.location_id,
             'data' : JSON.stringify(req.body.data),
@@ -1157,6 +1166,19 @@ import * as S3Zipper from 'aws-s3-zipper';
             'date_updated' : moment().format('YYYY-MM-DD HH:mm:ss'),
             'updated_by' : req.user.user_id
         };
+
+        complianceWhere.push([ 'account_id = '+req.body.account_id ]);
+        complianceWhere.push([ 'building_id = '+req.body.location_id ]);
+        complianceWhere.push([ 'compliance_kpis_id = 2' ]);
+
+        let 
+        compliance = await complianceModel.getWhere(complianceWhere),
+        kpisModel = new ComplianceKpisModel(),
+        arrWhereKPIS = [],
+        kpis = [];
+
+        arrWhereKPIS.push([' description IS NOT NULL ']);
+        kpis =  <any> await kpisModel.getWhere(arrWhereKPIS)
 
         if(req.body.id){
 
@@ -1174,9 +1196,88 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         await epcModel.create(saveData);
 
+        if(compliance.length > 0){
+            let complianceSaveModel = new ComplianceModel(compliance[0]['compliance_id']);
+            try{
+                await complianceSaveModel.load();
+
+                this.response['complianceSaveModel'] = complianceSaveModel.getDBData();
+
+                let kpiEPC = <any> {};
+
+                for(let kpi of kpis){
+                    if(kpi.compliance_kpis_id == 2){
+                        kpiEPC = kpi;
+                    }
+                }
+
+                let validMonths = kpiEPC.validity_in_months,
+                today = moment(),
+                validTill = today.add(validMonths, 'months');
+
+                complianceSaveModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
+                complianceSaveModel.set('compliance_status', 1);
+
+                await complianceSaveModel.dbUpdate();
+
+            }catch(e){
+                console.log(e);
+            }
+        }
+
         response.status = true;
         saveData['epc_meeting_minutes_id'] = epcModel.ID();
         response.data = saveData;
+
+        res.send(response);
+    }
+
+    public async evacExerciseCompleted(req: AuthRequest, res: Response){
+        let response = {
+            status : false, message : ''
+        },
+        complModel = new ComplianceModel(req.body.compliance_id),
+        kpisModel = new ComplianceKpisModel(),
+        arrWhereKPIS = [],
+        kpis = [];
+
+        arrWhereKPIS.push([' description IS NOT NULL ']);
+        kpis =  <any> await kpisModel.getWhere(arrWhereKPIS);
+
+        try{
+
+            await complModel.load();
+            if(complModel.get('compliance_kpis_id') == 9){
+                
+                let kpiEvacExer = <any> {};
+
+                for(let kpi of kpis){
+                    if(kpi.compliance_kpis_id == 9){
+                        kpiEvacExer = kpi;
+                    }
+                }
+
+                let validMonths = kpiEvacExer.validity_in_months,
+                today = moment(),
+                validTill = today.add(validMonths, 'months');
+
+                if(req.body.status == true){
+                    complModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
+                    complModel.set('compliance_status', 1);
+                }else{
+                    complModel.set('valid_till', 'null');
+                    complModel.set('compliance_status', 0);
+                }
+
+
+                await complModel.dbUpdate();
+                response.status = true;
+
+
+            }
+
+        }catch(e){}
+
 
         res.send(response);
     }
