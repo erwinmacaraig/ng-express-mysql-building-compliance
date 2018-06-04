@@ -77,6 +77,9 @@ export class AdminRoute extends BaseRoute {
       if (req.query.search_key) {
         accountIds = await account.getAll({'query': req.query.search_key});
       }
+      if (req.query.criteria) {
+        accountIds = await account.getAll({'all': 1});
+      }
 
       const list = await accountList.generateAccountsAdminList(accountIds);
       return res.status(200).send({

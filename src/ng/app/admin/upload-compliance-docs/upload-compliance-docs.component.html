@@ -5,6 +5,17 @@
 </div>
 <div class="row">
   <div class="col s12">
+    <select [formControl]="documentType" style="display: block;">
+      <option value="2">EPC Meeting</option>
+      <option value="">Evac Diagram</option>
+    </select>
+  </div>
+</div>
+{{documentType.value}}
+<hr>
+
+<div class="row">
+  <div class="col s12">
     <ngfFormData
       [files]      = "files"
       postName     = "file"
@@ -35,6 +46,41 @@
       Drop your file(s) here
     </div>
 
+  </div>
+</div>
+
+<div class="row">
+  <div class="col s12">
+    <div class="input-field col s12">
+      <input id="account" type="text" class="validate" [formControl]="accountField">
+      <label for="account">Account Name</label>
+    </div>
+    <div class="suggestions" *ngIf="filteredList.length > 0">
+      <ul *ngFor="let item of filteredList">
+        <li>
+          <a (click)="getAccountSelection(item['account_id'], item['account_name'])">{{item['account_name']}}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col s12">
+      <select [formControl]="locationField" style="display: block;">
+          <option disabled selected value="0">Select Building Location</option>
+          <option *ngFor="let loc of accountLocations" [value]="loc['location_id']">{{loc['display_name']}}</option>
+      </select>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col m12 l6">
+    <div class="input-field">
+      <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+      <!-- <input id="dateOfActivity" autocomplete="off" type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="date_of_activity" (click)="showDatePicker()" required > -->
+      <label for="dateOfActivity" class="active" >Date of Activity</label>
+    </div>
   </div>
 </div>
 

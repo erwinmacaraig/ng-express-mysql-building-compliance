@@ -1449,7 +1449,6 @@
 
             <div class="col m12 l6">
                 <div class="input-field">
-
                     <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
                     <input id="dateOfActivity" autocomplete="off" type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="date_of_activity" (click)="showDatePicker()" required >
                     <label for="dateOfActivity" class="active" >Date of Activity</label>

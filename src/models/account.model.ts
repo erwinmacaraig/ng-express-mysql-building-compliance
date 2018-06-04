@@ -83,6 +83,20 @@ export class Account extends BaseClass {
             connection.end();
             return;
           }
+          if ('all' in config) {
+            sql_load = `SELECT account_id FROM accounts WHERE archived = 0`;
+            connection.query(sql_load, (error, results) => {
+              if (error) {
+                console.log('account.model.getAll - cannot get all account listing', error, sql_load);
+                throw Error('There was a problem querying all accounts');
+              }
+              for (const r of results) {
+                accountIds.push(r['account_id']);
+              }
+            });
+            connection.end();
+            return;
+          }
 
           connection.query(sql_load, (error, results, fields) => {
             if (error) {
@@ -483,9 +497,9 @@ export class Account extends BaseClass {
             em_roles
           ON
            user_em_roles_relation.em_role_id = em_roles.em_roles_id
-          INNER JOIN 
+          INNER JOIN
               locations ON user_em_roles_relation.location_id = locations.location_id
-          LEFT JOIN 
+          LEFT JOIN
               locations ploc ON locations.parent_id = ploc.location_id
           WHERE
             users.account_id = ? ${filterStr}
@@ -536,10 +550,10 @@ export class Account extends BaseClass {
 
         const sql_all = `
             SELECT
-                u.user_id, u.first_name, u.last_name, u.email, uer.location_id, uer.em_role_id, 
+                u.user_id, u.first_name, u.last_name, u.email, uer.location_id, uer.em_role_id,
                 uer.user_em_roles_relation_id, er.role_name, train.training_requirement_name, train.training_requirement_id,
                 IF(ploc.name IS NOT NULL, CONCAT( IF(TRIM(ploc.name) <> '', CONCAT(ploc.name, ', '), ''), locations.name), locations.name) as location_name
-            FROM users u 
+            FROM users u
             INNER JOIN user_em_roles_relation uer ON u.user_id = uer.user_id
             INNER JOIN em_roles er ON uer.em_role_id = er.em_roles_id
             INNER JOIN em_role_training_requirements ertr ON er.em_roles_id = ertr.em_role_id
@@ -547,12 +561,12 @@ export class Account extends BaseClass {
             INNER JOIN locations ON uer.location_id = locations.location_id
             LEFT JOIN locations ploc ON locations.parent_id = ploc.location_id
             WHERE u.user_id NOT IN (
-                SELECT 
+                SELECT
                     c.user_id
                 FROM certifications c
                 INNER JOIN training_requirement tr ON c.training_requirement_id = tr.training_requirement_id
                 INNER JOIN em_role_training_requirements emtr ON c.training_requirement_id = emtr.training_requirement_id
-                WHERE c.pass = 1 AND DATE_ADD(c.certification_date, INTERVAL tr.num_months_valid MONTH) > NOW() 
+                WHERE c.pass = 1 AND DATE_ADD(c.certification_date, INTERVAL tr.num_months_valid MONTH) > NOW()
             )
 
             AND u.account_id = ? AND u.archived = 0 ${filterStr};

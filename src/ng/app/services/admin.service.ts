@@ -19,12 +19,17 @@ export class AdminService {
     this.baseUrl = (platformLocation as any).location.origin;
   }
 
-  getAccountListingForAdmin(page = 0, query = '') {
+  getAccountListingForAdmin(page = 0, query = '', criteria = '') {
     let httpParams = new HttpParams().set('page_num', page.toString());
 
     if (query.length > 0) {
-      httpParams = httpParams.set('search_key', query);
+      // httpParams = httpParams.set('search_key', query);
+      httpParams = new HttpParams().set('search_key', query);
     }
+    if (criteria.length > 0) {
+      httpParams = new HttpParams().set('criteria', 'all');
+    }
+
     this.options['params'] = httpParams;
     return this.http.get(this.baseUrl + '/admin/accounts/list/', this.options);
   }
