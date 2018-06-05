@@ -6,16 +6,16 @@
 <div class="row">
   <div class="col s12">
     <select [formControl]="documentType" style="display: block;">
-      <option value="2">EPC Meeting</option>
-      <option value="">Evac Diagram</option>
+      <option [value]="null" [disabled]="true == true">Select Document</option>
+      <option *ngFor="let k of kpisArrayForDisplay" [value]="k.compliance_kpis_id">{{k.name}}</option>
     </select>
   </div>
 </div>
-{{documentType.value}}
+
 <hr>
 
 <div class="row">
-  <div class="col s12">
+  <div class="col s12" *ngIf="documentType.value == 5">
     <ngfFormData
       [files]      = "files"
       postName     = "file"
@@ -30,6 +30,7 @@
 
     <div
       ngfDrop
+      multiple         = "1"
       selectable       = "1"
       [(validDrag)]    = "baseDropValid"
       (fileOver)       = "hasBaseDropZoneOver=$event"
@@ -41,19 +42,52 @@
       class            = "well my-drop-zone"
       [class.invalid-drag] = "baseDropValid===false"
       [class.valid-drag]   = "baseDropValid"
-      (filesChange) = "lastFileAt=getDate()"
-    >
-      Drop your file(s) here
-    </div>
 
+    >
+      Drop or tap to select the file or files to upload
+    </div>
   </div>
+
+  <div class="col s12" *ngIf="documentType.value != 5">
+      <ngfFormData
+        [files]      = "files[0]"
+        postName     = "file"
+        [(FormData)] = "sendableFormData"
+      ></ngfFormData>
+
+      <ngfUploadStatus
+        [(percent)] = "progress"
+        [httpEvent] = "httpEvent"
+      ></ngfUploadStatus>
+
+
+      <div
+        ngfDrop
+        single           = "1"
+        selectable       = "1"
+        [(validDrag)]    = "baseDropValid"
+        (fileOver)       = "hasBaseDropZoneOver=$event"
+        [(files)]        = "files[0]"
+        [accept]         = "accept"
+        [maxSize]        = "maxSize"
+        [(dragFiles)]    = "dragFiles"
+        [(lastInvalids)] = "lastInvalids"
+        class            = "well my-drop-zone"
+        [class.invalid-drag] = "baseDropValid===false"
+        [class.valid-drag]   = "baseDropValid"
+
+      >
+        Drop or tap to select a file to upload
+      </div>
+
+    </div>
 </div>
 
 <div class="row">
   <div class="col s12">
     <div class="input-field col s12">
       <input id="account" type="text" class="validate" [formControl]="accountField">
-      <label for="account">Account Name</label>
+      <label for="account">Enter account name</label>
     </div>
     <div class="suggestions" *ngIf="filteredList.length > 0">
       <ul *ngFor="let item of filteredList">
@@ -68,18 +102,24 @@
 <div class="row">
   <div class="col s12">
       <select [formControl]="locationField" style="display: block;">
-          <option disabled selected value="0">Select Building Location</option>
+          <option [value]="null" [disabled]="true == true">Select Location</option>
           <option *ngFor="let loc of accountLocations" [value]="loc['location_id']">{{loc['display_name']}}</option>
       </select>
   </div>
 </div>
 
 <div class="row">
-  <div class="col m12 l6">
+  <div class="col s6">
     <div class="input-field">
       <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
-      <!-- <input id="dateOfActivity" autocomplete="off" type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="date_of_activity" (click)="showDatePicker()" required > -->
+      <input id="dateOfActivity" [formControl]="dtActivityField" autocomplete="off" type="text" (click)="showDatePicker()" required >
       <label for="dateOfActivity" class="active" >Date of Activity</label>
+    </div>
+  </div>
+  <div class="col s6">
+    <div class="input-field">
+      <input id="dateOfActivityExpiry" autocomplete="off" type="text" [value]="validTillDate" readonly>
+      <label for="dateOfActivityExpiry" class="active">Expiration</label>
     </div>
   </div>
 </div>
@@ -111,12 +151,9 @@
             {{ item.size/1024/1024 | number:'.2' }} MB
           </td>
           <td nowrap>
-            <button type="button"
-              class="btn btn-danger btn-xs"
-              (click)="files.splice(i,1)"
-            >
-              <span class="glyphicon glyphicon-trash"></span>
-            </button>
+            <a (click)="files.splice(i,1)">
+            <i class="small material-icons">delete_forever</i>
+            </a>
           </td>
         </tr>
       </tbody>
@@ -125,7 +162,7 @@
 </div>
 <div class="row">
   <div class="col s12">
-      Queue progress:
+      Queue progress: {{progress}}
       <div class="progress" style="">
         <div class="progress-bar"
           role="progressbar"
@@ -139,22 +176,26 @@
       <i *ngIf="progress==100" class="glyphicon glyphicon-ok"></i>
 
       <button type="button"
-        class="btn btn-success btn-s"
+        class="btn blue waves-effect waves-light"
         (click)="uploadFiles(files)"
-        [disabled]="!files.length"
+        [disabled]="!files.length ||
+        !documentType.valid ||
+        !dtActivityField.valid ||
+        !locationField.valid ||
+        !accountField.valid"
       >
-        <span class="glyphicon glyphicon-upload"></span> Upload all
+        <span class="glyphicon glyphicon-upload"></span> Submit & Upload
       </button>
 
       <button type="button"
-        class="btn btn-warning btn-s"
+        class="btn blue waves-effect waves-light"
         (click)="cancel()"
         [disabled]="!httpEmitter"
       >
         <span class="glyphicon glyphicon-ban-circle"></span> Cancel all
       </button>
       <button type="button"
-        class="btn btn-danger btn-s"
+        class="btn blue waves-effect waves-light"
         (click)="files.length=0"
         [disabled]="!files.length"
       >

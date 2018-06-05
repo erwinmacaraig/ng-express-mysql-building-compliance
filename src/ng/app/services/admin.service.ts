@@ -61,5 +61,9 @@ export class AdminService {
   taggedLocationsOnAccount(accountId: number = 0) {
     return this.http.get(this.baseUrl + `/admin/account-locations/${accountId}/`, this.options);
   }
+
+  getKPIS() {
+    return this.http.get(this.baseUrl + `/admin/compliance/kpis/`, this.options);
+  }
 }
 

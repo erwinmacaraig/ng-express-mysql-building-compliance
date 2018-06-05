@@ -30,24 +30,24 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
 
   docomentInfoForm: FormGroup;
   documentType: FormControl;
-  accountField = new FormControl();
-  locationField = new FormControl();
+  accountField = new FormControl(null, Validators.required);
+  locationField = new FormControl(null, Validators.required);
   selectedAccount: number = 0;
   selectedLocation: number = 0;
   accountLocations = [];
   filteredList = [];
   accountList = [];
   accntSub: Subscription;
-
-  
+  dtActivityField = new FormControl(null, Validators.required);
+  kpis: object = {};
+  kpisArrayForDisplay = [];
   options: DatepickerOptions = {
-    displayFormat: 'YYYY-MM-DD',
-    minDate: moment().toDate()
+    displayFormat: 'YYYY-MM-DD'
   };
   validTillDate = '';
   datepickerModel: Date;
   datepickerModelFormatted = '';
-  isShowDatepicker = true;
+  isShowDatepicker = false;
 
   constructor(public http: HttpClient, platformLocation: PlatformLocation, public adminService: AdminService) {
     this.baseUrl = (platformLocation as any).location.origin;
@@ -56,7 +56,23 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.documentType = new FormControl(null, Validators.required);
+    this.dtActivityField.setValue(this.datepickerModelFormatted);
     this.accntSub = this.getAccountChanges();
+    this.adminService.getKPIS().subscribe((response) => {
+      this.kpis = response['data'];
+      this.kpisArrayForDisplay = Object.keys(response['data']).map((key) => {
+        if (response['data'][key]['required']) {
+          return response['data'][key];
+        }
+      });
+      for ( let i = 0; i < this.kpisArrayForDisplay.length; i++) {
+        if (this.kpisArrayForDisplay[i] == undefined) {
+          this.kpisArrayForDisplay.splice(i, 1);
+        }
+      }
+      console.log(this.kpisArrayForDisplay);
+    });
+
   }
 
   getAccountSelection(accountId: number = 0, accountName = '') {
@@ -83,13 +99,15 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
   }
 
   uploadFiles(files: File[]): Subscription {
-    this.sendableFormData.append('account_id', '5');
-    this.sendableFormData.append('building_id', '62');
-    this.sendableFormData.append('compliance_kpis_id', '2');
-    this.sendableFormData.append('viewable_by_trp', '1');
 
-    this.sendableFormData.append('date_of_activity', '2018-06-01');
-    this.sendableFormData.append('description', 'Manual Entry');
+    this.sendableFormData.append('account_id', this.selectedAccount.toString());
+    this.sendableFormData.append('building_id', this.locationField.value);
+    this.sendableFormData.append('compliance_kpis_id', this.documentType.value);
+    this.sendableFormData.append('viewable_by_trp', '0');
+
+    this.sendableFormData.append('date_of_activity', this.dtActivityField.value);
+    this.sendableFormData.append('description', 'Admin Entry');
+    this.accntSub.unsubscribe();
     const req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance-documents/`, this.sendableFormData, {
       reportProgress: true
     });
@@ -103,6 +121,22 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
           delete this.httpEmitter;
           console.log('request done', event);
         }
+        this.sendableFormData.delete('account_id');
+        this.sendableFormData.delete('building_id');
+        this.sendableFormData.delete('compliance_kpis_id');
+        this.sendableFormData.delete('date_of_activity');
+        this.sendableFormData.delete('description');
+        this.sendableFormData.delete('file');
+        this.files = [];
+
+        this.documentType.reset();
+        this.accountField.reset();
+        this.accountLocations = [];
+        this.locationField.reset();
+        this.dtActivityField.setValue(this.datepickerModelFormatted);
+        this.setDatePickerDefaultDate();
+        this.accntSub = this.getAccountChanges();
+
       },
       error => console.log('Error Uploading', error)
     );
@@ -113,13 +147,12 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
 
   getAccountChanges(): Subscription {
     return this.accountField.valueChanges.debounceTime(350).subscribe((value) => {
-      if (value.length > 0) {
+      if (value != null && value.length > 0) {
         this.adminService.getAccountListingForAdmin(0, value).subscribe((response) => {
           this.filteredList = Object.keys(response['data']['list']).map((key) => {
             return response['data']['list'][key];
           });
         });
-        console.log(this.filteredList);
       } else {
         this.filteredList = [];
       }
@@ -129,7 +162,7 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
   getAccountLocations(): Subscription {
     return this.adminService.taggedLocationsOnAccount(this.selectedAccount).subscribe((response) => {
       this.accountLocations = response['data'];
-      console.log(this.accountLocations);
+      // console.log(this.accountLocations);
     });
   }
 
@@ -146,7 +179,10 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
     } else {
         this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
     }
-    this.validTillDate = moment(this.datepickerModel).add(12, 'months').format('YYYY-MM-DD');
+    this.validTillDate = moment(this.datepickerModel)
+    .add(this.kpis[this.documentType.value]['validity_in_months'], 'months')
+    .format('YYYY-MM-DD');
+    this.dtActivityField.setValue(this.datepickerModelFormatted);
     this.isShowDatepicker = false;
   }
 

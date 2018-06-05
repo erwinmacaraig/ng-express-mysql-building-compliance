@@ -416,6 +416,14 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
+    router.get('/admin/compliance/kpis/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const kpis =  await new ComplianceKpisModel().getAllKPIs(true);
+      return res.status(200).send({
+        message: 'Success',
+        data: kpis
+      });
+    });
+
     router.post('/admin/upload/compliance-documents/',
     new MiddlewareAuth().authenticate,
     async (req: Request, res: Response, next: NextFunction) => {
@@ -460,8 +468,9 @@ export class AdminRoute extends BaseRoute {
           });
         }
 
-        // console.log(Object.keys(req));
-        console.log(req['files']);
+        // console.log(Object.keys(req.body));
+        // console.log(req['files']);
+        console.log(req.body);
         account_role = 'Manager'; // to change
         account_id = req.body.account_id;
         building_id = req.body.building_id;
@@ -722,4 +731,6 @@ export class AdminRoute extends BaseRoute {
       });
   // ===============
   }
+
+
 }
