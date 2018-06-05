@@ -80,6 +80,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     };
 
     showLoadingSublocations = false;
+    emailTaken = false;
 
     constructor(
         private auth: AuthService,

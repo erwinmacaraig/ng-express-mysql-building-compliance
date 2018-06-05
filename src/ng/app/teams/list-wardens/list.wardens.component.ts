@@ -228,6 +228,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         }else{
             checkboxes.prop('checked', false);
             this.allAreSelected = false;
+            this.selectedFromList = [];
         }
 
         checkboxes.each((indx, elem) => {
@@ -363,7 +364,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             this.selectedFromList = temp;
         }
 
-        let checkboxes = $('table tbody input[type="checkbox"]'),
+        /*let checkboxes = $('table tbody input[type="checkbox"]'),
         countChecked = 0;
         checkboxes.each((indx, elem) => {
             if($(elem).prop('checked')){
@@ -376,7 +377,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         if(countChecked == checkboxes.length){
             $('#allLocations').prop('checked', true);
             this.allAreSelected = true;
-        }
+        }*/
     }
 
     bulkManageActionEvent(){
