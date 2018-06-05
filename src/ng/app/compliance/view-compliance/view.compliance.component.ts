@@ -153,6 +153,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
     msgSubs;
 
+    evacExerciseComplianceId = 0;
+
 	constructor(
   		private router : Router,
   		private route: ActivatedRoute,
@@ -258,7 +260,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		}
 	}
 
-	ngOnInit() {
+	ngOnInit(cb?) {
         this.locationService.getById(this.locationID, (response) => {
             console.log(response);
             if (response.sublocations.length > 0) {
@@ -292,11 +294,21 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                         'epcData' : responseCompl.epcData
                     });
 
-                    setTimeout(() => {
-                        $('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
-                        this.dashboard.hide();
-                        this.clickSelectComplianceFromList(this.KPIS[0]);
-                    }, 100);
+                    for(let comp of responseCompl.data){
+                        if(comp.compliance_kpis_id == 9){
+                            this.evacExerciseComplianceId = comp.compliance_id;
+                        }
+                    }
+
+                    if(cb){ 
+                        cb(); 
+                    }else{
+                        setTimeout(() => {
+                            $('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
+                            this.dashboard.hide();
+                            this.clickSelectComplianceFromList(this.KPIS[0]);
+                        }, 100);
+                    }
                 });
             });
 
@@ -312,6 +324,23 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
         $('.modal').modal({
           dismissible: false
+        });
+
+        this.messageService.sendMessage({
+            'epcFormCallBackSuccess' : () => {
+                this.ngOnInit(() => {
+                    this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
+                        this.latestComplianceData = responseCompl.data;
+                        this.setKPISdataForDisplay();
+
+                        this.totalPercentage = responseCompl.percent;
+
+                        this.messageService.sendMessage({
+                            'epcData' : responseCompl.epcData
+                        });
+                    });
+                });
+            }
         });
 	}
 
@@ -376,7 +405,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           console.log('There was an error');
         });
     }
-
 
     downloadKPIFile(kpi_file, filename) {
         console.log(kpi_file);
@@ -509,6 +537,19 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         form.controls.description.reset();
         $('#modalManageUpload form input[name="description"]').trigger('autoresize');
         this.setDatePickerDefaultDate();
+    }
+
+    completedEvacExerEvent(event){
+        this.complianceService.evacExerciseCompleted({
+            compliance_id : this.evacExerciseComplianceId,
+            status : event.target.checked
+        }).subscribe((response) => {
+            this.ngOnInit(() => {
+                setTimeout(() => {
+                    this.clickSelectComplianceFromList(this.KPIS[6]);
+                },500);
+            });
+        });
     }
 
 }

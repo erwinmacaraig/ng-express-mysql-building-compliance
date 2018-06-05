@@ -91,7 +91,7 @@
 					<td>
 
 						<p class="checkbox" >
-                            <input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
+                            <input id="location-{{i}}" [disabled]="allAreSelected" [checked]="warden.isselected" class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
                             <label for="location-{{i}}" ></label>
                             <a  (click)="clickMultipleLocation(warden.locations)" *ngIf="warden.locations.length > 1">Multiple locations</a>
                             <span *ngIf="warden.locations.length == 1">

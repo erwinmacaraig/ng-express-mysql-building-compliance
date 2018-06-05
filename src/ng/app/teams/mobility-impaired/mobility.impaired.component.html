@@ -80,7 +80,7 @@
 				<tr *ngFor="let peep of peepList; let i = index;">
 					<td>
                         <p class="checkbox" >
-                            <input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)"  >
+                            <input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)" [disabled]="allAreSelected" [checked]="peep.isselected"  >
                             <label for="location-{{i}}" ></label>
                             <a  (click)="clickMultipleLocation(peep.locations)" *ngIf="peep.locations.length > 1">Multiple locations</a>
                             <span *ngIf="peep.locations.length == 1">

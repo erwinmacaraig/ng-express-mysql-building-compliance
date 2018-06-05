@@ -324,13 +324,14 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	selectAllCheckboxEvent(event){
-		let checkboxes = $('table tbody input[type="checkbox"]:not([disabled])');
+		let checkboxes = $('table tbody input[type="checkbox"]');
 		if(event.target.checked){
 			checkboxes.prop('checked', true);
             this.allAreSelected = true;
 		}else{
 			checkboxes.prop('checked', false);
             this.allAreSelected = false;
+            this.selectedFromList = [];
 		}
 
 		checkboxes.each((indx, elem) => {
@@ -359,7 +360,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			this.selectedFromList = temp;
 		}
 
-		let checkboxes = $('table tbody input[type="checkbox"]'),
+		/*let checkboxes = $('table tbody input[type="checkbox"]'),
         countChecked = 0;
         checkboxes.each((indx, elem) => {
             if($(elem).prop('checked')){
@@ -372,7 +373,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         if(countChecked == checkboxes.length){
             $('#allLocations').prop('checked', true);
             this.allAreSelected = true;
-        }
+        }*/
 	}
 
 	bulkManageActionEvent(){

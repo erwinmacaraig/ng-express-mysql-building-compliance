@@ -79,7 +79,7 @@
 				<tr *ngFor="let list of listData; let i = index;">
 					<td>
 						<p class="checkbox" >
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)" [checked]="list.isselected"  >
+							<input id="location-{{i}}"  class="filled-in" [disabled]="allAreSelected" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)" [checked]="list.isselected"  >
 							<label for="location-{{i}}" ></label>
                             <a  (click)="clickMultipleLocation(list.locations)" *ngIf="list.locations.length > 1">Multiple locations</a>
                             <span *ngIf="list.locations.length == 1">
