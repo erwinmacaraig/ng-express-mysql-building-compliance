@@ -127,6 +127,7 @@ export class EpcMinutesMeetingComponent implements OnInit, OnDestroy{
 
     locationID = 0;
     msgSubs;
+    epcFormCallBackSuccess;
 
     constructor(
         private router : Router,
@@ -194,6 +195,10 @@ export class EpcMinutesMeetingComponent implements OnInit, OnDestroy{
                     Materialize.updateTextFields();
                 }, 500);
             }
+
+            if(message.epcFormCallBackSuccess){
+                this.epcFormCallBackSuccess = message.epcFormCallBackSuccess;
+            }
         });
 
         this.messageService.sendMessage({
@@ -254,6 +259,10 @@ export class EpcMinutesMeetingComponent implements OnInit, OnDestroy{
                 console.log(response);
                 this.formSubmitted = false;
                 this.formSuccess = true;
+
+                if(this.epcFormCallBackSuccess){
+                    this.epcFormCallBackSuccess();
+                }
 
                 setTimeout(() => {
                     this.formSuccess = false;

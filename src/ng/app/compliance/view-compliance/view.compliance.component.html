@@ -197,16 +197,30 @@
 				<div class="buttons">
 					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
+                    
+                    <div class="switch-container"  >
+                        <p class="give-access-text">Completed the Evacuation Exercise?</p>
+                        <div class="switch" >
+                            <input type="checkbox"
+                            (change)="completedEvacExerEvent($event)"
+                            [checked]="(selectedCompliance.valid == 1) ? 'checked' : false">
+                            <div class="yes">Yes</div>
+                            <div class="no">No</div>
+                            <div class="highlight"></div>
+                            <div class="background"></div>
+                        </div>
+                    </div>
+
 				</div>
 			</div>
 
 			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
 				<p class="give-access-text">Give access to TRP</p>
 				<div class="switch" >
-          <input type="checkbox"
-          (change)="assignAccessToTRP($event, selectedCompliance)"
-          [checked]="selectedCompliance.compliance.docs[0].viewable_by_trp">
-					<div class="yes">Yes</div>
+                    <input type="checkbox"
+                    (change)="assignAccessToTRP($event, selectedCompliance)"
+                    [checked]="selectedCompliance.compliance.docs[0].viewable_by_trp">
+        			<div class="yes">Yes</div>
 					<div class="no">No</div>
 					<div class="highlight"></div>
 					<div class="background"></div>
@@ -1306,7 +1320,8 @@
 									<span *ngIf="k.compliance.docs[0]">{{k.compliance.docs[0].valid_till}}</span>
 								</div>
 								<div *ngIf="k.compliance.validity_status == 'valid'" class="image check" class="green-text">
-									<span *ngIf="k.compliance.docs[0]">{{k.compliance.docs[0].valid_till}}</span>
+                                    <span *ngIf="k.compliance.docs[0] && k.compliance.valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
+									<span *ngIf="!k.compliance.docs[0] && k.compliance.valid_till != null">{{k.compliance['valid_till']}}</span>
 								</div>
 							</div>
 
@@ -1501,5 +1516,6 @@
 
     </form>
 </div>
+
 
 <div preloader></div>

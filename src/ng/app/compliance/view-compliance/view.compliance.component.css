@@ -706,3 +706,19 @@ a:hover{
     padding-left: 25px !important;
     margin-right: 15px !important;
 }
+
+#modalEvacExer{
+    width: 35%;
+}
+
+@media only screen and (max-width: 1024px) {
+    #modalEvacExer{
+        width: 60%;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    #modalEvacExer{
+        width: 95%;
+    }
+}
