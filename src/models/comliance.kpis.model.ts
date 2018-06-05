@@ -27,6 +27,7 @@ export class ComplianceKpisModel extends BaseClass {
                 if (!raw) {
                   for (const r of results) {
                     resultSetObj[r['compliance_kpis_id']] = {
+                      compliance_kpis_id: r['compliance_kpis_id'],
                       name: r['name'],
                       directory_name: r['directory_name'],
                       required: r['required'],
