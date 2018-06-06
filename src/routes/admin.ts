@@ -424,9 +424,80 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
+    router.post('/admin/upload/compliance/evac-diagrams/',
+      new MiddlewareAuth().authenticate,
+      async (req: AuthRequest, res: Response, next: NextFunction) => {
+        const evacFiles = [];
+        let filename = '';
+        let temp;
+        let dirPath = '';
+        
+        const multerConfig = multer.diskStorage({
+          destination: (rq, file, callback) => {
+            callback(null, __dirname + '/../public/temp');
+          },
+          filename: (rq, file, callback) => {
+            filename = file.originalname;
+            callback(null, filename);
+          }
+        });
+        AWS.config.accessKeyId = AWSCredential.AWSAccessKeyId;
+        AWS.config.secretAccessKey = AWSCredential.AWSSecretKey;
+        AWS.config.region = AWSCredential.AWS_REGION;
+        const aws_bucket_name = AWSCredential.AWS_Bucket;
+        const aws_s3 = new AWS.S3();
+        const complianceDocsUploader = multer({storage: multerConfig}).array('file', 100);
+        complianceDocsUploader(req, res, async (err) => {
+          if (err) {
+            console.log('This is the error', err);
+            return res.status(400).send({
+              message: 'There was a problem uploading the evacuation diagrams'
+            });
+          }
+          console.log(req['files']);
+          // do file processing here
+          let file_parts = [];
+
+          for (const f of req['files']) {
+            file_parts = [];
+            dirPath = '';
+            temp = null;
+            file_parts = f['originalname'].split('_');
+            const account = new Account();
+            const location = new Location();
+            if (file_parts[0] != null) {
+              temp = await account.getAccountDetailsUsingName(file_parts[0]);
+              dirPath += `${temp[0]['account_directory_name']}/`;
+              temp = null;
+            }
+            if (file_parts[1] != null) {
+              temp = await location.getLocationDetailsUsingName(file_parts[1]);
+              dirPath += `${temp[0]['location_directory_name']}/`;
+              temp = null;
+            }
+            if (file_parts[2] != null) {
+              temp = await location.getLocationDetailsUsingName(file_parts[2]);
+              dirPath += `${temp[0]['location_directory_name']}/`;
+              temp = null;
+            }
+            if (file_parts[3] != null) {
+              dirPath += temp[0]['location_directory_name'];
+            }
+
+
+          }
+
+
+          return res.status(200).send({
+            message: 'Test'
+          });
+        });
+
+      });
+
     router.post('/admin/upload/compliance-documents/',
     new MiddlewareAuth().authenticate,
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
       let filename = '';
       let dirUploadPath = '';
       const multerConfig = multer.diskStorage({
@@ -560,177 +631,7 @@ export class AdminRoute extends BaseRoute {
           });
 
         });
- /*
-        Object.keys(req['files']).forEach(async (i) => {
-          filename = req['files'][i]['originalname'];
-          const dataStream = await fs.readFileSync(req['files'][i]['path']);
-          const params = {
-            Bucket: aws_bucket_name,
-            Key: `${dirUploadPath}${filename}`,
-            ACL: 'public-read',
-            Body: dataStream
-          };
-          aws_s3.putObject(params, (e, d) => {
-            if (e) {
-              console.log(`error reading file from path`);
-              return res.status(400).send({
-                message: 'Upload Failed'
-              });
-            }
-            console.log(i, params);
-            console.log(d);
-          });
-
-        });*/
-
-        /*
-         for (const f of req['files']) {
-           filename = f['originalname'];
-          fs.readFile(f['path'], (error, data) => {
-            if (error) {
-              console.log('There was a problem reading the uploaded file', error);
-              return res.status(400).send({
-                message: 'Problem reading uploaded file'
-              });
-            }
-            const params = {
-              Bucket: aws_bucket_name,
-              Key: `${dirUploadPath}${filename}`,
-              ACL: 'public-read',
-              Body: data
-            };
-            aws_s3.putObject(params, async (e, d) => {
-              if (e) {
-                console.log(`error reading file from path ${req['file']['path']}`);
-                return res.status(400).send({
-                  message: 'Upload Failed'
-                });
-              }
-
-              fs.unlink( __dirname + '/../public/temp/' + filename, () => {
-                console.log(`Deleting ${filename}`);
-              });
-              const complianceDocObj = new ComplianceDocumentsModel();
-              await complianceDocObj.create({
-                account_id: account_id,
-                building_id: building_id,
-                compliance_kpis_id: kpis,
-                document_type: 'Primary',
-                file_name: filename,
-                date_of_activity: dtActivity,
-                viewable_by_trp: viewable_by_trp,
-                description: description,
-                file_size: f['size'],
-                file_type: f['mimetype'],
-                timestamp: moment().format('YYYY-MM-DD HH:mm:ss')
-              });
-              const today = moment();
-              const dtActivityValidity = moment(dtActivity).add(validityDuration, 'months');
-              let status = 0;
-              if (dtActivityValidity.isAfter(today)) {
-                status = 1;
-              }
-              await complianceModel.create({
-                compliance_kpis_id: kpis,
-                compliance_status: status,
-                building_id: building_id,
-                account_id: account_id,
-                valid_till: dtActivityValidity.format('YYYY-MM-DD'),
-                required: kpisModels[kpis]['required'],
-                account_role: account_role,
-                override_by_evac: 0
-              });
-            });
-          });
-         }
-        */
-
-        /*
-        account_role = 'Manager'; // to change
-        account_id = req.body.account_id;
-        building_id = req.body.building_id;
-        kpis = req.body.compliance_kpis_id;
-        dtActivity = req.body.date_of_activity;
-        description = req.body.description;
-        viewable_by_trp = (req.body.viewable_by_trp.length > 0) ? 1 : 0;
-        validityDuration = kpisModels[kpis]['validity_in_months'];
-
-        arrWhereCompliance.push([`compliance_kpis_id = ${kpis}`]);
-        arrWhereCompliance.push([`building_id = ${building_id}`]);
-        arrWhereCompliance.push([`account_role = '${account_role}'`]);
-        arrWhereCompliance.push([`account_id = ${account_id} GROUP BY compliance_kpis_id`]);
-        compliances = await complianceModel.getWhere(arrWhereCompliance);
-        // build upload path directory
-        const util = new UtilsSync();
-        try {
-          dirUploadPath = await util.getAccountUploadDir(account_id, building_id, kpis);
-
-        } catch (e) {
-          console.log('Cannot build directory structure', e);
-          return res.status(400).send({
-            message: 'Failed. Cannot build directory structure'
-          });
-        }
-
-        fs.readFile(req['file']['path'], (error, data) => {
-          if (error) {
-            console.log('There was a problem reading the uploaded file', error);
-            return res.status(400).send({
-              message: 'Problem reading uploaded file'
-            });
-          }
-          const params = {
-            Bucket: aws_bucket_name,
-            Key: `${dirUploadPath}${filename}`,
-            ACL: 'public-read',
-            Body: data
-          };
-          aws_s3.putObject(params, async (e, d) => {
-            if (e) {
-              console.log(`error reading file from path ${req['file']['path']}`);
-              return res.status(400).send({
-                message: 'Upload Failed'
-              });
-            }
-
-            fs.unlink( __dirname + '/../public/temp/' + filename, () => {});
-            const complianceDocObj = new ComplianceDocumentsModel();
-            await complianceDocObj.create({
-              account_id: account_id,
-              building_id: building_id,
-              compliance_kpis_id: kpis,
-              document_type: 'Primary',
-              file_name: filename,
-              date_of_activity: dtActivity,
-              viewable_by_trp: viewable_by_trp,
-              description: description,
-              file_size: req['file']['size'],
-              file_type: req['file']['mimetype'],
-              timestamp: moment().format('YYYY-MM-DD HH:mm:ss')
-            });
-            const today = moment();
-            const dtActivityValidity = moment(dtActivity).add(validityDuration, 'months');
-            let status = 0;
-            if (dtActivityValidity.isAfter(today)) {
-              status = 1;
-            }
-            await complianceModel.create({
-              compliance_kpis_id: kpis,
-              compliance_status: status,
-              building_id: building_id,
-              account_id: account_id,
-              valid_till: dtActivityValidity.format('YYYY-MM-DD'),
-              required: kpisModels[kpis]['required'],
-              account_role: account_role,
-              override_by_evac: 0
-            });
-
-            return res.status(200).send({
-              message: 'Success'
-            });
-          }); */
-        });
-
+       });
       });
   // ===============
   }

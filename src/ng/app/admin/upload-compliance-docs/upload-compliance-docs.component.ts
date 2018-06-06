@@ -114,14 +114,14 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
       myForm.append('date_of_activity', this.dtActivityField.value);
       myForm.append('description', 'Admin Entry');
       myForm.append('override_document', '-1');
-      // console.log(this.sendableFormData.get('file'));
+      console.log(this.sendableFormData.get('files'));
       // console.log(files);
-
       req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance-documents/`, myForm, {
         reportProgress: true
       });
     } else {
-      req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance-documents/`, this.sendableFormData, {
+      console.log(this.sendableFormData.get('files'));
+      req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance/evac-diagrams/`, this.sendableFormData, {
         reportProgress: true
       });
     }

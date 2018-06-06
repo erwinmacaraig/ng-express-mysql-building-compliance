@@ -105,7 +105,7 @@ export class Location extends BaseClass {
             if(limit && !count){
                 sql_load += ' LIMIT '+limit;
             }
-            
+
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
 				if (error) {
@@ -937,6 +937,20 @@ export class Location extends BaseClass {
         });
         connection.end();
 
+      });
+    }
+
+    public getLocationDetailsUsingName(name: string = ''): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        const sql_get = `SELECT * FROM locations WHERE formatted_address  REGEXP '^${name}$' LIMIT 1;`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_get, [], (error, results) => {
+          if (error) {
+            console.log('location.model.getLocationDetailsUsingName', error, sql_get);
+            throw Error('Internal error. Cannot get location details');
+          }
+          resolve(results);
+        });
       });
     }
 
