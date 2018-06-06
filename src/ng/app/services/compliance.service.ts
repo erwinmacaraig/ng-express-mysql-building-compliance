@@ -132,4 +132,12 @@ export class ComplianceService {
         return this.http.post(this.baseUrl + '/compliance/evac-exercise-completed', formData);
     }
 
+    public totalComplianceRatingByLocationIds(locationIds){
+        return this.http.post(this.baseUrl + '/compliance/total-compliance-rating-by-location', { ids : locationIds });
+    }
+
+    public paginateAllLocationIds(){
+        return this.http.get(this.baseUrl + '/compliance/paginate-all-locationids');
+    }
+
 }

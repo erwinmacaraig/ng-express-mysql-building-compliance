@@ -335,3 +335,83 @@ table tbody tr td .progress.green-theme .determinate{
 .pagination .select{
     margin: 0px 10px;
 }
+
+.search-location-container{
+    position: relative;
+    margin: 12% 0% 0% 0%;
+}
+
+.input-container{
+    border: 1px solid #9e9e9e;
+    border-radius: 5px;
+    padding: 5px 15px;
+}
+
+.input-container input[type="text"]{
+    margin: 0px;
+    border: 0px;
+    box-shadow: none;
+}
+
+.search-result{
+    position: absolute;
+    background: #fffbe4;
+    width: 100%;
+    top: 53px;
+    border: 1px solid #969696;
+    display: none;
+}
+
+.search-result ul{
+    margin: 0px;
+}
+
+.search-result ul li,
+.search-result strong{
+    font-size: 14px;
+    padding: 12px 8px;
+}
+
+.search-result ul li:not(:last-child){
+    border-bottom: 1px solid #969696;
+}
+
+.search-result ul li:hover{
+    cursor: pointer;
+    background-color: #fff8cd;
+}
+
+.search-result.active{
+    display: block;
+}
+
+.compliance-text{
+    margin: 10% 0%;
+    border-bottom: 1px solid #ccc;
+}
+
+.compliance-text h5{
+    color: #4e4e4e;
+    font-size: 19px;
+}
+
+.legends ul li{
+    padding: 5px 0px;
+}
+
+.legends ul li div{
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 16px;
+}
+
+.legends ul li .box-color{
+    width: 15px;
+    height: 15px;
+    background-color: #eee;
+}
+
+.legends ul li .rating{
+    width: 85px;
+    padding: 0px 10px;
+}
