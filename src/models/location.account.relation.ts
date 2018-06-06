@@ -386,6 +386,31 @@ export class LocationAccountRelation extends BaseClass {
 
                 ) src
             `;
+        }else if('locationIdOnly' in filter){
+            sql_get_locations = `
+                SELECT
+                l.location_id
+
+                FROM locations l
+                LEFT JOIN locations p1 ON l.parent_id = p1.location_id
+                LEFT JOIN locations p2 ON p1.parent_id = p2.location_id
+                LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
+                LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
+
+                LEFT JOIN  location_account_relation lar
+                ON lar.location_id = l.location_id
+                OR p1.location_id = lar.location_id
+                OR p2.location_id = lar.location_id
+                OR p3.location_id = lar.location_id
+                OR p4.location_id = lar.location_id
+
+                WHERE
+                lar.account_id = ?
+                ${filterStr}
+                ${nameSearchForTRP}
+                GROUP BY l.location_id
+                ${orderBy} ${offsetLimit}
+            `;
         }else{
             sql_get_locations += ` ${offsetLimit}`;
         }

@@ -55,9 +55,16 @@ import * as S3Zipper from 'aws-s3-zipper';
           new ComplianceRoute().getKPIS(req, res, next);
         });
 
-        router.post('/compliance/locations-latest-compliance',
-          new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+        router.post('/compliance/locations-latest-compliance', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
             new ComplianceRoute().getLocationsLatestCompliance(req, res);
+        });
+
+        router.get('/compliance/paginate-all-locationids', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
+            new ComplianceRoute().paginateAllLocationIds(req, res);
+        });
+
+        router.post('/compliance/total-compliance-rating-by-location', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
+            new ComplianceRoute().totalComplianceRatingByLocationIds(req, res);
         });
 
         router.get('/compliance/download-compliance-documents-pack/',
@@ -220,7 +227,8 @@ import * as S3Zipper from 'aws-s3-zipper';
 			complianceDocsModel = new ComplianceDocumentsModel(),
 			arrWhereKPIS = [],
 			arrWhereCompliance = [],
-            emrolesOnThisLocation,
+            emrolesOnThisLocation = {},
+            getEpcData = (formData) ? (formData.getEpcData) ? formData.getEpcData : true : true,
             paths,
             epcMeetingId = 2,
             evacDiagramId = 5,
@@ -228,32 +236,137 @@ import * as S3Zipper from 'aws-s3-zipper';
             epmId = 4,
             sundryId = 13,
             fsaId = 3,
-            account= <any> {},
-            epcCommitteeOnHQ = false;
+            account = <any> (formData) ? (formData.account) ? formData.account : {} : {},
+            epcCommitteeOnHQ = false,
+            kpis = (formData) ? (formData.kpis) ? formData.kpis : [] : [],
+            kpisIds = [],
+            role = (formData) ? (formData.role) ? formData.role : 0 : 0,
+            userRoleRelObj = new UserRoleRelation();
+
+        this.response = { status : false, data : <any>[], message : '' };
+
+        this.response['location_id'] = locationID;
+        if(kpis.length == 0){
+            arrWhereKPIS.push([' description IS NOT NULL ']);
+            kpis =  <any> await kpisModel.getWhere(arrWhereKPIS);
+        }
 
         /*
         * epcCommitteeOnHQ if true, no documents required for compliance
         */
 
         try{
-            account = await accountModel.load();
-            epcCommitteeOnHQ = (account.epc_committee_on_hq == 1) ? true : false;
+            if(Object.keys(account).length == 0){
+                account = await accountModel.load();
+            }
         }catch(e){}
 
+        epcCommitteeOnHQ = (account.epc_committee_on_hq == 1) ? true : false;
+
         // Retrieve the highest account role
-        let role = 0;
-        const userRoleRelObj = new UserRoleRelation();
-        try {
-            role = await userRoleRelObj.getByUserId(userId, true, locationID);
-        } catch (e) {
-            console.log(e);
+        if(!formData){
             try {
-                role = await userRoleRelObj.getByUserId(userId, true);
-            } catch (err) {
-                console.log(err);
-                role = 0;
+                role = await userRoleRelObj.getByUserId(userId, true, locationID);
+            } catch (e) {
+                try {
+                    role = await userRoleRelObj.getByUserId(userId, true);
+                } catch (err) {
+                    console.log(err);
+                    role = 0;
+                }
             }
         }
+
+        /*
+        ** New Compliance Percentage Computation Based On User's Role 
+        ** Indexed with KPIS IDS
+        */
+        let 
+        frpRates = {
+            2 : { kpis : 'EPC Meeting', valid : 10, no_docs : 0, expired_docs : 5, epc_headoffice_points : 10 },
+            3 : { kpis : 'Fire Safety Advisor', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            6 : { kpis : 'Warden Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            8 : { kpis : 'General Occupant Training', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
+        },
+        trpRates = {
+            2 : { kpis : 'EPC Meeting', valid : 0, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            3 : { kpis : 'Fire Safety Advisor', valid : 15, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            6 : { kpis : 'Warden Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            8 : { kpis : 'General Occupant Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            9 : { kpis : 'Evacuation Exercise', valid : 10, no_docs : 0, expired_docs : 5, epc_headoffice_points : 20 },
+            12 : { kpis : 'Chief Warden Training', valid : 0, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
+        },
+        trpWholeOcccupierRates = {
+            2 : { kpis : 'EPC Meeting', valid : 5, no_docs : 0, expired_docs : 2.5, epc_headoffice_points : 5 },
+            3 : { kpis : 'Fire Safety Advisor', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 15, no_docs : 0, expired_docs : 7.5, epc_headoffice_points : 15 },
+            5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            6 : { kpis : 'Warden Training', valid : 20, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            8 : { kpis : 'General Occupant Training', valid : 15, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
+            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
+        },
+        locAccUserModel = new LocationAccountUser(),
+        locationModelForTRP = new Location(locationID),
+        ancetriesIds = await locationModelForTRP.getAncestryIds(locationID),
+        loc = <any> {},
+        ancIdsArray = [],
+        ancestries = [],
+        userComplianceRole = '',
+        userLocationData = <any> {},
+        isWholeBuildingOccupier = (role == 1) ?  true : false,
+        rates = JSON.parse(JSON.stringify(frpRates));
+
+        try{
+            loc = await locationModelForTRP.load();
+
+            if(ancetriesIds[0]){
+                let tempId = ancetriesIds[0]['ids'].split(',');
+                for(let id of tempId){
+                    if(id > 0){
+                        ancIdsArray.push(id);
+                    }
+                }
+
+                if(ancIdsArray.length > 0){
+                    ancestries = <any> await locationModelForTRP.getByInIds(ancIdsArray.join(','));
+                }
+
+            }
+            ancestries.push(loc);
+
+            // Sort from highest id to lowest id
+            ancestries.sort((a, b) => {
+                if(a.location_id < b.location_id){
+                    return 1;
+                }else if(a.location_id > b.location_id){
+                    return -1;
+                }else{
+                    return 0;
+                }
+            });
+
+            this.response['locations'] = ancestries;
+        }catch(e){
+
+        }
+
+        let theBuilding = <any>{};
+        for(let loc of ancestries){
+            if(loc.is_building == 1){
+                theBuilding = loc;
+            }else if(loc.parent_id == -1 && Object.keys(theBuilding).length == 0){
+                theBuilding = loc;
+            }
+        }
+
+        this.response['building'] = theBuilding;
         
         const utils = new Utils(),
             training = new TrainingCertification(),
@@ -266,8 +379,23 @@ import * as S3Zipper from 'aws-s3-zipper';
             paths = [];
         }
 
+        let 
+            sublocsids = [],
+            subLocsModel = new Location(),
+            sublocs = <any> await subLocsModel.getChildren(locationID);
+            
+        for(let sub of sublocs){
+            sublocsids.push(sub.location_id);
+        }
+
         try {
-            emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, locationID, role);
+            let isAllLocId = (role == 1) ? true : false,
+                emRolesLocationId = (role == 1) ? sublocsids.join(',') : locationID;
+
+            if(sublocsids.length > 0){
+                emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, emRolesLocationId, role, isAllLocId);
+            }
+
             // console.log('======================', emrolesOnThisLocation, '=====================');
             if (defs['em_roles']['GENERAL_OCCUPANT'] in emrolesOnThisLocation) {
 
@@ -453,12 +581,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             console.log(e);
             emrolesOnThisLocation = {};
         }
-
-        arrWhereKPIS.push([' description IS NOT NULL ']);
-        let kpis =  <any> await kpisModel.getWhere(arrWhereKPIS),
-            kpisIds = [],
-            noCompliancesIds = [];
-
+            
         for(let kpi of kpis){
             if(kpi.compliance_kpis_id == evacDiagramId){
                 kpi['measurement'] = 'Precent';
@@ -467,7 +590,6 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         Object.keys(kpis).forEach((key) => {
             kpisIds.push(kpis[key]['compliance_kpis_id']);
-            noCompliancesIds.push(kpis[key]['compliance_kpis_id']);
         });
 
         arrWhereCompliance.push(['compliance_kpis_id IN (' + kpisIds.join(',') + ')']);
@@ -503,38 +625,16 @@ import * as S3Zipper from 'aws-s3-zipper';
         }
 
         let whereDocs = [],
-            docs = <any> [];
+            docs = <any> [],
+            docsLocIds = JSON.parse(JSON.stringify(sublocsids));
 
-        whereDocs.push(['compliance_documents.building_id = ' + locationID]);
+        docsLocIds.push(locationID);
+        docsLocIds.push(theBuilding.location_id);
+
+        whereDocs.push(['compliance_documents.building_id IN (' + docsLocIds.join(',') + ')' ]);
         whereDocs.push(['compliance_documents.account_id = ' + accountID]);
         whereDocs.push(['compliance_documents.document_type = "Primary" ']);
-        whereDocs.push(['compliance_documents.override_document = -1 ']);
         docs = await complianceDocsModel.getWhere(whereDocs);
-
-        let 
-            sublocsids = [0],
-            subLocsModel = new Location(),
-            sublocs = <any> await subLocsModel.getChildren(locationID);
-            
-        for(let sub of sublocs){
-            sublocsids.push(sub.location_id);
-        }
-
-        if(sublocsids.length > 1){
-           let 
-               complianceDocsModelSubLoc = new ComplianceDocumentsModel(),
-               whereDocsSub = [],
-               docsSub = <any> [];
-
-            whereDocsSub.push(['compliance_documents.building_id IN ( ' + sublocsids.join(',') + ')' ]);
-            whereDocsSub.push(['compliance_documents.account_id = ' + accountID]);
-            whereDocsSub.push(['compliance_documents.compliance_kpis_id IN ('+epcMeetingId+', '+epmId+') ']);
-            whereDocsSub.push(['compliance_documents.document_type = "Primary" ']);
-            whereDocsSub.push(['compliance_documents.override_document = -1 ']);
-            docsSub = await complianceDocsModelSubLoc.getWhere(whereDocsSub);
-
-            docs = docs.concat(docsSub);
-        }
 
         docs = docs.sort((a, b) => {
             let d1 = moment(a.date_of_activity),
@@ -869,6 +969,40 @@ import * as S3Zipper from 'aws-s3-zipper';
                 comp['num_wardens'] = (wardens[0]) ? wardens[0]['count'] : 0;
             }
 
+            let 
+            buildingDocs = [],
+            kpisIdRef;
+            if(comp.compliance_kpis_id == epcMeetingId){
+                kpisIdRef = epcMeetingId;
+            }else if(comp.compliance_kpis_id == epmId){
+                kpisIdRef = epmId;
+            }else if(comp.compliance_kpis_id == evacExerId){
+                kpisIdRef = evacExerId;
+            }
+
+            if(kpisIdRef){
+                for(let doc of docs){
+                    if(doc.building_id == theBuilding.location_id && doc.compliance_kpis_id == kpisIdRef){
+                        buildingDocs.push(doc);
+                    }
+                }
+
+                if(buildingDocs[0]){
+                    validTillMoment = moment(buildingDocs[0]['valid_till'], ['DD/MM/YYYY']);
+                }
+
+                if (buildingDocs[0] && validTillMoment.diff(today, 'days') > 0) {
+                    comp['validity_status'] = 'valid';
+                    comp['days_remaining'] = validTillMoment.diff(today, 'days');
+                    comp['valid'] = 1;
+                    comp['percentage'] = '100%';
+                } else if (buildingDocs[0] && validTillMoment.diff(today, 'days') >= 0 && validTillMoment.diff(today, 'days') <= 30) {
+                    comp['validity_status'] = 'expiring';
+                } else if (buildingDocs[0] && validTillMoment.diff(today, 'days') <= 0) {
+                    comp['validity_status'] = 'invalid';
+                }
+            }
+
             if(comp.compliance_status == 1){
                 comp['validity_status'] = 'valid';
                 comp['valid'] = 1;
@@ -876,97 +1010,6 @@ import * as S3Zipper from 'aws-s3-zipper';
 
             comp['percentage_number'] = parseInt(comp['percentage'].replace('%', '').trim());
         }
-
-        /*
-        ** New Compliance Percentage Computation Based On User's Role 
-        ** Indexed with KPIS IDS
-        */
-        let 
-        frpRates = {
-            2 : { kpis : 'EPC Meeting', valid : 10, no_docs : 0, expired_docs : 5, epc_headoffice_points : 10 },
-            3 : { kpis : 'Fire Safety Advisor', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
-            5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            6 : { kpis : 'Warden Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            8 : { kpis : 'General Occupant Training', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
-            12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
-        },
-        trpRates = {
-            2 : { kpis : 'EPC Meeting', valid : 0, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            3 : { kpis : 'Fire Safety Advisor', valid : 15, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
-            5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            6 : { kpis : 'Warden Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            8 : { kpis : 'General Occupant Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            9 : { kpis : 'Evacuation Exercise', valid : 10, no_docs : 0, expired_docs : 5, epc_headoffice_points : 20 },
-            12 : { kpis : 'Chief Warden Training', valid : 0, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
-        },
-        trpWholeOcccupierRates = {
-            2 : { kpis : 'EPC Meeting', valid : 5, no_docs : 0, expired_docs : 2.5, epc_headoffice_points : 5 },
-            3 : { kpis : 'Fire Safety Advisor', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            4 : { kpis : 'Emergency Procedures Manual', valid : 15, no_docs : 0, expired_docs : 7.5, epc_headoffice_points : 15 },
-            5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            6 : { kpis : 'Warden Training', valid : 20, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            8 : { kpis : 'General Occupant Training', valid : 15, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
-            12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
-        },
-        locAccUserModel = new LocationAccountUser(),
-        locationModelForTRP = new Location(locationID),
-        ancetriesIds = await locationModelForTRP.getAncestryIds(locationID),
-        loc = <any> {},
-        ancIdsArray = [],
-        ancestries = [],
-        userComplianceRole = '',
-        userLocationData = <any> {},
-        isWholeBuildingOccupier = (role == 1) ?  true : false,
-        rates = JSON.parse(JSON.stringify(frpRates));
-
-        try{
-            loc = await locationModelForTRP.load();
-
-            if(ancetriesIds[0]){
-                let tempId = ancetriesIds[0]['ids'].split(',');
-                for(let id of tempId){
-                    if(id > 0){
-                        ancIdsArray.push(id);
-                    }
-                }
-
-                if(ancIdsArray.length > 0){
-                    ancestries = <any> await locationModelForTRP.getByInIds(ancIdsArray.join(','));
-                }
-
-            }
-            ancestries.push(loc);
-
-            // Sort from highest id to lowest id
-            ancestries.sort((a, b) => {
-                if(a.location_id < b.location_id){
-                    return 1;
-                }else if(a.location_id > b.location_id){
-                    return -1;
-                }else{
-                    return 0;
-                }
-            });
-
-            this.response['locations'] = ancestries;
-        }catch(e){
-
-        }
-
-        let theBuilding = {};
-        for(let loc of ancestries){
-            if(loc.is_building == 1){
-                theBuilding = loc;
-            }else if(loc.parent_id == -1 && Object.keys(theBuilding).length == 0){
-                theBuilding = loc;
-            }
-        }
-
-        this.response['building'] = theBuilding;
 
         try{
             userLocationData = await locAccUserModel.getByLocationIdAndUserId(locationID, userId);
@@ -1008,29 +1051,25 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
 
             comp['points'] = tempPoints;
-
-            // under dev
-            /*if(comp.compliance_kpis_id == evacExerId && role == 1){
-                comp['compliance_status'] = 1;
-                comp['valid'] = 1;
-            }*/
         }
 
-        let epcModel = new EpcMinutesMeeting(),
-            epcWhere = [],
-            epcData = {};
+        if(getEpcData){
+            let epcModel = new EpcMinutesMeeting(),
+                epcWhere = [],
+                epcData = {};
 
-        epcWhere.push(['location_id = '+locationID]);
-        epcWhere.push(['account_id = '+accountID]);
-        await epcModel.getWhere(epcWhere);
-        if(epcModel.getDBData()[0]){
-            epcData = epcModel.getDBData()[0];
-            epcData['data'] = JSON.parse(epcData['data']);
-            epcData['date_created_formatted'] = moment(epcData['date_created']).format('DD/MM/YYYY');
-            epcData['date_updated_formatted'] = moment(epcData['date_updated']).format('DD/MM/YYYY');
+            epcWhere.push(['location_id = '+locationID]);
+            epcWhere.push(['account_id = '+accountID]);
+            await epcModel.getWhere(epcWhere);
+            if(epcModel.getDBData()[0]){
+                epcData = epcModel.getDBData()[0];
+                epcData['data'] = JSON.parse(epcData['data']);
+                epcData['date_created_formatted'] = moment(epcData['date_created']).format('DD/MM/YYYY');
+                epcData['date_updated_formatted'] = moment(epcData['date_updated']).format('DD/MM/YYYY');
+            }
+
+            this.response['epcData'] = epcData;
         }
-
-        this.response['epcData'] = epcData;
 
         this.response['rates'] = rates;
 		this.response.status = true;
@@ -1055,10 +1094,122 @@ import * as S3Zipper from 'aws-s3-zipper';
         if(!toReturn){
 		    res.send(this.response);
         }else{
-            return this.response;
+            let dataReturn = JSON.parse(JSON.stringify(this.response));
+            return dataReturn;
+        }
+	}
+
+    public async paginateAllLocationIds(req: AuthRequest, res: Response, toReturn?){
+        let
+        response = {
+            data : [], status : true
+        },
+        accountId = req.user.account_id,
+        userId = req.user.user_id,
+        locAccntRelObj = new LocationAccountRelation(),
+        userRoleRel = new UserRoleRelation(),
+        r = 0,
+        filter = {
+            locationIdOnly : true, 
+            archived : 0
+        },
+        locations = [],
+        locationIds = [],
+        compliances = {},
+        arrWhereKPIS = [],
+        kpis = [],
+        locationsPages = [],
+        kpisModel = new ComplianceKpisModel(),
+        accountModel = new Account(accountId),
+        account = await accountModel.load();
+
+        try {
+            r = await userRoleRel.getByUserId(userId, true);
+        } catch(e) {
+            r = 0;
         }
 
-	}
+        filter['responsibility'] = r;
+
+        try{
+            locations = await locAccntRelObj.listAllLocationsOnAccount(accountId, filter);
+            for(let loc of locations){
+                if(!locationIds[ loc.location_id ]){
+                    locationIds.push(loc.location_id);
+                }
+            }
+            let ind = 0;
+            for(let id of locationIds){
+                if(!locationsPages[ind]){ locationsPages[ind] = []; }
+                if(locationsPages[ind].length < 100){
+                    locationsPages[ind].push(id);
+                }else{
+                    ind++;
+                    locationsPages[ind] = [];
+                    locationsPages[ind].push(id);
+                }
+            }
+        }catch(e){}
+
+        response['data'] = locationsPages;
+        response['locationIds'] = locationIds;
+
+        if(toReturn){
+            return response;
+        }else{
+            res.send(response);
+        }
+    }
+
+    public async totalComplianceRatingByLocationIds(req: AuthRequest, res: Response){
+        let
+        response = {
+            data : [], status : true
+        },
+        accountId = req.user.account_id,
+        userId = req.user.user_id,
+        locAccntRelObj = new LocationAccountRelation(),
+        userRoleRel = new UserRoleRelation(),
+        r = 0,
+        filter = {
+            locationIdOnly : true, 
+            archived : 0
+        },
+        locations = [],
+        locationIds = req.body.ids,
+        compliance = {},
+        arrWhereKPIS = [],
+        kpis = [],
+        locationsPages = [],
+        kpisModel = new ComplianceKpisModel(),
+        accountModel = new Account(accountId),
+        account = await accountModel.load();
+
+        arrWhereKPIS.push([' description IS NOT NULL ']);
+        kpis =  <any> await kpisModel.getWhere(arrWhereKPIS);
+
+        try {
+            r = await userRoleRel.getByUserId(userId, true);
+        } catch (e) {
+            r = 2;
+        }
+
+        for(let id of locationIds){
+            let formData = {
+                'location_id' : id,
+                'kpis' : kpis,
+                'account' : account,
+                'role' : r
+            };
+
+            compliance = await this.getLocationsLatestCompliance(req, res, true, formData);
+            response.data.push( compliance );
+        }
+
+        response['locationIds'] = locationIds;
+
+        res.send(response);
+    }
 
     public async getSublocationsEvacDiagrams(req: AuthRequest, res: Response){
         let
