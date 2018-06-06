@@ -99,19 +99,32 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
   }
 
   uploadFiles(files: File[]): Subscription {
-
-    this.sendableFormData.append('account_id', this.selectedAccount.toString());
-    this.sendableFormData.append('building_id', this.locationField.value);
-    this.sendableFormData.append('compliance_kpis_id', this.documentType.value);
-    this.sendableFormData.append('viewable_by_trp', '0');
-
-    this.sendableFormData.append('date_of_activity', this.dtActivityField.value);
-    this.sendableFormData.append('description', 'Admin Entry');
+    let req;
     this.accntSub.unsubscribe();
-    const req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance-documents/`, this.sendableFormData, {
-      reportProgress: true
-    });
+    const myForm = new FormData();
+    if (parseInt(this.documentType.value, 10) !== 5) {
+      for (const f of files) {
+        myForm.append('file', f, f.name);
+      }
 
+      myForm.append('account_id', this.selectedAccount.toString());
+      myForm.append('building_id', this.locationField.value);
+      myForm.append('compliance_kpis_id', this.documentType.value);
+      myForm.append('viewable_by_trp', '0');
+      myForm.append('date_of_activity', this.dtActivityField.value);
+      myForm.append('description', 'Admin Entry');
+      myForm.append('override_document', '-1');
+      // console.log(this.sendableFormData.get('file'));
+      // console.log(files);
+
+      req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance-documents/`, myForm, {
+        reportProgress: true
+      });
+    } else {
+      req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance-documents/`, this.sendableFormData, {
+        reportProgress: true
+      });
+    }
     return this.httpEmitter = this.http.request(req)
     .subscribe(
       event => {
@@ -136,7 +149,6 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         this.dtActivityField.setValue(this.datepickerModelFormatted);
         this.setDatePickerDefaultDate();
         this.accntSub = this.getAccountChanges();
-
       },
       error => console.log('Error Uploading', error)
     );
@@ -160,9 +172,10 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
   }
 
   getAccountLocations(): Subscription {
+    this.accountLocations = [];
     return this.adminService.taggedLocationsOnAccount(this.selectedAccount).subscribe((response) => {
       this.accountLocations = response['data'];
-      // console.log(this.accountLocations);
+       console.log(response['data']);
     });
   }
 

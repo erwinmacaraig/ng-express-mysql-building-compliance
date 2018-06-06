@@ -11,11 +11,12 @@
     </select>
   </div>
 </div>
-
+<br>
 <hr>
+<br>
 
 <div class="row">
-  <div class="col s12" *ngIf="documentType.value == 5">
+  <div class="col s12">
     <ngfFormData
       [files]      = "files"
       postName     = "file"
@@ -26,7 +27,6 @@
       [(percent)] = "progress"
       [httpEvent] = "httpEvent"
     ></ngfUploadStatus>
-
 
     <div
       ngfDrop
@@ -42,48 +42,15 @@
       class            = "well my-drop-zone"
       [class.invalid-drag] = "baseDropValid===false"
       [class.valid-drag]   = "baseDropValid"
-
     >
       Drop or tap to select the file or files to upload
     </div>
   </div>
 
-  <div class="col s12" *ngIf="documentType.value != 5">
-      <ngfFormData
-        [files]      = "files[0]"
-        postName     = "file"
-        [(FormData)] = "sendableFormData"
-      ></ngfFormData>
 
-      <ngfUploadStatus
-        [(percent)] = "progress"
-        [httpEvent] = "httpEvent"
-      ></ngfUploadStatus>
-
-
-      <div
-        ngfDrop
-        single           = "1"
-        selectable       = "1"
-        [(validDrag)]    = "baseDropValid"
-        (fileOver)       = "hasBaseDropZoneOver=$event"
-        [(files)]        = "files[0]"
-        [accept]         = "accept"
-        [maxSize]        = "maxSize"
-        [(dragFiles)]    = "dragFiles"
-        [(lastInvalids)] = "lastInvalids"
-        class            = "well my-drop-zone"
-        [class.invalid-drag] = "baseDropValid===false"
-        [class.valid-drag]   = "baseDropValid"
-
-      >
-        Drop or tap to select a file to upload
-      </div>
-
-    </div>
 </div>
 
-<div class="row">
+<div class="row" *ngIf="documentType.value != 5">
   <div class="col s12">
     <div class="input-field col s12">
       <input id="account" type="text" class="validate" [formControl]="accountField">
@@ -99,7 +66,7 @@
   </div>
 </div>
 
-<div class="row">
+<div class="row" *ngIf="documentType.value != 5">
   <div class="col s12">
       <select [formControl]="locationField" style="display: block;">
           <option [value]="null" [disabled]="true == true">Select Location</option>
@@ -108,7 +75,7 @@
   </div>
 </div>
 
-<div class="row">
+<div class="row" *ngIf="documentType.value != 5">
   <div class="col s6">
     <div class="input-field">
       <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
@@ -126,7 +93,7 @@
 
 <div class="row">
   <div class="col s12">
-      <h6>{{ files.length }} File(s) to be uploaded </h6>
+      <h6 *ngIf="documentType.value == 5">{{ files.length }} File(s) to be uploaded </h6>
     <table class="table">
       <thead>
         <tr>
@@ -136,7 +103,7 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody *ngIf="documentType.value == 5">
         <tr *ngFor="let item of files;let i=index">
           <td>
             <div *ngIf="['image/gif','image/png','image/jpeg'].indexOf(item.type)>=0">
@@ -152,6 +119,27 @@
           </td>
           <td nowrap>
             <a (click)="files.splice(i,1)">
+            <i class="small material-icons">delete_forever</i>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+      <tbody *ngIf="documentType.value != 5">
+        <tr *ngIf="files.length > 0">
+          <td>
+            <div *ngIf="['image/gif','image/png','image/jpeg'].indexOf(files[files.length-1].type) >= 0">
+              <div class="previewIcon" [ngfBackground]="files[files.length-1]"></div>
+            </div>
+            <strong>{{ files[files.length-1].name }}</strong>
+          </td>
+          <td nowrap>
+            {{ files[files.length-1].type }}
+          </td>
+          <td nowrap>
+            {{ files[files.length-1].size/1024/1024 | number:'.2' }} MB
+          </td>
+          <td nowrap>
+            <a (click)="files=[]">
             <i class="small material-icons">delete_forever</i>
             </a>
           </td>
@@ -175,14 +163,22 @@
   <div class="col s12">
       <i *ngIf="progress==100" class="glyphicon glyphicon-ok"></i>
 
-      <button type="button"
+      <button *ngIf="documentType.value != 5" type="button"
         class="btn blue waves-effect waves-light"
-        (click)="uploadFiles(files)"
+        (click)="uploadFiles(files.splice((files.length - 1), 1))"
         [disabled]="!files.length ||
         !documentType.valid ||
         !dtActivityField.valid ||
         !locationField.valid ||
         !accountField.valid"
+      >
+        <span class="glyphicon glyphicon-upload"></span> Upload
+      </button>
+
+      <button *ngIf="documentType.value == 5" type="button"
+        class="btn blue waves-effect waves-light"
+        (click)="uploadFiles(files)"
+        [disabled]="!files.length"
       >
         <span class="glyphicon glyphicon-upload"></span> Submit & Upload
       </button>

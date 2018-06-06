@@ -451,6 +451,7 @@ export class AdminRoute extends BaseRoute {
         description,
         viewable_by_trp,
         account_role,
+        override_document,
         compliances = [];
       const arrWhereCompliance = [];
 
@@ -479,6 +480,7 @@ export class AdminRoute extends BaseRoute {
         description = req.body.description;
         viewable_by_trp = (req.body.viewable_by_trp.length > 0) ? 1 : 0;
         validityDuration = kpisModels[kpis]['validity_in_months'];
+        override_document = req.body.override_document;
 
         arrWhereCompliance.push([`compliance_kpis_id = ${kpis}`]);
         arrWhereCompliance.push([`building_id = ${building_id}`]);
@@ -521,6 +523,7 @@ export class AdminRoute extends BaseRoute {
                 account_id: account_id,
                 building_id: building_id,
                 compliance_kpis_id: kpis,
+                override_document: override_document,
                 document_type: 'Primary',
                 file_name: item['originalname'].replace(/\s+/g, '_'),
                 date_of_activity: dtActivity,
