@@ -392,6 +392,8 @@ import * as S3Zipper from 'aws-s3-zipper';
             let isAllLocId = (role == 1) ? true : false,
                 emRolesLocationId = (role == 1) ? sublocsids.join(',') : locationID;
 
+            emRolesLocationId += ','+locationID;
+
             if(sublocsids.length > 0){
                 emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, emRolesLocationId, role, isAllLocId);
             }
@@ -949,6 +951,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 }
                 if(Math.round( ( valids / diagrams.length ) * 100) >= 100){
                     comp['valid'] = 1;
+                    comp['validity_status'] = 'valid';
                 }
                 comp['total_valid_diagrams'] = valids;
                 comp['total_diagrams'] = diagrams.length;

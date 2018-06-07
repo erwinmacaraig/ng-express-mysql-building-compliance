@@ -226,9 +226,9 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             }else if( kpisTrainings.indexOf(k.compliance_kpis_id) > -1 ){
                 for(let c in this.locationsCompliances){
                     for(let d of this.locationsCompliances[c]['data']){
-                        if( d.compliance_kpis_id == 6  ){
-                            denaminator += d.warden_total;
-                            numerator += d.total_personnel_trained.total_passed;
+                        if(d.compliance_kpis_id == k.compliance_kpis_id){
+                            denaminator += d.total_personnel_trained.failed.length + d.total_personnel_trained.passed.length;
+                            numerator += d.total_personnel_trained.passed.length;
                         }
                     }
                 }

@@ -287,7 +287,7 @@ table tbody tr td.with-bar.red-theme .progress-container p{
 
 table tbody tr td.with-bar.green-theme .text,
 table tbody tr td.with-bar.green-theme .progress-container p{
-    color: #26a69a !important;
+    color: #67c100 !important;
 }
 
 table tbody tr td.with-bar.orange-theme .text,
@@ -347,7 +347,7 @@ table tbody tr td.with-bar.red-theme .progress .determinate{
 }
 
 table tbody tr td.with-bar.green-theme .progress .determinate{
-    background-color: #26a69a;
+    background-color: #67c100;
 }
 
 table tbody tr td.with-bar.orange-theme .progress .determinate{
