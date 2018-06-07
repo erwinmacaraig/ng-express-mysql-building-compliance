@@ -60,7 +60,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
     KPISnames = [];
     selectedComplianceName = '';
 
-    selectedIndex = 0;
+    selectedIndex = -1;
 
     pagination = {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
@@ -86,6 +86,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
     locationsCompliances = <any> {};
     locationsCompliancesBackup = <any> {};
     isAllComplianceLoaded = false;
+    KPIStexts = <any>{};
 
 	constructor(
 		private authService : AuthService,
@@ -211,6 +212,8 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             let numerator = 0,
                 denaminator = 0;
 
+
+
             if( kpisIdWhereOverIsLocationsCount.indexOf(k.compliance_kpis_id) > -1  ){
 
                 denaminator = Object.keys(this.locationsCompliances).length;
@@ -235,6 +238,10 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             }
 
             k['ratings'] = numerator+'/'+denaminator;
+
+            this.KPIStexts[k.compliance_kpis_id] = {
+                textOne : 'Total number of '+k.name, textTwo : numerator+'/'+denaminator
+            };
         }
     }
 
@@ -346,13 +353,6 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
     }
 
-    clickComplianceChart(event){
-        let elem = this.complianceChart.getElementAtEvent(event);
-        if(elem.length > 0){
-            this.selectedIndex = elem[0]._index;
-        }
-    }
-
 	ngAfterViewInit(){
 		// this.dashboardService.show();
 
@@ -392,13 +392,29 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                         sidePadding: 20
                     }
                 },
-                onClick : this.clickComplianceChart.bind(this),
                 tooltips : {
                     callbacks : {
                         label : function(tooltipItems, data) {
                             return thisInstance.KPISnames[tooltipItems.index];
                         }
                     }
+                },
+                onHover : function(events, arr){
+                    if(events.type == "mouseout"){
+                        thisInstance.selectedIndex = -1;
+                        thisInstance.complianceTextOne = thisInstance.complianceTextOneDefault;
+                        thisInstance.complianceTextTwo = thisInstance.complianceTextTwoDefault;
+                        return false;
+                    }
+                    if(arr.length == 0){ return false; }
+                    if( thisInstance.selectedIndex == arr[0]['_index'] ){ return false; }
+
+                    thisInstance.selectedIndex = arr[0]['_index'];
+                    let kpi = thisInstance.KPIS[thisInstance.selectedIndex],
+                        kpiTxt = thisInstance.KPIStexts[ kpi.compliance_kpis_id ];
+                    
+                    thisInstance.complianceTextOne = kpiTxt.textOne;
+                    thisInstance.complianceTextTwo = kpiTxt.textTwo;
                 }
             }
         };
