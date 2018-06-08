@@ -49,6 +49,11 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
   datepickerModelFormatted = '';
   isShowDatepicker = false;
 
+  maxSize: any;
+  lastInvalids: any;
+  baseDropValid: any;
+  dragFiles: any;
+
   constructor(public http: HttpClient, platformLocation: PlatformLocation, public adminService: AdminService) {
     this.baseUrl = (platformLocation as any).location.origin;
     this.setDatePickerDefaultDate();

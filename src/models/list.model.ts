@@ -5,6 +5,49 @@ const dbconfig = require('../config/db');
 export class List {
     constructor() {}
 
+    public listTaggedLocationsOnAccountFromLAU(account: number = 0, filter: object = {}): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let clause = '';
+        if ('exclusion_ids' in filter && filter['exclusion_ids'].length > 0) {
+          const ids = filter['exclusion_ids'].join(',');
+          clause += `AND locations.location_id NOT IN (${ids})`;
+        }
+
+        const sql = `SELECT
+            location_account_user.account_id,
+            locations.parent_id,
+            locations.location_id,
+            locations.is_building,
+            locations.name,
+            locations.formatted_address,
+            p1.name as p1_name,
+            p1.location_id as p1_location_id,
+            p2.name as p2_name,
+            p2.location_id as p2_location_id,
+            p3.name as p3_name,
+            p3.location_id as p3_location_id,
+            p4.name as p4_name,
+            p4.location_id as p4_location_id,
+            p5.name as p5_name,
+            p5.location_id as p5_location_id
+        FROM location_account_user INNER JOIN locations ON location_account_user.location_id = locations.location_id
+        LEFT JOIN locations as p1 ON p1.location_id = locations.parent_id
+          LEFT JOIN locations as p2 ON p2.location_id = p1.parent_id
+          LEFT JOIN locations as p3 ON p3.location_id = p2.parent_id
+          LEFT JOIN locations as p4 ON p4.location_id = p3.parent_id
+          LEFT JOIN locations as p5 ON p5.location_id = p4.parent_id
+        WHERE account_id = ? ${clause} GROUP BY location_account_user.location_id;`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [account], (error, results) => {
+          if (error) {
+            console.log(`list.model.listTaggedLocationsOnAccount`, error, sql);
+            throw Error('Cannot generate list for the account');
+          }
+          resolve(results);
+        });
+      });
+    }
+
     public listTaggedLocationsOnAccount(account: number = 0, filter: object = {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         const sql = `SELECT
@@ -40,6 +83,86 @@ export class List {
           }
           resolve(results);
         });
+      });
+    }
+
+    public generateAccountsAdminListFromLAU(accountIds = []) {
+      return new Promise((resolve, reject) => {
+        let accntIdStr = '';
+        if (accountIds.length > 0) {
+          accntIdStr =  `AND accounts.account_id IN (` + accountIds.join(',')  + `)`;
+        } else {
+          resolve({});
+          return;
+        }
+        const accounts = {};
+        const sql_account_list = `
+            SELECT
+            accounts.account_id,
+            accounts.account_name,
+            accounts.building_number,
+            accounts.billing_unit,
+            accounts.billing_street,
+            accounts.billing_city,
+            accounts.billing_state,
+            accounts.billing_postal_code,
+            accounts.billing_country,
+            location_account_user.location_id
+          FROM
+            accounts
+          LEFT JOIN
+            location_account_user
+          ON
+            accounts.account_id = location_account_user.account_id
+          WHERE 1 = 1 ${accntIdStr}
+          GROUP BY
+            location_account_user.location_id
+          ORDER BY
+            accounts.account_id DESC;`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_account_list, [], (error, results) => {
+          if (error) {
+            console.log('list.model.generateAccountsAdminListFromLAU', error, sql_account_list);
+            throw Error('There was a problem generating the list');
+          }
+          for (const r of results) {
+            if (r['account_id'] in accounts) {
+              if (accounts[r['account_id']]['locations'].indexOf(r['location_id']) == -1) {
+                accounts[r['account_id']]['locations'].push(r['location_id']);
+              }
+            } else {
+              let billingAddress = '';
+              /*
+              if (r['billing_unit'] && r['billing_unit'].length > 0) {
+                billingAddress = `${r['billing_unit']}`;
+              }
+              */
+              if (r['billing_street'] && r['billing_street'].length > 0) {
+                billingAddress += `${r['billing_street']}`;
+              }
+              if (r['billing_city'] && r['billing_city'].length > 0) {
+                billingAddress += `, ${r['billing_city']}`;
+              }
+              if (r['billing_state'] && r['billing_state'].length > 0) {
+                billingAddress += `, ${r['billing_state']}`;
+              }
+              if (r['billing_postal_code'] && r['billing_postal_code'].length > 0) {
+                billingAddress += `, ${r['billing_postal_code']}`;
+              }
+              if (r['billing_country'] && r['billing_country'].length > 0) {
+                billingAddress += `, ${r['billing_country']}`;
+              }
+              accounts[r['account_id']] = {
+                'account_id': r['account_id'],
+                'account_name': r['account_name'],
+                'billing_address': `${billingAddress}`,
+                'locations': [r['location_id']]
+              };
+            }
+          }
+          resolve(accounts);
+        });
+        connection.end();
       });
     }
 
@@ -82,7 +205,10 @@ export class List {
           }
           for (const r of results) {
             if (r['account_id'] in accounts) {
-              accounts[r['account_id']]['locations'].push(r['location_id']);
+              if (accounts[r['account_id']]['locations'].indexOf(r['location_id']) == -1) {
+                accounts[r['account_id']]['locations'].push(r['location_id']);
+              }
+
             } else {
               let billingAddress = '';
               /*

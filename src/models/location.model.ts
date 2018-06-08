@@ -51,22 +51,21 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getChildren(parentId, call?){
-		return new Promise((resolve) => {
-			const sql_load = `SELECT * FROM locations WHERE parent_id = ? AND archived = 0 `;
-			const param = [parentId];
-			const connection = db.createConnection(dbconfig);
+  public getChildren(parentId, call?): Promise<Array<object>> {
+    return new Promise((resolve) => {
+      const sql_load = `SELECT * FROM locations WHERE parent_id = ? AND archived = 0 `;
+      const param = [parentId];
+      const connection = db.createConnection(dbconfig);
 
-			connection.query(sql_load, param, (error, results, fields) => {
-				if (error) {
-					return console.log(error);
-				}
-
-				resolve(results);
-			});
-			connection.end();
-		});
-	}
+      connection.query(sql_load, param, (error, results, fields) => {
+        if (error) {
+          return console.log(error);
+        }
+        resolve(results);
+      });
+      connection.end();
+    });
+  }
 
     public countSubLocations(parentId){
         return new Promise((resolve) => {
@@ -942,9 +941,14 @@ export class Location extends BaseClass {
       });
     }
 
-    public getLocationDetailsUsingName(name: string = ''): Promise<Array<object>> {
+    public getLocationDetailsUsingName(name: string = '', parentId?): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
-        const sql_get = `SELECT * FROM locations WHERE formatted_address  REGEXP '^${name}$' LIMIT 1;`;
+        let sql_get = '';
+        let parentIdClause = '';
+        sql_get = `SELECT * FROM locations WHERE name  LIKE '${name}' LIMIT 1;`;
+        if (parentId) {
+          sql_get = `SELECT * FROM locations WHERE name LIKE '${name}' AND parent_id = ${parentId} LIMIT 1;`;
+        }
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get, [], (error, results) => {
           if (error) {

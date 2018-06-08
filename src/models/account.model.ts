@@ -703,7 +703,7 @@ export class Account extends BaseClass {
 
     public getAccountDetailsUsingName(name: string = ''): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
-        const sql_get = `SELECT * FROM accounts WHERE account_name REGEXP '^${name}$' LIMIT 1`;
+        const sql_get = `SELECT * FROM accounts WHERE account_name LIKE '${name}' LIMIT 1`;
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get, [], (error, results) => {
           if (error) {
