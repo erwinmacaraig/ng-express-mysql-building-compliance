@@ -32,6 +32,7 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
   documentType: FormControl;
   accountField = new FormControl(null, Validators.required);
   locationField = new FormControl(null, Validators.required);
+  accessType: FormControl;
   selectedAccount: number = 0;
   selectedLocation: number = 0;
   accountLocations = [];
@@ -60,6 +61,7 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.accessType = new FormControl();
     this.documentType = new FormControl(null, Validators.required);
     this.dtActivityField.setValue(this.datepickerModelFormatted);
     this.accntSub = this.getAccountChanges();
@@ -75,21 +77,19 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
           this.kpisArrayForDisplay.splice(i, 1);
         }
       }
-      console.log(this.kpisArrayForDisplay);
+      // console.log(this.kpisArrayForDisplay);
     });
 
   }
 
   getAccountSelection(accountId: number = 0, accountName = '') {
     this.accntSub.unsubscribe();
-    console.log(accountId);
+    // console.log(accountId);
     this.selectedAccount = accountId;
-
     this.accountField.setValue(accountName);
     this.filteredList = [];
     this.getAccountLocations();
     this.accntSub = this.getAccountChanges();
-
   }
 
   ngAfterViewInit() {
@@ -115,9 +115,10 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
       myForm.append('account_id', this.selectedAccount.toString());
       myForm.append('building_id', this.locationField.value);
       myForm.append('compliance_kpis_id', this.documentType.value);
-      myForm.append('viewable_by_trp', '0');
+      myForm.append('document_type', this.accessType.value);
+      myForm.append('viewable_by_trp', '1');
       myForm.append('date_of_activity', this.dtActivityField.value);
-      myForm.append('description', 'Admin Entry');
+      myForm.append('description', 'Uploaded By Admin');
       myForm.append('override_document', '-1');
       console.log(this.sendableFormData.get('files'));
       // console.log(files);

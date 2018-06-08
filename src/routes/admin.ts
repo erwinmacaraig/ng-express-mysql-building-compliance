@@ -680,6 +680,7 @@ export class AdminRoute extends BaseRoute {
         description,
         viewable_by_trp,
         account_role,
+        document_type,
         override_document,
         compliances = [];
       const arrWhereCompliance = [];
@@ -700,14 +701,15 @@ export class AdminRoute extends BaseRoute {
 
         // console.log(Object.keys(req.body));
         // console.log(req['files']);
-        console.log(req.body);
+        // console.log(req.body);
         account_role = 'Manager'; // to change
         account_id = req.body.account_id;
         building_id = req.body.building_id;
         kpis = req.body.compliance_kpis_id;
+        document_type = req.body.document_type;
         dtActivity = req.body.date_of_activity;
         description = req.body.description;
-        viewable_by_trp = (req.body.viewable_by_trp.length > 0) ? 1 : 0;
+        viewable_by_trp = 1; // to change
         validityDuration = kpisModels[kpis]['validity_in_months'];
         override_document = req.body.override_document;
 
@@ -719,8 +721,7 @@ export class AdminRoute extends BaseRoute {
         // build upload path directory
         const util = new UtilsSync();
         try {
-          dirUploadPath = await util.getAccountUploadDir(account_id, building_id, kpis);
-
+          dirUploadPath = await util.getAccountUploadDir(account_id, building_id, kpis, document_type);
         } catch (e) {
           console.log('Cannot build directory structure', e);
           return res.status(400).send({
@@ -746,14 +747,13 @@ export class AdminRoute extends BaseRoute {
               });
             }
             // console.log(i, params);
-
             const complianceDocObj = new ComplianceDocumentsModel();
               await complianceDocObj.create({
                 account_id: account_id,
                 building_id: building_id,
                 compliance_kpis_id: kpis,
                 override_document: override_document,
-                document_type: 'Primary',
+                document_type: document_type,
                 file_name: item['originalname'].replace(/\s+/g, '_'),
                 date_of_activity: dtActivity,
                 viewable_by_trp: viewable_by_trp,

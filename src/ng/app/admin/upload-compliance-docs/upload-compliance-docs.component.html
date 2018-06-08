@@ -5,8 +5,9 @@
 </div>
 <div class="row">
   <div class="col s12">
-    <select [formControl]="documentType" style="display: block;">
-      <option [value]="null" [disabled]="true == true">Select Document</option>
+    <label for="documentType">Document For</label>
+    <select [formControl]="documentType" id="documentType" style="display: block;">
+      <option [value]="null" [disabled]="true == true">Compliance Item</option>
       <option *ngFor="let k of kpisArrayForDisplay" [value]="k.compliance_kpis_id">{{k.name}}</option>
     </select>
   </div>
@@ -68,13 +69,25 @@
 
 <div class="row" *ngIf="documentType.value != 5">
   <div class="col s12">
-      <select [formControl]="locationField" style="display: block;">
+      <label for="locationField">Locations On Account</label>
+      <select [formControl]="locationField" id="locationField" style="display: block;">
           <option [value]="null" [disabled]="true == true">Select Location</option>
           <option *ngFor="let loc of accountLocations" [value]="loc['location_id']">{{loc['display_name']}}</option>
       </select>
   </div>
 </div>
 
+<div class="row" *ngIf="documentType.value != 5">
+  <div class="col s12">
+    <label for="accessType">Type</label>
+    <select [formControl]="accessType" style="display: block;" id="accessType">
+      <option [value]="null" [disabled]="true == true">Select Document Type</option>
+      <option value="Primary">Primary</option>
+      <option value="Secondary">Secondary</option>
+      <option value="Admin">Admin</option>
+    </select>
+  </div>
+</div>
 <div class="row" *ngIf="documentType.value != 5">
   <div class="col s6">
     <div class="input-field">
@@ -148,6 +161,7 @@
     </table>
   </div>
 </div>
+<!--
 <div class="row">
   <div class="col s12">
       Queue progress: {{progress}}
@@ -158,11 +172,10 @@
         ></div>
       </div>
   </div>
-</div>
+</div> -->
 <div class="row">
   <div class="col s12">
-      <i *ngIf="progress==100" class="glyphicon glyphicon-ok"></i>
-
+      <hr>
       <button *ngIf="documentType.value != 5" type="button"
         class="btn blue waves-effect waves-light"
         (click)="uploadFiles(files.splice((files.length - 1), 1))"
@@ -170,7 +183,8 @@
         !documentType.valid ||
         !dtActivityField.valid ||
         !locationField.valid ||
-        !accountField.valid"
+        !accountField.valid ||
+        !accessType.valid"
       >
         <span class="glyphicon glyphicon-upload"></span> Upload
       </button>
