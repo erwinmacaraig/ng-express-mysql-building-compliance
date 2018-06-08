@@ -418,14 +418,26 @@ export class CourseRoute extends BaseRoute {
         await tokenTrainModel.create(saveData);
 
         emailBody += `
-            <h3 style="text-transform:capitalize;">Hi ${fullname},</h3>
-            <br/> <br/>
-            Please do ${trainingsTxt} for ${user.location_name} of ${account.account_name} <br/>
+            <div style="font-size:16px;">
+                <h3 style="text-transform:capitalize;">Hi ${fullname},</h3>
 
-            <br/><br/><br/>
+                You are invited to complete the following online training on EvacConnect: <br/>
+                ${trainingsTxt} <br/><br/>
 
-            <h5>If you have logged in before <a href="${trainingLink}" style="color:#2980b9;">Click here</a></h5>
-            <h5>If you forgotten your password or have not yet set a password, <a href="${forgotPassLink}" style="color:#c0392b;">Click here</a></h5>
+                Follow this link to start the training: <br/>
+                <a href="${trainingLink}" style="color:#2980b9;">${trainingLink}</a> <br/><br/>
+
+                As warden and/or general occupant of our site, please note that it is mandatory for you to complete this training<br/>
+                as required in all facilities in Australia under Australian Standard AS3745. <br/><br/>
+
+                We hope that you will benefit from the convenience of taking this training online. Thank you for your active <br/>
+                participation and commitment to proactive safety within our tenancy. <br/><br/>
+
+                Sincerely, <br/>
+                EvacConnect <br/><br/><br/>
+
+                If you forgotten your password or have not yet set a password, <a href="${forgotPassLink}" style="color:#c0392b;">Click here</a>
+            </div>
         `;
 
         emailBody += emailModel.getEmailHTMLFooter();
@@ -433,7 +445,7 @@ export class CourseRoute extends BaseRoute {
         emailModel.assignOptions({
             body : emailBody,
             to: [user.email],
-            subject : 'EvacConnect Training Invitation'
+            subject : `You're invited to take an online training on ${trainingsTxt}`
         });
 
         await emailModel.send(() => {}, () => {});
