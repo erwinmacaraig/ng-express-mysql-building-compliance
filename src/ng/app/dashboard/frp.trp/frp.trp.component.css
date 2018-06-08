@@ -347,6 +347,11 @@ table tbody tr td .progress.green-theme .determinate{
     padding: 5px 15px;
 }
 
+.input-container.disabled{
+    background-color: #f1f1f1;
+    opacity: 0.5;
+}
+
 .input-container input[type="text"]{
     margin: 0px;
     border: 0px;

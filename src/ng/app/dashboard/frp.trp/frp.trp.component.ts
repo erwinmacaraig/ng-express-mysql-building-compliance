@@ -87,6 +87,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
     locationsCompliancesBackup = <any> {};
     isAllComplianceLoaded = false;
     KPIStexts = <any>{};
+    selectedLocsFromSearch = {};
 
 	constructor(
 		private authService : AuthService,
@@ -239,9 +240,37 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
             k['ratings'] = numerator+'/'+denaminator;
 
-            this.KPIStexts[k.compliance_kpis_id] = {
-                textOne : 'Total number of '+k.name, textTwo : numerator+'/'+denaminator
-            };
+            if( Object.keys(this.selectedLocsFromSearch).length > 0 ){
+                this.KPIStexts[k.compliance_kpis_id] = {
+                    textOne : this.selectedLocsFromSearch['name']+' ( '+k.name+' ) ', textTwo : numerator+'/'+denaminator
+                };
+                
+            }else{
+                this.KPIStexts[k.compliance_kpis_id] = {
+                    textOne : 'Total number of '+k.name, textTwo : numerator+'/'+denaminator
+                };
+            }
+        }
+
+        if( Object.keys(this.selectedLocsFromSearch).length > 0 ){
+            let totalNumerator = 0,
+                denaminator = 0;
+            for(let k of this.KPIS){
+                let 
+                ratingsArr = k['ratings'].split('/'),
+                numerator = ratingsArr[0];
+
+                totalNumerator += parseInt(numerator);
+                if(k.compliance_kpis_id != 13){
+                    denaminator++;
+                }
+            }
+
+            this.complianceTextOne = this.selectedLocsFromSearch['name'];
+            this.complianceTextTwo = totalNumerator+'/'+denaminator;
+        }else{
+            this.complianceTextOne = 'Total number of buildings';
+            this.complianceTextTwo = this.pagination.total;
         }
     }
 
@@ -312,18 +341,19 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
         Observable.fromEvent(this.inpSearchLocation.nativeElement, 'keyup').debounceTime(800).distinctUntilChanged().subscribe((event:KeyboardEvent) => {
             let elem = $(event.target),
-                val = elem.val();
+                val = elem.val().trim();
 
             $(this.divSearchLocationResult.nativeElement).addClass('active');
             this.searchingLocation = true;
+            this.selectedLocsFromSearch = {};
 
             if (val.length == 0) {
                 this.searchedLocations = [];
                 this.searchingLocation = false;
                 $(this.divSearchLocationResult.nativeElement).removeClass('active');
-                this.complianceTextOne = this.complianceTextOneDefault;
-                this.complianceTextTwo = this.complianceTextTwoDefault;
                 this.KPIS = JSON.parse(JSON.stringify(this.KPISdefault));
+                this.locationsCompliances = JSON.parse(JSON.stringify(this.locationsCompliancesBackup));
+                this.buildComplianceKpisLegends();
             } else {
                 this.locationService.getParentLocationsForListingPaginated({
                     'limit': 5,
@@ -346,9 +376,8 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
         let selected = JSON.parse( JSON.stringify( this.locationsCompliancesBackup[location.location_id] ) );
         this.locationsCompliances = {};
         this.locationsCompliances[ location.location_id ] = selected;
-        this.complianceTextOne = location.name;
-        this.complianceTextTwo = '0/0';
-        
+        this.selectedLocsFromSearch = location;
+
         this.buildComplianceKpisLegends();
 
     }
@@ -402,8 +431,8 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                 onHover : function(events, arr){
                     if(events.type == "mouseout"){
                         thisInstance.selectedIndex = -1;
-                        thisInstance.complianceTextOne = thisInstance.complianceTextOneDefault;
-                        thisInstance.complianceTextTwo = thisInstance.complianceTextTwoDefault;
+                        thisInstance.buildComplianceKpisLegends();
+
                         return false;
                     }
                     if(arr.length == 0){ return false; }

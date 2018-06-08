@@ -12,7 +12,7 @@
 		    </div>
             
             <div class="search-location-container">
-                <div class="input-container">
+                <div class="input-container" [ngClass]="{ 'disabled' : !isAllComplianceLoaded  }">
                     <input type="text" #inpSearchLocation placeholder="Type location here" [disabled]="!isAllComplianceLoaded">
                 </div>
 
@@ -107,8 +107,11 @@
                             <td colspan="4" class="center">No plans found</td>
                         </tr>
                         <tr *ngFor="let loc of locations" >
-                            <td><span *ngIf="loc.parent">{{loc.parent.name}}, </span>{{loc.name}}</td>
+                            <td>
+                                <span *ngIf="loc.parent">{{loc.parent.name}}, </span>{{loc.name}}
+                            </td>
                             <td class="with-bar">
+                                <a [routerLink]="['/location/compliance/view/', loc.enc_location_id]">
                                 <div *ngIf="loc.fetchingCompliance" class="progress fetching">
                                     <div class="indeterminate"></div>
                                 </div>
@@ -118,6 +121,7 @@
                                         <div class="determinate" [ngStyle]="{ 'width' : loc.compliance_percentage+'%' }"></div>
                                     </div>
                                 </div>
+                                </a>
                             </td>
                             <td> 0/0 </td>
                             <!--<td>  <button class="btn light-blue waves-effect waves-light">Shop</button>  </td>-->
