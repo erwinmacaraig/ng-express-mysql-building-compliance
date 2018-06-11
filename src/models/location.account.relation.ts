@@ -334,7 +334,26 @@ export class LocationAccountRelation extends BaseClass {
             l.formatted_address,
             lar.responsibility,
             lar.location_account_relation_id,
-            lar.account_id
+            lar.account_id,
+            IF(l.is_building = 1, l.location_id, 
+              
+                IF(p1.is_building = 1, p1.location_id, 
+                   IF(p1.parent_id = -1, p1.location_id, 
+                      IF(p2.is_building = 1, p2.location_id, 
+                        IF(p2.parent_id = -1, p2.location_id, 
+                            IF(p3.is_building = 1, p3.location_id, 
+                               IF(p3.parent_id = -1, p3.location_id, 
+                                    IF(p4.is_building = 1, p4.location_id, 
+                                       IF(p4.parent_id = -1, p4.location_id, 
+                                            0
+                                    ) )
+                            ) )
+                        ) )
+                   ) )
+
+                )   
+            
+            as building_id
 
             FROM locations l
             LEFT JOIN locations p1 ON l.parent_id = p1.location_id
@@ -500,6 +519,28 @@ export class LocationAccountRelation extends BaseClass {
         connection.end();
 
       });
+    }
 
+    public getLoctionSiblingsOfTenantRealtedToAccountAndLocation(accountId, locationId, count?){
+        return new Promise((resolve, reject) => {
+            const select = (count) ? 'COUNT(siblings.location_id) as count' : 'siblings.*';
+            const sql_load = `
+                SELECT ${select}
+                FROM locations siblings
+                INNER JOIN locations location ON siblings.parent_id = location.parent_id
+                INNER JOIN location_account_relation lar ON siblings.location_id = lar.location_id  
+
+                WHERE  lar.account_id = ${accountId} AND lar.responsibility = 'Tenant' AND location.location_id = ${locationId} AND siblings.location_id != ${locationId} AND siblings.archived = 0
+            `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load,  (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              this.dbData = results;
+              resolve(this.dbData);
+            });
+            connection.end();
+        });
     }
 }

@@ -1241,26 +1241,11 @@ const defs = require('../config/defs.json');
             filter['archived'] = queries.archived;
         }
 
-        if (r == defs['Tenant']) {
-            const locationListingTRP = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
-            response.locations = locationListingTRP;
+        try{
+            response.locations = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+        }catch(e){
+            response.locations = [];
         }
-
-        if (r == defs['Manager']) {
-            const building_locations = [];
-            const other_locations = [];
-            try {
-              const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
-              response.locations = locationsForBuildingManager;
-
-              response['locationsForBuildingManager'] = locationsForBuildingManager;
-            } catch (e) {
-              console.log(e, 'Error getting locations for FRP');
-              response.locations = [];
-            }
-        }
-
-
 
         const subLocsArr = [];
         let subLocsStr = '';

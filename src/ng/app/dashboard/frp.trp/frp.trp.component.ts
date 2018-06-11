@@ -385,7 +385,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 	ngAfterViewInit(){
 		// this.dashboardService.show();
 
-		$('.workspace.container').css('padding', '2% 5%');
+		$('.workspace.container').css('padding', '1% 3%');
 
 
 		// DONUT update

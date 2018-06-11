@@ -78,7 +78,7 @@ locationStr = '';
 	}
 
 	ngAfterViewInit(){
-		$('.workspace.container').css('padding', '2% 5%');
+		$('.workspace.container').css('padding', '1% 3%');
     $('select').material_select();
     $('.modal').modal({
       dismissible: false
