@@ -121,6 +121,7 @@ import { AddAccountUserComponent } from './admin/add-user/add-user.component';
 import { NavComponent } from './admin/nav/nav.component';
 import { LocationsInAccountComponent } from './admin/locations-in-accounts/locations-in-account.component';
 import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upload-compliance-docs.component';
+import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/compliance-summary-view.component';
 
 @NgModule({
   declarations: [
@@ -217,7 +218,8 @@ import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upl
     AddAccountUserComponent,
     NavComponent,
     LocationsInAccountComponent,
-    UploadComplianceDocComponent
+    UploadComplianceDocComponent,
+    ComplianceSummaryViewComponent
   ],
   imports: [
     BrowserModule,

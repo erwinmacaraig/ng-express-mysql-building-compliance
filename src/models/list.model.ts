@@ -1,6 +1,7 @@
 import * as db from 'mysql2';
 import * as Promise from 'promise';
 const dbconfig = require('../config/db');
+const aws_credential = require('../config/aws-access-credentials.json');
 
 export class List {
     constructor() {}
@@ -414,6 +415,50 @@ export class List {
           resolve(resultSet);
         });
         connection.end();
+      });
+    }
+
+    public generateComplianceDocumentList(account, location, kpi, type?: string): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+
+        const sql_get = `SELECT
+                      accounts.account_directory_name,
+                      parentLocation.location_directory_name as parent_location_directory_name,
+                      locations.location_directory_name,
+                      locations.is_building,
+                      compliance_kpis.directory_name,
+                      compliance_kpis.validity_in_months,
+                      DATE_ADD(compliance_documents.date_of_activity, INTERVAL compliance_kpis.validity_in_months MONTH) as expiry_date,
+                      compliance_documents.*
+                  FROM compliance_documents
+                  INNER JOIN
+                        accounts ON accounts.account_id = compliance_documents.account_id
+                  INNER JOIN locations ON locations.location_id = compliance_documents.building_id
+                  INNER JOIN compliance_kpis ON compliance_kpis.compliance_kpis_id = compliance_documents.compliance_kpis_id
+                  LEFT JOIN locations as parentLocation ON parentLocation.location_id = locations.parent_id
+                  WHERE compliance_documents.account_id = ?
+                  AND compliance_documents.building_id = ?
+                  AND compliance_documents.compliance_kpis_id = ?`;
+
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_get, [account, location, kpi], (error, results) => {
+          if (error) {
+            console.log('list.model.generateComplianceDocumentList', error, sql_get);
+            throw Error('There was an error generating the list of documents');
+          }
+
+          for (const r of results) {
+            let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
+            urlPath += r['account_directory_name'];
+            if (r['parent_location_directory_name'] != null && r['parent_location_directory_name'].trim().length > 0) {
+              urlPath +=  `/${r['parent_location_directory_name']}`;
+            }
+            urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/${r['file_name']}`;
+            r['urlPath'] = urlPath;
+          }
+          // console.log(results);
+          resolve(results);
+        });
       });
     }
 

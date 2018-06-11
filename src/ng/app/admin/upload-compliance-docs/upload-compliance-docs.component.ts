@@ -5,6 +5,8 @@ import { HttpClient, HttpRequest, HttpResponse, HttpEvent } from '@angular/commo
 import { PlatformLocation } from '@angular/common';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { DatepickerOptions } from 'ng2-datepicker';
+import { Router, ActivatedRoute } from '@angular/router';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 
 import { AdminService } from './../../services/admin.service';
 declare var moment: any;
@@ -12,7 +14,7 @@ declare var moment: any;
   selector: 'app-admin-compliance-doc-upload',
   templateUrl: './upload-compliance-docs.component.html',
   styleUrls: ['./upload-compliance-docs.component.css'],
-  providers: [AdminService]
+  providers: [AdminService, EncryptDecryptService]
 })
 
 export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
@@ -55,7 +57,8 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
   baseDropValid: any;
   dragFiles: any;
 
-  constructor(public http: HttpClient, platformLocation: PlatformLocation, public adminService: AdminService) {
+  constructor(public http: HttpClient, public encryptDecrypt: EncryptDecryptService,
+    public router: Router, platformLocation: PlatformLocation, public adminService: AdminService) {
     this.baseUrl = (platformLocation as any).location.origin;
     this.setDatePickerDefaultDate();
   }
@@ -155,6 +158,10 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         this.dtActivityField.setValue(this.datepickerModelFormatted);
         this.setDatePickerDefaultDate();
         this.accntSub = this.getAccountChanges();
+
+        this.router.navigate(['/admin', 'view-location-compliance', this.selectedAccount.toString(),
+        this.encryptDecrypt.encrypt(this.locationField.value)],
+        { queryParams: { kpis: this.documentType.value }, queryParamsHandling: 'preserve'});
       },
       error => console.log('Error Uploading', error)
     );

@@ -96,6 +96,7 @@ import { AccountUsersListComponent } from './admin/account-users/account-users.c
 import { AddAccountUserComponent } from './admin/add-user/add-user.component';
 import { LocationsInAccountComponent } from './admin/locations-in-accounts/locations-in-account.component';
 import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upload-compliance-docs.component';
+import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/compliance-summary-view.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -212,8 +213,8 @@ const appRoutes: Routes = [
       { path: 'users-in-accounts/:accntId', component: AccountUsersListComponent },
       { path: 'add-account-user/:accntId', component: AddAccountUserComponent },
       { path: 'locations-in-account/:accntId', component: LocationsInAccountComponent },
-      { path: 'upload-compliance-docs', component: UploadComplianceDocComponent }
-
+      { path: 'upload-compliance-docs', component: UploadComplianceDocComponent },
+      { path: 'view-location-compliance/:accntId/:locationId', component: ComplianceSummaryViewComponent }
     ]
   }
 ];

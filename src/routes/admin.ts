@@ -1,3 +1,4 @@
+
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { AuthRequest } from '../interfaces/auth.interface';
@@ -652,6 +653,18 @@ export class AdminRoute extends BaseRoute {
         });
 
       });
+
+
+    router.get('/admin/list/compliance-documents/',
+    new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
+      const list = new List();
+      const documents = await list.generateComplianceDocumentList(req.query.account, req.query.location, req.query.kpi);
+
+      return res.status(200).send({
+        message: 'Test',
+        data: documents
+      });
+    });
 
     router.post('/admin/upload/compliance-documents/',
     new MiddlewareAuth().authenticate,

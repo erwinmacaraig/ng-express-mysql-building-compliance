@@ -777,7 +777,7 @@ export class Location extends BaseClass {
                     ON
                       locations.location_id = user_em_roles_relation.location_id
                     WHERE
-                      user_em_roles_relation.location_id = ${location} ${em_role_filter}
+                      user_em_roles_relation.location_id IN (${location}) ${em_role_filter}
                     AND users.archived = 0
                     ORDER BY em_role_id
                     `;

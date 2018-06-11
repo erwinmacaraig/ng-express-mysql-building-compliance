@@ -65,5 +65,13 @@ export class AdminService {
   getKPIS() {
     return this.http.get(this.baseUrl + `/admin/compliance/kpis/`, this.options);
   }
+
+  getDocumentList(account: number = 0, location: number = 0, kpi: number = 0) {
+    const httpParams = new HttpParams().set('account', account.toString())
+                     .set('location', location.toString())
+                     .set('kpi', kpi.toString());
+    this.options['params'] = httpParams;
+    return this.http.get(this.baseUrl + '/admin/list/compliance-documents/', this.options);
+  }
 }
 

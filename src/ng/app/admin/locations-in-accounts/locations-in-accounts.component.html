@@ -51,7 +51,7 @@
           <td>{{location['display_name']}}</td>
           <td>{{location['formatted_address']}}</td>
           <td>{{location['responsibility']}}</td>
-          <td>&nbsp;</td>
+          <td><a [routerLink]="['/admin', 'view-location-compliance', accountId, location['id_encrypted']]">View Compliance</a></td>
           <td>&nbsp;</td>
         </tr>
       </tbody>
