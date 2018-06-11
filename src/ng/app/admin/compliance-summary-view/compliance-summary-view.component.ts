@@ -39,7 +39,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     }
 
   ngOnInit() {
-
+/*
     this.obsComb = Observable.combineLatest(this.route.params, this.route.queryParams,
       (params, qparams) => ({params, qparams}));
 
@@ -56,7 +56,9 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       });
     });
 
-/*
+    */
+
+
     this.route.params.subscribe((parameters) => {
       this.accountId = parameters['accntId'];
       this.locationId = this.encryptDecrypt.decrypt(parameters['locationId']);
@@ -64,7 +66,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         this.KPIS = response.data;
       });
     });
-
+/*
     this.route.queryParams.subscribe((params) => {
       if ('kpis' in params) {
         this.selectedKPI = params['kpis'];

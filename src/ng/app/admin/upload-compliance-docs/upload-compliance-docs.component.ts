@@ -158,10 +158,12 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         this.dtActivityField.setValue(this.datepickerModelFormatted);
         this.setDatePickerDefaultDate();
         this.accntSub = this.getAccountChanges();
+        /*
 
         this.router.navigate(['/admin', 'view-location-compliance', this.selectedAccount.toString(),
         this.encryptDecrypt.encrypt(this.locationField.value)],
-        { queryParams: { kpis: this.documentType.value }, queryParamsHandling: 'preserve'});
+        { queryParams: { kpis: this.documentType.value }});
+        */
       },
       error => console.log('Error Uploading', error)
     );
