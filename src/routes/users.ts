@@ -2009,13 +2009,14 @@ export class UsersRoute extends BaseRoute {
             isAccountEmailExempt = (account.email_add_user_exemption == 1) ? true : false;
             hasOnlineTraining = (account.online_training == 1) ? true : false;
 
-            let user = await userModel.load();
+            let 
+            user = await userModel.load(),
+            emRoles = <any> await new UserEmRoleRelation().getEmRoles();
 
     		for(let i in users){
     			let userModel = new User(),
     				userRoleRelation = new UserRoleRelation(),
     				userEmRole = new UserEmRoleRelation(),
-    				emRoles = await new UserEmRoleRelation().getEmRoles(),
     				isEmailValid = this.isEmailValid(users[i]['email']),
     				isBlackListedEmail = false,
     				hasError = false;
@@ -2086,13 +2087,18 @@ export class UsersRoute extends BaseRoute {
                     emailLink = req.protocol + '://' + req.get('host'),
                     locationModel = new Location(),
                     acestrieIds = <any> await locationModel.getAncestryIds(users[i]['account_location_id']),
-                    idsLocation = [];
+                    idsLocation = [],
+                    bodyOfEmail = '',
+                    subjectOfEmail = '',
+                    emailRole = `Warden`,
+                    locationFullName = '';
 
                     idsLocation.push(users[i]['account_location_id']);
                     idsLocation = idsLocation.concat(acestrieIds[0]['ids']);
 
                     let locations = <any> await locationModel.getByInIds(idsLocation.join(','), 0),
-                        building = {},
+                        building = <any> {},
+                        location = <any> {},
                         trps = <any> [],
                         frp = <any> user,
                         senderTxt = '';
@@ -2103,6 +2109,20 @@ export class UsersRoute extends BaseRoute {
                         }else if(loc.parent_id == -1){
                             building = loc;
                         }
+
+                        if(users[i]['account_location_id'] == loc.location_id){
+                            location = loc;
+                        }
+                    }
+
+                    if(Object.keys(building).length > 0){
+                        if(building.location_id != location.location_id){
+                            locationFullName = building.name + ', '+location.name;
+                        }else{
+                            locationFullName = building.name;
+                        }
+                    }else{
+                        locationFullName = location.name;
                     }
 
                     try{
@@ -2132,7 +2152,6 @@ export class UsersRoute extends BaseRoute {
                             tokenSaveData.verified = 1;
                         }else if(hasOnlineTraining){
                             tokenSaveData.action = 'setup-password';
-
                             emailLink += '/signup/profile-completion/' + token;
                         }
 
@@ -2147,6 +2166,8 @@ export class UsersRoute extends BaseRoute {
                                 'user_id': userSaveModel.ID(),
                                 'role_id': users[i]['account_role_id']
                             });
+
+                            emailRole = (users[i]['account_role_id'] == 1) ? 'Building Manager' : 'Tenant Responsible Person';
 
                             const userRoleRel = new UserRoleRelation();
                             await userRoleRel.create({
@@ -2173,37 +2194,67 @@ export class UsersRoute extends BaseRoute {
 
                     await tokenModel.create(tokenSaveData);
 
-
                     if(!isAccountEmailExempt){
 
+                        if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                            let roleName = 'Building Manager (FRP)';
+                            subjectOfEmail = `You're assigned as Building Manager`;
+                            if(parseInt(users[i]['account_role_id']) == 2){
+                                roleName = 'Tenant Responsible Person (TRP)';
+                                subjectOfEmail = `You're assigned as Tenant Responsible Person`;
+                            }
+                            bodyOfEmail = `
+                            <div style="font-size:16px;"> 
+                                <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
+
+                                We are glad to inform that you are assigned as the ${roleName} for your location, ${locationFullName}. <br/>
+                                In this role, yout will take charge of managing  emergency planning responsibilities wihin your tenancy. <br/><br/>
+
+                                Please update the profile to set up your account on EvacConnect here : <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
+
+                                Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
+                                 
+                                Sincerely,<br/>
+                                EvacConnect
+                            </div>
+                            `;
+                        }else{
+                            let roleName = '';
+                            for(let em of emRoles){
+                                if(em.em_roles_id == parseInt(users[i]['account_role_id'])){
+                                    subjectOfEmail = `You're nominated as `+em.role_name;
+                                    roleName = em.role_name;
+                                }
+                            }
+
+                            bodyOfEmail = `
+                            <div style="font-size:16px;"> 
+                                <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
+
+                                We are glad to inform that you are nominated to be a ${roleName} for your tenancy, ${account.account_name}, by your ${senderTxt}.<br/><br/>
+                                
+                                Follow this link to set up your password on EvacConnect: <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
+
+                                Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
+                                 
+                                Sincerely,<br/>
+                                EvacConnect
+                            </div>
+                            `;
+                        }
+
         				const opts = {
-        					from : 'allantaw2@gmail.com',
+        					from : '',
         					fromName : 'EvacConnect',
         					to : [],
         					cc: [],
         					body : '',
         					attachments: [],
-        					subject : `You're nominated as Warden`
+        					subject : subjectOfEmail
         				};
         				const email = new EmailSender(opts);
-        				const link = emailLink;
         				let emailBody = email.getEmailHTMLHeader();
-        				emailBody += `
-                        <div style="font-size:16px;"> 
-                            <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3> <br/>
-
-                            We are glad to inform that you are nominated to be a Warden for your tenancy, ${account.account_name}, by your <br/>
-                            ${senderTxt}.<br/><br/>
-                            
-                            Follow this link to set up your password on EvacConnect: <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/><br/>
-
-            				Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
-            				 
-                            Sincerely,<br/>
-                            EvacConnect
-                        </div>
-                        `;
-
+                        emailBody += bodyOfEmail;
         				emailBody += email.getEmailHTMLFooter();
 
         				email.assignOptions({
@@ -2216,8 +2267,6 @@ export class UsersRoute extends BaseRoute {
         					(err) => console.log(err)
         				);
                     }
-
-
 
     			}else{
     				returnUsers.push( users[i] );
