@@ -960,4 +960,44 @@ export class Location extends BaseClass {
       });
     }
 
+    public locationHierarchy(location_id: number = 0, filter: object = {}): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let theLocation = this.id;
+        if (location_id) {
+          theLocation = location_id;
+        }
+        const sql = `SELECT
+          locations.parent_id,
+          locations.location_id,
+          locations.is_building,
+          locations.name,
+          locations.formatted_address,
+          p1.name as p1_name,
+          p1.location_id as p1_location_id,
+          p2.name as p2_name,
+          p2.location_id as p2_location_id,
+          p3.name as p3_name,
+          p3.location_id as p3_location_id,
+          p4.name as p4_name,
+          p4.location_id as p4_location_id,
+          p5.name as p5_name,
+          p5.location_id as p5_location_id
+        FROM locations
+        LEFT JOIN locations as p1 ON p1.location_id = locations.parent_id
+        LEFT JOIN locations as p2 ON p2.location_id = p1.parent_id
+        LEFT JOIN locations as p3 ON p3.location_id = p2.parent_id
+        LEFT JOIN locations as p4 ON p4.location_id = p3.parent_id
+        LEFT JOIN locations as p5 ON p5.location_id = p4.parent_id
+        WHERE locations.location_id = ? ORDER BY locations.location_id`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [theLocation], (error, results) => {
+          if (error) {
+            console.log(`location.model.locationHierarchy`, error, sql);
+            throw Error('Cannot generate location hierarchy');
+          }
+          resolve(results);
+        });
+      });
+    }
+
 }

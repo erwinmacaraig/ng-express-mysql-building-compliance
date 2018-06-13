@@ -23,11 +23,14 @@ declare var $: any;
 export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   accountId = 0;
-  locationId = 0;
+  locationId: number;
   KPIS: object[];
   selectedKPI;
   documentFiles = [];
   obsComb;
+  kpisObject: object = {};
+  kpisArrayForDisplay = [];
+  locationName = '';
 
   constructor(
     private adminService: AdminService,
@@ -39,40 +42,29 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     }
 
   ngOnInit() {
-/*
-    this.obsComb = Observable.combineLatest(this.route.params, this.route.queryParams,
-      (params, qparams) => ({params, qparams}));
+    console.log(this.route.snapshot.params);
+    this.accountId = this.route.snapshot.params['accntId'];
+    this.locationId = this.route.snapshot.params['locationId'];
+    this.selectedKPI = this.route.snapshot.params['kpi'];
 
-    this.obsComb.subscribe(allParams => {
-      console.log(allParams);
-      this.accountId = allParams.params['accntId'];
-
-      this.locationId = this.encryptDecrypt.decrypt(allParams.params['locationId']);
-      if ('kpis' in allParams['qparams']) {
-        this.selectedKPI = allParams['qparams']['kpis'];
-      }
-      this.complianceService.getKPIS((response) => {
-        this.KPIS = response.data;
+    this.adminService.getKPIS().subscribe((response) => {
+      let initKPI;
+      this.kpisObject = response['data'];
+      this.KPIS = Object.keys(response['data']).map((key) => {
+        if (response['data'][key]['required']) {
+          return response['data'][key];
+        }
       });
-    });
-
-    */
-
-
-    this.route.params.subscribe((parameters) => {
-      this.accountId = parameters['accntId'];
-      this.locationId = this.encryptDecrypt.decrypt(parameters['locationId']);
-      this.complianceService.getKPIS((response) => {
-        this.KPIS = response.data;
-      });
-    });
-/*
-    this.route.queryParams.subscribe((params) => {
-      if ('kpis' in params) {
-        this.selectedKPI = params['kpis'];
+      for ( let i = 0; i < this.KPIS.length; i++) {
+        if (this.KPIS[i] == undefined) {
+          this.KPIS.splice(i, 1);
+        }
+        if (this.KPIS[i] != undefined && this.selectedKPI == this.KPIS[i]['compliance_kpis_id']) {
+          initKPI = this.KPIS[i];
+        }
       }
+        this.getUploadedDocumentsFromSelectedKPI(initKPI);
     });
-*/
   }
 
   ngAfterViewInit() {}
@@ -83,10 +75,10 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     this.selectedKPI = kpi['compliance_kpis_id'];
     this.documentFiles = [];
 
-
     console.log(this.locationId);
     this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
       this.documentFiles = response['data'];
+      this.locationName = response['displayName'].join(' >> ');
     });
 
   }

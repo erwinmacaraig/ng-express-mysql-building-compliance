@@ -142,28 +142,9 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         if (event instanceof HttpResponse) {
           delete this.httpEmitter;
           console.log('request done', event);
+          this.router.navigate(['/admin', 'view-location-compliance', this.selectedAccount.toString(),
+           this.locationField.value, this.documentType.value]);
         }
-        this.sendableFormData.delete('account_id');
-        this.sendableFormData.delete('building_id');
-        this.sendableFormData.delete('compliance_kpis_id');
-        this.sendableFormData.delete('date_of_activity');
-        this.sendableFormData.delete('description');
-        this.sendableFormData.delete('file');
-        this.files = [];
-
-        this.documentType.reset();
-        this.accountField.reset();
-        this.accountLocations = [];
-        this.locationField.reset();
-        this.dtActivityField.setValue(this.datepickerModelFormatted);
-        this.setDatePickerDefaultDate();
-        this.accntSub = this.getAccountChanges();
-        /*
-
-        this.router.navigate(['/admin', 'view-location-compliance', this.selectedAccount.toString(),
-        this.encryptDecrypt.encrypt(this.locationField.value)],
-        { queryParams: { kpis: this.documentType.value }});
-        */
       },
       error => console.log('Error Uploading', error)
     );

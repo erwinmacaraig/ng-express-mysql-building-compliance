@@ -1,6 +1,8 @@
 <app-admin-account-info [accountId]="accountId"></app-admin-account-info>
-
 <div class="row">
+  <div class="col s12">
+    <h5>{{locationName}}</h5>
+  </div>
   <div class="col s4">
       <div class="row row-table-content">
           <table class="table table-list">
@@ -24,7 +26,7 @@
             </table>
       </div>
   </div>
-  <div *ngIf="selectedKPI == 2 || selectedKPI == 4" class="col s7">
+  <div *ngIf="selectedKPI == 2" class="col s7">
     <div class="text">
         <h4 class="title blue-text">EPC Meeting</h4>
         <p class="description">
@@ -35,11 +37,11 @@
       <h5 class="blue-text title">Previous Versions</h5>
     </div>
     <div class="filter-container row">
-      <div class="col l6 m12 s12">
+      <div class="col l6 m12 s12"> <!--
         <div class="search-field">
           <input placeholder="Search here" type="text">
           <span class="material-icons">search</span>
-        </div>
+        </div> -->
       </div>
       <div class="col l3 m12 s12">
         <select class="filter-by">
@@ -78,8 +80,61 @@
         </tr>
       </tbody>
     </table>
-
   </div>
+
+  <div *ngIf="selectedKPI == 4" class="col s7">
+      <div class="text">
+          <h4 class="title blue-text">EPM</h4>
+          <p class="description">
+              The Emergency Procedures Manual provides specific procedures and guidelines for dealing with various types of emergency.
+          </p>
+      </div>
+      <div class="diagram-top-of-table">
+        <h5 class="blue-text title">Previous Versions</h5>
+      </div>
+      <div class="filter-container row">
+        <div class="col l6 m12 s12">
+
+        </div>
+        <div class="col l3 m12 s12">
+          <select class="filter-by">
+            <option disabled="" selected="" value="0">Filter By</option>
+          </select>
+        </div>
+        <div class="col l3 m12 s12">
+          <select class="sort-by">
+            <option disabled="" selected="" value="0">Sort By</option>
+          </select>
+        </div>
+      </div>
+      <table class="striped table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Filename</th>
+            <th>Date Of Activity</th>
+            <th>Validity (months)</th>
+            <th>Expiry</th>
+            <th>Timestamp</th>
+            <th style="width: 10%;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let doc of documentFiles">
+            <td>{{doc['compliance_documents_id']}}</td>
+            <td>{{doc['document_type']}}</td>
+            <td>{{doc['file_name']}}</td>
+            <td>{{doc['date_of_activity']}}</td>
+            <td>{{doc['validity_in_months']}}</td>
+            <td>{{doc['expiry_date']}}</td>
+            <td>{{doc['timestamp']}}</td>
+            <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
 
   <div *ngIf="selectedKPI == 5" class="col s7">
     <div class="text">
@@ -93,18 +148,31 @@
           <h5 class="blue-text title">Diagram Details</h5>
         </div>
         <table class="striped table">
-          <thead>
-            <tr>
-              <th>Sub Locations</th>
-              <th>Date Uploaded</th>
-              <th>Valid Until</th>
-              <th>Diagram</th>
-              <th style="width: 10%;">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Filename</th>
+                <th>Date Of Activity</th>
+                <th>Validity (months)</th>
+                <th>Expiry</th>
+                <th>Timestamp</th>
+                <th style="width: 10%;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let doc of documentFiles">
+                <td>{{doc['compliance_documents_id']}}</td>
+                <td>{{doc['document_type']}}</td>
+                <td>{{doc['file_name']}}</td>
+                <td>{{doc['date_of_activity']}}</td>
+                <td>{{doc['validity_in_months']}}</td>
+                <td>{{doc['expiry_date']}}</td>
+                <td>{{doc['timestamp']}}</td>
+                <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+              </tr>
+            </tbody>
+          </table>
       </div>
 
     </div>

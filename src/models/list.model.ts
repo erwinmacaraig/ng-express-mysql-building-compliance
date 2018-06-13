@@ -51,6 +51,11 @@ export class List {
 
     public listTaggedLocationsOnAccount(account: number = 0, filter: object = {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
+        let whereClause = '';
+        if ('location' in filter && filter['location'].length > 0) {
+          const inClause = filter['location'].join(',');
+          whereClause += ` AND locations.location_id IN (${inClause})`;
+        }
         const sql = `SELECT
           locations.parent_id,
           locations.location_id,
@@ -75,7 +80,7 @@ export class List {
         LEFT JOIN locations as p3 ON p3.location_id = p2.parent_id
         LEFT JOIN locations as p4 ON p4.location_id = p3.parent_id
         LEFT JOIN locations as p5 ON p5.location_id = p4.parent_id
-        WHERE location_account_relation.account_id = ? ORDER BY locations.location_id`;
+        WHERE location_account_relation.account_id = ? ${whereClause} ORDER BY locations.location_id`;
         const connection = db.createConnection(dbconfig);
         connection.query(sql, [account], (error, results) => {
           if (error) {
