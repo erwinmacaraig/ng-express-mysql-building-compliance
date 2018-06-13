@@ -987,10 +987,12 @@ const defs = require('../config/defs.json');
 	}
 
 	public async getLocation(req: AuthRequest, res: Response) {
-		let locationId = <number>req.params.location_id;
-		const location = new Location(locationId);
-		let sublocations;
-		let othersub = [];
+		let 
+        locationId = <number>req.params.location_id,
+        location = new Location(locationId),
+        sublocations,
+        othersub = [],
+        locAccRel = new LocationAccountRelation();
 
       	// we need to check the role(s)
       	const userRoleRel = new UserRoleRelation();
@@ -1002,7 +1004,8 @@ const defs = require('../config/defs.json');
       		'parent' : {},
       		'siblings' : [],
             'users_locations' : [],
-            'roles' : []
+            'roles' : [],
+            'show_compliance' : false
       	};
 
       	// what is the highest rank role
@@ -1014,6 +1017,13 @@ const defs = require('../config/defs.json');
       	}
 
         response.roles = roles;
+
+        let countRelatedLoc = await locAccRel.listAllLocationsOnAccount(req.user.account_id, {
+            'responsibility' : r, 'archived' : 0, 'location_id' : locationId, 'count' : true
+        });
+        if(countRelatedLoc[0]['count'] > 0){
+            response.show_compliance = true;
+        }
 
         try{
             let emRoles = new UserEmRoleRelation(),

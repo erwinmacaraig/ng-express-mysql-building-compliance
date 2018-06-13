@@ -20,14 +20,14 @@
                         <p class="completion">
                             <span class="start">0 </span>
                             <span>of </span>
-                            <span class="end">0 </span>
+                            <span class="end end-num">0 </span>
                             <span class="end">completion</span>
                         </p>
                         <h5 *ngIf="locationData.admin_verified == 0" class="red-text center">For Verification</h5>
                         <a *ngIf="locationData.admin_verified == 1" class="btn red waves-effect waves-light darken-3" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
                     </div>
                 </div>
-				<div class="col m12 s12">
+				<div class="col m12 s12" *ngIf="showCompliance">
 					<div class="box">
 						<div class="title-wrapper">
 							Evacuation Diagram
@@ -43,7 +43,7 @@
 							Siblings
 						</div>
 						<div class="content">
-              <h6 class="center" *ngIf="parentData.sublocations.length == 0">No Siblings</h6>
+                            <h6 class="center" *ngIf="parentData.sublocations.length == 0">No Siblings</h6>
 							<ul class="sub-list" *ngIf="parentData.sublocations.length > 0">
 								<li *ngFor="let location of parentData.sublocations"
 								[ngClass]="{active : encryptDecrypt.decrypt(location.location_id) == locationID}">
@@ -97,15 +97,15 @@
 								<div class="background"></div>
 							</div> -->
 
-							<a href="#" class="archived" [routerLink]="['/location/list']">
+							<a href="#" class="archived" [routerLink]="['/location/list?archived=true']">
 								<span class="image"></span>
 								View Archive
 							</a>
 						</div>
 
-						<a class="btn grey waves-effect waves-light back-to-location right" [routerLink]="['/location', 'view', parentData.location_id]">
-							Back to {{parentData.name}}
-						</a>
+						<!-- <a [hidden]="true" class="btn grey waves-effect waves-light back-to-location right" [routerLink]="['/location', 'view', parentData.location_id]">
+                            Back to {{parentData.name}}
+                        </a> -->
 					</div>
 
 					<div style="clear: both;"></div>
@@ -324,3 +324,5 @@
 
 	</div>
 </div>
+
+<div preloader></div>

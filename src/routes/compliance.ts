@@ -67,9 +67,8 @@ import * as S3Zipper from 'aws-s3-zipper';
             new ComplianceRoute().totalComplianceRatingByLocationIds(req, res);
         });
 
-        router.get('/compliance/download-compliance-documents-pack/',
-        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-          new ComplianceRoute().downloadDocumentCompliancePack(req, res, next);
+        router.get('/compliance/download-compliance-documents-pack/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+            new ComplianceRoute().downloadDocumentCompliancePack(req, res, next);
         });
 
         router.get('/compliance/download-compliance-file/',
@@ -245,7 +244,12 @@ import * as S3Zipper from 'aws-s3-zipper';
             kpis = (formData) ? (formData.kpis) ? formData.kpis : [] : [],
             kpisIds = [],
             role = (formData) ? (formData.role) ? formData.role : 0 : 0,
-            userRoleRelObj = new UserRoleRelation();
+            userRoleRelObj = new UserRoleRelation(),
+            relateToSiblingsCompliance = false,
+            locSiblings = [],
+            locSiblingsIds = [],
+            locAccSiblingsModel = new LocationAccountRelation(),
+            kpisIdForSiblingsRelated = [];
 
         this.response = { status : false, data : <any>[], message : '' };
 
@@ -279,6 +283,18 @@ import * as S3Zipper from 'aws-s3-zipper';
                     role = 0;
                 }
             }
+        }
+
+        if(role == 2){
+            relateToSiblingsCompliance = true;
+            locSiblings = <any> await locAccSiblingsModel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(accountID, locationID);
+            for(let loc of locSiblings){
+                locSiblingsIds.push(loc.location_id);
+            }
+            kpisIdForSiblingsRelated.push(epcMeetingId);
+            kpisIdForSiblingsRelated.push(fsaId);
+            kpisIdForSiblingsRelated.push(evacExerId);
+            kpisIdForSiblingsRelated.push(epmId);
         }
 
         /*
@@ -317,58 +333,24 @@ import * as S3Zipper from 'aws-s3-zipper';
             12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
         },
         locAccUserModel = new LocationAccountUser(),
-        locationModelForTRP = new Location(locationID),
-        ancetriesIds = await locationModelForTRP.getAncestryIds(locationID),
+        locModel = new Location(locationID),
         loc = <any> {},
-        ancIdsArray = [],
-        ancestries = [],
         userComplianceRole = '',
         userLocationData = <any> {},
         isWholeBuildingOccupier = (role == 1) ?  true : false,
-        rates = JSON.parse(JSON.stringify(frpRates));
+        rates = JSON.parse(JSON.stringify(frpRates)),
+        theBuilding = <any>{
+            location_id : -1
+        };
 
         try{
-            loc = await locationModelForTRP.load();
-
-            if(ancetriesIds[0]){
-                let tempId = ancetriesIds[0]['ids'].split(',');
-                for(let id of tempId){
-                    if(id > 0){
-                        ancIdsArray.push(id);
-                    }
-                }
-
-                if(ancIdsArray.length > 0){
-                    ancestries = <any> await locationModelForTRP.getByInIds(ancIdsArray.join(','));
-                }
-
-            }
-            ancestries.push(loc);
-
-            // Sort from highest id to lowest id
-            ancestries.sort((a, b) => {
-                if(a.location_id < b.location_id){
-                    return 1;
-                }else if(a.location_id > b.location_id){
-                    return -1;
-                }else{
-                    return 0;
-                }
-            });
-
-            this.response['locations'] = ancestries;
-        }catch(e){
-
-        }
-
-        let theBuilding = <any>{};
-        for(let loc of ancestries){
-            if(loc.is_building == 1){
-                theBuilding = loc;
-            }else if(loc.parent_id == -1 && Object.keys(theBuilding).length == 0){
+            loc = await locModel.load();
+            try{
+                theBuilding = await locModel.getTheParentORBuiling(locationID);
+            }catch(e){
                 theBuilding = loc;
             }
-        }
+        }catch(e){}
 
         this.response['building'] = theBuilding;
         
@@ -680,7 +662,6 @@ import * as S3Zipper from 'aws-s3-zipper';
                     compliances[c]['docs'].push(docs[d]);
                 }
             }
-
         }
 
         for (let comp of compliances) {
@@ -1010,6 +991,27 @@ import * as S3Zipper from 'aws-s3-zipper';
                 }
             }
 
+            if(relateToSiblingsCompliance && locSiblingsIds.length > 0){
+                if( kpisIdForSiblingsRelated.indexOf( comp.compliance_kpis_id ) > -1 && (comp.compliance_status == 0 ||  validTillMoment.isBefore(today))  ){
+
+                    let 
+                    sibsComplianceModel = new ComplianceModel(),
+                    sibsComplWhere = [];
+
+                    sibsComplWhere.push([ 'account_id = '+accountID ]);
+                    sibsComplWhere.push([ 'compliance_kpis_id = '+comp.compliance_kpis_id ]);
+                    sibsComplWhere.push([ 'compliance_status = 1 ' ]);
+                    sibsComplWhere.push([ 'valid_till >= NOW() ' ]);
+                    sibsComplWhere.push([ 'building_id IN ('+locSiblingsIds.join(',')+')' ]);
+
+                    let sibsCompliances = await sibsComplianceModel.getWhere(sibsComplWhere);
+                    if(sibsCompliances.length > 0){
+                        comp['compliance_status'] = 1;
+                        comp['valid_till'] = sibsCompliances[0]['valid_till'];
+                    }
+                }
+            }
+
             if(comp.compliance_status == 1){
                 comp['validity_status'] = 'valid';
                 comp['valid'] = 1;
@@ -1038,6 +1040,34 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         this.response['epcCommitteeOnHQ'] = epcCommitteeOnHQ;
 
+        if(getEpcData){
+            let epcModel = new EpcMinutesMeeting(),
+                epcWhere = [],
+                epcData = {},
+                locIds = [];
+
+            if(relateToSiblingsCompliance){
+                for(let loc of locSiblings){
+                    locIds.push(loc.location_id);
+                }
+                locIds = JSON.parse(JSON.stringify(locSiblingsIds));
+            }
+
+            locIds.push(locationID);
+
+            epcWhere.push(['location_id IN ( '+locIds.join(',')+')'  ]);
+            epcWhere.push(['account_id = '+accountID]);
+            await epcModel.getWhere(epcWhere);
+            if(epcModel.getDBData()[0]){
+                epcData = epcModel.getDBData()[0];
+                epcData['data'] = JSON.parse(epcData['data']);
+                epcData['date_created_formatted'] = moment(epcData['date_created']).format('DD/MM/YYYY');
+                epcData['date_updated_formatted'] = moment(epcData['date_updated']).format('DD/MM/YYYY');
+            }
+
+            this.response['epcData'] = epcData;
+        }
+
         for(let comp of compliances){
             let tempPoints = comp.points;
             if( rates[ comp.compliance_kpis_id ] ){
@@ -1055,24 +1085,6 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
 
             comp['points'] = tempPoints;
-        }
-
-        if(getEpcData){
-            let epcModel = new EpcMinutesMeeting(),
-                epcWhere = [],
-                epcData = {};
-
-            epcWhere.push(['location_id = '+locationID]);
-            epcWhere.push(['account_id = '+accountID]);
-            await epcModel.getWhere(epcWhere);
-            if(epcModel.getDBData()[0]){
-                epcData = epcModel.getDBData()[0];
-                epcData['data'] = JSON.parse(epcData['data']);
-                epcData['date_created_formatted'] = moment(epcData['date_created']).format('DD/MM/YYYY');
-                epcData['date_updated_formatted'] = moment(epcData['date_updated']).format('DD/MM/YYYY');
-            }
-
-            this.response['epcData'] = epcData;
         }
 
         this.response['rates'] = rates;

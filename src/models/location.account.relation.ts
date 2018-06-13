@@ -265,6 +265,10 @@ export class LocationAccountRelation extends BaseClass {
             filterStr += ` AND l.archived = ${filter['archived']}`;
         }
 
+        if('location_id' in filter){
+            filterStr += ` AND l.location_id = ${filter['location_id']}`;
+        }
+
         let offsetLimit = ``;
 
         if('limit' in filter){

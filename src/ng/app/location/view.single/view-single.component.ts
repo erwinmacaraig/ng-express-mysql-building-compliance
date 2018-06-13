@@ -170,6 +170,21 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
             this.toEditLocations = JSON.parse(JSON.stringify(this.locationData));
             this.toEditLocationsBackup = JSON.parse(JSON.stringify(this.locationData));
 
+            this.complianceService.getLocationsLatestCompliance(this.locationID, (response) => {
+                this.donut.updateDonutChart('#specificChart', response.percent, true);
+                let nom = 0, denom = 0;
+                for(let com of response.data){
+                    if(com.compliance_kpis_id != 13){
+                        if(com.valid == 1){
+                            nom++;
+                        }
+                        denom++;
+                    }
+                }
+                $('.manage-compliance .completion .start.number').html(nom);
+                $('.manage-compliance .completion .end.number').html(denom);
+            });
+
             callBack();
         });
     }
