@@ -998,6 +998,8 @@ export class Location extends BaseClass {
                 }
 
             });
+
+            connection.end();
         });
     }
 

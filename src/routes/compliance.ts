@@ -334,7 +334,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         },
         locAccUserModel = new LocationAccountUser(),
         locModel = new Location(locationID),
-        loc = <any> {},
+        loc = <any> (formData) ? (formData.location) ?  formData.location : {} :  {},
         userComplianceRole = '',
         userLocationData = <any> {},
         isWholeBuildingOccupier = (role == 1) ?  true : false,
@@ -344,7 +344,9 @@ import * as S3Zipper from 'aws-s3-zipper';
         };
 
         try{
-            loc = await locModel.load();
+            if(Object.keys(loc).length == 0){
+                loc = await locModel.load();
+            }
             try{
                 theBuilding = await locModel.getTheParentORBuiling(locationID);
             }catch(e){
@@ -584,7 +586,20 @@ import * as S3Zipper from 'aws-s3-zipper';
         arrWhereCompliance.push(['building_id = ' + locationID]);
         arrWhereCompliance.push(['account_id = ' + accountID + ' GROUP BY compliance_kpis_id' ]);
 
-        let compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
+        let 
+        compliances = [],
+        hasCompliancesFormData = false;
+
+        if(formData){
+            if(formData.compliances){
+                compliances = formData.compliances;
+                hasCompliancesFormData =  true;
+            }
+        }
+
+        if(!hasCompliancesFormData){
+            compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
+        }
 
         for(let i in kpis) {
             let hasKpis = false;
@@ -1186,6 +1201,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         userId = req.user.user_id,
         locAccntRelObj = new LocationAccountRelation(),
         userRoleRel = new UserRoleRelation(),
+        locModel = new Location(),
         r = 0,
         filter = {
             locationIdOnly : true, 
@@ -1196,13 +1212,20 @@ import * as S3Zipper from 'aws-s3-zipper';
         compliance = {},
         arrWhereKPIS = [],
         kpis = [],
+        kpisIds = [],
         locationsPages = [],
+        arrWhereCompliance = [],
         kpisModel = new ComplianceKpisModel(),
         accountModel = new Account(accountId),
-        account = await accountModel.load();
+        account = await accountModel.load(),
+        complianceModel = new ComplianceModel();
 
         arrWhereKPIS.push([' description IS NOT NULL ']);
         kpis =  <any> await kpisModel.getWhere(arrWhereKPIS);
+
+        Object.keys(kpis).forEach((key) => {
+            kpisIds.push(kpis[key]['compliance_kpis_id']);
+        });
 
         try {
             r = await userRoleRel.getByUserId(userId, true);
@@ -1210,20 +1233,64 @@ import * as S3Zipper from 'aws-s3-zipper';
             r = 2;
         }
 
-        for(let id of locationIds){
-            let formData = {
-                'location_id' : id,
-                'kpis' : kpis,
+        locations = <any> await locModel.getByInIds(locationIds);
 
+        arrWhereCompliance.push(['compliance_kpis_id IN (' + kpisIds.join(',') + ')']);
+        arrWhereCompliance.push(['building_id IN ('+locationIds.join(',')+')' ]);
+        arrWhereCompliance.push(['account_id = ' + accountId + ' GROUP BY compliance_kpis_id' ]);
+
+        let compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
+
+        for(let loc of locations){
+            
+            for(let i in kpis) {
+                let hasKpis = false;
+                for(let c in compliances){
+                    if( compliances[c]['compliance_kpis_id'] == kpis[i]['compliance_kpis_id'] && compliances[c]['building_id'] == loc.location_id ){
+                        hasKpis = true;
+                    }
+                }
+
+                if (!hasKpis) {
+                    let createComplianceModel = new ComplianceModel(),
+                    compObj = {
+                        'compliance_kpis_id': kpis[i]['compliance_kpis_id'],
+                        'compliance_status': 0,
+                        'building_id': loc.location_id,
+                        'account_id': accountId,
+                        'valid_till': null,
+                        'required': 1,
+                        'account_role': '',
+                        'override_by_evac': 0
+                    };
+                    await createComplianceModel.create(compObj);
+                    compObj['compliance_id'] = createComplianceModel.ID();
+                    compliances.push(compObj);
+                }
+            }
+
+            let compl = [];
+            for(let com of compliances){
+                if(com.building_id == loc.location_id){
+                    compl.push(com);
+                }
+            }
+
+            let formData = {
+                'location' : loc,
+                'location_id' : loc.location_id,
+                'kpis' : kpis,
+                'compliances' : compl,
                 'account' : account,
                 'role' : r
             };
 
             compliance = await this.getLocationsLatestCompliance(req, res, true, formData);
             response.data.push( compliance );
+            
         }
 
-        response['locationIds'] = locationIds;
+        // response['locationIds'] = locationIds;
 
         res.send(response);
     }

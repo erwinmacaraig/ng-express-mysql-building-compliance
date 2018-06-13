@@ -117,6 +117,11 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                     loc['fetchingCompliance'] = false;
                     loc['compliance_percentage'] = compRes.percent;
                     loc['compliance'] = compRes.data;
+
+                    if(this.isAllFetchingComplianceDone()){
+                        this.getTotalComplianceRating();
+                    }
+
                 });
             }
 
@@ -148,6 +153,10 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 			},300);
 		});
 
+        
+	}
+
+    getTotalComplianceRating(){
         this.complianceService.paginateAllLocationIds().subscribe((response:any) => {
             if(response.data.length > 0){
                 for(let i in response.data){
@@ -203,7 +212,18 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                 this.KPISdefault = JSON.parse(JSON.stringify(this.KPIS));
             }
         });
-	}
+    }
+
+    isAllFetchingComplianceDone(){
+        let countDone = 0;
+        for(let loc of this.locations){
+            if(loc['fetchingCompliance'] == false){
+                countDone++;
+            }
+        }
+
+        return (countDone == this.locations.length);
+    }
 
     buildComplianceKpisLegends(){
         let kpisIdWhereOverIsLocationsCount = [2, 3, 4, 5, 9],
