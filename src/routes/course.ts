@@ -341,29 +341,28 @@ export class CourseRoute extends BaseRoute {
             account = await accountModel.load();
             accountModel = new Account();
 
-            if(all){
+            if(all) {
                 users = <any> await accountModel.getAllEMRolesOnThisAccount(req.user.account_id);
-            }else if(ids.length > 0){
+            } else if(ids.length > 0) {
                 users = <any> await accountModel.getAllEMRolesOnThisAccount(req.user.account_id, { user_ids : ids.join(',') });
-            }else if(non_compliant){
+            } else if(non_compliant) {
                 users = <any> await accountModel.getAllEMRolesOnThisAccountNotCompliant(req.user.account_id);
             }
 
-            for(let user of users){
+            for(let user of users) {
                 user['trainings'] = [];
                 user['account'] = account;
-                if( this.isEmailValid(user.email) ){
+                if( this.isEmailValid(user.email) ) {
                     for(let tr of trainings){
-                        if(tr.em_role_id == user.em_role_id){
+                        if(tr.em_role_id == user.em_role_id) {
                             user['trainings'].push( tr );
                         }
                     }
-
                     await this.sendEmailTrainingInvitation(user, req, res);
                 }
             }
 
-        }catch(e){}
+        } catch(e) { }
 
         response.data = users;
 
@@ -371,7 +370,7 @@ export class CourseRoute extends BaseRoute {
     }
 
     public async sendEmailTrainingInvitation(user, req, res){
-        let 
+        let
         emailModel = new EmailSender(),
         emailBody = emailModel.getEmailHTMLHeader(),
         fullname = this.capitalizeFirstLetter(user.first_name)+' '+this.capitalizeFirstLetter(user.last_name),
@@ -421,13 +420,13 @@ export class CourseRoute extends BaseRoute {
         emailBody += `
             <div style="font-size:16px;">
                 <h3 style="text-transform:capitalize;">Hi ${fullname},</h3>
-                
+
                 You are invited to complete the following online training on EvacConnect: <br/>
                 ${trainingsTxt} <br/><br/>
 
                 Follow this link to start the training: <br/>
                 <a href="${trainingLink}" style="color:#2980b9;">${trainingLink}</a> <br/><br/>
-        
+
                 As warden and/or general occupant of our site, please note that it is mandatory for you to complete this training<br/>
                 as required in all facilities in Australia under Australian Standard AS3745. <br/><br/>
 
@@ -464,7 +463,7 @@ export class CourseRoute extends BaseRoute {
         try{
             await tokenModel.load();
 
-            let 
+            let
             user = <any> await userModel.load(),
             loginResponse = <any> await authRoute.successValidation(req, res, userModel, 7200, true);
 

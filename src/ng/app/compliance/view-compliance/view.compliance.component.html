@@ -197,7 +197,7 @@
 				<div class="buttons">
 					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
-                    
+
                     <div class="switch-container"  >
                         <p class="give-access-text">Completed the Evacuation Exercise?</p>
                         <div class="switch" >
@@ -1351,7 +1351,7 @@
 							</div>
 							<div class="arrow"></div>
 						</td>
-                        <td class="with-bar red-theme"  
+                        <td class="with-bar red-theme"
                         [ngClass]="{ 'green-theme' : k.compliance['percentage_number'] >= 100 }"
                         *ngIf="k.compliance_kpis_id == 5 && k.compliance_kpis_id != 13">
                             <div class="text">{{k.compliance.percentage}}</div>
@@ -1478,7 +1478,6 @@
 
             <div class="col m12 l6">
                 <div class="input-field">
-
                     <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
                     <input id="dateOfActivity" autocomplete="off" type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="date_of_activity" (click)="showDatePicker()" required >
                     <label for="dateOfActivity" class="active" >Date of Activity</label>

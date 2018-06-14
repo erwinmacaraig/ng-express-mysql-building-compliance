@@ -51,22 +51,21 @@ export class Location extends BaseClass {
 		});
 	}
 
-	public getChildren(parentId, call?){
-		return new Promise((resolve) => {
-			const sql_load = `SELECT * FROM locations WHERE parent_id = ? AND archived = 0 `;
-			const param = [parentId];
-			const connection = db.createConnection(dbconfig);
+  public getChildren(parentId, call?): Promise<Array<object>> {
+    return new Promise((resolve) => {
+      const sql_load = `SELECT * FROM locations WHERE parent_id = ? AND archived = 0 `;
+      const param = [parentId];
+      const connection = db.createConnection(dbconfig);
 
-			connection.query(sql_load, param, (error, results, fields) => {
-				if (error) {
-					return console.log(error);
-				}
-
-				resolve(results);
-			});
-			connection.end();
-		});
-	}
+      connection.query(sql_load, param, (error, results, fields) => {
+        if (error) {
+          return console.log(error);
+        }
+        resolve(results);
+      });
+      connection.end();
+    });
+  }
 
     public countSubLocations(parentId){
         return new Promise((resolve) => {
@@ -105,7 +104,7 @@ export class Location extends BaseClass {
             if(limit && !count){
                 sql_load += ' LIMIT '+limit;
             }
-            
+
 			const connection = db.createConnection(dbconfig);
 			connection.query(sql_load, (error, results, fields) => {
 				if (error) {
@@ -264,7 +263,7 @@ export class Location extends BaseClass {
 			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
 			('order' in this.dbData) ? this.dbData['order'] : null,
 			('is_building' in this.dbData) ? this.dbData['is_building'] : 0,
-			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
+			('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : (this.dbData['name']).replace(/ /g, ''),
 			('archived' in this.dbData) ? this.dbData['archived'] : 0,
 			('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
 			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null,
@@ -326,7 +325,7 @@ export class Location extends BaseClass {
 			('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
 			('order' in this.dbData) ? this.dbData['order'] : null,
       		('is_building' in this.dbData) ? this.dbData['is_building'] : 1,
-      		('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : (this.dbData['street'] + this.dbData['city']).replace(/ /g, ''),
+      		('location_directory_name' in this.dbData) ? this.dbData['location_directory_name'] : (this.dbData['name']).replace(/ /g, ''),
 			('archived' in this.dbData) ? this.dbData['archived'] : 0,
 			('google_place_id' in this.dbData) ? this.dbData['google_place_id'] : null,
 			('google_photo_url' in this.dbData) ? this.dbData['google_photo_url'] : null,
@@ -942,45 +941,95 @@ export class Location extends BaseClass {
       });
     }
 
-    public getTheParentORBuiling(id){
+    public getLocationDetailsUsingName(name: string = '', parentId?): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let sql_get = '';
+        let parentIdClause = '';
+        sql_get = `SELECT * FROM locations WHERE name  LIKE '${name}' LIMIT 1;`;
+        if (parentId) {
+          sql_get = `SELECT * FROM locations WHERE name LIKE '${name}' AND parent_id = ${parentId} LIMIT 1;`;
+        }
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_get, [], (error, results) => {
+          if (error) {
+            console.log('location.model.getLocationDetailsUsingName', error, sql_get);
+            throw Error('Internal error. Cannot get location details');
+          }
+          resolve(results);
+        });
+      });
+    }
+    public locationHierarchy(location_id: number = 0, filter: object = {}): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let theLocation = this.id;
+        if (location_id) {
+          theLocation = location_id;
+        }
+        const sql = `SELECT
+          locations.parent_id,
+          locations.location_id,
+          locations.is_building,
+          locations.name,
+          locations.formatted_address,
+          p1.name as p1_name,
+          p1.location_id as p1_location_id,
+          p2.name as p2_name,
+          p2.location_id as p2_location_id,
+          p3.name as p3_name,
+          p3.location_id as p3_location_id,
+          p4.name as p4_name,
+          p4.location_id as p4_location_id,
+          p5.name as p5_name,
+          p5.location_id as p5_location_id
+        FROM locations
+        LEFT JOIN locations as p1 ON p1.location_id = locations.parent_id
+        LEFT JOIN locations as p2 ON p2.location_id = p1.parent_id
+        LEFT JOIN locations as p3 ON p3.location_id = p2.parent_id
+        LEFT JOIN locations as p4 ON p4.location_id = p3.parent_id
+        LEFT JOIN locations as p5 ON p5.location_id = p4.parent_id
+        WHERE locations.location_id = ? ORDER BY locations.location_id`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [theLocation], (error, results) => {
+          if (error) {
+            console.log(`location.model.locationHierarchy`, error, sql);
+            throw Error('Cannot generate location hierarchy');
+          }
+          resolve(results);
+        });
+      });
+    }
+    public getTheParentORBuiling(id) {
         return new Promise((resolve, reject) => {
-            const 
+            const
             connection = db.createConnection(dbconfig),
             locId = (id) ? id : this.ID(),
             sql = `
-            SELECT 
+            SELECT
             *
-            FROM locations 
-
+            FROM locations
             WHERE location_id IN (
                 SELECT
-                       
-                IF(l.is_building = 1, l.location_id, 
-
-                   IF(p1.is_building = 1, p1.location_id, 
-                      IF(p1.parent_id = -1, p1.location_id, 
-                         IF(p2.is_building = 1, p2.location_id, 
-                            IF(p2.parent_id = -1, p2.location_id, 
-                               IF(p3.is_building = 1, p3.location_id, 
-                                  IF(p3.parent_id = -1, p3.location_id, 
-                                     IF(p4.is_building = 1, p4.location_id, 
-                                        IF(p4.parent_id = -1, p4.location_id, 
+                IF(l.is_building = 1, l.location_id,
+                   IF(p1.is_building = 1, p1.location_id,
+                      IF(p1.parent_id = -1, p1.location_id,
+                         IF(p2.is_building = 1, p2.location_id,
+                            IF(p2.parent_id = -1, p2.location_id,
+                               IF(p3.is_building = 1, p3.location_id,
+                                  IF(p3.parent_id = -1, p3.location_id,
+                                     IF(p4.is_building = 1, p4.location_id,
+                                        IF(p4.parent_id = -1, p4.location_id,
                                            0
                                           ) )
                                     ) )
                               ) )
                         ) )
-
-                  )   
-
+                  )
                 as location_id
-
                 FROM locations l
                 LEFT JOIN locations p1 ON l.parent_id = p1.location_id
                 LEFT JOIN locations p2 ON p1.parent_id = p2.location_id
                 LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
                 LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
-
                 WHERE l.location_id = ${locId}
             )`;
 

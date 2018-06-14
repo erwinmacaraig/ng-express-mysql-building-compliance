@@ -19,12 +19,17 @@ export class AdminService {
     this.baseUrl = (platformLocation as any).location.origin;
   }
 
-  getAccountListingForAdmin(page = 0, query = '') {
+  getAccountListingForAdmin(page = 0, query = '', criteria = '') {
     let httpParams = new HttpParams().set('page_num', page.toString());
 
     if (query.length > 0) {
-      httpParams = httpParams.set('search_key', query);
+      // httpParams = httpParams.set('search_key', query);
+      httpParams = new HttpParams().set('search_key', query);
     }
+    if (criteria.length > 0) {
+      httpParams = new HttpParams().set('criteria', 'all');
+    }
+
     this.options['params'] = httpParams;
     return this.http.get(this.baseUrl + '/admin/accounts/list/', this.options);
   }
@@ -55,6 +60,33 @@ export class AdminService {
 
   taggedLocationsOnAccount(accountId: number = 0) {
     return this.http.get(this.baseUrl + `/admin/account-locations/${accountId}/`, this.options);
+  }
+
+  getKPIS() {
+    return this.http.get(this.baseUrl + `/admin/compliance/kpis/`, this.options);
+  }
+
+  getDocumentList(account: number = 0, location: number = 0, kpi: number = 0) {
+    const httpParams = new HttpParams().set('account', account.toString())
+                     .set('location', location.toString())
+                     .set('kpi', kpi.toString());
+    this.options['params'] = httpParams;
+    return this.http.get(this.baseUrl + '/admin/list/compliance-documents/', this.options);
+  }
+
+  FSA_EvacExer_Status(account: string = '0', location: string = '0', kpi: string = '0', ctrl: string = 'get', stat?: string) {
+    let httpParams = new HttpParams()
+                       .set('building_id', location)
+                       .set('account_id', account)
+                       .set('compliance_kpis_id', kpi)
+                       .set('ctrl',  ctrl);
+
+    if (stat) {
+      httpParams = httpParams.set('compliance_status', stat);
+    }
+
+    this.options['params'] = httpParams;
+    return this.http.get(this.baseUrl + '/admin/compliance/FSA-EvacExer/', this.options);
   }
 }
 
