@@ -119,7 +119,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                     loc['compliance'] = compRes.data;
 
                     if(this.isAllFetchingComplianceDone()){
-                        this.getTotalComplianceRating();
+                        
                     }
 
                 });
@@ -153,8 +153,28 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 			},300);
 		});
 
-        
+        this.getTotalComplianceRating();
 	}
+
+    updateMyComplianceRate(){
+        let keys = Object.keys(this.locationsCompliances),
+            locationsCount = keys.length,
+            pointsCount = 0,
+            percent = <any> 0;
+
+        if(locationsCount == 1){
+            percent = this.locationsCompliances[keys[0]]['percent'];
+        }else if(Object.keys(this.locationsCompliances).length > 1){
+            for(let c in this.locationsCompliances){
+                pointsCount += parseInt(this.locationsCompliances[c]['percent']);
+            }
+
+            percent = (pointsCount / locationsCount).toFixed(0);
+        }
+
+        this.complianceChart.options.elements.center.text = percent+'%';
+        this.complianceChart.update();
+    }
 
     getTotalComplianceRating(){
         this.complianceService.paginateAllLocationIds().subscribe((response:any) => {
@@ -178,25 +198,10 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
                         if(isAllLoaded){
                             this.locationsCompliancesBackup = JSON.parse(JSON.stringify(this.locationsCompliances));
-
-                            let locationsCount = Object.keys(this.locationsCompliances).length,
-                                pointsCount = 0,
-                                percent = <any> 0;
-
-                            for(let c in this.locationsCompliances){
-                                pointsCount += parseInt(this.locationsCompliances[c]['percent']);
-                            }
-
-                            percent = (pointsCount / locationsCount).toFixed(0);
-
-                            this.complianceChart.options.elements.center.text = percent+'%';
-                            this.complianceChart.update();
+                            this.updateMyComplianceRate();
                             this.isAllComplianceLoaded = true;
-
                             this.buildComplianceKpisLegends();
-
                             this.KPISdefault = JSON.parse(JSON.stringify(this.KPIS));
-
                         }
                     });
                 }
@@ -295,7 +300,6 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
     }
 
 	ngOnInit(){
-
         this.search.valueChanges
         .debounceTime(400)
         .distinctUntilChanged()
@@ -358,7 +362,6 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 	}
 
     searchLocationEvent(){
-
         Observable.fromEvent(this.inpSearchLocation.nativeElement, 'keyup').debounceTime(800).distinctUntilChanged().subscribe((event:KeyboardEvent) => {
             let elem = $(event.target),
                 val = elem.val().trim();
@@ -374,6 +377,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                 this.KPIS = JSON.parse(JSON.stringify(this.KPISdefault));
                 this.locationsCompliances = JSON.parse(JSON.stringify(this.locationsCompliancesBackup));
                 this.buildComplianceKpisLegends();
+                this.updateMyComplianceRate();
             } else {
                 this.locationService.getParentLocationsForListingPaginated({
                     'limit': 5,
@@ -399,6 +403,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
         this.selectedLocsFromSearch = location;
 
         this.buildComplianceKpisLegends();
+        this.updateMyComplianceRate();
 
     }
 

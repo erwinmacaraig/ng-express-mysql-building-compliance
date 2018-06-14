@@ -198,7 +198,6 @@ import * as S3Zipper from 'aws-s3-zipper';
           });
         });
         //
-
     }
 
 	public async getKPIS(req: AuthRequest, res: Response, next: NextFunction) {
@@ -1020,9 +1019,48 @@ import * as S3Zipper from 'aws-s3-zipper';
                     sibsComplWhere.push([ 'building_id IN ('+locSiblingsIds.join(',')+')' ]);
 
                     let sibsCompliances = await sibsComplianceModel.getWhere(sibsComplWhere);
+
                     if(sibsCompliances.length > 0){
+                        validTillMoment = moment(sibsCompliances[0]['valid_till']);
                         comp['compliance_status'] = 1;
-                        comp['valid_till'] = sibsCompliances[0]['valid_till'];
+                        comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
+
+                        console.log(comp['valid_till']);
+                        console.log(validTillMoment.format('DD/MM/YYYY'));
+                    }
+
+                    if(!comp['sibsCompliances']){
+                        comp['sibsCompliances'] = [];
+                    }else{
+                        comp['sibsCompliances'].push(sibsCompliances);
+                    }
+
+                    if(comp.compliance_kpis_id == epmId){
+                        let whereEpm =  [],
+                            docsEpm = <any> [];
+
+                        whereEpm.push(['compliance_documents.building_id IN (' + locSiblingsIds.join(',') + ')' ]);
+                        whereEpm.push(['compliance_documents.account_id = ' + accountID]);
+                        whereEpm.push(['compliance_documents.document_type = "Primary" ']);
+                        docsEpm =  await complianceDocsModel.getWhere(whereEpm);
+
+                        docsEpm = docsEpm.sort((a, b) => {
+                            let d1 = moment(a.date_of_activity),
+                                d2 = moment(b.date_of_activity);
+                            if(d1.isAfter(d2)){
+                                return -1;
+                            }else if(d1.isBefore(d2)){
+                                return 1;
+                            }else{
+                                return 0;
+                            }
+                        });
+
+                        if(docsEpm.length > 0){
+                            comp['docs'] = [];
+                            comp['docs'].push(docsEpm[0]);
+                        }
+
                     }
                 }
             }
