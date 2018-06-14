@@ -132,6 +132,10 @@ export class ComplianceService {
         return this.http.post(this.baseUrl + '/compliance/evac-exercise-completed', formData);
     }
 
+    public fsaCompleted(formData){
+        return this.http.post(this.baseUrl + '/compliance/fire-safety-completed', formData);
+    }
+
     public totalComplianceRatingByLocationIds(locationIds){
         return this.http.post(this.baseUrl + '/compliance/total-compliance-rating-by-location', { ids : locationIds });
     }

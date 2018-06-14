@@ -541,12 +541,27 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
     completedEvacExerEvent(event){
         this.complianceService.evacExerciseCompleted({
+            location_id : this.locationID,
             compliance_id : this.evacExerciseComplianceId,
             status : event.target.checked
         }).subscribe((response) => {
             this.ngOnInit(() => {
                 setTimeout(() => {
                     this.clickSelectComplianceFromList(this.KPIS[6]);
+                },500);
+            });
+        });
+    }
+
+    completedFASEvent(event){
+        this.complianceService.fsaCompleted({
+            location_id : this.locationID,
+            compliance_id : this.selectedCompliance['compliance']['compliance_id'],
+            status : event.target.checked
+        }).subscribe((response) => {
+            this.ngOnInit(() => {
+                setTimeout(() => {
+                    this.clickSelectComplianceFromList(this.KPIS[1]);
                 },500);
             });
         });

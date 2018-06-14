@@ -476,7 +476,7 @@ export class Location extends BaseClass {
 						unassignedResults.push({
 							'location_id' : results[i]['location_id'],
 							'name' : results[i]['name'],
-              'parent_id' : results[i]['parent_id'],
+                            'parent_id' : results[i]['parent_id'],
 							'is_building' : results[i]['is_building'],
 							'children' : []
 						});
@@ -778,7 +778,7 @@ export class Location extends BaseClass {
                     ON
                       locations.location_id = user_em_roles_relation.location_id
                     WHERE
-                      user_em_roles_relation.location_id = ${location} ${em_role_filter}
+                      user_em_roles_relation.location_id IN (${location}) ${em_role_filter}
                     AND users.archived = 0
                     ORDER BY em_role_id
                     `;
@@ -940,6 +940,67 @@ export class Location extends BaseClass {
         connection.end();
 
       });
+    }
+
+    public getTheParentORBuiling(id){
+        return new Promise((resolve, reject) => {
+            const 
+            connection = db.createConnection(dbconfig),
+            locId = (id) ? id : this.ID(),
+            sql = `
+            SELECT 
+            *
+            FROM locations 
+
+            WHERE location_id IN (
+                SELECT
+                       
+                IF(l.is_building = 1, l.location_id, 
+
+                   IF(p1.is_building = 1, p1.location_id, 
+                      IF(p1.parent_id = -1, p1.location_id, 
+                         IF(p2.is_building = 1, p2.location_id, 
+                            IF(p2.parent_id = -1, p2.location_id, 
+                               IF(p3.is_building = 1, p3.location_id, 
+                                  IF(p3.parent_id = -1, p3.location_id, 
+                                     IF(p4.is_building = 1, p4.location_id, 
+                                        IF(p4.parent_id = -1, p4.location_id, 
+                                           0
+                                          ) )
+                                    ) )
+                              ) )
+                        ) )
+
+                  )   
+
+                as location_id
+
+                FROM locations l
+                LEFT JOIN locations p1 ON l.parent_id = p1.location_id
+                LEFT JOIN locations p2 ON p1.parent_id = p2.location_id
+                LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
+                LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
+
+                WHERE l.location_id = ${locId}
+            )`;
+
+            connection.query(sql, (error, results) => {
+                if (error) {
+                    console.log('location.model.getTheParentORBuiling',error, sql);
+                    throw Error('Cannot perform query');
+                }
+
+                if(results.length > 0){
+                    this.dbData = results;
+                    resolve(results[0]);
+                }else{
+                    reject();
+                }
+
+            });
+
+            connection.end();
+        });
     }
 
 }

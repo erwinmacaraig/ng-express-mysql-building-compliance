@@ -47,8 +47,7 @@
 								<span *ngIf="user.errors.email_taken">Email is taken</span>
 								<span *ngIf="user.errors.blacklisted || user.errors.invalid">Invalid email</span>
 							</div>
-              <input type="text" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" pattern='^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$'
-              required>
+                            <input type="text" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" pattern='^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$' required>
 						</td>
 						<!-- <td >
 							<select required [(ngModel)]="user.role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">

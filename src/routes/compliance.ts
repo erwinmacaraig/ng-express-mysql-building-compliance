@@ -67,9 +67,8 @@ import * as S3Zipper from 'aws-s3-zipper';
             new ComplianceRoute().totalComplianceRatingByLocationIds(req, res);
         });
 
-        router.get('/compliance/download-compliance-documents-pack/',
-        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-          new ComplianceRoute().downloadDocumentCompliancePack(req, res, next);
+        router.get('/compliance/download-compliance-documents-pack/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+            new ComplianceRoute().downloadDocumentCompliancePack(req, res, next);
         });
 
         router.get('/compliance/download-compliance-file/',
@@ -148,6 +147,10 @@ import * as S3Zipper from 'aws-s3-zipper';
         router.post('/compliance/evac-exercise-completed', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ComplianceRoute().evacExerciseCompleted(req, res);
         });
+
+        router.post('/compliance/fire-safety-completed', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new ComplianceRoute().fireSafetyCompleted(req, res);
+        });
     }
 
     public downloadDocumentCompliancePack(req: AuthRequest, res: Response, next: NextFunction) {
@@ -195,7 +198,6 @@ import * as S3Zipper from 'aws-s3-zipper';
           });
         });
         //
-
     }
 
 	public async getKPIS(req: AuthRequest, res: Response, next: NextFunction) {
@@ -217,16 +219,16 @@ import * as S3Zipper from 'aws-s3-zipper';
 	}
 
 	public async getLocationsLatestCompliance(req: AuthRequest, res: Response, toReturn?, formData?) {
-		let locationID = (formData) ? formData.location_id : req.body.location_id,
-			accountID = req.user.account_id,
+        let locationID = (formData) ? formData.location_id : req.body.location_id,
+            accountID = req.user.account_id,
             userId = req.user.user_id,
             accountModel = new Account(accountID),
-			locAccModel = new LocationAccountRelation(),
-			complianceModel = new ComplianceModel(),
-			kpisModel = new ComplianceKpisModel(),
-			complianceDocsModel = new ComplianceDocumentsModel(),
-			arrWhereKPIS = [],
-			arrWhereCompliance = [],
+            locAccModel = new LocationAccountRelation(),
+            complianceModel = new ComplianceModel(),
+            kpisModel = new ComplianceKpisModel(),
+            complianceDocsModel = new ComplianceDocumentsModel(),
+            arrWhereKPIS = [],
+            arrWhereCompliance = [],
             emrolesOnThisLocation = {},
             getEpcData = (formData) ? (formData.getEpcData) ? formData.getEpcData : true : true,
             paths,
@@ -241,7 +243,12 @@ import * as S3Zipper from 'aws-s3-zipper';
             kpis = (formData) ? (formData.kpis) ? formData.kpis : [] : [],
             kpisIds = [],
             role = (formData) ? (formData.role) ? formData.role : 0 : 0,
-            userRoleRelObj = new UserRoleRelation();
+            userRoleRelObj = new UserRoleRelation(),
+            relateToSiblingsCompliance = false,
+            locSiblings = [],
+            locSiblingsIds = [],
+            locAccSiblingsModel = new LocationAccountRelation(),
+            kpisIdForSiblingsRelated = [];
 
         this.response = { status : false, data : <any>[], message : '' };
 
@@ -275,6 +282,18 @@ import * as S3Zipper from 'aws-s3-zipper';
                     role = 0;
                 }
             }
+        }
+
+        if(role == 2){
+            relateToSiblingsCompliance = true;
+            locSiblings = <any> await locAccSiblingsModel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(accountID, locationID);
+            for(let loc of locSiblings){
+                locSiblingsIds.push(loc.location_id);
+            }
+            kpisIdForSiblingsRelated.push(epcMeetingId);
+            kpisIdForSiblingsRelated.push(fsaId);
+            kpisIdForSiblingsRelated.push(evacExerId);
+            kpisIdForSiblingsRelated.push(epmId);
         }
 
         /*
@@ -313,58 +332,26 @@ import * as S3Zipper from 'aws-s3-zipper';
             12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
         },
         locAccUserModel = new LocationAccountUser(),
-        locationModelForTRP = new Location(locationID),
-        ancetriesIds = await locationModelForTRP.getAncestryIds(locationID),
-        loc = <any> {},
-        ancIdsArray = [],
-        ancestries = [],
+        locModel = new Location(locationID),
+        loc = <any> (formData) ? (formData.location) ?  formData.location : {} :  {},
         userComplianceRole = '',
         userLocationData = <any> {},
         isWholeBuildingOccupier = (role == 1) ?  true : false,
-        rates = JSON.parse(JSON.stringify(frpRates));
+        rates = JSON.parse(JSON.stringify(frpRates)),
+        theBuilding = <any>{
+            location_id : -1
+        };
 
         try{
-            loc = await locationModelForTRP.load();
-
-            if(ancetriesIds[0]){
-                let tempId = ancetriesIds[0]['ids'].split(',');
-                for(let id of tempId){
-                    if(id > 0){
-                        ancIdsArray.push(id);
-                    }
-                }
-
-                if(ancIdsArray.length > 0){
-                    ancestries = <any> await locationModelForTRP.getByInIds(ancIdsArray.join(','));
-                }
-
+            if(Object.keys(loc).length == 0){
+                loc = await locModel.load();
             }
-            ancestries.push(loc);
-
-            // Sort from highest id to lowest id
-            ancestries.sort((a, b) => {
-                if(a.location_id < b.location_id){
-                    return 1;
-                }else if(a.location_id > b.location_id){
-                    return -1;
-                }else{
-                    return 0;
-                }
-            });
-
-            this.response['locations'] = ancestries;
-        }catch(e){
-
-        }
-
-        let theBuilding = <any>{};
-        for(let loc of ancestries){
-            if(loc.is_building == 1){
-                theBuilding = loc;
-            }else if(loc.parent_id == -1 && Object.keys(theBuilding).length == 0){
+            try{
+                theBuilding = await locModel.getTheParentORBuiling(locationID);
+            }catch(e){
                 theBuilding = loc;
             }
-        }
+        }catch(e){}
 
         this.response['building'] = theBuilding;
         
@@ -598,7 +585,20 @@ import * as S3Zipper from 'aws-s3-zipper';
         arrWhereCompliance.push(['building_id = ' + locationID]);
         arrWhereCompliance.push(['account_id = ' + accountID + ' GROUP BY compliance_kpis_id' ]);
 
-        let compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
+        let 
+        compliances = [],
+        hasCompliancesFormData = false;
+
+        if(formData){
+            if(formData.compliances){
+                compliances = formData.compliances;
+                hasCompliancesFormData =  true;
+            }
+        }
+
+        if(!hasCompliancesFormData){
+            compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
+        }
 
         for(let i in kpis) {
             let hasKpis = false;
@@ -676,7 +676,6 @@ import * as S3Zipper from 'aws-s3-zipper';
                     compliances[c]['docs'].push(docs[d]);
                 }
             }
-
         }
 
         for (let comp of compliances) {
@@ -1006,6 +1005,66 @@ import * as S3Zipper from 'aws-s3-zipper';
                 }
             }
 
+            if(relateToSiblingsCompliance && locSiblingsIds.length > 0){
+                if( kpisIdForSiblingsRelated.indexOf( comp.compliance_kpis_id ) > -1 && (comp.compliance_status == 0 ||  validTillMoment.isBefore(today))  ){
+
+                    let 
+                    sibsComplianceModel = new ComplianceModel(),
+                    sibsComplWhere = [];
+
+                    sibsComplWhere.push([ 'account_id = '+accountID ]);
+                    sibsComplWhere.push([ 'compliance_kpis_id = '+comp.compliance_kpis_id ]);
+                    sibsComplWhere.push([ 'compliance_status = 1 ' ]);
+                    sibsComplWhere.push([ 'valid_till >= NOW() ' ]);
+                    sibsComplWhere.push([ 'building_id IN ('+locSiblingsIds.join(',')+')' ]);
+
+                    let sibsCompliances = await sibsComplianceModel.getWhere(sibsComplWhere);
+
+                    if(sibsCompliances.length > 0){
+                        validTillMoment = moment(sibsCompliances[0]['valid_till']);
+                        comp['compliance_status'] = 1;
+                        comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
+
+                        console.log(comp['valid_till']);
+                        console.log(validTillMoment.format('DD/MM/YYYY'));
+                    }
+
+                    if(!comp['sibsCompliances']){
+                        comp['sibsCompliances'] = [];
+                    }else{
+                        comp['sibsCompliances'].push(sibsCompliances);
+                    }
+
+                    if(comp.compliance_kpis_id == epmId){
+                        let whereEpm =  [],
+                            docsEpm = <any> [];
+
+                        whereEpm.push(['compliance_documents.building_id IN (' + locSiblingsIds.join(',') + ')' ]);
+                        whereEpm.push(['compliance_documents.account_id = ' + accountID]);
+                        whereEpm.push(['compliance_documents.document_type = "Primary" ']);
+                        docsEpm =  await complianceDocsModel.getWhere(whereEpm);
+
+                        docsEpm = docsEpm.sort((a, b) => {
+                            let d1 = moment(a.date_of_activity),
+                                d2 = moment(b.date_of_activity);
+                            if(d1.isAfter(d2)){
+                                return -1;
+                            }else if(d1.isBefore(d2)){
+                                return 1;
+                            }else{
+                                return 0;
+                            }
+                        });
+
+                        if(docsEpm.length > 0){
+                            comp['docs'] = [];
+                            comp['docs'].push(docsEpm[0]);
+                        }
+
+                    }
+                }
+            }
+
             if(comp.compliance_status == 1){
                 comp['validity_status'] = 'valid';
                 comp['valid'] = 1;
@@ -1034,34 +1093,22 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         this.response['epcCommitteeOnHQ'] = epcCommitteeOnHQ;
 
-        for(let comp of compliances){
-            let tempPoints = comp.points;
-            if( rates[ comp.compliance_kpis_id ] ){
-
-                if(epcCommitteeOnHQ && rates[comp.compliance_kpis_id]['epc_headoffice_points'] > 0 ){
-                    tempPoints = rates[comp.compliance_kpis_id]['valid'];
-                    comp['validity_status'] = 'valid';
-                    comp['valid'] = 1;
-                }else{
-
-                    if(comp['validity_status'] == 'valid' || comp['valid'] == 1){
-                        tempPoints = rates[comp.compliance_kpis_id]['valid'];
-                    }else if(comp['validity_status'] == 'expiring' || comp['validity_status'] == 'invalid'){
-                        tempPoints = rates[comp.compliance_kpis_id]['expired_docs'];
-                    }
-
-                }
-            }
-
-            comp['points'] = tempPoints;
-        }
-
         if(getEpcData){
             let epcModel = new EpcMinutesMeeting(),
                 epcWhere = [],
-                epcData = {};
+                epcData = {},
+                locIds = [];
 
-            epcWhere.push(['location_id = '+locationID]);
+            if(relateToSiblingsCompliance){
+                for(let loc of locSiblings){
+                    locIds.push(loc.location_id);
+                }
+                locIds = JSON.parse(JSON.stringify(locSiblingsIds));
+            }
+
+            locIds.push(locationID);
+
+            epcWhere.push(['location_id IN ( '+locIds.join(',')+')'  ]);
             epcWhere.push(['account_id = '+accountID]);
             await epcModel.getWhere(epcWhere);
             if(epcModel.getDBData()[0]){
@@ -1074,9 +1121,28 @@ import * as S3Zipper from 'aws-s3-zipper';
             this.response['epcData'] = epcData;
         }
 
+        for(let comp of compliances){
+            let tempPoints = comp.points;
+            if( rates[ comp.compliance_kpis_id ] ){
+                if(epcCommitteeOnHQ && rates[comp.compliance_kpis_id]['epc_headoffice_points'] > 0 ){
+                    tempPoints = rates[comp.compliance_kpis_id]['valid'];
+                    comp['validity_status'] = 'valid';
+                    comp['valid'] = 1;
+                }else{
+                    if(comp['validity_status'] == 'valid' || comp['valid'] == 1){
+                        tempPoints = rates[comp.compliance_kpis_id]['valid'];
+                    }else if(comp['validity_status'] == 'expiring' || comp['validity_status'] == 'invalid'){
+                        tempPoints = rates[comp.compliance_kpis_id]['expired_docs'];
+                    }
+                }
+            }
+
+            comp['points'] = tempPoints;
+        }
+
         this.response['rates'] = rates;
-		this.response.status = true;
-		this.response.data = compliances;
+        this.response.status = true;
+        this.response.data = compliances;
         this.response['percent'] = 0;
 
         let validcount = 0,
@@ -1092,15 +1158,15 @@ import * as S3Zipper from 'aws-s3-zipper';
             this.response['percent'] = Math.floor((validcount / 100) * 100);
         }
 
-		res.statusCode = 200;
+        res.statusCode = 200;
 
         if(!toReturn){
-		    res.send(this.response);
+            res.send(this.response);
         }else{
             let dataReturn = JSON.parse(JSON.stringify(this.response));
             return dataReturn;
         }
-	}
+    }
 
     public async paginateAllLocationIds(req: AuthRequest, res: Response, toReturn?){
         let
@@ -1173,6 +1239,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         userId = req.user.user_id,
         locAccntRelObj = new LocationAccountRelation(),
         userRoleRel = new UserRoleRelation(),
+        locModel = new Location(),
         r = 0,
         filter = {
             locationIdOnly : true, 
@@ -1183,13 +1250,20 @@ import * as S3Zipper from 'aws-s3-zipper';
         compliance = {},
         arrWhereKPIS = [],
         kpis = [],
+        kpisIds = [],
         locationsPages = [],
+        arrWhereCompliance = [],
         kpisModel = new ComplianceKpisModel(),
         accountModel = new Account(accountId),
-        account = await accountModel.load();
+        account = await accountModel.load(),
+        complianceModel = new ComplianceModel();
 
         arrWhereKPIS.push([' description IS NOT NULL ']);
         kpis =  <any> await kpisModel.getWhere(arrWhereKPIS);
+
+        Object.keys(kpis).forEach((key) => {
+            kpisIds.push(kpis[key]['compliance_kpis_id']);
+        });
 
         try {
             r = await userRoleRel.getByUserId(userId, true);
@@ -1197,19 +1271,64 @@ import * as S3Zipper from 'aws-s3-zipper';
             r = 2;
         }
 
-        for(let id of locationIds){
+        locations = <any> await locModel.getByInIds(locationIds);
+
+        arrWhereCompliance.push(['compliance_kpis_id IN (' + kpisIds.join(',') + ')']);
+        arrWhereCompliance.push(['building_id IN ('+locationIds.join(',')+')' ]);
+        arrWhereCompliance.push(['account_id = ' + accountId + ' GROUP BY compliance_kpis_id' ]);
+
+        let compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
+
+        for(let loc of locations){
+            
+            for(let i in kpis) {
+                let hasKpis = false;
+                for(let c in compliances){
+                    if( compliances[c]['compliance_kpis_id'] == kpis[i]['compliance_kpis_id'] && compliances[c]['building_id'] == loc.location_id ){
+                        hasKpis = true;
+                    }
+                }
+
+                if (!hasKpis) {
+                    let createComplianceModel = new ComplianceModel(),
+                    compObj = {
+                        'compliance_kpis_id': kpis[i]['compliance_kpis_id'],
+                        'compliance_status': 0,
+                        'building_id': loc.location_id,
+                        'account_id': accountId,
+                        'valid_till': null,
+                        'required': 1,
+                        'account_role': '',
+                        'override_by_evac': 0
+                    };
+                    await createComplianceModel.create(compObj);
+                    compObj['compliance_id'] = createComplianceModel.ID();
+                    compliances.push(compObj);
+                }
+            }
+
+            let compl = [];
+            for(let com of compliances){
+                if(com.building_id == loc.location_id){
+                    compl.push(com);
+                }
+            }
+
             let formData = {
-                'location_id' : id,
+                'location' : loc,
+                'location_id' : loc.location_id,
                 'kpis' : kpis,
+                'compliances' : compl,
                 'account' : account,
                 'role' : r
             };
 
             compliance = await this.getLocationsLatestCompliance(req, res, true, formData);
             response.data.push( compliance );
+            
         }
 
-        response['locationIds'] = locationIds;
+        // response['locationIds'] = locationIds;
 
         res.send(response);
     }
@@ -1306,82 +1425,149 @@ import * as S3Zipper from 'aws-s3-zipper';
         response = {
             status :  false, data : {}, message : ''
         },
-        epcModel = new EpcMinutesMeeting(),
         complianceModel = new ComplianceModel(),
-        complianceWhere = [];
-
-        let 
-        saveData = {
-            'account_id' : req.body.account_id,
-            'location_id' : req.body.location_id,
-            'data' : JSON.stringify(req.body.data),
-            'date_created' : moment().format('YYYY-MM-DD'),
-            'created_by' : req.user.user_id,
-            'date_updated' : moment().format('YYYY-MM-DD HH:mm:ss'),
-            'updated_by' : req.user.user_id
-        };
-
-        complianceWhere.push([ 'account_id = '+req.body.account_id ]);
-        complianceWhere.push([ 'building_id = '+req.body.location_id ]);
-        complianceWhere.push([ 'compliance_kpis_id = 2' ]);
-
-        let 
-        compliance = await complianceModel.getWhere(complianceWhere),
+        complianceWhere = [],
         kpisModel = new ComplianceKpisModel(),
         arrWhereKPIS = [],
-        kpis = [];
+        kpis = [],
+        userRoleRelObj = new UserRoleRelation(),
+        role = 0,
+        kpisIds = [];
 
         arrWhereKPIS.push([' description IS NOT NULL ']);
-        kpis =  <any> await kpisModel.getWhere(arrWhereKPIS)
+        kpis =  <any> await kpisModel.getWhere(arrWhereKPIS);
 
-        if(req.body.id){
+        try {
+            role = await userRoleRelObj.getByUserId(req.user.user_id, true);
+        } catch (e) { }
 
-            if(req.body.id > 0){
-                epcModel.setID(req.body.id);
+        Object.keys(kpis).forEach((key) => {
+            kpisIds.push(kpis[key]['compliance_kpis_id']);
+        });
 
-                try{
-                    saveData = <any> await epcModel.load();
-                    saveData['updated_by'] = req.user.user_id;
-                    saveData['date_updated'] = moment().format('YYYY-MM-DD HH:mm:ss');
-                    saveData['data'] = JSON.stringify(req.body.data);
-                }catch(e){}
+        let 
+        locModel = new Location(req.body.location_id),
+        locAccRel = new LocationAccountRelation(),
+        kpiEPC = <any> {};
+
+        for(let kpi of kpis){
+            if(kpi.compliance_kpis_id == 9){
+                kpiEPC = kpi;
             }
         }
 
-        await epcModel.create(saveData);
+        let 
+        validMonths = kpiEPC.validity_in_months,
+        today = moment(),
+        validTill = today.add(validMonths, 'months');
 
-        if(compliance.length > 0){
-            let complianceSaveModel = new ComplianceModel(compliance[0]['compliance_id']);
-            try{
-                await complianceSaveModel.load();
+        response['role'] = role;
 
-                this.response['complianceSaveModel'] = complianceSaveModel.getDBData();
+        try{
+            let 
+            location = <any> await locModel.load(),
+            siblings = <any> (role == 2) ? await locAccRel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(req.user.account_id, req.body.location_id) : [],
+            allLocs = JSON.parse(JSON.stringify(siblings));
+            allLocs.push(location);
+            response['allLocs'] = allLocs;
+            response['compliances'] = <any> [];
+            
+            for(let loc of allLocs){
+                let 
+                arrWhereCompliance = [],
+                complianceModel = new ComplianceModel();
 
-                let kpiEPC = <any> {};
+                arrWhereCompliance.push(['compliance_kpis_id IN (' + kpisIds.join(',') + ')']);
+                arrWhereCompliance.push(['building_id = ' + loc.location_id]);
+                arrWhereCompliance.push(['account_id = ' + req.user.account_id + ' GROUP BY compliance_kpis_id' ]);
 
-                for(let kpi of kpis){
-                    if(kpi.compliance_kpis_id == 2){
-                        kpiEPC = kpi;
+                let compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
+
+                for(let i in kpis) {
+                    let hasKpis = false;
+                    for(let c in compliances){
+                        if(compliances[c]['compliance_kpis_id'] == kpis[i]['compliance_kpis_id']){
+                            hasKpis = true;
+                        }
+                    }
+
+                    if (!hasKpis) {
+                        let createComplianceModel = new ComplianceModel(),
+                        compObj = {
+                            'compliance_kpis_id': kpis[i]['compliance_kpis_id'],
+                            'compliance_status': 0,
+                            'building_id': loc.location_id,
+                            'account_id': req.user.account_id,
+                            'valid_till': null,
+                            'required': 1,
+                            'account_role': '',
+                            'override_by_evac': 0
+                        };
+                        await createComplianceModel.create(compObj);
+                        compObj['compliance_id'] = createComplianceModel.ID();
+                        compliances.push(compObj);
                     }
                 }
 
-                let validMonths = kpiEPC.validity_in_months,
-                today = moment(),
-                validTill = today.add(validMonths, 'months');
+                for(let comp of compliances){
+                    if(comp.compliance_kpis_id == 2){
+                        let 
+                        saveData = {
+                            'account_id' : req.body.account_id,
+                            'location_id' : comp.building_id,
+                            'data' : JSON.stringify(req.body.data),
+                            'date_created' : moment().format('YYYY-MM-DD'),
+                            'created_by' : req.user.user_id,
+                            'date_updated' : moment().format('YYYY-MM-DD HH:mm:ss'),
+                            'updated_by' : req.user.user_id
+                        },
+                        epcModel = new EpcMinutesMeeting(),
+                        epcModelSave = new EpcMinutesMeeting(),
+                        epcWhere = [];
 
-                complianceSaveModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
-                complianceSaveModel.set('compliance_status', 1);
+                        epcWhere.push(['location_id = '+comp.building_id]);
+                        epcWhere.push(['account_id = '+req.user.account_id]);
+                        let epc = await epcModel.getWhere(epcWhere);
+                        if(epc.length > 0){
+                            epcModelSave.setID(epc[0]['epc_meeting_minutes_id']);
+                            saveData['updated_by'] = req.user.user_id;
+                            saveData['date_updated'] = moment().format('YYYY-MM-DD HH:mm:ss');
+                            saveData['data'] = JSON.stringify(req.body.data);
+                        }
 
-                await complianceSaveModel.dbUpdate();
+                        await epcModelSave.create(saveData);
 
-            }catch(e){
-                console.log(e);
+                        let complianceSaveModel = new ComplianceModel(comp['compliance_id']);
+                        try{
+
+                            complianceSaveModel.set('compliance_kpis_id', 2);
+                            complianceSaveModel.set('account_role', '');
+                            complianceSaveModel.set('building_id', comp.building_id);
+                            complianceSaveModel.set('account_id', req.body.account_id);
+                            complianceSaveModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
+                            complianceSaveModel.set('compliance_status', 1);
+
+                            await complianceSaveModel.dbUpdate();
+
+                        }catch(e){
+                            console.log(e);
+                        }
+
+                        if(req.body.location_id == comp.building_id){
+                            saveData['epc_meeting_minutes_id'] = epcModel.ID();
+                            response.data = saveData;
+                        }
+                    }
+                }
+
+                response['compliances'].push(compliances);
             }
-        }
+            
+            response.status = true;
 
-        response.status = true;
-        saveData['epc_meeting_minutes_id'] = epcModel.ID();
-        response.data = saveData;
+        }catch(e){
+            console.log(e);
+        }
 
         res.send(response);
     }
@@ -1390,48 +1576,278 @@ import * as S3Zipper from 'aws-s3-zipper';
         let response = {
             status : false, message : ''
         },
+        locationId = req.body.location_id,
         complModel = new ComplianceModel(req.body.compliance_id),
         kpisModel = new ComplianceKpisModel(),
         arrWhereKPIS = [],
-        kpis = [];
+        kpis = [],
+        userRoleRelObj = new UserRoleRelation(),
+        role = 0,
+        kpisIds = [];
 
         arrWhereKPIS.push([' description IS NOT NULL ']);
         kpis =  <any> await kpisModel.getWhere(arrWhereKPIS);
 
-        try{
+        try {
+            role = await userRoleRelObj.getByUserId(req.user.user_id, true);
+        } catch (e) { }
 
-            await complModel.load();
-            if(complModel.get('compliance_kpis_id') == 9){
+        Object.keys(kpis).forEach((key) => {
+            kpisIds.push(kpis[key]['compliance_kpis_id']);
+        });
+
+
+        let 
+        locModel = new Location(locationId),
+        locAccRel = new LocationAccountRelation(),
+        kpiEvacExer = <any> {};
+
+        for(let kpi of kpis){
+            if(kpi.compliance_kpis_id == 9){
+                kpiEvacExer = kpi;
+            }
+        }
+
+        let 
+        validMonths = kpiEvacExer.validity_in_months,
+        today = moment(),
+        validTill = today.add(validMonths, 'months');
+
+        response['role'] = role;
+
+        if(role == 2){
+            try{
+                let 
+                location = <any> await locModel.load(),
+                siblings = <any> await locAccRel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(req.user.account_id, locationId),
+                allLocs = JSON.parse(JSON.stringify(siblings));
+                allLocs.push(location);
+                response['allLocs'] = allLocs;
+                response['compliances'] = <any> [];
                 
-                let kpiEvacExer = <any> {};
+                for(let loc of allLocs){
+                    let 
+                    arrWhereCompliance = [],
+                    complianceModel = new ComplianceModel();
 
-                for(let kpi of kpis){
-                    if(kpi.compliance_kpis_id == 9){
-                        kpiEvacExer = kpi;
+                    arrWhereCompliance.push(['compliance_kpis_id IN (' + kpisIds.join(',') + ')']);
+                    arrWhereCompliance.push(['building_id = ' + loc.location_id]);
+                    arrWhereCompliance.push(['account_id = ' + req.user.account_id + ' GROUP BY compliance_kpis_id' ]);
+
+                    let compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
+
+                    for(let i in kpis) {
+                        let hasKpis = false;
+                        for(let c in compliances){
+                            if(compliances[c]['compliance_kpis_id'] == kpis[i]['compliance_kpis_id']){
+                                hasKpis = true;
+                            }
+                        }
+
+                        if (!hasKpis) {
+                            let createComplianceModel = new ComplianceModel(),
+                            compObj = {
+                                'compliance_kpis_id': kpis[i]['compliance_kpis_id'],
+                                'compliance_status': 0,
+                                'building_id': loc.location_id,
+                                'account_id': req.user.account_id,
+                                'valid_till': null,
+                                'required': 1,
+                                'account_role': '',
+                                'override_by_evac': 0
+                            };
+                            await createComplianceModel.create(compObj);
+                            compObj['compliance_id'] = createComplianceModel.ID();
+                            compliances.push(compObj);
+                        }
                     }
+
+                    for(let comp of compliances){
+                        if(comp.compliance_kpis_id == 9){
+
+                            let
+                            complModel = new ComplianceModel(comp.compliance_id);
+                            await complModel.load();
+                            
+                            if(req.body.status == true){
+                                complModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
+                                complModel.set('compliance_status', 1);
+                            }else{
+                                complModel.set('valid_till', 'null');
+                                complModel.set('compliance_status', 0);
+                            }
+
+                            await complModel.dbUpdate();
+                        }
+                    }
+
+                    response['compliances'].push(compliances);
                 }
-
-                let validMonths = kpiEvacExer.validity_in_months,
-                today = moment(),
-                validTill = today.add(validMonths, 'months');
-
-                if(req.body.status == true){
-                    complModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
-                    complModel.set('compliance_status', 1);
-                }else{
-                    complModel.set('valid_till', 'null');
-                    complModel.set('compliance_status', 0);
-                }
-
-
-                await complModel.dbUpdate();
+                
                 response.status = true;
 
-
+            }catch(e){
+                console.log(e);
             }
+        }else{
+            try{
+                await complModel.load();
+                if(complModel.get('compliance_kpis_id') == 9){
 
-        }catch(e){}
+                    if(req.body.status == true){
+                        complModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
+                        complModel.set('compliance_status', 1);
+                    }else{
+                        complModel.set('valid_till', 'null');
+                        complModel.set('compliance_status', 0);
+                    }
 
+                    await complModel.dbUpdate();
+                    response.status = true;
+                }
+
+            }catch(e){}
+        }
+
+        res.send(response);
+    }
+
+    public async fireSafetyCompleted(req: AuthRequest, res: Response){
+        let response = {
+            status : false, message : ''
+        },
+        locationId = req.body.location_id,
+        complModel = new ComplianceModel(req.body.compliance_id),
+        kpisModel = new ComplianceKpisModel(),
+        arrWhereKPIS = [],
+        kpis = [],
+        userRoleRelObj = new UserRoleRelation(),
+        role = 0,
+        kpisIds = [];
+
+        arrWhereKPIS.push([' description IS NOT NULL ']);
+        kpis =  <any> await kpisModel.getWhere(arrWhereKPIS);
+
+        try {
+            role = await userRoleRelObj.getByUserId(req.user.user_id, true);
+        } catch (e) { }
+
+        Object.keys(kpis).forEach((key) => {
+            kpisIds.push(kpis[key]['compliance_kpis_id']);
+        });
+
+
+        let 
+        locModel = new Location(locationId),
+        locAccRel = new LocationAccountRelation(),
+        kpiFsa = <any> {};
+
+        for(let kpi of kpis){
+            if(kpi.compliance_kpis_id == 3){
+                kpiFsa = kpi;
+            }
+        }
+
+        let 
+        validMonths = kpiFsa.validity_in_months,
+        today = moment(),
+        validTill = today.add(validMonths, 'months');
+
+        response['role'] = role;
+
+        if(role == 2){
+            try{
+                let 
+                location = <any> await locModel.load(),
+                siblings = <any> await locAccRel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(req.user.account_id, locationId),
+                allLocs = JSON.parse(JSON.stringify(siblings));
+                allLocs.push(location);
+                response['allLocs'] = allLocs;
+                response['compliances'] = <any> [];
+                
+                for(let loc of allLocs){
+                    let 
+                    arrWhereCompliance = [],
+                    complianceModel = new ComplianceModel();
+
+                    arrWhereCompliance.push(['compliance_kpis_id IN (' + kpisIds.join(',') + ')']);
+                    arrWhereCompliance.push(['building_id = ' + loc.location_id]);
+                    arrWhereCompliance.push(['account_id = ' + req.user.account_id + ' GROUP BY compliance_kpis_id' ]);
+
+                    let compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
+
+                    for(let i in kpis) {
+                        let hasKpis = false;
+                        for(let c in compliances){
+                            if(compliances[c]['compliance_kpis_id'] == kpis[i]['compliance_kpis_id']){
+                                hasKpis = true;
+                            }
+                        }
+
+                        if (!hasKpis) {
+                            let createComplianceModel = new ComplianceModel(),
+                            compObj = {
+                                'compliance_kpis_id': kpis[i]['compliance_kpis_id'],
+                                'compliance_status': 0,
+                                'building_id': loc.location_id,
+                                'account_id': req.user.account_id,
+                                'valid_till': null,
+                                'required': 1,
+                                'account_role': '',
+                                'override_by_evac': 0
+                            };
+                            await createComplianceModel.create(compObj);
+                            compObj['compliance_id'] = createComplianceModel.ID();
+                            compliances.push(compObj);
+                        }
+                    }
+
+                    for(let comp of compliances){
+                        if(comp.compliance_kpis_id == 3){
+
+                            let
+                            complModel = new ComplianceModel(comp.compliance_id);
+                            await complModel.load();
+                            
+                            if(req.body.status == true){
+                                complModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
+                                complModel.set('compliance_status', 1);
+                            }else{
+                                complModel.set('valid_till', 'null');
+                                complModel.set('compliance_status', 0);
+                            }
+
+                            await complModel.dbUpdate();
+                        }
+                    }
+
+                    response['compliances'].push(compliances);
+                }
+                
+                response.status = true;
+
+            }catch(e){
+                console.log(e);
+            }
+        }else{
+            try{
+                await complModel.load();
+                if(complModel.get('compliance_kpis_id') == 3){
+
+                    if(req.body.status == true){
+                        complModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
+                        complModel.set('compliance_status', 1);
+                    }else{
+                        complModel.set('valid_till', 'null');
+                        complModel.set('compliance_status', 0);
+                    }
+
+                    await complModel.dbUpdate();
+                    response.status = true;
+                }
+
+            }catch(e){}
+        }
 
         res.send(response);
     }
