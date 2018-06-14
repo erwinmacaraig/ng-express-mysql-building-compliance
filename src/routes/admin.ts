@@ -34,10 +34,29 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
-    router.get('/admin/account-locations/:accountId/', async (req: Request, res: Response, next: NextFunction) => {
+    router.get('/admin/compliance/FSA-EvacExer/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const compliance = new ComplianceModel();
+      let complianceData: any;
+      if (req.query.ctrl === 'set') {
+        complianceData =
+          await compliance.setComplianceRecordStatus(req.query.compliance_kpis_id,
+            req.query.building_id,
+            req.query.account_id,
+            req.query.compliance_status);
+      }
+      complianceData =
+            await compliance.getComplianceRecord(req.query.compliance_kpis_id, req.query.building_id, req.query.account_id);
+        return res.status(200).send({
+          message: 'Success',
+          data: complianceData
+        });
+    });
+
+    router.get('/admin/account-locations/:accountId/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
       const list = new List();
       const accountId = req.params.accountId;
-      const tempHierarchy = [];
       let temp = [];
       const lar_locations = [];
       let accountLocations: Array<object> = await list.listTaggedLocationsOnAccount(accountId);

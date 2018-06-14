@@ -70,14 +70,9 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
     this.accntSub = this.getAccountChanges();
     this.adminService.getKPIS().subscribe((response) => {
       this.kpis = response['data'];
-      this.kpisArrayForDisplay = Object.keys(response['data']).map((key) => {
-        if (response['data'][key]['required']) {
-          return response['data'][key];
-        }
-      });
-      for ( let i = 0; i < this.kpisArrayForDisplay.length; i++) {
-        if (this.kpisArrayForDisplay[i] == undefined) {
-          this.kpisArrayForDisplay.splice(i, 1);
+      for (const k of response['data']) {
+        if (k['has_primary_document'] == 1) {
+          this.kpisArrayForDisplay.push(k);
         }
       }
       // console.log(this.kpisArrayForDisplay);
@@ -129,7 +124,7 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         reportProgress: true
       });
     } else {
-      console.log(this.sendableFormData.get('files'));
+      // console.log(this.sendableFormData.get('files'));
       req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance/evac-diagrams/`, this.sendableFormData, {
         reportProgress: true
       });

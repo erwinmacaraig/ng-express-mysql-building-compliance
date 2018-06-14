@@ -73,5 +73,20 @@ export class AdminService {
     this.options['params'] = httpParams;
     return this.http.get(this.baseUrl + '/admin/list/compliance-documents/', this.options);
   }
+
+  FSA_EvacExer_Status(account: string = '0', location: string = '0', kpi: string = '0', ctrl: string = 'get', stat?: string) {
+    let httpParams = new HttpParams()
+                       .set('building_id', location)
+                       .set('account_id', account)
+                       .set('compliance_kpis_id', kpi)
+                       .set('ctrl',  ctrl);
+
+    if (stat) {
+      httpParams = httpParams.set('compliance_status', stat);
+    }
+
+    this.options['params'] = httpParams;
+    return this.http.get(this.baseUrl + '/admin/compliance/FSA-EvacExer/', this.options);
+  }
 }
 
