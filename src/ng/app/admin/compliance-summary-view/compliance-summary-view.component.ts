@@ -45,8 +45,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   httpEvent: any;
 
   options: DatepickerOptions = {
-    displayFormat: 'YYYY-MM-DD',
-    minDate: moment().toDate()
+    displayFormat: 'YYYY-MM-DD'
   };
 
   datepickerModel: Date;

@@ -18,7 +18,6 @@ declare var moment: any;
 })
 
 export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
-  title = 'This is a simple upload.';
   accept = '*';
   files: File[] = [];
   progress: number;
