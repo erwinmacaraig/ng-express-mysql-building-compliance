@@ -8,6 +8,7 @@ import { Subscription, Observable } from 'rxjs/Rx';
 import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AdminService } from './../../services/admin.service';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
 declare var $: any;
 
@@ -15,7 +16,7 @@ declare var $: any;
   selector: 'app-admin-account-locations',
   templateUrl: './locations-in-accounts.component.html',
   styleUrls: ['./locations-in-accounts.component.css'],
-  providers: [ AdminService, EncryptDecryptService ]
+  providers: [ AdminService, EncryptDecryptService, DashboardPreloaderService ]
 })
 export class LocationsInAccountComponent implements OnInit, AfterViewInit {
 
@@ -24,11 +25,13 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
   constructor(public http: HttpClient,
     private adminService: AdminService,
     private route: ActivatedRoute,
-    public encryptDecrypt: EncryptDecryptService) {
+    public encryptDecrypt: EncryptDecryptService,
+    public dashboard: DashboardPreloaderService) {
 
     }
 
   ngOnInit() {
+    this.dashboard.show();
     this.route.params.subscribe((parameters) => {
       this.accountId = parameters['accntId'];
       this.adminService.taggedLocationsOnAccount(this.accountId).subscribe((response) => {
@@ -37,6 +40,10 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
           loc['id_encrypted'] = this.encryptDecrypt.encrypt(loc['location_id']);
         }
         console.log(response);
+        this.dashboard.hide();
+      }, (error) => {
+        console.log(error);
+        this.dashboard.hide();
       });
 
     });

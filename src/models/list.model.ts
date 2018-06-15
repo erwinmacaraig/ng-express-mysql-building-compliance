@@ -443,7 +443,8 @@ export class List {
                   LEFT JOIN locations as parentLocation ON parentLocation.location_id = locations.parent_id
                   WHERE compliance_documents.account_id = ?
                   AND compliance_documents.building_id = ?
-                  AND compliance_documents.compliance_kpis_id = ?`;
+                  AND compliance_documents.compliance_kpis_id = ?
+                  ORDER BY compliance_documents.compliance_documents_id DESC`;
 
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get, [account, location, kpi], (error, results) => {
