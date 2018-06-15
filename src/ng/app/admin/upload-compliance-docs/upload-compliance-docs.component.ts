@@ -9,12 +9,13 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 
 import { AdminService } from './../../services/admin.service';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 declare var moment: any;
 @Component({
   selector: 'app-admin-compliance-doc-upload',
   templateUrl: './upload-compliance-docs.component.html',
   styleUrls: ['./upload-compliance-docs.component.css'],
-  providers: [AdminService, EncryptDecryptService]
+  providers: [AdminService, EncryptDecryptService, DashboardPreloaderService]
 })
 
 export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
@@ -57,12 +58,14 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
   dragFiles: any;
 
   constructor(public http: HttpClient, public encryptDecrypt: EncryptDecryptService,
-    public router: Router, platformLocation: PlatformLocation, public adminService: AdminService) {
+    public router: Router, platformLocation: PlatformLocation, public adminService: AdminService,
+    public dashboard: DashboardPreloaderService) {
     this.baseUrl = (platformLocation as any).location.origin;
     this.setDatePickerDefaultDate();
   }
 
   ngOnInit() {
+    this.dashboard.show();
     this.accessType = new FormControl();
     this.documentType = new FormControl(null, Validators.required);
     this.dtActivityField.setValue(this.datepickerModelFormatted);
@@ -75,6 +78,7 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         }
       }
       // console.log(this.kpisArrayForDisplay);
+      this.dashboard.hide();
     });
 
   }
@@ -104,6 +108,7 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
     let req;
     this.accntSub.unsubscribe();
     const myForm = new FormData();
+    this.dashboard.show();
     if (parseInt(this.documentType.value, 10) !== 5) {
       for (const f of files) {
         myForm.append('file', f, f.name);
@@ -135,12 +140,16 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
 
         if (event instanceof HttpResponse) {
           delete this.httpEmitter;
+          this.dashboard.hide();
           console.log('request done', event);
           this.router.navigate(['/admin', 'view-location-compliance', this.selectedAccount.toString(),
            this.locationField.value, this.documentType.value]);
         }
       },
-      error => console.log('Error Uploading', error)
+      error => {
+        console.log('Error Uploading', error);
+        this.dashboard.hide();
+      }
     );
   }
   getDate() {

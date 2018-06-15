@@ -68,7 +68,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
 
   ngOnInit() {
     console.log(this.route.snapshot.params);
-
+    this.dashboard.show();
     this.accountId = this.route.snapshot.params['accntId'];
     this.locationId = this.route.snapshot.params['locationId'];
     this.selectedKPI = this.route.snapshot.params['kpi'];
@@ -85,6 +85,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         }
       }
       this.getUploadedDocumentsFromSelectedKPI(initKPI);
+      this.dashboard.hide();
     });
 
     this.genericSub =
@@ -153,6 +154,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     formData.append('document_type', f.value.document_type);
     $('#modalManageUpload').css('width', 'fit-content');
     $('#modalManageUpload').modal('close');
+    this.dashboard.show();
     req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance-documents/`, formData, {
       reportProgress: true
     });
@@ -168,6 +170,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
           this.showModalUploadDocsLoader = false;
           $('#modalManageUpload').css('width');
           this.cancelUploadDocs(f);
+          this.dashboard.hide();
         }
       },
       error => {
