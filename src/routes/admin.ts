@@ -34,6 +34,15 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.get('/admin/get/location-details/:location/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const locationObj = new Location(req.params.location);
+      const all_location_data = await locationObj.load();
+      const parent_traverse_data = await locationObj.locationHierarchy();
+
+
+    });
+
     router.get('/admin/compliance/FSA-EvacExer/', new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const compliance = new ComplianceModel();
