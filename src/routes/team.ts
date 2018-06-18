@@ -303,7 +303,7 @@ export class TeamRoute extends BaseRoute {
                 subject : 'EvacConnect Warden Nomination'
             };
             const email = new EmailSender(opts);
-            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+            const link = 'https://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
             let emailBody = email.getEmailHTMLHeader();
             emailBody += `<h3 style="text-transform:capitalize;">Hi${name},</h3> <br/>
             <h4>You are nominated to be a Warden.</h4> <br/>
@@ -478,7 +478,7 @@ export class TeamRoute extends BaseRoute {
                             subject : 'EvacConnect Warden Nomination'
                         };
                         const email = new EmailSender(opts);
-                        const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+                        const link = 'https://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
                         let emailBody = email.getEmailHTMLHeader();
 
                         let roleText = ``;
@@ -627,7 +627,7 @@ export class TeamRoute extends BaseRoute {
                                 subject : 'EvacConnect Warden Nomination'
                             };
                             const email = new EmailSender(opts);
-                            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+                            const link = 'https://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
                             let emailBody = email.getEmailHTMLHeader();
                             emailBody += `<h3 style="text-transform:capitalize;">Hi ${warden['first_name']} ${warden['last_name']},</h3> <br/>
                             <h4>You are nominated to be a Warden.</h4> <br/>
@@ -909,7 +909,7 @@ export class TeamRoute extends BaseRoute {
             const tokenModel = new Token();
             const token = tokenModel.generateRandomChars(8);
 
-            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
+            const link = 'https://' + req.get('host') + '/signup/warden-profile-completion/' + token;
             const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
             await inviCode.create({
                 'invited_by_user': req.user.user_id,
@@ -1137,7 +1137,7 @@ export class TeamRoute extends BaseRoute {
 
     public async trainingSendInvite(req: AuthRequest, res: Response){
         const user = new User(req.body.user_id);
-        
+
         try{
 
             const userDbData = await user.load();
@@ -1176,8 +1176,8 @@ export class TeamRoute extends BaseRoute {
                 }
             }catch(e){}
 
-            let forgotPassLink = req.protocol + '://' + req.get('host') +'/token/'+saveData['token'],
-                trainingLink = req.protocol + '://'+req.get('host') + '/token/'+tokenTraining;
+            let forgotPassLink = 'https://' + req.get('host') +'/token/'+saveData['token'],
+                trainingLink = 'https://'+req.get('host') + '/token/'+tokenTraining;
             await tokenModel.create(saveData);
 
             saveData['token'] = tokenTraining;

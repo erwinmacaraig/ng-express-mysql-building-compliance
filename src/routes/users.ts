@@ -520,7 +520,7 @@ export class UsersRoute extends BaseRoute {
           const tokenModel = new Token();
           const token = tokenModel.generateRandomChars(8);
 
-          const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
+          const link = 'https://' + req.get('host') + '/signup/trp-profile-completion/' + token;
           const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
 
           try {
@@ -976,7 +976,7 @@ export class UsersRoute extends BaseRoute {
                 if('locations' in user == false){ user['locations'] = []; }
                 if('locs' in user == false){ user['locs'] = []; }
                 for(let loc of locationsData){
-                    
+
                     if( loc.user_id == user.user_id ){
 
                         let userLocData = {
@@ -1013,9 +1013,9 @@ export class UsersRoute extends BaseRoute {
 
                         if(!exst){ user.locations.push(userLocData); }
 
-                        
+
                         user['locs'].push(loc);
-                        
+
                     }
 
                 }
@@ -2081,7 +2081,7 @@ export class UsersRoute extends BaseRoute {
                     'verified' : 0
                 },
                 tokenModel = new Token(),
-                emailLink = req.protocol + '://' + req.get('host');
+                emailLink = 'https://' + req.get('host');
 
                 if(hasOnlineTraining || isAccountEmailExempt){
 
@@ -2447,8 +2447,8 @@ export class UsersRoute extends BaseRoute {
 				subject : 'EvacConnect Warden Request'
 			},
 			email = new EmailSender(opts),
-			approvelink = req.protocol + '://' + req.get('host') + '/token/' + token1,
-			declinelink = req.protocol + '://' + req.get('host') + '/token/' + token2;
+			approvelink = 'https://' + req.get('host') + '/token/' + token1,
+			declinelink = 'https://' + req.get('host') + '/token/' + token2;
 
 
 			let

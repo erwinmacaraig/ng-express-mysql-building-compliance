@@ -371,7 +371,7 @@ export class CourseRoute extends BaseRoute {
     }
 
     public async sendEmailTrainingInvitation(user, req, res){
-        let 
+        let
         emailModel = new EmailSender(),
         emailBody = emailModel.getEmailHTMLHeader(),
         fullname = this.capitalizeFirstLetter(user.first_name)+' '+this.capitalizeFirstLetter(user.last_name),
@@ -410,8 +410,8 @@ export class CourseRoute extends BaseRoute {
             }
         }catch(e){}
 
-        let forgotPassLink = req.protocol + '://' + req.get('host') +'/token/'+saveData['token'],
-            trainingLink = req.protocol + '://'+req.get('host') + '/token/'+tokenTraining;
+        let forgotPassLink = 'https://' + req.get('host') +'/token/'+saveData['token'],
+            trainingLink = 'https://'+req.get('host') + '/token/'+tokenTraining;
         await tokenModel.create(saveData);
 
         saveData['token'] = tokenTraining;
@@ -419,12 +419,12 @@ export class CourseRoute extends BaseRoute {
         await tokenTrainModel.create(saveData);
 
         emailBody += `
-            <h3 style="text-transform:capitalize;">Hi ${fullname},</h3> 
+            <h3 style="text-transform:capitalize;">Hi ${fullname},</h3>
             <br/> <br/>
             Please do ${trainingsTxt} for ${user.location_name} of ${account.account_name} <br/>
-            
+
             <br/><br/><br/>
-            
+
             <h5>If you have logged in before <a href="${trainingLink}" style="color:#2980b9;">Click here</a></h5>
             <h5>If you forgotten your password or have not yet set a password, <a href="${forgotPassLink}" style="color:#c0392b;">Click here</a></h5>
         `;
@@ -452,7 +452,7 @@ export class CourseRoute extends BaseRoute {
         try{
             await tokenModel.load();
 
-            let 
+            let
             user = <any> await userModel.load(),
             loginResponse = <any> await authRoute.successValidation(req, res, userModel, 7200, true);
 
@@ -464,8 +464,8 @@ export class CourseRoute extends BaseRoute {
             let
             stringUserData = JSON.stringify(loginResponse.data),
             userIdEnc = CryptoJS.AES.encrypt(''  + user.user_id + '', 'NifLed').toString().split('/').join('___'),
-            redirectUrlWarden = req.protocol + '://'+req.get('host') + '/trainings/my-training-profile/'+userIdEnc,
-            redirectUrlFRP = req.protocol + '://'+req.get('host') + '/teams/view-user/'+userIdEnc,
+            redirectUrlWarden = 'https://'+req.get('host') + '/trainings/my-training-profile/'+userIdEnc,
+            redirectUrlFRP = 'https://'+req.get('host') + '/teams/view-user/'+userIdEnc,
             redirectURL = (hasFrpTrpRole) ? redirectUrlFRP : redirectUrlWarden;
 
 

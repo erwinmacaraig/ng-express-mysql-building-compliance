@@ -395,7 +395,7 @@ const md5 = require('md5');
 			emailBody = email.getEmailHTMLHeader(),
 			tokenModel = new Token(),
 			token = (tokenParam) ? tokenParam : userData['user_id']+''+tokenModel.generateRandomChars(50),
-			link = req.protocol + '://' + req.get('host') +'/token/'+token;
+			link = 'https://' + req.get('host') +'/token/'+token;
 
 		if(!bodyEmail){
 			emailBody += '<h3 style="text-transform:capitalize;">Hi '+userData.first_name+' '+userData.last_name+'</h3> <br/>';
@@ -907,7 +907,7 @@ const md5 = require('md5');
 
 			let bodyEmail = '',
 				token = userData['user_id']+''+tokenModel.generateRandomChars(50),
-				link = req.protocol + '://' + req.get('host') +'/token/'+token;
+				link = 'https://' + req.get('host') +'/token/'+token;
 
 			bodyEmail += '<h3 style="text-transform:capitalize;">Hi '+userData['first_name']+' '+userData['last_name']+'</h3> <br/>';
 			bodyEmail += '<h4>You Requested Email Verification From EvacConnect Compliance Management System </h4> <br/>';
