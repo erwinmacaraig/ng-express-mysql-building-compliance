@@ -638,6 +638,14 @@ import * as S3Zipper from 'aws-s3-zipper';
         whereDocs.push(['compliance_documents.document_type = "Primary" ']);
         docs = await complianceDocsModel.getWhere(whereDocs);
 
+        whereDocs = [];
+        whereDocs.push(['compliance_documents.building_id IN (' + theBuilding.location_id + ')' ]);
+        whereDocs.push(['compliance_documents.document_type = "Primary" ']);
+        whereDocs.push(['compliance_documents.compliance_kpis_id IN ('+epcMeetingId+') ']);
+
+        let buildingdocs = await complianceDocsModel.getWhere(whereDocs);
+        docs = docs.concat(buildingdocs);
+
         docs = docs.sort((a, b) => {
             let d1 = moment(a.date_of_activity),
                 d2 = moment(b.date_of_activity);
@@ -842,11 +850,11 @@ import * as S3Zipper from 'aws-s3-zipper';
                     // General Occupant Training
                     if (defs['em_roles']['GENERAL_OCCUPANT'] in emrolesOnThisLocation) {
 
-                      comp['total_personnel'] = comp['general_occupant_total'] =
-                      emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['count'];
-                      comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']];
+                        comp['total_personnel'] = comp['general_occupant_total'] =
+                        emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['count'];
+                        comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']];
 
-                      try {
+                        try {
                             comp['total_personnel_trained'] =
                             await training.getEMRUserCertifications(
                               emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['users'],
@@ -1137,6 +1145,14 @@ import * as S3Zipper from 'aws-s3-zipper';
                 }
             }
 
+            if( (comp.compliance_kpis_id == 8 || comp.compliance_kpis_id == 6 ) && comp['total_personnel_trained']['percentage']){
+                let num = parseInt( comp['total_personnel_trained']['percentage'].replace('%', '') );
+                let ratesValidPnts = rates[comp.compliance_kpis_id]['valid'];
+                if(num < 100){
+                    tempPoints = ratesValidPnts * parseFloat("0."+num);
+                }
+            }
+
             comp['points'] = tempPoints;
         }
 
@@ -1155,7 +1171,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         }
 
         if(totalcount > 0){
-            this.response['percent'] = Math.floor((validcount / 100) * 100);
+            this.response['percent'] = Math.round((validcount / 100) * 100);
         }
 
         res.statusCode = 200;
