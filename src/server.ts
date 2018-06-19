@@ -81,8 +81,19 @@ export class Server {
    * @method config
    */
   public config() {
+
       // add static paths
       this.app.use(express.static(path.join(__dirname, 'public')));
+
+      // redirect to https
+      this.app.use(function(req: express.Request, res: express.Response, next: express.NextFunction) {
+        if (!req.secure) {
+          const secureUrl = 'https://' + req.headers['host'] + req.url;
+          res.writeHead(301, {'Location': secureUrl});
+          res.end();
+        }
+        next();
+      });
 
       const memcachedStore = new MemcachedStore(session);
 
