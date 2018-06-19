@@ -122,7 +122,7 @@ import { NavComponent } from './admin/nav/nav.component';
 import { LocationsInAccountComponent } from './admin/locations-in-accounts/locations-in-account.component';
 import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upload-compliance-docs.component';
 import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/compliance-summary-view.component';
-
+import { AdminViewLocationComponent } from './admin/view-location/view-location.component';
 @NgModule({
   declarations: [
     SafeHtmlPipe,
@@ -219,7 +219,8 @@ import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/
     NavComponent,
     LocationsInAccountComponent,
     UploadComplianceDocComponent,
-    ComplianceSummaryViewComponent
+    ComplianceSummaryViewComponent,
+    AdminViewLocationComponent
   ],
   imports: [
     BrowserModule,

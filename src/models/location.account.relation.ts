@@ -36,7 +36,7 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
-    public getByLocationId(locationId: Number, include_account: boolean = false) {
+    public getByLocationId(locationId: Number, include_account: boolean = false): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             let sql_load = '';
             sql_load = 'SELECT * FROM location_account_relation WHERE location_id = ?';
@@ -52,13 +52,7 @@ export class LocationAccountRelation extends BaseClass {
               if (error) {
                 return console.log(error);
               }
-              if(!results.length){
-                reject('Record not found');
-              } else {
-                this.dbData = results[0];
-                this.setID(results[0]['location_account_relation_id']);
-                resolve(this.dbData);
-              }
+              resolve(results);
             });
             connection.end();
         });

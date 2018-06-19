@@ -18,22 +18,47 @@ declare var moment: any;
 @Component({
   selector: 'app-admin-view-location',
   templateUrl: './view-location.component.html',
-  styleUrls: [],
+  styleUrls: ['./view-location.component.css'],
   providers: [ AdminService, DashboardPreloaderService ]
 })
 
 export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDestroy {
   locationId: number;
-  constructor(private route: ActivatedRoute) {}
+  tab: any;
+  people: Object[] = [];
+  accounts: Object[] = [];
+  location_details: Object = {};
+  sublocations: Object[] = [];
+
+  constructor(private route: ActivatedRoute,
+    public adminService: AdminService,
+    public dashboard: DashboardPreloaderService) {}
 
   ngOnInit() {
+    this.dashboard.show();
     this.route.params.subscribe((params: Params) => {
       this.locationId = +params['locationId'];
 
+      this.adminService.getLocationDetails(this.locationId).subscribe((response) => {
+        this.location_details = response['data']['details'];
+        this.sublocations = response['data']['children'];
+        this.accounts = response['data']['account'];
+        Object.keys(response['data']['people']).forEach((key) => {
+          this.people.push(response['data']['people'][key]);
+        });
+
+        this.dashboard.hide();
+        console.log(this.people);
+      }, (error) => {
+        this.dashboard.hide();
+        console.log(error);
+      });
     });
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+    $('.tabs').tabs();
+  }
 
   ngOnDestroy() {}
 

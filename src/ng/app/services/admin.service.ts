@@ -88,5 +88,10 @@ export class AdminService {
     this.options['params'] = httpParams;
     return this.http.get(this.baseUrl + '/admin/compliance/FSA-EvacExer/', this.options);
   }
+
+  getLocationDetails(location: number | string) {
+    return this.http.get(this.baseUrl + `/admin/get/location-details/${location}/`, this.options);
+  }
+
 }
 

@@ -41,6 +41,9 @@ export class AdminRoute extends BaseRoute {
       const all_location_data = await locationObj.load();
       const parent_traverse_data = await locationObj.locationHierarchy();
       const children = await locationObj.getChildren(locationObj.ID());
+      for (const child of children) {
+        child['sublocations_count'] = await locationObj.countSubLocations(child['location_id']);
+      }
       const people = {};
       const userAccountRoles = await lauObj.getUsersInLocationId([req.params.location]);
       const userEMRoles = await emrrObj.getUsersInLocationIds(req.params.location);
@@ -58,6 +61,7 @@ export class AdminRoute extends BaseRoute {
         } else {
           people[user['user_id']] = {
             name: `${user['first_name']} ${user['last_name']}`,
+            user_id: user['user_id'],
             account_name: user['account_name'],
             account_role: [],
             em_role: []
@@ -70,6 +74,7 @@ export class AdminRoute extends BaseRoute {
           }
         }
       }
+
 
       return res.status(200).send({
         data: {
