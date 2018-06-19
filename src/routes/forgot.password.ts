@@ -28,7 +28,7 @@ const md5 = require('md5');
    	*/
 	public static create(router: Router) {
 	   	// add route
-	   	
+
 	   	router.post('/forgot/password/request', (req: Request, res: Response, next: NextFunction) => {
 	   		new ForgotPasswordRequestRoute().index(req, res, next);
 	   	});
@@ -61,15 +61,15 @@ const md5 = require('md5');
 	* @class RegisterRoute
 	* @constructor
 	*/
-	constructor() {	
+	constructor() {
 		super();
 	}
 
 	/**
 	 * Index
-	 * @param {Request}      req  
-	 * @param {Response}     res  
-	 * @param {NextFunction} next 
+	 * @param {Request}      req
+	 * @param {Response}     res
+	 * @param {NextFunction} next
 	 */
 	public index(req: Request, res: Response, next: NextFunction){
 
@@ -129,7 +129,7 @@ const md5 = require('md5');
 								}
 							);
 
-							
+
 						},
 						() => {
 							response.message = "Unsuccessful token saving";
@@ -146,8 +146,8 @@ const md5 = require('md5');
 	}
 
 	public sendEmailChangePassword(req, userData, success, error){
-		let opts = { 
-	        from : 'allantaw2@gmail.com',
+		let opts = {
+	        from : 'admin@evacconnect.com',
 	        fromName : 'EvacConnect',
 	        to : [],
 	        body : '',
@@ -157,7 +157,7 @@ const md5 = require('md5');
 
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
-			link = req.protocol + '://' + req.get('host') +'/token/'+userData.token;
+			link = 'https://' + req.get('host') +'/token/'+userData.token;
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(userData.first_name)+' '+this.capitalizeFirstLetter(userData.last_name)+'</h3> <br/>';
 		emailBody += '<h4> Please click the link below to create new password. </h4> <br/>';
@@ -301,7 +301,7 @@ const md5 = require('md5');
 		res.statusCode = 400;
 
 		let validateData = this.validateChangeUserPassword(reqBody);
- 
+
 		if(validateData.status){
 			let userId = reqBody.user_id,
 				token = reqBody.token,
@@ -475,7 +475,7 @@ const md5 = require('md5');
 							}
 						);
 
-						
+
 					}else{
 						response.message = 'Wrong answer';
 						res.send(response);
@@ -496,4 +496,3 @@ const md5 = require('md5');
 
 }
 
-  

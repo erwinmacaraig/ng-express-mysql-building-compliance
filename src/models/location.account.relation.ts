@@ -36,9 +36,16 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
-    public getByLocationId(locationId: Number) {
+    public getByLocationId(locationId: Number, include_account: boolean = false) {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM location_account_relation WHERE location_id = ?';
+            let sql_load = '';
+            sql_load = 'SELECT * FROM location_account_relation WHERE location_id = ?';
+            if (include_account) {
+              sql_load = `SELECT * FROM location_account_relation
+                INNER JOIN accounts
+                ON location_account_relation.account_id = accounts.account_id
+                WHERE location_account_relation.location_id = ?`;
+            }
             const param = [locationId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
@@ -47,7 +54,7 @@ export class LocationAccountRelation extends BaseClass {
               }
               if(!results.length){
                 reject('Record not found');
-              }else{
+              } else {
                 this.dbData = results[0];
                 this.setID(results[0]['location_account_relation_id']);
                 resolve(this.dbData);
@@ -339,24 +346,24 @@ export class LocationAccountRelation extends BaseClass {
             lar.responsibility,
             lar.location_account_relation_id,
             lar.account_id,
-            IF(l.is_building = 1, l.location_id, 
-              
-                IF(p1.is_building = 1, p1.location_id, 
-                   IF(p1.parent_id = -1, p1.location_id, 
-                      IF(p2.is_building = 1, p2.location_id, 
-                        IF(p2.parent_id = -1, p2.location_id, 
-                            IF(p3.is_building = 1, p3.location_id, 
-                               IF(p3.parent_id = -1, p3.location_id, 
-                                    IF(p4.is_building = 1, p4.location_id, 
-                                       IF(p4.parent_id = -1, p4.location_id, 
+            IF(l.is_building = 1, l.location_id,
+
+                IF(p1.is_building = 1, p1.location_id,
+                   IF(p1.parent_id = -1, p1.location_id,
+                      IF(p2.is_building = 1, p2.location_id,
+                        IF(p2.parent_id = -1, p2.location_id,
+                            IF(p3.is_building = 1, p3.location_id,
+                               IF(p3.parent_id = -1, p3.location_id,
+                                    IF(p4.is_building = 1, p4.location_id,
+                                       IF(p4.parent_id = -1, p4.location_id,
                                             0
                                     ) )
                             ) )
                         ) )
                    ) )
 
-                )   
-            
+                )
+
             as building_id
 
             FROM locations l
@@ -532,7 +539,7 @@ export class LocationAccountRelation extends BaseClass {
                 SELECT ${select}
                 FROM locations siblings
                 INNER JOIN locations location ON siblings.parent_id = location.parent_id
-                INNER JOIN location_account_relation lar ON siblings.location_id = lar.location_id  
+                INNER JOIN location_account_relation lar ON siblings.location_id = lar.location_id
 
                 WHERE  lar.account_id = ${accountId} AND lar.responsibility = 'Tenant' AND location.location_id = ${locationId} AND siblings.location_id != ${locationId} AND siblings.archived = 0
             `;
@@ -547,4 +554,5 @@ export class LocationAccountRelation extends BaseClass {
             connection.end();
         });
     }
+
 }

@@ -409,8 +409,8 @@ export class CourseRoute extends BaseRoute {
             }
         }catch(e){}
 
-        let forgotPassLink = req.protocol + '://' + req.get('host') +'/token/'+saveData['token'],
-            trainingLink = req.protocol + '://'+req.get('host') + '/token/'+tokenTraining;
+        let forgotPassLink = 'https://' + req.get('host') +'/token/'+saveData['token'],
+            trainingLink = 'https://'+req.get('host') + '/token/'+tokenTraining;
         await tokenModel.create(saveData);
 
         saveData['token'] = tokenTraining;
@@ -475,8 +475,8 @@ export class CourseRoute extends BaseRoute {
             let
             stringUserData = JSON.stringify(loginResponse.data),
             userIdEnc = CryptoJS.AES.encrypt(''  + user.user_id + '', 'NifLed').toString().split('/').join('___'),
-            redirectUrlWarden = req.protocol + '://'+req.get('host') + '/trainings/my-training-profile/'+userIdEnc,
-            redirectUrlFRP = req.protocol + '://'+req.get('host') + '/teams/view-user/'+userIdEnc,
+            redirectUrlWarden = 'https://'+req.get('host') + '/trainings/my-training-profile/'+userIdEnc,
+            redirectUrlFRP = 'https://'+req.get('host') + '/teams/view-user/'+userIdEnc,
             redirectURL = (hasFrpTrpRole) ? redirectUrlFRP : redirectUrlWarden;
 
 

@@ -1,4 +1,3 @@
-
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { AuthRequest } from '../interfaces/auth.interface';
@@ -34,12 +33,53 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
-    router.get('/admin/get/location-details/:location/', new MiddlewareAuth().authenticate,
+    router.get('/admin/get/location-details/:location/',
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const locationObj = new Location(req.params.location);
+      const lauObj = new LocationAccountUser();
+      const emrrObj = new UserEmRoleRelation();
       const all_location_data = await locationObj.load();
       const parent_traverse_data = await locationObj.locationHierarchy();
+      const children = await locationObj.getChildren(locationObj.ID());
+      const people = {};
+      const userAccountRoles = await lauObj.getUsersInLocationId([req.params.location]);
+      const userEMRoles = await emrrObj.getUsersInLocationIds(req.params.location);
+      const allUsers = userAccountRoles.concat(userEMRoles);
+      const account = await new LocationAccountRelation().getByLocationId(req.params.location, true);
 
+      for (const user of allUsers) {
+        if (user['user_id'] in people) {
+          if (user['em_role_id']) {
+            people[user['user_id']]['em_role'].push(user['role_name']);
+          }
+          if (user['role_id']) {
+            people[user['user_id']]['account_role'].push(user['role_name']);
+          }
+        } else {
+          people[user['user_id']] = {
+            name: `${user['first_name']} ${user['last_name']}`,
+            account_name: user['account_name'],
+            account_role: [],
+            em_role: []
+          };
+          if (user['em_role_id']) {
+            people[user['user_id']]['em_role'].push(user['role_name']);
+          }
+          if (user['role_id']) {
+            people[user['user_id']]['account_role'].push(user['role_name']);
+          }
+        }
+      }
+
+      return res.status(200).send({
+        data: {
+          details: all_location_data,
+          traversal: parent_traverse_data,
+          children: children,
+          people: people,
+          account: account
+        }
+      });
 
     });
 

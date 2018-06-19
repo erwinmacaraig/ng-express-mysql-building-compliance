@@ -245,18 +245,43 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public getUsersInLocationId(locationIds) {
+    public getUsersInLocationId(locationIds = []): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT lau.*, u.first_name, u.last_name, u.email FROM location_account_user lau INNER JOIN users u ON lau.user_id = u.user_id WHERE lau.location_id IN ('+locationIds+') ';
+            const ids = locationIds.join(',');
+            const sql_load =
+            `SELECT
+                user_role_relation.role_id,
+                IF (user_role_relation.role_id = 1, 'Facility Responsible Person', 'Tenancy Responsible Person') as role_name,
+                lau.*,
+                u.first_name,
+                u.last_name,
+                u.email,
+                accounts.account_name
+              FROM
+                  location_account_user lau
+              INNER JOIN
+                  users u
+              ON
+                  lau.user_id = u.user_id
+              INNER JOIN
+                  user_role_relation
+              ON
+                  u.user_id = user_role_relation.user_id
+              INNER JOIN
+                locations
+              ON
+                locations.location_id = lau.location_id
+              INNER JOIN accounts
+              ON
+                accounts.account_id = u.account_id
+              WHERE
+                  lau.location_id IN (${ids})`;
             const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-
-                this.dbData = results;
-                resolve(this.dbData);
-
+            connection.query(sql_load, (error, results) => {
+              if (error) {
+                return console.log(error);
+              }
+              resolve(results);
             });
             connection.end();
         });
