@@ -88,8 +88,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let account of accounts">
-            <td>{{account['account_name']}}</td>
-            <td>{{account['responsibility']}}</td>
+            <td><a [routerLink]="['/admin', 'users-in-accounts', account['account_id']]">{{account['account_name']}}</a></td>
+            <td><a [routerLink]="['/admin', 'users-in-accounts', account['account_id']]">{{account['responsibility']}}</a></td>
             <td></td>
           </tr>
         </tbody>
