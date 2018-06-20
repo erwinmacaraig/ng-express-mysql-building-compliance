@@ -29,6 +29,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
   accounts: Object[] = [];
   location_details: Object = {};
   sublocations: Object[] = [];
+  traversal: Object = {};
 
   constructor(private route: ActivatedRoute,
     public adminService: AdminService,
@@ -38,17 +39,22 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
     this.dashboard.show();
     this.route.params.subscribe((params: Params) => {
       this.locationId = +params['locationId'];
+      this.location_details = {};
+      this.sublocations = [];
+      this.accounts = [];
+      this.traversal = {};
+      this.people = [];
 
       this.adminService.getLocationDetails(this.locationId).subscribe((response) => {
         this.location_details = response['data']['details'];
         this.sublocations = response['data']['children'];
         this.accounts = response['data']['account'];
+        this.traversal = response['data']['traversal'][0];
         Object.keys(response['data']['people']).forEach((key) => {
           this.people.push(response['data']['people'][key]);
         });
-
         this.dashboard.hide();
-        console.log(this.people);
+        // console.log(this.people);
       }, (error) => {
         this.dashboard.hide();
         console.log(error);

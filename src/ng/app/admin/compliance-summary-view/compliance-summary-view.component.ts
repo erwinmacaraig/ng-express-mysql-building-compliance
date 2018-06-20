@@ -41,6 +41,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   validTillDate = '';
   FSAStatus: boolean;
 
+  sublocations: Array<object> = [];
   httpEmitter: Subscription;
   httpEvent: any;
 
@@ -67,7 +68,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     }
 
   ngOnInit() {
-    console.log(this.route.snapshot.params);
+    // console.log(this.route.snapshot.params);
     this.dashboard.show();
     this.accountId = this.route.snapshot.params['accntId'];
     this.locationId = this.route.snapshot.params['locationId'];
@@ -86,6 +87,11 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       }
       this.getUploadedDocumentsFromSelectedKPI(initKPI);
       this.dashboard.hide();
+    });
+
+    // get sublocations here
+    this.adminService.getAccountSublocations(this.locationId).subscribe((response) => {
+      this.sublocations = response['data'];
     });
 
     this.genericSub =
@@ -111,7 +117,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     this.displayKPIDescription = kpi['description']; // clean this up
 
     this.myKPI = kpi;
-    console.log(this.locationId);
+    // console.log(this.locationId);
     this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
       this.documentFiles = response['data'];
       this.locationName = response['displayName'].join(' >> ');
@@ -144,9 +150,14 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   }
   submitUploadDocs(f: NgForm) {
     let req;
+    console.log(f.value.sublocation);
+    let locationData = this.locationId.toString();
+    if (f.value.sublocation !== 'undefined') {
+      locationData = f.value.sublocation;
+    }
     const formData = new FormData();
     formData.append('account_id', this.accountId.toString());
-    formData.append('building_id', this.locationId.toString());
+    formData.append('building_id', locationData); // <===========
     formData.append('compliance_kpis_id', this.selectedKPI);
     formData.append('viewable_by_trp', '1');
     formData.append('file', this.inpFileUploadDocs.nativeElement.files[0], this.inpFileUploadDocs.nativeElement.files[0].name);
@@ -176,6 +187,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       error => {
         console.log('Error Uploading', error);
         this.showModalUploadDocsLoader = false;
+        this.dashboard.hide();
       }
     );
   }

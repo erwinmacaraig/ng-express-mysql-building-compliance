@@ -182,6 +182,7 @@
             <thead>
               <tr>
                 <th>ID</th>
+                <th>Location/Level</th>
                 <th>Type</th>
                 <th>Filename</th>
                 <th>Date Of Activity</th>
@@ -194,6 +195,7 @@
             <tbody>
               <tr *ngFor="let doc of documentFiles">
                 <td>{{doc['compliance_documents_id']}}</td>
+                <td>{{doc['name']}}</td>
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
                 <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
@@ -384,8 +386,19 @@
                         <option value="Secondary">Secondary</option>
                         <option value="Admin">Admin</option>
                       </select>
+                      <br>
                     </div>
-                    <br>
+
+
+                    <div *ngIf="selectedKPI == 5 && sublocations.length > 0" class="col m12 l6">
+                      <label for="sublocation">Sublocation</label>
+                      <select name="sublocation" style="display: block;" id="sublocation" ngModel required>
+                        <option value="-1" disabled selected>Select Subloction</option>
+                        <option *ngFor="let sub of sublocations" [value]="sub['location_id']">{{sub['name']}}</option>
+                      </select>
+                      <br>
+                    </div>
+
                     <div class="col l12">
                       <label for="file">Please choose file</label><br>
                       <input type="file" name="file" id="file" required class="file" #inpFileUploadDocs (change)="onFileSelected()" ngModel>

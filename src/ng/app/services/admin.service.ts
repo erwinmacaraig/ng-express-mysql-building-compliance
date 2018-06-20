@@ -93,5 +93,9 @@ export class AdminService {
     return this.http.get(this.baseUrl + `/admin/get/location-details/${location}/`, this.options);
   }
 
+  getAccountSublocations(parent: number | string) {
+    return this.http.get(this.baseUrl + `/admin/account-sublocations/${parent}/`, this.options);
+  }
+
 }
 

@@ -11,3 +11,17 @@ color:rgba(102,147,153,0.7);
 .tabs .indicator {
 background-color:#f1f1f1;
 }
+
+#traversal ul li {
+  display: inline;
+}
+
+#traversal ul li a {
+  text-decoration: none;
+  padding: .2em 1em;
+}
+
+#traversal ul li a:hover {
+  color: #00ACC1;
+  background-color: gray;
+}

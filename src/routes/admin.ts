@@ -151,6 +151,18 @@ export class AdminRoute extends BaseRoute {
         data: accountLocations
       });
     });
+
+    router.get('/admin/account-sublocations/:parent_id/',
+    new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const locationObj = new Location();
+      const sublocations = await locationObj.getChildren(req.params['parent_id']);
+      return res.status(200).send({
+        message: 'Success',
+        data: sublocations
+      });
+    });
+
     router.get('/admin/accounts/list/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
       const accountList = new List();
       const account = new Account();
@@ -734,7 +746,18 @@ export class AdminRoute extends BaseRoute {
       let tempNameParts = [];
       const hie_locations = [];
       const location = new Location(req.query.location);
-      const documents = await list.generateComplianceDocumentList(req.query.account, req.query.location, req.query.kpi);
+
+      // get sublocations if any
+      let children = [];
+      const sublocations = [];
+      sublocations.push(req.query.location);
+      if (req.query.kpi == 5) {
+        children = await location.getChildren(req.query.location);
+        for (const c of children) {
+          sublocations.push(c['location_id']);
+        }
+      }
+      const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
       const location_data = await location.locationHierarchy();
       let details: object = {};
       for (const loc of location_data) {

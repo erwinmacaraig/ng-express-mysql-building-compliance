@@ -425,12 +425,13 @@ export class List {
 
     public generateComplianceDocumentList(account, location, kpi, type?: string): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
-
+        const locationStr = location.join(',');
         const sql_get = `SELECT
                       accounts.account_directory_name,
                       parentLocation.location_directory_name as parent_location_directory_name,
                       locations.location_directory_name,
                       locations.is_building,
+                      locations.name,
                       compliance_kpis.directory_name,
                       compliance_kpis.validity_in_months,
                       DATE_ADD(compliance_documents.date_of_activity, INTERVAL compliance_kpis.validity_in_months MONTH) as expiry_date,
@@ -442,12 +443,12 @@ export class List {
                   INNER JOIN compliance_kpis ON compliance_kpis.compliance_kpis_id = compliance_documents.compliance_kpis_id
                   LEFT JOIN locations as parentLocation ON parentLocation.location_id = locations.parent_id
                   WHERE compliance_documents.account_id = ?
-                  AND compliance_documents.building_id = ?
+                  AND compliance_documents.building_id IN (${locationStr})
                   AND compliance_documents.compliance_kpis_id = ?
                   ORDER BY compliance_documents.compliance_documents_id DESC`;
 
         const connection = db.createConnection(dbconfig);
-        connection.query(sql_get, [account, location, kpi], (error, results) => {
+        connection.query(sql_get, [account, kpi], (error, results) => {
           if (error) {
             console.log('list.model.generateComplianceDocumentList', error, sql_get);
             throw Error('There was an error generating the list of documents');

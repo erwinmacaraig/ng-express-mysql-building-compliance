@@ -1,4 +1,26 @@
 <div class="row">
+  <div class="col s8">
+    <h3>{{location_details['name']}}</h3>
+  </div>
+</div>
+<div class="row">
+  <div class="col s12">
+    <h6>Location Details</h6>
+    <div id="traversal">
+      <ul id="nodeList">
+        <li *ngIf="traversal['p5_name']"><a [routerLink]="['/admin', 'view-location', traversal['p5_location_id']]">{{traversal['p5_name']}}</a></li>
+        <li *ngIf="traversal['p4_name']"><a [routerLink]="['/admin', 'view-location', traversal['p4_location_id']]">{{traversal['p4_name']}}</a></li>
+        <li *ngIf="traversal['p3_name']"><a [routerLink]="['/admin', 'view-location', traversal['p3_location_id']]">{{traversal['p3_name']}}</a></li>
+        <li *ngIf="traversal['p2_name']"><a [routerLink]="['/admin', 'view-location', traversal['p2_location_id']]">{{traversal['p2_name']}}</a></li>
+        <li *ngIf="traversal['p1_name']"><a [routerLink]="['/admin', 'view-location', traversal['p1_location_id']]">{{traversal['p1_name']}}</a></li>
+        <li>{{location_details['name']}}</li>
+      </ul>
+    </div>
+    <p><strong>Location Id:</strong> <span>{{location_details['location_id']}}</span></p>
+    <p><strong>Address</strong> <span>{{location_details['formatted_address']}}</span></p>
+  </div>
+</div>
+<div class="row">
   <div class="col s12">
     <ul class="tabs">
       <li class="tab col s3"><a class="active" href="#sublocations">Sublocations</a></li>
