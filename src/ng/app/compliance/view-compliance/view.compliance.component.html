@@ -1326,7 +1326,7 @@
 							<div *ngIf="k.compliance.validity_status == 'invalid'" class="image alarm"></div>
 							<div *ngIf="k.compliance.validity_status == 'valid'" class="image check"></div>
 
-							<div class="text"  *ngIf="k.compliance.validity_status != 'none-exist'">
+							<div class="text"  *ngIf="k.compliance.validity_status != 'none-exist' && k.compliance_kpis_id != 3">
 								<p>Valid Till:</p>
 								<div *ngIf="k.compliance.validity_status == 'invalid'">
 									<span *ngIf="k.compliance.docs[0]">{{k.compliance.docs[0].valid_till}}</span>
