@@ -1,0 +1,72 @@
+<div class="row">
+  <div class="col s12 top-title-button">
+    <h4 class="title left">Training Validation</h4>
+  </div>
+</div>
+
+<form>
+  <div class="row">
+    <div class="col s12">
+      <input
+          type="text"
+          placeholder="Search Location here"
+          id="searchLocationField"
+          [formControl]="searchLocationField">
+    </div>
+    <div class="suggestions" *ngIf="filteredList.length > 0">
+      <ul *ngFor="let item of filteredList">
+        <li>
+          <a (click)="getLocationSelection(item['location_id'], item['name'])">{{item['name']}}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col s3">
+      <input id="dtTraining" placeholder="Training Date" autocomplete="off" type="text" required>
+    </div>
+    <div class="col s3">
+      <select style="display: block;" id="trainingCourse">
+        <option [value]="null" [disabled]="true == true">Training Course</option>
+      </select>
+    </div>
+    <div class="col s3">
+      <select style="display: block;" id="trainingMode">
+        <option [value]="null" [disabled]="true == true">Training Mode</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col s12">
+      <table>
+        <thead>
+          <tr>
+            <th>TRP</th>
+            <th>Email Address</th>
+            <th>Account</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Sub Location</th>
+            <th>Add Exception</th>
+          </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>
+              <a class="btn blue">+ Add more rows</a>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="button-container right-align">
+          <a class="btn grey lighten-1 waves-effect waves-light cancel"> Cancel </a>
+          <input type="submit" class="btn orange waves-effect waves-light"  value="Submit" />
+      </div>
+    </div>
+  </div>
+
+</form>
+

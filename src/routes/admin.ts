@@ -33,7 +33,22 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.get('/admin/location/search/',
+    new MiddlewareAuth().authenticate,
+    async(req: AuthRequest, res: Response, next: NextFunction) => {
+      const searchKey: object = {
+        name: req.query.name
+      };
+      const location = new Location();
+      const searchResult = await location.searchLocation(searchKey);
+      return res.status(200).send({
+        message: 'Success',
+        data: searchResult
+      });
+    });
+
     router.get('/admin/get/location-details/:location/',
+    new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const locationObj = new Location(req.params.location);
       const lauObj = new LocationAccountUser();
