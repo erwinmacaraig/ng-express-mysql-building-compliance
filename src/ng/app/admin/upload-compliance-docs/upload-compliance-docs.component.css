@@ -1,0 +1,14 @@
+.my-drop-zone {
+  border-radius: 5px;
+  background-color: #ebebeb;
+  min-width: 100%;
+  height: 70px;
+}
+  /* Default class applied to drop zones on over */
+.invalid-drag { border: dotted 3px red; }
+.valid-drag { border: dotted 3px green; }
+.previewIcon{
+  width:100px;height:100px;
+  background-size:cover;
+  background-repeat:no-repeat;
+}

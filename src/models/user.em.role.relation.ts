@@ -317,7 +317,7 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getUsersInLocationIds(locationIds, archived?, config = {}){
+    public getUsersInLocationIds(locationIds, archived?, config = {}): Promise<Array<object>> {
         archived = (archived) ? archived : 0;
 
         return new Promise((resolve, reject) => {
@@ -335,11 +335,15 @@ export class UserEmRoleRelation extends BaseClass {
 
             const sql_load = `
                 SELECT
-                    u.*, em.em_role_id, er.role_name
+                    u.*, em.em_role_id,
+                    er.role_name,
+                    accounts.account_name,
+                    l.name
                 FROM user_em_roles_relation em
                 INNER JOIN users u ON em.user_id = u.user_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
                 INNER JOIN locations l ON l.location_id = em.location_id
+                INNER JOIN accounts ON accounts.account_id = u.account_id
                 WHERE u.archived = ${archived} ${configFilter}`;
 
             const connection = db.createConnection(dbconfig);
@@ -347,7 +351,6 @@ export class UserEmRoleRelation extends BaseClass {
                 if (error) {
                     return console.log(error);
                 }
-                this.dbData = results;
                 resolve(results);
             });
             connection.end();

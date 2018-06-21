@@ -1,0 +1,27 @@
+.tabs .tab a{
+  color:#00ACC1;
+}
+.tabs .tab a:hover,.tabs .tab a.active {
+background-color: #f1f1f1;
+color:#008B9B;
+}
+.tabs .tab.disabled a,.tabs .tab.disabled a:hover {
+color:rgba(102,147,153,0.7);
+}
+.tabs .indicator {
+background-color:#f1f1f1;
+}
+
+#traversal ul li {
+  display: inline;
+}
+
+#traversal ul li a {
+  text-decoration: none;
+  padding: .2em 1em;
+}
+
+#traversal ul li a:hover {
+  color: #00ACC1;
+  background-color: gray;
+}

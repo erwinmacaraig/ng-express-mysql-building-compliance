@@ -583,7 +583,7 @@ const validator = require('validator');
 
 	public sendUserInvitationEmail(req, inviData, creatorData, success, error){
 		let opts = {
-	        from : 'admin@evacconnect.com',
+	        from : 'allantaw2@gmail.com',
 	        fromName : 'EvacConnect',
 	        to : [],
 	        body : '',
