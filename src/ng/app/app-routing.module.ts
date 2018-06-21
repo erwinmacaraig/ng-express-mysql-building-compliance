@@ -95,6 +95,9 @@ import { AccountInfoComponent } from './admin/account-info/account-info.componen
 import { AccountUsersListComponent } from './admin/account-users/account-users.component';
 import { AddAccountUserComponent } from './admin/add-user/add-user.component';
 import { LocationsInAccountComponent } from './admin/locations-in-accounts/locations-in-account.component';
+import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upload-compliance-docs.component';
+import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/compliance-summary-view.component';
+import { AdminViewLocationComponent } from './admin/view-location/view-location.component';
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -207,10 +210,12 @@ const appRoutes: Routes = [
     path: 'admin', canActivate: [AuthGuard], component: AdminComponent,
     children: [
       { path: 'accounts', component: ListAccountsComponent },
+      { path: 'view-location/:locationId', component: AdminViewLocationComponent },
       { path: 'users-in-accounts/:accntId', component: AccountUsersListComponent },
       { path: 'add-account-user/:accntId', component: AddAccountUserComponent },
       { path: 'locations-in-account/:accntId', component: LocationsInAccountComponent },
-
+      { path: 'upload-compliance-docs', component: UploadComplianceDocComponent },
+      { path: 'view-location-compliance/:accntId/:locationId/:kpi', component: ComplianceSummaryViewComponent }
     ]
   }
 ];

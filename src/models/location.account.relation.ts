@@ -36,22 +36,23 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
-    public getByLocationId(locationId: Number) {
+    public getByLocationId(locationId: Number, include_account: boolean = false): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM location_account_relation WHERE location_id = ?';
+            let sql_load = '';
+            sql_load = 'SELECT * FROM location_account_relation WHERE location_id = ?';
+            if (include_account) {
+              sql_load = `SELECT * FROM location_account_relation
+                INNER JOIN accounts
+                ON location_account_relation.account_id = accounts.account_id
+                WHERE location_account_relation.location_id = ?`;
+            }
             const param = [locationId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
               if (error) {
                 return console.log(error);
               }
-              if(!results.length){
-                reject('Record not found');
-              }else{
-                this.dbData = results[0];
-                this.setID(results[0]['location_account_relation_id']);
-                resolve(this.dbData);
-              }
+              resolve(results);
             });
             connection.end();
         });
@@ -265,6 +266,10 @@ export class LocationAccountRelation extends BaseClass {
             filterStr += ` AND l.archived = ${filter['archived']}`;
         }
 
+        if('location_id' in filter){
+            filterStr += ` AND l.location_id = ${filter['location_id']}`;
+        }
+
         let offsetLimit = ``;
 
         if('limit' in filter){
@@ -334,7 +339,26 @@ export class LocationAccountRelation extends BaseClass {
             l.formatted_address,
             lar.responsibility,
             lar.location_account_relation_id,
-            lar.account_id
+            lar.account_id,
+            IF(l.is_building = 1, l.location_id,
+
+                IF(p1.is_building = 1, p1.location_id,
+                   IF(p1.parent_id = -1, p1.location_id,
+                      IF(p2.is_building = 1, p2.location_id,
+                        IF(p2.parent_id = -1, p2.location_id,
+                            IF(p3.is_building = 1, p3.location_id,
+                               IF(p3.parent_id = -1, p3.location_id,
+                                    IF(p4.is_building = 1, p4.location_id,
+                                       IF(p4.parent_id = -1, p4.location_id,
+                                            0
+                                    ) )
+                            ) )
+                        ) )
+                   ) )
+
+                )
+
+            as building_id
 
             FROM locations l
             LEFT JOIN locations p1 ON l.parent_id = p1.location_id
@@ -385,6 +409,31 @@ export class LocationAccountRelation extends BaseClass {
                     ${orderBy}
 
                 ) src
+            `;
+        }else if('locationIdOnly' in filter){
+            sql_get_locations = `
+                SELECT
+                l.location_id
+
+                FROM locations l
+                LEFT JOIN locations p1 ON l.parent_id = p1.location_id
+                LEFT JOIN locations p2 ON p1.parent_id = p2.location_id
+                LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
+                LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
+
+                LEFT JOIN  location_account_relation lar
+                ON lar.location_id = l.location_id
+                OR p1.location_id = lar.location_id
+                OR p2.location_id = lar.location_id
+                OR p3.location_id = lar.location_id
+                OR p4.location_id = lar.location_id
+
+                WHERE
+                lar.account_id = ?
+                ${filterStr}
+                ${nameSearchForTRP}
+                GROUP BY l.location_id
+                ${orderBy} ${offsetLimit}
             `;
         }else{
             sql_get_locations += ` ${offsetLimit}`;
@@ -475,6 +524,29 @@ export class LocationAccountRelation extends BaseClass {
         connection.end();
 
       });
-
     }
+
+    public getLoctionSiblingsOfTenantRealtedToAccountAndLocation(accountId, locationId, count?){
+        return new Promise((resolve, reject) => {
+            const select = (count) ? 'COUNT(siblings.location_id) as count' : 'siblings.*';
+            const sql_load = `
+                SELECT ${select}
+                FROM locations siblings
+                INNER JOIN locations location ON siblings.parent_id = location.parent_id
+                INNER JOIN location_account_relation lar ON siblings.location_id = lar.location_id
+
+                WHERE  lar.account_id = ${accountId} AND lar.responsibility = 'Tenant' AND location.location_id = ${locationId} AND siblings.location_id != ${locationId} AND siblings.archived = 0
+            `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load,  (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              this.dbData = results;
+              resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
 }

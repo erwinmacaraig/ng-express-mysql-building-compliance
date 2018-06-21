@@ -431,7 +431,20 @@ export class ReportsRoute extends BaseRoute {
 
         response.pagination.total = certificatesCount[0]['count'];
 
-        response.data = certificates;
+        let finalResult = [];
+        for(let cert of certificates){
+            let isIn = false;
+            for(let fin of finalResult){
+                if(cert.user_id == fin.user_id){
+                    isIn = true;
+                }
+            }
+            if(!isIn){
+                finalResult.push(cert);
+            }
+        }
+
+        response.data = finalResult;
 
 
         if(response.pagination.total > limit){
