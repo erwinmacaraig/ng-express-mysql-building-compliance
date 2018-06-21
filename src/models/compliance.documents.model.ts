@@ -150,6 +150,4 @@ export class ComplianceDocumentsModel extends BaseClass {
         });
     }
 
-
-
 }

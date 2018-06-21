@@ -147,7 +147,7 @@ const md5 = require('md5');
 
 	public sendEmailChangePassword(req, userData, success, error){
 		let opts = {
-	        from : 'allantaw2@gmail.com',
+	        from : 'admin@evacconnect.com',
 	        fromName : 'EvacConnect',
 	        to : [],
 	        body : '',
@@ -206,7 +206,7 @@ const md5 = require('md5');
 
 								// Redirect to angular Router
 								//change-user-password/:user_id/:token
-								let link = 'https://' + req.get('host') + '/change-user-password/'+token;
+								let link = req.protocol + '://' + req.get('host') + '/change-user-password/'+token;
 								res.redirect(link);
 
 							}else{

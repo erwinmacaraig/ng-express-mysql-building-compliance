@@ -47,11 +47,11 @@
       </thead>
       <tbody>
         <tr *ngFor="let location of locations">
-          <td>{{location['location_id']}}</td>
-          <td>{{location['display_name']}}</td>
-          <td>{{location['formatted_address']}}</td>
-          <td>{{location['responsibility']}}</td>
-          <td>&nbsp;</td>
+          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['location_id']}}</a></td>
+          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['display_name']}}</a></td>
+          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['formatted_address']}}</a></td>
+          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['responsibility']}}</a></td>
+          <td><a [routerLink]="['/admin', 'view-location-compliance', accountId, location['location_id'], '2']">View Compliance</a></td>
           <td>&nbsp;</td>
         </tr>
       </tbody>
@@ -59,4 +59,4 @@
 
   </div>
 </div>
-
+<div preloader></div>
