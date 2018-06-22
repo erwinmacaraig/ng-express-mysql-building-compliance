@@ -47,6 +47,27 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
+    router.get('/admin/training-validation-location-users/',
+    async (req: Request, res: Response, next: NextFunction) => {
+      // get children
+      const sublocations = await new Location().getChildren(req.query.location);
+      const lauObj = new LocationAccountUser();
+      const emrrObj = new UserEmRoleRelation();
+      let tempArr = [0];
+      for (const s of sublocations) {
+        tempArr.push(s['location_id']);
+      }
+
+      const userAccountRoles = await lauObj.getUsersInLocationId(tempArr);
+      const userEMRoles = await emrrObj.getUsersInLocationIds(tempArr.join(','));
+      const allUsers = userAccountRoles.concat(userEMRoles);
+
+      res.status(200).send({
+        sublocations: sublocations,
+        users: allUsers
+      });
+    });
+
     router.get('/admin/get/location-details/:location/',
     new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
