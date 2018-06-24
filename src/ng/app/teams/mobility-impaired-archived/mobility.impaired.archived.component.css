@@ -179,6 +179,29 @@ table tr td .image img{
   max-height: 50px;
 }
 
+.inline-block{
+    display: inline-block;
+}
+
+.pagination button{
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+    vertical-align: inherit;
+}
+
+.pagination select:not(.to-materialize){
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+}
+
+.pagination .select{
+    margin: 0px 10px;
+}
+
 #modalMobility .btn{
     font-size: 15px !important;
     line-height: 43px;
@@ -193,6 +216,14 @@ table tr td .image img{
     font-size: 14px;
 }
 
+.ngx-datepicker-container .ngx-datepicker-calendar-container{
+    z-index: 999;
+}
+
+#modalMobilityHealty{
+    width: 35%;
+}
+
 @media only screen and (max-width: 1400px) {
     #modalArchiveBulk,
     #modalArchive{
@@ -202,7 +233,8 @@ table tr td .image img{
 
 @media only screen and (max-width: 1024px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalMobilityHealty{
         width: 60%;
     }
 
@@ -214,7 +246,8 @@ table tr td .image img{
 @media only screen and (max-width: 500px) {
     #modalArchiveBulk,
     #modalArchive,
-    #modalMobility{
+    #modalMobility,
+    #modalMobilityHealty{
         width: 90%;
     }
 }

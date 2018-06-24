@@ -15,6 +15,10 @@ export class SignoutComponent implements OnInit {
 		this.auth.removeToken();
 		this.auth.removeUserData();
 		localStorage.removeItem('showemailverification');
+		localStorage.removeItem('parentLocationsForListing');
+		localStorage.removeItem('locationHierarchy');
+		localStorage.removeItem('archivedParentLocationsForListing');
+ 
 		setTimeout(()=>{ this.router.navigate(['/login']) }, 300);
 	}
 

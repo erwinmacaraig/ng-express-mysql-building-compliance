@@ -69,6 +69,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
 
 
     public selectedLocation = {};
+    public selectedLocationArray = [];
     public selectedLocationIds = [];
     public selectedLocationSubLocations = [];
     public arrFlatSelectedLocations = [];
@@ -97,6 +98,9 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         carpark : [],
         plantroom : []
     };
+
+    isFrp = false;
+    isTrp = false;
 
     constructor(private mapsAPILoader: MapsAPILoader,
         private ngZone: NgZone,
@@ -133,6 +137,15 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         this.searchControl = new FormControl();
 
         this.userData = this.authService.getUserData();
+
+        for(let rol of this.userData.roles){
+            if(rol.role_id == 1){
+                this.isFrp = true;
+            }
+            if(rol.role_id == 2){
+                this.isTrp = true;
+            }
+        }
 
         this.userService.checkUserVerified(this.userData['userId'] , (response) => {
             if (response.status === false && response.message === 'not verified') {
@@ -338,23 +351,39 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         let locId = this.encryptDecrypt.decrypt(location.location_id);
         this.showLoaderModalSubLocation = true;
         this.selectedLocation = location;
+        this.selectedLocationArray = [];
+        let copyLoc = JSON.parse(JSON.stringify(location));
+        copyLoc.location_id = parseInt(locId);
+        this.selectedLocationArray.push(copyLoc);
         console.log('skip verification = ' + this.skipVerification);
-        this.locationService.getDeepLocationsById(locId, (response) => {
-            if (response.data.length > 0) {
+
+        this.arrFlatSelectedLocations = [];
+
+        let 
+        afterCallBack = () => {
+            
+            if(this.arrFlatSelectedLocations.length > 0){
                 $('#modalSublocations').modal('open');
-                this.arrFlatSelectedLocations = response.data;
-                for(let i in this.arrFlatSelectedLocations){
+                /*for(let i in this.arrFlatSelectedLocations){
                     this.arrFlatSelectedLocations[i]['sublocations'] = [];
-                };
-                this.selectedLocationSubLocations = this.mergeToParent(response.data, locId);
+                };*/
+                this.selectedLocationSubLocations = this.mergeToParent( JSON.parse(JSON.stringify(this.arrFlatSelectedLocations)) , locId);
                 this.arrSelectedLocationsCopy = JSON.parse( JSON.stringify(this.selectedLocationSubLocations) );
                 this.showLoaderModalSubLocation = false;
-            } else {
+            }else{
                 this.router.navigate(['/location/verify-access',
                     { 'location_id' : this.encryptDecrypt.encrypt(locId),
                     'account_id' : this.accountId
                 }]);
             }
+
+        };
+
+        this.locationService.getDeepLocationsById(locId, (response) => {
+            for(let loc of response.data){
+                this.arrFlatSelectedLocations.push(loc);
+            }
+            afterCallBack();
         });
     }
 
@@ -568,6 +597,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
             this.modalCreateNewLocation[ 'plantroom' ] = [];
 
            if(total > 0){
+
                for(let i in this.LEVELS){
                     if( this.modalCreateNewLocation[ i ] ){
 
@@ -599,6 +629,17 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
                         }
                     }
                 }
+
+                if(inpLevelVal > total){
+                   let subs = inpLevelVal - total;
+                   for(let i = 1; i<=subs; i++){
+                       this.modalCreateNewLocation['occupiable'].push({
+                           number : this.modalCreateNewLocation['occupiable'].length + 1,
+                           name : 'Level'
+                       });
+                   }
+               }
+                
            }else if(inpLevelVal > 0){
                 for(let i = 1; i <= inpLevelVal; i++){
                     this.modalCreateNewLocation[ 'occupiable' ].push({

@@ -2,23 +2,24 @@
   "Manager": 1,
   "Tenant": 2,
   "role_text": [
-    "Tenant",
-    "Manager"
+    "User",
+    "Manager",
+    "Tenant"
   ],
   "em_roles": {
-    "GENERAL OCCUPANT": 8,
+    "GENERAL_OCCUPANT": 8,
     "WARDEN": 9,
-    "FLOOR WARDEN": 10,
-    "AREA WARDEN": 10,
-    "CHIEF WARDEN": 11,
-    "FIRE SAFETY ADVISOR": 12,
+    "FLOOR_WARDEN": 10,
+    "AREA_WARDEN": 10,
+    "CHIEF_WARDEN": 11,
+    "FIRE_SAFETY_ADVISOR": 12,
     "FSA": 12,
-    "EMERGENCY PLANNING COMMITTEE MEMBER": 13,
+    "EMERGENCY_PLANNING_COMMITTEE_MEMBER": 13,
     "EPC": 13,
-    "FIRST AID OFFICER": 14,
-    "DEPUTY CHIEF WARDEN": 15,
-    "BUILDING WARDEN": 16,
-    "DEPUTY BUILDING WARDEN": 18,
+    "FIRST_AID_OFFICER": 14,
+    "DEPUTY_CHIEF_WARDEN": 15,
+    "BUILDING_WARDEN": 16,
+    "DEPUTY_BUILDING_WARDEN": 18,
     "": 8
   },
   "table_headers": {
@@ -31,7 +32,7 @@
     "role": "Role"
   },
   "account_roles": {
-    "BUILDING MANAGER": 1,
+    "BUILDING_MANAGER": 1,
     "MANAGER": 1,
     "TENANT": 2
   },
@@ -40,5 +41,6 @@
   "UNPAID":0,
   "PAYMENT_FAILED": 3,
   "COMPLIANCE-DOCS-PACK": "compliance-docs.zip",
-  "ADMIN_EMAIL": "admin@evacconnect.com"
+  "ADMIN_EMAIL": "admin@evacconnect.com",
+  "DEFAULT_USER_PASSWORD" : "123456Uni"
 }

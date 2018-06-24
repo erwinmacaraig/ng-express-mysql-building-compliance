@@ -4,8 +4,8 @@
 			<div class="image-container center-align">
 				<img src="assets/images/locations/search_location.png" alt="">
 				<h5 class="title">
-					<span class="search">Please search your location</span>
-					<span class="create">Create location on this address?</span>
+					<span class="search">Type in building address here</span>
+					<span class="create">Record this location</span>
 				</h5>
 			</div>
 			<div class="form-container">
@@ -22,7 +22,7 @@
 					</div>
 					<div class="search-icon-container">
 						<img class="glass" src="assets/images/locations/search_icon.png" alt="">
-						<a href="javascript:void(0)" class="close-link" (click)="clearSearch()">
+						<a  class="close-link" (click)="clearSearch()">
 							<img class="close" src="assets/images/locations/close_search.png" alt="">
 						</a>
 					</div>
@@ -49,7 +49,7 @@
 		</div>
 		<div class="col s12 m12 l12 center-align inputs-button-container">
 			<div class="inline-block">
-				<span>Occupiable Level</span>
+				<span>Occupiable Levels</span>
 				<div class="input-arrow-up-down" >
 					<input type="text" readonly class="input-level" value="0" #inpOccupiable>
 					<button class="btn-arrow-up waves-effect waves-light" (click)="addLevel('occupiable', inpOccupiable)"><i class="material-icons">arrow_drop_up</i></button>
@@ -57,7 +57,7 @@
 				</div>
 			</div>
 			<div class="inline-block">
-				<span>Carpark</span>
+				<span>Carpark Level</span>
 				<div class="input-arrow-up-down" >
 					<input type="text" readonly class="input-level" value="0" #inpCarPark>
 					<button class="btn-arrow-up waves-effect waves-light" (click)="addLevel('carpark', inpCarPark)"><i class="material-icons">arrow_drop_up</i></button>
@@ -214,8 +214,25 @@
 		</div>
 
 		<div class="list-region" *ngIf="!showLoaderModalSubLocation && !showModalAlreadyVerified" style="overflow-y: auto; height: 340px;">
-			<h6 class="blue-text">Select  Level</h6>
-			<div>
+            <h6 class="blue-text" *ngIf="this.isFrp">Select Building</h6>
+            <div *ngIf="this.isFrp">
+                <ul>
+                    <ng-template #recursiveList let-selectedLocationArray>
+                        <li *ngFor="let location of selectedLocationArray" class="list-division" [id]="location.location_id">
+                            <div class="name-radio-plus">
+                                <div class="input">
+                                    <input type="checkbox" [id]="'check-'+location.location_id" (click)="onClickSelectLocationFromModal($event, location)">
+                                    <label [for]="'check-'+location.location_id" style="color: rgba(0,0,0,0.87); padding-left: 25px;"> {{location.name}} </label>
+                                </div>
+                            </div>
+                        </li>
+                    </ng-template>
+                    <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: selectedLocationArray }"></ng-container>
+                </ul>
+            </div>
+
+			<h6 class="blue-text" *ngIf="this.isTrp">Select Level</h6>
+			<div *ngIf="this.isTrp">
 				<ul>
 					<ng-template #recursiveList let-selectedLocationSubLocations>
 						<li *ngFor="let location of selectedLocationSubLocations" class="list-division" [id]="location.location_id">
@@ -289,12 +306,12 @@
 				   	<ul style="margin: 0px; max-height: 275px; overflow-y: auto;">
 					    <li style="border-bottom: 1px solid #ddd;font-size: 16px;padding: 10px 0px;" *ngFor="let sub of sameSublocation">
 						    <span>{{sub.name}}</span>
-						    <a href="javascript:void(0)" class="right select-sub blue-text" #selectElement (click)="selectAddNewSubResult(sub, selectElement)" style="margin-right: 10px;">select</a>
+						    <a  class="right select-sub blue-text" #selectElement (click)="selectAddNewSubResult(sub, selectElement)" style="margin-right: 10px;">select</a>
 						</li>
 					</ul>
 				</div>
 				<div class="button-container right-align">
-					<a href="javascript:void(0)" class="btn grey lighten-1 waves-effect waves-light modal-action modal-close">Cancel</a>
+					<a  class="btn grey lighten-1 waves-effect waves-light modal-action modal-close">Cancel</a>
 					<button type="submit" class="btn orange waves-effect waves-light">Submit</button>
 				</div>
 			</form>
@@ -326,7 +343,7 @@
 
 	<div class="modal-content" *ngIf="!modalCreateNewLocation.showLoader"  >
 		<h4 class="blue-text header" style="font-size: 22px;">
-			Confirm creation of new location
+			Confirm details of new location
 		</h4>
 		<p class="address" style="font-size: 16px;">{{formattedAddress}}</p>
 		<p class="address" style=" font-size: 18px; margin: 0px;"> Level Names </p>

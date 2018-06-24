@@ -2,7 +2,11 @@
 	<div class="background"></div>
 
 	<div class="fadeIn  animated" style="opacity:0;">
-		<div class="logo"></div>
+		<div class="logo-beta"></div>
+		<div class="beta-message white-text">
+			Please note that this is a beta version of EvacConnect, which is still undergoing final testing before its official release.
+			For questions or concerns, please email <strong>systems@evacgroup.com.au</strong>
+		</div>
 
 		<div class="login-block container " >
 
@@ -17,8 +21,8 @@
 							<div class="image"></div>
 							<input type="password" name="password" placeholder="Password" id="password" ngModel />
 						</div>
-						
-						
+
+
 						<p *ngIf="showInvalid" class="error-message">Invalid username/email or password</p>
 						<p *ngIf="showErrorOccured" class="error-message">{{errorOccuredMessage}}</p>
 						<p *ngIf="showSuccess" class="success-message"> Success! </p>
@@ -71,7 +75,7 @@
 					<div class="col m6 s12">
 						<button type="submit" class="waves-effect waves-light"> Submit </button>
 		      </div>
-				</form>				
+				</form>
 			</div>
 			<p *ngIf="showInvalidCode" class="error-message">Invalid invitation </p>
 		</div>
@@ -82,7 +86,7 @@
 
 <div id="modalSendVerification" class="modal">
 	<div class="modal-content center">
-		
+
 		<div *ngIf="verification.loader" class="preloader-wrapper active">
 			<div class="spinner-layer spinner-blue-only">
 				<div class="circle-clipper left">
@@ -96,15 +100,15 @@
 		</div>
 
 		<h4 *ngIf="!verification.loader">
-			
+
 			<span *ngIf="verification.success">
-				We just sen't you an email for verifcation. Please check it 
+				We just sen't you an email for verifcation. Please check it
 			</span>
 
 			<span *ngIf="!verification.success">
 				Please verify your account <br>
 				<small>
-					<a href="javascript:void(0)" class="blue-text" style="text-decoration: underline; line-height: 20px;" (click)="resendVerification()">
+					<a  class="blue-text" style="text-decoration: underline; line-height: 20px;" (click)="resendVerification()">
 						Click here to send verification
 					</a>
 				</small>

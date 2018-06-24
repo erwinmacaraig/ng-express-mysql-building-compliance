@@ -15,10 +15,9 @@ export class FileUploader {
     private aws_bucket_name;
     private aws_s3;
     private storageConfig;
-    public filename;
+    public filename = '';
     public extname = '';
-    private uploadDir = this.getUploadDir();
-    // private DIR = '/home/ubuntu/EvacPlatform/evacconnect/uploads/';
+    // private DIR = '/home/ubuntu/EvacConnectPlatform/evacconnect/uploads/';
     private DIR = './uploads/';
 
     constructor(req: Request, res: Response, next: NextFunction) {
@@ -33,14 +32,16 @@ export class FileUploader {
         },
         filename: (rq, file, callback) => {
           this.extname = this.getFileExtension(file.originalname);
-          this.filename = this.generateRandomChars(50) + '.' + this.extname;
+          // this.filename = this.generateRandomChars(50) + '.' + this.extname;
+          this.filename = this.filename.replace(/\s+/g, '_') + '.' + this.extname;
           callback(null, this.filename);
         }
       });
 
     }
 
-    public getUploadDir(){
+    public getUploadDir() {
+      /*
       let currentDir = String.raw``+__dirname,
         separator = (currentDir.indexOf('/') > 0) ? '/' : "\\",
         arr = currentDir.split(separator),
@@ -58,6 +59,7 @@ export class FileUploader {
       dir += 'uploads'+separator;
       console.log(dir);
       return dir;
+      */
     }
 
     /**
@@ -116,7 +118,7 @@ export class FileUploader {
       });
     }
 
-    public uploadFile(multi: boolean = false) {
+    public uploadFile(multi: boolean = false, dir_structure = '') {
       return new Promise((resolve, reject) => {
         if (!multi) {
           this.uploader = multer({storage: this.storageConfig}).single('file');
@@ -136,7 +138,7 @@ export class FileUploader {
             } else {
               const params = {
                 Bucket: this.aws_bucket_name,
-                Key: this.filename,
+                Key: `${dir_structure}${this.filename}`,
                 ACL: 'public-read',
                 Body: data
               };

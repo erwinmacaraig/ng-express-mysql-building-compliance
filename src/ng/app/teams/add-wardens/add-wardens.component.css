@@ -230,6 +230,8 @@ td.with-remove a.remove:hover{
     max-height: 100%;
 }
 
+ul li {margin-left: 0; padding-left: 2.5em;}
+
 #modaCsvUpload .modal-header{
     margin: 20px 0px;
 }
@@ -274,10 +276,9 @@ td.with-remove a.remove:hover{
 }
 
 #modalLocations{
-    width: 30%;
     border-radius: 10px;
     width: 30%;
-    overflow-y: initial;
+    overflow: hidden;
 }
 
 #modalLocations .modal-content{
@@ -392,28 +393,30 @@ a.disabled{
   and (max-width: 1440px) {
     #modaCsvUpload,
     #modalInvite{
-        width: 35%;
+        width: 35% !important;
     }
 }
 
 @media only screen
   and (max-width: 1024px) {
     #modaCsvUpload,
-    #modalInvite{
-        width: 40%;
+    #modalInvite,
+    #modalLocations{
+        width: 40% !important;
     }
 }
 
 @media only screen
   and (max-width: 768px) {
     #modaCsvUpload,
-    #modalInvite{
-        width: 60%;
+    #modalInvite,
+    #modalLocations{
+        width: 60% !important;
     }
 
     .top-title-button h4{
         display: block;
-        width: 100%;
+        width: 100% !important;
     }
 
     .top-title-button .btn{
@@ -429,7 +432,8 @@ a.disabled{
 @media only screen
   and (max-width: 500px) {
     #modaCsvUpload,
-    #modalInvite{
-        width: 90%;
+    #modalInvite,
+    #modalLocations{
+        width: 90% !important;
     }
 }

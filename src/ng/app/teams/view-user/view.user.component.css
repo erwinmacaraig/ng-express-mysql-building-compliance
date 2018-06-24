@@ -151,18 +151,33 @@
   display: block;
   clear: both;
 }
+.grid-container{
+  margin: 10px;
+  float: left;
+}
+
+.grid-container > p:first-child{
+  font-size: 18px;
+  margin:0px;
+}
 
 .grid .grid-item{
-	margin-right: 20px;
-    max-width: 260px;
-    position: absolute;
+    width: 260px;
     box-shadow: none;
     border-radius: 10px;
+    float: left;
+    margin: 10px;
+    height: 350px;
+    position: relative;
 }
 
 .grid-item .top{
 	text-align: center;
     margin: 10px 0px;
+}
+
+.grid .grid-item.no-buttons .top{
+    margin: 35px 0px;
 }
 
 .grid-item .top .image{
@@ -191,13 +206,16 @@
 }
 
 .grid-item .buttons{
-	text-align: center;
-	margin: 0px 0px 15px 0px;
+    position: absolute;
+    bottom: 15px;
+    width: 100%;
 }
 
 .grid-item .buttons .btn{
-	width: 80% !important;
-	margin-bottom: 10px;
+    width: 235px !important;
+    margin: 0px auto;
+    display: block;
+    margin-bottom: 5px;
 }
 
 
@@ -254,6 +272,34 @@ a.btn{
     line-height: 45px;
 }
 
+.modal.modal-sublocations .search-container{
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 10px;
+    width: 100% !important;
+}
+
+.modal.modal-sublocations .search-container .input-container{
+    display: inline-block;
+    vertical-align: middle;
+    width: 94%;
+}
+
+.modal.modal-sublocations .search-container .input-container input{
+    margin-bottom: 0px;
+    border-bottom: 0px !important;
+}
+
+.modal.modal-sublocations .search-container .input-container input:focus{
+    border-bottom: 0px !important;
+    box-shadow: none !important;
+}
+
+.modal.modal-sublocations .search-container .icon-container{
+    display: inline-block;
+    vertical-align: middle;
+}
+
 #modalMobility .btn{
     font-size: 15px !important;
     line-height: 43px;
@@ -266,6 +312,11 @@ a.btn{
 
 #modalLocations{
     width: 70%;
+}
+
+#modalAssignLocations{
+    width: 50%;
+    overflow-y: hidden;
 }
 
 #modalLocations table{
@@ -319,6 +370,10 @@ a.btn{
     #modalArchiveBulk{
         width: 50%;
     }
+
+    #modalAssignLocations{
+        width: 80%;
+    }
 }
 
 @media only screen and (max-width: 1024px) {
@@ -330,29 +385,32 @@ a.btn{
         width : 90%;
     }
 
-    #modalLocations{
+    #modalLocations,
+    #modalAssignLocations{
         width: 95%;
     }
 }
 
 @media only screen and (max-width: 500px) {
-    #modalMobility{
-        width: 90%;
+    #modalMobility,
+    #modalAssignLocations,
+    #modalAssignLocations{
+        width: 95%;
     }
 }
 
-input:not([type]):focus:not([readonly]), 
-input[type=text]:not(.browser-default):focus:not([readonly]), 
-input[type=password]:not(.browser-default):focus:not([readonly]), 
-input[type=email]:not(.browser-default):focus:not([readonly]), 
-input[type=url]:not(.browser-default):focus:not([readonly]), 
+input:not([type]):focus:not([readonly]),
+input[type=text]:not(.browser-default):focus:not([readonly]),
+input[type=password]:not(.browser-default):focus:not([readonly]),
+input[type=email]:not(.browser-default):focus:not([readonly]),
+input[type=url]:not(.browser-default):focus:not([readonly]),
 input[type=time]:not(.browser-default):focus:not([readonly]),
-input[type=date]:not(.browser-default):focus:not([readonly]), 
-input[type=datetime]:not(.browser-default):focus:not([readonly]), 
+input[type=date]:not(.browser-default):focus:not([readonly]),
+input[type=datetime]:not(.browser-default):focus:not([readonly]),
 input[type=datetime-local]:not(.browser-default):focus:not([readonly]),
 input[type=tel]:not(.browser-default):focus:not([readonly]),
 input[type=number]:not(.browser-default):focus:not([readonly]),
-input[type=search]:not(.browser-default):focus:not([readonly]), 
+input[type=search]:not(.browser-default):focus:not([readonly]),
 textarea.materialize-textarea:focus:not([readonly]){
     border-bottom: 0px;
     box-shadow: 0 1px 0 0 #0089ec;
@@ -420,7 +478,7 @@ table tr td.trainings .percent{
     text-align: center;
 }
 
-table tr td.trainings .percent, 
+table tr td.trainings .percent,
 table tr td.trainings .bar {
     display: inline-block;
     color: #b71928;
@@ -477,4 +535,97 @@ table tr td .image img{
 
 .modal .btn{
     font-size: 14px !important;
+}
+
+.modal.modal-sublocations .search-container{
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 10px;
+    width: 100% !important;
+}
+
+.modal.modal-sublocations .search-container .input-container{
+    display: inline-block;
+    vertical-align: middle;
+    width: 94%;
+}
+
+.modal.modal-sublocations .search-container .input-container input{
+    margin-bottom: 0px;
+    border-bottom: 0px !important;
+}
+
+.modal.modal-sublocations .search-container .input-container input:focus{
+    border-bottom: 0px !important;
+    box-shadow: none !important;
+}
+
+.modal.modal-sublocations .search-container .icon-container{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.modal.modal-sublocations .list-region ul li{
+    font-size: 16px;
+}
+
+.modal.modal-sublocations .list-region ul:not(:first-child){
+    padding-left: 25px;
+}
+
+.modal.modal-sublocations .list-region ul li:not(.show-drop-down) > ul{
+    display: none;
+}
+
+.modal.modal-sublocations .list-region ul li.show-drop-down > ul{
+    display: block;
+}
+
+.modal.modal-sublocations .name-radio-plus .input,
+.modal.modal-sublocations .name-radio-plus .plus-minus,
+.modal.modal-sublocations .name-radio-plus .name{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus{
+    vertical-align: super;
+    position: relative;
+    text-align: center;
+}
+
+.modal.modal-sublocations .name-radio-plus .minus{
+    display: none;
+}
+
+.modal.modal-sublocations .name-radio-plus input[type="radio"]{
+    position: static;
+    pointer-events: all;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]{
+    pointer-events: all;
+    width: 100%;
+    position: absolute;
+    top: 7px;
+    opacity: 0;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]+.sign:after{
+    content: '+';
+    font-size: 18px;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]:checked+.sign:after{
+    content: '-';
+    font-size: 18px;
+}
+
+.modal.modal-sublocations [type="checkbox"]+label{
+    height: 22px;
+    padding-left: 20px;
+}
+
+.modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]+.sign{
+    padding: 0px 5px;
 }

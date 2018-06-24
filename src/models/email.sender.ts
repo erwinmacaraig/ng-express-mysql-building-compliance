@@ -92,7 +92,7 @@ export class EmailSender {
               ToAddresses: this.options['to'],
               // ToAddresses : ['adelfin@evacgroup.com.au'],
               CcAddresses: this.options['cc']
-            },
+            }, 
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
             Message: {
               Subject: {
@@ -108,7 +108,7 @@ export class EmailSender {
             }
         };
 
-        /*
+        /*grunt
         this.ses.sendRawEmail(params, function(err, data) {
             if(err) {
                 error(err);

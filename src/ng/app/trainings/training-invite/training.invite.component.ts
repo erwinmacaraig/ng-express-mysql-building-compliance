@@ -51,6 +51,7 @@ export class TrainingInviteComponent implements OnInit, OnDestroy{
 	}
 
 	ngAfterViewInit(){
+		$('select').material_select();
 		$('.trainings-navigation .active').removeClass('active');
 		$('.trainings-navigation .training-invite').addClass('active');
 	}

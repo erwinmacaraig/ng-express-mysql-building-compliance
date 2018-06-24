@@ -1,8 +1,32 @@
 <div class="workspace container">
 	<div class="row">
 		<div class="col l2 m2 s12 left-part">
-
 			<div class="row left-box-container">
+                <div class="col l12 m12 s12" *ngIf="showCompliance">
+                    <div class="manage-compliance">
+                        <h5 class="center compliacne-rating">Compliance Rating</h5>
+                        <div id="specificChart" class="donut-size">
+                            <div class="pie-wrapper">
+                                <span class="label">
+                                    <span class="num"> 00 </span><span class="smaller">%</span>
+                                </span>
+                                <div class="pie">
+                                    <div class="left-side half-circle" ></div>
+                                    <div class="right-side half-circle" ></div>
+                                </div>
+                                <div class="shadow"></div>
+                            </div>
+                        </div>
+                        <p class="completion">
+                            <span class="start">0 </span>
+                            <span>of </span>
+                            <span class="end">0 </span>
+                            <span class="end">completion</span>
+                        </p>
+                        <h5 *ngIf="locationData.admin_verified == 0" class="red-text center">For Verification</h5>
+                        <a *ngIf="locationData.admin_verified == 1" class="btn red waves-effect waves-light darken-3" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
+                    </div>
+                </div>
 				<div class="col m12 s12">
 					<div class="box">
 						<div class="title-wrapper">
@@ -16,10 +40,11 @@
 				<div class="col m12 s12">
 					<div class="box">
 						<div class="title-wrapper">
-							Sublocations
+							Siblings
 						</div>
 						<div class="content">
-							<ul class="sub-list">
+              <h6 class="center" *ngIf="parentData.sublocations.length == 0">No Siblings</h6>
+							<ul class="sub-list" *ngIf="parentData.sublocations.length > 0">
 								<li *ngFor="let location of parentData.sublocations"
 								[ngClass]="{active : encryptDecrypt.decrypt(location.location_id) == locationID}">
 									<a [routerLink]="['/location', 'view-sublocation', location.location_id]">{{ location.name }}</a>
@@ -39,20 +64,20 @@
 						<div class="inline-block image-wrapper">
 							<div class="image-container">
 								<div class="image">
-									<img src="assets/images/locations/default_profile_location.png" alt="" *ngIf="!locationData.google_photo_url">
-									<img src="{{locationData.google_photo_url}}" alt="" *ngIf="locationData.google_photo_url">
+									<img src="assets/images/locations/default_profile_location.png" alt="" *ngIf="locationData.google_photo_url != null && !locationData.google_photo_url">
+									<img src="{{locationData.google_photo_url}}" alt="" *ngIf="locationData.google_photo_url != null && locationData.google_photo_url">
 								</div>
 							</div>
 						</div>
 						<div class="inline-block details">
 							<table class="no-borders">
 								<tr>
-									<td><h5> <span *ngIf="parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}} </h5></td>
+									<td><h5> <span *ngIf="parentData.name != null && parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}} </h5></td>
 								</tr>
 								<tr>
 									<td>{{locationData.formatted_address}}</td>
 								</tr>
-								
+
 								<!-- <tr>
 									<td>Region : N/A</td>
 								</tr> -->
@@ -92,14 +117,14 @@
 							<tr class="grey darken-4 white-text">
 								<th>Tenants</th>
 								<th>TRP</th>
-								<th>Warden Benchmarking</th>
+								<!-- <th>Warden Benchmarking</th> -->
 								<th>Wardens</th>
 								<th>Wardens Trained</th>
 								<th>Action</th>
 							</tr>
 						</thead>
 						<tbody>
-							<tr *ngIf="tenants.length == 0">
+							<tr *ngIf="tenants && tenants.length == 0">
 								<td class="center" colspan="6">
 									<strong>No tenants found</strong>
 								</td>
@@ -109,19 +134,23 @@
 									{{tenant.account_name}}
 								</td>
 								<td>
-									{{tenant.trp_name}}
+                  <span *ngFor="let t of tenant['trp']" [ngStyle]="{'display': 'block'}">
+                      {{ t }}
+                  </span>
 								</td>
-								<td>
+                <!--
+                <td>
 									{{tenant.warden_benchmarking}}
-								</td>
+                </td>
+              -->
 								<td>
-									{{tenant.wardens}}
+									{{tenant.total_wardens}}
 								</td>
 								<td class="with-bar">
-									<div class="text">0%</div>
+									<div class="text">{{tenant.trained_wardens.percentage}}</div>
 									<div class="progress-container">
 										<div class="progress">
-									    	<div class="determinate" style="width: 0%;"></div>
+									    	<div class="determinate" [ngStyle]="{'width': tenant.trained_wardens.percentage}"></div>
 										</div>
 									</div>
 								</td>
@@ -132,7 +161,7 @@
 									</select>
 								</td>
 							</tr>
-							<tr>
+							<tr *ngIf="role == 1">
 								<td colspan="6" class="btn-block-holder">
 									<a class="btn blue waves-effect waves-light" (click)="addNewTenantClickEvent()">+ Add new tenant</a>
 								</td>
@@ -172,7 +201,7 @@
 		</div>
 
 		<div class="button-container center-align" *ngIf="!showLoaderModalSublocation">
-			<a href="javascript:void(0)" class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
+			<a  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
     		<button class="waves-effect waves-light btn orange btn-flat" (click)="onClickYesArchive()">Yes</button>
 		</div>
 
@@ -200,17 +229,35 @@
 	<div class="modal-content" *ngIf="!showModalNewTenantLoader">
 
 		<h5>Add New Tenant </h5>
-		<h6><span *ngIf="parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}}</h6>
-		
+		<h6><span *ngIf="parentData.name != null && parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}}</h6>
+
 		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)">
 
 			<div class="row">
 				<div class="col l12 m12 s12">
 					<div class="input-field">
-	                  	<input id="company_name" type="text" name="account_name" ngModel required>
-						<label for="company_name">Tenant Name</label>
+	          <input id="company_name" type="text" name="account_name" ngModel required>
+						<label for="company_name">Tenancy Name</label>
+					</div>
+          <div>
+            <h5>Tenancy Contact</h5>
+          </div>
+          <div class="input-field" >
+						<input id="key_contact_name" type="text" name="key_contact_name" ngModel required>
+						<label for="key_contact_name"> Name </label>
 					</div>
 
+					<div class="input-field" >
+						<input id="key_contact_lastname" type="text" name="key_contact_lastname" ngModel required>
+						<label for="key_contact_lastname"> Last Name </label>
+					</div>
+
+					<div class="input-field">
+						<input id="email" type="text" name="email" ngModel required>
+						<label for="email">Email</label>
+					</div>
+
+          <!--
 					<div class="input-field" >
 						<input id="key_contact" type="text" name="key_contact" ngModel required>
 						<label for="key_contact"> Key Contact </label>
@@ -258,21 +305,22 @@
 					<div class="input-field">
 						<input id="domain" type="text" name="account_domain" ngModel required pattern="^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$">
 						<label for="domain">Account Domain name</label>
-					</div>
+          </div>
+        -->
 				</div>
 			</div>
 
 			<div class="row">
 				<div class="col l12 m12 s12">
 					<div class="button-container right-align" >
-						<a href="javascript:void(0)" class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
+						<a  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
 			    		<button type="submit" class="waves-effect waves-light btn orange btn-flat" [disabled]="!formAddTenant.valid">Submit</button>
 					</div>
 				</div>
 			</div>
 
 		</form>
-		
-		
+
+
 	</div>
 </div>

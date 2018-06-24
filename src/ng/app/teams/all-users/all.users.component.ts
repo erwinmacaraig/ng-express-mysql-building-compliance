@@ -5,15 +5,22 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/users';
 import { AuthService } from '../../services/auth.service';
+import { AccountsDataProviderService  } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { CourseService } from '../../services/course';
+import * as Rx from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
+import * as moment from 'moment';
+import { DatepickerOptions } from 'ng2-datepicker';
 
 declare var $: any;
 @Component({
   selector: 'app-all-users',
   templateUrl: './all.users.component.html',
   styleUrls: ['./all.users.component.css'],
-  providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService]
+  providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService, CourseService, AccountsDataProviderService]
 })
 export class AllUsersComponent implements OnInit, OnDestroy {
 
@@ -28,22 +35,80 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 	filters = [];
 
+	loadingTable = false;
+
+	pagination = {
+		pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+	};
+
+	queries = {
+		roles : 'frp,trp,users',
+		impaired : null,
+		type : 'client',
+		offset :  0,
+		limit : 10,
+		archived : 0,
+		pagination : true,
+		user_training : true,
+		users_locations : true,
+		search : '',
+        online_trainings : true
+	};
+
+    multipleLocations = [];
+
+	searchMemberInput;
+
+    options: DatepickerOptions = {
+        displayFormat: 'MMM D[,] YYYY',
+        minDate: moment().toDate()
+    };
+
+    datepickerModel : Date;
+    isShowDatepicker = false;
+    datepickerModelFormatted = '';
+    selectedPeep = {
+        first_name : '', last_name : ''
+    };
+
+    selectedToInvite = [];
+
+    emTrainings = [];
+
+    allAreSelected = false;
+    sendInviteToAll = false;
+    sendInviteToAllNonCompliant = false;
+
+    isOnlineTrainingAvailable = false;
+
 	constructor(
 		private userService : UserService,
 		private authService : AuthService,
 		private dashboardService : DashboardPreloaderService,
 		private encDecrService : EncryptDecryptService,
-		private router : Router
+		private router : Router,
+        private courseService : CourseService,
+        private accountService : AccountsDataProviderService
 		){
 		this.userData = this.authService.getUserData();
+
+        this.datepickerModel = moment().add(1, 'days').toDate();
+        this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+
+        this.courseService.getAllEmRolesTrainings((response) => {
+            this.emTrainings = response.data;
+        });
 	}
 
 	getListData(callBack?){
-		this.userService.getUsersByAccountId(this.userData['accountId'], (response) => {
-			this.listData = response.data;
+
+		this.userService.queryUsers(this.queries, (response) => {
+			this.pagination.total = response.data.pagination.total;
+			this.pagination.pages = response.data.pagination.pages;
+			this.listData = response.data.users;
 
 			let tempRoles = {};
-			console.log(this.listData);
+			this.filters = [];
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
 				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
@@ -52,6 +117,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 					if(this.listData[i]['locations'][l]['parent_name'] == null){
 						this.listData[i]['locations'][l]['parent_name'] = '';
 					}
+
+                    this.listData[i]['locations'][l]['enc_location_id'] = this.encDecrService.encrypt( this.listData[i]['locations'][l]['location_id'] );
 				}
 
 				for(let r in this.listData[i]['roles']){
@@ -65,10 +132,39 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 						}
 					}
 				}
+
+                this.listData[i]['sendinvitation'] = false;
+                let hasEcoRole = false;
+                for(let r in this.listData[i]['roles']){
+                    if( this.listData[i]['roles'][r]['role_id'] != 1 && this.listData[i]['roles'][r]['role_id'] != 2 ){
+                        hasEcoRole = true;
+                    }
+                }
+
+                if(hasEcoRole){
+                    this.listData[i]['sendinvitation'] = true;
+                }
+
+                let isSelected = false;
+                this.listData[i]['isselected'] = false;
+                for(let sel of this.selectedFromList){
+                    if(sel.user_id == this.listData[i]['user_id']){
+                        this.listData[i]['isselected'] = true;
+                        isSelected = true;
+                    }
+                }
+
+                if(!isSelected && this.allAreSelected){
+                    this.listData[i]['isselected'] = true;
+                    this.selectedFromList.push(this.listData[i]);
+                }
+
 			}
 
-			console.log(this.listData);
+			setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
+
 			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
+
 			if(callBack){
 				callBack();
 			}
@@ -76,14 +172,19 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
-
+		this.dashboardService.show();
 		this.getListData(() => { 
-			this.dashboardService.hide(); 
-			setTimeout(() => {
-				$('.row.filter-container select').material_select();
-			}, 500);
-		});
+			if(this.pagination.pages > 0){
+				this.pagination.currentPage = 1;
+				this.pagination.prevPage = 1;
+			}
 
+			for(let i = 1; i<=this.pagination.pages; i++){
+				this.pagination.selection.push({ 'number' : i });
+			}
+
+			this.dashboardService.hide();
+		});
 	}
 
 	ngAfterViewInit(){
@@ -91,13 +192,21 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			dismissible: false
 		});
 
-		$('.row.filter-container select').material_select();
+        this.accountService.isOnlineTrainingValid((response) => {
+            if(response.valid){
+                this.isOnlineTrainingAvailable = true;
+            }
+            setTimeout(() => {
+                $('.row.filter-container select').material_select();
+            }, 100);
+        });
 
-		this.dashboardService.show();
+        $('#modalMobility select').material_select();
 
 		this.filterByEvent();
 		this.sortByEvent();
 		this.bulkManageActionEvent();
+		this.searchMemberEvent();
 	}
 
 	filterByEvent(){
@@ -123,8 +232,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			}else{
 				this.listData = this.copyOfList;
 			}
-		});
-		
+		});	
 	}
 
 	sortByEvent(){
@@ -149,22 +257,24 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	searchMemberEvent(event){
-		let key = event.target.value,
-			temp = [];
-
-		if(key.length == 0){
-			this.listData = this.copyOfList;
-		}else{
-			for(let i in this.copyOfList){
-				let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase(),
-					email = this.copyOfList[i]['email'];
-				if(name.indexOf(key) > -1 || email.indexOf(key) > -1){
-					temp.push( this.copyOfList[i] );
-				}
-			}
-			this.listData = temp;
-		}
+	searchMemberEvent(){
+		this.searchMemberInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberInput'), 'input');
+		this.searchMemberInput.debounceTime(800)
+			.map(event => event.target.value)
+			.subscribe((value) => {
+				this.queries.search = value;
+				this.queries.offset = 0;
+				this.loadingTable = true;
+				this.pagination.selection = [];
+				this.getListData(() => { 
+					for(let i = 1; i<=this.pagination.pages; i++){
+						this.pagination.selection.push({ 'number' : i });
+					}
+					this.pagination.currentPage = 1;
+					this.pagination.prevPage = 1;
+					this.loadingTable = false;
+				});
+			});
 	}
 
 	ngOnDestroy(){}
@@ -178,12 +288,26 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		let selected = event.target.value;
 		if(selected == 'view'){
 			this.router.navigate(["/teams/view-user/", list.id_encrypted]);
-		}else{
+		}else if(selected == 'archive'){
 			event.target.value = "0";
 			this.showModalLoader = false;
 			this.selectedToArchive = list;
+            event.target.value = 0;
 			$('#modalArchive').modal('open');
-		}
+		}else if(selected == 'peep'){
+            this.selectedPeep = list;
+            event.target.value = 0;
+            $('#modalMobility').modal('open');
+        }else if(selected == 'healthy'){
+            this.selectedPeep = list;
+            event.target.value = 0;
+            $('#modalMobilityHealty').modal('open');
+        }else if(selected == 'invite'){
+            this.selectedToInvite = [];
+            this.selectedToInvite.push(list);
+            event.target.value = 0;
+            $('#modalSendInvitation').modal('open');
+        }
 	}
 
 	archiveClick(){
@@ -200,11 +324,14 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	selectAllCheckboxEvent(event){
-		let checkboxes = $('table tbody input[type="checkbox"]:not([disabled])');
+		let checkboxes = $('table tbody input[type="checkbox"]');
 		if(event.target.checked){
 			checkboxes.prop('checked', true);
+            this.allAreSelected = true;
 		}else{
 			checkboxes.prop('checked', false);
+            this.allAreSelected = false;
+            this.selectedFromList = [];
 		}
 
 		checkboxes.each((indx, elem) => {
@@ -221,6 +348,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	singleCheckboxChangeEvent(list, event){
 		let copy = JSON.parse(JSON.stringify(this.selectedFromList));
 		if(event.target.checked){
+            list.isselected = true;
 			this.selectedFromList.push(list);
 		}else{
 			let temp = [];
@@ -232,7 +360,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			this.selectedFromList = temp;
 		}
 
-		let checkboxes = $('table tbody input[type="checkbox"]'),
+		/*let checkboxes = $('table tbody input[type="checkbox"]'),
         countChecked = 0;
         checkboxes.each((indx, elem) => {
             if($(elem).prop('checked')){
@@ -241,21 +369,45 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         });
 
         $('#allLocations').prop('checked', false);
+        this.allAreSelected = false;
         if(countChecked == checkboxes.length){
             $('#allLocations').prop('checked', true);
-        }
+            this.allAreSelected = true;
+        }*/
 	}
 
 	bulkManageActionEvent(){
 		$('select.bulk-manage').on('change', () => {
 			let sel = $('select.bulk-manage').val();
-
 			if(sel == 'archive'){
-				$('select.bulk-manage').val("0").material_select();
 				if(this.selectedFromList.length > 0){
 					$('#modalArchiveBulk').modal('open');
 				}
-			}
+			}else if(sel == 'invite-selected'){
+                if(!this.allAreSelected){
+                    this.selectedToInvite = [];
+                    for(let user of this.selectedFromList){
+                        if(user.sendinvitation){
+                            this.selectedToInvite.push(user);
+                        }
+                    }
+                    if(this.selectedToInvite.length > 0){
+                        $('#modalSendInvitation').modal('open');
+                    }
+                }else{
+                    this.sendInviteToAll = true;
+                    $('#modalSendInvitation').modal('open');
+                }
+                
+            }else if(sel == 'invite-all-non-compliant'){
+                this.sendInviteToAllNonCompliant = true;
+                $('#modalSendInvitation').modal('open');
+            }else if(sel == 'invite-all'){
+                this.sendInviteToAll = true;
+                $('#modalSendInvitation').modal('open');
+            }
+
+            $('select.bulk-manage').val("0").material_select();
 
 		});
 	}
@@ -277,4 +429,158 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			this.getListData(() => { this.dashboardService.hide(); });
 		});
 	}
+
+	pageChange(type){
+
+		let changeDone = false;
+		switch (type) {
+			case "prev":
+				if(this.pagination.currentPage > 1){
+					this.pagination.currentPage = this.pagination.currentPage - 1;
+					changeDone = true;
+				}
+				break;
+
+			case "next":
+				if(this.pagination.currentPage < this.pagination.pages){
+					this.pagination.currentPage = this.pagination.currentPage + 1;
+					changeDone = true;
+				}
+				break;
+			
+			default:
+				if(this.pagination.prevPage != parseInt(type)){
+					this.pagination.currentPage = parseInt(type);
+					changeDone = true;
+				}
+				break;
+		}
+
+		if(changeDone){
+			this.pagination.prevPage = parseInt(type);
+			let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+			this.queries.offset = offset;
+			this.loadingTable = true;
+			this.getListData(() => { 
+				this.loadingTable = false;
+			});
+		}
+	}
+
+    clickMultipleLocation(locations){
+        this.multipleLocations = locations;
+        $('#modalSelectMultipleLocations').modal('open');
+    }
+
+    submitSelectFromMultipleLocations(form){
+        if(form.valid){
+
+            $('#modalSelectMultipleLocations').modal('close');
+            for(let loc of this.multipleLocations){
+                if(loc.location_id == form.value.location_id){
+                    if(loc.sublocations_count > 0){
+                        this.router.navigate(['/location/view/',  this.encDecrService.encrypt(loc.location_id) ]);
+                    }else{
+                        this.router.navigate(['/location/view-sublocation/',  this.encDecrService.encrypt(loc.location_id) ]);
+                    }
+                }
+            }
+        }
+    }
+
+    onChangeDatePicker(event){
+        if(!moment(this.datepickerModel).isValid()){
+            this.datepickerModel = new Date();
+            this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+        }else{
+            this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+        }
+        this.isShowDatepicker = false;
+    }
+
+    showDatePicker(){
+        this.isShowDatepicker = true;
+    }
+
+    modalPeepFormSubmit(f, event){
+        event.preventDefault();
+
+        if(f.valid){
+            let paramData = JSON.parse(JSON.stringify(f.value));
+            paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
+            paramData['user_id'] = this.selectedPeep['user_id'];
+
+            if(this.selectedPeep['mobility_impaired_details'].length > 0){
+                paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
+            }
+
+            paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val();
+
+            this.showModalLoader = true;
+
+            this.userService.sendMobilityImpaireInformation(paramData, (response) => {
+
+                for(let user of this.listData){
+                    if(user['user_id'] == this.selectedPeep['user_id']){
+                        user['mobility_impaired'] = 1;
+                        user['mobility_impaired_details'] = response.data;
+                    }
+                }
+
+                f.reset();
+                $('#modalMobility').modal('close');
+                this.showModalLoader = false;
+
+            });
+        }
+    }
+
+    markUserAsHealthy(){
+        this.showModalLoader = true;
+
+        let paramData = {
+            user_id : this.selectedPeep['user_id'],
+            mobility_impaired : 0
+        };
+        this.userService.markAsHealthy(paramData, (response) => {
+
+            for(let user of this.listData){
+                if(user['user_id'] == this.selectedPeep['user_id']){
+                    user['mobility_impaired'] = 0;
+                    user['mobility_impaired_details'] = [];
+                }
+            }
+  
+            $('#modalMobilityHealty').modal('close');
+            this.showModalLoader = false;
+
+        });
+    }
+
+    clickCancelSendInvitation(){
+        this.sendInviteToAllNonCompliant = false;
+        this.sendInviteToAll = false;
+    }
+
+    clickSendInvitation(){
+        let form = {
+            all : false,
+            non_compliant : false,
+            ids : []
+        };
+
+        form.all = (this.allAreSelected) ? true : (this.sendInviteToAll) ? true : false;
+        form.non_compliant = (this.sendInviteToAllNonCompliant) ? true : false;
+
+        for(let user of this.selectedToInvite){
+            form.ids.push(user.user_id);
+        }
+
+        this.showModalLoader = true;
+        this.courseService.sendTrainingInvitation(form, (response) => {
+            $('#modalSendInvitation').modal('close');
+            this.showModalLoader = false;
+        });
+    }
+
 }

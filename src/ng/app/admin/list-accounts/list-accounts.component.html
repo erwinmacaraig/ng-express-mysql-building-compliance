@@ -1,0 +1,101 @@
+<!--
+<div class="row">
+    <div class="col l12 m12 s12">
+      <ul id="accountnavlist">
+        <li><a>item 1</a></li>
+        <li><a>item 2</a></li>
+        <li><a>item 3</a></li>
+      </ul>
+    </div>
+</div>
+-->
+<div class="row filter-container">
+  <div class="col l4 m5 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search" id="searchAccounts" (keyup)="searchByAccoutName($event)">
+			<span class="material-icons">search</span>
+		</div>
+  </div>
+  <div class="col l2 m6 s6">
+		<select class="sort-by">
+			<option value="0" selected>Sort By</option>
+			<option value="user-name-desc">User Name Descending</option>
+			<option value="user-name-asc">User Name Ascending</option>
+		</select>
+  </div>
+  <div class="col l2 m6 s12">
+		<select class="bulk-manage">
+			<option value="0" selected disabled>Select Action</option>
+			<option value="archive" >Archive selected</option>
+		</select>
+  </div>
+</div>
+<div class="row">
+  <div class="col l12 m12 s12">
+    <table class="table striped table-peep">
+      <thead>
+        <tr>
+          <th>
+            <p class="checkbox">
+              <input id="allLocations" class="filled-in" type="checkbox">
+              <label for="allLocations">Account Name</label>
+            </p>
+          </th>
+            <th>No. of Locations</th>
+            <th>Billing Address</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="list.length === 0">
+            <td colspan="4" class="center-align">
+              <h6>No records found</h6>
+            </td>
+          </tr>
+          <tr *ngFor="let item of list; let i = index;">
+            <td>
+              <p class="checkbox" >
+                <input id="location-{{i}}"  class="filled-in" type="checkbox">
+                <label for="location-{{i}}">
+                  <a [routerLink]="['/admin', 'users-in-accounts', item['account_id']]"><span>{{item['account_name']}}</span></a>
+                </label>
+              </p>
+            </td>
+            <td>
+              <div class="text">
+                <a [routerLink]="['/admin', 'locations-in-account', item['account_id']]">{{item['locations'].length}}</a>
+              </div>
+            </td>
+            <td>{{item['billing_address']}}</td>
+            <td>
+              <select id="account-{{item['account_id']}}" (change)="addressSelectedAction(item['account_id'])">
+                <option value="0" class="blue-text" selected disabled>Select action</option>
+                <option value="view" class="blue-text">View</option>
+                <option value="archive" class="blue-text">Archive</option>
+              </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col l12 m12 s12 center pagination">
+      <div class="inline-block">
+        <button class="btn blue" (click)="prevPage()"> Prev </button>
+      </div>
+
+      <div class="inline-block select">
+        <select #selectPage ngModel [(ngModel)]="currentPage" (change)="pageChange()">
+          <option *ngFor="let p of createRange; let i = index" value="{{i}}">{{i+1}}</option>
+        </select>
+      </div>
+
+      <div class="inline-block">
+        <button class="btn blue" (click)="nextPage()"> Next </button>
+      </div>
+    </div>
+  </div>
+
+

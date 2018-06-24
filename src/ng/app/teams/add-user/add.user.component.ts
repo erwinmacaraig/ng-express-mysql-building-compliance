@@ -1,5 +1,6 @@
 import { LocationsService } from './../../services/locations';
 import { AuthService } from './../../services/auth.service';
+import { AdminService } from './../../services/admin.service';
 import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
@@ -18,7 +19,7 @@ declare var $: any;
     selector: 'app-add-user',
     templateUrl: './add.user.component.html',
     styleUrls: ['./add.user.component.css'],
-    providers : [DashboardPreloaderService, UserService, EncryptDecryptService]
+    providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService]
 })
 export class AddUserComponent implements OnInit, OnDestroy {
 	@ViewChild('f') addWardenForm: NgForm;
@@ -43,6 +44,8 @@ export class AddUserComponent implements OnInit, OnDestroy {
     public ecoRoles;
     public ecoDisplayRoles = [];
     public locations = [];
+    public buildings = [];
+    public levels = [];
     public locationsCopy = [];
     public userData = {};
     public selectedUser = {};
@@ -58,16 +61,18 @@ export class AddUserComponent implements OnInit, OnDestroy {
     private paramLocId = '';
 
     searchModalLocationSubs;
+    formLocValid = false;
 
     constructor(
-        private authService: AuthService, 
+        private authService: AuthService,
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService,
         private dashboardPreloaderService : DashboardPreloaderService,
         private userService : UserService,
         private router : Router,
         private actRoute : ActivatedRoute,
-        private encdecrypt : EncryptDecryptService
+        private encdecrypt : EncryptDecryptService,
+        private adminService : AdminService
         ) {
 
         this.userData = this.authService.getUserData();
@@ -79,7 +84,6 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 this.paramRole = params.role;
             }
         });
-        
     }
 
     ngOnInit(){
@@ -126,15 +130,12 @@ export class AddUserComponent implements OnInit, OnDestroy {
         );
 
         this.dashboardPreloaderService.show();
-        this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
-            this.locations = response.locations;
-            if(this.paramRole.length > 0){
-                this.locations = this.filterLocationForSelectedValue();
-            }
 
-            this.locationsCopy = JSON.parse( JSON.stringify(this.locations) );
+        this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {
+            this.buildings = response.data.buildings;
+            this.levels = response.data.levels;
+
             this.dashboardPreloaderService.hide();
-
             this.addMoreRow();
         });
     }
@@ -156,43 +157,6 @@ export class AddUserComponent implements OnInit, OnDestroy {
         setTimeout(() => {
             $("form table tbody tr:last-child").find('input.first-name').focus();
         },300);
-    }
-
-    filterLocationForSelectedValue(){
-        let selected = {};
-        let loopAddKey = (data, mainParent?) => {
-            for(let i in data){
-                if(typeof mainParent === 'undefined'){
-                    mainParent = JSON.parse(JSON.stringify(data[i]));
-                }else if(mainParent.location_id != data[i]['location_id'] && data[i]['parent_id'] == -1){
-                    mainParent = JSON.parse(JSON.stringify(data[i]));
-                }
-
-                if(this.paramRole.length > 0){
-                    if(this.paramLocId == data[i]['location_id']){
-                        if('location_id' in mainParent){
-                            selected = mainParent;
-                        }else{
-                            selected = data[i];
-                        }
-                    }
-                }
-
-                if(mainParent){
-                    data[i]['main_parent'] = (mainParent.location_id != data[i]['location_id']) ? mainParent : {};
-                }else{
-                    data[i]['main_parent'] = {};
-                }
-
-                if(data[i]['sublocations'].length > 0){
-                    loopAddKey(data[i]['sublocations'], mainParent);
-                }
-            }
-        };
-
-        loopAddKey(this.locations);
-
-        return [selected];
     }
 
     onChangeDropDown(event){
@@ -217,114 +181,135 @@ export class AddUserComponent implements OnInit, OnDestroy {
         let resp = [],
             copy = JSON.parse(JSON.stringify(data));
         if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
-            let temp = [];
-            for(let i in data){
-                let innerTemp = JSON.parse(JSON.stringify(data[i]));
-                innerTemp.sublocations = [];
-                temp.push(innerTemp);
-            }
-            resp = temp;
-        }else{
-            resp = copy;
+            resp = JSON.parse( JSON.stringify( this.buildings ) );
+        } else {
+            resp = JSON.parse( JSON.stringify( this.levels ) );
         }
-
+        this.locationsCopy = JSON.parse( JSON.stringify( resp ) );
         return resp;
     }
 
-    showLocationSelection(user){
+    buildLocationsListInModal(){
+        const ulModal = $('#modalLocations ul.locations');
+        ulModal.html('');
+        $('body').off('click.radio').on('click.radio', 'input[type="radio"][name="selectLocation"]', () => {
+            $('#modalLocations')[0].scrollTop = 0;
+            this.formLocValid = true;
+        });
 
-        this.locations = this.filterLocationsToDisplayByUserRole(user, this.locations);
+        let maxDisplay = 25,
+            count = 1;
 
-        $('#modalLocations').modal('open');
+        if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
+            parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
+            parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
+            parseInt(this.selectedUser['account_role_id'], 10) === 16 ||
+            parseInt(this.selectedUser['account_role_id'], 10) === 18
+           ) {
+          for (let loc of this.locations) {
+            if (count <= maxDisplay) {
+                let $li = $(`
+                    <li class="list-division" id="${loc.location_id}">
+                        <div class="name-radio-plus">
+                            <div class="input">
+                                <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
+                                <label for="check-${loc.location_id}">${loc.name}</label>
+                            </div>
+                        </div>
+                    </li>`);
+
+                ulModal.append($li);
+                count++;
+            }
+          }
+        } else {
+          for (const loc of this.locations) {
+            if (count <= maxDisplay) {
+              const $lh = $(`<lh><h6>${loc['parent_location_name']}</h6></lh>`);
+              ulModal.append($lh);
+              if ('sublocations' in loc) {
+                for (const subloc of loc.sublocations) {
+                  const $li = $(`
+                      <li class="list-division" id="${subloc.id}">
+                          <div class="name-radio-plus">
+                              <div class="input">
+                                  <input required type="radio"
+                                  name="selectLocation"
+                                  value="${subloc.id}" id="check-${subloc.id}">
+                                  <label for="check-${subloc.id}">${subloc.name}</label>
+                              </div>
+                          </div>
+                      </li>`);
+                  ulModal.append($li);
+                }
+              }
+              count++;
+            }
+          }
+        }
+    }
+
+    changeRoleEvent(user) {
+        user.location_name = 'Select Location';
+        user.location_id = 0;
+        user.account_location_id = 0;
         this.selectedUser = user;
+        this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
+        this.buildLocationsListInModal();
     }
 
-    searchChildLocation(data, locationId){
-        for(let i in data){
-            if(data[i]['location_id'] == locationId){
-                return data[i];
-            }
-
-            let tmp = this.searchChildLocation(data[i].sublocations, locationId);
-            if(tmp){
-                if(Object.keys(tmp).length > 0){
-                    return tmp;
-                }
-            }
-        }
-    }
-
-    findParent(data, parentId){
-        for(let i in data){
-            if(data[i]['location_id'] == parentId){
-                return data[i];
-            }
-
-            let tmp = this.findParent(data[i].sublocations, parentId);
-            if(tmp){
-                if(Object.keys(tmp).length > 0){
-                    return tmp;
-                }
-            }
-        }
-    }
-
-    getLastParent(locationId){
-        let selected = this.searchChildLocation(this.locations, locationId);
-        let parent = this.findParent(this.locations, selected.location_id);
-        if(Object.keys(parent).length > 0){
-            if(parent.parent_id > -1){
-                return this.getLastParent(parent.parent_id);
-            }else{
-                return parent;
-            }
-        }else{
-            return parent;
-        }
+    showLocationSelection(user) {
+        this.selectedUser = user;
+        this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
+        this.buildLocationsListInModal();
+        $('#modalLocations').modal('open');
+        this.formLocValid = false;
     }
 
     submitSelectLocationModal(form, event){
         event.preventDefault();
-        if(form.valid){
-            let selectedLocationId = form.controls.selectLocation.value,
-            selected = this.searchChildLocation(this.locations, selectedLocationId),
-            parent = this.findParent(this.locations, selected['parent_id']),
-            lastParent = this.getLastParent(selectedLocationId);
+        let locationFound = false;
+        if(this.formLocValid){
+            let
+            selectedLocationId = $(form).find('input[type="radio"]:checked').val();
 
-            if(typeof parent == 'undefined'){
-                parent = selected;
-            }
-
-            switch (parseInt(this.selectedUser['account_role_id']) ) {
-                case 1:
-                this.selectedUser['account_location_id'] = lastParent.location_id;
-                break;
-                
-                case 2:
-                if(parent.parent_id == -1){
-                    this.selectedUser['account_location_id'] = selectedLocationId;
-                }else{
-                    this.selectedUser['account_location_id'] = parent.location_id;
-                }
-
-                break;
-
-                default:
-                this.selectedUser['account_location_id'] = selectedLocationId;
-                break;
-            }
-
+            this.selectedUser['account_location_id'] = selectedLocationId;
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
                 this.selectedUser['eco_location_id'] = selectedLocationId;
             }
 
             this.selectedUser['location_name'] = '';
-            if(typeof parent != 'undefined' && selectedLocationId != parent.location_id){
-                this.selectedUser['location_name'] += parent.name+', ';
+            for(let loc of this.locationsCopy){
+                if(loc.location_id == selectedLocationId){
+                    this.selectedUser['location_name'] = loc.name;
+                    locationFound = true;
+                    break;
+                }
             }
-            this.selectedUser['location_name'] += selected['name'];
+            if (!locationFound) {
+              for (const loc of this.locationsCopy) {
+                if ('sublocations' in loc) {
+                  for (const sublocs of loc['sublocations']) {
+                    if (sublocs['id'] == selectedLocationId) {
+                      this.selectedUser['location_name'] = `${loc['parent_location_name']}, ${sublocs['name']}`;
+                      if (/^[_-\s]$/.test(loc['parent_location_name'])) {
+                        this.selectedUser['location_name'] = `${sublocs['name']}`;
+                      }
+                      locationFound = true;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
 
-            console.log(this.addedUsers);
+            for (const u of this.addedUsers) {
+              if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(u['email'])) {
+                u.errors['invalid'] = `${u['email']} is invalid`;
+              }
+            }
+
+            // console.log(this.addedUsers);
             this.cancelLocationModal();
         }
     }
@@ -333,7 +318,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         $('#modalLocations').modal('close');
         this.selectedUser = {};
         this.modalSearchLocation.nativeElement.value = "";
-        this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
+        // this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
     }
 
     ngAfterViewInit(){
@@ -341,28 +326,38 @@ export class AddUserComponent implements OnInit, OnDestroy {
             dismissible: false
         });
 
-        $('select').material_select();
 
-        
         this.dragDropFileEvent();
 
         this.onKeyUpSearchModalLocationEvent();
     }
 
-    submitUsers(f){
-        if(this.addedUsers.length > 0 && f.valid){
-            this.showLoadingButton = true;
-            this.userService.createBulkUsers(this.addedUsers, (response) => {
-                this.addedUsers = response.data;
-                if(this.addedUsers.length == 0){
-                    // let prop = JSON.parse(JSON.stringify(this.userProperty));
-                    // this.addedUsers.push( prop );
-                    
-                    this.router.navigate(["/teams/all-users"]);
-                }
-                this.showLoadingButton = false;
-            });
+    submitUsers(f) {
+      // console.log(f);
+      let allInputValid = true;
+      if (this.addedUsers.length > 0 && f.valid) {
+        for (const u of this.addedUsers) {
+          if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(u['email'])) {
+            u.errors['invalid'] = `${u['email']} is invalid`;
+            allInputValid = false;
+          }
         }
+      }
+
+      if (allInputValid) {
+          this.showLoadingButton = true;
+          this.userService.createBulkUsers(this.addedUsers, (response) => {
+              this.addedUsers = response.data;
+              if(this.addedUsers.length == 0){
+                  // let prop = JSON.parse(JSON.stringify(this.userProperty));
+                  // this.addedUsers.push( prop );
+
+                  this.router.navigate(['/teams', 'all-users']);
+              }
+              this.showLoadingButton = false;
+          });
+      }
+
     }
 
     showModalCSV(){
@@ -382,7 +377,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         this.bulkEmailInvite = (this.emailInviteForm.controls.inviteTxtArea.value).split(',');
         const validEmails = [];
         const email_regex =
-        /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
+        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i;
         for (let x = 0; x < this.bulkEmailInvite.length; x++) {
             if (email_regex.test(this.bulkEmailInvite[x].trim())) {
                 validEmails.push(this.bulkEmailInvite[x].trim());
@@ -449,44 +444,53 @@ export class AddUserComponent implements OnInit, OnDestroy {
         this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
             .debounceTime(500)
             .subscribe((event) => {
-            
+            this.formLocValid = false;
             let value = event['target'].value,
                 result = [];
+            let seenSubLocIndex = [];
+            const seenIndex = [];
+            let findRelatedName;
 
-            let findRelatedName = (data, mainParent?) => {
-                for(let i in data){
-                    if(data[i]['sublocations'].length > 0){
-                        if(data[i]['parent_id'] == -1){
-                            findRelatedName(data[i]['sublocations'], data[i]);
-                        }else{
-                            if(mainParent){
-                                findRelatedName(data[i]['sublocations'], mainParent);
-                            }else{
-                                findRelatedName(data[i]['sublocations']);
-                            }
-                        }
-                    }
-
+            if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 16 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 18
+            ) {
+              findRelatedName = (data, mainParent?) => {
+                for(let i in data) {
                     if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
-                        let isIn = false,
-                            compareId = (mainParent) ? mainParent['location_id'] : data[i]['location_id'];
-                        for(let x in result){
-                            if(result[x]['location_id'] == compareId){
-                                isIn = true;
-                            }
-                        }
-                        if(mainParent && !isIn){
-                            result.push(mainParent);
-                        }else if(!isIn){
-                            result.push(data[i]);
-                        }
+                        result.push(data[i]);
                     }
-
-                    data[i]['showDropDown'] = true;
                 }
-
                 return result;
-            };
+              };
+            } else {
+
+              findRelatedName = (data, mainParent?) => {
+                for ( let i = 0; i < data.length; i++) {
+                  if (data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                    result.push(data[i]);
+                  }
+                }
+                for ( let i = 0; i < data.length; i++) {
+                    seenSubLocIndex = [];
+                    for (let s = 0; s < data[i]['sublocations'].length; s++) {
+                      if (data[i]['sublocations'][s]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                        if (seenIndex.indexOf(i)) {
+                          seenIndex.push(i);
+                        }
+                        seenSubLocIndex.push(data[i]['sublocations'][s]);
+                        data[i]['sublocations'] = seenSubLocIndex;
+                      }
+                    }
+                  }
+                  for (let si = 0; si < seenIndex.length; si++) {
+                    result.push(data[seenIndex[si]]);
+                  }
+                return result;
+              };
+            }
 
             if(value.length > 0){
                 result = [];
@@ -496,8 +500,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
             }
 
-            this.locations = this.filterLocationsToDisplayByUserRole(this.selectedUser, this.locations);
-
+            this.buildLocationsListInModal();
         });
     }
 

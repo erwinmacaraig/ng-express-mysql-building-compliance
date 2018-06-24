@@ -27,6 +27,8 @@ table tr td .material-icons{
 
 .right-buttons{
 	display: table;
+	position: relative;
+    top: 16px;
 }
 
 .right-buttons > *{
@@ -34,7 +36,7 @@ table tr td .material-icons{
 }
 
 .right-buttons > *:not(:last-child){
-	padding-right: 30px;
+	padding-right: 15px;
 }
 
 .right-buttons .text{
@@ -43,11 +45,12 @@ table tr td .material-icons{
 }
 
 .right-buttons .image{
-	width: 35px;
-	height: 35px;
-	background-image: url(/assets/images/sprite_report.png);
-	display: inline-block;
-	vertical-align: middle;
+	width: 30px;
+    height: 30px;
+    background-image: url(/assets/images/sprite_report.png);
+    display: inline-block;
+    vertical-align: middle;
+    background-size: 1380%;
 }
 
 .right-buttons a{
@@ -55,15 +58,15 @@ table tr td .material-icons{
 }
 
 .image.pdf{
-	background-position: 74% 68%;
+	background-position: 56% 69%;
 }
 
 .image.excel{
-	background-position: 59% 91%;
+	background-position: 46% 92%;
 }
 
 .image.print{
-	background-position: 59% 67%;
+	background-position: 45.5% 68%;
 }
 
 .col-buttons{
@@ -104,4 +107,140 @@ table tr td .material-icons{
 .select-container{
 	display: inline-block;
 	margin: 0px 10px;
+}
+
+.inline-block{
+    display: inline-block;
+}
+
+.pagination button{
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+    vertical-align: inherit;
+}
+
+.pagination select:not(.to-materialize){
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+}
+
+.pagination .select{
+    margin: 0px 10px;
+}
+
+.search-field{
+  display: inline-block;
+}
+
+.filter-container .search-field{
+	background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 5px;
+    height: 50px;
+    vertical-align: top;
+    position: relative;
+}
+
+.filter-container .search-field input{
+	margin: 3px 14px 0px 0px !important;
+    padding: 0px;
+    display: inline-block;
+    width: 95%;
+    border-bottom: 0px;
+}
+
+.filter-container .search-field input:focus{
+	border-bottom: 0px;
+    box-shadow: none;
+}
+
+.filter-container .search-field .material-icons{
+	width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    position: absolute;
+    top: 29%;
+    right: 4%;
+}
+
+.switch-container{
+    margin: 0px 5px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.switch-container p{
+    font-size: 14px;
+}
+
+
+.switch{
+    width: 220px;
+    position: relative;
+    height: 45px;
+}
+
+.switch input[type="checkbox"]{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    pointer-events: visible;
+    z-index: 4;
+    cursor: pointer;
+}
+
+.switch .background{
+    background-color: #505050;
+    border-radius: 5px;
+    padding: 5px;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+.switch .yes,
+.switch .no{
+    font-size: 14px;
+    color: #fff;
+    z-index: 3;
+    position: absolute;
+}
+
+.switch .yes{
+    top: 24%;
+    left: 7%;
+}
+
+.switch .no{
+    top: 24%;
+    right: 6%;
+}
+
+.switch .highlight{
+    position: absolute;
+    top: 14%;
+    padding: 5px;
+    border-radius: 3px;
+    background-color: #39a1ff;
+    z-index: 2;
+    height: 72%;
+    width: 35%;
+    transition: all 0.2s;
+}
+
+.switch input[type="checkbox"]:not(:checked) + .yes + .no + .highlight{
+    right: 3%;
+    width: 50%;
+}
+
+.switch input[type="checkbox"]:checked + .yes + .no + .highlight{
+    right: 61%;
+    width: 34%;
 }

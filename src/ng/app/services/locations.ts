@@ -82,7 +82,7 @@ export class LocationsService {
   }
 
 	createSingleLocation(location: Object): Observable<any> {
-		return this.http.post<any>(this.baseUrl + '/location/create/', location);
+		return this.http.post<any>(this.baseUrl + '/location/create', location);
 	}
 
   createSubLocation(sublocation: Object): Observable<any>{
@@ -105,6 +105,15 @@ export class LocationsService {
 	        callBack( JSON.parse(err.error) );
 	      });
 	}
+
+    getParentLocationsForListingPaginated(formData, callBack){
+        this.http.post(this.baseUrl + '/location/get-parent-locations-by-account-id-paginated', formData, this.options)
+          .subscribe(res => {
+            callBack(res);
+          }, err => {
+            callBack( JSON.parse(err.error) );
+          });
+    }
 
   getArchivedParentLocationsForListing(accountid, callBack){
     this.http.get(this.baseUrl + '/location/get-archived-parent-locations-by-account-id/', this.options)

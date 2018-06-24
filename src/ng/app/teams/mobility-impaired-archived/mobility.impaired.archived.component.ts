@@ -12,6 +12,9 @@ import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as enLocale from 'date-fns/locale/en';
 import * as moment from 'moment';
+import * as Rx from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 declare var $: any;
 @Component({
@@ -32,19 +35,42 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
     userData = {};
     showModalLoader = false;
     selectedToArchive = {
-        first_name : '', last_name : '', parent_data : {}, locations : []
+        first_name : '', last_name : '', parent_data : {}, locations : [], parent_name: '', name: ''
     };
     selectedFromList = [];
 
     options: DatepickerOptions = {
         displayFormat: 'MMM D[,] YYYY',
-        minDate: new Date(Date.now())
+        minDate: moment().toDate()
     };
 
     datepickerModel : Date;
     isShowDatepicker = false;
     datepickerModelFormatted = '';
-    selectedPeep = {};
+    selectedPeep = {
+        first_name : '', last_name : ''
+    };
+
+    loadingTable = false;
+
+    pagination = {
+        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+    };
+
+    queries = {
+        roles : 'trp,frp,users',
+        impaired : 1,
+        type : 'client',
+        offset :  0,
+        limit : 10,
+        archived : 1,
+        pagination : true,
+        user_training : true,
+        users_locations : true,
+        search : ''
+    };
+
+    searchMemberInput;
 
     constructor(
         private authService : AuthService,
@@ -55,30 +81,53 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
         private dashboardService : DashboardPreloaderService,
         private locationService: LocationsService
         ) {
-        this.datepickerModel = new Date();
+        this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
     }
 
-    ngOnInit(){
-        this.dataProvider.buildArchivedPeepList().subscribe((response) => {
+    getListData(callBack?){
 
-            let tempRoles = {},
-                peep = response['data'];
-            for(let i in peep){
-                peep[i]['bg_class'] = this.generateRandomBGClass();
-                if(peep[i]['user_id']){
-                    peep[i]['id_encrypted'] = this.encDecrService.encrypt(peep[i]['user_id']);
-                    peep[i]['last_login'] = moment(peep[i]['last_login']).format('MMM. DD, YYYY hh:mmA');
+        this.userService.queryUsers(this.queries, (response) => {
+            this.pagination.total = response.data.pagination.total;
+            this.pagination.pages = response.data.pagination.pages;
+            this.peepList = response.data.users;
+
+            let tempRoles = {};
+            for(let i in this.peepList){
+                this.peepList[i]['bg_class'] = this.generateRandomBGClass();
+                this.peepList[i]['id_encrypted'] = this.encDecrService.encrypt(this.peepList[i]['user_id']);
+
+                for(let l in this.peepList[i]['locations']){
+                    if(this.peepList[i]['locations'][l]['parent_name'] == null){
+                        this.peepList[i]['locations'][l]['parent_name'] = '';
+                    }
                 }
             }
-            this.peepList = peep;
-            this.copyOfList = JSON.parse(JSON.stringify(peep));
 
+            this.copyOfList = JSON.parse( JSON.stringify(this.peepList) );
+
+            if(callBack){
+                callBack();
+            }
+        });
+    }
+
+    ngOnInit(){
+        this.dashboardService.show();
+        this.getListData(() => { 
+            if(this.pagination.pages > 0){
+                this.pagination.currentPage = 1;
+                this.pagination.prevPage = 1;
+            }
+
+            for(let i = 1; i<=this.pagination.pages; i++){
+                this.pagination.selection.push({ 'number' : i });
+            }
             setTimeout(() => {
+                this.dashboardService.hide(); 
                 $('.row.filter-container select').material_select();
-                this.dashboardService.hide();
-            }, 500);
-        }, (err: HttpErrorResponse) => {});
+            }, 100);
+        });
     }
 
     ngAfterViewInit(){
@@ -86,11 +135,12 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
             dismissible: false
         });
 
-        $('select').material_select();
+        $('.row.filter-container select').material_select();
         this.filterByEvent();
         this.sortByEvent();
         this.bulkManageActionEvent();
         this.clickViewPeepEvent();
+        this.searchMemberEvent();
 
         $('#modalMobility select[name="is_permanent"]').on('change', () => {
             if($('#modalMobility select[name="is_permanent"]').val() == '1'){
@@ -188,33 +238,41 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
         });
     }
 
-    searchMemberEvent(event){
-        let key = event.target.value,
-        temp = [];
-
-        if(key.length == 0){
-            this.peepList = this.copyOfList;
-        }else{
-            for(let i in this.copyOfList){
-                let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase();
-                if(name.indexOf(key) > -1){
-                    temp.push( this.copyOfList[i] );
-                }
-            }
-            this.peepList = temp;
-        }
+    searchMemberEvent(){
+        this.searchMemberInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberInput'), 'input');
+        this.searchMemberInput.debounceTime(800)
+            .map(event => event.target.value)
+            .subscribe((value) => {
+                this.queries.search = value;
+                this.queries.offset = 0;
+                this.loadingTable = true;
+                this.pagination.selection = [];
+                this.getListData(() => { 
+                    for(let i = 1; i<=this.pagination.pages; i++){
+                        this.pagination.selection.push({ 'number' : i });
+                    }
+                    this.pagination.currentPage = 1;
+                    this.pagination.prevPage = 1;
+                    this.loadingTable = false;
+                });
+            });
     }
 
     onSelectFromTable(event, peep){
         let selected = event.target.value;
         if(selected == 'view'){
             this.router.navigate(["/teams/view-user/", peep.id_encrypted]);
+        }else if(selected == 'healthy'){
+            this.selectedPeep = peep;
+            $('#modalMobilityHealty').modal('open');
         }else{
             event.target.value = "0";
             this.showModalLoader = false;
             this.selectedToArchive = peep;
             $('#modalArchive').modal('open');
         }
+
+        event.target.value = 0;
     }
 
     unArchiveClick(){
@@ -235,7 +293,7 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
             id = this.selectedToArchive['user_invitations_id'];
             this.userService.unArchiveInvitedUsers([id], cb);
         }
-        
+
     }
 
     selectAllCheckboxEvent(event){
@@ -379,7 +437,7 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
         }
 
         this.selectedPeep = peep;
-        
+
         $('#modalMobility').modal('open');
     }
 
@@ -426,7 +484,7 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
             if(this.selectedPeep['mobility_impaired_details'].length > 0){
                 paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
             }
-            
+
             paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
 
             this.showModalLoader = true;
@@ -439,6 +497,67 @@ export class MobilityImpairedArchivedComponent implements OnInit, OnDestroy {
                 $('#modalMobility').modal('close');
                 this.showModalLoader = false;
 
+            });
+        }
+    }
+
+     markUserAsHealthy(){
+        this.showModalLoader = true;
+
+        let paramData = {
+            user_id : this.selectedPeep['user_id'],
+            mobility_impaired : 0
+        };
+        this.userService.markAsHealthy(paramData, (response) => {
+
+            let newList = [];
+            for(let user of this.peepList){
+                if(user['user_id'] != this.selectedPeep['user_id']){
+                    newList.push(user);
+                }
+            }
+
+            this.peepList = newList;
+  
+            $('#modalMobilityHealty').modal('close');
+            this.showModalLoader = false;
+
+        });
+    }
+
+    pageChange(type){
+
+        let changeDone = false;
+        switch (type) {
+            case "prev":
+                if(this.pagination.currentPage > 1){
+                    this.pagination.currentPage = this.pagination.currentPage - 1;
+                    changeDone = true;
+                }
+                break;
+
+            case "next":
+                if(this.pagination.currentPage < this.pagination.pages){
+                    this.pagination.currentPage = this.pagination.currentPage + 1;
+                    changeDone = true;
+                }
+                break;
+            
+            default:
+                if(this.pagination.prevPage != parseInt(type)){
+                    this.pagination.currentPage = parseInt(type);
+                    changeDone = true;
+                }
+                break;
+        }
+
+        if(changeDone){
+            this.pagination.prevPage = parseInt(type);
+            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+            this.queries.offset = offset;
+            this.loadingTable = true;
+            this.getListData(() => { 
+                this.loadingTable = false;
             });
         }
     }

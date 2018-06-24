@@ -41,6 +41,15 @@
     display: none;
 }
 
+.documents-container .document .text-containe{
+    width: 70%;
+}
+
+.row-diagram-details .documents-container .document .text-container{
+    width: 60%;
+}
+
+
 .row-table-content{
     margin-top: 5%;
     position: absolute;
@@ -148,16 +157,16 @@
 .row-table-content .progress-loading-container .loading .tip-percentage{
     position: absolute;
     top: -43px;
-    right: -17px;
+    right: -20px;
 }
 
 .row-table-content .progress-loading-container .loading .percentage{
-    width: 35px;
+    width: 40px;
     height: 30px;
     line-height: 30px;
     background-color: #525151;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 12px;
     color: #fff;
     text-align: center;
 }
@@ -260,13 +269,30 @@ table tbody tr td.with-icon .text{
     font-size: 13px;
 }
 
-table tbody tr td.with-icon .text p{
-	margin: 0px;
+table tbody tr td.with-bar .text{
+    margin-right: 12px;
+    vertical-align: super;
+    color: #F44336;
 }
 
-table tbody tr td.with-bar .text{
-	color: #F44336 !important;
-	margin-right: 12px;
+table tbody tr td.with-icon .text p{
+	margin: 0px;
+    color: #333;
+}
+
+table tbody tr td.with-bar.red-theme .text,
+table tbody tr td.with-bar.red-theme .progress-container p{
+    color: #F44336 !important;
+}
+
+table tbody tr td.with-bar.green-theme .text,
+table tbody tr td.with-bar.green-theme .progress-container p{
+    color: #26a69a !important;
+}
+
+table tbody tr td.with-bar.orange-theme .text,
+table tbody tr td.with-bar.orange-theme .progress-container p{
+    color: #ff7e0b !important;
 }
 
 table tbody tr td.with-bar .text,
@@ -284,25 +310,50 @@ table tbody tr td .progress-container p{
     color: #333;
 }
 
-table tbody tr td .progress{
+table tbody tr td.with-bar .progress{
 	position: relative;
     height: 10px;
     display: block;
     width: 100%;
-    background-color: #dc44534d;
     border-radius: 2px;
     margin: 0px;
     overflow: hidden;
+    background-color: rgba(244, 67, 54, 0.17);
 }
 
-table tbody tr td .progress .determinate{
+table tbody tr td.with-bar.red-theme .progress{
+    background-color: rgba(244, 67, 54, 0.17);
+}
+
+table tbody tr td.with-bar.green-theme .progress{
+    background-color: rgba(38, 166, 154, 0.21);
+}
+
+table tbody tr td.with-bar.orange-theme .progress{
+    background-color: rgba(255, 126, 11, 0.17);
+}
+
+table tbody tr td.with-bar .progress .determinate{
 	position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
-    background-color: #cb0d20;
     transition: width .3s linear;
+    background-color: #cb0d20;
 }
+
+table tbody tr td.with-bar.red-theme .progress .determinate{
+    background-color: #cb0d20;
+}
+
+table tbody tr td.with-bar.green-theme .progress .determinate{
+    background-color: #26a69a;
+}
+
+table tbody tr td.with-bar.orange-theme .progress .determinate{
+    background-color: #ff7e0b;
+}
+
 
 table.table-list:not(.striped) tbody tr{
     background-color: #eee;
@@ -442,7 +493,8 @@ table th:first-child{
     margin-top: 5%;
 }
 
-.documents-container .document{
+.documents-container .document,
+.margin-bootom-10{
     margin-bottom: 10px;
 }
 
@@ -461,6 +513,7 @@ table th:first-child{
 
 .documents-container .document .text-container .file-name{
     margin-top: 0px;
+    max-width: 270px;
 }
 
 .documents-container .document .text-container .dates{
@@ -479,6 +532,7 @@ table th:first-child{
 .documents-container .document .text-container .buttons .btn{
     width: 140px;
     margin-right: 10px;
+    margin-bottom: 10px;
 }
 
 .documents-container .document .btn{
@@ -641,4 +695,30 @@ table th:first-child{
     width: 85px;
     text-align: center;
     padding: 0px;
+}
+
+a:hover{
+    cursor: pointer;
+}
+
+[type="radio"]:not(:checked)+label,
+[type="radio"]:checked+label{
+    padding-left: 25px !important;
+    margin-right: 15px !important;
+}
+
+#modalEvacExer{
+    width: 35%;
+}
+
+@media only screen and (max-width: 1024px) {
+    #modalEvacExer{
+        width: 60%;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    #modalEvacExer{
+        width: 95%;
+    }
 }

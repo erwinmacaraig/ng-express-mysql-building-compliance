@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
 import { ForgotPasswordService } from '../services/forgotpassword.service';
@@ -25,26 +25,30 @@ export class NoemailComponent implements OnInit {
 	InvalidMessagePassword = '';
 	securityQuestionID = 0;
 	securityUserID = 0;
-	securityToken ='';
+	securityToken = '';
 	correctMessage = '';
 	showLoading = false;
 	showFormOneContainer = true;
 	showFormTwoContainer = false;
 	showFormNewPassword = false;
-	showCorrectField = false;
+  showCorrectField = false;
+  showCheckIcon = false;
+  showCloseIcon = false;
+  message = '';
+
 	private baseUrl: String;
 	private options;
 	private headers;
 
 	constructor(
-		private platformLocation: PlatformLocation, 
-		private fpService:ForgotPasswordService, 
+		private platformLocation: PlatformLocation,
+		private fpService:ForgotPasswordService,
 		private http: HttpClient,
 		private router: Router
 	) {
 		this.baseUrl = (platformLocation as any).location.origin;
 		this.options = { headers : this.headers };
-		this.headers = new Headers({ 'Content-type' : 'application/json' });
+		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 	}
 
 	ngOnInit() {
@@ -90,11 +94,11 @@ export class NoemailComponent implements OnInit {
 			this.showLoading = true;
 
 			this.fpService.submitSecurityQuestion(
-				{ 
-					answer : f.controls.answer.value, 
+				{
+					answer : f.controls.answer.value,
 					question_id : this.securityQuestionID,
 					user_id : this.securityUserID
-				}, 
+				},
 				(response) => {
 					if(response.status){
 						this.showFormTwoContainer = false;

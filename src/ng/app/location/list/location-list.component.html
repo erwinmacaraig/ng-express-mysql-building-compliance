@@ -1,6 +1,7 @@
 <div class="row">
 	<div class="col m12">
-		<h5 class="text left">Location List</h5>
+        <h5 class="text left" *ngIf="!paramArchived">Location List</h5>
+		<h5 class="text left" *ngIf="paramArchived">Location Archived List</h5>
 
 		<div class="right table-align">
 			<!-- <h5 class="medium-text">Show only not compliant</h5>
@@ -12,10 +13,14 @@
 				<div class="background"></div>
 			</div>-->
 
-			<a href="#" class="archived" [routerLink]="['/location/archived/list']">
+			<a href="#" class="archived" *ngIf="!paramArchived" [routerLink]="['/location/list']" [queryParams]="{ archived : true }">
 				<span class="image"></span>
 				View Archive
 			</a>
+            <a href="#" class="archived" *ngIf="paramArchived" [routerLink]="['/location/list']">
+                <span class="image"></span>
+                View Active
+            </a>
 		</div>
 
 		<div style="clear: both;"></div>
@@ -25,7 +30,7 @@
 <div class="row filter-container">
 	<div class="col l6 m5 s12">
 		<div class="search-field">
-			<input type="text" placeholder="Search location" (keyup)="searchLocationEvent($event)" >
+			<input type="text" placeholder="Search location" #inputSearch >
 			<span class="material-icons">search</span>
 		</div>
 	</div>
@@ -41,21 +46,16 @@
 
 	<div class="col l3 m6 s6">
 		<select class="sort-by">
-			<option value="0" selected>Sort By</option>
+			<option value="" selected>Sort By</option>
 			<option value="name-asc" >Name (Asc)</option>
 			<option value="name-desc" >Name (Desc)</option>
-			<option value="mobility-asc" >Mobility (Asc)</option>
-			<option value="mobility-desc" >Mobility (Desc)</option>
-			<option value="sublocation-asc" >Sublocations (Asc)</option>
-			<option value="sublocation-desc" >Sublocations (Desc)</option>
-			<option value="wardens-asc" >Wardens (Asc)</option>
-			<option value="wardens-desc" >Wardens (Desc)</option>
 		</select>
 	</div>
 	<div class="col l3 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Manage Action</option>
-			<option value="archive" >Archive selected</option>
+			<option value="archive" *ngIf="!paramArchived">Archive selected</option>
+            <option value="archive" *ngIf="paramArchived">Restore selected</option>
 		</select>
 	</div>
 
@@ -73,7 +73,7 @@
 							<label for="allSelect">Location Name</label>
 						</p>
 					</th>
-					<th>Sublocations</th>
+					<th *ngIf="isFRP == true">Sub-location floor</th>
 					<th>No. of Tenants</th>
 					<th>No. of Wardens</th>
 					<th>Mobility Impaired</th>
@@ -81,7 +81,7 @@
 					<th>Manage</th>
 				</tr>
 			</thead>
-			<tbody >
+			<tbody *ngIf="!loadingTable">
 				<tr *ngIf="locations.length == 0">
 					<td colspan="7" class="center-align">
 						<h6>No records found</h6>
@@ -97,14 +97,34 @@
 							<img src="{{location.google_photo_url}}" alt="">
 						</div>
 						<div class="inline-block">
-							<a [routerLink]="['/location/view/', location.location_id]" class="location-name-link">
-								<span *ngIf="location.name.length > 0"> {{location.name}}</span>
-								<span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
-							</a>
+                        <!--
+                        <a *ngIf="location.parent_id > -1"  [routerLink]="['/location/view-sublocation/', location.location_id]" class="location-name-link">
+                        <span *ngIf="location.parent">{{location.parent.name}},</span>
+                        <span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                        <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                        </a>
+                        		<a *ngIf="location.parent_id == -1" [routerLink]="['/location/view/', location.location_id]" class="location-name-link">
+                        			<span *ngIf="location.parent">{{location.parent.name}},</span>
+                        			<span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                        			<span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                        </a>
+                        -->
+
+                        <a *ngIf="location.sublocation_count > 0 " [routerLink]="['/location', 'view', location.location_id]" class="location-name-link">
+                            <span *ngIf="location.parent">{{location.parent.name}},</span>
+                            <span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                            <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                        </a>
+                        <a *ngIf="location.sublocation_count == 0" [routerLink]="['/location', 'view-sublocation', location.location_id]" class="location-name-link">
+                            <span *ngIf="location.parent">{{location.parent.name}},</span>
+                            <span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                            <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                        </a>
+
 						</div>
 					</td>
-					<td>
-						{{location.sublocations.length}}
+					<td *ngIf="isFRP == true">
+						{{location.sublocation_count}}
 					</td>
 					<td>
 						<span style="margin-right:10px;">{{location.num_tenants}}</span>
@@ -119,12 +139,17 @@
 						{{location.mobility_impaired}}
 					</td>
 					<td class="with-bar">
-						<span *ngIf="location.admin_verified == 0" class="red-text">For verification</span>
-						<a *ngIf="location.admin_verified == 1" [routerLink]="['/location/compliance/view/', location.location_id]">
-							<div class="text">0%</div>
-							<div class="progress-container">
-								<div class="progress">
-							    	<div class="determinate" style="width: 0%;"></div>
+
+                        <div *ngIf="location.fetchingCompliance" class="progress fetching">
+                            <div class="indeterminate"></div>
+                        </div>
+
+						<span *ngIf="location.admin_verified == 0 && !location.fetchingCompliance" class="red-text">For verification</span>
+						<a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance" [routerLink]="['/location/compliance/view/', location.location_id]">
+							<div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
+							<div class="progress-container" >
+								<div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
+							    	<div class="determinate" [ngStyle]="{ 'width' : location.compliance_percentage+'%' }"></div>
 								</div>
 							</div>
 						</a>
@@ -136,15 +161,43 @@
 							<option value="addwardens-{{location.location_id}}">Add Wardens</option>
 							<option value="view-{{location.location_id}}">View Location</option>
 							<option value="compliance-{{location.location_id}}">View Compliance</option>
-							<option value="archive-{{location.location_id}}">Archive</option>
+                            <option *ngIf="!paramArchived" value="archive-{{location.location_id}}">Archive</option>
+							<option *ngIf="paramArchived" value="archive-{{location.location_id}}">Restore</option>
 							<!-- <option value="benchmark-{{location.location_id}}">Benchmark</option> -->
 						</select>
 					</td>
 				</tr>
 			</tbody>
+            <tbody *ngIf="loadingTable">
+                <tr>
+                    <td colspan="7" class="center">
+                        Fetching records...
+                    </td>
+                </tr>
+            </tbody>
 		</table>
 	</div>
 </div>
+
+
+<div class="row">
+    <div class="col l12 m12 s12 center pagination" [hidden]="locations.length == 0 || pagination.total <= queries.limit || loadingTable">
+        <div class="inline-block">
+            <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
+        </div>
+
+        <div class="inline-block select">
+            <select class="" #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+                <option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+            </select>
+        </div>
+
+        <div class="inline-block">
+            <button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
+        </div>
+    </div>
+</div>
+
 <div preloader></div>
 
 <div id="modalArchive" class="modal">
@@ -166,14 +219,20 @@
 
 		<h5 *ngIf="selectedArchive.length == 0">No location selected</h5>
 		<div *ngIf="selectedArchive.length > 0">
-			<p style="font-size: 16px;">
+			<p style="font-size: 16px;" *ngIf="!paramArchived">
 				Are you sure you want archive location : {{selectedArchive.name}}?
 			</p>
+            <p style="font-size: 16px;" *ngIf="paramArchived">
+                Are you sure you want restore location : {{selectedArchive.name}}?
+            </p>
 		</div>
 	</div>
 	<div class="modal-footer" [hidden]="modalArchive.loader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" *ngIf="selectedArchive.length  > 0" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  *ngIf="selectedArchive.length  > 0" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">
+            <span *ngIf="!paramArchived">Archive</span>
+            <span *ngIf="paramArchived">Restore</span>
+        </a>
 	</div>
 </div>
 
@@ -197,9 +256,12 @@
 
 		<h5 *ngIf="arraySelectedLocs.length == 0">No location selected</h5>
 		<div *ngIf="arraySelectedLocs.length > 0">
-			<p style="font-size: 16px;">
+			<p style="font-size: 16px;" *ngIf="!paramArchived">
 				Are you sure you want archive the following location?
 			</p>
+            <p style="font-size: 16px;" *ngIf="paramArchived">
+                Are you sure you want restore the following location?
+            </p>
 			<ul>
 				<li *ngFor="let loc of arraySelectedLocs;">
 					<span>{{loc.name}}</span>
@@ -208,8 +270,11 @@
 		</div>
 	</div>
 	<div class="modal-footer" [hidden]="modalArchiveBulk.loader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+        <a  *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">
+            <span *ngIf="!paramArchived">Archive</span>
+            <span *ngIf="paramArchived">Restore</span>
+        </a>
 	</div>
 </div>
 
@@ -221,7 +286,7 @@
 </div>
 
 <div id="modalAddNewTenant" class="modal">
-	<div class="modal-content" *ngIf="showModalNewTenantLoader">
+	<div class="modal-content" [hidden]="!showModalNewTenantLoader">
 		<div class="center-align">
 			<div class="preloader-wrapper active" >
 				<div class="spinner-layer spinner-red-only">
@@ -237,26 +302,53 @@
 		</div>
 	</div>
 
-	<div class="modal-content" *ngIf="!showModalNewTenantLoader">
+	<div class="modal-content" [hidden]="showModalNewTenantLoader">
 
 		<h5>Add New Tenant </h5>
 		<h6><span *ngIf="selectedLocation.name.length > 0">{{selectedLocation.name}}</span>  <span *ngIf="selectedLocation.name.length == 0">{{selectedLocation.formatted_address}}</span> </h6>
 
-		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)">
+        <h6 [hidden]="!showLoadingSublocations">Fetching locations...</h6>
+
+		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)" [hidden]="showLoadingSublocations">
 
 			<div class="row">
 				<div class="col l12 m12 s12">
 					<div class="select-field"  >
-						<select ngModel  name="location_id" class="location-id" required>
-							<option value="null" disabled>Select Sub Location</option>
+						<select ngModel name="location_id" class="location-id"  required>
+							<option value="0" disabled>Select Location</option>
 							<option *ngFor="let sub of selectedLocation.sublocations;" [value]="sub.location_id" >{{sub.name}}</option>
 						</select>
-						<label class="select-label">Select Sub Location</label>
+						<!-- <label class="select-label">Select Sub Location</label> -->
+					</div>
+					<div class="input-field">
+	          			<input id="company_name" type="text" name="account_name" ngModel required>
+						<label for="company_name">Tenancy Name</label>
+					</div>
+
+
+					<div class="input-field" >
+						<input id="key_contact_name" type="text" name="key_contact_name" ngModel required>
+						<label for="key_contact_name"> Name </label>
+					</div>
+
+					<div class="input-field" >
+						<input id="key_contact_lastname" type="text" name="key_contact_lastname" ngModel required>
+						<label for="key_contact_lastname"> Last Name </label>
 					</div>
 
 					<div class="input-field">
+						<input id="email" type="email" name="email" ngModel #email="ngModel" email pattern="[a-zA-Z0-9.-_]{1,}@[a-zA-Z.-]{2,}[.]{1}[a-zA-Z]{2,}" required>
+						<label for="email">Email
+						<small *ngIf=" !email.valid && email.dirty ">Invalid email address</small>
+					    <span *ngIf="emailTaken" email-taken class="red-text"> *Email taken </span>
+						</label>
+					</div>
+
+                <!--
+
+					<div class="input-field">
 	                  	<input id="company_name" type="text" name="account_name" ngModel required>
-						<label for="company_name">Tenant Name</label>
+						<label for="company_name">Tenancy Name</label>
 					</div>
 
 					<div class="input-field" >
@@ -307,13 +399,14 @@
 						<input id="domain" type="text" name="account_domain" ngModel required pattern="^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$">
 						<label for="domain">Account Domain name</label>
 					</div>
+                -->
 				</div>
 			</div>
 
 			<div class="row">
 				<div class="col l12 m12 s12">
 					<div class="button-container right-align" >
-						<a href="javascript:void(0)" class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
+						<a  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
 			    		<button type="submit" class="waves-effect waves-light btn orange btn-flat" [disabled]="!formAddTenant.valid">Submit</button>
 					</div>
 				</div>

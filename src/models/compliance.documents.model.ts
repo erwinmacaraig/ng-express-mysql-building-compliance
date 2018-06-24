@@ -41,7 +41,7 @@ export class ComplianceDocumentsModel extends BaseClass {
                   DATE_FORMAT(compliance_documents.date_of_activity, "%e/%c/%Y") as date_of_activity_formatted,
                   compliance_kpis.validity_in_months,
                   IF (date_of_activity = '0000-00-00', NULL,
-                    DATE_FORMAT(DATE_ADD(date_of_activity, INTERVAL validity_in_months MONTH), "%e/%c/%Y"))as valid_till
+                    DATE_FORMAT(DATE_ADD(compliance_documents.date_of_activity, INTERVAL compliance_kpis.validity_in_months MONTH), "%e/%c/%Y"))as valid_till
                   FROM
                     compliance_documents
                   INNER JOIN
@@ -58,7 +58,7 @@ export class ComplianceDocumentsModel extends BaseClass {
             const connection = db.createConnection(dbconfig);
             connection.query(sql, (error, results, fields) => {
                 if (error) {
-                    return console.log(error);
+                    console.log(error);
                 }
                 this.dbData = results;
                 resolve(results);
@@ -149,7 +149,5 @@ export class ComplianceDocumentsModel extends BaseClass {
             resolve(this.write());
         });
     }
-
-
 
 }

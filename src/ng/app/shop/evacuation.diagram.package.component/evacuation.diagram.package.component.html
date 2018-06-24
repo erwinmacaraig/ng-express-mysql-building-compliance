@@ -15,17 +15,17 @@
 </div>
 
 <div class="container margin-top-20" [hidden]="diagramsProducts.length == 0">
-	
+
 	<div class="row ">
-		<div id="selectLocationMessage" class="col l12 m12 s12 center red white-text" style="margin: 50px 0px; transition: all 0.3s; display: none; border-radius: 5px;"> 
-			<h5 style="font-size: 1.3rem;">* Please select location</h5> 
+		<div id="selectLocationMessage" class="col l12 m12 s12 center red white-text" style="margin: 50px 0px; transition: all 0.3s; display: none; border-radius: 5px;">
+			<h5 style="font-size: 1.3rem;">* Please select location</h5>
 		</div>
 
 		<div class="col l3 m12 s12">
 			<div class="left-panel margin-top-20">
 				<div class="content">
 					<h5 class="blue-text">Diagram Details</h5>
-				
+
 					<div class="select-field" style="margin-top: 30px;">
 						<h5 style="margin: 5px; font-size: 14px;">Select Location</h5>
 						<select id="selectLocation" style="display: block;">
@@ -33,12 +33,12 @@
 							<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
 						</select>
 					</div>
-					
+
 					<!-- <p>
 						<input type="checkbox" class="filled-in" value="none" id="pdf"  />
 						<label for="pdf">PDF File Only</label>
 					</p> -->
-					
+
 					<div class="quantity-container">
 						<p>Quantity</p>
 						<div class="input" >
@@ -49,7 +49,7 @@
 						<p>Minimum of 5 pcs.</p>
 					</div>
 				</div>
-				
+
 				<div class="footer">
 					<h5 class="left">
 						Total
@@ -62,15 +62,15 @@
 			</div>
 
 			<div class="buy-buttons">
-				<button class="btn orange waves-effect waves-light buy" #btnAdd *ngIf="!isInCart()" (click)="addToCart(btnAdd)">
+				<button class="btn orange waves-effect waves-light buy" #btnAdd *ngIf="!isInCart()"> <!-- (click)="addToCart(btnAdd)" -->
 					<div class="image"></div> Add To Cart
 				</button>
 
-				<button class="btn orange waves-effect waves-light buy" #btnUpdate *ngIf="isInCart()" (click)="updateItemToCart(btnUpdate)">
+				<button class="btn orange waves-effect waves-light buy" #btnUpdate > <!-- *ngIf="isInCart()" (click)="updateItemToCart(btnUpdate)" -->
 					<div class="image"></div> Update Cart
 				</button>
 
-				<button class="btn light-blue waves-effect waves-light buy" #btnBuyNow (click)="buyNow(btnBuyNow)">
+				<button class="btn light-blue waves-effect waves-light buy" #btnBuyNow > <!-- (click)="buyNow(btnBuyNow)" -->
 					<div class="image"></div> Buy Now
 				</button>
 
@@ -83,11 +83,11 @@
 				<div class="top">
 					<h5 class="orange-text left">Select Diagram Finish <small class="blue-text">{{totalAddedQuantity}}/<span>{{totalQuantity}}</span> </small></h5>
 					<div class="right">
-						<button class="btn-flat waves-effect waves-light save" #btnSaveFav *ngIf="!isInFavorites()" (click)="addToFavorites(btnSaveFav)">
+						<button class="btn-flat waves-effect waves-light save" #btnSaveFav  ><!-- *ngIf="!isInFavorites()" (click)="addToFavorites(btnSaveFav)" -->
 							<div class="image"></div> Save
 						</button>
 
-						<button class="btn-flat waves-effect waves-light save" #btnSaveRemove *ngIf="isInFavorites()" (click)="removeFavorite(btnSaveRemove)">
+						<button class="btn-flat waves-effect waves-light save" #btnSaveRemove><!-- *ngIf="isInFavorites()" (click)="removeFavorite(btnSaveRemove)" -->
 							<div class="image"></div> Remove
 						</button>
 					</div>
@@ -98,7 +98,7 @@
 					<h5 class="blue-text">
 						Do you want all diagrams to have the same finish?
 					</h5>
-					
+
 					<div class="select">
 						If yes
 						<select id="selectDiagram" #selectDiagram (change)="onChageSelectDiagram(selectDiagram)" >
@@ -115,7 +115,7 @@
 					</h5>
 					<ul>
 						<li *ngFor="let prod of diagramsProducts">
-							
+
 							<div class="image">
 								<img src="{{prod.product_image}}" alt="">
 							</div>

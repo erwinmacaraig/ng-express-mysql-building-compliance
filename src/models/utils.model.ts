@@ -2,6 +2,9 @@ import * as db from 'mysql2';
 import * as Promise from 'promise';
 import * as csv from 'fast-csv';
 import * as fs from 'fs';
+import { Location } from './location.model';
+import { Account } from './account.model';
+import { ComplianceKpisModel } from './comliance.kpis.model';
 
 const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
@@ -90,15 +93,16 @@ export class Utils {
             u.last_name,
             u.email,
             lau.account_id,
-            lau.role_id AS role_id_location,
+            user_role_relation.role_id AS role_id_location,
             urr.role_id AS role_id_account
           FROM
             location_account_user lau
-            INNER JOIN users u ON u.user_id = lau.user_id
+          INNER JOIN users u ON u.user_id = lau.user_id
+          INNER JOIN user_role_relation ON lau.user_id = user_role_relation.user_id
             RIGHT JOIN user_role_relation urr ON u.user_id = urr.user_id
           WHERE
-            lau.location_id IN (`+location+`) AND
-            lau.role_id = 2 AND
+            lau.location_id IN (`+ location +`) AND
+            user_role_relation.role_id = 2 AND
             u.token IS NOT NULL AND
             u.user_id <> `+user_id+` AND
             u.token <> ''
@@ -115,7 +119,7 @@ export class Utils {
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_trp, (error, results, fields) => {
           if (error) {
-            return console.log(error);
+            return console.log(error, 'utils.models.');
           }
           if (!results.length) {
             reject('No TRP found');
@@ -168,6 +172,7 @@ export class Utils {
                             locations.city,
                             locations.state,
                             locations.postal_code,
+                            locations.is_building,
                             accounts.account_name
                         FROM
                             locations
@@ -255,7 +260,7 @@ export class Utils {
         connection.end();
       });
     }
-
+/*
     public deployQuestions(account_id: number,
           location_id: number,
           user_id: number,
@@ -319,7 +324,7 @@ export class Utils {
         }
       });
     }
-
+*/
     public processCSVUpload(filename: string) {
       return new Promise((resolve, reject) => {
 
@@ -452,7 +457,7 @@ export class Utils {
                 if (!compliance[results[i]['compliance_kpis_id']]) {
                   compliance[results[i]['compliance_kpis_id']] = [];
                 }
-                console.log('pushing ' + results[i]['file_name']);
+                // console.log('pushing ' + results[i]['file_name']);
                 compliance[results[i]['compliance_kpis_id']].push(`${results[i]['account_directory_name']}/${results[i]['location_directory_name']}/${results[i]['directory_name']}/${results[i]['document_type']}/${results[i]['file_name']}`);
               }
               resolve(compliance);

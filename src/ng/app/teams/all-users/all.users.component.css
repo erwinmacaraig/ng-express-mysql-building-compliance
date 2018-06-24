@@ -143,7 +143,7 @@ table tr td .checkbox{
 
 table tr td .checkbox [type="checkbox"]+label{
 	padding-left: 30px;
-    height: 20px;
+    height: 15px;
     line-height: 20px;
     color: #333;
 }
@@ -216,7 +216,29 @@ table tr td.with-image .impaired{
     background-repeat: no-repeat;
     background-size: 440px;
     background-position: 73.2% 71.4%;
+}
 
+.inline-block{
+    display: inline-block;
+}
+
+.pagination button{
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+    vertical-align: inherit;
+}
+
+.pagination select:not(.to-materialize){
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+}
+
+.pagination .select{
+    margin: 0px 10px;
 }
 
 #modalArchiveBulk,
@@ -232,23 +254,43 @@ select option:disabled{
     color: gray !important;
 }
 
+#modalMobility .btn,
+#modalMobilityHealty .btn{
+    font-size: 15px !important;
+    line-height: 43px;
+}
+
+#modalMobilityHealty,
+#modalSendInvitation{
+    width: 35%;
+}
+
 @media only screen and (max-width: 1400px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalSendInvitation{
         width: 50%;
     }
 }
 
 @media only screen and (max-width: 1024px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalMobilityHealty{
         width: 60%;
+    }
+
+    #modalMobility,
+    #modalSendInvitation{
+        width : 90%;
     }
 }
 
 @media only screen and (max-width: 500px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalMobility,
+    #modalMobilityHealty{
         width: 90%;
     }
 }

@@ -2,31 +2,34 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Output, EventEmitt
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute, NavigationStart, NavigationEnd } from '@angular/router';
 import { LocationsService } from '../../services/locations';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { ComplianceService } from '../../services/compliance.service';
 import { AuthService } from '../../services/auth.service';
-import { Observable, } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import { isArray } from 'util';
 import { Countries } from '../../models/country.model';
 import { Timezone } from '../../models/timezone';
+import { UserService } from '../../services/users';
 
 declare var $: any;
 @Component({
   selector: 'app-location-list',
   templateUrl: './location-list.component.html',
   styleUrls: ['./location-list.component.css'],
-  providers : [LocationsService, DashboardPreloaderService, AuthService, AccountsDataProviderService, EncryptDecryptService]
+  providers : [LocationsService, DashboardPreloaderService, AuthService, ComplianceService, AccountsDataProviderService, EncryptDecryptService]
 })
 export class LocationListComponent implements OnInit, OnDestroy {
 
 	@ViewChild('inpSearchLoc') inpSearchLoc;
 	@ViewChild('tbodyElem') tbodyElem;
 	@ViewChild('formAddTenant') formAddTenant : NgForm;
+    @ViewChild('inputSearch') inputSearch : ElementRef;
 
 	locations = [];
 	locationsBackup = [];
@@ -61,42 +64,65 @@ export class LocationListComponent implements OnInit, OnDestroy {
     timezones = new Timezone().get();
     defaultCountry = 'AU';
     defaultTimeZone = 'AEST';
+    public account_name;
+    public key_contact_name;
+    public key_contact_lastname;
+    public emailTaken = false;
 
-	constructor (
-		private platformLocation: PlatformLocation,
-		private http: HttpClient,
-		private auth: AuthService,
-		private preloaderService: DashboardPreloaderService,
-		private locationService: LocationsService,
-		private accntService: AccountsDataProviderService,
-	    private encryptDecrypt: EncryptDecryptService,
-	    private router: Router,
-	    private elemRef : ElementRef
-	) {
-		this.baseUrl = (platformLocation as any).location.origin;
-		this.options = { headers : this.headers };
-		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-		this.userData = this.auth.getUserData();
+    isFRP = false;
+    isTRP = false;
+
+    loadingTable = false;
+
+    pagination = {
+        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+    };
+
+    queries = {
+        offset :  0,
+        limit : 10,
+        search : '',
+        sort : '',
+        archived : 0
+    };
+
+    searchSubs;
+
+    paramArchived = <any> false;
+    routerSubs;
+
+    showLoadingSublocations = false;
+
+    constructor (
+      private platformLocation: PlatformLocation,
+      private http: HttpClient,
+      private auth: AuthService,
+      private preloaderService: DashboardPreloaderService,
+      private locationService: LocationsService,
+      private accntService: AccountsDataProviderService,
+      private encryptDecrypt: EncryptDecryptService,
+      private complianceService : ComplianceService,
+      private router: Router,
+      private actRouter: ActivatedRoute,
+      private elemRef : ElementRef,
+      private userService : UserService
+    ) {
+        this.baseUrl = (platformLocation as any).location.origin;
+        this.options = { headers : this.headers };
+        this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
+        this.userData = this.auth.getUserData();
 
     	this.accntService.getById(this.userData['accountId'], (response) => {
 	      	this.accountData = response.data;
-    	});
-
-    	this.getLocationsForListing(() => {
-    		this.preloaderService.hide();
-
-	        if (localStorage.getItem('showemailverification') !== null) {
-	          this.router.navigate(['/location', 'search']);
-	        }
     	});
 
 		this.mutationOversable = new MutationObserver((mutationsList) => {
 			mutationsList.forEach((mutation) => {
 				if(mutation.target.nodeName != '#text'){
 					let target = $(mutation.target);
-					if(target.find('select:not(.initialized)').length > 0){
+					if(target.find('select.select-from-row:not(.initialized)').length > 0){
 
-						target.find('select:not(.initialized)').material_select();
+						target.find('select.select-from-row:not(.initialized)').material_select();
 
 					}
 				}
@@ -105,16 +131,59 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 		this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
 
+        for(let rol of this.userData['roles']){
+            if(rol.role_id == 1){
+                this.isFRP = true;
+            }
+            if(rol.role_id == 2){
+                this.isTRP = true;
+            }
+        }
+
+        this.routerSubs = router.events.subscribe(event => {
+            if(event instanceof NavigationEnd){
+
+                this.queries.offset = 0;
+                if(event.url.indexOf('archived=true') > -1){
+                    this.paramArchived = true;
+                    this.queries.archived = 1;
+                }else{
+                    this.paramArchived = false;
+                    this.queries.archived = 0;
+                }
+
+                this.ngAfterViewInit();
+
+            }
+        });
+
   	}
 
 	ngOnInit(){
-		this.preloaderService.show();
+
 	}
 
 	getLocationsForListing(callback){
-		this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
+		this.locationService.getParentLocationsForListingPaginated(this.queries, (response) => {
 
-    		this.locations = response.locations;
+            this.pagination.total = response.pagination.total;
+            this.pagination.pages = response.pagination.pages;
+            this.pagination.selection = [];
+            for(let i = 1; i<=this.pagination.pages; i++){
+                this.pagination.selection.push({ 'number' : i });
+            }
+
+            this.locations = response.locations;
+
+            for(let loc of this.locations){
+                loc['fetchingCompliance'] = true;
+                loc['compliance_percentage'] = 0;
+                this.complianceService.getLocationsLatestCompliance(loc.location_id, (compRes) => {
+                    loc['fetchingCompliance'] = false;
+                    loc['compliance_percentage'] = compRes.percent ;
+                });
+            }
+
     		if (this.locations.length > 0) {
     			for (let i = 0; i < this.locations.length; i++) {
     				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
@@ -122,11 +191,13 @@ export class LocationListComponent implements OnInit, OnDestroy {
     		}
     		this.locationsBackup = JSON.parse(JSON.stringify(this.locations));
 
-    		callback();
+    		callback(response);
     	});
 	}
 
 	ngAfterViewInit(){
+		this.preloaderService.show();
+		
 		$('.nav-list-locations').addClass('active');
 		$('.location-navigation .active').removeClass('active');
 		$('.location-navigation .view-location').addClass('active');
@@ -135,12 +206,29 @@ export class LocationListComponent implements OnInit, OnDestroy {
 			dismissible: false
 		});
 
+        this.getLocationsForListing((response) => {
+
+            if(this.pagination.pages > 0){
+                this.pagination.currentPage = 1;
+                this.pagination.prevPage = 1;
+            }
+
+            this.preloaderService.hide();
+
+            $('.filter-container select').material_select();
+
+            if (localStorage.getItem('showemailverification') !== null) {
+              this.router.navigate(['/location', 'search']);
+            }
+        });
+
 
 		this.selectRowEvent();
 		this.selectFilteringEvent();
 		this.selectBulkAction();
 
 		let formAddTenant = this.formAddTenant;
+       /*
         $('body').off('change.countrychange').on('change.countrychange', 'select.billing-country', (event) => {
             formAddTenant.controls.billing_country.setValue( event.currentTarget.value );
         });
@@ -148,11 +236,53 @@ export class LocationListComponent implements OnInit, OnDestroy {
         $('body').off('change.timechange').on('change.timechange', 'select.time-zone', (event) => {
             formAddTenant.controls.time_zone.setValue( event.currentTarget.value );
         });
+        */
 
         $('body').off('change.locationchange').on('change.locationchange', 'select.location-id', (event) => {
             formAddTenant.controls.location_id.setValue( event.currentTarget.value );
         });
+
+        this.searchLocationEvent();
+
+        $('.pagination select').material_select('destroy');
 	}
+
+    pageChange(type){
+
+        let changeDone = false;
+        switch (type) {
+            case "prev":
+                if(this.pagination.currentPage > 1){
+                    this.pagination.currentPage = this.pagination.currentPage - 1;
+                    changeDone = true;
+                }
+                break;
+
+            case "next":
+                if(this.pagination.currentPage < this.pagination.pages){
+                    this.pagination.currentPage = this.pagination.currentPage + 1;
+                    changeDone = true;
+                }
+                break;
+
+            default:
+                if(this.pagination.prevPage != parseInt(type)){
+                    this.pagination.currentPage = parseInt(type);
+                    changeDone = true;
+                }
+                break;
+        }
+
+        if(changeDone){
+            this.pagination.prevPage = parseInt(type);
+            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+            this.queries.offset = offset;
+            this.loadingTable = true;
+            this.getLocationsForListing(() => {
+                this.loadingTable = false;
+            });
+        }
+    }
 
 	selectBulkAction(){
 		$('body').off('change.selectbulk').on('change.selectbulk', 'select.bulk-manage', (e) => {
@@ -161,7 +291,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				val = target.val();
 
 			if(val == 'archive'){
-				$('select.bulk-manage').val("0").material_select("update");
+				$('select.bulk-manage').val("0").material_select();
 				if(this.arraySelectedLocs.length > 0){
 					$('#modalArchiveBulk').modal('open');
 				}
@@ -177,13 +307,13 @@ export class LocationListComponent implements OnInit, OnDestroy {
 			for(let i in this.arraySelectedLocs){
 				locs.push({
 					location_id : this.encryptDecrypt.decrypt(this.arraySelectedLocs[i]['location_id']),
-					archived : 1
+					archived : (!this.paramArchived) ? 1 : 0
 				});
 			}
 
 			this.arraySelectedLocs = [];
 
-			$('select.bulk-manage').val("0").material_select("update");
+			$('select.bulk-manage').val("0").material_select();
 			$('#allSelect').prop('checked', false);
 
 			this.locationService.archiveMultipleLocation({
@@ -204,7 +334,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 			locs.push({
 				location_id : this.encryptDecrypt.decrypt(this.selectedArchive['location_id']),
-				archived : 1
+				archived : (!this.paramArchived) ? 1 : 0
 			});
 
 			this.locationService.archiveMultipleLocation({
@@ -220,9 +350,11 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	}
 
 	showNewTenant(){
-		this.formAddTenant.reset();
+        /*
+        this.formAddTenant.reset();
         this.formAddTenant.controls.billing_country.setValue( this.defaultCountry );
         this.formAddTenant.controls.time_zone.setValue( this.defaultTimeZone );
+        */
         $('#modalAddNewTenant').modal('open');
 
         $('#modalAddNewTenant select').material_select('destroy');
@@ -231,12 +363,33 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	submitNewTenant(formAddTenant:NgForm){
         if(formAddTenant.valid){
             this.showModalNewTenantLoader = true;
+            /*
+            console.log(formAddTenant.value);
+            console.log(formAddTenant.value.location_id);
+            */
+           formAddTenant.controls.location_id.setValue( $('#modalAddNewTenant select.location-id').val() );
+            this.userService.sendTRPInvitation(formAddTenant.value).subscribe(() => {
+              this.getLocationsForListing(() => {
+                this.showModalNewTenantLoader = false;
+                $('#modalAddNewTenant').modal('close');
+                this.formAddTenant.reset();
+              });
+            }, (e) => {
+              this.showModalNewTenantLoader = false;
+              $('#modalAddNewTenant').modal('close');
+              console.log(e);
+              const errorObject = JSON.parse(e.error);
+              alert(errorObject.message);
+            });
+
+            /*
             this.accntService.update(formAddTenant.value).subscribe((response) => {
                 this.getLocationsForListing(() => {
-		    		this.showModalNewTenantLoader = false;
-		    		$('#modalAddNewTenant').modal('close');
-		    	});
+		    	    	  this.showModalNewTenantLoader = false;
+		    	    	  $('#modalAddNewTenant').modal('close');
+		        	});
             });
+          */
         }
     }
 
@@ -256,6 +409,18 @@ export class LocationListComponent implements OnInit, OnDestroy {
             	for(let i in this.locationsBackup){
 					if(this.locationsBackup[i]['location_id'] == locIdEnc){
 						this.selectedLocation = this.locationsBackup[i];
+                        this.showLoadingSublocations = true;
+                        this.locationService.getSublocationsOfParent(this.encryptDecrypt.decrypt(locIdEnc)).subscribe((subResponse) => {
+                            this.selectedLocation['sublocations'] = [];
+                            this.selectedLocation['sublocations'].push(this.selectedLocation);
+                            if(subResponse.data.length > 0){
+                                this.selectedLocation['sublocations'] = this.selectedLocation['sublocations'].concat(subResponse.data);
+                            }
+                            this.showLoadingSublocations = false;
+                            setTimeout(() => {
+                                $('#modalAddNewTenant select.location-id').material_select();
+                            }, 300);
+                        });
 					}
 				}
 				this.showNewTenant();
@@ -292,6 +457,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
             }
 
+            target.val(0).material_select();
+
 		});
 	}
 
@@ -313,197 +480,42 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	}
 
 	selectFilteringEvent(){
-		$('body').off('change.filterby').on('change.filterby', 'select.filter-by', (e) => {
-			e.preventDefault();
-			let target = $(e.target),
-				val = target.val(),
-				filtered = [];
-
-			if(val == 'compliance'){
-				for(let i in this.locationsBackup){
-					if( this.locationsBackup[i]['compliance'] == 100 ){
-						filtered.push( this.locationsBackup[i] );
-					}
-				}
-				this.locations = filtered;
-			}else if(val == 'not-compliance'){
-				for(let i in this.locationsBackup){
-					if( this.locationsBackup[i]['compliance'] < 100 ){
-						filtered.push( this.locationsBackup[i] );
-					}
-				}
-				this.locations = filtered;
-			}else if(val == 'mobility-impaired'){
-				for(let i in this.locationsBackup){
-					if( this.locationsBackup[i]['mobility_impaired'] > 0 ){
-						filtered.push( this.locationsBackup[i] );
-					}
-				}
-				this.locations = filtered;
-			}else{
-				this.locations = this.locationsBackup;
-			}
-
-		});
-
-
 		$('body').off('change.sortby').on('change.sortby', 'select.sort-by', (e) => {
 			e.preventDefault();
 			let target = $(e.target),
-				val = target.val(),
-				filtered = [];
-
-			if(val == 'name-asc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.name.toUpperCase(),
-						name2 = b.name.toUpperCase();
-
-					if(name1 < name2){
-						return -1
-					}
-					if(name1 > name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'name-desc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.name.toUpperCase(),
-						name2 = b.name.toUpperCase();
-
-					if(name1 > name2){
-						return -1
-					}
-					if(name1 < name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'mobility-asc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.mobility_impaired,
-						name2 = b.mobility_impaired;
-
-					if(name1 < name2){
-						return -1
-					}
-					if(name1 > name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'mobility-desc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.mobility_impaired,
-						name2 = b.mobility_impaired;
-
-					if(name1 > name2){
-						return -1
-					}
-					if(name1 < name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'sublocation-asc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.sublocations.length,
-						name2 = b.sublocations.length;
-
-					if(name1 < name2){
-						return -1
-					}
-					if(name1 > name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'sublocation-desc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.sublocations.length,
-						name2 = b.sublocations.length;
-
-					if(name1 > name2){
-						return -1
-					}
-					if(name1 < name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'wardens-asc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.num_wardens,
-						name2 = b.num_wardens;
-
-					if(name1 < name2){
-						return -1
-					}
-					if(name1 > name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else if(val == 'wardens-desc'){
-				let temp = JSON.parse(JSON.stringify(this.locationsBackup));
-				temp.sort((a, b) => {
-					let name1 = a.num_wardens,
-						name2 = b.num_wardens;
-
-					if(name1 > name2){
-						return -1
-					}
-					if(name1 < name2){
-						return 1
-					}
-
-					return 0;
-				});
-				this.locations = temp;
-			}else{
-				this.locations = this.locationsBackup;
-			}
-
+				val = target.val();
+            this.queries.sort = val;
+            this.queries.offset = 0;
+            this.loadingTable = true;
+            this.getLocationsForListing((response) => {
+                this.pagination.total = response.pagination.total;
+                this.pagination.pages = response.pagination.pages;
+                this.pagination.currentPage = 1;
+                this.loadingTable = false;
+            });
 		});
 	}
 
-	searchLocationEvent(event){
-		let elem = event.target,
-			val = elem.value.toLowerCase().trim(),
-			filtered = [];
+	searchLocationEvent(){
+        let thisClass = this;
 
-		if(val.length == 0){
-			this.locations = this.locationsBackup;
-		}else{
-			for(let i in this.locationsBackup){
-				if(this.locationsBackup[i]['name'].toLowerCase().indexOf(val) > -1 || this.locationsBackup[i]['formatted_address'].toLowerCase().indexOf(val) > -1){
-					filtered.push(this.locationsBackup[i]);
-				}
-			}
+		this.searchSubs = Observable.fromEvent(this.inputSearch.nativeElement, 'keyup')
+        .debounceTime(800).subscribe((event:KeyboardEvent) => {
+            thisClass.queries.limit = 10;
+            thisClass.queries.offset = 0;
+            thisClass.queries.search = this.inputSearch.nativeElement['value'];
+            thisClass.queries.sort = $('.sort-by select').val();
+            thisClass.loadingTable = true;
+            thisClass.getLocationsForListing((response) => {
 
-			this.locations = filtered;
-		}
+                thisClass.pagination.total = response.pagination.total;
+                thisClass.pagination.pages = response.pagination.pages;
+                thisClass.pagination.currentPage = 1;
+
+                thisClass.loadingTable = false;
+            });
+            console.log(thisClass.queries);
+        });
 	}
 
 	selectAllChangeEvent(event){
@@ -549,13 +561,12 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				break;
 		}
 
-
-
-		console.log(this.arraySelectedLocs);
 	}
 
 	ngOnDestroy(){
 		this.mutationOversable.disconnect();
+        this.searchSubs.unsubscribe();
+        this.routerSubs.unsubscribe();
 	}
 
 	getInitial(name:String){

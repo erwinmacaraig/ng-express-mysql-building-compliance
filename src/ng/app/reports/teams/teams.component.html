@@ -1,128 +1,168 @@
-<div class="container">
-	<div class="row">
+<div class="container" #printContainer>
+    
+    <div *ngFor="let report of reportData; let i = index;" >
 
-		<div class="col l12 m12 s12">
-			<h5 class="left">Current Team Information</h5>
+    	<div class="row" style="margin-top: 35px;">
 
-			<div class="left filter-container">
-				<div class="select-container">
-					<select class="select-location">
-						<option value="0" selected disabled>Select Location</option>
-					</select>
-				</div>
-				
-				<div class="select-container">
-					<select class="select-role">
-						<option value="0" selected disabled>Select Role</option>
-					</select>
-				</div>
-			</div>
+    		<div class="col l12 m12 s12">
+    			<h5 class="left">
+                    <span *ngIf="report.location.parent.name.length > 0">{{report.location.parent.name}}, </span> {{report.location.name}} 
+                    Current Team Information
+                </h5>
 
-			<div class="right right-buttons">
-				<a href="javascript:void(0)">
-					<div class="text">Export to</div>
-					<div class="image pdf"></div>
-				</a>
-				
-				<a href="javascript:void(0)">
-					<div class="image excel"></div>
-				</a>
+    			<div class="left filter-container">
+    				<div class="select-container" *ngIf="locationIdDecrypted > 0">
+    					<select class="select-location" id="selectLocation">
+    						<option value="null" selected disabled>Select Location</option>
+    						<option value="{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb">{{loc.name}}</option>
+    					</select>
+    				</div>
 
-				<a href="javascript:void(0)">
-					<div class="text">Print</div>
-					<div class="image print"></div>
-				</a>
+    				<!-- <div class="select-container">
+    					<select class="select-role">
+    						<option value="0" selected disabled>Select Role</option>
+    					</select>
+    				</div> -->
+    			</div>
 
-			</div>
+    			<div class="right right-buttons no-print" *ngIf="i == 0">
+                    <div style="width: 35px;" *ngIf="pdfLoader">
+                        <div class="progress" style="margin: 2px auto;">
+                            <div class="indeterminate"></div>
+                        </div>
+                    </div>
 
-			<div class="clearfix"></div>
-		</div>
-		
+    				<a #aPdf (click)="pdfExport(printContainer)" *ngIf="!pdfLoader">
+    					<div class="text">Export to</div>
+    					<div class="image pdf"></div>
+    				</a>
 
-	</div>
+                    <div style="width: 35px;" *ngIf="csvLoader">
+                        <div class="progress" style="margin: 2px auto;">
+                            <div class="indeterminate"></div>
+                        </div>
+                    </div>
 
-	<div class="row">
-		
-		<div class="col l12 m12 s12">
-			<table class="striped">
-				<thead>
-					<tr class="grey darken-5 white-text">
-						<th>Company</th>
-						<th>Sub Location</th>
-						<th>Contact Person</th>
-						<th>Tel no</th>
-						<th>Email</th>
-						<th>Warden</th>
-						<th>P.E.E.P</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>
-							Apple
-						</td>
-						<td>
-							Greenbelt
-						</td>
-						<td>
-							John Snow
-						</td>
-						<td>
-							09150201169
-						</td>
-						<td>
-							johnsnow@email.com
-						</td>
-						<td>
-							<span class="blue-text">20</span>
-						</td>
-						<td>
-							<span class="blue-text">--</span>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							Orange
-						</td>
-						<td>
-							Quezon
-						</td>
-						<td>
-							Ned Stark
-						</td>
-						<td>
-							09150201169
-						</td>
-						<td>
-							nedstark@email.com
-						</td>
-						<td>
-							<span class="blue-text">10</span>
-						</td>
-						<td>
-							<span class="blue-text">2</span>
-						</td>
-					</tr>
-					
-				</tbody>
-			</table>
-		</div>
+    				<a (click)="csvExport()" *ngIf="!csvLoader">
+    					<div class="image excel"></div>
+    				</a>
 
-	</div>
+    				<a  (click)="printResult(printContainer)">
+    					<div class="text">Print</div>
+    					<div class="image print"></div>
+    				</a>
 
-	<div class="row">
-		<div class="col l12 m12 s12 col-buttons right-align">
+    			</div>
 
-			<button class="btn orange btn-compliance-rating">
-				<div class="text">
-					Total no. of Wardens
-				</div>
-				<div class="white center">
-					0
-				</div>
-			</button>
+    			<div class="clearfix"></div>
+    		</div>
 
-		</div>
-	</div>
+
+    	</div>
+
+    	<div >
+
+    		<div class="row" >
+
+    			<div class="col l12 m12 s12" >
+    				<table class="striped">
+    					<thead>
+    						<tr class="grey darken-5 white-text">
+    							<th>Company</th>
+    							<th>Sub Location</th>
+    							<th>Contact Person</th>
+    							<!-- <th>Tel no</th> -->
+    							<th>Email</th>
+    							<th>Warden</th>
+    							<th>P.E.E.P</th>
+    						</tr>
+    					</thead>
+    					<tbody>
+    						<tr *ngIf="report.data.length == 0">
+    							<td colspan="7" class="center">No record found</td>
+    						</tr>
+    						<tr *ngFor="let field of report.data">
+    							<td>
+                                    <span *ngFor="let accnt of field['trp']" [ngStyle]="{'display': 'block'}">
+                                        {{accnt['account_name']}}
+                                    </span>
+
+                                </td>
+                                <td>
+                                    {{field['name']}}
+                                </td>
+
+                                <td>
+                                  <span *ngFor="let accnt of field['trp']" [ngStyle]="{'display': 'block'}">
+                                      {{accnt['first_name']}} {{accnt['last_name']}}
+                                      <span *ngIf="accnt['mobile_number'].length > 0">  ( {{accnt['mobile_number']}} )  </span>
+                                  </span>
+                              </td>
+
+                              <td>
+                                  <span *ngFor="let accnt of field['trp']" [ngStyle]="{'display': 'block'}">
+                                      {{accnt['email']}}
+                                  </span>
+                              </td>
+                              <td>
+                                <span class="blue-text">{{field['total_wardens']}}</span>
+                            </td>
+                            <td>
+                                <span class="blue-text">{{field['peep_total']}}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+    			</div>
+
+    		</div>
+
+    		<div class="row">
+    			<div class="col l12 m12 s12 col-buttons right-align">
+
+    				<button class="btn orange btn-compliance-rating">
+    					<div class="text">
+    						Total no. of Wardens
+    					</div>
+    					<div class="white center">
+    						{{ report.total_warden }}
+    					</div>
+    				</button>
+
+    			</div>
+    		</div>
+
+    	</div>
+        
+
+    </div>
+
 
 </div>
+
+<div class="container">
+
+    <div class="row no-print">
+        <div class="col l12 m12 s12 center pagination" [hidden]="reportData.length == 0 || pagination.pages < 2 ">
+            <div class="inline-block">
+                <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
+            </div>
+
+            <div class="inline-block select">
+                <select #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+                    <option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+                </select>
+            </div>
+
+            <div class="inline-block">
+                <button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="cloneContainer" style="">
+    <div class="clones"></div>
+</div>
+<div id="canvasContainer" style="display: none;"></div>

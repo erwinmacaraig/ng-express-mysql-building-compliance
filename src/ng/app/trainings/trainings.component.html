@@ -1,15 +1,23 @@
 <app-navbar></app-navbar>
 <div class="trainings-navigation">
 	<ul>
+    <li class="team-training" *ngIf="isNormalUser" [routerLink]="['/trainings/my-training-profile', user_id_encrypted]">
+      <div class="image"></div> Training Profile
+    </li>
+    <!--
 		<li class="my-training" [routerLink]="['/trainings/my-training']">
 			<div class="image"></div> My Training
-		</li>
+    </li>
+
 		<li class="team-training" [routerLink]="['/trainings/team-training']">
 			<div class="image"></div> Team Training
-		</li>
+    </li>
+
 		<li class="training-invite" [routerLink]="['/trainings/training-invite']">
 			<div class="image"></div> Training Invite
-		</li>
+    </li>
+    -->
+
 	</ul>
 </div>
 <div class="workspace container">

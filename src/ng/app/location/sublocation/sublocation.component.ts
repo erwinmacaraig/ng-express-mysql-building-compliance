@@ -8,6 +8,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { LocationsService } from '../../services/locations';
 import { UserService } from '../../services/users';
 import { AccountsDataProviderService } from '../../services/accounts';
+import { AuthService } from '../../services/auth.service';
 
 import { Countries } from '../../models/country.model';
 import { Timezone } from '../../models/timezone';
@@ -25,13 +26,24 @@ declare var Materialize: any;
     providers: [EncryptDecryptService, AccountsDataProviderService]
 })
 export class SublocationComponent implements OnInit, OnDestroy {
-    @ViewChild('formAddTenant') formAddTenant : NgForm;
-    userData: Object;
+    @ViewChild('formAddTenant') formAddTenant: NgForm;
+    userData = <any> {};
+    isFrp = false;
+    isTrp = false;
+    role = 100;
     encryptedID;
     locationID = 0;
-    locationData = {};
+    locationData = {
+      google_photo_url: '',
+      formatted_address: '',
+      name: ''
+
+    };
+    sublocations = [];
     public parentData = {
-        name : ''
+        name : '',
+        sublocations: [],
+        location_id: 0
     };
     encLocId = '';
 
@@ -54,6 +66,9 @@ export class SublocationComponent implements OnInit, OnDestroy {
     defaultTimeZone = 'AEST';
 
     queryParams = {};
+    public subLocationsArr;
+
+    showCompliance = false;
 
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
@@ -61,24 +76,18 @@ export class SublocationComponent implements OnInit, OnDestroy {
         private router: Router,
         private userService : UserService,
         private elemRef: ElementRef,
+        private auth: AuthService,
         private accountService: AccountsDataProviderService
     ) {
 
-        // this.mutationOversable = new MutationObserver((mutationsList) => {
-        //     mutationsList.forEach((mutation) => {
-        //         if(mutation.target.nodeName != '#text'){
-        //             let target = $(mutation.target);
-        //             if(target.find('select:not(.initialized)').length > 0){
+        this.userData = this.auth.getUserData();
+        for( let rol of this.userData.roles) {
 
-        //                 target.find('select:not(.initialized)').material_select();
+            if (this.role > rol.role_id) {
+              this.role = rol.role_id;
+            }
 
-        //             }
-        //         }
-        //     });
-        // });
-
-        // this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
-        
+        }
     }
 
     getLocationData(callBack){
@@ -89,12 +98,35 @@ export class SublocationComponent implements OnInit, OnDestroy {
             this.encLocId = this.encryptDecrypt.encrypt(this.locationData['location_id']).toString();
             this.parentData['location_id'] = this.encryptDecrypt.encrypt(this.parentData['location_id']);
             this.parentData['sublocations'] = response.siblings;
-
+            this.sublocations = response.sublocations;
+            for (let i = 0; i < this.sublocations.length; i++ ) {
+                this.sublocations[i]['location_id'] = this.encryptDecrypt.encrypt(this.sublocations[i].location_id);
+            }
             for (let i = 0; i < this.parentData['sublocations'].length; i++ ) {
                 this.parentData['sublocations'][i]['location_id'] = this.encryptDecrypt.encrypt(this.parentData['sublocations'][i].location_id);
             }
             if (this.parentData['name'].length === 0) {
               this.parentData['name'] = this.parentData['formatted_address'];
+            }
+
+            let isInLocation = false,
+                itInLocationEmRole = false,
+                itInLocationTrpFrpRole = false;
+            for(let rl of response.users_locations){
+                if(rl.location_id == this.locationData['location_id']){
+                    isInLocation = true;
+                    if('user_em_roles_relation_id' in rl){
+                        itInLocationEmRole = true;
+                    }
+                    if('location_account_user_id' in rl && itInLocationTrpFrpRole == false){
+                        itInLocationTrpFrpRole = true;
+                    }
+                }
+            }
+
+            this.showCompliance = false;
+            if(isInLocation && itInLocationTrpFrpRole){
+                this.showCompliance = true;
             }
 
             callBack();
@@ -109,6 +141,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
             this.getLocationData(() => {
                 this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
                     this.tenants = tenantsResponse.data;
+                    // console.log(this.tenants);
+
                 });
             });
         });
@@ -126,7 +160,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
         $('select').material_select();
         $('.modal').modal({ dismissible: false });
-
+        /*
         let formAddTenant = this.formAddTenant;
         $('body').off('change.countrychange').on('change.countrychange', 'select.billing-country', (event) => {
             formAddTenant.controls.billing_country.setValue( event.currentTarget.value );
@@ -135,7 +169,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
         $('body').off('change.timechange').on('change.timechange', 'select.time-zone', (event) => {
             formAddTenant.controls.time_zone.setValue( event.currentTarget.value );
         });
-
+        */
         if('showaddtenant' in this.queryParams){
             if(this.queryParams['showaddtenant']){
                 setTimeout(() => {
@@ -175,25 +209,32 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
     addNewTenantClickEvent(){
         this.formAddTenant.reset();
-        this.formAddTenant.controls.billing_country.setValue( this.defaultCountry );
-        this.formAddTenant.controls.time_zone.setValue( this.defaultTimeZone );
-        $('#modalAddNewTenant select').material_select('update');
+        // this.formAddTenant.controls.billing_country.setValue( this.defaultCountry );
+        // this.formAddTenant.controls.time_zone.setValue( this.defaultTimeZone );
+        // $('#modalAddNewTenant select').material_select('update');
         $('#modalAddNewTenant').modal('open');
     }
 
-    submitNewTenant(formAddTenant:NgForm){
+    submitNewTenant(formAddTenant:NgForm) {
         if(formAddTenant.valid){
             this.showModalNewTenantLoader = true;
             let formData = formAddTenant.value;
             formData['location_id'] = this.locationID;
-            this.accountService.update(formData).subscribe((response) => {
-                this.getLocationData(() => {
-                    this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
-                        this.tenants = tenantsResponse.data;
-                        this.showModalNewTenantLoader = false;
-                        $('#modalAddNewTenant').modal('close');
-                    });
+            console.log('formData', formData);
+            this.userService.sendTRPInvitation(formData).subscribe(() => {
+              this.getLocationData(() => {
+                this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
+                    this.tenants = tenantsResponse.data;
+                    this.showModalNewTenantLoader = false;
+                    $('#modalAddNewTenant').modal('close');
                 });
+              });
+            }, (e) => {
+              console.log(e);
+              this.showModalNewTenantLoader = false;
+              $('#modalAddNewTenant').modal('close');
+              const errorObject = JSON.parse(e.error);
+              alert(errorObject.message);
             });
         }
     }

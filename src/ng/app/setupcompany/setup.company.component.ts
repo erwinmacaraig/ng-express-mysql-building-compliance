@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, ViewEncapsulation, OnDestroy, NgZone } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { PlatformLocation, NgForOf } from '@angular/common';
@@ -70,7 +70,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		private userService: UserService
 	) {
 		this.userData = this.auth.getUserData();
-		this.headers = new Headers({ 'Content-type' : 'application/json' });
+		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 		this.options = { headers : this.headers };
 		this.baseUrl = (platformLocation as any).location.origin;
 		if(this.userData['accountId'] > 0){
@@ -104,19 +104,20 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 		let thisClass = this;
 
-		this.inputCompanyName.delay(50)
+		/*this.inputCompanyName.delay(50)
 			.map(event => event.target.value)
 			.subscribe((value) => {
 				if(!this.newCompany) {
-					thisClass.searchElem['searchContainer'].addClass('active');
-					thisClass.searchElem['preLoaderMain'].show();
+					
 				}
-			});
+			});*/
 
-		this.inputCompanyName.debounceTime(800)
+		this.inputCompanyName.debounceTime(300)
 			.map(event => event.target.value)
 			.subscribe((value) => {
 				if(!this.newCompany){
+					thisClass.searchElem['searchContainer'].addClass('active');
+					thisClass.searchElem['preLoaderMain'].show();
 					this.searchCompanyTypingStopEvent(value, thisClass);
 				}
 			});
@@ -162,21 +163,35 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 			this.elems['modalLoader'].modal('close');
 
 			let userdata = this.auth.getUserData();
-			userdata.accountId = res.data.account.account_id;
+			userdata['accountId'] = res.data.account.dbData.account_id;
       		this.auth.setUserData(userdata);
 	      	setTimeout(() => {
-	       	// location.replace(location.origin + '/dashboard/company-information'); }, 500);
-	        	this.router.navigate(['/dashboard/company-information']);
+	       		location.replace( location.origin + '/dashboard/company-information');
+	        	// this.router.navigate(['']);
 	        }, 100);
 
       	} else {
+
 			this.modalLoader.iconColor = 'red';
 			this.modalLoader.icon = 'clear';
 			for(let i in res.data){
 				f.controls[i].markAsDirty();
 			}
 
+			if('error' in res){
+      			if(res.error == "Not Authenticated"){
+      				this.modalLoader.message = 'Authentication was removed. Redirecting to login page';
+      				setTimeout(() => { this.router.navigate(["/login"]); }, 1500);
+      				return false;
+      			}
+      		}
+
 			this.modalLoader.message = 'There\'s an invalid field, please review your form again.';
+
+			if(res.message == "User already have a company"){
+				this.modalLoader.message = 'User already have a company';
+				setTimeout(() => { this.router.navigate(["/login"]); }, 1500);
+      		}
 			setTimeout(() => {
 				this.elems['modalLoader'].modal('close');
 				this.elems['modalSignup'].modal('open');
@@ -288,9 +303,11 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 
 		setTimeout(() => {
 			$('input').trigger('focusin');
-			$('#selCountry').material_select();
-			$('#selTimezone').material_select();
-		}, 100);
+			$('input[type="text"]').prop('disabled', true);
+			$('select').prop('disabled', true);
+			$('#selCountry').material_select('update');
+			$('#selTimezone').material_select('update');
+		}, 50);
 	}
 
 	cantFindMyCompanyEvent(f: NgForm){
@@ -307,9 +324,14 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
   		if(this.newCompany || this.companyIsSelected){
   			this.companyIsSelected = false;
 			this.newCompany = false;
+			this.selectedAccountId = 0;
   			$('[readonly]').attr('readonly', true);
   			$('[for="company_name"] .text').html('Search Company Name Here');
   			f.reset();
+  			$('input[type="text"]').prop('disabled', false);
+			$('select').prop('disabled', false);
+			$('#selCountry').material_select('update');
+			$('#selTimezone').material_select('update');
   		}else{
   			this.router.navigate(['login']);
   		}

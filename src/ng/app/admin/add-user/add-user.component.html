@@ -1,0 +1,147 @@
+<app-admin-account-info [accountId]="accountId"></app-admin-account-info>
+<div class="row">
+  <div class="col s12 top-title-button">
+    <h4 class="title left">Add New User</h4>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col s12">
+    <form [formGroup]="userForm" novalidate (ngSubmit)="addUserOnSubmit()">
+      <table class="table striped">
+        <thead>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Password</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Location</th>
+            <th>Contact Information</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="users">
+          <tr *ngFor="let u of userForm.get('users')['controls']; let i = index;"
+            [formGroupName]="i">
+            <td>
+                <input
+                  formControlName="first_name"
+                  type="text"
+                  placeholder="First Name"
+                  class="first-name">
+
+                <span
+                  *ngIf="!userForm.controls['users'].controls[i].controls.first_name.valid &&
+                  userForm.controls['users'].controls[i].controls.first_name.touched">
+                    This first name is required.
+                </span>
+              </td>
+              <td>
+                <input formControlName="last_name" type="text" placeholder="Last Name" #last_name>
+                <span *ngIf="!userForm.controls['users'].controls[i].controls.last_name.valid
+                  && userForm.controls['users'].controls[i].controls.last_name.touched">
+                  Please enter last name.
+                </span>
+              </td>
+              <td>
+                <input formControlName="password" type="text" placeholder="Password">
+                <span *ngIf="!userForm.controls['users'].controls[i].controls.password.valid
+                  && userForm.controls['users'].controls[i].controls.password.touched">
+                  Please specify a password.
+                </span>
+              </td>
+              <td>
+                <input formControlName="email" type="text" placeholder="Email" #email>
+
+              <span *ngIf="!userForm.controls['users'].controls[i].controls.email.valid &&
+                userForm.controls['users'].controls[i].controls.email.touched">
+                Please provide a valid email.
+              </span>
+              <span *ngIf="!userForm.controls['users'].controls[i].controls.email.valid && userForm.controls['users'].controls[i].controls.email['errors']
+              && userForm.controls['users'].controls[i].controls.email.errors['emailIsForbidden']">
+                Email already taken.
+              </span>
+              </td>
+              <td>
+                <!-- style="display: block;" " -->
+                  <select formControName="role" (change)="switchLocationDropDown($event, i)" style="display: block;">
+                    <option disabled selected value="0">Roles</option>
+                    <option *ngFor="let r of roles" [value]="r.role_id">{{r.role_name}}</option>
+                  </select>
+                  <span *ngIf="!userForm.controls['users'].controls[i].controls.role.valid && userForm.controls['users'].controls[i].controls.role.touched">
+                    Please select user role.
+                  </span>
+                </td>
+              <td *ngIf="selectedRole[i] == 1; else leveldropdown">
+                  <select formControlName="location" style="display: block;">
+                    <option disabled selected value="0">Select Building Location</option>
+                    <option *ngFor="let building of buildings" [value]="building.location_id">{{building.name}}</option>
+                  </select>
+                  <span *ngIf="!userForm.controls['users'].controls[i].controls.location.valid && userForm.controls['users'].controls[i].controls.location.touched">
+                     Locations is required.
+                  </span>
+              </td>
+              <ng-template #leveldropdown>
+                <td>
+                  <select formControlName="location" style="display: block;">
+                    <optgroup *ngFor="let parent of levels" label="{{parent['parent_location_name']}}">
+                      <option *ngFor="let sub of parent['sublocations']" [value]="sub['id']">{{sub.name}}</option>
+                    </optgroup>
+
+                  </select>
+                  <span *ngIf="!userForm.controls['users'].controls[i].controls.location.valid && userForm.controls['users'].controls[i].controls.location.touched">
+                      Locations is required.
+                   </span>
+                </td>
+              </ng-template>
+
+              <td>
+                <input formControlName="contact" type="text" placeholder="Mobile number" name="mobile_">
+              </td>
+
+          </tr>
+          <!--
+          <tr>
+            <td>
+              <input type="text" placeholder="First Name" class="first-name" name="first_name_" required>
+            </td>
+            <td>
+              <input type="text" placeholder="Last Name" name="last_name_" required>
+            </td>
+            <td>
+                <input type="text" placeholder="Password" name="password_" required>
+            </td>
+            <td>
+              <input type="text" placeholder="Email" name="email_" required>
+            </td>
+            <td>
+                <select #roleListing name="role_listing_">
+                  <option value="0">Roles</option>
+                </select>
+              </td>
+            <td>
+                <a href="javascript:void(0)" class="blue-text"> Select Location </a>
+                <input type="hidden" name="">
+            </td>
+            <td>
+              <input type="text" placeholder="Mobile number" name="mobile_">
+            </td>
+          </tr> -->
+        </tbody>
+        <tfoot>
+            <tr>
+              <td colspan="7">
+                <a href="#" class="btn blue" (click)="addUserFormItem($event)">
+                  + Add more row
+                </a>
+              </td>
+            </tr>
+          </tfoot>
+      </table>
+      <div class="button-container right-align">
+        <a (click)="cancelUserForm()" class="btn grey lighten-1 waves-effect waves-light cancel"> Cancel </a>
+        <input type="submit" class="btn orange waves-effect waves-light"  value="Submit" />
+      </div>
+    </form>
+  </div>
+</div>

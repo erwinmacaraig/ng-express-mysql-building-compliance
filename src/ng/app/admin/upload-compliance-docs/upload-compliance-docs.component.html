@@ -1,0 +1,216 @@
+<div class="row">
+  <div class="col s12 top-title-button">
+    <h4 class="title left">Upload Documentation</h4>
+  </div>
+</div>
+<div class="row">
+  <div class="col s12">
+    <label for="documentType">Document For</label>
+    <select [formControl]="documentType" id="documentType" style="display: block;">
+      <option [value]="null" [disabled]="true == true">Compliance Item</option>
+      <option *ngFor="let k of kpisArrayForDisplay" [value]="k.compliance_kpis_id">{{k.name}}</option>
+    </select>
+  </div>
+</div>
+<br>
+<hr>
+<br>
+
+<div class="row">
+  <div class="col s12">
+    <ngfFormData
+      [files]      = "files"
+      postName     = "file"
+      [(FormData)] = "sendableFormData"
+    ></ngfFormData>
+
+    <ngfUploadStatus
+      [(percent)] = "progress"
+      [httpEvent] = "httpEvent"
+    ></ngfUploadStatus>
+
+    <div
+      ngfDrop
+      multiple         = "1"
+      selectable       = "1"
+      [(validDrag)]    = "baseDropValid"
+      (fileOver)       = "hasBaseDropZoneOver=$event"
+      [(files)]        = "files"
+      [accept]         = "accept"
+      [maxSize]        = "maxSize"
+      [(dragFiles)]    = "dragFiles"
+      [(lastInvalids)] = "lastInvalids"
+      class            = "well my-drop-zone"
+      [class.invalid-drag] = "baseDropValid===false"
+      [class.valid-drag]   = "baseDropValid"
+    >
+      Drop or tap to select the file or files to upload
+    </div>
+  </div>
+
+
+</div>
+
+<div class="row" *ngIf="documentType.value != 5">
+  <div class="col s12">
+    <div class="input-field col s12">
+      <input id="account" type="text" class="validate" [formControl]="accountField">
+      <label for="account">Enter account name</label>
+    </div>
+    <div class="suggestions" *ngIf="filteredList.length > 0">
+      <ul *ngFor="let item of filteredList">
+        <li>
+          <a (click)="getAccountSelection(item['account_id'], item['account_name'])">{{item['account_name']}}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="row" *ngIf="documentType.value != 5">
+  <div class="col s12">
+      <label for="locationField">Locations On Account</label>
+      <select [formControl]="locationField" id="locationField" style="display: block;">
+          <option [value]="null" [disabled]="true == true">Select Location</option>
+          <option *ngFor="let loc of accountLocations" [value]="loc['location_id']">{{loc['display_name']}}</option>
+      </select>
+  </div>
+</div>
+
+<div class="row" *ngIf="documentType.value != 5">
+  <div class="col s12">
+    <label for="accessType">Type</label>
+    <select [formControl]="accessType" style="display: block;" id="accessType">
+      <option [value]="null" [disabled]="true == true">Select Document Type</option>
+      <option value="Primary">Primary</option>
+      <option value="Secondary">Secondary</option>
+      <option value="Admin">Admin</option>
+    </select>
+  </div>
+</div>
+<div class="row" *ngIf="documentType.value != 5">
+  <div class="col s6">
+    <div class="input-field">
+      <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+      <input id="dateOfActivity" [formControl]="dtActivityField" autocomplete="off" type="text" (click)="showDatePicker()" required >
+      <label for="dateOfActivity" class="active" >Date of Activity</label>
+    </div>
+  </div>
+  <div class="col s6">
+    <div class="input-field">
+      <input id="dateOfActivityExpiry" autocomplete="off" type="text" [value]="validTillDate" readonly>
+      <label for="dateOfActivityExpiry" class="active">Expiration</label>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col s12">
+      <h6 *ngIf="documentType.value == 5">{{ files.length }} File(s) to be uploaded </h6>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Size</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody *ngIf="documentType.value == 5">
+        <tr *ngFor="let item of files;let i=index">
+          <td>
+            <div *ngIf="['image/gif','image/png','image/jpeg'].indexOf(item.type)>=0">
+              <div class="previewIcon" [ngfBackground]="item"></div>
+            </div>
+            <strong>{{ item.name }}</strong>
+          </td>
+          <td nowrap>
+            {{ item.type }}
+          </td>
+          <td nowrap>
+            {{ item.size/1024/1024 | number:'.2' }} MB
+          </td>
+          <td nowrap>
+            <a (click)="files.splice(i,1)">
+            <i class="small material-icons">delete_forever</i>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+      <tbody *ngIf="documentType.value != 5">
+        <tr *ngIf="files.length > 0">
+          <td>
+            <div *ngIf="['image/gif','image/png','image/jpeg'].indexOf(files[files.length-1].type) >= 0">
+              <div class="previewIcon" [ngfBackground]="files[files.length-1]"></div>
+            </div>
+            <strong>{{ files[files.length-1].name }}</strong>
+          </td>
+          <td nowrap>
+            {{ files[files.length-1].type }}
+          </td>
+          <td nowrap>
+            {{ files[files.length-1].size/1024/1024 | number:'.2' }} MB
+          </td>
+          <td nowrap>
+            <a (click)="files=[]">
+            <i class="small material-icons">delete_forever</i>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<!--
+<div class="row">
+  <div class="col s12">
+      Queue progress: {{progress}}
+      <div class="progress" style="">
+        <div class="progress-bar"
+          role="progressbar"
+          [ngStyle]="{ 'width': progress + '%' }"
+        ></div>
+      </div>
+  </div>
+</div> -->
+<div class="row">
+  <div class="col s12">
+      <hr>
+      <button *ngIf="documentType.value != 5" type="button"
+        class="btn blue waves-effect waves-light"
+        (click)="uploadFiles(files.splice((files.length - 1), 1))"
+        [disabled]="!files.length ||
+        !documentType.valid ||
+        !dtActivityField.valid ||
+        !locationField.valid ||
+        !accountField.valid ||
+        !accessType.valid"
+      >
+        <span class="glyphicon glyphicon-upload"></span> Upload
+      </button>
+
+      <button *ngIf="documentType.value == 5" type="button"
+        class="btn blue waves-effect waves-light"
+        (click)="uploadFiles(files)"
+        [disabled]="!files.length"
+      >
+        <span class="glyphicon glyphicon-upload"></span> Submit & Upload
+      </button>
+
+      <button type="button"
+        class="btn blue waves-effect waves-light"
+        (click)="cancel()"
+        [disabled]="!httpEmitter"
+      >
+        <span class="glyphicon glyphicon-ban-circle"></span> Cancel all
+      </button>
+      <button type="button"
+        class="btn blue waves-effect waves-light"
+        (click)="files.length=0"
+        [disabled]="!files.length"
+      >
+        <span class="glyphicon glyphicon-trash"></span> Remove all
+      </button>
+  </div>
+</div>
+<div preloader></div>

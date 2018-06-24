@@ -1,20 +1,32 @@
-<div class="container">
-	<div class="row">
+<div class="container-fluid" >
+	<div class="row" style="margin-top: 35px;">
 
 		<div class="col l12 m12 s12">
-			<h5 class="left">Summary of Compliance</h5>
+			<h5 class="left summary-of-compliance-title">Summary of Compliance ({{reportData.date}})</h5>
 
 			<div class="right right-buttons">
-				<a href="javascript:void(0)">
+                <div style="width: 35px;" *ngIf="pdfLoader">
+                    <div class="progress" style="margin: 2px auto;">
+                        <div class="indeterminate"></div>
+                    </div>
+                </div>
+
+				<a #aPdf (click)="pdfExport(aPdf, printContainer)" *ngIf="!pdfLoader">
 					<div class="text">Export to</div>
 					<div class="image pdf"></div>
 				</a>
+
+                <div style="width: 35px;" *ngIf="csvLoader">
+                    <div class="progress" style="margin: 2px auto;">
+                        <div class="indeterminate"></div>
+                    </div>
+                </div>
 				
-				<a href="javascript:void(0)">
+				<a (click)="csvExport()" *ngIf="!csvLoader">
 					<div class="image excel"></div>
 				</a>
 
-				<a href="javascript:void(0)">
+				<a  (click)="printResult()">
 					<div class="text">Print</div>
 					<div class="image print"></div>
 				</a>
@@ -27,68 +39,113 @@
 
 	</div>
 
-	<div class="row">
+	<div id="printContainer" #printContainer>
 		
-		<div class="col l12 m12 s12">
-			<table class="striped">
-				<thead>
-					<tr class="grey darken-5 white-text">
-						<th>Locations</th>
-						<th>Number of Locations</th>
-						<th>Compliance Rating</th>
-						<th>Status</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>
-							<a [routerLink]="['/reports/locations/location-compliance']" class="blue-text">Location name</a>
-						</td>
-						<td>
-							1
-						</td>
-						<td>
-							0/0
-						</td>
-						<td>
-							<span class="blue-text">Compliant</span>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<a [routerLink]="['/reports/locations/location-compliance']" class="blue-text">Location name</a>
-						</td>
-						<td>
-							1
-						</td>
-						<td>
-							0/0
-						</td>
-						<td>
-							<span class="blue-text">Compliant</span>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-
-	</div>
-
-
-	<div class="row">
-		<div class="col l12 m12 s12 col-buttons right-align">
+		<div class="row" >
 			
-			<button class="btn blue waves-effect waves-light">Compliance Document</button>
+			<div class="col l12 m12 s12">
+				<table class="striped">
+					<thead>
+						<tr class="grey darken-5 white-text">
+							<th key="location" style="width: 9%" [attr.keywidth]="9">Locations</th>
+							<th [attr.key]="kpi.compliance_kpis_id" style="width: 8%" [attr.keywidth]="8" *ngFor="let kpi of reportData.kpis"> {{kpi.name}} </th>
+                            <th key="eco" style="width: 1%;" [attr.keywidth]="1">Total ECO</th>
+                            <th key="wardens" style="width: 1%;" [attr.keywidth]="1">% Trained Wardens</th>
+                            <th key="ratings" style="width: 1%;" [attr.keywidth]="1">Compliance Rating</th>
+						</tr>
+					</thead>
+                    <tbody [hidden]="!loadingTable">
+                        <tr>
+                            <td [attr.colspan]="reportData.kpis.length + 4 " class="center">Loading record...</td>
+                        </tr>
+                    </tbody>
+					<tbody [hidden]="loadingTable">
+						<tr *ngIf="reportData.locations.length == 0">
+							<td [colSpan]="reportData.kpis.length + 4" class="center">
+								No record found
+							</td>
+						</tr>
+						<tr *ngFor="let loc of reportData.locations">
+							<td style="line-height: 16px;">
+								<a [routerLink]="['/reports/statement-compliance', loc.locIdEnc]" class="blue-text">
+                                    <span *ngIf="loc.parent.name.length > 0">{{loc.parent.name}}, </span> 
+                                    <span>{{loc.name}}</span>
+                                </a>
+							</td>
+                            <td *ngFor="let kpi of loc.kpis">
+                                <p *ngIf="kpi.compliance.valid == 1" class="blue-text" style="line-height: 14px;">Compliant</p>
+                                <p *ngIf="kpi.compliance.valid == 0" class="grey-text" style="line-height: 14px;">Not Compliant</p>
+                            </td>
+                            <td>
+                                <span *ngIf="!loc.eco_users">0</span>
+                                <span *ngIf="loc.eco_users">
+                                    {{loc.eco_users.length}}
+                                </span>
+                            </td>
+                            <td>
+                                <span>{{loc.wardens_trained_percent}}%</span>
+                            </td>
+                            <td>
+                                {{loc.compliance_rating}}
+                            </td>
 
-			<button class="btn orange btn-compliance-rating">
-				<div class="text">
-					Compliance Rating
-				</div>
-				<div class="white center">
-					0/0
-				</div>
-			</button>
+							<!-- <td>
+                                {{loc.number_of_sublocations}}
+                            </td>
+                            
+                            <td>
+                                <span class="blue-text">{{loc.status}}</span>
+                            </td> -->
+						</tr>
+						
+					</tbody>
+				</table>
+			</div>
 
 		</div>
+
+
+		<div class="row">
+			<div class="col l12 m12 s12 col-buttons right-align">
+				
+				<!-- <button class="btn blue waves-effect waves-light no-print">Compliance Document</button> -->
+
+				<button class="btn orange btn-compliance-rating">
+					<div class="text">
+						Compliance Rating
+					</div>
+					<div class="white center">
+						{{reportData.totalComplianceRating}}
+					</div>
+				</button>
+
+			</div>
+		</div>
+
+        <div class="row no-print">
+            <div class="col l12 m12 s12 center pagination" [hidden]="reportData.locations.length == 0 || pagination.pages < 2 || loadingTable">
+                <div class="inline-block">
+                    <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
+                </div>
+
+                <div class="inline-block select">
+                    <select #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+                        <option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+                    </select>
+                </div>
+
+                <div class="inline-block">
+                    <button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
+                </div>
+            </div>
+        </div>
+
+		
 	</div>
+
 </div>
+
+<div id="cloneContainer" style="">
+    <div class="clones"></div>
+</div>
+<div id="canvasContainer" style="display: none;"></div>

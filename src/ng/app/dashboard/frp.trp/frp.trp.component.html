@@ -1,13 +1,15 @@
 <div class="container-fluid">
 
 	<div class="row margin-bottom-30">
-		
+
 		<div class="col l3 m12 s12 my-compliance-container">
 			<h5 class="orange-text margin-bottom-30">My Compliance</h5>
 
 			<div class="svg-container">
-	    
-		        <svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"  overflow="visible" x="666.6666666666667" y="666.6666666666667" viewBox="0 0 500 500">
+
+                <canvas #compliancePieChart width="200" height="200"></canvas>
+
+		        <!-- <svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"  overflow="visible" x="666.6666666666667" y="666.6666666666667" viewBox="0 0 500 500">
 		            <g>
 
 		                <circle fill="#fff" r="235" cy="250.500029" cx="249.499965" class="background" style="pointer-events:inherit" id="svg_1"></circle>
@@ -34,26 +36,43 @@
 
 		                <text xmlns="http://www.w3.org/2000/svg" stroke="#000000" fill="#191919" stroke-width="null" stroke-dasharray="10.9 89.9" x="461.2454360522051" y="468.8433897262176" id="svg_16" font-size="11" text-anchor="middle" xml:space="preserve" stroke-opacity="0" transform="matrix(8.159006118774414,0,0,8.031051920621254,-3402.9839923690683,-3478.8482357141816) " fill-opacity="1">%</text>
 		            </g>
-		        </svg>
+		        </svg> -->
 
 		    </div>
-			
-			<div class="center-block text-button-container">
-				
-			    <div class="display-table compliance-title-container center-block">
-			    	<div class="cell image green"></div>
-			    	<div class="cell text">Evacuation Procedures Manual</div>
-			    </div>
 
-			    <div class="display-table compliance-validity-container center-block">
+			<div class="center-block text-button-container">
+
+			    <div class="display-table compliance-title-container center-block">
+                    <!-- <div class="cell image green"></div> -->
+                    <div class="cell text center">
+                        {{selectedComplianceName}}
+                        <h5 class="center"> {{countOfBuildings}} Total number of buildings  </h5>
+                    </div>
+                </div>
+
+			    <!-- <div class="display-table compliance-validity-container center-block">
 			    	<div class="cell image check"></div>
 			    	<div class="cell text">
 			    		Valid Till : <br>
 			    		0/00/0000
 			    	</div>
-			    </div>
+			    </div> -->
 
-			    <button class="btn orange waves-effect waves-light center-block display-block"> Manange Compliance </button>
+          <!-- <button class="btn orange waves-effect waves-light center-block display-block"> Manage Compliance </button> -->
+          <!-- <div class="container">
+            <div class="input-field col s12">
+              <input id="location" type="text" class="validate" [formControl]="search">
+              <label for="location">Search location</label>
+            </div>
+            <div class="suggestions" *ngIf="filteredList.length > 0">
+              <ul *ngFor="let item of filteredList">
+                <li>
+                  <a>{{item['name']}}</a>
+                </li>
+              </ul>
+
+            </div>
+          </div> -->
 			</div>
 
 
@@ -61,40 +80,85 @@
 
 		<div class="col l6 m12 s12">
 			<h5 class="orange-text margin-bottom-30">My Plans</h5>
-			
-			<div class="grey lighten-5 table-container">
+			<div class="grey lighten-5 table-container" style="max-height: 480px; overflow-y: auto;">
 				<table class="table striped">
 					<thead>
 						<tr class="grey darken-4 white-text">
 							<th>Location</th>
 							<th>Compliance</th>
 							<th>Training Licences</th>
-							<th></th>
+							<!-- <th></th> -->
 						</tr>
 					</thead>
-					<tbody>
-						<tr>
-							<td>Jaka Building</td>
-							<td>Self Manage</td>
-							<td> 0/0 </td>
-							<td> <button class="btn light-blue waves-effect waves-light">Shop</button> </td>
-						</tr>
-						<tr>
-							<td>Nugee Road</td>
-							<td>Value Compliance</td>
-							<td> 0/0 </td>
-							<td> <button class="btn light-blue waves-effect waves-light">Shop</button> </td>
-						</tr>
-					</tbody>
+					<tbody *ngIf="showPlansLoader">
+                        <tr>
+                            <td colspan="4" class="center">
+                                <div class="preloader-wrapper small active center">
+                                    <div class="spinner-layer spinner-blue-only">
+                                        <div class="circle-clipper left">
+                                            <div class="circle">
+                                            </div>
+                                        </div>
+                                        <div class="gap-patch">
+                                            <div class="circle">
+                                            </div>
+                                        </div>
+                                        <div class="circle-clipper right">
+                                            <div class="circle">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody *ngIf="!showPlansLoader">
+                        <tr *ngIf="locations.length == 0">
+                            <td colspan="4" class="center">No plans found</td>
+                        </tr>
+                        <tr *ngFor="let loc of locations" >
+                            <td><span *ngIf="loc.parent">{{loc.parent.name}}, </span>{{loc.name}}</td>
+                            <td class="with-bar">
+                                <div *ngIf="loc.fetchingCompliance" class="progress fetching">
+                                    <div class="indeterminate"></div>
+                                </div>
+                                <div *ngIf="!loc.fetchingCompliance" class="text" [ngClass]="{ 'green-text' : loc.compliance_percentage == 100 }">{{loc.compliance_percentage}}%</div>
+                                <div *ngIf="!loc.fetchingCompliance" class="progress-container" >
+                                    <div class="progress" [ngClass]="{ 'green-theme' : loc.compliance_percentage == 100 }">
+                                        <div class="determinate" [ngStyle]="{ 'width' : loc.compliance_percentage+'%' }"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td> 0/0 </td>
+                            <!--<td>  <button class="btn light-blue waves-effect waves-light">Shop</button>  </td>-->
+                        </tr>
+                    </tbody>
 				</table>
-				
+				<div style="margin-top: 18px;">
+                    <div class="col l12 m12 s12 center pagination" [hidden]="locations.length == 0 || pagination.total <= queries.limit || showPlansLoader">
+                        <div class="inline-block">
+                            <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
+                        </div>
+
+                        <div class="inline-block select">
+                            <select class="" #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+                                <option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+                            </select>
+                        </div>
+
+                        <div class="inline-block">
+                            <button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
+                        </div>
+                    </div>
+                </div>
 			</div>
 
 		</div>
 
 		<div class="col l3 m12 s12">
+			<!-- BLOGS
 			<h5 class="orange-text margin-bottom-30">Community</h5>
-			
+
 			<div class="blog">
 				<img src="/assets/images/blog.png"  >
 
@@ -108,20 +172,36 @@
 					</p>
 				</div>
 
-				<a href="javascipt:void(0)" class="blue-text font-size-16">View all ></a>
+				<a  class="blue-text font-size-16">View all ></a>
+			</div>
+			-->
+
+			<h5 class="orange-text margin-bottom-30">All Building Trainings Status</h5>
+
+			<div class="width100" *ngIf="showBuildingTrainingLoader">
+				<div class="loader-div" >
+					<div class="preloader-wrapper big active center">
+						<div class="spinner-layer spinner-blue-only">
+							<div class="circle-clipper left">
+								<div class="circle">
+								</div>
+							</div>
+							<div class="gap-patch">
+								<div class="circle">
+								</div>
+							</div>
+							<div class="circle-clipper right">
+								<div class="circle">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 
-		</div>
 
-	</div>
-
-	<div class="row">
-		
-		<div class="col l3 m6 s12">
-			<h5 class="orange-text margin-bottom-30">Account Trainings</h5>
-			
-			<div class="account-trainings-container display-table margin-bottom-30">
-				<div id="specificChart" class="donut-size cell">
+			<div class="width100 display-table" *ngIf="!showBuildingTrainingLoader">
+				<div id="specificChart" class="donut-size cell" >
 					<div class="pie-wrapper">
 						<span class="label">
 							<span class="num"> 00 </span><span class="smaller">%</span>
@@ -133,91 +213,108 @@
 						<div class="shadow"></div>
 					</div>
 				</div>
-				
-				<div class="cell">
-					<h5>200 Required Training Course</h5>
+
+				<div class="cell" >
+					<h5>{{accountTrainings.total_users}} Total Users</h5>
 					<p class="font-size-16 blue-text">
-						180 Course Finished
+						{{accountTrainings.total_users_trained}} User Finished Course
 					</p>
 				</div>
-
 			</div>
 
+			<div class="width100 margin-bottom-30" *ngIf="!showBuildingTrainingLoader">
+				<ul>
+					<li *ngFor="let em of accountTrainings.em_roles_array">
+						<h6>{{em.total}} - {{em.role_name}}</h6>
+					</li>
+				</ul>
+			</div>
 
-			<h5 class="orange-text margin-bottom-30">
+		</div>
+
+	</div>
+
+	<div class="row">
+
+		<div class="col l3 m6 s12">
+			<h5 class="orange-text margin-bottom-30" >
 				Training License
 			</h5>
 
-			<div class="training-license-container margin-bottom-30">
+			<div class="training-license-container margin-bottom-30" *ngIf="!showPlansLoader">
 				<div class="filter-container">
 					<select>
 						<option value="0" disabled selected>Select location</option>
+						<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
 					</select>
 				</div>
 
 				<p class="font-size-16 blue-text">Remaining License: --</p>
+			</div>
+
+			<div class="training-license-container margin-bottom-30 " *ngIf="showPlansLoader">
+				<div class="loader-div">
+					<div class="preloader-wrapper big active center">
+						<div class="spinner-layer spinner-blue-only">
+							<div class="circle-clipper left">
+								<div class="circle">
+								</div>
+							</div>
+							<div class="gap-patch">
+								<div class="circle">
+								</div>
+							</div>
+							<div class="circle-clipper right">
+								<div class="circle">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 
 		<div class="col l3 m6 s12">
 			<h5 class="orange-text">My Trainings</h5>
 
-			<ul class="my-trainings list-border-bottom-grey margin-bottom-30">
-				<li>
-					<div class="display-table width100">
-						<div class="cell">
-							<div class="image expired"></div>
-						</div>
-						<div class="cell">
-							<p class="font-size-20">Active Shooter Response Procedures</p>
-						</div>
-					</div>
+			<div *ngIf="courses.length == 0">
+				<h5 class="grey-text">No Trainings Available Yet</h5>
+			</div>
 
-					<div class="right align-right">
-						<div class="display-table">
-							<a href="javascipt:void(0)">
-								<div class="cell blue-text font-size-16">
-									Take Course
-								</div>
-								<div class="cell">
-									<div class="black-arrow-right"> > </div>
-								</div>
-							</a>
+			<div *ngIf="courses.length > 0">
+				<ul class="my-trainings list-border-bottom-grey margin-bottom-30">
+					<li *ngFor="let course of courses; let i = index;" [hidden]="i > 1">
+						<div class="display-table width100">
+							<div class="cell">
+								<div class="image expired" *ngIf="['failed', 'not attempted', 'incomplete', 'browsed', null].indexOf(course.lesson_status) > -1"></div>
+								<div class="image check" *ngIf="['passed'].indexOf(course.lesson_status) > -1"></div>
+							</div>
+							<div class="cell">
+								<p class="font-size-20">{{course.training_requirement_name}}</p>
+							</div>
 						</div>
-					</div>
 
-					<div class="clearfix"></div>
-				</li>
-
-				<li>
-					<div class="display-table width100">
-						<div class="cell">
-							<div class="image check"></div>
+						<div class="right align-right">
+							<div class="display-table">
+								<a  [routerLink]="['/trainings/my-training']">
+									<div class="cell blue-text font-size-16">
+										Take Course
+									</div>
+									<div class="cell">
+										<div class="black-arrow-right"> > </div>
+									</div>
+								</a>
+							</div>
 						</div>
-						<div class="cell">
-							<p class="font-size-20">Active Shooter Response Procedures</p>
-						</div>
-					</div>
 
-					<div class="right align-right">
-						<div class="display-table">
-							<a href="javascipt:void(0)">
-								<div class="cell blue-text font-size-16">
-									Take Course
-								</div>
-								<div class="cell">
-									<div class="black-arrow-right"> > </div>
-								</div>
-							</a>
-						</div>
-					</div>
+						<div class="clearfix"></div>
+					</li>
+				</ul>
 
-					<div class="clearfix"></div>
-				</li>
-			</ul>
+				<a  class="blue-text font-size-16 right" [routerLink]="['/trainings/my-training']">View all ></a>
+				<div class="clearfix"></div>
+			</div>
 
-			<a href="javascipt:void(0)" class="blue-text font-size-16 right">View all ></a>
-			<div class="clearfix"></div>
 		</div>
 
 		<div class="col l3 m6 s12">
@@ -226,7 +323,7 @@
 			<ul class="quick-links list-border-bottom-grey margin-bottom-30">
 				<li>
 					<div class="display-table width100">
-						<a href="javascipt:void(0)">
+						<a  [routerLink]="['/teams/list-wardens']">
 							<div class="cell">
 								<div class="cell blue-text font-size-20 black-text">
 									Update Warden List
@@ -240,8 +337,8 @@
 				</li>
 
 				<li>
-					<div class="display-table width100">
-						<a href="javascipt:void(0)">
+					<div class="display-table width100" >
+						<a  [routerLink]="['/teams/mobility-impaired']">
 							<div class="cell">
 								<div class="cell blue-text font-size-20 black-text">
 									Review PEEP
@@ -256,10 +353,10 @@
 
 				<li>
 					<div class="display-table width100">
-						<a href="javascipt:void(0)">
+						<a  [routerLink]="['/trainings/my-training']">
 							<div class="cell">
 								<div class="cell blue-text font-size-20 black-text">
-									Warden Benchmarking
+									Trainings
 								</div>
 							</div>
 							<div class="cell align-right">
@@ -271,10 +368,10 @@
 
 				<li>
 					<div class="display-table width100">
-						<a href="javascipt:void(0)">
+						<a  [routerLink]="['/location/list']">
 							<div class="cell">
 								<div class="cell blue-text font-size-20 black-text">
-									Download Reports
+									Locations
 								</div>
 							</div>
 							<div class="cell align-right">
@@ -285,7 +382,7 @@
 				</li>
 			</ul>
 
-			<a href="javascipt:void(0)" class="blue-text font-size-16 right">View all ></a>
+			<a  class="blue-text font-size-16 right">View all ></a>
 			<div class="clearfix"></div>
 		</div>
 
@@ -295,33 +392,37 @@
 			<div class="resources-container">
 				<ul>
 					<li>
+						<a href="https://s3.amazonaws.com/allan-delfin/manuals/EvacConnect+for+Facility+Responsible+Persons.pdf" target="_blank">
 						<div class="display-table">
 							<div class="cell">
 								<img src="/assets/images/pdf.png" alt="">
 							</div>
 							<div class="cell font-size-16">
-								Bomb and Telephone Threat Checklist
+								Facility Responsible Persons User Guide
 							</div>
 						</div>
+						</a>
 					</li>
 
 					<li>
+						<a href="https://s3.amazonaws.com/allan-delfin/manuals/EvacConnect+for+Tenant+Responsible+Persons.pdf" target="_blank">
 						<div class="display-table">
 							<div class="cell">
 								<img src="/assets/images/pdf.png" alt="">
 							</div>
 							<div class="cell font-size-16">
-								Offender Description
+								Tenant Responsible Persons User Guide
 							</div>
 						</div>
+						</a>
 					</li>
 				</ul>
 
-				<a href="javascipt:void(0)" class="blue-text font-size-16 right">View all ></a>
-				<div class="clearfix"></div>
+				<!-- <a  class="blue-text font-size-16 right">View all ></a>
+				<div class="clearfix"></div> -->
 			</div>
 		</div>
 
 	</div>
-	
+
 </div>

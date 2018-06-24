@@ -25,8 +25,12 @@ export class IndexRoute extends BaseRoute {
    */
   public static create(router: Router) {
     // add home page route
-    router.get('/test', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+    router.get('/test', (req: AuthRequest, res: Response) => {
       new IndexRoute().index(req, res);
+    });
+
+    router.get('/health/', (req: AuthRequest, res: Response) => {
+      return res.status(200).send('OK');
     });
 
     router.post('/test/sample/upload', (req: Request, res: Response, next: NextFunction) => {
@@ -39,6 +43,10 @@ export class IndexRoute extends BaseRoute {
 
     router.get('/test/location', (req: Request, res: Response, next: NextFunction) => {
     	new IndexRoute().displaySearchLocation(req, res, next);
+    });
+
+    router.get('/health/', (req: AuthRequest, res: Response) => {
+      return res.status(200).send('OK');
     });
   }
 
@@ -88,8 +96,9 @@ export class IndexRoute extends BaseRoute {
 
   uploadUserPhoto(req: Request, res: Response, next: NextFunction) {
      const fu = new FileUploader(req, res, next);
-     const link = fu.uploadFile().then(
+     const link = fu.uploadFile(false, 'Buildings/5/').then(
        (url) => {
+         console.log('Success UPLOAD');
          return res.send('<img src="' + fu.getUploadedFileLocation() + '" />');
        }
      ).catch((e) => {

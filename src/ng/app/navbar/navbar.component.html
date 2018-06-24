@@ -1,23 +1,29 @@
-<div class="navbar-fixed">
-	<nav>
+
+<div class="navbar-fixed beta">
+	<div class="light-blue accent-2 black-text center beta-message">
+		Please note that this is a beta version of EvacConnect, which is still undergoing final testing before its official release.
+		For questions or concerns, please email <strong>systems@evacgroup.com.au</strong>
+	</div>
+	<nav class="beta-nav">
 		<div class="left navbrand" >
 			<a [routerLink]="['/dashboard']">
-				<img alt="EvacConnect" class="main-logo" src="assets/images/ec_logo_nav.png" >
+				<!-- <img alt="EvacConnect" class="main-logo" src="assets/images/ec_logo_nav.png" > -->
+				<img alt="EvacConnect" class="main-logo" src="assets/images/beta/system-logo.png" >
 				<img class="responsive-logo" src="assets/images/responsive-logo.png">
 			</a>
 			<ul class="right navbar nav-list">
 				<li *ngIf="showLinks.locations" class="nav-list-locations">
 					<a [routerLink]="['/location', 'list']" *ngIf="locationLinkForFrp"><img alt="Location" src="assets/images/location.png" ><span>Locations</span></a>
 					<a [routerLink]="['/location', 'warden']" *ngIf="!locationLinkForFrp"><img alt="Location" src="assets/images/location.png" ><span>Locations</span></a>
-				</li>
+        </li>
+        <li *ngIf="showLinks.team" class="nav-list-team">
+            <a [routerLink]="['/teams']"> <img alt="Team" src="assets/images/team.png" ><span>Team</span> </a>
+          </li>
 				<li *ngIf="showLinks.training" class="nav-list-trainings">
-					<a [routerLink]="['/trainings', 'my-training']"><img alt="Training" src="assets/images/training.png" ><span>Training</span></a>
+					<a [routerLink]="['/trainings', 'my-training-profile', encryptedUserId]"><img alt="Training" src="assets/images/training.png" ><span>Training</span></a>
 				</li >
-				<li *ngIf="showLinks.team" class="nav-list-team">
-					<a [routerLink]="['/teams']"> <img alt="Team" src="assets/images/team.png" ><span>Team</span> </a>
-				</li>
 				<li *ngIf="showLinks.report" class="nav-list-report">
-					<a [routerLink]="['/reports/locations']"><img alt="Report" src="assets/images/report.png" ><span>Report</span></a>
+					<a [routerLink]="['/reports/choose']"><img alt="Report" src="assets/images/report.png" ><span>Report</span></a>
 				</li>
 				<li *ngIf="showLinks.resources" class="nav-list-resources">
 					<a href=""><img alt="Resources" src="assets/images/resources.png" ><span>Resources</span></a>
@@ -27,17 +33,17 @@
 
 		<div class="right">
 			<ul class="navbar">
-				<li>
+				<!-- <li>
 					<a [routerLink]="['/shop/compliance-package']" *ngIf="showUpgradePremium"><img src="assets/images/premium_bttn.png" ></a>
+				</li> -->
+				<li>
+					<a ><img src="assets/images/search.png" ></a>
 				</li>
 				<li>
-					<a href="javascript:void(0)"><img src="assets/images/search.png" ></a>
+					<a ><img src="assets/images/mail.png" ></a>
 				</li>
 				<li>
-					<a href="javascript:void(0)"><img src="assets/images/mail.png" ></a>
-				</li>
-				<li>
-					<a href="javascript:void(0)" class="user-right-click-nav">
+					<a  class="user-right-click-nav">
 						<div class="users-name">{{ username }}</div>
 						<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
 						<img alt="Report" class="img-user-initials" [src]="filterUrl(usersImageURL)" *ngIf=" hasUserImage " >
@@ -48,7 +54,7 @@
 		</div>
 
 		<div class="burger right">
-			<a href="javascript:void(0)" class="burger-link"><i class="material-icons small"> <span>dehaze</span> </i></a>
+			<a  class="burger-link"><i class="material-icons small"> <span>dehaze</span> </i></a>
 		</div>
 	</nav>
 </div>
@@ -56,33 +62,33 @@
 
 	<ul class="navbar">
 		<li>
-			<a href="javascript:void(0)">
+			<a >
 				<img alt="Training" src="assets/images/search.png" >
 				<span>Search</span>
 			</a>
 		</li>
 
 		<li>
-			<a href="javascript:void(0)">
+			<a >
 				<img alt="Team" src="assets/images/mail.png" >
 				<span> Email </span>
 			</a>
 		</li>
 
 		<li>
-			<a href="javascript:void(0)" class="user-right-click-nav">
+			<a  class="user-right-click-nav">
 				<div class="users-intials" *ngIf=" !hasUserImage ">{{ usersInitial }}</div>
 				<img alt="Report" class="img-user-initials" [src]="filterUrl(usersImageURL)" *ngIf=" hasUserImage " >
 				<div class="users-name">{{ userData.name }}</div>
 			</a>
 		</li>
-
+<!--
 		<li>
 			<a *ngIf="showUpgradePremium" [routerLink]="['/shop/compliance-package']">
 				<img alt="Location" src="assets/images/premium_bttn.png" >
 			</a>
 		</li>
-
+-->
 	</ul>
 </div>
 
@@ -94,7 +100,7 @@
 				<div class="vertical-nav-title">
 					<div style="float:left;"><h5 myaccount>My Accounts</h5></div>
 					<div style="float:right; padding-right:1rem; padding-top:1rem; ">
-						<a href="javascript:void(0)" id="closeRightNav">
+						<a  id="closeRightNav">
 							<img alt="" src="assets/images/close.png">
 						</a>
 					</div>
@@ -105,7 +111,7 @@
 
 		<div class="col sm12">
 			<div class="wrapper upload-photo">
-				<a href="javascript:void(0)" id="changePhotoLink">
+				<a  id="changePhotoLink">
 					<div class="img-container"><img id="myAccountPhoto" alt="EvacConnect" [src]="filterUrl(usersImageURL) "> </div>
 					<div><h6>Upload Photo</h6></div>
 				</a>
@@ -114,13 +120,15 @@
 
 		<div class="col sm12">
 			<ul class="links">
-		        <li><a [routerLink]="['/dashboard/company-information']">Company Information</a></li>
-		        <li><a [routerLink]="['/dashboard/person-info']">Personal Information</a></li>
-		        <li *ngIf="showSendInviteLink"><a [routerLink]="['/dashboard/send-invite']">Send Invitation</a></li>
-				<li *ngIf="showShopLink"><a [routerLink]="['/shop/compliance-package']">Shop</a></li>
-				<li><a href="/">Subscription</a></li>
-				<li><a href="/">Security & Privacy</a></li>
-				<li><a href="/signout">Sign Out</a></li>
+        <li><a [routerLink]="['/dashboard/company-information']">Company Information</a></li>
+        <li><a [routerLink]="['/dashboard/person-info']">Personal Information</a></li>
+        <!-- <li *ngIf="showSendInviteLink"><a [routerLink]="['/dashboard/send-invite']">Send Invitation</a></li> -->
+        <!-- <li *ngIf="showShopLink"><a [routerLink]="['/shop/compliance-package']">Shop</a></li> -->
+        <!-- <li><a href="/">Subscription</a></li> -->
+        <li *ngIf="evac_role == 'admin'"><a [routerLink]="['/admin', 'accounts']" target="_blank">Administration</a></li>
+        <li><a href="/">Security & Privacy</a></li>
+
+        <li><a href="/signout">Sign Out</a></li>
 			</ul>
 		</div>
 	</div>

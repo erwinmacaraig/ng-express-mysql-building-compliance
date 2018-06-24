@@ -1,0 +1,118 @@
+<app-admin-account-info [accountId]="accountId"></app-admin-account-info>
+<div class="row filter-container">
+  <div class="col l4 m5 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search User" id="searchUsers" (keyup)="searchByUserAndEmail($event)">
+			<span class="material-icons">search</span>
+		</div>
+  </div>
+  <div class="col l2 m4 s6">
+      <select class="filter-by">
+        <option value="0" selected>Filter By (All)</option>
+        <option value=""></option>
+      </select>
+  </div>
+  <div class="col l2 m6 s6">
+		<select class="sort-by">
+			<option value="0" selected>Sort By</option>
+			<option value="user-name-desc">User Name Descending</option>
+			<option value="user-name-asc">User Name Ascending</option>
+		</select>
+  </div>
+  <div class="col l2 m6 s12">
+		<select class="bulk-manage">
+			<option value="0" selected disabled>Select Action</option>
+			<option value="archive" >Archive selected</option>
+		</select>
+  </div>
+  <div class="col l2 m3 s12 ">
+		<button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/admin', 'add-account-user', accountId]">
+			<span class="image"></span>
+			Add New User
+		</button>
+	</div>
+</div>
+<div class="row">
+  <div class="col  s12">
+    <table class="table striped table-peep">
+      <thead>
+        <tr>
+          <th><p class="checkbox">
+            <input id="allUsers" class="filled-in" type="checkbox">
+            <label for="allUsers">User Name</label>
+          </p></th>
+          <th>
+            Email
+          </th>
+          <th>Mobile No.</th>
+          <th>Location Name</th>
+          <th>Account Role</th>
+          <th>ECO Role</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of userObjects">
+          <td>{{user['first_name']}} {{user['last_name']}}</td>
+          <td>
+            {{user['email']}}
+          </td>
+          <td>
+            {{user['mobile_number']}}
+          </td>
+          <!--
+             <td colspan="3">
+            <table width="350px" [ngStyle]="{'border': '0'}">
+              <tr *ngFor="let loc of user['locations-arr']">
+                <td width="150px" [ngStyle]="{'border': '0'}">{{loc['location-name']}} {{loc['location-parent']}}</td>
+                <td width="50px" [ngStyle]="{'border': '0'}"><span *ngFor="let ar of loc['account-role']" [ngStyle]="{'display': 'block'}">{{ar}}</span></td>
+                <td width="150px" [ngStyle]="{'border': '0'}"><span *ngFor="let em of loc['em-role']" [ngStyle]="{'display': 'block'}"> {{em}}</span></td>
+              </tr>
+            </table>
+          </td>
+          -->
+          <td>
+            <div *ngFor="let loc of user['locations-arr']">
+                <span [ngStyle]="{'display': 'block'}">{{loc['location-name']}} {{loc['location-parent']}}<br></span>
+                <br>
+            </div>
+          </td>
+
+          <td>
+            <div *ngFor="let loc of user['locations-arr']">
+                <span *ngFor="let ar of loc['account-role']" [ngStyle]="{'display': 'block'}">{{ar}}<br></span>
+                <br>
+            </div>
+          </td>
+
+          <td>
+            <div *ngFor="let loc of user['locations-arr']">
+              <span *ngFor="let em of loc['em-role']" [ngStyle]="{'display': 'block'}"> {{em}} <br></span>
+              <br>
+            </div>
+          </td>
+
+          <td>Actions</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="row">
+  <div class="col l12 m12 s12 center pagination">
+    <div class="inline-block">
+      <button class="btn blue" (click)="prevPage()"> Prev </button>
+    </div>
+
+    <div class="inline-block select">
+      <select #selectPage ngModel [(ngModel)]="currentPage" (change)="pageChange()">
+        <option *ngFor="let p of createRange; let i = index" value="{{i}}">{{i+1}}</option>
+      </select>
+    </div>
+
+    <div class="inline-block">
+      <button class="btn blue" (click)="nextPage()"> Next </button>
+    </div>
+  </div>
+</div>
+<div preloader></div>

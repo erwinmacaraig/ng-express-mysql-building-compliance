@@ -25,36 +25,47 @@ declare var $: any;
 })
 export class TrainingsComponent implements OnInit, OnDestroy{
 
-	userData = {};
+  userData = {};
+  routeSubs;
 
-	routeSubs;
-
-	thisRouteUrl = '';
+  public isNormalUser = false;
+  thisRouteUrl = '';
+  user_id_encrypted;
 
 	constructor(
-		private router : Router,
-		private route: ActivatedRoute,
-		private authService : AuthService,
-		private userService: UserService,
-		private locationService: LocationsService,
-        private signupServices: SignupService,
-        private productService: ProductService,
-        private encryptDecrypt : EncryptDecryptService,
-        private preloaderService: DashboardPreloaderService,
-        private messageService : MessageService
-		){
+    private router: Router,
+    private route: ActivatedRoute,
+    private authService: AuthService,
+    private userService: UserService,
+    private locationService: LocationsService,
+    private signupServices: SignupService,
+    private productService: ProductService,
+    private encryptDecrypt: EncryptDecryptService,
+    private preloaderService: DashboardPreloaderService,
+    private messageService: MessageService
+  ) {
 
 		this.userData = this.authService.getUserData();
 
 		this.routeSubs = this.router.events.subscribe((event) => {
-            if(event instanceof NavigationEnd ){
+            if(event instanceof NavigationEnd ) {
                 this.thisRouteUrl = event.url;
             }
         });
 	}
 
-	ngOnInit(){
-	}
+  ngOnInit() {
+    for (let i = 0; i < this.userData['roles'].length; i++) {
+      // to improve
+      // 1 - FRP
+      // 2 - TRP
+      // any role greate than 2 is a normal user
+      if (this.userData['roles'][i]['role_id'] > 2) {
+        this.isNormalUser = true;
+      }
+    }
+    this.user_id_encrypted = this.encryptDecrypt.encrypt(this.userData['userId']);
+  }
 
 	ngAfterViewInit(){
 		// this.preloaderService.show();
@@ -72,4 +83,4 @@ export class TrainingsComponent implements OnInit, OnDestroy{
 		this.routeSubs.unsubscribe();
 	}
 
-} 
+}

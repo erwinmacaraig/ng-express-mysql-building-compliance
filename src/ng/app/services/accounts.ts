@@ -36,6 +36,15 @@ export class AccountsDataProviderService {
 	      });
 	}
 
+	getAll(callBack){
+		this.http.get(this.baseUrl+"/accounts/get-all", this.options)
+	      .subscribe(res => {
+	        callBack(res);
+	      }, err => {
+	        callBack( JSON.parse(err.error) );
+	      });
+	}
+
 	saveAccountInvitationCode(opt, callBack){
 		this.http.post(this.baseUrl+"/accounts/save-account-code", opt, this.options)
 	      .subscribe(res => {
@@ -75,5 +84,14 @@ export class AccountsDataProviderService {
 	update(formData){
 		return this.http.post(this.baseUrl+"/accounts/create", formData, this.options);
 	}
+
+    isOnlineTrainingValid(callBack){
+        this.http.get(this.baseUrl+"/accounts/is-online-training-valid", this.options)
+          .subscribe(res => {
+            callBack(res);
+          }, err => {
+            callBack( JSON.parse(err.error) );
+          });
+    }
 
 }

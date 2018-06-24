@@ -1,0 +1,90 @@
+<div class="container" *ngIf="checkingAuth">
+	<div class="row">
+		
+		<div class="col l12 m12 s12 center">
+			<h5>Checking Auth...</h5>
+		</div>
+		
+	</div>
+</div>
+
+
+<div class="container" *ngIf="!checkingAuth">
+	<div class="row">
+		
+		<div class="col l12 m12 s12">
+			<h5>Assign Courses</h5>
+		</div>
+		
+	</div>
+	
+	<div *ngFor="let acc of currentPage" class="container-box" [attr.account-id]="acc.account_id">
+	
+		<div class="row">
+			<div class="col l6 m4 s12">
+				<input type="checkbox" id="allAcoount-{{acc.account_id}}" class="filled-in all-check">
+				<label for="allAcoount-{{acc.account_id}}"><h5 class="account-name">{{acc.account_name}}</h5></label>
+			</div>
+
+			<div class="col l3 m4 s12">
+				<select class="to-materialize" name="training_requirement_id" ngModel>
+					<option value="0">Select Training</option>
+					<option *ngFor="let tri of trainingRequirements" [value]="tri.training_requirement_id">{{tri.training_requirement_name}}</option>
+				</select>
+			</div>
+
+			<div class="col l3 m4 s12">
+				<select class="to-materialize" name="course_id" ngModel>
+					<option value="0">Select Course</option>
+					<option *ngFor="let cou of courses" [value]="cou.course_id">{{cou.course_name}}</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col l12 m12 s12" *ngIf="fetchingUsers[acc.account_id]">
+				Fetching users...
+			</div>
+
+			<div class="col l12 m12 s12" *ngIf="!fetchingUsers[acc.account_id] && usersShowing[acc.account_id].length == 0">
+				No user found
+			</div>
+
+			<div class="col l12 m12 s12" *ngIf="!fetchingUsers[acc.account_id] && usersShowing[acc.account_id].length > 0">
+				<h6>Select Multiple Users</h6>
+				<select multiple="multiple" class="to-materialize select-users" name="user_ids" ngModel >
+					<option *ngFor="let user of usersShowing[acc.account_id]" [value]="user.user_id">{{user.first_name}} {{user.last_name}}</option>
+				</select>
+			</div>
+		</div>
+		
+		<div class="row">
+			<div class="col s12 right-align">
+				<button class="btn grey" #btnDisable (click)="disableAction(acc.account_id, btnDisable)">Disable</button>
+				<button class="btn orange" #btn (click)="submitAction(acc.account_id, btn)">Submit</button>
+			</div>
+		</div>
+
+
+	</div>
+
+
+	<div class="row">
+		<div class="col l12 m12 s12 center">
+			<div class="inline-block">
+				<button (click)="pageChange('back')"> < </button>
+			</div>
+
+			<div class="inline-block">
+				<select #selectPage ngModel [(ngModel)]="currentPageSelected" (change)="pageChange(selectPage.value)">
+					<option *ngFor="let page of paginatedAccounts.arrayNumbers" value="{{page.number}}">{{page.number}}</option>
+				</select>
+			</div>
+
+			<div class="inline-block">
+				<button (click)="pageChange('forward')"> > </button>
+			</div>
+		</div>
+	</div>
+
+</div>

@@ -4,7 +4,7 @@
 
 		<div class="right-actions">
 			<div class="archived-container">
-				<a href="javascript:void(0)" [routerLink]="['/teams/list-wardens']">
+				<a  [routerLink]="['/teams/list-wardens']">
 					<div class="image"></div>
 					View Active List
 				</a>
@@ -16,7 +16,7 @@
 <div class="row filter-container">
 	<div class="col l4 m5 s12">
 		<div class="search-field">
-			<input type="text" placeholder="Search member name" (keyup)="searchMemberEvent($event)">
+			<input type="text" placeholder="Search member name or email" id="searchMemberInput">
 			<span class="material-icons">search</span>
 		</div>
 	</div>
@@ -56,13 +56,13 @@
 						</p>
 					</th>
 					<th>Name</th>
-					<th>ECO Role</th>
+					<th style="width: 20%;">ECO Role</th>
 					<th>Training</th>
 					<th>Last Login</th>
 					<th>Action</th>
 				</tr>
 			</thead>
-			<tbody>
+			<tbody [hidden]="loadingTable">
 				<tr *ngIf="wardenArr.length == 0">
 					<td colspan="6" class="center">
 						<h6>No record found</h6>
@@ -72,7 +72,7 @@
 					<td>
 						<!-- <p class="checkbox">
 							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)">
-							<label for="location-{{i}}" > 
+							<label for="location-{{i}}" >
 								{{warden['parent_name']}} - {{warden['name']}}
 							</label>
 						</p> -->
@@ -89,7 +89,7 @@
 						</p>
 					</td>
 					<td>
-						<div class="image-container lighten-3" [ngClass]="warden.bg_class">
+						<div class="image-container lighten-3" [ngClass]="warden.bg_class" *ngIf="warden.profile_pic.length > 0">
 							<div class="image">
 								<img *ngIf="warden.profile_pic.length > 0" [src]="warden.profile_pic"  >
 							</div>
@@ -105,7 +105,7 @@
 							<!-- <div class="image"></div> -->
 							<div *ngIf="warden.mobility_impaired == 1" class="impaired"></div>
 							<span *ngFor="let role of warden.roles; let ri = index;" class="name">
-								{{role.role_name}}<i *ngIf=" warden.roles.length - 1 != ri ">,</i> 
+								{{role.role_name}}<i *ngIf=" warden.roles.length - 1 != ri ">,</i>
 							</span>
 						</div>
 					</td>
@@ -120,7 +120,18 @@
 							<option value="0" class="blue-text" selected>Manage</option>
 							<option value="view" class="blue-text">View</option>
 							<option value="restore" class="blue-text" >Restore</option>
+                            <option  [value]=" (warden.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" >
+                                <span *ngIf="warden.mobility_impaired == 0">Mark as peep</span>
+                                <span *ngIf="warden.mobility_impaired == 1">Mark as healthy</span>
+                            </option>
 						</select>
+					</td>
+				</tr>
+			</tbody>
+			<tbody [hidden]="!loadingTable">
+				<tr>
+					<td colspan="7" class="center-align">
+						<h6>Fetching records..</h6>
 					</td>
 				</tr>
 			</tbody>
@@ -128,6 +139,24 @@
 
 	</div>
 
+</div>
+
+<div class="row">
+	<div class="col l12 m12 s12 center pagination" [hidden]="wardenArr.length == 0 || pagination.total <= queries.limit || loadingTable">
+		<div class="inline-block">
+			<button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1" > Prev </button>
+		</div>
+
+		<div class="inline-block select">
+			<select #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+				<option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+			</select>
+		</div>
+
+		<div class="inline-block">
+			<button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
+		</div>
+	</div>
 </div>
 
 
@@ -148,17 +177,13 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want archive 
-			<span *ngIf="selectedToArchive.parent_name">
-				{{ selectedToArchive.parent_name }}, 
-			</span> 
-			<span>{{selectedToArchive.name}} </span>
+			Are you sure you want to archive
 			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="unArchiveClick()">Restore</a>
 	</div>
 </div>
 
@@ -184,16 +209,109 @@
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
-				<span *ngIf="list.parent_name">
-					{{ list.parent_name }}, 
-				</span> 
-				<span>{{list.name}}</span> 
 				<span class="blue-text">{{list.first_name}} {{list.last_name}}</span>
 			</li>
 		</ul>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a href="javascipt:void(0)" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a href="javascipt:void(0)" class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="bulkUnArchiveClick()">Restore</a>
 	</div>
+</div>
+
+<div id="modalMobility" class="modal">
+
+    <div class="modal-content center" [hidden]="!showModalLoader">
+        <div class="preloader-wrapper active">
+            <div class="spinner-layer spinner-red-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
+
+    <div class="modal-content">
+        <h5>Mobility Impaired Information For {{selectedPeep.first_name}} {{selectedPeep.last_name}}</h5>
+        <div class="row">
+            <div class="col s12 l6 m6">
+                <div class="select-field">
+                    <span style=" font-size: 16px;">Mobility Impaired Status</span>
+                    <select ngModel name="is_permanent">
+                        <option value="0" selected="selected">Temporary</option>
+                        <option value="1" >Permanent</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col s12 l6 m6">
+                <div class="input-field">
+                    <span style=" font-size: 16px;">Mobility Impaired Upto</span>
+                    <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+                    <input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required >
+                </div>
+
+            </div>
+            <div class="col s12 m12 l12">
+                <h6>Assistant Type</h6>
+                <div class="input-field">
+                    <input ngModel name="assistant_type" type="text" class="grey-input" placeholder="Please describe requirements and process here." required>
+                </div>
+            </div>
+            <div class="col s12 m12 l12">
+                <h6>Evacuation Equipment Type / Requirement</h6>
+                <div class="input-field">
+                    <input ngModel name="equipment_type" type="text" class="grey-input" placeholder="Please inform what is the equiment and type." required>
+                </div>
+            </div>
+            <div class="col s12 m12 l12">
+                <h6>Evacuation / Egress Procedure</h6>
+                <div class="input-field">
+                    <input ngModel name="evacuation_procedure" type="text" class="grey-input" placeholder="" required>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer" [hidden]="showModalLoader">
+        <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+        <button type="submit" class="waves-effect waves-blue btn-flat" [disabled]="formMobility.invalid">Submit</button>
+    </div>
+
+
+    </form>
+</div>
+
+<div id="modalMobilityHealty" class="modal">
+
+    <div class="modal-content center" [hidden]="!showModalLoader">
+        <div class="preloader-wrapper active">
+            <div class="spinner-layer spinner-red-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-content">
+        <h5>Confirm action</h5>
+
+        <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
+    </div>
+
+    <div class="modal-footer" [hidden]="showModalLoader">
+        <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+        <button type="submit" class="waves-effect waves-blue btn-flat" (click)="markUserAsHealthy()">Confirm</button>
+    </div>
 </div>

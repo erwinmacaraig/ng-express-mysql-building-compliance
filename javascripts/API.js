@@ -12,15 +12,15 @@ API.LMSFinish = function() {
 API.LMSGetValue =  function(parameter) {
     var result = 0;
     $.ajax({
-        url: 'http://ec2-52-64-253-171.ap-southeast-2.compute.amazonaws.com/lms/getParameter/',
+        url: 'https://portal.evacconnect.com/lms/getParameter/',
         data: {
             "param": parameter,
             "relation": user_course_relation
         },
-        error: (e) =>{
+        error: function(e){
             console.log('Error', e);
         },
-        success: (data) => {
+        success: function(data) {
             // console.log(data.value);
             result = data.value;
         },
@@ -36,17 +36,17 @@ API.LMSSetValue = function(element, value) {
     // console.log(element, value);
     $.ajax({
         type: "POST",
-        url: "http://ec2-52-64-253-171.ap-southeast-2.compute.amazonaws.com/lms/setParameterValue/",
+        url: "https://portal.evacconnect.com/lms/setParameterValue/",
         data: {
            "param": element,
            "value": value,
            "relation": user_course_relation
         },
-        success: (data) => {
+        success: function(data) {
             // console.log("data setParameterValue is ", data);
             result = data.status
         },
-        error: (e) =>{
+        error: function(e){
             console.log('Error', e);
         },
         dataType: 'json',

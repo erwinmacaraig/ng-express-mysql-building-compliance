@@ -9,11 +9,13 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { DonutService } from '../../services/donut';
+import { UserService } from '../../services/users';
 import { Countries } from '../../models/country.model';
 import { Observable } from 'rxjs/Rx';
 import { MessageService } from '../../services/messaging.service';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { ComplianceService } from '../../services/compliance.service';
 
 declare var $: any;
 declare var Materialize: any;
@@ -21,7 +23,7 @@ declare var Materialize: any;
     selector: 'app-view-locations-single',
     templateUrl: './view-single.component.html',
     styleUrls: ['./view-single.component.css'],
-    providers: [DashboardPreloaderService, EncryptDecryptService, DonutService]
+    providers: [DashboardPreloaderService, EncryptDecryptService, DonutService, ComplianceService]
 })
 export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
 
@@ -42,7 +44,10 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         google_photo_url: '',
         formatted_address: '',
         sublocations : [],
-        admin_verified : 0
+        admin_verified : 0,
+        parent : {
+            name : <any> false
+        }
     };
     private sub;
     private loc_sub;
@@ -58,12 +63,24 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     public selectedSubLocationFromModal = {};
     public locationToApplyActionTo;
     @ViewChild('inputSublocation') public inputSublocation: ElementRef;
+    @ViewChild('formAddTenant') formAddTenant : NgForm;
 
     mutationOversable;
 
     showModalEditLoader = false;
     toEditLocations = [];
     toEditLocationsBackup = [];
+    showLoadingCompliance = true;
+
+    showModalNewTenantLoader = false;
+    selectedLocation = {
+        name : '',
+        location_id : '',
+        sublocations : []
+    };
+
+    showLoadingSublocations = false;
+    emailTaken = false;
 
     constructor(
         private auth: AuthService,
@@ -74,7 +91,9 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         private router: Router,
         private donut: DonutService,
         private elemRef: ElementRef,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private complianceService: ComplianceService,
+        private userService: UserService
         ){
         this.userData = this.auth.getUserData();
 
@@ -82,9 +101,9 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
             mutationsList.forEach((mutation) => {
                 if(mutation.target.nodeName != '#text'){
                     let target = $(mutation.target);
-                    if(target.find('select:not(.initialized)').length > 0){
+                    if(target.find('select.select-from-row:not(.initialized)').length > 0){
 
-                        target.find('select:not(.initialized)').material_select();
+                        target.find('select.select-from-row:not(.initialized)').material_select();
 
                     }
                 }
@@ -98,25 +117,26 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
           if (msg.id === 'warden-benchmarking-calculator') {
             $('#modalWardenBenchmarkCalc').modal('close');
             this.preloaderService.show();
-                this.loc_sub = this.locationService.getById(this.locationID, (response) => {
-                    setTimeout(() => {
-                        this.preloaderService.hide();
-                    }, 250);
-                    this.locationData.name = response.location.name;
-                    this.locationData.formatted_address = response.location.formatted_address;
-                    this.locationData.sublocations = response.sublocations;
-                    this.locationData.google_photo_url = response.location.google_photo_url || undefined;
-                    this.locationData.admin_verified = response.location.admin_verified;
-                    if (response.location.parent_id === -1) {
-                        this.isHome = true;
-                    }
-                    this.locationData.parent_id =  this.encryptDecrypt.encrypt(response.location.parent_id).toString();
+            this.loc_sub = this.locationService.getById(this.locationID, (response) => {
+                setTimeout(() => {
+                    this.preloaderService.hide();
+                }, 250);
+                this.locationData.name = response.location.name;
+                this.locationData.formatted_address = response.location.formatted_address;
+                this.locationData.sublocations = response.sublocations;
+                this.locationData.google_photo_url = response.location.google_photo_url || undefined;
+                this.locationData.admin_verified = response.location.admin_verified;
+                this.locationData.parent = response.parent;
+                if (response.location.parent_id === -1) {
+                    this.isHome = true;
+                }
+                this.locationData.parent_id =  this.encryptDecrypt.encrypt(response.location.parent_id).toString();
 
-                    for (let i = 0; i < this.locationData['sublocations'].length; i++) {
-                        this.locationData['sublocations'][i]['location_id']
-                        = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
-                    }
-                });
+                for (let i = 0; i < this.locationData['sublocations'].length; i++) {
+                    this.locationData['sublocations'][i]['location_id']
+                    = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
+                }
+            });
           }
         });
     }
@@ -136,6 +156,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
             this.locationData.sublocations = response.sublocations;
             this.locationData.google_photo_url = response.location.google_photo_url || undefined;
             this.locationData.admin_verified = response.location.admin_verified;
+            this.locationData.parent = response.parent;
             if (response.location.parent_id === -1) {
                 this.isHome = true;
             }
@@ -154,7 +175,6 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     }
 
     ngOnInit() {
-        $('select').material_select();
         $('.modal').modal({ dismissible: false });
 
         this.sub = this.route.params.subscribe((params) => {
@@ -169,6 +189,25 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                         this.preloaderService.hide();
                     }, 250);
                 });
+
+                this.complianceService.getLocationsLatestCompliance(this.locationID, (compResponse) => {
+                    this.showLoadingCompliance = false;
+
+                    this.donut.updateDonutChart('#specificChart', compResponse.percent, true);
+                    let start = 0, end = 0;
+                    for(let d of compResponse.data){
+                        if(d.compliance_kpis_id != 13){
+                            if(d.valid == 1){
+                                start += 1;
+                            }
+
+                            end++;
+                        }
+                    }
+
+                    $('.completion .start.number').html(start);
+                    $('.completion .end.number').html(end);
+                });
             }
 
         });
@@ -179,9 +218,10 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
             this.sameSublocationCopy = JSON.parse( JSON.stringify(this.locationsSublocations) );
         });
 
-		// DONUT update
-        // Donut Service
-		// this.donut.updateDonutChart('#specificChart', 30, true);
+        let formAddTenant = this.formAddTenant;
+        $('body').off('change.locationchange').on('change.locationchange', 'select.location-id', (event) => {
+            formAddTenant.controls.location_id.setValue( event.currentTarget.value );
+        });
 	}
 
     addNewSubLocationSubmit(form, e) {
@@ -273,9 +313,20 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         this.selectRowEvent();
     }
 
+    showNewTenant(){
+        /*
+        this.formAddTenant.reset();
+        this.formAddTenant.controls.billing_country.setValue( this.defaultCountry );
+        this.formAddTenant.controls.time_zone.setValue( this.defaultTimeZone );
+        */
+        $('#modalAddNewTenant').modal('open');
+
+        $('#modalAddNewTenant select').material_select();
+    }
+
     selectRowEvent(){
 
-        $('body').off('change.selectchangeevent').on('change.selectchangeevent', 'select.initialized', (e) => {
+        $('body').off('change.selectchangeevent').on('change.selectchangeevent', 'select.select-from-row', (e) => {
             e.preventDefault();
             let target = $(e.target),
                 val = target.val();
@@ -284,32 +335,91 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 let locIdEnc = val.replace('view-', '');
 
                 this.router.navigate(["/location/view/", locIdEnc]);
+            }else if(val.indexOf('addtenants-') > -1){
+                let locIdEnc = val.replace('addtenants-', '');
+                for(let i in this.locationData.sublocations){
+                    if(this.locationData.sublocations[i]['location_id'] == locIdEnc){
+                        this.selectedLocation = this.locationData.sublocations[i];
+                        this.showLoadingSublocations = true;
+                        this.locationService.getSublocationsOfParent(this.encryptDecrypt.decrypt(locIdEnc)).subscribe((subResponse) => {
+                            this.selectedLocation['sublocations'] = [];
+                            let copy = JSON.parse(JSON.stringify( this.selectedLocation ));
+                            copy['location_id'] = this.encryptDecrypt.decrypt(copy.location_id);
+                            this.selectedLocation['sublocations'].push(copy);
+                            if(subResponse.data.length > 0){
+                                this.selectedLocation['sublocations'] = this.selectedLocation['sublocations'].concat(subResponse.data);
+                            }
+                            this.showLoadingSublocations = false;
+                            setTimeout(() => {
+                                $('#modalAddNewTenant select.location-id').material_select();
+                            }, 300);
+                        });
+                    }
+                }
+                this.showNewTenant();
             }else if(val.indexOf('viewsub-') > -1){
                 let locIdEnc = val.replace('viewsub-', '');
 
                 this.router.navigate(["/location/view-sublocation/", locIdEnc]);
-            }else if(val.indexOf('addtenants-') > -1){
-                let locIdEnc = val.replace('addtenants-', '');
-                this.router.navigate(["/teams/add-user/tenant", locIdEnc]);
             }else if(val.indexOf('benchmark-') > -1) {
                 this.locationToApplyActionTo = this.encryptDecrypt.decrypt(val.replace('benchmark-', ''));
                 $('#modalWardenBenchmarkCalc').modal('open');
                 console.log(' Benchmark location id ' + this.locationToApplyActionTo);
             }
-        });
 
+            target.val(0);
+            target.material_select();
+        });
     }
 
-	getCountryName(abbr){
-		let name = '';
-		for(let i in this.countries){
-			if(this.countries[i]['abbr'] == abbr){
-				name = this.countries[i]['name'];
-			}
-		}
+    submitNewTenant(formAddTenant:NgForm){
+        if(formAddTenant.valid){
+            this.showModalNewTenantLoader = true;
 
-		return name;
-	}
+           formAddTenant.controls.location_id.setValue( $('#modalAddNewTenant select.location-id').val() );
+            this.userService.sendTRPInvitation(formAddTenant.value).subscribe(() => {
+                this.getLocationData(() => {
+
+                    this.showModalNewTenantLoader = false;
+                    $('#modalAddNewTenant').modal('close');
+                    this.formAddTenant.reset();
+
+                    setTimeout(() => {
+                        this.preloaderService.hide();
+                    }, 250);
+                });
+
+                this.complianceService.getLocationsLatestCompliance(this.locationID, (compResponse) => {
+                    this.showLoadingCompliance = false;
+
+                    this.donut.updateDonutChart('#specificChart', compResponse.percent, true);
+                    let start = 0, end = 0;
+                    for(let d of compResponse.data){
+                        if(d.compliance_kpis_id != 13){
+                            if(d.valid == 1){
+                                start += 1;
+                            }
+
+                            end++;
+                        }
+                    }
+
+                    $('.completion .start.number').html(start);
+                    $('.completion .end.number').html(end);
+                });
+
+               
+            }, (e) => {
+              this.showModalNewTenantLoader = false;
+              $('#modalAddNewTenant').modal('close');
+              console.log(e);
+              const errorObject = JSON.parse(e.error);
+              alert(errorObject.message);
+            });
+
+        }
+    }
+
 
     onKeyUpTypeSublocation(value){
         let trimmed = value.trim(),

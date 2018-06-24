@@ -51,6 +51,7 @@ export class LMSRoute extends BaseRoute {
       const scorm = new Scorm();
       scorm.setDataModelVal(req.body.relation, req.body.param, req.body.value).then((data) => {
         // Scorm 1.1 and Scorm 1.2
+        console.log(req.body);
         if (req.body.param == 'cmi.core.lesson_status' && (req.body.value == 'completed' || req.body.value == 'passed')) {
           const courseUserRelObj = new CourseUserRelation(req.body.relation);
           courseUserRelObj.updateUserTrainingCourseCertificate().then((result) => {
@@ -97,7 +98,7 @@ export class LMSRoute extends BaseRoute {
     let relation = 0;
     const scorm = new Scorm();
     try {
-      relation = await courseUserRelation.getRelation(req.body.userId, req.body.courseId);
+      relation = await courseUserRelation.getRelation({'user': req.body.userId, 'course': req.body.courseId});
       courseData['course_user_relation_id'] = relation;
       // console.log('relation = ' + relation);
     } catch (e) {

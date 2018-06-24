@@ -1,5 +1,6 @@
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
+import { Location } from './location.model';
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
@@ -31,6 +32,85 @@ export class Account extends BaseClass {
             });
             connection.end();
         });
+    }
+
+    public getAll(config = {}): Promise<any> {
+      return new Promise((resolve, reject) => {
+          let sql_load = 'SELECT * FROM accounts WHERE archived = 0';
+          let page = 0;
+          const accountIds = [];
+          const connection = db.createConnection(dbconfig);
+          if ('page' in config) {
+            page = Math.abs(parseInt(config['page'], 10)) * 10;
+            sql_load = `SELECT account_id FROM accounts LIMIT 10 OFFSET ${page}`;
+            connection.query(sql_load, (error, results) => {
+              if (error) {
+                console.log('account.model.getAll - cannot get account ids', error, sql_load);
+                throw Error('There was a problem getting the list of account ids');
+              }
+              for (const r of results) {
+                accountIds.push(r['account_id']);
+              }
+              resolve(accountIds);
+            });
+            connection.end();
+            return;
+          }
+          if ('count' in config) {
+            sql_load = `SELECT COUNT(account_id) as total FROM accounts;`;
+            connection.query(sql_load, (error, results) => {
+              if (error) {
+                console.log('account.model.getAll - cannot get total number of accounts', error, sql_load);
+                throw Error('There was a problem getting the total number of account');
+              }
+              resolve(results[0]['total']);
+            });
+            connection.end();
+            return;
+          }
+          if ('query' in config) {
+            sql_load = `SELECT account_id FROM accounts WHERE account_name LIKE '%${config['query']}%' LIMIT 10`;
+            connection.query(sql_load, (error, results) => {
+              if (error) {
+                console.log('account.model.getAll - cannot get account with the specified query', error, sql_load);
+                throw Error('There was a problem querying accounts given the name');
+              }
+              for (const r of results) {
+                accountIds.push(r['account_id']);
+              }
+              resolve(accountIds);
+            });
+            connection.end();
+            return;
+          }
+          if ('all' in config) {
+            sql_load = `SELECT account_id FROM accounts WHERE archived = 0`;
+            connection.query(sql_load, (error, results) => {
+              if (error) {
+                console.log('account.model.getAll - cannot get all account listing', error, sql_load);
+                throw Error('There was a problem querying all accounts');
+              }
+              for (const r of results) {
+                accountIds.push(r['account_id']);
+              }
+            });
+            connection.end();
+            return;
+          }
+
+          connection.query(sql_load, (error, results, fields) => {
+            if (error) {
+              return console.log(error);
+            }
+            this.dbData = results;
+            if (results.length) {
+              resolve(results);
+            } else {
+              resolve(this.dbData);
+            }
+          });
+          connection.end();
+      });
     }
 
     public getByUserId(userId: Number) {
@@ -129,7 +209,7 @@ export class Account extends BaseClass {
                 location_id = ?, account_type = ?, account_directory_name = ?,
                 archived = ?, block_access = ?, account_code = ?,
                 default_em_role = ?, epc_committee_on_hq = ?, trp_code = ?, account_domain = ?,
-                key_contact = ?, time_zone = ?
+                key_contact = ?, time_zone = ?, email_add_user_exemption = ?
                 WHERE account_id = ? `;
           const param = [
             ('lead' in this.dbData) ? this.dbData['lead'] : 0,
@@ -156,6 +236,7 @@ export class Account extends BaseClass {
             ('account_domain' in this.dbData) ? this.dbData['account_domain'] : '',
             ('key_contact' in this.dbData) ? this.dbData['key_contact'] : "",
             ('time_zone' in this.dbData) ? this.dbData['time_zone'] : "",
+            ('email_add_user_exemption' in this.dbData) ? this.dbData['email_add_user_exemption'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             this.ID() ? this.ID() : 0
           ];
@@ -195,8 +276,9 @@ export class Account extends BaseClass {
             trp_code,
             account_domain,
             key_contact,
-            time_zone
-          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            time_zone,
+            email_add_user_exemption
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
           `;
           const param = [
             ('lead' in this.dbData) ? this.dbData['lead'] : 0,
@@ -222,7 +304,8 @@ export class Account extends BaseClass {
             ('trp_code' in this.dbData) ? this.dbData['trp_code'] : '',
             ('account_domain' in this.dbData) ? this.dbData['account_domain'] : '',
             ('key_contact' in this.dbData) ? this.dbData['key_contact'] : "",
-            ('time_zone' in this.dbData) ? this.dbData['time_zone'] : ""
+            ('time_zone' in this.dbData) ? this.dbData['time_zone'] : "",
+            ('email_add_user_exemption' in this.dbData) ? this.dbData['email_add_user_exemption'] : 0
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_insert, param, (err, results, fields) => {
@@ -255,30 +338,22 @@ export class Account extends BaseClass {
     public getLocationsOnAccount(user_id?: number, role_id?: number, archived?): Promise<Object[]> {
         return new Promise((resolve, reject) => {
             let user_filter = '';
-            if(archived == undefined){
+            if (archived == undefined) {
               archived = 0;
-            }
-            let role_filter = '';
-            if (role_id) {
-                role_filter = `AND LAU.role_id = ${role_id}`;
-                if (role_id === 1) {
-                    role_filter = `${role_filter} AND locations.parent_id = -1`;
-                } else if (role_id >= 2) {
-                    role_filter = `${role_filter} AND locations.parent_id <> -1`;
-                }
-            } else {
-              role_filter = `${role_filter} AND locations.parent_id <> -1 AND locations.is_building = 0`;
             }
             if (user_id) {
                 user_filter = `AND LAU.user_id = ${user_id}`;
             }
+
             const sql_get_locations = `SELECT
               locations.parent_id,
               locations.name,
               locations.formatted_address,
               locations.location_id,
               locations.google_photo_url,
-              locations.admin_verified
+              locations.admin_verified,
+              locations.is_building,
+              LAU.location_account_user_id
             FROM
               locations
             INNER JOIN
@@ -287,13 +362,12 @@ export class Account extends BaseClass {
               locations.location_id = LAU.location_id
             WHERE
               locations.archived = ?
-              ${user_filter} ${role_filter}
+              ${user_filter}
             GROUP BY
               locations.location_id
             ORDER BY
               locations.location_id;
             `;
-            // const val = [this.ID(), archived];
             const val = [archived];
             const connection = db.createConnection(dbconfig);
 
@@ -314,180 +388,331 @@ export class Account extends BaseClass {
         });
     }
 
-    public buildWardenList(user_id: number, archived?) {
-      return new Promise((resolve, reject) => {
-        if(!archived){ archived = 0; }
-
-        const sql_warden_list = `
-        SELECT
-          users.user_id,
-    		  users.first_name,
-          users.last_name,
-          users.account_id,
-          users.last_login,
-          users.mobility_impaired,
-          DATEDIFF(NOW(), last_login) AS days,
-          em_roles.role_name,
-          locations.parent_id,
-          locations.name,
-          locations.formatted_address,
-          locations.location_id,
-          locations.google_photo_url
-        FROM
-         user_em_roles_relation
-        INNER JOIN
-          users
-        ON
-          user_em_roles_relation.user_id = users.user_id
-        INNER JOIN
-          em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
-	      INNER JOIN
-          locations
-        ON
-          locations.location_id = user_em_roles_relation.location_id
-        WHERE user_em_roles_relation.location_id IN (
-		      SELECT
-            locations.location_id
-          FROM
-            locations
-          INNER JOIN
-            location_account_user LAU
-          ON
-            locations.location_id = LAU.location_id
-          WHERE
-            LAU.account_id = ?
-          AND
-            locations.archived = 0
-          AND
-            LAU.user_id = ?
-          AND LAU.archived = 0
-          GROUP BY
-            locations.location_id
-          ORDER BY
-            locations.location_id)
-        AND users.archived = ${archived}
-        `;
-
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_warden_list, [this.ID(), user_id], (err, results, fields) => {
-          if (err) {
-            console.log(err);
-            throw new Error('Internal problem. There was a problem processing your query');
-          }
-          if (!results.length) {
-            reject('There are no warden(s) found');
-          } else {
-            resolve(results);
-          }
-        });
-        connection.end();
-      });
-    }
-
-    public buildPEEPList(accntID?, userID?, archived?) {
-      return new Promise((resolve, reject) => {
-        let sql_get_peep = `
-          SELECT
-            u.first_name,
-            u.last_name,
-            u.user_id,
-            u.mobility_impaired,
-            u.account_id,
-            u.last_login,
-            lau.location_account_user_id,
-            lau.role_id,
-            lau.archived,
-            l.parent_id,
-            l.location_id,
-            l.name as location_name,
-            l.formatted_address,
-            l.google_photo_url
-          FROM
-            users u
-            INNER JOIN location_account_user lau ON u.user_id = lau.user_id
-            INNER JOIN locations l ON l.location_id = lau.location_id
-          WHERE
-            u.mobility_impaired = 1 AND
-            lau.location_id IN (
-              SELECT
-                locations.location_id
-              FROM
-                locations
-              INNER JOIN
-                location_account_user LAU
-              ON
-                locations.location_id = LAU.location_id
-              WHERE
-                LAU.account_id = ${accntID}
-              AND
-                locations.archived = 0
-              AND
-                LAU.user_id = ${userID}
-              AND LAU.archived = 0
-              GROUP BY
-                locations.location_id
-              ORDER BY
-                locations.location_id
-            )
-         `;
-        if(archived){
-          sql_get_peep += ' AND lau.archived = '+archived;
-        }else{
-          sql_get_peep += ' AND lau.archived = 0';
+    public getActivityLog(locationIds?, offsetLimit?, count?){
+        if(!offsetLimit){
+            offsetLimit = 0,10;
         }
 
-        sql_get_peep += ' GROUP BY lau.location_id, lau.user_id, lau.role_id ';
+        let accountId = this.ID(),
+            locationSql = '';
 
+        if(locationIds){
+            locationSql = ' AND compliance_documents.building_id IN ('+locationIds+')';
+        }
+
+        return new Promise((resolve, reject) => {
+            let accountId = this.ID();
+            let sql = `
+                SELECT
+                    compliance_documents.compliance_documents_id,
+                    compliance_documents.account_id,
+                    compliance_documents.building_id,
+                    compliance_documents.compliance_kpis_id,
+                    compliance_documents.document_type,
+                    compliance_documents.file_name,
+                    compliance_documents.override_document,
+                    compliance_documents.description,
+                    compliance_documents.date_of_activity,
+                    compliance_documents.viewable_by_trp,
+                    compliance_documents.file_size,
+                    compliance_documents.file_type,
+                    compliance_documents.timestamp,
+                    compliance_kpis.directory_name
+
+                FROM compliance_kpis
+                INNER JOIN compliance_documents
+                ON compliance_kpis.compliance_kpis_id = compliance_documents.compliance_kpis_id
+                WHERE compliance_documents.account_id = ${accountId} ${locationSql}
+                ORDER BY compliance_documents.timestamp DESC
+                LIMIT ${offsetLimit}
+            `;
+
+            if(count){
+                sql = `
+                    SELECT COUNT(compliance_documents.compliance_documents_id) as count FROM
+                    compliance_kpis
+                    INNER JOIN compliance_documents
+                    ON compliance_kpis.compliance_kpis_id = compliance_documents.compliance_kpis_id
+                    WHERE compliance_documents.account_id = ${accountId} ${locationSql}
+                    ORDER BY compliance_documents.timestamp DESC
+                `;
+            }
+
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, (err, results, fields) => {
+                if (err) {
+                    console.log(err);
+                    throw new Error('Internal problem. There was a problem processing your query');
+                }
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
+    public getAllEMRolesOnThisAccount(accountId = 0, filter = {} ): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let account = this.ID();
+        let filterStr = '';
+        let uniqStr = `GROUP BY users.user_id`;
+        const resultSet = [];
+        if (accountId) {
+          account = accountId;
+        }
+        if ('location' in filter && filter['location'].length > 0) {
+          filterStr += ' AND user_em_roles_relation.location_id IN (' + filter['location'].join(',') + ')';
+        }
+        if ('em_roles' in filter) {
+          filterStr += ' AND user_em_roles_relation.em_role_id IN (' + filter['em_roles'].join(',')  + ')';
+        }
+        if ('all' in filter) {
+          uniqStr = '';
+        }
+        if('search' in filter){
+            filterStr += ' AND CONCAT(users.first_name, " ", users.last_name) LIKE "%'+filter['search']+'%" ';
+        }
+        if('user_ids' in filter){
+            filterStr += ' AND users.user_id IN ('+filter['user_ids']+') ';
+        }
+
+        const sql_all = `
+          SELECT
+          	users.user_id,
+            users.first_name,
+            users.last_name,
+            users.email,
+            user_em_roles_relation.location_id,
+            user_em_roles_relation.em_role_id,
+            em_roles.role_name,
+            IF(ploc.name IS NOT NULL, CONCAT( IF(TRIM(ploc.name) <> '', CONCAT(ploc.name, ', '), ''), locations.name), locations.name) as location_name
+          FROM
+          	users
+          INNER JOIN
+          	user_em_roles_relation
+          ON
+            users.user_id = user_em_roles_relation.user_id
+          INNER JOIN
+            em_roles
+          ON
+           user_em_roles_relation.em_role_id = em_roles.em_roles_id
+          INNER JOIN
+              locations ON user_em_roles_relation.location_id = locations.location_id
+          LEFT JOIN
+              locations ploc ON locations.parent_id = ploc.location_id
+          WHERE
+            users.account_id = ? ${filterStr}
+          AND
+           users.archived = 0 ${uniqStr}
+          ORDER BY
+          	users.user_id;
+        `;
         const connection = db.createConnection(dbconfig);
-        connection.query(sql_get_peep,  (err, results, fields) => {
-          if (err) {
-            console.log(`account.model: ${sql_get_peep}`, err);
-            throw new Error(err);
+        connection.query(sql_all, [account], (error, results) => {
+          if (error) {
+            console.log('account.model.getAllEMRolesOnThisAccount', error, sql_all);
+            throw Error('Cannot generate the list of emergency roles');
           }
-
-          let sqlInvi = `
-            SELECT
-              ui.user_invitations_id,
-              ui.first_name,
-              ui.last_name,
-              ui.location_id,
-              ui.account_id,
-              ui.role_id,
-              ui.eco_role_id,
-              ui.email,
-              er.role_name,
-              er.em_roles_id,
-              l.parent_id,
-              l.name as location_name,
-              l.formatted_address,
-              l.google_photo_url
-            FROM
-              user_invitations ui
-              INNER JOIN em_roles er ON ui.eco_role_id = er.em_roles_id
-              INNER JOIN locations l ON ui.location_id = l.location_id
-            WHERE
-              ui.account_id = ${accntID} AND
-              ui.mobility_impaired = 1 AND
-              ui.was_used = 0`;
-
-          const connectionInvi = db.createConnection(dbconfig);
-          connectionInvi.query(sqlInvi,  (err, resultsInvi, fields) => {
-            if (err) {
-              throw new Error(err);
-            }
-
-            let newResults = results;
-            for(let i in resultsInvi){
-              newResults.push(resultsInvi[i]);
-            }
-            resolve( newResults );
-          });
-          connectionInvi.end();
+          for (const r of results) {
+            resultSet.push(r);
+          }
+          resolve(resultSet);
         });
         connection.end();
       });
-
     }
 
+    public getAllEMRolesOnThisAccountNotCompliant(accountId = 0, filter = {} ): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let account = this.ID();
+        let filterStr = '';
+        let uniqStr = `GROUP BY users.user_id`;
+        const resultSet = [];
+        if (accountId) {
+          account = accountId;
+        }
+        if ('location' in filter && filter['location'].length > 0) {
+          filterStr += ' AND uer.location_id IN (' + filter['location'].join(',') + ')';
+        }
+        if ('em_roles' in filter) {
+          filterStr += ' AND uer.em_role_id IN (' + filter['em_roles'].join(',')  + ')';
+        }
+        if ('all' in filter) {
+          uniqStr = '';
+        }
+        if('search' in filter){
+            filterStr += ' AND CONCAT(u.first_name, " ", u.last_name) LIKE "%'+filter['search']+'%" ';
+        }
+        if('user_ids' in filter){
+            filterStr += ' AND u.user_id IN ('+filter['user_ids']+') ';
+        }
 
-}
+        const sql_all = `
+            SELECT
+                u.user_id, u.first_name, u.last_name, u.email, uer.location_id, uer.em_role_id,
+                uer.user_em_roles_relation_id, er.role_name, train.training_requirement_name, train.training_requirement_id,
+                IF(ploc.name IS NOT NULL, CONCAT( IF(TRIM(ploc.name) <> '', CONCAT(ploc.name, ', '), ''), locations.name), locations.name) as location_name
+            FROM users u
+            INNER JOIN user_em_roles_relation uer ON u.user_id = uer.user_id
+            INNER JOIN em_roles er ON uer.em_role_id = er.em_roles_id
+            INNER JOIN em_role_training_requirements ertr ON er.em_roles_id = ertr.em_role_id
+            INNER JOIN training_requirement train ON train.training_requirement_id = ertr.training_requirement_id
+            INNER JOIN locations ON uer.location_id = locations.location_id
+            LEFT JOIN locations ploc ON locations.parent_id = ploc.location_id
+            WHERE u.user_id NOT IN (
+                SELECT
+                    c.user_id
+                FROM certifications c
+                INNER JOIN training_requirement tr ON c.training_requirement_id = tr.training_requirement_id
+                INNER JOIN em_role_training_requirements emtr ON c.training_requirement_id = emtr.training_requirement_id
+                WHERE c.pass = 1 AND DATE_ADD(c.certification_date, INTERVAL tr.num_months_valid MONTH) > NOW()
+            )
+
+            AND u.account_id = ? AND u.archived = 0 ${filterStr};
+        `;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_all, [account], (error, results) => {
+          if (error) {
+            console.log('account.model.getAllEMRolesOnThisAccountNotCompliant', error, sql_all);
+            throw Error('Cannot generate the list of emergency roles');
+          }
+          for (const r of results) {
+            resultSet.push(r);
+          }
+          resolve(resultSet);
+        });
+        connection.end();
+      });
+    }
+
+    generateAdminAccountUsers(accountId: number = 0, users = []): Promise<Array<object>> {
+      let account = this.ID();
+      let userStr = '';
+      if (accountId) {
+        account = accountId;
+      }
+      if (users.length > 0) {
+        userStr = ' AND users.user_id IN (' + users.join(',') + ')';
+      }
+      return new Promise((resolve, reject) => {
+
+        const resultSet = [];
+        const sql = `SELECT
+            users.user_id,
+            users.first_name,
+            users.last_name,
+            users.email,
+            users.mobile_number,
+            user_role_relation.role_id,
+            IF (user_role_relation.role_id = 1, 'FRP', IF (user_role_relation.role_id = 2, 'TRP', '')) as account_role,
+            locations.location_id,
+            locations.name,
+            parent_locations.name as parent_name
+          FROM users
+          LEFT JOIN
+            user_role_relation
+          ON users.user_id = user_role_relation.user_id
+          LEFT JOIN
+            location_account_user
+          ON
+            location_account_user.user_id = users.user_id
+          LEFT JOIN
+            locations
+          ON
+            locations.location_id = location_account_user.location_id
+          LEFT JOIN
+            locations as parent_locations
+          ON
+            locations.parent_id = parent_locations.location_id
+          WHERE
+            users.account_id = ? ${userStr}
+        `;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [account], (error, results) => {
+          if (error) {
+            console.log('account.model.generateAdminAccountUsers', error, sql);
+            throw Error('Cannot populate list for account users');
+          }
+          Object.keys(results).forEach((index) => {
+            resultSet.push(results[index]);
+          });
+          resolve(resultSet);
+
+        });
+        connection.end();
+      });
+    }
+
+    generateAdminEMUsers(accountId: number = 0, users = []): Promise<Array<object>> {
+      let account = this.ID();
+      let userStr = '';
+
+      if (accountId) {
+        account = accountId;
+      }
+      if (users.length > 0) {
+        userStr = ' AND users.user_id IN (' + users.join(',') + ')';
+      }
+      return new Promise((resolve, reject) => {
+
+        const resultSet = [];
+        const sql = `SELECT
+        users.user_id,
+        users.first_name,
+        users.last_name,
+        users.email,
+        users.mobile_number,
+        user_em_roles_relation.em_role_id as role_id,
+        em_roles.role_name,
+        locations.location_id,
+        locations.name,
+        parent_locations.name as parent_name
+      FROM users
+      LEFT JOIN
+        user_em_roles_relation
+      ON
+        users.user_id = user_em_roles_relation.user_id
+      LEFT JOIN em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
+      LEFT JOIN
+        locations
+      ON
+        locations.location_id = user_em_roles_relation.location_id
+      LEFT JOIN
+        locations as parent_locations
+      ON
+        locations.parent_id = parent_locations.location_id
+      WHERE
+        users.account_id = ? ${userStr}
+        `;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [account], (error, results) => {
+          if (error) {
+            console.log('account.model.generateAdminEMUsers', error, sql);
+            throw Error('Cannot populate list for emergency users');
+          }
+          Object.keys(results).forEach((index) => {
+            resultSet.push(results[index]);
+          });
+          resolve(resultSet);
+
+        });
+        connection.end();
+      });
+    }
+
+    public getAccountDetailsUsingName(name: string = ''): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        const sql_get = `SELECT * FROM accounts WHERE account_name LIKE '${name}' LIMIT 1`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_get, [], (error, results) => {
+          if (error) {
+            console.log('account.model.getAccountDetailsUsingName', error, sql_get);
+            throw Error('Internal error. Cannot get account details');
+          }
+          resolve(results);
+        });
+      });
+    }
+
+} // end class

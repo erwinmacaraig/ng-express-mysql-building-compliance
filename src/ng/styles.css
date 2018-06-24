@@ -54,12 +54,14 @@ html{
     transform-origin: 0 0;
 }
 
-.input-field input:focus{
+.input-field input:focus,
+.input-field textarea:focus{
 	border-bottom: 1px solid #39a1ff !important;
     box-shadow: none !important;
 }
 
-.input-field input:focus + label{
+.input-field input:focus + label,
+.input-field textarea:focus + label{
 	color: #39a1ff !important;
 }
 
@@ -269,4 +271,43 @@ td.select-blue ul li > span{
 
 td.select-blue .dropdown-content li{
     min-height: 10px;
+}
+
+.select-wrapper.report-box{
+    padding: 5px 15px;
+    background-color: #fff;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.select-wrapper.report-box > input[type="text"]{
+    margin-bottom: 0px;
+    border-bottom: 0px;
+}
+
+.select-wrapper.report-box span.caret{
+    right: 10px;
+}
+
+.select-wrapper.report-box ul{
+    top: 2px !important;
+    left: 2px !important;
+    width: 206px !important;
+}
+
+a:hover{
+    cursor: pointer;
+}
+
+.ngx-datepicker-container .ngx-datepicker-calendar-container{
+    z-index: 999;
+}
+
+span.day-unit.is-today {
+    background: none !important;
+    color: #3d495c !important;
+}
+
+app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
+    font-size: 14px !important;
 }

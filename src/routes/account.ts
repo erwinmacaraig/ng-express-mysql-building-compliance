@@ -63,6 +63,14 @@ const validator = require('validator');
 	   		new AccountRoute().create(req, res);
 	   	});
 
+	   	router.get('/accounts/get-all', (req: Request, res: Response) => {
+	   		new AccountRoute().getAll(req, res);
+	   	});
+
+        router.get('/accounts/is-online-training-valid', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new AccountRoute().isOnlineTrainingValid(req, res);
+        });
+
    	}
 
 	/**
@@ -74,6 +82,34 @@ const validator = require('validator');
 	constructor() {
 		super();
 	}
+
+	public async getAll(req: Request, res: Response){
+		let  response = {
+			status : true,
+			message : '',
+			data : []
+		},
+		account = new Account();
+
+		response.data = <any> await account.getAll();
+		res.send(response);
+	}
+
+    public async isOnlineTrainingValid(req: AuthRequest, res: Response){
+        let  response = { valid : false },
+        account = new Account(req.user.account_id);
+
+        try{
+
+            let accData = <any> await account.load();
+            if(accData.online_training == 1){
+                response.valid = true;
+            }
+
+        }catch(e){}
+
+        res.send(response);
+    }
 
 	public getAccountByUserId(req: AuthRequest, res: Response){
 		let  response = {
@@ -557,7 +593,7 @@ const validator = require('validator');
 
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
-			link = req.protocol + '://' + req.get('host') +'/custom-resolver?role_id='+inviData.role_id+'&invitation_code_id='+inviData.invitation_code_id+'&code='+inviData.code;
+			link = 'https://' + req.get('host') +'/custom-resolver?role_id='+inviData.role_id+'&invitation_code_id='+inviData.invitation_code_id+'&code='+inviData.code;
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(inviData.first_name)+' '+this.capitalizeFirstLetter(inviData.last_name)+'</h3> <br/>';
 		emailBody += '<h4> '+this.capitalizeFirstLetter(creatorData.first_name)+' '+this.capitalizeFirstLetter(creatorData.last_name)+' sents you an invitation code. </h4> <br/>';

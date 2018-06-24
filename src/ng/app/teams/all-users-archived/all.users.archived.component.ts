@@ -7,6 +7,11 @@ import { UserService } from '../../services/users';
 import { AuthService } from '../../services/auth.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import * as Rx from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
+import * as moment from 'moment';
+import { DatepickerOptions } from 'ng2-datepicker';
 
 declare var $: any;
 @Component({
@@ -28,6 +33,39 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 
 	filters = [];
 
+	loadingTable = false;
+
+	pagination = {
+		pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+	};
+
+	queries = {
+		roles : 'frp,trp,users',
+		impaired : null,
+		type : 'client',
+		offset :  0,
+		limit : 10,
+		archived : 1,
+		pagination : true,
+		user_training : true,
+		users_locations : true,
+		search : ''
+	};
+
+	searchMemberInput;
+
+    options: DatepickerOptions = {
+        displayFormat: 'MMM D[,] YYYY',
+        minDate: moment().toDate()
+    };
+
+    datepickerModel : Date;
+    isShowDatepicker = false;
+    datepickerModelFormatted = '';
+    selectedPeep = {
+        first_name : '', last_name : ''
+    };
+
 	constructor(
 		private userService : UserService,
 		private authService : AuthService,
@@ -36,13 +74,20 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 		private router : Router
 		){
 		this.userData = this.authService.getUserData();
+
+        this.datepickerModel = moment().add(1, 'days').toDate();
+        this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 	}
 
 	getListData(callBack?){
-		this.userService.getArchivedUsersByAccountId(this.userData['accountId'], (response) => {
-			this.listData = response.data;
+
+		this.userService.queryUsers(this.queries, (response) => {
+			this.pagination.total = response.data.pagination.total;
+			this.pagination.pages = response.data.pagination.pages;
+			this.listData = response.data.users;
 
 			let tempRoles = {};
+			this.filters = [];
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
 				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
@@ -65,8 +110,11 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 					}
 				}
 			}
-			
+
+			setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
+
 			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
+
 			if(callBack){
 				callBack();
 			}
@@ -74,12 +122,20 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
-
+		this.dashboardService.show();
 		this.getListData(() => { 
-			this.dashboardService.hide(); 
+			if(this.pagination.pages > 0){
+				this.pagination.currentPage = 1;
+				this.pagination.prevPage = 1;
+			}
+
+			for(let i = 1; i<=this.pagination.pages; i++){
+				this.pagination.selection.push({ 'number' : i });
+			}
 			setTimeout(() => {
+				this.dashboardService.hide(); 
 				$('.row.filter-container select').material_select();
-			}, 500);
+			}, 100);
 		});
 
 	}
@@ -90,12 +146,14 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 		});
 
 		$('.row.filter-container select').material_select();
+        $('#modalMobility select').material_select();
 
 		this.dashboardService.show();
 
 		this.filterByEvent();
 		this.sortByEvent();
 		this.bulkManageActionEvent();
+		this.searchMemberEvent();
 	}
 
 	filterByEvent(){
@@ -147,21 +205,24 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	searchMemberEvent(event){
-		let key = event.target.value,
-			temp = [];
-
-		if(key.length == 0){
-			this.listData = this.copyOfList;
-		}else{
-			for(let i in this.copyOfList){
-				let name = (this.copyOfList[i]['first_name']+' '+this.copyOfList[i]['last_name']).toLowerCase();
-				if(name.indexOf(key) > -1){
-					temp.push( this.copyOfList[i] );
-				}
-			}
-			this.listData = temp;
-		}
+	searchMemberEvent(){
+		this.searchMemberInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberInput'), 'input');
+		this.searchMemberInput.debounceTime(800)
+			.map(event => event.target.value)
+			.subscribe((value) => {
+				this.queries.search = value;
+				this.queries.offset = 0;
+				this.loadingTable = true;
+				this.pagination.selection = [];
+				this.getListData(() => { 
+					for(let i = 1; i<=this.pagination.pages; i++){
+						this.pagination.selection.push({ 'number' : i });
+					}
+					this.pagination.currentPage = 1;
+					this.pagination.prevPage = 1;
+					this.loadingTable = false;
+				});
+			});
 	}
 
 	ngOnDestroy(){}
@@ -175,7 +236,15 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 		let selected = event.target.value;
 		if(selected == 'view'){
 			this.router.navigate(["/teams/view-user/", list.id_encrypted]);
-		}else{
+		}else if(selected == 'peep'){
+            this.selectedPeep = list;
+            event.target.value = 0;
+            $('#modalMobility').modal('open');
+        }else if(selected == 'healthy'){
+            this.selectedPeep = list;
+            event.target.value = 0;
+            $('#modalMobilityHealty').modal('open');
+        }else{
 			event.target.value = "0";
 			this.showModalLoader = false;
 			this.selectedToArchive = list;
@@ -284,5 +353,111 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 			});
 
 		});
+	}
+
+    onChangeDatePicker(event){
+        if(!moment(this.datepickerModel).isValid()){
+            this.datepickerModel = new Date();
+            this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+        }else{
+            this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+        }
+        this.isShowDatepicker = false;
+    }
+
+    showDatePicker(){
+        this.isShowDatepicker = true;
+    }
+
+    modalPeepFormSubmit(f, event){
+        event.preventDefault();
+
+        if(f.valid){
+            let paramData = JSON.parse(JSON.stringify(f.value));
+            paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
+            paramData['user_id'] = this.selectedPeep['user_id'];
+
+            if(this.selectedPeep['mobility_impaired_details'].length > 0){
+                paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
+            }
+
+            paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val();
+
+            this.showModalLoader = true;
+
+            this.userService.sendMobilityImpaireInformation(paramData, (response) => {
+
+                for(let user of this.listData){
+                    if(user['user_id'] == this.selectedPeep['user_id']){
+                        user['mobility_impaired'] = 1;
+                        user['mobility_impaired_details'] = response.data;
+                    }
+                }
+
+                f.reset();
+                $('#modalMobility').modal('close');
+                this.showModalLoader = false;
+
+            });
+        }
+    }
+
+    markUserAsHealthy(){
+        this.showModalLoader = true;
+
+        let paramData = {
+            user_id : this.selectedPeep['user_id'],
+            mobility_impaired : 0
+        };
+        this.userService.markAsHealthy(paramData, (response) => {
+
+            for(let user of this.listData){
+                if(user['user_id'] == this.selectedPeep['user_id']){
+                    user['mobility_impaired'] = 0;
+                    user['mobility_impaired_details'] = [];
+                }
+            }
+  
+            $('#modalMobilityHealty').modal('close');
+            this.showModalLoader = false;
+
+        });
+    }
+
+	pageChange(type){
+
+		let changeDone = false;
+		switch (type) {
+			case "prev":
+				if(this.pagination.currentPage > 1){
+					this.pagination.currentPage = this.pagination.currentPage - 1;
+					changeDone = true;
+				}
+				break;
+
+			case "next":
+				if(this.pagination.currentPage < this.pagination.pages){
+					this.pagination.currentPage = this.pagination.currentPage + 1;
+					changeDone = true;
+				}
+				break;
+			
+			default:
+				if(this.pagination.prevPage != parseInt(type)){
+					this.pagination.currentPage = parseInt(type);
+					changeDone = true;
+				}
+				break;
+		}
+
+		if(changeDone){
+			this.pagination.prevPage = parseInt(type);
+			let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+			this.queries.offset = offset;
+			this.loadingTable = true;
+			this.getListData(() => { 
+				this.loadingTable = false;
+			});
+		}
 	}
 }

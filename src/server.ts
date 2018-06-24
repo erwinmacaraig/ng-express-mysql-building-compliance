@@ -26,6 +26,9 @@ import { PaymentRoute } from './routes/payment';
 import { TeamRoute } from './routes/team';
 import { ProductRoute } from './routes/product';
 import { LMSRoute } from './routes/lms';
+import { CourseRoute } from './routes/course';
+import { ReportsRoute } from './routes/reports';
+import { AdminRoute } from './routes/admin';
 
 import * as cors from 'cors';
 
@@ -78,8 +81,21 @@ export class Server {
    * @method config
    */
   public config() {
+
       // add static paths
       this.app.use(express.static(path.join(__dirname, 'public')));
+
+      /*
+      // redirect to https
+      this.app.use(function(req: express.Request, res: express.Response, next: express.NextFunction) {
+        if (!req.secure) {
+          const secureUrl = 'https://' + req.headers['host'] + req.url;
+          res.writeHead(301, {'Location': secureUrl});
+          res.end();
+        }
+        next();
+      });
+      */
 
       const memcachedStore = new MemcachedStore(session);
 
@@ -171,10 +187,27 @@ export class Server {
       // Learning Management System Route
       LMSRoute.create(router);
 
+      // CourseRoute
+      CourseRoute.create(router);
+
+      // ReportsRoute
+      ReportsRoute.create(router);
+
+      // Admin Route
+      AdminRoute.create(router);
+
       this.app.use('/api/v1', router);
 
       // use router middleware
       this.app.use(router);
+
+      this.app.use(function(req, res, next) {
+        if ((!req.secure) && (req.get('X-Forwarded-Proto') !== 'https')) {
+          return res.redirect('https://' + req.get('Host') + req.url);
+        }
+        return next();
+      });
+
 
       // catch 404 and forward to error handler
       this.app.use(function(req: express.Request, res: express.Response, next: express.NextFunction) {

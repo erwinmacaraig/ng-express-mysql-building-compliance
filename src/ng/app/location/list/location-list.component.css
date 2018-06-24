@@ -180,7 +180,7 @@ table tr td img{
 }
 
 table tbody tr td.with-bar .text{
-    color: #F44336 !important;
+    color: #F44336;
     margin-right: 12px;
 }
 
@@ -204,10 +204,14 @@ table tbody tr td .progress{
     height: 10px;
     display: block;
     width: 100%;
-    background-color: #dc44534d;
+    background-color: rgba(246, 218, 218, 1);
     border-radius: 2px;
     margin: 0px;
     overflow: hidden;
+}
+
+table tbody tr td .progress.green-theme{
+    background-color: rgba(76, 175, 80, 0.17) !important;    
 }
 
 table tbody tr td .progress .determinate{
@@ -217,6 +221,10 @@ table tbody tr td .progress .determinate{
     bottom: 0;
     background-color: #cb0d20;
     transition: width .3s linear;
+}
+
+table tbody tr td .progress.green-theme .determinate{
+    background-color: #4CAF50;
 }
 
 .compliance .percent,
@@ -475,4 +483,40 @@ td.select-blue{
 .btn{
     font-size: 15px !important;
     line-height: 45px;
+}
+
+.progress.fetching{
+    width: 50% !important;
+    display: block !important;
+    margin: 0px auto !important;
+    background-color: rgba(0,0,0,0.1) !important;
+    height: 5px !important;
+}
+
+.progress.fetching .indeterminate {
+    background-color: #39a1ff;
+}
+
+.inline-block{
+    display: inline-block;
+}
+
+.pagination button{
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+    vertical-align: inherit;
+    line-height: 40px;
+}
+
+.pagination select:not(.to-materialize){
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+}
+
+.pagination .select{
+    margin: 0px 10px;
 }

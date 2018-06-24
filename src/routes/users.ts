@@ -1,3 +1,5 @@
+import { TrainingRequirements } from './../models/training.requirements';
+import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
 
 import { BaseRoute } from './route';
@@ -20,13 +22,17 @@ import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { EmailSender } from './../models/email.sender';
 import { UserRequest } from '../models/user.request.model';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
+import { CourseUserRelation } from '../models/course-user-relation.model';
+
 
 import * as moment from 'moment';
 import * as validator from 'validator';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as multer from 'multer';
+import * as jwt from 'jsonwebtoken';
 const md5 = require('md5');
+const defs = require('./../config/defs.json');
 
 
 export class UsersRoute extends BaseRoute {
@@ -43,6 +49,14 @@ export class UsersRoute extends BaseRoute {
 
 
 	public static create(router: Router) {
+        router.get('/users/query', new MiddlewareAuth().authenticate,  (req: Request, res: Response) => {
+            new UsersRoute().queryUsers(req, res);
+        });
+
+		router.get('/users/is-admin/:user_id',  (req: Request, res: Response) => {
+			new UsersRoute().checkIfAdmin(req, res);
+		});
+
 		router.post('/users/update', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().updateUser(req, res, next);
 	    });
@@ -61,6 +75,10 @@ export class UsersRoute extends BaseRoute {
 
 	    router.get('/users/get-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getUsersByAccountId(req, res, next);
+	    });
+
+	    router.get('/users/get-users-by-account-none-auth/:account_id', (req: Request, res: Response, next: NextFunction) => {
+	    	new  UsersRoute().getUsersByAccountIdNoneAuth(req, res);
 	    });
 
 	    router.get('/users/get-user-locations-trainings-ecoroles/:user_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -95,7 +113,7 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().setLocationAccountUserToUnArchive(req, res, next);
 	    });
 
-	    router.post('/users/create-bulk-users', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+	    router.post('/users/create-bulk-users', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().createBulkUsers(req, res, next);
 	    });
 
@@ -127,13 +145,438 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().saveMobilityImpairedDetails(req, res, next);
 	    });
 
+        router.post('/users/mobility-as-healthy', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+            new  UsersRoute().markMobilityAsHealthy(req, res, next);
+        });
+
+        router.get('/users/get-profile-by-token/:token', (req: Request, res: Response) => {
+            new  UsersRoute().getProfileByToken(req, res);
+        });
+
+        router.post('/users/set-profile', (req: Request, res: Response) => {
+            new  UsersRoute().setProfile(req, res);
+        });
+
+        router.post('/users/location-role-assignment', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+            new  UsersRoute().locationRoleAssignments(req, res, next);
+        });
+
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
-	    	new  UsersRoute().getLocationsTenants(req, res, next);
+	    	new  UsersRoute().getLocationsTenants(req, res, next).then((data) => {
+          res.status(200).send({
+            'data': data
+          });
+        }).catch((e) => {
+          console.log(e);
+          res.status(400).send({
+            'status': 'Fail'
+          })
+        });
+      });
+
+      router.post('/users/send-trp-invitation/', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+
+        new UsersRoute().sendTRPInvitation(req, res, next).then(() => {
+          return res.status(200).send({
+            'status': 'Success'
+          })
+        }).catch((e) => {
+          console.log(e);
+          console.log(typeof e);
+          return res.status(400).send({
+            'status': 'Fail',
+            'message': e.toString()
+          });
+        });
+      });
+
+      router.get('/tenant/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
+          new UsersRoute().retrieveTenantInvitationInfo(req, res, next).then((info) => {
+	    return res.status(200).send({
+	      'status': 'Success',
+	      'data': info
 	    });
-	}
+          }).catch((e) => {
+	    return res.status(400).send({
+	      'status': 'Fail',
+	      'message': 'Unable to retrieve tenant invitation info'
+	    });
+          });
+
+      });
+
+      router.post('/tenant/process-invitation-form/', (req: Request, res: Response, next: NextFunction) => {
+        new UsersRoute().processTenantInvitationForm(req, res, next).then(() => {
+          return res.status(200).send({
+            'status': 'Success'
+          });
+        }).catch((e) => {
+          return res.status(400).send({
+            'status': 'Fail'
+          });
+        });
+      });
+
+      router.get('/users/get-all-locations/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+        const user = new User(req.user.user_id);
+        const emrolerelationObj = new UserEmRoleRelation();
+
+        const locations = await user.getAllMyEMLocations();
+        const locIds = [];
+        for (const loc of locations) {
+          locIds.push(loc['location_id']);
+        }
+        const em_roles_in_location = await emrolerelationObj.getEmergencyRolesOfUsersInLocations([req.user.user_id], locIds);
+        // attached emrgency roles to the locations
+        for (const loc of locations) {
+          if (loc['location_id'] in em_roles_in_location) {
+            loc['em_roles'] = em_roles_in_location[loc['location_id']]['data'];
+          } else {
+            loc['em_roles'] = [];
+          }
+        }
+        return res.status(200).send({
+          'locations': locations
+        });
+
+      });
+
+      router.post('/users/email-certificate/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+          const user = new User(req.body.userId);
+          const userDbData = await user.load();
+          const certDbData = await user.getAllCertifications({
+            'certifications_id': req.body.certId
+          });
+
+          const link = `https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s=${certDbData[0]['scorm_course_id']}&amp;c=${req.body.certId}`;
+          const opts = {
+            from : '',
+            fromName : 'EvacConnect',
+            to : [],
+            cc: [],
+            body : '',
+            attachments: [],
+            subject : 'EvacConnect Training Certificate'
+          };
+          const email = new EmailSender(opts);
+          let emailBody = email.getEmailHTMLHeader();
+          emailBody += `<h3 style="text-transform:capitalize;">Hi ${userDbData['first_name']} ${userDbData['last_name']},</h3> <br/>
+            <h4>Please click on the link below to access your certificate.</h4> <br/>
+
+            Access your ${certDbData[0]['training_requirement_name']} certificate <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">here</a> <br/>`;
+
+          emailBody += email.getEmailHTMLFooter();
+          email.assignOptions({
+            body : emailBody,
+            to : [userDbData['email']],
+            cc: [],
+          });
+          email.send((data) => {
+            return res.status(200).send({
+              'status': 'Success',
+              'msg': 'Certificate sent successfully'
+            });
+          },(err) => {
+            console.log(err, 'UsersRoute.email-certificate. Error sending certificate via email');
+            res.status(400).send({
+              'status': 'Fail',
+              'msg': 'Problem sending certificate'
+            });
+          });
+        } catch(e) {
+          console.log(e, 'UsersRoute.email-certificate');
+          res.status(400).send({
+            'status': 'Fail',
+            'msg': 'Problem sending certificate'
+          });
+        }
+      });
+
+      router.get('/users/em/dashboard/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+        // get assigned courses
+        const course = new CourseUserRelation();
+        const user = new User(req.user.user_id);
+        const em_roles = new UserEmRoleRelation();
+        const trainingCert = new TrainingCertification();
+        const hadNotTakenCourse = [];
+        let numOfRequiredTrainings = [];
+        let trainings, assignedCourses, required_trainings,
+        em_role, cert_req, req_trainings_count = 0, percentage_training;
+        let numberOfRequiredTrainingsHeld, mobilityImpairedDetails, tempVar, locations;
+        try {
+          assignedCourses = await course.getAllCourseForUser(req.user.user_id);
+        } catch (e) {
+          assignedCourses = [];
+        }
+
+        // get roles and get required trainings for the SPECIFIED ROLE
+        //
+        try {
+          tempVar  = await em_roles.getEmRolesFilterBy({
+            'user_id': req.user.user_id,
+            'distinct': 'em_role_id'
+          });
+          em_role = tempVar[0];
+          locations = tempVar[1];
+        } catch(e) {
+          em_role = [];
+          locations = [];
+        }
+        try {
+          cert_req = await trainingCert.getRequiredTrainings();
+          for (let i = 0; i < em_role.length; i++) {
+            if (em_role[i] in cert_req) {
+              req_trainings_count += cert_req[em_role[i]]['training_requirement_id'].length;
+              numOfRequiredTrainings = numOfRequiredTrainings.concat(cert_req[em_role[i]]['training_requirement_id']);
+            }
+          }
+          numberOfRequiredTrainingsHeld = await trainingCert.getNumberOfTrainings([req.user.user_id], {
+            'pass': 1,
+            'current': 1,
+            'training_requirement': numOfRequiredTrainings
+          });
+          if (req.user.user_id in numberOfRequiredTrainingsHeld) {
+            percentage_training = Math.round((req_trainings_count / numberOfRequiredTrainingsHeld[req.user.user_id]['count']) * 100).toFixed(0);
+          } else {
+            percentage_training = 0;
+          }
+        } catch (e) {
+          cert_req = {};
+        }
+        // get valid taken trainings
+        try {
+          trainings = await user.getAllCertifications({
+            'pass': 1,
+            'current': 1,
+            'training_requirement_id': numOfRequiredTrainings
+          });
+        } catch (e) {
+          trainings = [];
+        }
+        // loop through assigned courses
+        for ( const c of assignedCourses) {
+          if (!(c['training_requirement_id'] in numOfRequiredTrainings)) {
+            hadNotTakenCourse.push(c);
+          }
+        }
+
+        //
+        try {
+          await user.load();
+          if (user.get('mobility_impaired') === 1) {
+            const peepDetails = new MobilityImpairedModel();
+            mobilityImpairedDetails = await peepDetails.getMany([[`user_id = ${req.user.user_id}`]]);
+          }
+        } catch(e) {
+          mobilityImpairedDetails = {};
+        }
+        return res.status(200).send({
+          'em_roles': em_role,
+          'locations': locations,
+          'trainings': trainings,
+          'courses': hadNotTakenCourse,
+          'peepDetails': mobilityImpairedDetails,
+          'required_trainings_count': req_trainings_count,
+          'required_trainings_held': (req.user.user_id in numberOfRequiredTrainingsHeld) ? numberOfRequiredTrainingsHeld[req.user.user_id]['count'] : 0,
+          'percentage_training': percentage_training
+        });
+
+      });
+    }
+
+    public async checkIfAdmin(req: Request , res: Response){
+		let userModel = new User(req.params.user_id),
+			response = {
+				status : false, message : ''
+			};
+
+		try{
+			let user = await userModel.load();
+			if(user['evac_role'] == 'admin'){
+				response.status = true;
+			}
+		}catch(e){}
+
+		res.send(response);
+
+    }
+
+    public async processTenantInvitationForm(req: Request, res: Response, next: NextFunction){
+        const encryptedPassword = md5('Ideation' + req.body.str_password + 'Max');
+        let user;
+        let invitation;
+        let account;
+        let locAccntUser;
+        try {
+          user = new User();
+          const tokenObj = new Token();
+          const tokenDbData = await tokenObj.getByToken(req.body.token);
+          invitation = new UserInvitation(tokenDbData['id']);
+          const userInvitation = await invitation.load();
+          account = new Account();
+          locAccntUser = new LocationAccountUser();
+          await account.create({
+            'account_name': req.body.account_name,
+            'building_number': req.body.building_number,
+            'account_domain': req.body.account_domain,
+            'billing_city': req.body.billing_city,
+            'billing_country': req.body.billing_country,
+            'billing_postal_code': req.body.billing_postal_code,
+            'billing_street': req.body.billing_street,
+            'billing_state': req.body.billing_state
+          });
+          await user.create({
+            'first_name': req.body.first_name,
+            'last_name': req.body.last_name,
+            'password': encryptedPassword,
+            'email': req.body.email,
+            'token': req.body.token,
+            'account_id': account.ID(),
+            'invited_by_user': userInvitation['invited_by_user'],
+            'can_login': 1,
+          });
+          await tokenObj.create({
+            'action': 'verify',
+            'verified': 1,
+            'id': user.ID(),
+            'id_type': 'user_id'
+          });
+          await invitation.create({
+            'was_used': 1
+          });
+          await locAccntUser.create({
+            'location_id': invitation.get('location_id'),
+            'account_id': account.ID(),
+            'user_id': user.ID(),
+            'role_id': defs['Tenant'],
+          });
+          return true;
+        } catch(e) {
+          console.log(e);
+          throw new Error('There was a problem processing tenant information');
+        }
+        }
+        public async retrieveTenantInvitationInfo(req: Request, res: Response, next: NextFunction) {
+        const tokenModel = new Token();
+        let dbData;
+        let userInvitation;
+        let locationModel;
+        let locationParent;
+        const token = req.params.token;
+        console.log(token);
+        try {
+          const tokenDbData = await tokenModel.getByToken(token);
+          if (tokenDbData['id_type'] === 'user_invitations_id' && !tokenDbData['verified']) {
+        userInvitation = new UserInvitation(tokenDbData['id']);
+        dbData = await userInvitation.load();
+
+        // get parent location
+        locationModel = new Location(dbData['location_id']);
+        await locationModel.load();
+        let parentId = locationModel.get('parent_id');
+        while (parentId !== -1) {
+          locationParent = new Location(parentId);
+          await locationParent.load();
+          parentId = locationParent.get('parent_id');
+        }
+        dbData['parent_location_name'] = (locationParent.get('name').toString().length > 0) ?
+        locationParent.get('name') : locationParent.get('formatted_address');
+        dbData['parent_location_id'] = locationParent.ID();
+        dbData['sub_location_name'] = locationModel.get('name');
+        dbData['sub_location_id'] = locationModel.ID();
+        return dbData;
+
+          } else {
+        throw new Error('Invalid token');
+          }
+        } catch(e) {
+          console.log(e);
+          throw new Error('Cannot get invitation data');
+
+        }
+    }
+
+    public async sendTRPInvitation(req: AuthRequest , res: Response, next: NextFunction) {
+
+        // check first if email is existing
+        let dbData = {};
+        try {
+          const user = new User();
+          dbData = await user.getByEmail(req.body.email);
+        } catch(e) {
+
+        }
+
+        if (Object.keys(dbData).length > 0) {
+          throw Error('Email taken');
+        } else {
+          console.log('Checkpoint catch');
+          const inviCode = new UserInvitation();
+          const inviDetails = req.body;
+          inviDetails['account_id'] = req['user'].account_id;
+          inviDetails['role_id'] = defs['Tenant'];
+          inviDetails['invited_by_user'] = req['user'].user_id;
+          const tokenModel = new Token();
+          const token = tokenModel.generateRandomChars(8);
+
+          const link = req.protocol + '://' + req.get('host') + '/signup/trp-profile-completion/' + token;
+          const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
+
+          try {
+            console.log(inviDetails);
+            await inviCode.create(inviDetails);
+
+            await tokenModel.create({
+              'token': token,
+              'action': 'invitation',
+              'verified': 0,
+              'expiration_date': expDate,
+              'id': inviCode.ID(),
+              'id_type': 'user_invitations_id'
+            });
+
+            // email notification here
+            const opts = {
+              from : '',
+              fromName : 'EvacConnect',
+              to : [],
+              cc: [],
+              body : '',
+              attachments: [],
+              subject : 'EvacConnect TRP Invitation'
+            };
+            const email = new EmailSender(opts);
+            let emailBody = email.getEmailHTMLHeader();
+              emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+              <h4>You are being assigned as a Tenant.</h4> <br/>
+              <h5>Please update your profile to setup your account in EvacOS by clicking the link below</h5> <br/>
+              <a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
+
+            emailBody += email.getEmailHTMLFooter();
+            email.assignOptions({
+              body : emailBody,
+              to: [inviDetails['email']],
+              cc: []
+            });
+
+            email.send((data) => {
+              console.log(data);
+              return true;
+            },(err) => {
+              console.log(err);
+              return false;
+            });
+          } catch (e) {
+            console.log(e);
+            return false;
+          }
+
+        }
+    }
 
 	public async updateUser(req: Request , res: Response, next: NextFunction){
-		let 
+		let
 		response = {
 			status : false,
 			data : {},
@@ -141,14 +584,16 @@ export class UsersRoute extends BaseRoute {
 		};
 
 		try{
-			let 
+			let
 			userModel = new User(req.body.user_id),
-			userData = await userModel.load();
+			userData = await userModel.load(),
+            hasPass = false;
 
 			for(let i in userData){
 				if(i in req.body){
 					if(i == 'password'){
 						req.body[i] = md5('Ideation'+req.body[i]+'Max');
+                        hasPass = true;
 					}
 					userData[i] = req.body[i];
 				}
@@ -157,6 +602,21 @@ export class UsersRoute extends BaseRoute {
 			userModel.setID(req.body.user_id);
 
 			await userModel.dbUpdate();
+
+            if(hasPass){
+                let tokenModel = new Token();
+                try{
+                    await tokenModel.getAllByUserId(req.body.user_id, 'verify');
+                }catch(e){
+                    tokenModel.create({
+                        'token' : this.generateRandomChars(30),
+                        'action' : 'verify',
+                        'verified' : 1,
+                        'id' : req.body.user_id,
+                        'id_type' : 'user_id'
+                    });
+                }
+            }
 
 			response.status = true;
 			response.data = userData;
@@ -298,6 +758,473 @@ export class UsersRoute extends BaseRoute {
 		);
 	}
 
+    public async queryUsers(req: Request, res: Response){
+        let
+        accountId = parseInt(req['user']['account_id']),
+        userID = req['user']['user_id'],
+        query = req.query,
+        response = {
+            status : true,
+            data : <any>{},
+            message : ''
+        },
+        userModel = new User(),
+        modelQueries = {
+            select : <any>{},
+            where : [],
+            orWhere : [],
+            joins : [],
+            limit : <any> 10,
+            order : 'users.first_name ASC',
+            group : false
+        },
+        archived : 0,
+        queryRoles = [],
+        userIds = [0],
+        userIdObj = [],
+        emRolesDef = defs.em_roles;
+
+        const training_requirements = await new TrainingCertification().getRequiredTrainings();
+
+        modelQueries.select['users'] = ['first_name', 'last_name', 'account_id', 'user_id', 'user_name', 'email', 'mobile_number', 'phone_number', 'mobility_impaired', 'last_login', 'archived'];
+
+        if(query.archived){
+            archived = query.archived;
+        }
+        modelQueries.where.push('users.archived = '+archived);
+        modelQueries.where.push('users.account_id = '+accountId);
+        if(query.impaired){
+            if(query.impaired > -1){
+                if(query.impaired == 1){
+                    modelQueries.where.push('users.mobility_impaired = 1');
+                }else if(query.impaired == 0){
+                    modelQueries.where.push('users.mobility_impaired = 0');
+                }
+            }
+        }
+
+        if(query.type){
+            switch (query.type) {
+                case "client":
+                    modelQueries.where.push('users.evac_role = "Client"');
+                    break;
+
+                case "admin":
+                    modelQueries.where.push('users.evac_role = "admin"');
+                    break;
+            }
+        }
+
+        modelQueries.joins.push(' LEFT JOIN file_user ON users.user_id = file_user.user_id LEFT JOIN files ON files.file_id = file_user.file_id ');
+
+        if(query.roles){
+            queryRoles = query.roles.split(',');
+            if( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1){
+                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_role_relation) ');
+                if(query.search){
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
+                }
+            }
+            if( queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1) == true ){
+                modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1) ');
+                modelQueries.orWhere.push(' AND users.archived = '+archived);
+                modelQueries.orWhere.push(' AND users.account_id = '+accountId);
+                if(query.impaired){
+                    if(query.impaired > -1){
+                        if(query.impaired == 1){
+                            modelQueries.orWhere.push(' AND users.mobility_impaired = 1');
+                        }else if(query.impaired == 0){
+                            modelQueries.orWhere.push(' AND users.mobility_impaired = 0');
+                        }
+                    }
+                }
+                if(query.search){
+                    modelQueries.orWhere.push(' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
+                }
+            }else if(queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') == -1 && queryRoles.indexOf('trp') == -1) == true){
+                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 ) ');
+                if(query.search){
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
+                }
+            }
+        }else{
+            if(query.search){
+                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
+            }
+        }
+
+        /*if(query.search){
+            if(query.search.trim().length > 0){
+                modelQueries.where.push( ' CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" ' );
+                if(modelQueries.orWhere.length == 0){
+                    modelQueries.orWhere.push( ' OR users.email LIKE "%'+query.search+'%" ' );
+                }else{
+                    modelQueries.orWhere.push( ' AND users.email LIKE "%'+query.search+'%" ' );
+                }
+            }
+        }*/
+
+        modelQueries.select['custom'] = [" IF(files.url IS NULL, '', files.url) as profile_pic "];
+
+        if(query.limit){
+            modelQueries.limit = query.limit;
+        }
+
+        if(query.offset){
+            modelQueries.limit = query.offset+','+modelQueries.limit;
+        }
+
+        response.data['users'] = await userModel.query(modelQueries);
+
+        for(let user of response.data['users']){
+            userIds.push(user.user_id);
+            let lastLoginMoment = moment(user.last_login);
+            if(lastLoginMoment.isValid()){
+                user.last_login = lastLoginMoment.format('DD/MM/YYYY hh:mma');
+            }else{
+                user.last_login = '';
+            }
+
+            user['mobility_impaired_details'] = [];
+
+            if(query.impaired){
+                if(query.impaired > -1){
+                    if( user['mobility_impaired'] == 1 ){
+                        let mobilityModel = new MobilityImpairedModel(),
+                        arrWhere = [];
+
+                        arrWhere.push( ["user_id = " + user.user_id] );
+                        arrWhere.push( "duration_date > NOW()" );
+                        try {
+                            let mobilityDetails = await mobilityModel.getMany( arrWhere );
+                            user['mobility_impaired_details'] = mobilityDetails;
+                            for(let userMobil of user.mobility_impaired_details){
+                                userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+                            }
+
+                        } catch (e) {
+                            console.log(e);
+                            user['mobility_impaired_details'] = [];
+                        }
+                    }
+                }
+            }
+        }
+
+        if(query.roles && query.users_locations){
+            let queryRoles = query.roles.split(','),
+                getFRP = ( queryRoles.indexOf('frp') > -1 ) ? true : false,
+                getTRP = ( queryRoles.indexOf('trp') > -1) ? true : false,
+                getUSERS = ( queryRoles.indexOf('users') > -1 ) ? true : false;
+
+            let accountModel = new Account(),
+                locAccUserModel = new LocationAccountUser(),
+                emRolesModel = new UserEmRoleRelation(),
+                locationsDB = <any> [],
+                locations = <any> [],
+                locationIds = [],
+                locationsEmRoles = (getUSERS) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : [],
+                locationFRPTRP =  (getFRP || getTRP) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(',')) : [];
+
+
+            for(let loc of locationsEmRoles){
+                if(!locationIds[ loc.location_id ]){
+                    locations.push(loc);
+                    locationIds.push(loc.location_id);
+                }
+            }
+
+
+            for(let loc of locationFRPTRP){
+                if(!locationIds[ loc.location_id ]){
+                    locations.push(loc);
+                    locationIds.push(loc.location_id);
+                }
+            }
+
+            response['locations'] = locations;
+
+            let locationsData = [],
+                parents = {};
+
+            for (let loc of locations) {
+                let locParentModel = new Location(loc.parent_id),
+                    parent = <any> {};
+
+                locationsData.push(loc);
+
+                if(loc.parent_id == -1){
+                    parents[ loc.location_id ] = loc;
+                }else{
+                    try{
+                        if( parents[ loc.parent_id ] ){
+                            locationsData.push( parents[ loc.parent_id ] );
+                        }else{
+                            parent = await locParentModel.load();
+                            parents[ parent.location_id ] = parent;
+                            locationsData.push(parent);
+                        }
+                    }catch(e){}
+                }
+            }
+
+            for(let loc of locationsData){
+                loc.name = ((loc.name != null) && loc.name.trim().length == 0) ? loc.formatted_address : loc.name;
+            }
+
+            for(let user of response.data['users']){
+                if('locations' in user == false){ user['locations'] = []; }
+                if('locs' in user == false){ user['locs'] = []; }
+                for(let loc of locationsData){
+                    
+                    if( loc.user_id == user.user_id ){
+
+                        let userLocData = {
+                            user_id : user.user_id,
+                            location_id : loc.location_id,
+                            name : loc.name,
+                            parent_id : -1,
+                            parent_name : '',
+                            sublocations_count : 0,
+                            role_id : (loc['role_id']) ? loc['role_id'] : 0
+                        };
+
+                        userLocData.location_id = loc.location_id;
+                        userLocData.name = loc.name;
+                        userLocData.parent_id = loc.parent_id;
+
+                        if(loc.parent_id > -1){
+                            for(let par of locationsData){
+                                if(par.location_id == loc.parent_id){
+                                    userLocData.parent_name = par.name;
+                                }
+                            }
+                        }
+
+                        let exst = false;
+                        for(let ul of user['locations']){
+                            if( ul.location_id == loc.location_id ){
+                                exst = true;
+                            }
+                        }
+
+                        let locSubModel = new Location();
+                        userLocData.sublocations_count =  <any> await locSubModel.countSubLocations(loc.location_id)
+
+                        if(!exst){ user.locations.push(userLocData); }
+
+                        
+                        user['locs'].push(loc);
+                        
+                    }
+
+                }
+            }
+
+            let userRoleModel = new UserRoleRelation(),
+                usersRolesRelation = <any> await userRoleModel.getManyByUserIds(userIds.join(',')),
+                userEmRoleModel = new UserEmRoleRelation(),
+                usersEmRoles = <any> await userEmRoleModel.getManyByUserIds(userIds.join(','));
+
+            for(let user of response.data['users']){
+                if('roles' in user == false){ user['roles'] = []; }
+                if('account_roles' in user == false){ user['account_roles'] = []; }
+                if('em_roles' in user == false){ user['em_roles'] = []; }
+                if('trids' in user == false){ user['trids'] = []; }
+                if('locations' in user == false){ user['locations'] = []; }
+
+                let usersRolesIds = [];
+
+                for(let rol of usersRolesRelation){
+                    let role = { role_name : '', role_id : 0 };
+                    if(rol.user_id == user.user_id && ( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1 ) && usersRolesIds.indexOf(rol.role_id) == -1 ){
+                        role.role_name = (rol.role_id == 1) ? 'FRP' : 'TRP';
+                        role.role_id = (rol.role_id == 1) ? 1 : 2;
+                        user['roles'].push(role);
+                        usersRolesIds.push(rol.role_id);
+                        user['account_roles'].push(role);
+                    }
+                }
+
+                for(let em of usersEmRoles){
+                    let role = { role_name : '', role_id : 0 , trids: []};
+
+                    if(queryRoles.indexOf('users') > -1 && em.user_id == user.user_id && usersRolesIds.indexOf(em.em_role_id) == -1){
+                        role.role_name = em.role_name;
+                        role.role_id = em.em_role_id;
+                        user['roles'].push(role);
+                        usersRolesIds.push(em.em_role_id);
+                        if (em.em_role_id in training_requirements) {
+                          role.trids = role.trids.concat(training_requirements[em.em_role_id]['training_requirement_id']);
+                          user['trids'] = user['trids'].concat(training_requirements[em.em_role_id]['training_requirement_id']);
+                        }
+                        user['em_roles'].push(role);
+                    }
+                }
+
+            }
+        }
+        // console.log(response.data['users']);
+        if(query.user_training){
+
+            let user_course_total,
+                user_training_total,
+                training = new TrainingCertification(),
+                userCourseRel = new CourseUserRelation();
+            /*
+            try {
+                user_course_total = await userCourseRel.getNumberOfAssignedCourses(userIds);
+
+            } catch (e) {
+                user_course_total = {};
+            }
+
+            try {
+                user_training_total = await training.getNumberOfTrainings(userIds, {
+                  'pass': 1,
+                  'current': 1
+                });
+            } catch(e) {
+                user_training_total = {};
+            }
+            */
+          for(let user of response.data['users']) {
+              try {
+              user_training_total = await training.getNumberOfTrainings([user.user_id], {
+                'pass': 1,
+                'current': 1,
+                'training_requirement': user['trids']
+              });
+              user['trainings'] = user_training_total[user.user_id]['count'];
+
+            } catch(e) {
+              user_training_total = {};
+              user['trainings'] = 0;
+            }
+            try {
+              user_course_total = await userCourseRel.getNumberOfAssignedCourses([user.user_id]);
+              // console.log('1086', user_course_total);
+              user['assigned_courses'] = user_course_total[user.user_id]['count'];
+              user['assigned_courses_tr'] = user_course_total[user.user_id]['trids'];
+              user['misc_trainings'] = user['trids'].filter(x => !user['assigned_courses_tr'].includes(x))
+              .concat(user['assigned_courses_tr'].filter(x => !user['trids'].includes(x)));
+            } catch (e) {
+                console.log(e);
+                user_course_total = {};
+                user['assigned_courses'] = 0;
+                user['assigned_courses_tr'] = [];
+                user['misc_trainings'] = [];
+            }
+          }
+          /*
+            for(let user of response.data['users']){
+                if (user.user_id in user_course_total) {
+                    user['assigned_courses'] = user_course_total[user.user_id]['count'];
+                } else {
+                    user['assigned_courses'] = 0;
+                }
+
+                if (user.user_id in user_training_total) {
+                    user['trainings'] = user_training_total[user.user_id]['count'];
+                } else {
+                    user['trainings'] = 0;
+                }
+
+            }
+            */
+        }
+
+        if(query.impaired && queryRoles.indexOf('users') > -1){
+            if(query.impaired > -1){
+
+                let userInviModel = new UserInvitation(),
+                whereInvi = [];
+
+                whereInvi.push([ 'account_id = '+accountId ]);
+                whereInvi.push([ 'mobility_impaired = 1' ]);
+                whereInvi.push([ 'was_used = 0' ]);
+
+                if(!archived){
+                    whereInvi.push([ 'archived = 0' ]);
+                }else{
+                    whereInvi.push([ 'archived = '+archived ]);
+                }
+
+                try{
+                    let usersInvited = <any> await userInviModel.getWhere(whereInvi);
+                    for(let user of usersInvited){
+                        user['locations'] = [];
+                        user['profile_pic'] = '';
+                        user['mobility_impaired_details'] = [];
+
+                        let arrWhere = [];
+                        arrWhere.push( "user_invitations_id = "+user["user_invitations_id"] );
+
+                        user['mobility_impaired_details'] = await new MobilityImpairedModel().getMany(arrWhere);
+                        for(let userMobil of user.mobility_impaired_details){
+                            userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+                        }
+
+                        user.locations.push({
+                            location_id : user.location_id,
+                            name : user.location_name,
+                            parent_name : (user.parent_name == null) ? '' : user.parent_name
+                        });
+
+                        response.data['users'].push(user);
+                    }
+                }catch(e){}
+            }
+        }
+
+        if(query.pagination){
+            let
+            countUserModel = new User(),
+            countResponse = <any> await countUserModel.query({
+                select : { count : true },
+                where : modelQueries.where,
+                orWhere : modelQueries.orWhere,
+                joins : modelQueries.joins
+            }),
+            pagination = {
+                total : parseInt(countResponse[0]['count']),
+                pages : 0
+            },
+            limit = (query.limit) ? parseInt(query.limit) : 10;
+
+            if(pagination.total > limit){
+                let div = pagination.total / limit,
+                    rem = (pagination.total % limit) * 1,
+                    totalpages = Math.floor(div);
+
+                if(rem > 0){
+                    totalpages++;
+                }
+
+                pagination.pages = totalpages;
+            }
+
+            if(pagination.pages == 0 && pagination.total <= limit && pagination.total > 0){
+                pagination.pages = 1;
+            }
+
+            response.data['pagination'] = pagination;
+        }
+
+        res.status(200).send(response);
+    }
+
+	public async getUsersByAccountIdNoneAuth(req: Request, res: Response){
+		let accountId = req.params.account_id,
+			userModel = new User();
+
+		res.send({
+			status : true,
+			data : await userModel.getByAccountId(accountId),
+			message : ''
+		});
+	}
+
 	public async getUsersByAccountId(req: Request, res: Response, next: NextFunction, archived?){
 		let accountId = req.params.account_id,
 			userID = req['user']['user_id'],
@@ -313,9 +1240,58 @@ export class UsersRoute extends BaseRoute {
 			allUsersIds = [],
 			emRolesModel = new UserEmRoleRelation(),
 			emRoles = await emRolesModel.getEmRoles(),
-			emRolesIndexedId = {};
+			emRolesIndexedId = {},
+            accountModel = new Account();
 
-		if(!archived){ archived = 0; }
+        archived = (archived) ? archived : 0;
+
+        let allowedRoleIds = [0,1,2];
+        for(let i in emRoles){
+            allowedRoleIds.push(emRoles[i]['em_roles_id']);
+            emRolesIndexedId[ emRoles[i]['em_roles_id'] ] = emRoles[i];
+        }
+
+        let locationsOnAccount = await accountModel.getLocationsOnAccount(userID, 1, archived),
+            locations = <any> [];
+
+        for (let loc of locationsOnAccount) {
+            locations.push(loc);
+        }
+
+        let locationsData = [];
+        for (let loc of locations) {
+            let
+                deepLocModel = new Location(),
+                deepLocations = <any> [];
+
+            if(loc.parent_id == -1){
+                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+                deepLocations.push(loc);
+            }else{
+                let ancLocModel = new Location(),
+                    ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
+
+                for(let anc of ancestores){
+                    if(anc.parent_id == -1){
+                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
+                        deepLocations.push(anc);
+                    }
+                }
+            }
+
+            let isIn = false;
+            for(let dl of deepLocations){
+                for(let ld of locationsData){
+                    if(dl.location_id == ld.location_id){
+                        isIn = true;
+                    }
+                }
+
+                if(!isIn){
+                    locationsData.push(dl);
+                }
+            }
+        }
 
 		allUsers = await allUsersModel.getByAccountId(accountId, archived);
 
@@ -328,214 +1304,324 @@ export class UsersRoute extends BaseRoute {
 			}catch(e){
 				user['profile_pic'] = '';
 			}
+
+            user['locations'] = [];
+            user['roles'] = [];
 		}
 
-		let sqlInLocation = ` (
-              SELECT
-                locations.location_id
-              FROM
-                locations
-              INNER JOIN
-                location_account_user LAU
-              ON
-                locations.location_id = LAU.location_id
-              WHERE
-                LAU.account_id = ${accountId}
-              AND
-                locations.archived = 0
-              AND
-                LAU.user_id = ${userID}
-              AND LAU.archived = 0
-              GROUP BY
-                locations.location_id
-              ORDER BY
-                locations.location_id
-            )`;
+        const userIds = [];
+        let toSendData = [];
+        const userCourseRel = new CourseUserRelation();
+        // get assigned trainings
+        for (let user of allUsers) {
+            userIds.push(user.user_id);
+        }
+        let user_course_total;
+        let user_training_total;
+        // get trainings from certifications table
+        const training = new TrainingCertification();
+        try {
+            user_course_total = await userCourseRel.getNumberOfAssignedCourses(userIds);
 
-        let arrWhere = [];
-			arrWhere.push( ["account_id = "+accountId ] );
-			arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
+        } catch (e) {
+            user_course_total = {};
+        }
+        try {
+            user_training_total = await training.getNumberOfTrainings(userIds, {
+              'pass': 1,
+              'current': 1
+            });
+        } catch(e) {
+            user_training_total = {};
+        }
 
-		let locations = await locationAccountUser.getMany(arrWhere);
+        for(let user of allUsers){
+            let locAccUserModel = new LocationAccountUser(),
+                usersLocsMap = <any> await locAccUserModel.getByUserId(user.user_id),
+                userLocData = {
+                    user_id : user.user_id,
+                    location_id : 0,
+                    name : '',
+                    parent_id : -1,
+                    parent_name : '',
+                    location_role_id : 0
+                };
 
+            for(let map of usersLocsMap){
+                for(let loc of locationsData){
+                    if(loc.location_id == map.location_id){
+                        userLocData.location_id = loc.location_id;
+                        userLocData.name = loc.name;
+                        userLocData.parent_id = loc.parent_id;
+                        userLocData.location_role_id = map.role_id;
 
-		let allowedRoleIds = [0,1,2];
-		for(let i in emRoles){
-			allowedRoleIds.push(emRoles[i]['em_roles_id']);
-			emRolesIndexedId[ emRoles[i]['em_roles_id'] ] = emRoles[i];
-		}
+                        if(loc.parent_id > -1){
+                            for(let par of locationsData){
+                                if(par.location_id == loc.parent_id){
+                                    userLocData.parent_name = par.name;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
-		let allowedUsersId = [];
-		for(let i in locations){
-			if( allowedUsersId.indexOf( locations[i]['user_id'] ) == -1  ){
-				allowedUsersId.push(locations[i]['user_id']);
-			}
-		}
+            user['locations'].push(userLocData);
 
-		let toSendData = [];
-		for(let user of allUsers){
-			if( allowedUsersId.indexOf(user.user_id) > -1 ){
-				user['locations'] = <any>[];
-				for(let l in locations){
-					if( 
-						( allowedRoleIds.indexOf( locations[l]['role_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['em_roles_id'] ) > -1 || allowedRoleIds.indexOf( locations[l]['location_role_id'] ) > -1 )  
-						&& locations[l]['user_id'] == user.user_id
-						){
-						user['locations'].push(locations[l]);
-					}
-				}
-				toSendData.push(user);
-			}
-		}
+            if (user.user_id in user_course_total) {
+                user['assigned_courses'] = user_course_total[user.user_id]['count'];
+            } else {
+                user['assigned_courses'] = 0;
+            }
+            if (user.user_id in user_training_total) {
+                user['trainings'] = user_training_total[user.user_id]['count'];
+            } else {
+                user['trainings'] = 0;
+            }
+
+            toSendData.push(user);
+        }
 
 		for(let user of toSendData){
 			let locs = user.locations;
-			user['roles'] = [];
+
 			let tempUserRoles = {};
 			for(let loc of locs){
 				let roleName = 'General Occupant',
 					roleId = 8;
 
-				if( emRolesIndexedId[ loc.em_roles_id ] ){
-					roleName = emRolesIndexedId[ loc.em_roles_id ]['role_name'];
-					roleId = loc.em_roles_id;
-				}else if( emRolesIndexedId[ loc.location_role_id ] ){
-					roleName = emRolesIndexedId[ loc.location_role_id ]['role_name'];
-					roleId = loc.location_role_id;
-				}else if(loc.location_role_id == 1){
-					roleName = 'FRP';
-					roleId = 1;
-				}else if(loc.location_role_id == 2){
-					roleName = 'TRP';
-					roleId = 2;
-				}else if(loc.role_id == 1){
-					roleName = 'FRP';
-					roleId = 1;
-				}else if(loc.role_id == 2){
-					roleName = 'TRP';
-					roleId = 2;
-				}
-
-				if(!tempUserRoles[roleId]){
-					tempUserRoles[roleId] = roleId;
-					user['roles'].push({
-						role_name : roleName, role_id : roleId
-					});
-				}
-				
-			}
-
-			user['training_applicable'] = true;
-            for(let role of user['roles']){
-                if(role.em_roles_id == 12 || role.em_roles_id == 13){
-                    if(user['roles'].length == 1){
-                        user['training_applicable'] = false;
-                    }
+                if( emRolesIndexedId[ loc.location_role_id ] ){
+                    roleName = emRolesIndexedId[ loc.location_role_id ]['role_name'];
+                    roleId = loc.location_role_id;
+                }else if( loc.location_role_id == 1  ){
+                    roleName = 'FRP';
+                    roleId = 1;
+                }else if( loc.location_role_id == 2  ){
+                    roleName = 'TRP';
+                    roleId = 2;
                 }
-            }
+
+				user['roles'].push({
+                    role_name : roleName, role_id : roleId
+                });
+
+			}
 		}
 
 		response.data = toSendData;
-		response['locations'] = locations;
+		response['locations'] = locationsData;
 		response.status = true;
 		res.statusCode = 200;
 		res.send(response);
 	}
 
-	public async getUserLocationsTrainingsEcoRoles(req: Request, res: Response, next: NextFunction){
+	public async getUserLocationsTrainingsEcoRoles(req: Request, res: Response, next: NextFunction, toReturn?, userIdParam?){
+        const user_em_roles = [];
+        let training_requirement_ids = [];
+        let training_requirement_ids_obj;
+        let required_missing_trainings;
 		let response = {
 			status : false,
 			data : {
-				user : {},
-				locations : {},
+				user : {
+                    profilePic : '',
+                    badge_class : '',
+                    last_login : '',
+                    first_name : '',
+                    last_name : ''
+                },
+                locations : {},
+                valid_trainings: [],
 				trainings : <any>[],
-				eco_roles : <any>[]
+				certificates : <any>[],
+                eco_roles : <any>[],
+                required_trainings: []
 			},
 			message : ''
 		},
-		userId = req.params['user_id'],
+		userId = (userIdParam) ? userIdParam : req.params['user_id'],
 		userModel = new User(userId),
 		locationAccountUserModel = new LocationAccountUser(),
 		fileModel = new Files(),
 		user = {},
 		emRolesModel = new UserEmRoleRelation(),
 		emRoles = await emRolesModel.getEmRoles(),
-		mobilityModel = new MobilityImpairedModel();
+		mobilityModel = new MobilityImpairedModel(),
+        userRoleModel = new UserRoleRelation(),
+        locAccUserModel = new LocationAccountUser();
 
 		response.data.eco_roles = emRoles;
+        const training_requirements = await new TrainingCertification().getRequiredTrainings();
+        // console.log(training_requirements);
+        try {
 
-		try{
-			let user = await userModel.load(),
-				locations = <any>[];
+            let user = await userModel.load(),
+            locations = <any>[];
 
-			if( Object.keys(user).length > 0 ){
-				user['mobility_impaired_details'] = [];
+            if( Object.keys(user).length > 0 ) {
+                user['mobility_impaired_details'] = [];
+                user['last_login'] = (user['last_login'] == null) ? '' : user['last_login'];
 
-				let sqlInLocation = ` (
-		              SELECT
-		                locations.location_id
-		              FROM
-		                locations
-		              INNER JOIN
-		                location_account_user LAU
-		              ON
-		                locations.location_id = LAU.location_id
-		              WHERE
-		                LAU.account_id = `+user['account_id']+`
-		              AND
-		                locations.archived = 0
-		              AND
-		                LAU.user_id = `+req['user']['user_id']+`
-		              AND LAU.archived = 0
-		              GROUP BY
-		                locations.location_id
-		              ORDER BY
-		                locations.location_id
-		            )`;
-				let arrWhere = [];
-				arrWhere.push(['user_id = '+userId]);
-				arrWhere.push( ["lau.location_id IN "+sqlInLocation ] );
-				locations = await locationAccountUserModel.getMany(arrWhere);
-				
-				if( user['mobility_impaired'] == 1 ){
-		        	let mobilityModel = new MobilityImpairedModel(),
-		        		arrWhere = [];
-
-		        	arrWhere.push( ["user_id = " + userId] );
-		        	arrWhere.push( "duration_date > NOW()" );
-		        	let mobilityDetails = await mobilityModel.getMany( arrWhere );
-		        	user['mobility_impaired_details'] = mobilityDetails;
-		        }
-
-				await fileModel.getByUserIdAndType(userId, 'profile').then(
-		            (fileData) => {
-		                user['profilePic'] = fileData[0].url;
-		            },
-		            () => {
-		                user['profilePic'] = '';
-		            }
-		        );
+                locations = await userModel.getAllMyEMLocations();
 
 
-				user['mobility_impaired_details'] = <any> await mobilityModel.getMany([ [ "user_id = "+userId] ]);
+                // we need to get the roles regardless of what the location is because
+                // what is important here is the corresponding training to the role attached to the user
+                for (const em_on_loc of locations) {
+                  if (user_em_roles.indexOf(em_on_loc['em_role_id']) == -1) {
+                    user_em_roles.push(em_on_loc['em_role_id']);
+                    if (em_on_loc['em_role_id'] in training_requirements) {
+                      for (let i = 0; i < training_requirements[em_on_loc['em_role_id']]['training_requirement_id'].length; i++) {
+                        if (training_requirement_ids.indexOf(training_requirements[em_on_loc['em_role_id']]['training_requirement_id'][i]) == -1) {
+                          training_requirement_ids.push(training_requirements[em_on_loc['em_role_id']]['training_requirement_id'][i]);
+                        }
+                      }
+                    }
+                  }
+                }
 
-				for(let i in user['mobility_impaired_details']){
-					user['mobility_impaired_details'][i]['date_created_formatted'] = moment(user['mobility_impaired_details'][i]['date_created']).format('MMM. DD, YYYY');
-					user['mobility_impaired_details'][i]['duration_date_formatted'] = moment(user['mobility_impaired_details'][i]['duration_date']).format('MMM. DD, YYYY');
-				}
+                // you will need to find the corresponding training in the certifications table
+                required_missing_trainings  = await new TrainingCertification().getTrainings(userId, training_requirement_ids);
 
-			}
+                const tr = new TrainingRequirements();
+                try {
+                  response.data.required_trainings = await tr.requirements_details(required_missing_trainings, user_em_roles);
+                } catch (e) {
+                    console.log(e);
+                }
 
-			response.data.locations = locations;
-			response.data.user = user;
+                for (const t of response.data.required_trainings) {
+                  try {
+                    const course_user_rel = new CourseUserRelation();
+                    const temp = await course_user_rel.getRelationDetails({'user': userId, 'training_requirement': t['training_requirement_id']});
+                    t['course_user_relation_id'] = temp['course_user_relation_id'];
+                    t['course_launcher'] = temp['course_launcher'];
+                  } catch (e) {
+                    t['course_user_relation_id'] = 0;
+                    t['course_launcher'] = '';
+                  }
+                }
+                if( user['mobility_impaired'] == 1 ){
+                    let mobilityModel = new MobilityImpairedModel(),
+                    arrWhere = [];
+
+                    arrWhere.push( ["user_id = " + userId] );
+                    arrWhere.push( "duration_date > NOW()" );
+                    try {
+                        let mobilityDetails = <any> await mobilityModel.getMany( arrWhere );
+
+                        for(let mob of mobilityDetails){
+                            mob['date_created_formatted'] = moment(mob['date_created']).format('MMM. DD, YYYY');
+                            mob['duration_date_formatted'] = moment(mob['duration_date']).format('MMM. DD, YYYY');
+                        }
+
+                        user['mobility_impaired_details'] = mobilityDetails;
+                    } catch (e) {
+                        console.log(e);
+                        user['mobility_impaired_details'] = [];
+                    }
+                }
+
+                try {
+                    await fileModel.getByUserIdAndType(userId, 'profile').then(
+                        (fileData) => {
+                            user['profilePic'] = fileData[0].url;
+                        },
+                        () => {
+                            user['profilePic'] = '';
+                        }
+                        );
+                }catch(e) {
+                    console.log(e);
+                }
+
+                try {
+
+                    for (const loc of locations) {
+                        if ('em_role_id' in loc) {
+                            loc['training_requirement_name'] = training_requirements[loc['em_role_id']]['training_requirement_name'];
+                            loc['training_requirement_id'] = training_requirements[loc['em_role_id']]['training_requirement_id'];
+                        }
+                    }
+
+                }catch(er){}
+
+
+                let isFRP = false,
+                    isTRP = false;
+                try{
+                    let frptrpRoles = <any> await userRoleModel.getByUserId(user['user_id']);
+                    for(let ftrole of frptrpRoles){
+                        if(ftrole.role_id == 1){
+                            isFRP = true;
+                        }
+                        if(ftrole.role_id == 2){
+                            isTRP = true;
+                        }
+                    }
+                }catch(e){}
+
+                try{
+                    let frptrpLocations = <any> await locAccUserModel.getLocationsByUserIds([user['user_id']]);
+                    for(let frptrp of frptrpLocations){
+                        frptrp['em_role_id'] = 0;
+                        frptrp['role_name'] = '';
+                        if(isFRP && frptrp.is_building){
+                            frptrp['role_id'] = 1;
+                            frptrp['role_name'] = 'Building Manager';
+                        }else if(isTRP){
+                            frptrp['role_id'] = 2;
+                            frptrp['role_name'] = 'Tenancy Responsible Personnel';
+                        }
+                        locations.push(frptrp);
+                    }
+                }catch(e){}
+            }
+
+            response.data.locations = locations;
+			response.data.user = <any> user;
 			response.status = true;
 		}catch(e){
-			response.status = false;
-		}
+            response.status = false;
+            console.log(e);
+        }
 
-		res.statusCode = 200;
-		res.send(response);
-	}
+        try{
+
+            let courseModel = new CourseUserRelation(),
+            trainings = await courseModel.getAllCourseForUser(userId);
+            response.data.trainings = trainings;
+
+        }catch(e){
+            console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
+        }
+
+        try{
+            let certificates = await userModel.getAllCertifications({'pass': 1, 'em_roles': user_em_roles});
+            for (let c of certificates) {
+              c['token'] = md5(userModel.ID().toString() + userModel.get('first_name') + userModel.get('last_name') + c['certification_date']);
+            }
+            response.data.certificates = certificates;
+            certificates = null;
+            certificates = await userModel.getAllCertifications({
+              'pass': 1,
+              'training_requirement_id': training_requirement_ids,
+              'current': 1,
+              'em_roles': user_em_roles
+            });
+            response.data.valid_trainings = certificates;
+
+        } catch(e){
+            console.log(e, 'UsersRoute.getUserLocationsTrainingsEcoRoles');
+        }
+
+        res.statusCode = 200;
+        if(toReturn){
+            return response;
+        }else{
+            res.send(response);
+        }
+    }
 
 	public async setLocationAccountUserToArchive(req: Request, res: Response, next: NextFunction){
 		let response = {
@@ -567,7 +1653,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['user_ids']){
 			let userModel = new User(req.body['user_ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 1);
 			await userModel.dbUpdate();
 		}
@@ -587,7 +1673,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['user_ids']){
 			let userModel = new User(req.body['user_ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 0);
 			await userModel.dbUpdate();
 		}
@@ -607,7 +1693,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['ids']){
 			let userModel = new UserInvitation(req.body['ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 1);
 			await userModel.dbUpdate();
 		}
@@ -627,7 +1713,7 @@ export class UsersRoute extends BaseRoute {
 		for(let i in req.body['ids']){
 			let userModel = new UserInvitation(req.body['ids'][i]);
 			await userModel.load();
-			
+
 			userModel.set('archived', 0);
 			await userModel.dbUpdate();
 		}
@@ -670,7 +1756,7 @@ export class UsersRoute extends BaseRoute {
 		let arrWhere = [];
 			arrWhere.push( ["account_id = "+accountId ] );
 			arrWhere.push( ["archived = "+1 ] );
-			
+
 		let locations = await locationAccountUser.getMany(arrWhere);
 		for(let l in locations){
 			let userModel = new User(locations[l]['user_id']);
@@ -701,103 +1787,494 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async createBulkUsers(req: Request, res: Response, next: NextFunction){
+    public async setProfile(req: Request, res: Response){
+        let token = req.body.token,
+            password = req.body.password,
+            tokenModel = new Token(),
+            response = {
+                status : false,
+                message : '',
+                token : '',
+                data : {
+                    userId : 0,
+                    name : '',
+                    email : '',
+                    accountId : 0,
+                    roles : [],
+                    profilePic : ''
+                }
+            };
+
+        try{
+           let tokenData = <any> await tokenModel.getByToken(token),
+               today = moment(),
+               expirationDate = moment(tokenData.expiration_date);
+
+            if(tokenData.action == 'setup-password'){
+
+                let userId = tokenData.id,
+                    userModel = new User(userId);
+
+                try{
+                    let user = <any> await userModel.load(),
+                        useRoleModel = new UserRoleRelation(),
+                        emRoleModel = new UserEmRoleRelation(),
+                        roleData = {
+                            role_id : 0, role_name : '', location_id : 0
+                        },
+                        encPass = md5('Ideation' +password + 'Max');
+
+                    userModel.set('can_login', 1);
+                    userModel.set('password', encPass);
+                    userModel.set('last_login', today.format('YYYY-MM-DD HH-mm-ss'));
+
+                    await userModel.dbUpdate();
+
+                    tokenModel.set('action', 'verify');
+                    tokenModel.set('verified', 1);
+
+                    await tokenModel.dbUpdate();
+
+                    const token = jwt.sign(
+                        {
+                            user_db_token: user.token,
+                            user: user.user_id
+                        },
+                        process.env.KEY, { expiresIn: 7200 }
+                    );
+
+                    response.data.userId = user.user_id;
+                    response.data.name = user.first_name+' '+user.last_name;
+                    response.data.email = user.email;
+                    response.data.accountId = user.account_id;
+
+                    response['token'] = token;
+
+                    try{
+                        let trpfrp = <any> await useRoleModel.getByUserId(userId);
+
+                        roleData.role_id = trpfrp[0]['role_id'];
+                        roleData.role_name = (trpfrp[0]['role_id'] == 1)? 'Building Manager' : 'Tenant';
+
+                    }catch(e){ }
+
+                    try{
+                        let emroles = <any> await emRoleModel.getEmRolesByUserId(userId);
+                        roleData.role_id = emroles[0]['role_id'];
+                        roleData.role_name = emroles[0]['role_name'];
+                        roleData['is_warden_role'] = emroles[0]['is_warden_role'];
+                    }catch(e){ }
+
+                    response.data.roles.push(roleData);
+
+                    response.status = true;
+
+                }catch(e){
+                    console.log(e);
+                    response.message = 'User not found';
+                }
+
+            }else{
+                response.message = 'Invalid Token';
+            }
+
+        }catch(e){
+            response.message = 'Invalid Token';
+        }
+
+
+        res.status(200).send(response);
+    }
+
+    public async getProfileByToken(req: Request, res: Response){
+        let token = req.params.token,
+            tokenModel = new Token(),
+            response = { status : false, message : '', data : <any>{ user : {}, account : {}, location : {}, role : {} } };
+
+        try{
+           let tokenData = <any> await tokenModel.getByToken(token),
+               today = moment(),
+               expirationDate = moment(tokenData.expiration_date);
+
+            if(tokenData.action == 'setup-password'){
+                response.data = tokenData;
+
+                let userId = tokenData.id,
+                    userModel = new User(userId);
+
+                try{
+                    let user = <any> await userModel.load(),
+                        useRoleModel = new UserRoleRelation(),
+                        emRoleModel = new UserEmRoleRelation(),
+                        roleData = {
+                            role_id : 0, role_name : '', location_id : 0
+                        };
+
+                    response.data['user'] = user;
+
+                    try{
+                        let trpfrp = <any> await useRoleModel.getByUserId(userId),
+                            locAccntUserModel = new LocationAccountUser(),
+                            locations = <any> await locAccntUserModel.getByUserId(userId);
+
+                        if( locations.length > 0 ){
+                            roleData.role_id = trpfrp[0]['role_id'];
+                            roleData.role_name = (trpfrp[0]['role_id'] == 1)? 'Building Manager' : 'Tenant';
+                            roleData.location_id = locations[0]['location_id'];
+                        }
+
+                    }catch(e){
+                        console.log(e);
+                    }
+
+                    try{
+                        let emroles = <any> await emRoleModel.getEmRolesByUserId(userId);
+                        roleData.role_id = emroles[0]['em_roles_id'];
+                        roleData.role_name = emroles[0]['role_name'];
+                        roleData.location_id = emroles[0]['location_id'];
+                    }catch(e){
+                        console.log(e);
+                    }
+
+                    let accountModel = new Account(user.account_id);
+                    try{
+                        let account = await accountModel.load();
+                        response.data['account'] = account;
+                    }catch(e){
+                        response.message = 'Account not found';
+                    }
+
+                    if( roleData.role_id > 0 && roleData.location_id > 0 ){
+                        response.data['role'] = roleData;
+
+                        let locationModel = new Location(roleData.location_id);
+
+                        try{
+                            let location = <any> await locationModel.load();
+
+                            location['parent_name'] = '';
+
+                            try{
+                                let parentLocModel = new Location(location.parent_id);
+                                await parentLocModel.load();
+                                location['parent_name'] = parentLocModel.get('name');
+                            }catch(e){}
+
+                            response.status = true;
+                            response.data['location'] = location;
+
+                        }catch(e){
+                            response.message = 'Location not found';
+                        }
+
+
+                    }else{
+                        response.message = 'Role not found';
+                    }
+
+
+                }catch(e){
+                    response.message = 'User not found';
+                }
+
+            }else{
+                response.message = 'Invalid Token';
+            }
+
+        }catch(e){
+            response.message = 'Invalid Token';
+        }
+
+
+        res.status(200).send(response);
+    }
+
+	public async createBulkUsers(req: AuthRequest, res: Response, next: NextFunction){
 		let response = {
 			status : false, data : [], message: ''
 		},
 		users = JSON.parse(req.body.users),
-		returnUsers = [];
+        accountId = req.user.account_id,
+        accountModel = new Account(accountId),
+		returnUsers = [],
+        account = <any> {
+            account_name : ''
+        },
+        isAccountEmailExempt = false,
+        hasOnlineTraining = false,
+        userModel = new User(req.user.user_id);
 
-		for(let i in users){
-			let userModel = new User(),
-				userRoleRelation = new UserRoleRelation(),
-				userEmRole = new UserEmRoleRelation(),
-				emRoles = await new UserEmRoleRelation().getEmRoles(),
-				isEmailValid = this.isEmailValid(users[i]['email']),
-				isBlackListedEmail = false,
-				hasError = false;
+        try{
+            let account = <any> await accountModel.load();
+            isAccountEmailExempt = (account.email_add_user_exemption == 1) ? true : false;
+            hasOnlineTraining = (account.online_training == 1) ? true : false;
 
-			users[i]['errors'] = {};
+            let 
+            user = await userModel.load(),
+            emRoles = <any> await new UserEmRoleRelation().getEmRoles();
 
-			if(isEmailValid){
-				// isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
-				// if(!isBlackListedEmail){
-					await userModel.getByEmail(users[i]['email']).then(
-						() => {
-							console.log(userModel.getDBData());
-							hasError = true;
-							users[i]['errors']['email_taken'] = true;
-						},
-						() => {}
-					);
-				// }else{
-				// 	users[i]['errors']['blacklisted'] = true;
-				// 	hasError = true;
-				// }
-			}else{
-				users[i]['errors']['invalid'] = true;
-				hasError = true;
-			}
+    		for(let i in users){
+    			let userModel = new User(),
+    				userRoleRelation = new UserRoleRelation(),
+    				userEmRole = new UserEmRoleRelation(),
+    				isEmailValid = this.isEmailValid(users[i]['email']),
+    				isBlackListedEmail = false,
+    				hasError = false;
 
-			if(!hasError){
-				let
-				token = this.generateRandomChars(30),
-				saveData = {
-					'first_name' : users[i]['first_name'],
-					'last_name' : users[i]['last_name'],
-					'email' : users[i]['email'],
-					'contact_number' : users[i]['mobile_number'],
-					'location_id' : users[i]['account_location_id'],
-					'account_id' : req['user']['account_id'],
-					'role_id' : (users[i]['account_role_id'] == 1 || users[i]['account_role_id'] == 2) ? users[i]['account_role_id'] : 0,
-					'eco_role_id' : (users[i]['account_role_id'] != 1 && users[i]['account_role_id'] != 2) ? users[i]['account_role_id'] : 0,
-					'invited_by_user' : req['user']['user_id']
-				};
+    			users[i]['errors'] = {};
 
-				let invitation = new UserInvitation();
-				await invitation.create(saveData);
+    			if(isEmailValid){
+    				// isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
+    				// if(!isBlackListedEmail){
 
-				let tokenModel = new Token();
-				await tokenModel.create({
-					'token' : token,
-					'action' : 'invitation',
-					'id' : invitation.ID(),
-					'id_type' : 'user_invitations_id'
-				});
+    				await userModel.getByEmail(users[i]['email']).then(
+    					() => {
+    						console.log(userModel.getDBData());
+    						hasError = true;
+    						users[i]['errors']['email_taken'] = true;
+    					},
+    					() => {}
+    				);
 
-				const opts = {
-					from : 'allantaw2@gmail.com',
-					fromName : 'EvacConnect',
-					to : [],
-					cc: [],
-					body : '',
-					attachments: [],
-					subject : 'EvacConnect Notification'
-				};
-				const email = new EmailSender(opts);
-				const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
-				let emailBody = email.getEmailHTMLHeader();
-				emailBody += `<h3 style="text-transform:capitalize;">Hi ${saveData['first_name']} ${saveData['last_name']},</h3> <br/>
-				<h4>You were added to EvacConnect Compliance Management System.</h4> <br/>
-				<h5>Click on the link below to setup your password.</h5> <br/>
-				<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
 
-				emailBody += email.getEmailHTMLFooter();
+    				// }else{
+    				// 	users[i]['errors']['blacklisted'] = true;
+    				// 	hasError = true;
+    				// }
+    			}else{
+    				users[i]['errors']['invalid'] = true;
+    				hasError = true;
+    			}
 
-				email.assignOptions({
-					body : emailBody,
-					to: [saveData['email']],
-					cc: ['erwin.macaraig@gmail.com']
-				});
-				email.send(
-					(data) => console.log(data),
-					(err) => console.log(err)
-				);
-			}else{
-				returnUsers.push( users[i] );
-			}
+    			if(!hasError){
+    				let
+    				token = this.generateRandomChars(30),
+    				inviSaveData = {
+    					'first_name' : users[i]['first_name'],
+    					'last_name' : users[i]['last_name'],
+    					'email' : users[i]['email'],
+    					'contact_number' : users[i]['mobile_number'],
+    					'location_id' : users[i]['account_location_id'],
+    					'account_id' : req['user']['account_id'],
+    					'role_id' : (users[i]['account_role_id'] == 1 || users[i]['account_role_id'] == 2) ? users[i]['account_role_id'] : 0,
+    					'eco_role_id' : (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
+    					'invited_by_user' : req['user']['user_id'],
+                        'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0,
+                        'was_used' : (isAccountEmailExempt) ? 1 : 0
+    				},
+                    userSaveModel  = new User(),
+                    encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max'),
+                    userSaveData = {
+                        'first_name': users[i]['first_name'],
+                        'last_name': users[i]['last_name'],
+                        'password': '',
+                        'email': users[i]['email'],
+                        'token': token,
+                        'account_id': accountId,
+                        'invited_by_user': req['user']['user_id'],
+                        'can_login': 0,
+                        'mobile_number': users[i]['mobile_number'],
+                        'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0
+                    },
+                    tokenSaveData = {
+                        'token' : token,
+                        'action' : 'verify',
+                        'id' : 0,
+                        'id_type' : 'user_id',
+                        'verified' : 0
+                    },
+                    tokenModel = new Token(),
+                    emailLink = req.protocol + '://' + req.get('host'),
+                    locationModel = new Location(),
+                    acestrieIds = <any> await locationModel.getAncestryIds(users[i]['account_location_id']),
+                    idsLocation = [],
+                    bodyOfEmail = '',
+                    subjectOfEmail = '',
+                    emailRole = `Warden`,
+                    locationFullName = '';
 
-		}
+                    idsLocation.push(users[i]['account_location_id']);
+                    idsLocation = idsLocation.concat(acestrieIds[0]['ids']);
+
+                    let locations = <any> await locationModel.getByInIds(idsLocation.join(','), 0),
+                        building = <any> {},
+                        location = <any> {},
+                        trps = <any> [],
+                        frp = <any> user,
+                        senderTxt = '';
+
+                    for(let loc of locations){
+                        if(loc.is_building == 1){
+                            building = loc;
+                        }else if(loc.parent_id == -1){
+                            building = loc;
+                        }
+
+                        if(users[i]['account_location_id'] == loc.location_id){
+                            location = loc;
+                        }
+                    }
+
+                    if(Object.keys(building).length > 0){
+                        if(building.location_id != location.location_id){
+                            locationFullName = building.name + ', '+location.name;
+                        }else{
+                            locationFullName = building.name;
+                        }
+                    }else{
+                        locationFullName = location.name;
+                    }
+
+                    try{
+
+                        trps = await userRoleRelation.getTRPbyLocationId(users[i]['account_location_id']);
+                        let userIsTrp = false;
+                        for(let trp of trps){
+                            if(trp.user_id == req.user.user_id){
+                                userIsTrp = true;
+                            }
+                        }
+                        if(userIsTrp){
+                            senderTxt = `Tenant Responsible Person (TRP), <span style="text-transform: capitalize;">${frp.first_name} ${frp.last_name}</span>`;
+                        }else{
+                            throw "User is not a TRP";
+                        }
+
+                    }catch(e){
+                        senderTxt = `Building Manager (FRP), <span style="text-transform: capitalize;">${frp.first_name} ${frp.last_name}</span>`;
+                    }
+
+                    if(hasOnlineTraining || isAccountEmailExempt){
+
+                        if(isAccountEmailExempt){
+                            userSaveData.password = encryptedPassword;
+                            userSaveData.can_login = 1;
+                            tokenSaveData.verified = 1;
+                        }else if(hasOnlineTraining){
+                            tokenSaveData.action = 'setup-password';
+                            emailLink += '/signup/profile-completion/' + token;
+                        }
+
+                        await userSaveModel.create(userSaveData);
+                        tokenSaveData.id = userSaveModel.ID();
+
+                        if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                            let locationAcctUser = new LocationAccountUser();
+                            await locationAcctUser.create({
+                                'location_id': users[i]['account_location_id'],
+                                'account_id': accountId,
+                                'user_id': userSaveModel.ID(),
+                                'role_id': users[i]['account_role_id']
+                            });
+
+                            emailRole = (users[i]['account_role_id'] == 1) ? 'Building Manager' : 'Tenant Responsible Person';
+
+                            const userRoleRel = new UserRoleRelation();
+                            await userRoleRel.create({
+                                'user_id': userSaveModel.ID(),
+                                'role_id': users[i]['account_role_id']
+                            });
+                        }else{
+                            const EMRoleUserRole = new UserEmRoleRelation();
+                            await EMRoleUserRole.create({
+                                'user_id': userSaveModel.ID(),
+                                'em_role_id': (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
+                                'location_id': users[i]['account_location_id']
+                            });
+                        }
+
+                    }else{
+                        let invitation = new UserInvitation();
+                        await invitation.create(inviSaveData);
+
+                        tokenSaveData.id_type = 'user_invitations_id';
+                        tokenSaveData.id = invitation.ID();
+                        emailLink += '/signup/warden-profile-completion/'+token;
+                    }
+
+                    await tokenModel.create(tokenSaveData);
+
+                    if(!isAccountEmailExempt){
+
+                        if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                            let roleName = 'Building Manager (FRP)';
+                            subjectOfEmail = `You're assigned as Building Manager`;
+                            if(parseInt(users[i]['account_role_id']) == 2){
+                                roleName = 'Tenant Responsible Person (TRP)';
+                                subjectOfEmail = `You're assigned as Tenant Responsible Person`;
+                            }
+                            bodyOfEmail = `
+                            <div style="font-size:16px;"> 
+                                <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
+
+                                We are glad to inform that you are assigned as the ${roleName} for your location, ${locationFullName}. <br/>
+                                In this role, yout will take charge of managing  emergency planning responsibilities wihin your tenancy. <br/><br/>
+
+                                Please update the profile to set up your account on EvacConnect here : <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
+
+                                Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
+                                 
+                                Sincerely,<br/>
+                                EvacConnect
+                            </div>
+                            `;
+                        }else{
+                            let roleName = '';
+                            for(let em of emRoles){
+                                if(em.em_roles_id == parseInt(users[i]['account_role_id'])){
+                                    subjectOfEmail = `You're nominated as `+em.role_name;
+                                    roleName = em.role_name;
+                                }
+                            }
+
+                            bodyOfEmail = `
+                            <div style="font-size:16px;"> 
+                                <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
+
+                                We are glad to inform that you are nominated to be a ${roleName} for your tenancy, ${account.account_name}, by your ${senderTxt}.<br/><br/>
+                                
+                                Follow this link to set up your password on EvacConnect: <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
+
+                                Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
+                                 
+                                Sincerely,<br/>
+                                EvacConnect
+                            </div>
+                            `;
+                        }
+
+        				const opts = {
+        					from : '',
+        					fromName : 'EvacConnect',
+        					to : [],
+        					cc: [],
+        					body : '',
+        					attachments: [],
+        					subject : subjectOfEmail
+        				};
+        				const email = new EmailSender(opts);
+        				let emailBody = email.getEmailHTMLHeader();
+                        emailBody += bodyOfEmail;
+        				emailBody += email.getEmailHTMLFooter();
+
+        				email.assignOptions({
+        					body : emailBody,
+        					to: [inviSaveData['email']],
+        					cc: ['jmanoharan@evacgroup.com.au']
+        				});
+        				email.send(
+        					(data) => console.log(data),
+        					(err) => console.log(err)
+        				);
+                    }
+
+    			}else{
+    				returnUsers.push( users[i] );
+    			}
+    		}
+            
+
+        }catch(e){}
 
 		res.statusCode = 200;
 		response.status = true;
@@ -829,7 +2306,7 @@ export class UsersRoute extends BaseRoute {
 			}
 
 			if(
-				(emRolesRec[i]['is_warden_role'] == 1) && 
+				(emRolesRec[i]['is_warden_role'] == 1) &&
 				(emRolesRec[i]['location_id'] != locAccUser['location_id']) &&
 				!emRolesRec[i]['deleted']
 				){
@@ -857,7 +2334,7 @@ export class UsersRoute extends BaseRoute {
 				'role_id' : 8
 			});
 		}*/
-		
+
 		response.status = true;
 		res.send(response);
 	}
@@ -879,7 +2356,7 @@ export class UsersRoute extends BaseRoute {
 		locationAccountUser = new LocationAccountUser(),
 		locationModel = new Location();
 
-		try{
+		try {
 			myEmRoles = await myEmRoleRelation.getEmRolesByUserId(req['user']['user_id']);
 			for(let i in emRoles){
 				if(emRoles[i]['em_roles_id'] == roleId){
@@ -889,9 +2366,9 @@ export class UsersRoute extends BaseRoute {
 
 			response.data['myEmRoles'] = myEmRoles;
 
-			const accountsLocations = await locationAccountUser.getMany([
+			/*const accountsLocations = await locationAccountUser.getMany([
 				[ "account_id = "+req['user']['account_id'] ]
-			]);
+			]);*/
 
 			let myEmRoleRecord = {};
 			for(let i in myEmRoles){
@@ -902,6 +2379,7 @@ export class UsersRoute extends BaseRoute {
 
 			if(myEmRoleRecord['location_id']){
 				myEmRoleRecord['related_locations'] = await locationModel.getAncestries(myEmRoleRecord['location_id']);
+
 				response.data.location = {
 					'location_id' : myEmRoleRecord['location_id'],
 					'parent_id' : myEmRoleRecord['parent_id'],
@@ -915,6 +2393,7 @@ export class UsersRoute extends BaseRoute {
 
 				let mainParentLocationId,
 					mainParent = {};
+
 				for(let i in myEmRoleRecord['related_locations']){
 					if(myEmRoleRecord['related_locations'][i]['parent_id'] == -1){
 						mainParent = myEmRoleRecord['related_locations'][i];
@@ -934,7 +2413,7 @@ export class UsersRoute extends BaseRoute {
 
 				let deepLocation = new Location(),
 					subLocations = await deepLocation.getDeepLocationsByParentId(mainParentLocationId),
-					subLocationsIds = [];
+					subLocationsIds = [0];
 
 				response.data['subLocations'] = subLocations;
 
@@ -942,11 +2421,14 @@ export class UsersRoute extends BaseRoute {
 					subLocationsIds.push(subLocations[i]['location_id']);
 				}
 
-				console.log(subLocationsIds);
-
 				let userEmRoleRelationTeam = new UserEmRoleRelation(),
 					teamEmRoles = <any>[];
 
+                console.log( req['user']['account_id'], subLocationsIds.join(',') );
+
+                teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], subLocationsIds.join(','));
+
+                /*
 				if(  roleId == 11 || roleId == 15 || roleId == 16 || roleId == 18 ){
 					//Chief Wardens //Deputy Chief Warden //Building Warden //Deputy Building Warden
 					teamEmRoles = await userEmRoleRelationTeam.getUserLocationByAccountIdAndLocationIds(req['user']['account_id'], subLocationsIds.join(','));
@@ -956,6 +2438,7 @@ export class UsersRoute extends BaseRoute {
 				}else{
 
 				}
+                */
 
 				response.data['teamEmRoles'] = teamEmRoles;
 
@@ -976,7 +2459,7 @@ export class UsersRoute extends BaseRoute {
 					}
 				}
 				response.data.team = team;
-				
+
 				/*response.data['accntlocations'] = accountsLocations;
 				response.data['emRoles'] = emRoles;
 				response.data['myEmRoles'] = myEmRoles;
@@ -1004,7 +2487,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async requestAsWarden(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1056,12 +2539,12 @@ export class UsersRoute extends BaseRoute {
 				parentLocation = await parentLocationModel.load();
 			}
 
-			const 
+			const
 			opts = {
-				from : 'allantaw2@gmail.com',
+				from : '',
 				fromName : 'EvacConnect',
 				to : [ approverModel.get('email') ],
-				cc: ['erwin.macaraig@gmail.com'],
+				cc: [],
 				body : '',
 				attachments: [],
 				subject : 'EvacConnect Warden Request'
@@ -1071,7 +2554,7 @@ export class UsersRoute extends BaseRoute {
 			declinelink = req.protocol + '://' + req.get('host') + '/token/' + token2;
 
 
-			let 
+			let
 			emailBody = email.getEmailHTMLHeader(),
 			userName = userModel.get('first_name')+' '+userModel.get('last_name'),
 			approverName = approverModel.get('first_name')+' '+approverModel.get('last_name'),
@@ -1086,7 +2569,7 @@ export class UsersRoute extends BaseRoute {
 			emailBody += `<h3 style="text-transform:capitalize;">Hi ${approverName},</h3> <br/>
 			<h4> ${userName} requested to be a warden in location '${locationString}' </h4> <br/>
 			<h5>Click on the link below for corresponding response </h5> <br/>
-			<a href="${approvelink}" target="_blank" style="text-decoration:none; color:#0277bd;">Approve</a> | 
+			<a href="${approvelink}" target="_blank" style="text-decoration:none; color:#0277bd;">Approve</a> |
 			<a href="${declinelink}" target="_blank" style="text-decoration:none; color:#f44336;">Decline</a>
 			<br>`;
 			emailBody += email.getEmailHTMLFooter();
@@ -1104,12 +2587,12 @@ export class UsersRoute extends BaseRoute {
 			response.status = false;
 			response.message = e;
 		}
-		
+
 		res.send(response);
 	}
 
 	public async getWardenRequest(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1123,7 +2606,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async userRequestHandler(req: Request, res: Response, tokenData, fromEmail:boolean){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1229,12 +2712,11 @@ export class UsersRoute extends BaseRoute {
 						}
 					}
 
-					const 
+					const
 					opts = {
-						from : 'allantaw2@gmail.com',
+						from : '',
 						fromName : 'EvacConnect',
-						// to : [ userModel.get('email') ],
-						to : [ 'adelfin@evacgroup.com.au' ],
+						to : [ userModel.get('email') ],
 						cc: [],
 						body : '',
 						attachments: [],
@@ -1242,7 +2724,7 @@ export class UsersRoute extends BaseRoute {
 					},
 					email = new EmailSender(opts);
 
-					let 
+					let
 					emailBody = email.getEmailHTMLHeader(),
 					userName = userModel.get('first_name')+' '+userModel.get('last_name'),
 					approverName = approverModel.get('first_name')+' '+approverModel.get('last_name'),
@@ -1291,7 +2773,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async resignAsChiefWarden(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1327,7 +2809,7 @@ export class UsersRoute extends BaseRoute {
 	}
 
 	public async resignAsWarden(req: Request, res: Response, next: NextFunction){
-		let 
+		let
 		response = <any>{
 			status : true, data : [], message : ''
 		},
@@ -1363,18 +2845,19 @@ export class UsersRoute extends BaseRoute {
 		res.send(response);
 	}
 
-	public async saveMobilityImpairedDetails(req: Request, res: Response, next: NextFunction){
-		let 
+	public async saveMobilityImpairedDetails(req: AuthRequest, res: Response, next: NextFunction){
+		let
 		response = <any>{
 			status : true, data : [], message : ''
-		},
+        },
+        user,
 		mobilityImpairedModel = new MobilityImpairedModel();
 
 		let saveData = {
 			'is_permanent' : req.body.is_permanent,
 			'assistant_type' : req.body.assistant_type,
 			'equipment_type' : req.body.equipment_type,
-			'duration_date' : '',
+			'duration_date' : null,
 			'evacuation_procedure' : req.body.evacuation_procedure
 		};
 
@@ -1387,108 +2870,365 @@ export class UsersRoute extends BaseRoute {
 		}
 
 		if('user_id' in req.body){
-			saveData['user_id'] = req.body.user_id;
-			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+	        saveData['user_id'] = req.body.user_id;
+            saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
+            user = new User(req.body.user_id);
+            try {
+                await user.load();
+                await user.create({
+                    'mobility_impaired': 1
+                });
+            } catch(e) {
+                console.log(e);
+                user = {};
+            }
 		}else if('user_invitations_id' in req.body){
 			saveData['user_invitations_id'] = req.body.user_invitations_id;
 			saveData['date_created'] = moment().format('YYYY-MM-DD HH:mm:00');
 		}
 
-		await mobilityImpairedModel.create(saveData);
+        await mobilityImpairedModel.create(saveData);
+
+        let arrWhere = [];
+
+        arrWhere.push( "user_id = " + req.body.user_id );
+        arrWhere.push( "duration_date > NOW()" );
+
+        try {
+            let mobilityDetails = <any> await mobilityImpairedModel.getMany( arrWhere );
+            for(let userMobil of mobilityDetails){
+                userMobil['date_created'] = moment(userMobil['date_created']).format('MMM. DD, YYYY');
+            }
+
+            response.data = mobilityDetails;
+
+        } catch (e) {
+            console.log(e);
+            user['mobility_impaired_details'] = [];
+        }
+
+        // retrieve TRP
+        // send notification to TRP
+        const location = new Location();
+        console.log(req.body.locations);
+        console.log(typeof req.body.locations);
+        if (req.body.locations) {
+            try {
+                const trpOnLoc = await location.getTRPOnLocation([req.body.locations], defs['Tenant']);
+                const trps = [];
+                for (let t of trpOnLoc) {
+                    trps.push(t['email']);
+                }
+                const opts = {
+                    from : '',
+                    fromName : 'EvacConnect',
+                    to : trps,
+                    cc: [],
+                    body : '',
+                    attachments: [],
+                    subject : 'EvacConnect - Mobility Impaired Registration'
+                };
+                const email = new EmailSender(opts);
+                let emailBody = email.getEmailHTMLHeader();
+                emailBody += `<h3 style="text-transform:capitalize;">Hi,</h3> <br/>
+                <h4> ${user.get('first_name')} ${user.get('last_name')} has registered as mobility impaired.</h4> <br/>
+
+                `;
+
+                emailBody += email.getEmailHTMLFooter();
+                email.assignOptions({
+                    body : emailBody
+                });
+                email.send((data) => {
+                    console.log(data);
+                },(err) => {
+                    console.log(err);
+                });
+            } catch (e) {
+                console.log(e);
+                console.log('cannot send notification');
+            }
+        }
 
 		res.send(response);
 	}
 
-	public async getLocationsTenants(req: Request, res: Response, next: NextFunction){
-		let response = {
-			data : <any>[],
-			message : ''
-		},
-		locId = req.params.location_id,
-		locationAccModel = new LocationAccountRelation(),
-		returnData = [];
+    public async markMobilityAsHealthy(req: AuthRequest, res: Response, next: NextFunction){
+        let
+        response = {
+            status : true, message : ''
+        },
+        userModel = new User(req.body.user_id);
+        try{
+            await userModel.load();
+            userModel.set('mobility_impaired', 0);
+            await userModel.dbUpdate();
+        }catch(e){
+            response.message = 'No user found';
+        }
 
-		let tenantsAccount = await locationAccModel.getTenantsOfLocationId(locId),
-			accountIds = [],
-			accounts = [];
-		for(let i in tenantsAccount){
-			let accountModel = new Account(tenantsAccount[i]['account_id']);
-
-			try{
-				let acc = await accountModel.load();
-				acc['users'] = [];
-				acc['trps'] = [];
-				acc['trp_name'] = '';
-				acc['warden_benchmarking'] = '0/00';
-				acc['wardens'] = '0/00';
-				acc['wardens_trained'] = 0;
-				accounts.push( acc );
-			}catch(e){}
-
-			accountIds.push(tenantsAccount[i]['account_id']);
-		}
-
-		let locAccUserModel = new LocationAccountUser(),
-			locAccUserData = await locAccUserModel.getByLocationIdAndAccountId(locId, accountIds.join(',')),
-			users = [];
-
-		for(let i in locAccUserData){
-			let loc = locAccUserData[i],
-				userModel = new User(loc.user_id);
-
-			try{
-				let user = <any> await userModel.load();
-
-				for(let a in accounts){
-
-					if(accounts[a]['account_id'] == loc.account_id){
-						
-						let emRoleModel = new UserEmRoleRelation(),
-							emRoles = <any> [];
-
-						try{
-							emRoles = await emRoleModel.getEmRolesByUserId(user.user_id);
-						}catch(e){ }
-
-						if(loc.role_id == 2){
-							accounts[a]['trps'].push({
-								first_name : user.first_name,
-								last_name : user.last_name,
-								user_id : user.user_id
-							});
-						}
-
-						accounts[a]['users'].push({
-							role_id : loc.role_id,
-							first_name : user.first_name,
-							last_name : user.last_name,
-							user_id : user.user_id,
-							em_roles : emRoles
-						});
-					}
+        res.status(200).send(response);
+    }
 
 
+    //////
+    // For Enhancement //
+    // This is for listing Tenants(Accounts) in a location
+    // Current : We only list who have TRP in the account
+    //////
+	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction){
+        const location_id = req.params.location_id;
+        const locationAccountUserObj = new LocationAccountUser();
+        // listing of roles is implemented here because we are only listing roles on a sub location
+        let canLoginTenants = {};
+        try {
+          canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
+        } catch(e) {
+          const accntObj = new Account(req.user.account_id);
+          const accntDetails = await accntObj.load();
+          canLoginTenants[req.user.account_id] = {
+            'account_name': accntDetails['account_name'],
+            'account_id': req.user.account_id,
+            'trp': [],
+            'wardens': []
+          };
+        }
 
-				}
+        const canLoginTenantArr = [];
+        let tempWardenUsers = [];
+        const tempFloorWardenUsers = [];
+        let trainedWardensObj = {};
+        let trainedFloorWardensObj = {};
+        Object.keys(canLoginTenants).forEach((key) => {
+          canLoginTenantArr.push(canLoginTenants[key]);
+        });
+        for (let i = 0; i < canLoginTenantArr.length; i++) {
+          // get all wardens for this location on this account
+          const EMRole = new UserEmRoleRelation();
+          const trainingCert = new TrainingCertification();
+          let temp;
+          try {
+            temp =
+            await EMRole.getEMRolesOnAccountOnLocation(
+              defs['em_roles']['WARDEN'],
+              canLoginTenantArr[i]['account_id'],
+              location_id
+            );
+            canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
+            canLoginTenantArr[i]['wardens'] = temp['raw'];
+            tempWardenUsers = tempWardenUsers.concat(temp['users']);
+            trainedWardensObj = await
+            trainingCert.getEMRUserCertifications(temp['users'], {'em_role_id': defs['em_roles']['WARDEN']});
+          } catch (e) {
+            console.log('users route getLocationsTenants()',e);
+            temp = {};
+            canLoginTenantArr[i]['total_wardens'] = 0;
+            canLoginTenantArr[i]['wardens'] = [];
+            trainedWardensObj = {
+              'total_passed': 0,
+              'passed': [],
+              'failed': [],
+              'percentage': ''
+            };
+          }
 
-				users.push( user );
-			}catch(e){}
-		}
+          try {
+            temp = null; // reset
+            temp =
+            await EMRole.getEMRolesOnAccountOnLocation(
+              defs['em_roles']['FLOOR_WARDEN'],
+              canLoginTenantArr[i]['account_id'],
+              location_id
+            );
+            for (let fw of temp['raw']) {
+              if (tempWardenUsers.indexOf(fw['user_id']) == -1) {
+                tempFloorWardenUsers.push(fw['user_id']);
+                canLoginTenantArr[i]['wardens'].push(fw);
+              }
+            }
 
-		
-		for(let a in accounts){
-			let trpnamesArr = [];
-			for(let x in accounts[a]['trps']){
-				trpnamesArr.push( accounts[a]['trps'][x]['first_name'] +' '+ accounts[a]['trps'][x]['last_name'] );
-			}
+            canLoginTenantArr[i]['total_wardens'] += tempFloorWardenUsers.length;
+            trainedFloorWardensObj = await
+            trainingCert.getEMRUserCertifications(tempFloorWardenUsers, {'em_role_id': defs['em_roles']['FLOOR_WARDEN']});
 
-			accounts[a]['trp_name'] = trpnamesArr.join(', ');
-		}
+          } catch (e) {
+            console.log('users route getLocationsTenants()',e);
+            trainedFloorWardensObj = {
+              'total_passed': 0,
+              'passed': [],
+              'failed': [],
+              'percentage': ''
+            };
+          }
 
-		response.data = accounts;
+          let tempPercentage = Math.round(((trainedWardensObj['passed'].length + trainedFloorWardensObj['passed']) / (tempWardenUsers.length + tempFloorWardenUsers.length)) * 100);
+          let tempPercentageStr = '0%';
+          if (tempPercentage > 0) {
+            tempPercentageStr =  tempPercentage.toFixed(0).toString() + '%';
+          }
 
-		res.send(response);
+          // get trained wardens
+          canLoginTenantArr[i]['trained_wardens'] = {
+            'failed': trainedWardensObj['failed'].concat(trainedFloorWardensObj['failed']),
+            'passed': trainedWardensObj['passed'].concat(trainedFloorWardensObj['passed']),
+            'total_passed': trainedWardensObj['passed'].length + trainedFloorWardensObj['passed'],
+            'percentage':  tempPercentageStr
+          };
+        }
 
+        return canLoginTenantArr;
 	}
+
+    public async locationRoleAssignments(req:AuthRequest, res:Response, next: NextFunction){
+
+        let
+        response = {
+            status : false, message : '', data : {}
+        },
+        userId = req.body.user_id,
+        assignments = JSON.parse(req.body.assignments),
+        userModel = new User(userId),
+        locAccModel = new LocationAccountUser(),
+        userEmModel = new UserEmRoleRelation(),
+        userRoleModel = new UserRoleRelation(),
+        deleteAssignment = async (assignment) => {
+            if('user_em_roles_relation_id' in assignment){
+                userEmModel.setID(assignment.user_em_roles_relation_id);
+                await userEmModel.delete();
+                userEmModel = new UserEmRoleRelation();
+            }
+
+            if('location_account_user_id' in assignment){
+                locAccModel.setID(assignment.location_account_user_id);
+                await locAccModel.delete();
+                locAccModel = new LocationAccountUser();
+            }
+        },
+        createFrpTrp = async (assign) => {
+            try{
+                await locAccModel.getByLocationIdAndUserId(assign.location_id, userId);
+            }catch(errLoc){
+                locAccModel.set('location_id', assign.location_id);
+                locAccModel.set('user_id', userId);
+                locAccModel.set('account_id', assign.account_id);
+                await locAccModel.dbInsert();
+                locAccModel = new LocationAccountUser();
+            }
+
+            try{
+                let roles = await userRoleModel.getByUserId(userId),
+                hasSame = false;
+                for(let ro of roles){
+                    if(ro.role_id == assign.role_id){
+                        hasSame = true;
+                    }
+                }
+
+                if(!hasSame){
+                    userRoleModel.set('user_id', userId);
+                    userRoleModel.set('role_id', assign.role_id);
+                    userRoleModel.dbInsert();
+                    userRoleModel = new UserRoleRelation();
+                }
+
+            }catch(err){
+                userRoleModel.set('user_id', userId);
+                userRoleModel.set('role_id', assign.role_id);
+                userRoleModel.dbInsert();
+                userRoleModel = new UserRoleRelation();
+            }
+        };
+
+
+        try{
+            let user = <any> await userModel.load();
+            response.status = true;
+
+            for(let assign of assignments){
+
+                assign['account_id'] = user.account_id;
+
+                if( 'deleted' in assign ){
+                    if( assign.deleted == true ){
+                        await deleteAssignment(assign);
+                    }
+                }else if( 'user_em_roles_relation_id' in assign ){
+                    if(assign.role_id == 1 || assign.role_id == 2){
+                        await deleteAssignment(assign);
+                        await createFrpTrp(assign);
+                    }else{
+                        userEmModel.setID(assign.user_em_roles_relation_id);
+                        try{
+                            await userEmModel.load();
+                            userEmModel.set('em_role_id', assign.role_id);
+                            userEmModel.set('location_id', assign.location_id);
+                            await userEmModel.dbUpdate();
+                            userEmModel = new UserEmRoleRelation();
+                        }catch(errEm){
+                        }
+                    }
+
+                }else if( 'location_account_user_id' in assign ){
+
+                    if(assign.role_id == 1 || assign.role_id == 2){
+                        locAccModel.setID(assign.location_account_user_id);
+                        try{
+                            await locAccModel.load();
+                            locAccModel.set('location_id', assign.location_id);
+                            await locAccModel.dbUpdate();
+                            locAccModel = new LocationAccountUser();
+                        }catch(errLoc){}
+
+                        try{
+                            await userRoleModel.getByUserId(userId);
+                            userRoleModel = new UserRoleRelation();
+                        }catch(er){
+                            await userRoleModel.create({
+                                'user_id' : userId,
+                                'role' : assign.role_id
+                            });
+                            userRoleModel = new UserRoleRelation();
+                        }
+                    }else{
+                        await deleteAssignment(assign);
+
+                        userEmModel.set('user_id', userId);
+                        userEmModel.set('location_id', assign.location_id);
+                        userEmModel.set('em_role_id', assign.role_id);
+                        await userEmModel.dbInsert();
+                    }
+
+                }else{
+                    if( assign.role_id == 1 || assign.role_id == 2 ){
+                        await createFrpTrp(assign);
+                    }else{
+                        let arrWhere = [];
+                        arrWhere.push([ ' em.user_id = '+userId ]);
+                        arrWhere.push([ ' em.location_id = '+assign.location_id ]);
+                        arrWhere.push([ ' em.em_role_id = '+assign.role_id ]);
+                        let emroles = <any> await userEmModel.getWhere(arrWhere);
+
+                        if( emroles.length == 0 ){
+                            userEmModel = new UserEmRoleRelation();
+                            userEmModel.set('user_id', userId);
+                            userEmModel.set('location_id', assign.location_id);
+                            userEmModel.set('em_role_id', assign.role_id);
+                            await userEmModel.dbInsert();
+                        }
+
+                    }
+                }
+
+            }
+
+        }catch(e){
+            response.message = 'No user found';
+        }
+
+        response = <any> await this.getUserLocationsTrainingsEcoRoles(req, res, next, true, userId);
+
+        res.send(response);
+
+    }
 
 }

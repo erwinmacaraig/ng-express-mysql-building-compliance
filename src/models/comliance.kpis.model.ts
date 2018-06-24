@@ -12,11 +12,51 @@ export class ComplianceKpisModel extends BaseClass {
         }
     }
 
+    public getAllKPIs(raw: boolean = false): Promise<object> | Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        const sql_load = 'SELECT * FROM compliance_kpis';
+        const uid = [this.id];
+        const connection = db.createConnection(dbconfig);
+        const resultSetObj: {[key: number]: {}} = {};
+        connection.query(sql_load, uid, (error, results, fields) => {
+            if (error) {
+                return console.log(error);            }
+            if (!results.length){
+                reject('Compliance kpis not found');
+            } else {
+                if (!raw) {
+                  for (const r of results) {
+                    resultSetObj[r['compliance_kpis_id']] = {
+                      compliance_kpis_id: r['compliance_kpis_id'],
+                      name: r['name'],
+                      directory_name: r['directory_name'],
+                      required: r['required'],
+                      validity_in_months: r['validity_in_months'],
+                      measurement: r['measurement'],
+                      order: r['order'],
+                      has_primary_document: r['has_primary_document'],
+                      description: r['description'],
+                      ER_id: r['ER_id']
+                    };
+                  }
+                  resolve(resultSetObj);
+                } else {
+                  resolve(results);
+                }
+
+            }
+        });
+        connection.end();
+    });
+
+    }
+
     public load() {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM compliance_kpis WHERE compliance_kpis_id = ?';
             const uid = [this.id];
             const connection = db.createConnection(dbconfig);
+            const resultSetObj: {[key: number]: {}} = {};
             connection.query(sql_load, uid, (error, results, fields) => {
                 if (error) {
                     return console.log(error);
@@ -37,7 +77,7 @@ export class ComplianceKpisModel extends BaseClass {
         return new Promise((resolve) => {
 
             let sql = `SELECT * FROM compliance_kpis`;
-            
+
             for(let i in arrWhere){
                 if(parseInt(i) == 0){
                     sql += ` WHERE `;

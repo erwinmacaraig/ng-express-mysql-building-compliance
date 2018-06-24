@@ -252,6 +252,7 @@ table td .checkbox [type="checkbox"]+label{
 
 table td .checkbox [type="checkbox"]+label{
 	color: #333;
+    height: 15px;
 }
 
 table thead tr th .checkbox label{
@@ -314,6 +315,29 @@ table tr td.with-image .impaired{
 
 }
 
+.inline-block{
+    display: inline-block;
+}
+
+.pagination button{
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+    vertical-align: inherit;
+}
+
+.pagination select:not(.to-materialize){
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+}
+
+.pagination .select{
+    margin: 0px 10px;
+}
+
 @media only screen 
   and (max-width: 768px){
 	.row.top .right-actions{
@@ -322,12 +346,17 @@ table tr td.with-image .impaired{
 }
 
 #modalArchiveBulk,
-#modalArchive{
+#modalArchive,
+#modalSendInvitation{
     width: 35%;
 }
 
 #modalArchiveBulk ul li{
     font-size: 14px;
+}
+
+#modalMobilityHealty{
+    width: 35%;
 }
 
 @media only screen and (max-width: 1400px) {
@@ -339,14 +368,23 @@ table tr td.with-image .impaired{
 
 @media only screen and (max-width: 1024px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalMobilityHealty,
+    #modalSendInvitation{
         width: 60%;
+    }
+
+    #modalMobility{
+        width : 90%;
     }
 }
 
 @media only screen and (max-width: 500px) {
     #modalArchiveBulk,
-    #modalArchive{
+    #modalArchive,
+    #modalMobility,
+    #modalMobilityHealty,
+    #modalSendInvitation{
         width: 90%;
     }
 }

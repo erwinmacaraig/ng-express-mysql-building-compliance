@@ -1,5 +1,9 @@
+
+
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
+import { UtilsSync } from './util.sync';
+
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
@@ -79,6 +83,7 @@ export class User extends BaseClass {
                 }
 
                 if (!results.length) {
+                    console.log('Call to user.model.getByEmail - No email found.');
                     reject('No user found');
                 } else {
                     this.dbData = results[0];
@@ -175,7 +180,7 @@ export class User extends BaseClass {
             const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
             ('last_name' in this.dbData) ? this.dbData['last_name'] : '',
-            ('email' in this.dbData) ? this.dbData['email'] : '',
+            ('email' in this.dbData) ? this.dbData['email'].toLowerCase() : '',
             ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
             ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : ' ',
             ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
@@ -186,7 +191,7 @@ export class User extends BaseClass {
             ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : '0',
             ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
-            ('evac_role' in this.dbData) ? this.dbData['evac_role'] : '',
+            ('evac_role' in this.dbData) ? this.dbData['evac_role'] : 'Client',
             ('invitation_date' in this.dbData) ? this.dbData['invitation_date'] : null,
             ('add_to_location' in this.dbData) ? this.dbData['add_to_location'] : '0',
             ('token' in this.dbData) ? this.dbData['token'] : null,
@@ -240,7 +245,7 @@ export class User extends BaseClass {
             const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
             ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
-            ('email' in this.dbData) ? this.dbData['email'] : '',
+            ('email' in this.dbData) ? this.dbData['email'].toLowerCase() : '',
             ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
             ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : '',
             ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
@@ -251,7 +256,7 @@ export class User extends BaseClass {
             ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
-            ('evac_role' in this.dbData) ? this.dbData['evac_role'] : null,
+            ('evac_role' in this.dbData) ? this.dbData['evac_role'] : 'Client',
             ('invitation_date' in this.dbData) ? this.dbData['invitation_date'] : null,
             ('add_to_location' in this.dbData) ? this.dbData['add_to_location'] : null,
             ('token' in this.dbData) ? this.dbData['token'] : null,
@@ -322,9 +327,12 @@ export class User extends BaseClass {
         });
     }
 
-    public getByAccountId(accountId, archived?) {
+    public getByAccountId(accountId, archived?, search?): any {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ?';
+            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? ';
+            if(search){
+                sql_load += ' AND CONCAT(first_name, " ", last_name) LIKE "%'+search+'%" ';
+            }
             if(!archived){
                 archived = 0;
             }
@@ -358,6 +366,274 @@ export class User extends BaseClass {
             });
             connection.end();
         });
+    }
+  /**
+   * @author Erwin Macaraig
+   *
+   * @param filter
+   * Object filter wherein keys are the filter
+   * @param user_id
+   * User id on which to get all certifications based on the filter
+   */
+  public getAllCertifications(filter: object = {}, user_id: number = 0): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      let uid = this.ID();
+      if (user_id) {
+        uid = user_id;
+      }
+      let filterStr = '';
+      Object.keys(filter).forEach((key) => {
+        switch (key) {
+          case 'pass':
+            filterStr += ` AND certifications.pass = ${filter[key]}`;
+          break;
+          case 'training_requirement_id':
+            const trainingRequirementIds = (filter['training_requirement_id']).join(',');
+            if (trainingRequirementIds.length > 0 ) {
+              filterStr += ` AND certifications.training_requirement_id IN (${trainingRequirementIds}) `;
+            }
+          break;
+          case 'certifications_id':
+            filterStr += ` AND certifications.certifications_id = ${filter[key]}`;
+          break;
+          case 'current':
+            filterStr += ` AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()`;
+          break;
+          case 'em_roles':
+            if (filter['em_roles'].length > 0) {
+              const em_roles = (filter['em_roles']).join(',');
+              filterStr += ` AND em_role_training_requirements.em_role_id IN (${em_roles})`;
+            }
+
+          break;
+        }
+      });
+      const sql_certifications = `SELECT
+        training_requirement.training_requirement_name,
+        em_roles.role_name,
+        training_requirement.scorm_course_id,
+        certifications.*,
+        training_requirement.num_months_valid,
+        DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
+        IF (DATE_ADD(certifications.certification_date,
+          INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
+        FROM
+          certifications
+        INNER JOIN
+         training_requirement
+        ON
+          training_requirement.training_requirement_id = certifications.training_requirement_id
+        INNER JOIN
+          em_role_training_requirements
+        ON
+          em_role_training_requirements.training_requirement_id = training_requirement.training_requirement_id
+        INNER JOIN
+          em_roles
+        ON
+          em_roles.em_roles_id = em_role_training_requirements.em_role_id
+        WHERE
+          certifications.user_id = ? ${filterStr}`;
+
+      
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_certifications, [uid], (error, results, fields) => {
+        if (error) {
+          console.log('user.model.getAllCertifications',  error, sql_certifications);
+          throw Error('There was a problem with getting the certification records for this user');
+        }
+        if (results.length > 0) {
+          resolve(results);
+        } else {
+          reject('There are no certifications for this user');
+        }
+      });
+      connection.end();
+    });
+  }
+    /**
+    * @author Erwin Macaraig
+    * @description
+    * Get all EM locations tag to this user
+    * @param user_id
+    * @returns array
+    */
+    public getAllMyEMLocations(user_id: number = 0): Promise<Array<Object>> {
+        return new Promise((resolve, reject) => {
+            let userId = this.ID();
+            if (user_id) {
+                userId = user_id;
+            }
+            const sql = `SELECT
+              users.user_id,
+              user_em_roles_relation.user_em_roles_relation_id,
+              user_em_roles_relation.em_role_id,
+              user_em_roles_relation.em_role_id as role_id,
+              em_roles.role_name,
+              locations.location_id,
+              locations.parent_id,
+              locations.is_building,
+              lp.name as parent_name,
+              IF(lp.name IS NOT NULL, CONCAT( IF(TRIM(lp.name) <> '', CONCAT(lp.name, ', '), ''), locations.name), locations.name) as name
+              FROM
+              users
+              INNER JOIN
+              user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
+              INNER JOIN locations ON user_em_roles_relation.location_id = locations.location_id
+              INNER JOIN em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
+              LEFT JOIN locations lp ON lp.location_id = locations.parent_id
+              WHERE users.user_id = ?`;
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, [userId], (error, results, fields) => {
+                if (error) {
+                    console.log('user.model.getAllMyLocations', error, sql, userId);
+                    throw Error('Internal error. Cannot retrieve records');
+                }
+                if (results.length > 0) {
+                    /*console.log(results);*/
+                    const utils = new UtilsSync();
+                    utils.getRootParent(results).then((set) => {
+                        /*console.log(set);*/
+                        resolve(set);
+                    });
+                } else {
+                    resolve([]);
+                }
+
+            });
+        });
+    }
+
+    public getWithoutToken() {
+        return new Promise((resolve, reject) => {
+            const sql = ` SELECT * FROM users WHERE user_id NOT IN (SELECT id FROM token WHERE id_type = 'user_id' AND verified = 0) `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql,  (error, results, fields) => {
+
+                resolve(results);
+
+            });
+        });
+    }
+
+    public query(queries){
+
+        return new Promise((resolve, reject) => {
+            let selectQuery = 'users.*';
+            if(queries.select){
+                if( Object.keys(queries.select).length > 0 ){
+                    selectQuery = '';
+
+                    for(let i in queries.select){
+                        let arrSel = queries.select[i];
+                        let c = 0;
+                        for(let n in arrSel){
+                            if(c > 0 || selectQuery.trim().length > 0){
+                                selectQuery += ', ';
+                            }
+
+                            if(i !== 'custom'){
+                                selectQuery += i + '.' + arrSel[n] +' ';
+                            }else{
+                                selectQuery += arrSel[n]+' ';
+                            }
+
+                            c++;
+                        }
+                    }
+
+                }
+
+            }
+
+            if(queries.select.count){
+                selectQuery = ' COUNT(users.user_id) as count';
+            }
+
+            let whereQuery = '',
+                whereCount = 0;
+            if(queries.where){
+                for(let i in queries.where){
+                    if(whereCount == 0){
+                        whereQuery += ' WHERE '+queries.where[i];
+                    }else{
+                        whereQuery += ' AND '+queries.where[i];
+                    }
+                    whereCount++;
+                }
+            }
+
+            if(queries.orWhere){
+                for(let i in queries.orWhere){
+                    whereQuery += ' '+queries.orWhere[i]+' ';
+                }
+            }
+
+            let joinsQuery = '';
+            if(queries.where){
+                for(let i in queries.joins){
+                   joinsQuery += ' '+queries.joins[i]+' ';
+                }
+            }
+
+            let limitQuery = '';
+            if(queries.limit && ('count' in queries.select == false) ){
+                limitQuery = 'LIMIT '+queries.limit;
+            }
+
+            let orderQuery = '';
+            if(queries.order){
+                orderQuery = 'ORDER BY '+queries.order;
+            }
+
+            let groupQuery = '';
+            if(queries.group){
+                groupQuery = 'GROUP BY '+queries.group;
+            }
+
+            let sql_load = 'SELECT '+selectQuery+' FROM users '+joinsQuery+' '+whereQuery+' '+groupQuery+' '+orderQuery+' '+limitQuery;
+            // console.log(sql_load);
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    console.log(sql_load);
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
+    public getSpliceUsers(accountId: number = 0, filter = {}): Promise<Array<number>> {
+      return new Promise((resolve, reject) => {
+        let page = 0;
+        const resultSet = [];
+        let sql;
+        if ('page' in filter) {
+          page = Math.abs(parseInt(filter['page'], 10)) * 10;
+          sql = `SELECT user_id FROM users WHERE account_id = ? LIMIT 10 OFFSET ${page}`;
+        }
+        if ('query' in filter && filter['query'].length > 0) {
+          sql = `SELECT user_id FROM users WHERE account_id = ? AND
+          first_name LIKE '%${filter['query']}%' OR last_name LIKE '%${filter['query']}%'
+          OR email like '%${filter['query']}%'
+          LIMIT 10`;
+        }
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [accountId], (error, results) => {
+          if (error) {
+            console.log('user.model.getSpliceUsers', error, sql);
+            throw Error('Internal server error. Cannot get users for the account');
+          }
+          for (const r of results) {
+            resultSet.push(r['user_id']);
+          }
+          resolve(resultSet);
+        });
+        connection.end();
+      });
     }
 
 }

@@ -33,7 +33,7 @@ export class ComplianceModel extends BaseClass {
         });
     }
 
-    public getWhere(arrWhere){
+    public getWhere(arrWhere): Promise<Array<object>> {
         return new Promise((resolve) => {
 
             let sql = `SELECT * FROM compliance`;
@@ -49,14 +49,18 @@ export class ComplianceModel extends BaseClass {
 
             sql += ` ORDER BY compliance_id DESC `;
 
-             console.log(sql);
+            // console.log(sql);
             const connection = db.createConnection(dbconfig);
             connection.query(sql, (error, results, fields) => {
                 if (error) {
                     return console.log(error);
                 }
 
-                this.dbData = results;
+
+                if (results.length === 1) {
+                  this.dbData = results[0];
+                  this.id = results[0]['compliance_id'];
+                }
                 resolve(results);
             });
             connection.end();
@@ -134,6 +138,91 @@ export class ComplianceModel extends BaseClass {
         });
     }
 
+    public getLocationCompliance(locId, accntId, roles?) {
+        return new Promise((resolve) => {
+            if(roles == 'undefined'){
+                roles = 'Manager, Tenant';
+            }
+            let sql = `
+                SELECT
+                  c.compliance_id,
+                  c.compliance_kpis_id,
+                  c.compliance_status,
+                  c.building_id,
+                  c.account_id,
+                  c.valid_till,
+                  c.required,
+                  c.account_role,
+                  ck.name,
+                  ck.directory_name,
+                  ck.measurement,
+                  ck.validity_in_months,
+                  ck.has_primary_document,
+                  ck.ER_id,
+                  ck.training_id,
+                  c.override_by_evac
+                FROM compliance_kpis ck
+                INNER JOIN compliance c ON ck.compliance_kpis_id = c.compliance_kpis_id
+                WHERE c.building_id = ?
+                AND c.account_id = ?
+                AND c.account_role IN (?)
+                AND ck.description IS NOT NULL
+                ORDER BY c.compliance_id DESC
+            `;
 
+            let param = [locId, accntId, roles];
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+
+                this.dbData = results;
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
+    public getComplianceRecord(kpi, building_id, account_id): Promise<object> {
+      return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM compliance
+                     WHERE compliance_kpis_id = ?
+                     AND building_id = ?
+                     AND account_id = ?
+                     ORDER BY compliance_id
+                     LIMIT 1`;
+
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql, [kpi, building_id, account_id], (error, results) => {
+            if (error) {
+              console.log('compliance.model.getComplianceRecord', error, sql);
+              throw Error('Cannot get compliance status');
+            }
+            resolve(results[0]);
+          });
+          connection.end();
+      });
+    }
+    public setComplianceRecordStatus(kpi, building_id, account_id, stat: number = 1): Promise<boolean> {
+      return new Promise((resolve, reject) => {
+        const sql_update = `UPDATE compliance
+                            SET compliance_status = ?
+                            WHERE compliance_kpis_id = ?
+                            AND building_id = ?
+                            AND account_id = ?`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql_update, [stat, kpi, building_id, account_id], (error, results) => {
+          if (error) {
+            console.log('compliance.model.getComplianceRecord', error, sql_update);
+            throw Error('Cannot get compliance status');
+          }
+          const status = (stat === 1) ? true : false;
+          resolve(status);
+        });
+        connection.end();
+      });
+    }
 
 }
