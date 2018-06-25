@@ -34,6 +34,15 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   locationId: number;
   genericSub: Subscription;
   genericEmailSearchSub: Subscription[] = [];
+
+  options: DatepickerOptions = {
+    displayFormat: 'YYYY-MM-DD'
+  };
+  trainingDate = '';
+  datepickerModel: Date;
+  datepickerModelFormatted = '';
+  isShowDatepicker = false;
+
   constructor(private adminService: AdminService, private formBuilder: FormBuilder) {}
 
   ngOnInit() {
@@ -59,8 +68,11 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       });
   }
 
-  public getEmailSelection(index: number = -1, item: object = {}) {
+  public getEmailSelection(index: number = -1, item) {
+    console.log(this.genericEmailSearchSub[index]);
+    this.genericEmailSearchSub[index].unsubscribe();
     (<FormArray>this.userForm.get('levelUsers')).controls[index].get('email').setValue(item['email']);
+    (<FormArray>this.userForm.get('levelUsers')).controls[index].get('user_id').setValue(item['user_id']);
     (<FormArray>this.userForm.get('levelUsers')).controls[index].get('first_name').setValue(item['first_name']);
     (<FormArray>this.userForm.get('levelUsers')).controls[index].get('last_name').setValue(item['last_name']);
     (<FormArray>this.userForm.get('levelUsers'))
@@ -69,11 +81,20 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
     (<FormArray>this.userForm.get('levelUsers'))
     .controls[index].get('sublocation_name')
-    .setValue(item['sublocation_name']);
+    .setValue(item['name']);
 
-    console.log(item);
+    (<FormArray>this.userForm.get('levelUsers'))
+    .controls[index].get('sublocation_id')
+    .setValue(item['location_id']);
+
+    (<FormArray>this.userForm.get('levelUsers'))
+    .controls[index].get('accountId')
+    .setValue(item['account_id']);
+
     this.filteredEmailList[index] = [];
+    this.assignSearchEmailAbility(index);
 
+    console.log('=======================', this.genericEmailSearchSub);
 
   }
 
@@ -92,7 +113,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
       }
-      console.log(this.users);
+      // console.log(this.users);
     });
   }
 
@@ -122,24 +143,51 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
    this.assignSearchEmailAbility();
 
   }
-  private assignSearchEmailAbility(): void {
-    this.levelUsers.controls[this.levelUsers.length - 1].get('email').valueChanges.debounceTime(350)
+  private assignSearchEmailAbility(index?): void {
+    let i = this.levelUsers.length - 1;
+    if (index != null)  {
+      i = index;
+    }
+    console.log('at assignSearchAbility ', i);
+    this.genericEmailSearchSub[i] =
+    this.levelUsers.controls[i].get('email').valueChanges.debounceTime(350)
     .subscribe((inputEmail) => {
       if (inputEmail.length > 0) {
         // loop over
-        console.log('At index ' + (this.levelUsers.length - 1) + ' = ' + inputEmail);
-        this.filteredEmailList[this.levelUsers.length - 1] = [];
-        for (let i = 0; i < this.users.length; i++) {
-          if (this.users[i]['email'].toLowerCase().indexOf(inputEmail.toLowerCase()) > -1) {
-            this.filteredEmailList[this.levelUsers.length - 1].push(this.users[i]);
+        // console.log('At index ' + (i) + ' = ' + inputEmail);
+        this.filteredEmailList[i] = [];
+        for (let x = 0; x < this.users.length; x++) {
+          if (this.users[x]['email'].toLowerCase().indexOf(inputEmail.toLowerCase()) > -1) {
+            this.filteredEmailList[i].push(this.users[x]);
           }
         }
       } else {
-        this.filteredEmailList[this.levelUsers.length - 1] = [];
+        this.filteredEmailList[i] = [];
       }
+    }, (err) => {
+      console.log(err, 'Error at index ' + i);
     });
   }
 
+  cancelUserForm() {
+    (<FormArray>this.userForm.get('levelUsers')).reset();
+    for (let index = 1;
+      index <= (<FormArray>this.userForm.get('levelUsers')).length; index++) {
+        (<FormArray>this.userForm.get('levelUsers')).removeAt(index);
+        this.genericEmailSearchSub[index].unsubscribe();
+    }
+  }
+
+  public removeUser(index: number = 1) {
+    this.genericEmailSearchSub[index].unsubscribe();
+    (<FormArray>this.userForm.get('levelUsers')).removeAt(index);
+  }
+
+  setDatePickerDefaultDate() {
+    this.datepickerModel = moment().toDate();
+    this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
+    this.trainingDate = moment(this.datepickerModel).format('YYYY-MM-DD');
+  }
 
 
 }

@@ -338,7 +338,8 @@ export class UserEmRoleRelation extends BaseClass {
                     u.*, em.em_role_id,
                     er.role_name,
                     accounts.account_name,
-                    l.name
+                    l.name,
+                    l.location_id
                 FROM user_em_roles_relation em
                 INNER JOIN users u ON em.user_id = u.user_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id

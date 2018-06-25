@@ -55,10 +55,11 @@
             <td></td>
             <td>
               <input formControlName="email" type="text" placeholder="search email">
+
               <div class="suggestions" *ngIf="filteredEmailList.length > 0">
                   <ul *ngFor="let item of filteredEmailList[i]; let j = index;">
                     <li>
-                      <a (click)="getEmailSelection(i, item[j])"> {{j}} {{item['email']}} ({{item['role_name']}}, {{item['name']}})</a>
+                      <a (click)="getEmailSelection(i, item)">{{item['email']}} ({{item['role_name']}}, {{item['name']}})</a>
                     </li>
                   </ul>
                 </div>
@@ -67,7 +68,9 @@
             <td><input formControlName="first_name" type="text"></td>
             <td><input formControlName="last_name" type="text"></td>
             <td><input formControlName="sublocation_name" type="text"></td>
-            <td>&nbsp;</td>
+            <td class="with-remove">&nbsp;
+              <a  class="remove" (click)="removeUser(i)">X</a>
+            </td>
           </tr>
         </tbody>
         <tfoot>
