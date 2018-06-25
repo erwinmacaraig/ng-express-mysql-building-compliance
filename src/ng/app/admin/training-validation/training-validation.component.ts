@@ -59,7 +59,21 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       });
   }
 
-  public getEmailSearchChanges() {
+  public getEmailSelection(index: number = -1, item: object = {}) {
+    (<FormArray>this.userForm.get('levelUsers')).controls[index].get('email').setValue(item['email']);
+    (<FormArray>this.userForm.get('levelUsers')).controls[index].get('first_name').setValue(item['first_name']);
+    (<FormArray>this.userForm.get('levelUsers')).controls[index].get('last_name').setValue(item['last_name']);
+    (<FormArray>this.userForm.get('levelUsers'))
+      .controls[index].get('account_name')
+      .setValue(item['account_name']);
+
+    (<FormArray>this.userForm.get('levelUsers'))
+    .controls[index].get('sublocation_name')
+    .setValue(item['sublocation_name']);
+
+    console.log(item);
+    this.filteredEmailList[index] = [];
+
 
   }
 
@@ -80,10 +94,6 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       }
       console.log(this.users);
     });
-  }
-
-  public getEmailSelection(index) {
-
   }
 
   createFormItem(): FormGroup {

@@ -56,17 +56,17 @@
             <td>
               <input formControlName="email" type="text" placeholder="search email">
               <div class="suggestions" *ngIf="filteredEmailList.length > 0">
-                  <ul *ngFor="let item of filteredEmailList[i]">
+                  <ul *ngFor="let item of filteredEmailList[i]; let j = index;">
                     <li>
-                      <a (click)="getEmailSelection(i, item['email'])">{{item['email']}}({{item['name']}})</a>
+                      <a (click)="getEmailSelection(i, item[j])"> {{j}} {{item['email']}} ({{item['role_name']}}, {{item['name']}})</a>
                     </li>
                   </ul>
                 </div>
             </td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
+            <td><input formControlName="account_name" type="text"></td>
+            <td><input formControlName="first_name" type="text"></td>
+            <td><input formControlName="last_name" type="text"></td>
+            <td><input formControlName="sublocation_name" type="text"></td>
             <td>&nbsp;</td>
           </tr>
         </tbody>
