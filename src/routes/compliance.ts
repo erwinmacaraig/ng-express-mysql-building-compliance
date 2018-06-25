@@ -999,9 +999,15 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                 if(buildingDocs[0]){
                     validTillMoment = moment(buildingDocs[0]['valid_till'], ['DD/MM/YYYY']);
+                    console.log(validTillMoment);
                 }
 
                 if (buildingDocs[0] && validTillMoment.diff(today, 'days') > 0) {
+                    if(comp.compliance_kpis_id == epcMeetingId){
+                        
+                    }
+
+                    comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : '';
                     comp['validity_status'] = 'valid';
                     comp['days_remaining'] = validTillMoment.diff(today, 'days');
                     comp['valid'] = 1;
@@ -1032,9 +1038,6 @@ import * as S3Zipper from 'aws-s3-zipper';
                         validTillMoment = moment(sibsCompliances[0]['valid_till']);
                         comp['compliance_status'] = 1;
                         comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
-
-                        console.log(comp['valid_till']);
-                        console.log(validTillMoment.format('DD/MM/YYYY'));
                     }
 
                     if(!comp['sibsCompliances']){
