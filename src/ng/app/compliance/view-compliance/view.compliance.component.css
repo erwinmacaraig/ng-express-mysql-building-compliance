@@ -138,20 +138,17 @@
     border-radius: 5px;
     position: absolute;
     top: 19px;
-    left: 7px;
-    width: 98%;
+    left: 42px;
+    width: 89%;
 }
 
 .row-table-content .progress-loading-container .loading{
-    background-color: #dc4453;
+    background-color: #75beff;
     height: 20px;
     border-radius: 5px;
     position: absolute;
     min-width: 0.5%;
-    top: 19px;
-    left: 43px;
-    max-width: 85%;
-    border: 1px solid;
+    left: 0px;
 }
 
 .row-table-content .progress-loading-container .loading .tip-percentage{

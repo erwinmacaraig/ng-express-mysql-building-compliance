@@ -1293,6 +1293,15 @@ const defs = require('../config/defs.json');
                 loc['num_tenants'] = temp.length;
             }
 
+            let 
+            subLocsModel = new Location(),
+            sublocsids = [],
+            sublocs = <any> await subLocsModel.getChildren(loc['location_id']);
+            
+            for(let sub of sublocs){
+                sublocsids.push(sub.location_id);
+            }
+
             let
                 // locsIds = JSON.parse(JSON.stringify(sublocationIds)),
                 locsIds = JSON.parse(JSON.stringify(subLocationsObj[loc['location_id']]['ids'])),
@@ -1303,7 +1312,11 @@ const defs = require('../config/defs.json');
                 locsIds.push(loc.location_id);
             }
 
-            wardens = <any> await emRolesModel.getWardensInLocationIds(locsIds.join(','), 0, req.user.account_id);
+            sublocsids.push(loc['location_id']);
+
+            loc['sublocsids'] = sublocsids.join(',');
+
+            wardens = <any> await emRolesModel.getWardensInLocationIds(sublocsids.join(','), 0, req.user.account_id);
 
             loc['num_wardens'] = wardens.length;
             loc['wardens'] = wardens;

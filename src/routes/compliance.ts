@@ -546,7 +546,7 @@ import * as S3Zipper from 'aws-s3-zipper';
               // console.log(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]);
             }
 
-            if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation) {
+            if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation || defs['em_roles']['DEPUTY_CHIEF_WARDEN'] in emrolesOnThisLocation) {
                 // console.log(emrolesOnThisLocation['12']);
                 if (emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'].length > 0) {
                     let locId;

@@ -198,7 +198,7 @@
 					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
 
-                    <div class="switch-container"  >
+                    <div class="switch-container" *ngIf="isFRP == false && isTRP == true" >
                         <p class="give-access-text">Completed the Evacuation Exercise?</p>
                         <div class="switch" >
                             <input type="checkbox"
@@ -1297,13 +1297,15 @@
 					<div class="image"></div>
 				</div>
 
-				<div class="background"></div>
-				<div class="loading" [ngStyle]="{'width': totalPercentage + '%' }">
-					<div class="tip-percentage">
-						<div class="percentage">{{totalPercentage}}% </div>
-						<div class="arrow-down"></div>
-					</div>
-				</div>
+				<div class="background">
+                    <div class="loading" [ngStyle]="{'width': totalPercentage + '%' }">
+                        <div class="tip-percentage">
+                            <div class="percentage">{{totalPercentage}}% </div>
+                            <div class="arrow-down"></div>
+                        </div>
+                    </div>            
+                </div>
+				
 
 			</div>
 
