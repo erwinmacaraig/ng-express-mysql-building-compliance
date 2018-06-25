@@ -116,7 +116,7 @@ const appRoutes: Routes = [
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-user-password/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
-  { path: 'dashboard', component: DashboardComponent, children: [
+  { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent, children: [
       { path: 'main', component : FrpTrpDashboardComponent },
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },

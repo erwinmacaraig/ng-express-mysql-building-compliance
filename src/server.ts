@@ -85,16 +85,6 @@ export class Server {
       // add static paths
       this.app.use(express.static(path.join(__dirname, 'public')));
 
-      // redirect to https
-      this.app.use(function(req: express.Request, res: express.Response, next: express.NextFunction) {
-        if (!req.secure) {
-          const secureUrl = 'https://' + req.headers['host'] + req.url;
-          res.writeHead(301, {'Location': secureUrl});
-          res.end();
-        }
-        next();
-      });
-
       const memcachedStore = new MemcachedStore(session);
 
       // configure hbs
@@ -198,6 +188,14 @@ export class Server {
 
       // use router middleware
       this.app.use(router);
+
+      this.app.use(function(req, res, next) {
+        if ((!req.secure) && (req.get('X-Forwarded-Proto') !== 'https')) {
+          return res.redirect('https://' + req.get('Host') + req.url);
+        }
+        return next();
+      });
+
 
       // catch 404 and forward to error handler
       this.app.use(function(req: express.Request, res: express.Response, next: express.NextFunction) {
