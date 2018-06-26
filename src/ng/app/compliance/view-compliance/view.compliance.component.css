@@ -143,12 +143,12 @@
 }
 
 .row-table-content .progress-loading-container .loading{
-    background-color: #75beff;
+    background-color: #67c100;
     height: 20px;
-    border-radius: 5px;
+    border-radius: 0px;
     position: absolute;
     min-width: 0.5%;
-    left: 0px;
+    left: 1px;
 }
 
 .row-table-content .progress-loading-container .loading .tip-percentage{

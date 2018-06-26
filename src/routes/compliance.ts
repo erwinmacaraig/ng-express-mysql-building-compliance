@@ -336,7 +336,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         loc = <any> (formData) ? (formData.location) ?  formData.location : {} :  {},
         userComplianceRole = '',
         userLocationData = <any> {},
-        isWholeBuildingOccupier = (role == 1) ?  true : false,
+        isWholeBuildingOccupier = false,
         rates = JSON.parse(JSON.stringify(frpRates)),
         theBuilding = <any>{
             location_id : -1
@@ -634,17 +634,8 @@ import * as S3Zipper from 'aws-s3-zipper';
         docsLocIds.push(theBuilding.location_id);
 
         whereDocs.push(['compliance_documents.building_id IN (' + docsLocIds.join(',') + ')' ]);
-        whereDocs.push(['compliance_documents.account_id = ' + accountID]);
         whereDocs.push(['compliance_documents.document_type = "Primary" ']);
         docs = await complianceDocsModel.getWhere(whereDocs);
-
-        whereDocs = [];
-        whereDocs.push(['compliance_documents.building_id IN (' + theBuilding.location_id + ')' ]);
-        whereDocs.push(['compliance_documents.document_type = "Primary" ']);
-        whereDocs.push(['compliance_documents.compliance_kpis_id IN ('+epcMeetingId+') ']);
-
-        let buildingdocs = await complianceDocsModel.getWhere(whereDocs);
-        docs = docs.concat(buildingdocs);
 
         docs = docs.sort((a, b) => {
             let d1 = moment(a.date_of_activity),
@@ -660,12 +651,6 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         for(let d of docs){
             d.timestamp_formatted = (moment(d.timestamp_formatted).isValid()) ? moment(d.timestamp_formatted).format('DD/MM/YYYY') : '00/00/0000';
-
-            if(d.compliance_kpis_id == epmId){
-                try {
-                    d['filePaths'] = await utils.s3DownloadFilePathGen(accountID, d.building_id);
-                } catch (e) { }
-            }
         }
 
         for (let c in compliances) {
@@ -717,9 +702,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                     comp['days_remaining'] = validTillMoment.diff(today, 'days');
                     comp['valid'] = 1;
                     comp['percentage'] = '100%';
-                } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') >= 0 && validTillMoment.diff(today, 'days') <= 30) {
-                    comp['validity_status'] = 'expiring';
-                } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') <= 0) {
+                }  else if (comp['docs'][0]) {
                     comp['validity_status'] = 'invalid';
                 }
 
@@ -843,6 +826,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                     comp['percentage'] = tempPercetage + '%';
                     if(tempPercetage >= 100){
                         comp['valid'] = 1;
+                        comp['validity_status'] = 'valid';
+                    }else if(tempPercetage > 0){
+                        comp['validity_status'] = 'invalid';
                     }
                 break;
 
@@ -864,6 +850,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['percentage'] = tempPercetage + '%';
                             if (tempPercetage >= 100){
                                 comp['valid'] = 1;
+                                comp['validity_status'] = 'valid';
+                            }else if(tempPercetage > 0){
+                                comp['validity_status'] = 'invalid';
                             }
                         } catch (e) {
                             comp['total_personnel'] = 0;
@@ -900,6 +889,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['percentage'] = tempPercetage + '%';
                             if(tempPercetage >= 100){
                                 comp['valid'] = 1;
+                                comp['validity_status'] = 'valid';
+                            }else if(tempPercetage > 0){
+                                comp['validity_status'] = 'invalid';
                             }
                         } catch (e) {
                             comp['total_personnel'] = 0;
@@ -997,26 +989,29 @@ import * as S3Zipper from 'aws-s3-zipper';
                     }
                 }
 
-                if(buildingDocs[0]){
-                    validTillMoment = moment(buildingDocs[0]['valid_till'], ['DD/MM/YYYY']);
-                    console.log(validTillMoment);
-                }
-
-                if (buildingDocs[0] && validTillMoment.diff(today, 'days') > 0) {
-                    if(comp.compliance_kpis_id == epcMeetingId){
-                        
+                if(buildingDocs[0] && comp['docs'].length == 0){
+                    comp['docs'] = buildingDocs;
+                }else if(buildingDocs[0] && comp['docs'].length > 0){
+                    let 
+                    bldg = moment(buildingDocs[0]['valid_till'], ['DD/MM/YYYY']),
+                    doc = moment(comp['docs'][0]['valid_till'], ['DD/MM/YYYY']);
+                    if(bldg.isAfter(doc)){
+                        comp['docs'] = buildingDocs;
                     }
-
-                    comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : '';
-                    comp['validity_status'] = 'valid';
-                    comp['days_remaining'] = validTillMoment.diff(today, 'days');
-                    comp['valid'] = 1;
-                    comp['percentage'] = '100%';
-                } else if (buildingDocs[0] && validTillMoment.diff(today, 'days') >= 0 && validTillMoment.diff(today, 'days') <= 30) {
-                    comp['validity_status'] = 'expiring';
-                } else if (buildingDocs[0] && validTillMoment.diff(today, 'days') <= 0) {
-                    comp['validity_status'] = 'invalid';
                 }
+
+                if (comp['docs'][0]) {
+                    comp['validity_status'] = 'invalid';
+                    validTillMoment = moment(comp['docs'][0]['valid_till'], ['DD/MM/YYYY']);
+                    if (comp['docs'][0] && validTillMoment.diff(today, 'days') > 0) {
+                        comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : '';
+                        comp['validity_status'] = 'valid';
+                        comp['days_remaining'] = validTillMoment.diff(today, 'days');
+                        comp['valid'] = 1;
+                        comp['percentage'] = '100%';
+                    } 
+                }
+
             }
 
             if(relateToSiblingsCompliance && locSiblingsIds.length > 0){
@@ -1086,7 +1081,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         try{
             userLocationData = await locAccUserModel.getByLocationIdAndUserId(locationID, userId);
-            if(role == 2){
+            if(role == 2 && loc.location_id == locationID && (userLocationData[0]['parent_id'] == -1 || userLocationData[0]['is_building'] == 1 ) ){
                 isWholeBuildingOccupier = (loc.location_id == locationID) ? true : false;
             }
         }catch(e){}
@@ -1142,7 +1137,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 }else{
                     if(comp['validity_status'] == 'valid' || comp['valid'] == 1){
                         tempPoints = rates[comp.compliance_kpis_id]['valid'];
-                    }else if(comp['validity_status'] == 'expiring' || comp['validity_status'] == 'invalid'){
+                    }else if( comp['validity_status'] == 'invalid' ){
                         tempPoints = rates[comp.compliance_kpis_id]['expired_docs'];
                     }
                 }

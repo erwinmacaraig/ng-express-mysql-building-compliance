@@ -77,9 +77,9 @@
 				<div class="buttons">
                     <button
                     (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
-                    class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0"  style="width: 45%;">Download</button>
-					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']" style="width: 45%;">Shop</button>
-                    <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs('epm')" style="display: block;width: 95%;">Manage</button>
+                    class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0"   >Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']" >Shop</button>
+                    <!-- <button class="btn btn-block orange waves-effect waves-light" *ngIf="isFRP == false && isTRP == true" (click)="showModalUploadDocs('epm')" style="display: block;width: 95%;">Manage</button> -->
 				</div>
 			</div>
 
@@ -137,7 +137,7 @@
                     (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
                     class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0" style="width:46%;">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']" style="width:45%;">Shop</button>
-                    <button class="btn btn-block orange waves-effect waves-light" (click)="showEPCformEvent()" style="display: block;width: 95%;">Manage</button>
+                    <!-- <button class="btn btn-block orange waves-effect waves-light" (click)="showEPCformEvent()" style="display: block;width: 95%;">Manage</button> -->
 				</div>
 			</div>
 			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
@@ -436,7 +436,7 @@
 				<div class="buttons">
                     <button (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
-                    <div class="switch-container"  >
+                    <!-- <div class="switch-container"  >
                         <p class="give-access-text">Completed the Fire Safety Advisory?</p>
                         <div class="switch" >
                             <input type="checkbox"
@@ -447,7 +447,7 @@
                             <div class="highlight"></div>
                             <div class="background"></div>
                         </div>
-                    </div>
+                    </div> -->
 				</div>
 			</div>
 
@@ -1323,50 +1323,29 @@
 							<div class="image {{k.icon_class}}"></div>
 							<span>{{k.name}}</span>
 						</td>
-						<td class="with-icon" *ngIf="k.type == 'date'">
+						<td class="with-icon">
 							<div *ngIf="k.compliance.validity_status == 'none-exist'" class="image expired"></div>
 							<div *ngIf="k.compliance.validity_status == 'invalid'" class="image alarm"></div>
 							<div *ngIf="k.compliance.validity_status == 'valid'" class="image check"></div>
 
-							<div class="text"  *ngIf="k.compliance.validity_status != 'none-exist' && k.compliance_kpis_id != 3">
-								<p>Valid Till:</p>
-								<div *ngIf="k.compliance.validity_status == 'invalid'">
-									<span *ngIf="k.compliance.docs[0]">{{k.compliance.docs[0].valid_till}}</span>
-								</div>
-								<div *ngIf="k.compliance.validity_status == 'valid'" class="image check" class="green-text">
+                            <div class="text" *ngIf="k.type == 'date' && k.compliance.validity_status != 'none-exist' && k.compliance_kpis_id != 3">
+                                <p *ngIf="k.compliance.validity_status == 'valid'">Valid Till:</p>
+                                <div *ngIf="k.compliance.validity_status == 'invalid'">
+                                    <span *ngIf="k.compliance.docs[0]">{{k.compliance.docs[0].valid_till}}</span>
+                                </div>
+                                <div *ngIf="k.compliance.validity_status == 'valid'"  >
                                     <span *ngIf="k.compliance.docs[0] && k.compliance.valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
-									<span *ngIf="!k.compliance.docs[0] && k.compliance.valid_till != null">{{k.compliance['valid_till']}}</span>
-								</div>
+                                    <span *ngIf="!k.compliance.docs[0] && k.compliance.valid_till != null">{{k.compliance['valid_till']}}</span>
+                                </div>
+                            </div>
+
+							<div class="text"  *ngIf="k.type == 'percent'">
+								<span *ngIf="k.compliance_kpis_id != 5 && k.compliance_kpis_id != 13">{{k.compliance.total_personnel_trained.total_passed}} / {{k.compliance.total_personnel}}</span>
+                                <span *ngIf="k.compliance_kpis_id == 5 && k.compliance_kpis_id != 13"> {{k.compliance.total_valid_diagrams}} / {{k.compliance.total_diagrams}} </span>
 							</div>
 
 							<div class="arrow"></div>
 						</td>
-						<td class="with-bar red-theme"
-                            [ngClass]="{ 'green-theme' : k.compliance['percentage_number'] >= 100 }"
-                            *ngIf="k.type == 'percent' && k.compliance_kpis_id != 5 && k.compliance_kpis_id != 13">
-							<div class="text">{{k.compliance.percentage}}</div>
-							<div class="progress-container">
-								<div class="progress">
-							    	<div class="determinate" [ngStyle]="{'width': k.compliance.percentage}"></div>
-								</div>
-								<p> {{k.compliance.total_personnel_trained.total_passed}} / {{k.compliance.total_personnel}} </p>
-							</div>
-							<div class="arrow"></div>
-						</td>
-                        <td class="with-bar red-theme"
-                        [ngClass]="{ 'green-theme' : k.compliance['percentage_number'] >= 100 }"
-                        *ngIf="k.compliance_kpis_id == 5 && k.compliance_kpis_id != 13">
-                            <div class="text">{{k.compliance.percentage}}</div>
-                            <div class="progress-container">
-                                <div class="progress">
-                                    <div class="determinate" [ngStyle]="{'width': k.compliance.percentage}"></div>
-                                </div>
-                                <p> {{k.compliance.total_valid_diagrams}} / {{k.compliance.total_diagrams}} </p>
-                            </div>
-                            <div class="arrow"></div>
-                        </td>
-                        <td *ngIf="k.compliance_kpis_id == 13">
-                        </td>
 					</tr>
 
 				</tbody>
