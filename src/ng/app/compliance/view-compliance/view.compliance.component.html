@@ -1050,7 +1050,19 @@
 			</thead>
 			<tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 6">
           <tr *ngFor="let sub of complianceSublocations">
-              <td>{{sub.name}}</td>
+              <td class="with-icon">
+                <ng-template #noStatus>
+                    <div class="image expired"></div>
+                </ng-template>
+                <span *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noStatus">
+                    <div class="image"  [ngClass]="{
+                        'expired' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].total_passed == 0,
+                        'alarm' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].users.length > selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].total_passed && selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].total_passed > 0,
+                        'check' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].total_passed == selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].passed.length
+                    }"></div>
+                </span>
+                <div class="text">{{sub.name}}</div>
+              </td>
               <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
                 {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_estimated_wardens}}
               </td>
