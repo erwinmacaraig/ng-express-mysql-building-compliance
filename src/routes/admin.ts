@@ -26,6 +26,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as AWS from 'aws-sdk';
 import * as async from 'async';
+import { TrainingRequirements } from '../models/training.requirements';
+import { TrainingCertification } from '../models/training.certification.model';
 
 const AWSCredential = require('../config/aws-access-credentials.json');
 
@@ -33,6 +35,44 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
+    async(req: AuthRequest, res: Response, next: NextFunction) => {
+
+      const users: Array<object> = JSON.parse(req.body.users);
+      console.log(users);
+
+      for (const u of users) {
+        try {
+          await new TrainingCertification().checkAndUpdateTrainingCert({
+            'user_id': u['user_id'],
+            'certification_date': u['certification_date'],
+            'training_requirement_id': u['training_requirement_id'],
+            'course_method': u['course_method'],
+            'pass': '1',
+            'registered': '1',
+            'description': 'Training validated on ' + moment().format('YYYY-MM-DD HH:mm:ss')
+          });
+        } catch (e) {
+          console.log(e, u);
+        }
+      }
+
+      return res.status(200).send({
+        message: 'test'
+      });
+    });
+
+    router.get('/admin/list/training-requirements/', new MiddlewareAuth().authenticate,
+    (req: AuthRequest, res: Response, next: NextFunction) => {
+      const t = new TrainingRequirements();
+      t.getWhere([]).then((trainings) => {
+        return res.status(200).send({
+            data: trainings
+        });
+      }).catch((e) => {
+        console.log(e);
+      });
+    });
     router.get('/admin/location/search/',
     new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
@@ -336,6 +376,8 @@ export class AdminRoute extends BaseRoute {
             'first_name': allUsers[i]['first_name'],
             'last_name': allUsers[i]['last_name'],
             'email': allUsers[i]['email'],
+            'account': allUsers[i]['account_name'],
+            'account_id': allUsers[i]['account_id'],
             'mobile_number': allUsers[i]['mobile_number'],
             'locations': {},
             'locations-arr': []

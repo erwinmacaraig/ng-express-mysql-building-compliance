@@ -1,14 +1,9 @@
 
-import { Observable } from 'rxjs/Observable';
+
 import { Component, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
-import { HttpClient, HttpRequest, HttpResponse, HttpEvent } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
 import { DatepickerOptions } from 'ng2-datepicker';
-import { Router, ActivatedRoute } from '@angular/router';
-import { EncryptDecryptService } from '../../services/encrypt.decrypt';
-
 
 import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
@@ -25,11 +20,17 @@ declare var $: any;
 export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDestroy {
 
   searchLocationField: FormControl = new FormControl(null, Validators.required);
+  searchCriteriaField: FormControl;
+  dtTrainingField: FormControl;
+  trainingCourseField: FormControl;
+  trainingModeField: FormControl;
+  training_requirements = [];
   userForm: FormGroup;
   allUsersFormArrName: FormArray;
   users = [];
   levelUsers;
   filteredList = [];
+  filteredAccountList = [];
   filteredEmailList = [];
   locationId: number;
   genericSub: Subscription;
@@ -38,38 +39,81 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   options: DatepickerOptions = {
     displayFormat: 'YYYY-MM-DD'
   };
-  trainingDate = '';
   datepickerModel: Date;
   datepickerModelFormatted = '';
   isShowDatepicker = false;
 
-  constructor(private adminService: AdminService, private formBuilder: FormBuilder) {}
+  constructor(private adminService: AdminService, private formBuilder: FormBuilder,
+    public dashboard: DashboardPreloaderService) {}
 
   ngOnInit() {
     this.genericSub = this.getLocationChanges();
+    this.searchCriteriaField = new FormControl('location', null);
+    this.trainingCourseField = new FormControl(null, Validators.required);
+    this.trainingModeField = new FormControl(null, Validators.required);
     this.allUsersFormArrName = new FormArray([]);
     this.userForm = new FormGroup({});
+    this.setDatePickerDefaultDate();
+    this.dtTrainingField = new FormControl(this.datepickerModelFormatted, Validators.required);
+    this.adminService.getTrainingRequirementList().subscribe((response) => {
+      this.training_requirements = response['data'];
+      // console.log(this.training_requirements);
+    });
   }
 
   ngAfterViewInit() {}
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    this.genericSub.unsubscribe();
+    for (const s of this.genericEmailSearchSub) {
+      s.unsubscribe();
+    }
+  }
+
+  public switchSearchSelection() {
+    this.genericSub.unsubscribe();
+    this.searchLocationField.reset();
+    this.filteredList = [];
+    this.users = [];
+    this.filteredAccountList = [];
+    this.genericSub = this.getLocationChanges();
+    if ((<FormArray>this.userForm.get('levelUsers'))) {
+      this.cancelUserForm();
+    }
+  }
 
   public getLocationChanges(): Subscription {
     return this.searchLocationField.valueChanges.debounceTime(350)
       .subscribe((searchValue) => {
+        console.log(this.searchCriteriaField.value);
         if (searchValue != null && searchValue.length > 0) {
-          this.adminService.searchLocationByName(searchValue).subscribe((response) => {
-            this.filteredList = response['data'];
-          });
+          if (this.searchCriteriaField.value == 'account') {
+            this.filteredList = [];
+            this.filteredAccountList = [];
+            this.adminService.getAccountListingForAdmin(0, searchValue)
+            .subscribe((response) => {
+              console.log(response['data']['list']);
+              Object.keys(response['data']['list']).forEach((k) => {
+               this.filteredAccountList.push(response['data']['list'][k]);
+              });
+            });
+
+          } else {
+            this.adminService.searchLocationByName(searchValue).subscribe((response) => {
+              this.filteredAccountList = [];
+              this.filteredList = response['data'];
+            });
+          }
+
         } else {
           this.filteredList = [];
+          this.filteredAccountList = [];
         }
       });
   }
 
   public getEmailSelection(index: number = -1, item) {
-    console.log(this.genericEmailSearchSub[index]);
+    // console.log(this.genericEmailSearchSub[index]);
     this.genericEmailSearchSub[index].unsubscribe();
     (<FormArray>this.userForm.get('levelUsers')).controls[index].get('email').setValue(item['email']);
     (<FormArray>this.userForm.get('levelUsers')).controls[index].get('user_id').setValue(item['user_id']);
@@ -94,7 +138,46 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.filteredEmailList[index] = [];
     this.assignSearchEmailAbility(index);
 
-    console.log('=======================', this.genericEmailSearchSub);
+
+  }
+
+  public getAccountSelection(accountId, accountName) {
+    this.genericSub.unsubscribe();
+    this.filteredList = [];
+    this.filteredAccountList = [];
+    this.users = [];
+    this.searchLocationField.setValue(accountName);
+    this.genericSub = this.getLocationChanges();
+    this.adminService.getAllAccountUsers(accountId, 0, 'all').subscribe((response) => {
+      const list = response['data']['list'];
+      for (const l of list) {
+        for (const loc of l['locations-arr']) {
+          this.users.push({
+            email: l['email'],
+            role_name: ((loc['account-role']).concat(loc['em-role'])).join(','),
+            first_name: l['first_name'],
+            last_name: l['last_name'],
+            account_name: l['account'],
+            account_id: l['account_id'],
+            name: `${loc['location-parent']} ${loc['location-name']}`,
+            parent: loc['location-parent']
+          });
+        }
+      }
+      if (this.users.length > 0) {
+        this.userForm = this.formBuilder.group({
+          levelUsers: this.formBuilder.array([this.createFormItem()]),
+          dtTraining: this.dtTrainingField,
+          courseMethod: this.trainingModeField,
+          courseTraining: this.trainingCourseField
+        });
+        this.levelUsers = this.userForm.get('levelUsers') as FormArray;
+        this.assignSearchEmailAbility();
+      }
+
+
+    });
+
 
   }
 
@@ -103,12 +186,16 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.locationId = selectedId;
     this.searchLocationField.setValue(locationName);
     this.filteredList = [];
+    this.filteredAccountList = [];
     this.genericSub = this.getLocationChanges();
     this.adminService.getLocationLevelUsers(this.locationId.toString()).subscribe((response) => {
       this.users = response['users'];
       if (this.users.length > 0) {
         this.userForm = this.formBuilder.group({
-          levelUsers: this.formBuilder.array([this.createFormItem()])
+          levelUsers: this.formBuilder.array([this.createFormItem()]),
+          dtTraining: this.dtTrainingField,
+          courseMethod: this.trainingModeField,
+          courseTraining: this.trainingCourseField
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
@@ -135,12 +222,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.levelUsers = this.userForm.get('levelUsers') as FormArray;
     this.levelUsers.push(this.createFormItem());
     this.filteredEmailList[this.levelUsers.length - 1] = [];
-    /*
-    console.log(this.levelUsers);
-    console.log(this.levelUsers.length);
-    console.log(this.levelUsers.controls[this.levelUsers.length - 1].get('email'));
-    */
-   this.assignSearchEmailAbility();
+    this.assignSearchEmailAbility();
 
   }
   private assignSearchEmailAbility(index?): void {
@@ -148,7 +230,6 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     if (index != null)  {
       i = index;
     }
-    console.log('at assignSearchAbility ', i);
     this.genericEmailSearchSub[i] =
     this.levelUsers.controls[i].get('email').valueChanges.debounceTime(350)
     .subscribe((inputEmail) => {
@@ -171,11 +252,12 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   cancelUserForm() {
     (<FormArray>this.userForm.get('levelUsers')).reset();
-    for (let index = 1;
+    for (let index = 0;
       index <= (<FormArray>this.userForm.get('levelUsers')).length; index++) {
         (<FormArray>this.userForm.get('levelUsers')).removeAt(index);
         this.genericEmailSearchSub[index].unsubscribe();
     }
+    (<FormArray>this.userForm.get('levelUsers')).removeAt(0);
   }
 
   public removeUser(index: number = 1) {
@@ -186,8 +268,49 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   setDatePickerDefaultDate() {
     this.datepickerModel = moment().toDate();
     this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
-    this.trainingDate = moment(this.datepickerModel).format('YYYY-MM-DD');
+  }
+  onChangeDatePicker(event) {
+    if (!moment(this.datepickerModel).isValid()) {
+        this.datepickerModel = new Date();
+        this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
+    } else {
+        this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
+    }
+    this.dtTrainingField.setValue(this.datepickerModelFormatted);
+    this.isShowDatepicker = false;
   }
 
+  showDatePicker() {
+    this.isShowDatepicker = true;
+  }
 
+  public validateTrainingOnSubmit() {
+    this.dashboard.show();
+    const values = [];
+    const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
+    for (const ctrl of formUserControls) {
+      values.push({
+        email: ctrl.get('email').value,
+        user_id: ctrl.get('user_id').value,
+        first_name: ctrl.get('first_name').value,
+        last_name: ctrl.get('last_name').value,
+        certification_date: this.userForm.get('dtTraining').value,
+        location_id: ctrl.get('sublocation_id').value,
+        account_id: ctrl.get('accountId').value,
+        course_method: this.userForm.get('courseMethod').value,
+        training_requirement_id: this.userForm.get('courseTraining').value
+      });
+    }
+    this.genericSub.unsubscribe();
+    this.users = [];
+    this.searchLocationField.reset();
+    console.log(JSON.stringify(values));
+    this.cancelUserForm();
+    this.adminService.validateUserTrainings(JSON.stringify(values))
+    .subscribe((response) => {
+      this.genericSub = this.getLocationChanges();
+      this.dashboard.hide();
+    });
+
+  }
 }
