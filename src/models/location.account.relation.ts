@@ -283,7 +283,7 @@ export class LocationAccountRelation extends BaseClass {
         let nameSearchForTRP = '';
         // if('name' in filter && filter['name'].length > 0 && ('responsibility' in filter && filter['responsibility'] === defs['Tenant'])){
         if('name' in filter){
-            nameSearchForTRP = (filter['name'].length > 0) ? ` AND CONCAT(p1.name, ' ', l.name) LIKE '%${filter['name']}%'` : '  ';
+            nameSearchForTRP = (filter['name'].length > 0) ? ` AND IF (p1.name IS NULL, l.name, IF (CHAR_LENGTH(p1.name) = 0,  l.name, CONCAT(p1.name, ', ', l.name))) LIKE '%${filter['name']}%'` : '  ';
         }
 
         let orderBy = '';
@@ -462,6 +462,8 @@ export class LocationAccountRelation extends BaseClass {
                 ${filterStr}
               ${orderBy};`;
         }*/
+
+        // console.log('sql_get_locations', sql_get_locations);
 
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_locations, [accountId], (error, results) => {

@@ -1058,8 +1058,8 @@
                 <span *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noStatus">
                     <div class="image"  [ngClass]="{
                         'expired' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].total_passed == 0,
-                        'alarm' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].users.length > selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].total_passed && selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].total_passed > 0,
-                        'check' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].total_passed == selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].passed.length
+                        'alarm' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training']['percentage'] != '100%' && selectedCompliance['compliance']['location_details'][sub['location_id']]['training']['percentage'] != '0%',
+                        'check' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training']['percentage'] == '100%'
                     }"></div>
                 </span>
                 <div class="text">{{sub.name}}</div>
@@ -1337,9 +1337,9 @@
 							<span>{{k.name}}</span>
 						</td>
 						<td class="with-icon">
-							<div *ngIf="k.compliance.validity_status == 'none-exist'" class="image expired"></div>
-							<div *ngIf="k.compliance.validity_status == 'invalid'" class="image alarm"></div>
-							<div *ngIf="k.compliance.validity_status == 'valid'" class="image check"></div>
+							<div *ngIf="k.compliance.validity_status == 'none-exist' && k.compliance_kpis_id != 13" class="image expired"></div>
+							<div *ngIf="k.compliance.validity_status == 'invalid' && k.compliance_kpis_id != 13" class="image alarm"></div>
+							<div *ngIf="k.compliance.validity_status == 'valid' && k.compliance_kpis_id != 13" class="image check"></div>
 
                             <div class="text" *ngIf="k.type == 'date' && k.compliance.validity_status != 'none-exist' && k.compliance_kpis_id != 3">
                                 <p *ngIf="k.compliance.validity_status == 'valid'">Valid Till:</p>
