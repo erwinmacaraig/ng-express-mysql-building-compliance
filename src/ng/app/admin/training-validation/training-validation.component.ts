@@ -157,6 +157,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             role_name: ((loc['account-role']).concat(loc['em-role'])).join(','),
             first_name: l['first_name'],
             last_name: l['last_name'],
+            user_id: l['user_id'],
             account_name: l['account'],
             account_id: l['account_id'],
             name: `${loc['location-parent']} ${loc['location-name']}`,

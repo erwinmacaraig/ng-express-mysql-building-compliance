@@ -375,6 +375,7 @@ export class AdminRoute extends BaseRoute {
             'location-ids': [allUsers[i]['location_id']],
             'first_name': allUsers[i]['first_name'],
             'last_name': allUsers[i]['last_name'],
+            'user_id': allUsers[i]['user_id'],
             'email': allUsers[i]['email'],
             'account': allUsers[i]['account_name'],
             'account_id': allUsers[i]['account_id'],

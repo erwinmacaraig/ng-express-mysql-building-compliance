@@ -72,7 +72,7 @@
                     Please select user role.
                   </span>
                 </td>
-              <td *ngIf="selectedRole[i] == 1; else leveldropdown">
+              <td *ngIf="selectedRole[i] == 1 || selectedRole[i] == 11 || selectedRole[i] == 15 || selectedRole[i] == 16 || selectedRole[i] == 18; else leveldropdown">
                   <select formControlName="location" style="display: block;">
                     <option disabled selected value="0">Select Building Location</option>
                     <option *ngFor="let building of buildings" [value]="building.location_id">{{building.name}}</option>
