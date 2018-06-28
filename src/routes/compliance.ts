@@ -304,17 +304,17 @@ import * as S3Zipper from 'aws-s3-zipper';
         frpRates = {
             2 : { kpis : 'EPC Meeting', valid : 10, no_docs : 0, expired_docs : 5, epc_headoffice_points : 10 },
             3 : { kpis : 'Fire Safety Advisor', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 15, epc_headoffice_points : 20 },
             5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             6 : { kpis : 'Warden Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             8 : { kpis : 'General Occupant Training', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 15, epc_headoffice_points : 20 },
             12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
         },
         trpRates = {
             2 : { kpis : 'EPC Meeting', valid : 0, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             3 : { kpis : 'Fire Safety Advisor', valid : 15, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 15, epc_headoffice_points : 20 },
             5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             6 : { kpis : 'Warden Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             8 : { kpis : 'General Occupant Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
@@ -322,13 +322,13 @@ import * as S3Zipper from 'aws-s3-zipper';
             12 : { kpis : 'Chief Warden Training', valid : 0, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
         },
         trpWholeOcccupierRates = {
-            2 : { kpis : 'EPC Meeting', valid : 5, no_docs : 0, expired_docs : 2.5, epc_headoffice_points : 5 },
+            2 : { kpis : 'EPC Meeting', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 5 },
             3 : { kpis : 'Fire Safety Advisor', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            4 : { kpis : 'Emergency Procedures Manual', valid : 15, no_docs : 0, expired_docs : 7.5, epc_headoffice_points : 15 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 15, no_docs : 0, expired_docs : 10, epc_headoffice_points : 15 },
             5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             6 : { kpis : 'Warden Training', valid : 20, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             8 : { kpis : 'General Occupant Training', valid : 15, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 15, epc_headoffice_points : 20 },
             12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
         },
         locAccUserModel = new LocationAccountUser(),
@@ -559,12 +559,22 @@ import * as S3Zipper from 'aws-s3-zipper';
                             );
                         }
                     }
+                } else if (emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location'].length > 0) {
+                    let locId;
+                    for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location'].length; i++) {
+                        locId = emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location'][i].toString();
+                        if (emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['users'].length > 0) {
+                            emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['training'] =
+                            await training.getEMRUserCertifications(
+                              emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['users']
+                            );
+                        }
+                    }
                 } else {
                     console.log('There is no chief warden assigned to this location');
                 }
             }
 
-            this.response['emrolesOnThisLocation'] = emrolesOnThisLocation;
             // console.log(emrolesOnThisLocation);
         } catch (e) {
             console.log(e);
@@ -868,10 +878,10 @@ import * as S3Zipper from 'aws-s3-zipper';
                 break;
 
                 case 12:
-                    // Chief Warden Training
+                    // Chief Warden Training & Deputy Chief Warden
+                    
                     if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation) {
-                            comp['total_personnel'] =  comp['chief_warden_total'] =
-                            emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['count'];
+                        comp['total_personnel'] =  comp['chief_warden_total'] = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['count'];
                         comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']];
                         try {
                             comp['total_personnel_trained'] =
@@ -883,6 +893,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                             /* If 1 Chief warden passed the training, this compliance is valid */
                             if( comp['total_personnel_trained']['total_passed'] > 0 ){
                                 tempPercetage = 100;
+                                comp['validity_status'] = 'valid';
                             }
 
                             // tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
@@ -903,6 +914,67 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['percentage'] = '0%';
                         }
                     }
+
+                    if (defs['em_roles']['DEPUTY_CHIEF_WARDEN'] in emrolesOnThisLocation) {
+                        if(comp['total_personnel'] == null || comp['total_personnel'] == ''){
+                            comp['total_personnel'] = 0;
+                            comp['chief_warden_total'] = 0;
+                        }
+
+                        comp['total_personnel'] +=  emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['count'];
+                        comp['chief_warden_total'] +=  emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['count'];
+                        try {
+                            let deputyTrained =
+                                await training.getEMRUserCertifications(
+                                    emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['users'],
+                                    {'em_role_id': defs['em_roles']['DEPUTY_CHIEF_WARDEN']}
+                                );
+
+                            if(comp['total_personnel_trained']['failed']){
+                                comp['total_personnel_trained']['failed'] = comp['total_personnel_trained']['failed'].concat(deputyTrained['failed']);
+                            }
+
+                            if(comp['total_personnel_trained']['passed']){
+                                comp['total_personnel_trained']['passed'] = comp['total_personnel_trained']['passed'].concat(deputyTrained['passed']);
+                            }
+
+                            if( deputyTrained['total_passed'] > 0 ){
+                                tempPercetage = 100;
+                                comp['validity_status'] = 'valid';
+                            }
+
+                            // tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
+                            if(comp['percentage_number'] < 100 || tempPercetage == 100){
+                                comp['percentage'] = tempPercetage + '%';
+                                if(tempPercetage >= 100){
+                                    comp['valid'] = 1;
+                                    comp['validity_status'] = 'valid';
+                                }else if(tempPercetage > 0){
+                                    comp['validity_status'] = 'invalid';
+                                }
+                            }
+                        } catch (e) {
+                            comp['total_personnel'] = 0;
+                            comp['total_personnel_trained'] = {
+                                'total_passed' : 0,
+                                'passed': [],
+                                'failed': []
+                            };
+                            comp['percentage'] = '0%';
+                        }
+                    }
+
+                    if(comp['total_personnel_trained']){
+                        let percentage = (comp['total_personnel_trained']['passed'].length / comp['total_personnel']) * 100;
+                        comp['total_personnel_trained']['percentage'] = Math.round(percentage)+'%';
+                        if(percentage > 0){
+                            comp['valid'] = 1;
+                            comp['validity_status'] = 'valid';
+                        }else if(percentage > 0){
+                            comp['validity_status'] = 'invalid';
+                        }
+                    }
+
                 break;
 
                 default:
@@ -1143,8 +1215,12 @@ import * as S3Zipper from 'aws-s3-zipper';
                 }
             }
 
+            if( comp.compliance_kpis_id == 8 || comp.compliance_kpis_id == 6 ){
+
+            }
+
             if( (comp.compliance_kpis_id == 8 || comp.compliance_kpis_id == 6 ) && comp['total_personnel_trained']['percentage']){
-                let num = parseInt( comp['total_personnel_trained']['percentage'].replace('%', '') );
+                let num = comp.percentage_number;
                 let ratesValidPnts = rates[comp.compliance_kpis_id]['valid'];
                 if(num < 100){
                     tempPoints = ratesValidPnts * parseFloat("0."+num);
@@ -1154,6 +1230,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             comp['points'] = tempPoints;
         }
 
+        this.response['emrolesOnThisLocation'] = emrolesOnThisLocation;
         this.response['rates'] = rates;
         this.response.status = true;
         this.response.data = compliances;

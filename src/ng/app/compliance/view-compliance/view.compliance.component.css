@@ -143,7 +143,7 @@
 }
 
 .row-table-content .progress-loading-container .loading{
-    background-color: #67c100;
+    background-color: #75beff;
     height: 20px;
     border-radius: 0px;
     position: absolute;
@@ -511,6 +511,7 @@ table th:first-child{
 .documents-container .document .text-container .file-name{
     margin-top: 0px;
     max-width: 270px;
+    word-wrap: break-word;
 }
 
 .documents-container .document .text-container .dates{
