@@ -26,11 +26,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as AWS from 'aws-sdk';
 import * as async from 'async';
-<<<<<<< HEAD
-=======
 import { TrainingRequirements } from '../models/training.requirements';
 import { TrainingCertification } from '../models/training.certification.model';
->>>>>>> feature-training-validation
 
 const AWSCredential = require('../config/aws-access-credentials.json');
 
@@ -38,9 +35,6 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
-<<<<<<< HEAD
-    router.get('/admin/get/location-details/:location/',
-=======
     router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
 
@@ -116,7 +110,6 @@ export class AdminRoute extends BaseRoute {
 
     router.get('/admin/get/location-details/:location/',
     new MiddlewareAuth().authenticate,
->>>>>>> feature-training-validation
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const locationObj = new Location(req.params.location);
       const lauObj = new LocationAccountUser();
