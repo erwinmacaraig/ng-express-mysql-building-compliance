@@ -605,11 +605,14 @@ export class Account extends BaseClass {
             users.email,
             users.mobile_number,
             user_role_relation.role_id,
+            accounts.account_id,
+            accounts.account_name,
             IF (user_role_relation.role_id = 1, 'FRP', IF (user_role_relation.role_id = 2, 'TRP', '')) as account_role,
             locations.location_id,
             locations.name,
             parent_locations.name as parent_name
           FROM users
+          INNER JOIN accounts ON users.account_id = accounts.account_id
           LEFT JOIN
             user_role_relation
           ON users.user_id = user_role_relation.user_id
@@ -663,12 +666,15 @@ export class Account extends BaseClass {
         users.last_name,
         users.email,
         users.mobile_number,
+        accounts.account_id,
+        accounts.account_name,
         user_em_roles_relation.em_role_id as role_id,
         em_roles.role_name,
         locations.location_id,
         locations.name,
         parent_locations.name as parent_name
       FROM users
+      INNER JOIN accounts ON users.account_id = accounts.account_id
       LEFT JOIN
         user_em_roles_relation
       ON
