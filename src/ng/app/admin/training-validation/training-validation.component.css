@@ -19,3 +19,33 @@ td.with-remove a.remove{
 td.with-remove a.remove:hover{
   transform: scale(1.2);
 }
+
+
+.search-result{
+  position: absolute;
+  background: #fffbe4;
+  width: 65%;
+  top: 220px;
+  border: 1px solid #969696;
+  display: block;
+}
+
+.search-result ul{
+  margin: 0px;
+}
+
+.search-result ul li,
+.search-result strong{
+  font-size: 14px;
+  padding: 12px 8px;
+}
+
+.search-result ul li:not(:last-child){
+  border-bottom: 1px solid #969696;
+}
+
+.search-result ul li:hover{
+  cursor: pointer;
+  background-color: #fff8cd;
+}
+
