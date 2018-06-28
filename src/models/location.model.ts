@@ -1052,4 +1052,28 @@ export class Location extends BaseClass {
         });
     }
 
+  public searchLocation(searchCriteria: object = {}): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      let sql_search = `SELECT * FROM locations WHERE archived = 0`;
+      if ('name' in searchCriteria) {
+        sql_search += ` AND name LIKE '%${searchCriteria['name']}%'`;
+      }
+      if ('location_id' in searchCriteria) {
+        sql_search += ` AND location_id = ${searchCriteria['location_id']}`;
+      }
+      if ('parent_id' in searchCriteria) {
+        sql_search += ` AND parent_id = ${searchCriteria['parent_id']}`;
+      }
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_search, [], (error, results) => {
+        if (error) {
+          console.log('location.model.searchLocation', error, sql_search);
+          throw Error('There was an error getting the location details');
+        }
+        resolve(results);
+      });
+      connection.end();
+    });
+  }
+
 }
