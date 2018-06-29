@@ -375,12 +375,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     		this.selectedComplianceDescription = compliance.description;
     		this.selectedComplianceClasses = compliance.icon_class;
 
-            let ids = [5, 6, 8, 9, 12];
-
-            if(ids.indexOf(this.selectedCompliance['compliance_kpis_id']) > -1){
-                this.showDiagramDetails();
-            }
-
 	}
 
 	showDiagramDetails(){
