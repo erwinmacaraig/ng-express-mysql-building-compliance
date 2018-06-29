@@ -81,6 +81,10 @@ export class AdminRoute extends BaseRoute {
       };
       const location = new Location();
       const searchResult = await location.searchLocation(searchKey);
+      for (const s of searchResult) {
+        s['type'] = 'location';
+        s['id'] = s['location_id'];
+      }
       return res.status(200).send({
         message: 'Success',
         data: searchResult
@@ -93,7 +97,7 @@ export class AdminRoute extends BaseRoute {
       const sublocations = await new Location().getChildren(req.query.location);
       const lauObj = new LocationAccountUser();
       const emrrObj = new UserEmRoleRelation();
-      let tempArr = [0];
+      let tempArr = [req.query.location];
       for (const s of sublocations) {
         tempArr.push(s['location_id']);
       }

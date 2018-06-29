@@ -20,7 +20,6 @@ declare var $: any;
 export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDestroy {
 
   searchLocationField: FormControl = new FormControl(null, Validators.required);
-  searchCriteriaField: FormControl;
   dtTrainingField: FormControl;
   trainingCourseField: FormControl;
   trainingModeField: FormControl;
@@ -48,7 +47,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   ngOnInit() {
     this.genericSub = this.getLocationChanges();
-    this.searchCriteriaField = new FormControl('location', null);
+
     this.trainingCourseField = new FormControl(null, Validators.required);
     this.trainingModeField = new FormControl(null, Validators.required);
     this.allUsersFormArrName = new FormArray([]);
@@ -85,29 +84,22 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   public getLocationChanges(): Subscription {
     return this.searchLocationField.valueChanges.debounceTime(350)
       .subscribe((searchValue) => {
-        console.log(this.searchCriteriaField.value);
         if (searchValue != null && searchValue.length > 0) {
-          if (this.searchCriteriaField.value == 'account') {
             this.filteredList = [];
-            this.filteredAccountList = [];
-            this.adminService.getAccountListingForAdmin(0, searchValue)
-            .subscribe((response) => {
-              console.log(response['data']['list']);
-              Object.keys(response['data']['list']).forEach((k) => {
-               this.filteredAccountList.push(response['data']['list'][k]);
-              });
-            });
-
-          } else {
             this.adminService.searchLocationByName(searchValue).subscribe((response) => {
-              this.filteredAccountList = [];
               this.filteredList = response['data'];
+              console.log('location result', this.filteredList);
+              this.adminService.getAccountListingForAdmin(0, searchValue)
+                .subscribe((res) => {
+                  console.log('account list', res['data']['list']);
+                  Object.keys(res['data']['list']).forEach((k) => {
+                    this.filteredList.push(res['data']['list'][k]);
+                  });
+                });
             });
-          }
-
         } else {
           this.filteredList = [];
-          this.filteredAccountList = [];
+          this.filteredEmailList = [];
         }
       });
   }
@@ -141,7 +133,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   }
 
-  public getAccountSelection(accountId, accountName) {
+  public getAccountSelection(accountId, accountName): void {
     this.genericSub.unsubscribe();
     this.filteredList = [];
     this.filteredAccountList = [];
@@ -182,7 +174,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   }
 
-  public getLocationSelection(selectedId, locationName) {
+  public getLocationSelection(selectedId, locationName): void {
     this.genericSub.unsubscribe();
     this.locationId = selectedId;
     this.searchLocationField.setValue(locationName);
@@ -204,6 +196,16 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       // console.log(this.users);
     });
   }
+
+  public getSelection(id, type, name) {
+    if (type == 'location') {
+      this.getLocationSelection(id, name);
+    } else {
+      this.getAccountSelection(id, name);
+    }
+  }
+
+
 
   createFormItem(): FormGroup {
     return this.formBuilder.group({

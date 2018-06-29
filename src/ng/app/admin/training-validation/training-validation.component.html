@@ -14,27 +14,13 @@
           id="searchLocationField"
           [formControl]="searchLocationField">
     </div>
-    <div class="search-result" *ngIf="filteredList.length > 0 && searchCriteriaField.value == 'location'">
+    <div class="search-result" *ngIf="filteredList.length > 0">
       <ul *ngFor="let item of filteredList">
         <li>
-          <a (click)="getLocationSelection(item['location_id'], item['name'])">{{item['name']}}</a>
+          <a (click)="getSelection(item['id'], item['type'], item['name'])">{{item['name']}} ({{item['type']}})</a>
         </li>
       </ul>
     </div>
-    <div class="search-result" *ngIf="filteredAccountList.length > 0 && searchCriteriaField.value == 'account'">
-        <ul *ngFor="let item of filteredAccountList">
-          <li>
-            <a (click)="getAccountSelection(item['account_id'], item['account_name'])">{{item['account_name']}}</a>
-          </li>
-        </ul>
-      </div>
-    <div class="col s3">
-      <select [formControl]="searchCriteriaField" style="display: block;" (change)="switchSearchSelection()">
-        <option value="location">Location</option>
-        <option value="account">Account</option>
-      </select>
-    </div>
-
   </div>
   <div class="row">
     <div class="col s3">
