@@ -297,10 +297,10 @@ import * as S3Zipper from 'aws-s3-zipper';
         }
 
         /*
-        ** New Compliance Percentage Computation Based On User's Role 
+        ** New Compliance Percentage Computation Based On User's Role
         ** Indexed with KPIS IDS
         */
-        let 
+        let
         frpRates = {
             2 : { kpis : 'EPC Meeting', valid : 10, no_docs : 0, expired_docs : 5, epc_headoffice_points : 10 },
             3 : { kpis : 'Fire Safety Advisor', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
@@ -336,6 +336,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         loc = <any> (formData) ? (formData.location) ?  formData.location : {} :  {},
         userComplianceRole = '',
         userLocationData = <any> {},
+
         isWholeBuildingOccupier = false,
         rates = JSON.parse(JSON.stringify(frpRates)),
         theBuilding = <any>{
@@ -354,7 +355,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         }catch(e){}
 
         this.response['building'] = theBuilding;
-        
+
         const utils = new Utils(),
             training = new TrainingCertification(),
             locationModel = new Location(locationID),
@@ -366,11 +367,11 @@ import * as S3Zipper from 'aws-s3-zipper';
             paths = [];
         }
 
-        let 
+        let
             sublocsids = [],
             subLocsModel = new Location(),
             sublocs = <any> await subLocsModel.getChildren(locationID);
-            
+
         for(let sub of sublocs){
             sublocsids.push(sub.location_id);
         }
@@ -580,7 +581,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             console.log(e);
             emrolesOnThisLocation = {};
         }
-            
+
         for(let kpi of kpis){
             if(kpi.compliance_kpis_id == evacDiagramId){
                 kpi['measurement'] = 'Precent';
@@ -595,7 +596,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         arrWhereCompliance.push(['building_id = ' + locationID]);
         arrWhereCompliance.push(['account_id = ' + accountID + ' GROUP BY compliance_kpis_id' ]);
 
-        let 
+        let
         compliances = [],
         hasCompliancesFormData = false;
 
@@ -795,7 +796,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                         console.log(e);
                       }
 
-                      
+
 
                       // computation per location section (signifance: FRP)
                       if (Object.keys(comp['location_details']).length === 0) {
@@ -1043,7 +1044,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 comp['num_wardens'] = (wardens[0]) ? wardens[0]['count'] : 0;
             }
 
-            let 
+            let
             buildingDocs = [],
             kpisIdRef;
             if(comp.compliance_kpis_id == epcMeetingId){
@@ -1064,7 +1065,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 if(buildingDocs[0] && comp['docs'].length == 0){
                     comp['docs'] = buildingDocs;
                 }else if(buildingDocs[0] && comp['docs'].length > 0){
-                    let 
+                    let
                     bldg = moment(buildingDocs[0]['valid_till'], ['DD/MM/YYYY']),
                     doc = moment(comp['docs'][0]['valid_till'], ['DD/MM/YYYY']);
                     if(bldg.isAfter(doc)){
@@ -1081,7 +1082,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                         comp['days_remaining'] = validTillMoment.diff(today, 'days');
                         comp['valid'] = 1;
                         comp['percentage'] = '100%';
-                    } 
+                    }
                 }
 
             }
@@ -1089,7 +1090,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             if(relateToSiblingsCompliance && locSiblingsIds.length > 0){
                 if( kpisIdForSiblingsRelated.indexOf( comp.compliance_kpis_id ) > -1 && (comp.compliance_status == 0 ||  validTillMoment.isBefore(today))  ){
 
-                    let 
+                    let
                     sibsComplianceModel = new ComplianceModel(),
                     sibsComplWhere = [];
 
@@ -1270,7 +1271,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         userRoleRel = new UserRoleRelation(),
         r = 0,
         filter = {
-            locationIdOnly : true, 
+            locationIdOnly : true,
             archived : 0
         },
         locations = [],
@@ -1333,7 +1334,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         locModel = new Location(),
         r = 0,
         filter = {
-            locationIdOnly : true, 
+            locationIdOnly : true,
             archived : 0
         },
         locations = [],
@@ -1371,7 +1372,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         let compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
 
         for(let loc of locations){
-            
+
             for(let i in kpis) {
                 let hasKpis = false;
                 for(let c in compliances){
@@ -1416,7 +1417,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
             compliance = await this.getLocationsLatestCompliance(req, res, true, formData);
             response.data.push( compliance );
-            
+
         }
 
         // response['locationIds'] = locationIds;
@@ -1512,7 +1513,7 @@ import * as S3Zipper from 'aws-s3-zipper';
     }
 
     public async saveEpcMinutesOfMeeting(req: AuthRequest, res: Response){
-        let 
+        let
         response = {
             status :  false, data : {}, message : ''
         },
@@ -1536,7 +1537,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             kpisIds.push(kpis[key]['compliance_kpis_id']);
         });
 
-        let 
+        let
         locModel = new Location(req.body.location_id),
         locAccRel = new LocationAccountRelation(),
         kpiEPC = <any> {};
@@ -1547,7 +1548,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
         }
 
-        let 
+        let
         validMonths = kpiEPC.validity_in_months,
         today = moment(),
         validTill = today.add(validMonths, 'months');
@@ -1555,16 +1556,16 @@ import * as S3Zipper from 'aws-s3-zipper';
         response['role'] = role;
 
         try{
-            let 
+            let
             location = <any> await locModel.load(),
             siblings = <any> (role == 2) ? await locAccRel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(req.user.account_id, req.body.location_id) : [],
             allLocs = JSON.parse(JSON.stringify(siblings));
             allLocs.push(location);
             response['allLocs'] = allLocs;
             response['compliances'] = <any> [];
-            
+
             for(let loc of allLocs){
-                let 
+                let
                 arrWhereCompliance = [],
                 complianceModel = new ComplianceModel();
 
@@ -1602,7 +1603,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                 for(let comp of compliances){
                     if(comp.compliance_kpis_id == 2){
-                        let 
+                        let
                         saveData = {
                             'account_id' : req.body.account_id,
                             'location_id' : comp.building_id,
@@ -1653,7 +1654,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                 response['compliances'].push(compliances);
             }
-            
+
             response.status = true;
 
         }catch(e){
@@ -1688,7 +1689,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         });
 
 
-        let 
+        let
         locModel = new Location(locationId),
         locAccRel = new LocationAccountRelation(),
         kpiEvacExer = <any> {};
@@ -1699,7 +1700,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
         }
 
-        let 
+        let
         validMonths = kpiEvacExer.validity_in_months,
         today = moment(),
         validTill = today.add(validMonths, 'months');
@@ -1708,16 +1709,16 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         if(role == 2){
             try{
-                let 
+                let
                 location = <any> await locModel.load(),
                 siblings = <any> await locAccRel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(req.user.account_id, locationId),
                 allLocs = JSON.parse(JSON.stringify(siblings));
                 allLocs.push(location);
                 response['allLocs'] = allLocs;
                 response['compliances'] = <any> [];
-                
+
                 for(let loc of allLocs){
-                    let 
+                    let
                     arrWhereCompliance = [],
                     complianceModel = new ComplianceModel();
 
@@ -1759,7 +1760,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                             let
                             complModel = new ComplianceModel(comp.compliance_id);
                             await complModel.load();
-                            
+
                             if(req.body.status == true){
                                 complModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
                                 complModel.set('compliance_status', 1);
@@ -1774,7 +1775,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                     response['compliances'].push(compliances);
                 }
-                
+
                 response.status = true;
 
             }catch(e){
@@ -1828,7 +1829,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         });
 
 
-        let 
+        let
         locModel = new Location(locationId),
         locAccRel = new LocationAccountRelation(),
         kpiFsa = <any> {};
@@ -1839,7 +1840,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
         }
 
-        let 
+        let
         validMonths = kpiFsa.validity_in_months,
         today = moment(),
         validTill = today.add(validMonths, 'months');
@@ -1848,16 +1849,16 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         if(role == 2){
             try{
-                let 
+                let
                 location = <any> await locModel.load(),
                 siblings = <any> await locAccRel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(req.user.account_id, locationId),
                 allLocs = JSON.parse(JSON.stringify(siblings));
                 allLocs.push(location);
                 response['allLocs'] = allLocs;
                 response['compliances'] = <any> [];
-                
+
                 for(let loc of allLocs){
-                    let 
+                    let
                     arrWhereCompliance = [],
                     complianceModel = new ComplianceModel();
 
@@ -1899,7 +1900,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                             let
                             complModel = new ComplianceModel(comp.compliance_id);
                             await complModel.load();
-                            
+
                             if(req.body.status == true){
                                 complModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
                                 complModel.set('compliance_status', 1);
@@ -1914,7 +1915,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                     response['compliances'].push(compliances);
                 }
-                
+
                 response.status = true;
 
             }catch(e){
