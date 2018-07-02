@@ -21,7 +21,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   searchLocationField: FormControl = new FormControl(null, Validators.required);
   dtTrainingField: FormControl;
-  trainingCourseField: FormControl;
+  defaultTrainingCourse = null;
   trainingModeField: FormControl;
   training_requirements = [];
   userForm: FormGroup;
@@ -47,8 +47,6 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   ngOnInit() {
     this.genericSub = this.getLocationChanges();
-
-    this.trainingCourseField = new FormControl(null, Validators.required);
     this.trainingModeField = new FormControl(null, Validators.required);
     this.allUsersFormArrName = new FormArray([]);
     this.userForm = new FormGroup({});
@@ -133,6 +131,10 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   }
 
+  assignSucceedingDefaultCourse(index:number = 0): void {
+    this.defaultTrainingCourse = (<FormArray>this.userForm.get('levelUsers')).controls[index].get('courseTraining').value;
+  }
+
   public getAccountSelection(accountId, accountName): void {
     this.genericSub.unsubscribe();
     this.filteredList = [];
@@ -161,8 +163,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.userForm = this.formBuilder.group({
           levelUsers: this.formBuilder.array([this.createFormItem()]),
           dtTraining: this.dtTrainingField,
-          courseMethod: this.trainingModeField,
-          courseTraining: this.trainingCourseField
+          courseMethod: this.trainingModeField
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
@@ -187,8 +188,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.userForm = this.formBuilder.group({
           levelUsers: this.formBuilder.array([this.createFormItem()]),
           dtTraining: this.dtTrainingField,
-          courseMethod: this.trainingModeField,
-          courseTraining: this.trainingCourseField
+          courseMethod: this.trainingModeField
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
@@ -212,6 +212,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       email: new FormControl(null, Validators.required),
       last_name: new FormControl(null, Validators.required),
       first_name: new FormControl(null, Validators.required),
+      courseTraining: new FormControl(this.defaultTrainingCourse, Validators.required),
       user_id: new FormControl('0', null),
       accountId: new FormControl('0', null),
       account_name: new FormControl(null, Validators.required),
