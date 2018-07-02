@@ -50,9 +50,10 @@
           <tr>
             <!-- <th>TRP</th> -->
             <th>Email Address</th>
-            <th>Account</th>
             <th>First Name</th>
             <th>Last Name</th>
+            <th *ngIf="smartSearchSelection == 'location'">Account</th>
+            <th *ngIf="smartSearchSelection == 'account'">Main Location</th>
             <th>Sub Location</th>
             <th>Training Course</th>
             <th>Add Exception</th>
@@ -72,13 +73,22 @@
                   </ul>
                 </div>
             </td>
-            <td><input formControlName="account_name" type="text">
-                <input formControlName="accountId" type="hidden">
-            </td>
             <td><input formControlName="first_name" type="text"></td>
             <td><input formControlName="last_name" type="text"></td>
-            <td><input formControlName="sublocation_name" type="text">
-              <input formControlName="sublocation_id" type="hidden">
+            <td *ngIf="smartSearchSelection == 'location'">
+              <input formControlName="account_name" type="text">
+              <input formControlName="accountId" type="hidden">
+            </td>
+            <td *ngIf="smartSearchSelection == 'account'">
+                Main Location Name
+            </td>
+
+            <td>
+                <select formControlName="sublocation_id" style="display: block;" id="trainingCourse">
+                  <optgroup *ngFor="let parent of parentLocationOptionGroup" label="{{parent['parent_location_name']}}">
+                      <option *ngFor="let sub of parent['sublocations']" [value]="sub.location_id">{{sub.name}}</option>
+                  </optgroup>
+                </select>
             </td>
             <td>
               <select formControlName="courseTraining" style="display: block;" id="trainingCourse" (change)="assignSucceedingDefaultCourse(i)">

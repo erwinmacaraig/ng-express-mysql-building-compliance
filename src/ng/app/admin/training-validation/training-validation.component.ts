@@ -26,7 +26,10 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   training_requirements = [];
   userForm: FormGroup;
   allUsersFormArrName: FormArray;
+  smartSearchSelection: string;
   users = [];
+  parentLocationOptionGroup = [];
+  sublocationOptions = [];
   levelUsers;
   filteredList = [];
   filteredAccountList = [];
@@ -34,7 +37,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   locationId: number;
   genericSub: Subscription;
   genericEmailSearchSub: Subscription[] = [];
-
+  buildings = [];
   options: DatepickerOptions = {
     displayFormat: 'YYYY-MM-DD'
   };
@@ -46,7 +49,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     public dashboard: DashboardPreloaderService) {}
 
   ngOnInit() {
-    this.genericSub = this.getLocationChanges();
+    this.genericSub = this.smartSearch();
     this.trainingModeField = new FormControl(null, Validators.required);
     this.allUsersFormArrName = new FormArray([]);
     this.userForm = new FormGroup({});
@@ -73,13 +76,13 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.filteredList = [];
     this.users = [];
     this.filteredAccountList = [];
-    this.genericSub = this.getLocationChanges();
+    this.genericSub = this.smartSearch();
     if ((<FormArray>this.userForm.get('levelUsers'))) {
       this.cancelUserForm();
     }
   }
 
-  public getLocationChanges(): Subscription {
+  public smartSearch(): Subscription {
     return this.searchLocationField.valueChanges.debounceTime(350)
       .subscribe((searchValue) => {
         if (searchValue != null && searchValue.length > 0) {
@@ -141,11 +144,12 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.filteredAccountList = [];
     this.users = [];
     this.searchLocationField.setValue(accountName);
-    this.genericSub = this.getLocationChanges();
+    this.genericSub = this.smartSearch();
     this.adminService.getAllAccountUsers(accountId, 0, 'all').subscribe((response) => {
       const list = response['data']['list'];
       for (const l of list) {
         for (const loc of l['locations-arr']) {
+          loc['location-parent'] = (loc['location-parent'] == null) ? '' : loc['location-parent'];
           this.users.push({
             email: l['email'],
             role_name: ((loc['account-role']).concat(loc['em-role'])).join(','),
@@ -168,8 +172,11 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
       }
+    });
 
-
+    this.adminService.getAllLocationsOnAccount(accountId).subscribe((response) => {
+      this.buildings = response['data']['buildings'];
+      this.parentLocationOptionGroup = response['data']['levels'];
     });
 
 
@@ -177,13 +184,21 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   public getLocationSelection(selectedId, locationName): void {
     this.genericSub.unsubscribe();
+    this.sublocationOptions = [];
+    this.parentLocationOptionGroup = [];
     this.locationId = selectedId;
     this.searchLocationField.setValue(locationName);
     this.filteredList = [];
     this.filteredAccountList = [];
-    this.genericSub = this.getLocationChanges();
+    this.genericSub = this.smartSearch();
     this.adminService.getLocationLevelUsers(this.locationId.toString()).subscribe((response) => {
       this.users = response['users'];
+      this.parentLocationOptionGroup.push({
+        parent_location_name: locationName,
+        parent_location_id: selectedId,
+        sublocations: response['sublocations']
+      });
+      this.sublocationOptions = response['sublocations'];
       if (this.users.length > 0) {
         this.userForm = this.formBuilder.group({
           levelUsers: this.formBuilder.array([this.createFormItem()]),
@@ -200,8 +215,11 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   public getSelection(id, type, name) {
     if (type == 'location') {
       this.getLocationSelection(id, name);
+      this.smartSearchSelection = 'location';
+
     } else {
       this.getAccountSelection(id, name);
+      this.smartSearchSelection = 'account';
     }
   }
 
@@ -312,7 +330,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.cancelUserForm();
     this.adminService.validateUserTrainings(JSON.stringify(values))
     .subscribe((response) => {
-      this.genericSub = this.getLocationChanges();
+      this.genericSub = this.smartSearch();
       this.dashboard.hide();
     });
 
