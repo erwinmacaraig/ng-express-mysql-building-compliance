@@ -152,7 +152,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     let req;
     console.log(f.value.sublocation);
     let locationData = this.locationId.toString();
-    if (f.value.sublocation !== 'undefined') {
+    if (f.value.sublocation != undefined && f.value.sublocation != '0') {
       locationData = f.value.sublocation;
     }
     const formData = new FormData();
