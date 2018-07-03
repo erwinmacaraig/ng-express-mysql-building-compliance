@@ -256,7 +256,8 @@ export class LocationAccountUser extends BaseClass {
                 u.first_name,
                 u.last_name,
                 u.email,
-                accounts.account_name
+                accounts.account_name,
+                locations.name
               FROM
                   location_account_user lau
               INNER JOIN

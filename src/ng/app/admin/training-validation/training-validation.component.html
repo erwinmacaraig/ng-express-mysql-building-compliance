@@ -1,0 +1,127 @@
+<div class="row">
+  <div class="col s12 top-title-button">
+    <h4 class="title left">Training Validation</h4>
+  </div>
+</div>
+
+<form [formGroup]="userForm" (ngSubmit)="validateTrainingOnSubmit()">
+  <div class="row">
+    <div class="col s12">
+      <input
+          type="text"
+          placeholder="Search Location/Account here here"
+          autocomplete="off"
+          id="searchLocationField"
+          [formControl]="searchLocationField">
+    </div>
+    <div class="search-result" *ngIf="filteredList.length > 0">
+      <ul *ngFor="let item of filteredList">
+        <li>
+          <a (click)="getSelection(item['id'], item['type'], item['name'])">{{item['name']}} ({{item['type']}})</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col s3">
+      <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+      <input id="dtTraining" [formControl]="dtTrainingField" autocomplete="off" type="text" (click)="showDatePicker()" required>
+    </div>
+    <!--
+      <div class="col s3">
+        <select [formControl]="trainingCourseField" style="display: block;" id="trainingCourse">
+          <option [value]="null" [disabled]="true == true">Training Course</option>
+          <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
+        </select>
+      </div>
+     -->
+
+    <div class="col s3">
+      <select [formControl]="trainingModeField" style="display: block;" id="trainingMode">
+        <option [value]="null" [disabled]="true == true">Training Mode</option>
+        <option value="offline_by_evac">Face to Face</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col s12">
+      <table>
+        <thead>
+          <tr>
+            <!-- <th>TRP</th> -->
+            <th>Email Address</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th *ngIf="smartSearchSelection == 'location'">Account</th>
+            <th *ngIf="smartSearchSelection == 'account'">Main Location</th>
+            <th>Sub Location</th>
+            <th>Training Course</th>
+            <th>Add Exception</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="levelUsers" *ngIf="users.length > 0">
+          <tr *ngFor="let u of userForm.get('levelUsers')['controls']; let i = index;" [formGroupName]="i">
+            <!-- <td></td> -->
+            <td>
+              <input formControlName="email" type="text" placeholder="search email" autocomplete="off">
+              <input formControlName="user_id" type="hidden">
+              <div class="suggestions" *ngIf="filteredEmailList.length > 0">
+                  <ul *ngFor="let item of filteredEmailList[i]; let j = index;">
+                    <li>
+                      <a (click)="getEmailSelection(i, item)">{{item['email']}} ({{item['role_name']}}, {{item['name']}})</a>
+                    </li>
+                  </ul>
+                </div>
+            </td>
+            <td><input formControlName="first_name" type="text"></td>
+            <td><input formControlName="last_name" type="text"></td>
+            <td *ngIf="smartSearchSelection == 'location'">
+              <input formControlName="account_name" type="text">
+              <input formControlName="accountId" type="hidden">
+            </td>
+            <td *ngIf="smartSearchSelection == 'account'">
+                Main Location Name
+            </td>
+
+            <td>
+                <select formControlName="sublocation_id" style="display: block;" id="trainingCourse">
+                  <optgroup *ngFor="let parent of parentLocationOptionGroup" label="{{parent['parent_location_name']}}">
+                      <option *ngFor="let sub of parent['sublocations']" [value]="sub.location_id">{{sub.name}}</option>
+                  </optgroup>
+                </select>
+            </td>
+            <td>
+              <select formControlName="courseTraining" style="display: block;" id="trainingCourse" (change)="assignSucceedingDefaultCourse(i)">
+                <option [value]="null" [disabled]="true == true">Training Course</option>
+                <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
+              </select>
+            </td>
+            <td class="with-remove">&nbsp;
+              <a  class="remove" (click)="removeUser(i)">X</a>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr *ngIf="users.length > 0">
+            <td>
+              <a class="btn blue" (click)="addUserFormItem($event)">+ Add more rows</a>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+      <br>
+      <div class="button-container right-align">
+          <a class="btn grey lighten-1 waves-effect waves-light cancel" (click)="cancelUserForm()"> Cancel </a>
+          <input type="submit" [ngClass]="{'btn': true,
+                                           'grey': (userForm.valid && searchLocationField.valid) == false,
+                                           'lighten-1': (userForm.valid && searchLocationField.valid) == false,
+                                           'cancel': (userForm.valid && searchLocationField.valid) == false,
+                                           'blue': (userForm.valid && searchLocationField.valid) == true,
+                                           'waves-effect': (userForm.valid && searchLocationField.valid) == true,
+                                           'waves-light': (userForm.valid && searchLocationField.valid) == true}" value="Submit"
+          [disabled]="!userForm.valid || !searchLocationField.valid" />
+      </div>
+    </div>
+  </div>
+</form>
+<div preloader></div>

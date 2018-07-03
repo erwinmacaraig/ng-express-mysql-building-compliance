@@ -76,6 +76,15 @@
             </ul>
         </div>
     </div>
+
+    <div class="search-result" *ngIf="filteredList.length > 0">
+      <ul *ngFor="let item of filteredList">
+        <li>
+          <a (click)="getAccountSelection(item['account_id'], item['account_name'])">{{item['account_name']}}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <div class="row" *ngIf="documentType.value != 5">
