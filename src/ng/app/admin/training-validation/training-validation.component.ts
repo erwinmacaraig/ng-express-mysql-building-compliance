@@ -45,6 +45,68 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   datepickerModelFormatted = '';
   isShowDatepicker = false;
 
+  newFirstName: FormControl;
+  newLastname: FormControl;
+  newUserEmail: FormControl;
+  newUserRole: FormControl;
+  newUserLocation: FormControl;
+  newUserAccount: FormControl;
+  selectedRole = 0;
+  accountSearchResults = [];
+  accountIdForAddUser = 0;
+  accountSearchSub: Subscription;
+  roles = [
+    {
+      role_id: 1,
+      role_name: 'FRP'
+    },
+    {
+      role_id: 2,
+      role_name: 'TRP'
+    },
+    {
+      role_id: 8,
+      role_name: 'GOFR',
+    },
+    {
+      role_id: 9,
+      role_name: 'Warden',
+    },
+    {
+      role_id: 10,
+      role_name: 'Floor / Area Warden',
+    },
+    {
+      role_id: 11,
+      role_name: 'Chief Warden',
+    },
+    {
+      role_id: 12,
+      role_name: 'Fire Safety Advisor',
+    },
+    {
+      role_id: 13,
+      role_name: 'EPC Member',
+    },
+    {
+      role_id: 14,
+      role_name: 'Fire Aid Officer',
+    },
+    {
+      role_id: 15,
+      role_name: 'Deputy Chief Warden',
+    },
+    {
+      role_id: 16,
+      role_name: 'Building Warden',
+    },
+    {
+      role_id: 18,
+      role_name: 'Deputy Building Warden',
+    },
+
+  ];
+
   constructor(private adminService: AdminService, private formBuilder: FormBuilder,
     public dashboard: DashboardPreloaderService) {}
 
@@ -55,13 +117,24 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.userForm = new FormGroup({});
     this.setDatePickerDefaultDate();
     this.dtTrainingField = new FormControl(this.datepickerModelFormatted, Validators.required);
+
+    this.newFirstName  = new FormControl(null, Validators.required);
+    this.newLastname = new FormControl(null, Validators.required);
+    this.newUserEmail = new FormControl(null, Validators.email);
+    this.newUserRole = new FormControl(null, Validators.required);
+    this.newUserLocation = new FormControl(null, Validators.required);
+    this.newUserAccount = new FormControl(null, Validators.required);
     this.adminService.getTrainingRequirementList().subscribe((response) => {
       this.training_requirements = response['data'];
       // console.log(this.training_requirements);
     });
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+    $('.modal').modal({
+      dismissible: false
+    });
+  }
 
   ngOnDestroy() {
     this.genericSub.unsubscribe();
@@ -216,8 +289,13 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     if (type == 'location') {
       this.getLocationSelection(id, name);
       this.smartSearchSelection = 'location';
+      this.accountIdForAddUser = 0;
+      this.accountSearchResults = [];
+      this.newUserAccount.reset();
 
     } else {
+      this.accountIdForAddUser = id;
+      this.newUserAccount.setValue(name);
       this.getAccountSelection(id, name);
       this.smartSearchSelection = 'account';
     }
@@ -333,6 +411,51 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.genericSub = this.smartSearch();
       this.dashboard.hide();
     });
-
   }
+
+  switchLocationDropDown(e: any) {
+    this.selectedRole = +e.target.value;
+    this.newUserRole.setValue(+e.target.value);
+  }
+
+  getSelectedAccount(accountId, accountName): void {
+    this.accountSearchSub.unsubscribe();
+    this.newUserAccount.setValue(accountName);
+    this.accountIdForAddUser = accountId;
+    this.accountSearchResults = [];
+    this.accountSearchSub = this.searchAccount();
+  }
+
+  searchAccount(): Subscription {
+    return this.newUserAccount.valueChanges.debounceTime(350).subscribe((value) => {
+      this.accountSearchResults = [];
+      if (value != null && value.length > 0) {
+        this.adminService.getAccountListingForAdmin(0, value)
+        .subscribe((res) => {
+          Object.keys(res['data']['list']).forEach((k) => {
+            this.accountSearchResults.push(res['data']['list'][k]);
+          });
+        });
+      }
+    });
+  }
+
+  showModalNewUser() {
+    $('#newUserModal').modal('open');
+    this.accountSearchSub = this.searchAccount();
+  } 
+
+  cancelAddNewUser(): void {
+    this.accountSearchSub.unsubscribe();
+    this.accountIdForAddUser = 0;
+    this.accountSearchResults = [];
+    this.newFirstName.reset();
+    this.newLastname.reset();
+    this.newUserEmail.reset();
+    this.newUserRole.reset();
+    this.newUserLocation.reset();
+    this.newUserAccount.reset();
+    
+  }
+
 }
