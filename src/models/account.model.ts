@@ -721,4 +721,24 @@ export class Account extends BaseClass {
       });
     }
 
+    public countTenantsFromLocationIds(locationIds){
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT a1.account_id FROM location_account_user lau 
+                INNER JOIN accounts a1 ON lau.account_id = a1.account_id WHERE a1.archived = 0 AND lau.location_id IN (`+locationIds+`) 
+                UNION 
+                SELECT a2.account_id FROM user_em_roles_relation em 
+                INNER JOIN users u ON em.user_id = u.user_id INNER JOIN accounts a2 ON u.account_id = a2.account_id WHERE a2.archived = 0 AND em.location_id IN (`+locationIds+`)`;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, [], (error, results) => {
+                if (error) {
+                    console.log('getAccountsInLocationIds', error, sql);
+                    throw Error('Internal error. Cannot get account details');
+                }
+                
+                resolve(results.length);
+            });
+        });
+    }
+
 } // end class
