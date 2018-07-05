@@ -336,6 +336,7 @@ export class AdminRoute extends BaseRoute {
       let allUsers = [];
       allUsers = await account.generateAdminAccountUsers(req.params.accountId, selectedUsers);
       allUsers = allUsers.concat(await account.generateAdminEMUsers(req.params.accountId, selectedUsers));
+      // console.log(allUsers);
       const accountUsers = [];
       const allUserObject = {};
       const locations = {};
@@ -347,11 +348,14 @@ export class AdminRoute extends BaseRoute {
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
                 allUsers[i]['account_role']
               );
-
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role-id'].push(
+                allUsers[i]['role_id']
+              );
 
             }
             if (allUsers[i]['role_name'] && (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0)) {
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role-id'].push(allUsers[i]['role_id']);
             }
 
 
@@ -361,15 +365,21 @@ export class AdminRoute extends BaseRoute {
                 'em-role': [],
                 'account-role': [],
                 'location-name': allUsers[i]['name'],
-                'location-parent': allUsers[i]['parent_name']
+                'location-parent': allUsers[i]['parent_name'],
+                'account-role-id': [],
+                'em-role-id': []
               };
               if ((allUsers[i]['account_role']) && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)) {
                 allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
                   allUsers[i]['account_role']
                 );
+                allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role-id'].push(
+                  allUsers[i]['role_id']
+                );
               }
               if ( (allUsers[i]['role_name']) && (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0)) {
                 allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
+                allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role-id'].push(allUsers[i]['role_id']);
               }
 
             }
@@ -395,15 +405,22 @@ export class AdminRoute extends BaseRoute {
               'location-name': allUsers[i]['name'],
               'location-parent': allUsers[i]['parent_name'],
               'account-role': [],
-              'em-role': []
+              'em-role': [],
+              'account-role-id': [],
+              'em-role-id': []
+
             };
             if (allUsers[i]['account_role'] && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)) {
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
                 allUsers[i]['account_role']
               );
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role-id'].push(
+                allUsers[i]['role_id']
+              );
             }
             if (allUsers[i]['role_name'] && (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0)) {
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role-id'].push(allUsers[i]['role_id']);
             }
           }
         }
@@ -422,7 +439,7 @@ export class AdminRoute extends BaseRoute {
         data: {
           'list': accountUsers,
           'total_pages': pages,
-        } ,
+        },
 
       });
     });
