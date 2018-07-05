@@ -1099,7 +1099,20 @@ const defs = require('../config/defs.json');
         }
 
         for(let sub of sublocations) {
-            let locAccModel = new LocationAccountRelation();
+            let accountModelTenantCount = new Account(),
+                child = await new Location().getParentsChildren(sub.location_id, 1),
+                sublocsIds = [sub.location_id];
+
+            for (let c of child) {
+                sublocsIds.push(c['location_id']);
+            }
+
+            sub['num_tenants'] = 0;
+            if(sublocsIds.length > 0){
+                sub['num_tenants'] = <any> await accountModelTenantCount.countTenantsFromLocationIds( sublocsIds.join(',') );
+            }
+
+            /*let locAccModel = new LocationAccountRelation();
             // locAcc = <any> await locAccModel.getByWhereInLocationIds( sub.location_id );
             const locationAccountUserObj = new LocationAccountUser();
             // listing of roles is implemented here because we are only listing roles on a sub location
@@ -1114,7 +1127,7 @@ const defs = require('../config/defs.json');
               }
             } catch (e) {
               sub['num_tenants']  = 0;
-            }
+            }*/
         }
 
         sublocations = sublocations.sort((a, b) => {
@@ -1133,6 +1146,7 @@ const defs = require('../config/defs.json');
 	    const parentId = <number>location.get('parent_id');
 
 	    if (parentId === -1 ) {
+            response.parent['name'] = '';
 	    	return response;
 	    }
 	    let siblings;
@@ -1281,7 +1295,7 @@ const defs = require('../config/defs.json');
 
         for(let loc of response.locations){
             loc['sublocation_count'] = subLocationsObj[loc['location_id']]['count'];
-            let canLoginTenants = {},
+            /*let canLoginTenants = {},
                 locationAccountUserObj = new LocationAccountUser();
             try {
                 canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], loc['location_id']);
@@ -1291,6 +1305,16 @@ const defs = require('../config/defs.json');
                 const locationAccountRel = new LocationAccountRelation();
                 const temp = await locationAccountRel.getByAccountIdAndLocationId(req.user.account_id, loc['location_id']);
                 loc['num_tenants'] = temp.length;
+            }*/
+
+            let 
+                subLocsModel = new Location(),
+                sublocsids = [],
+                sublocs = <any> await subLocsModel.getChildren(loc['location_id']),
+                accountModelTenantCount = new Account();
+            
+            for(let sub of sublocs){
+                sublocsids.push(sub.location_id);
             }
 
             let
@@ -1303,7 +1327,13 @@ const defs = require('../config/defs.json');
                 locsIds.push(loc.location_id);
             }
 
-            wardens = <any> await emRolesModel.getWardensInLocationIds(locsIds.join(','), 0, req.user.account_id);
+            sublocsids.push(loc['location_id']);
+
+            loc['sublocsids'] = sublocsids.join(',');
+
+            loc['num_tenants'] = <any> await accountModelTenantCount.countTenantsFromLocationIds(locsIds.join(','));
+
+            wardens = <any> await emRolesModel.getWardensInLocationIds(sublocsids.join(','), 0, req.user.account_id);
 
             loc['num_wardens'] = wardens.length;
             loc['wardens'] = wardens;
@@ -1314,6 +1344,7 @@ const defs = require('../config/defs.json');
             loc['mobility_impaired'] = impaired.length;
 
         }
+        
 
         if(pagination){
             let

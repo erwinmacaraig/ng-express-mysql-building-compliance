@@ -48,7 +48,9 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("general_occupant_trainingTableTemplate") general_occupant_trainingTableTemplate : ElementRef;
 	@ViewChild("sundryTableTemplate") sundryTableTemplate : ElementRef;
 
-	userData = {};
+	userData = <any> {};
+    isFRP = false;
+    isTRP = false;
     complianceSublocations = [];
 	selectedComplianceTitle = '';
 	selectedComplianceDescription = '';
@@ -170,6 +172,15 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     ) {
 
     this.userData = this.authService.getUserData();
+
+    for(let role of this.userData.roles){
+        if(role.role_id == 1){
+            this.isFRP = true;
+        }
+        if(role.role_id == 2){
+            this.isTRP = true;
+        }
+    }
 
     this.setDatePickerDefaultDate();
 
@@ -346,7 +357,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 	clickSelectComplianceFromList(compliance) {
         this.selectedCompliance = compliance;
-        console.log(this.selectedCompliance);
+            console.log(this.selectedCompliance);
     		let attr = compliance.short_code,
     			allTr = $("tr[compliance]"),
     			tr = $("tr[compliance='"+attr+"']");

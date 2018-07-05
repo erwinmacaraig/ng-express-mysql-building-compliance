@@ -605,11 +605,14 @@ export class Account extends BaseClass {
             users.email,
             users.mobile_number,
             user_role_relation.role_id,
+            accounts.account_id,
+            accounts.account_name,
             IF (user_role_relation.role_id = 1, 'FRP', IF (user_role_relation.role_id = 2, 'TRP', '')) as account_role,
             locations.location_id,
             locations.name,
             parent_locations.name as parent_name
           FROM users
+          INNER JOIN accounts ON users.account_id = accounts.account_id
           LEFT JOIN
             user_role_relation
           ON users.user_id = user_role_relation.user_id
@@ -663,12 +666,15 @@ export class Account extends BaseClass {
         users.last_name,
         users.email,
         users.mobile_number,
+        accounts.account_id,
+        accounts.account_name,
         user_em_roles_relation.em_role_id as role_id,
         em_roles.role_name,
         locations.location_id,
         locations.name,
         parent_locations.name as parent_name
       FROM users
+      INNER JOIN accounts ON users.account_id = accounts.account_id
       LEFT JOIN
         user_em_roles_relation
       ON
@@ -713,6 +719,27 @@ export class Account extends BaseClass {
           resolve(results);
         });
       });
+    }
+
+    public countTenantsFromLocationIds(locationIds){
+        if(locationIds.trim().length == 0){ return 0; }
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT a1.account_id FROM location_account_user lau 
+                INNER JOIN accounts a1 ON lau.account_id = a1.account_id WHERE a1.archived = 0 AND lau.location_id IN (`+locationIds+`) 
+                UNION 
+                SELECT a2.account_id FROM user_em_roles_relation em 
+                INNER JOIN users u ON em.user_id = u.user_id INNER JOIN accounts a2 ON u.account_id = a2.account_id WHERE a2.archived = 0 AND em.location_id IN (`+locationIds+`)`;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, [], (error, results) => {
+                if (error) {
+                    console.log('getAccountsInLocationIds', error, sql);
+                    throw Error('Internal error. Cannot get account details');
+                }
+                
+                resolve(results.length);
+            });
+        });
     }
 
 } // end class

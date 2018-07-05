@@ -26,6 +26,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as AWS from 'aws-sdk';
 import * as async from 'async';
+import { TrainingRequirements } from '../models/training.requirements';
+import { TrainingCertification } from '../models/training.certification.model';
 
 const AWSCredential = require('../config/aws-access-credentials.json');
 
@@ -33,7 +35,86 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
+    async(req: AuthRequest, res: Response, next: NextFunction) => {
+
+      const users: Array<object> = JSON.parse(req.body.users);
+      console.log(users);
+
+      for (const u of users) {
+        try {
+          await new TrainingCertification().checkAndUpdateTrainingCert({
+            'user_id': u['user_id'],
+            'certification_date': u['certification_date'],
+            'training_requirement_id': u['training_requirement_id'],
+            'course_method': u['course_method'],
+            'pass': '1',
+            'registered': '1',
+            'description': 'Training validated on ' + moment().format('YYYY-MM-DD HH:mm:ss')
+          });
+        } catch (e) {
+          console.log(e, u);
+        }
+      }
+
+      return res.status(200).send({
+        message: 'test'
+      });
+    });
+
+    router.get('/admin/list/training-requirements/', new MiddlewareAuth().authenticate,
+    (req: AuthRequest, res: Response, next: NextFunction) => {
+      const t = new TrainingRequirements();
+      t.getWhere([]).then((trainings) => {
+        return res.status(200).send({
+            data: trainings
+        });
+      }).catch((e) => {
+        console.log(e);
+      });
+    });
+    router.get('/admin/location/search/',
+    new MiddlewareAuth().authenticate,
+    async(req: AuthRequest, res: Response, next: NextFunction) => {
+      const searchKey: object = {
+        name: req.query.name
+      };
+      const location = new Location();
+      const searchResult = await location.searchLocation(searchKey);
+      for (const s of searchResult) {
+        s['type'] = 'location';
+        s['id'] = s['location_id'];
+      }
+      return res.status(200).send({
+        message: 'Success',
+        data: searchResult
+      });
+    });
+
+    router.get('/admin/training-validation-location-users/',
+    async (req: Request, res: Response, next: NextFunction) => {
+      // get children
+      const sublocations = await new Location().getChildren(req.query.location);
+      const lauObj = new LocationAccountUser();
+      const emrrObj = new UserEmRoleRelation();
+      let tempArr = [req.query.location];
+      for (const s of sublocations) {
+        tempArr.push(s['location_id']);
+        s['id'] = s['location_id'];
+      }
+
+      const userAccountRoles = await lauObj.getUsersInLocationId(tempArr);
+      const userEMRoles = await emrrObj.getUsersInLocationIds(tempArr.join(','));
+      const allUsers = userAccountRoles.concat(userEMRoles);
+
+      res.status(200).send({
+        sublocations: sublocations,
+        users: allUsers
+      });
+    });
+
     router.get('/admin/get/location-details/:location/',
+    new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const locationObj = new Location(req.params.location);
       const lauObj = new LocationAccountUser();
@@ -299,7 +380,10 @@ export class AdminRoute extends BaseRoute {
             'location-ids': [allUsers[i]['location_id']],
             'first_name': allUsers[i]['first_name'],
             'last_name': allUsers[i]['last_name'],
+            'user_id': allUsers[i]['user_id'],
             'email': allUsers[i]['email'],
+            'account': allUsers[i]['account_name'],
+            'account_id': allUsers[i]['account_id'],
             'mobile_number': allUsers[i]['mobile_number'],
             'locations': {},
             'locations-arr': []
@@ -541,28 +625,29 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
-    router.post('/admin/upload/compliance/evac-diagrams/',
-      new MiddlewareAuth().authenticate,
-      async (req: AuthRequest, res: Response, next: NextFunction) => {
-        const evacDiagramFiles = [];
-        let filename = '';
-        const errMsgs = [];
-        let temp;
-        let dirPath = '';
-        const rejectedFiles = [];
+    router.post('/admin/upload/compliance/evac-diagrams/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+        const
+            evacDiagramFiles = [],
+            errMsgs = [],
+            rejectedFiles = [];
 
-        let account_id = 0;
-        let location_id = 0;
+        let
+            filename = '',
+            temp,
+            dirPath = '',
+            account_id = 0,
+            location_id = 0;
 
         const multerConfig = multer.diskStorage({
-          destination: (rq, file, callback) => {
-            callback(null, __dirname + '/../public/temp');
-          },
-          filename: (rq, file, callback) => {
-            filename = file.originalname.replace(/\s+/g, '-');
-            callback(null, filename);
-          }
+            destination: (rq, file, callback) => {
+                callback(null, __dirname + '/../public/temp');
+            },
+            filename: (rq, file, callback) => {
+                filename = file.originalname.replace(/\s+/g, '-');
+                callback(null, filename);
+            }
         });
+
         AWS.config.accessKeyId = AWSCredential.AWSAccessKeyId;
         AWS.config.secretAccessKey = AWSCredential.AWSSecretKey;
         AWS.config.region = AWSCredential.AWS_REGION;
@@ -571,173 +656,190 @@ export class AdminRoute extends BaseRoute {
         const complianceDocsUploader = multer({storage: multerConfig}).array('file', 100);
         const complianceModel = new ComplianceModel();
         complianceDocsUploader(req, res, async (err) => {
-          if (err) {
-            console.log('This is the error', err);
-            return res.status(400).send({
-              message: 'There was a problem uploading the evacuation diagrams'
-            });
-          }
-          // console.log(req['files']);
-          // do file processing here
-          let file_parts = [];
-
-          for (const f of req['files']) {
-            file_parts = [];
-            dirPath = '';
-            let parentId = 0;
-            temp = null;
-            file_parts = f['originalname'].split('_');
-            if (file_parts.length !== 5) {
-              rejectedFiles.push(f['filename']);
-              errMsgs.push(`${f['filename']} does not have the correct format`);
-              continue;
-            }
-            // console.log(file_parts);
-            const account = new Account();
-            const location = new Location();
-            if (file_parts[0] != null) {
-              temp = await account.getAccountDetailsUsingName(file_parts[0]);
-              if (temp.length > 0) {
-                dirPath += `${temp[0]['account_directory_name']}/`;
-                account_id = temp[0]['account_id'];
-                temp = null;
-              } else {
-                rejectedFiles.push(f['filename']);
-                errMsgs.push(`Cannot get the account directory for ${file_parts[0]}`);
-                continue;
-              }
-            }
-            // this is the main (building location)
-            if (file_parts[1] != null) {
-              temp = await location.getLocationDetailsUsingName(file_parts[1]);
-              if (temp.length > 0) {
-                parentId = temp[0]['location_id'];
-                if (temp[0]['location_directory_name'] == null || temp[0]['location_directory_name'].length == 0) {
-                  dirPath += file_parts[1].replace(/\s/g, '') + '/';
-                  const myLocation = new Location(temp[0]['location_id']);
-                  await myLocation.load();
-                  await myLocation.create({
-                    location_directory_name: file_parts[1].replace(/\s/g, '')
-                  });
-                } else {
-                  dirPath += `${temp[0]['location_directory_name']}/`;
-                }
-                temp = null;
-              } else {
-                rejectedFiles.push(f['filename']);
-                errMsgs.push(`Cannot get the location directory for ${file_parts[1]}`);
-                continue;
-              }
-            }
-            // this is the level part
-            if (file_parts[2] != null) {
-              temp = await location.getLocationDetailsUsingName(file_parts[2], parentId);
-              if (temp.length > 0) {
-                // lets update the location directory
-                const myLocation = new Location(temp[0]['location_id']);
-                dirPath += file_parts[2].replace(/\s/g, '') + '/EmergencyEvacuationDiagrams/Primary/';
-                location_id = temp[0]['location_id'];
-                temp = null;
-                await myLocation.load();
-                await myLocation.create({
-                  location_directory_name: file_parts[2].replace(/\s/g, '')
-                });
-              } else {
-                errMsgs.push(`There is no such sublocation with the name -  ${file_parts[2]}`);
-                rejectedFiles.push(f['filename']);
-                continue;
-              }
-            }
-            // this is the date part
-            if (file_parts[4] != null) {
-              if (moment(file_parts[4], 'DDMMYYYY').isValid()) {
-                temp = moment(file_parts[4], 'DDMMYYYY').format('YYYY-MM-DD');
-                // console.log(temp);
-              } else {
-                errMsgs.push(`Invalid date format -  ${file_parts[4]}`);
-                rejectedFiles.push(f['filename']);
-                continue;
-              }
-            }
-            const filteredName = f['filename'].replace(/\s+/g, '-');
-            f['key'] = `${dirPath}${filteredName}`;
-            f['dtActivity'] = moment(file_parts[4], 'DDMMYYYY').format('YYYY-MM-DD');
-            evacDiagramFiles.push(f);
-            console.log(dirPath);
-            // console.log(evacDiagramFiles);
-            // console.log(errMsgs);
-          }
-
-          let marker = 0;
-          async.each(evacDiagramFiles, async (item: object, cb) => {
-            const dataStream = await fs.readFileSync(item['path']);
-            const params = {
-              Bucket: aws_bucket_name,
-              Key: item['key'],
-              ACL: 'public-read',
-              Body: dataStream
-            };
-            console.log('Processing ', item['path']);
-            aws_s3.putObject(params, async (e, d) => {
-              if (e) {
-                console.log(`error reading file from path`);
+            if (err) {
+                console.log('This is the error', err);
                 return res.status(400).send({
-                  message: 'Upload Failed'
+                    message: 'There was a problem uploading the evacuation diagrams'
                 });
-              }
-              const complianceDocObj = new ComplianceDocumentsModel();
-                await complianceDocObj.create({
-                  account_id: account_id,
-                  building_id: location_id,
-                  compliance_kpis_id: '5',
-                  override_document: '-1',
-                  document_type: 'Primary',
-                  file_name: item['filename'],
-                  date_of_activity: item['dtActivity'],
-                  viewable_by_trp: '1',
-                  description: 'Admin upload',
-                  file_size: item['size'],
-                  file_type: item['mimetype'],
-                  timestamp: moment().format('YYYY-MM-DD HH:mm:ss')
-                });
-                const today = moment();
-                // const dtActivityValidity = moment(dtActivity).add(validityDuration, 'months');
-                const status = 1;
-                /*
-                let status = 0;
-                if (dtActivityValidity.isAfter(today)) {
-                  status = 1;
-                }
-                */
+            }
+            // console.log(req['files']);
+            // do file processing here
+            let file_parts = [];
 
-                await complianceModel.create({
-                  compliance_kpis_id: 5,
-                  compliance_status: status,
-                  building_id: location_id,
-                  account_id: account_id,
-                  required: 1,
-                  override_by_evac: 0
+            for (const f of req['files']) {
+                file_parts = [];
+                dirPath = '';
+                let parentId = 0;
+                temp = null;
+                file_parts = f['originalname'].split(/\s+/);
+
+                let
+                accntName ='',
+                buildingName = '',
+                levelName = '',
+                dateOfActivity = '';
+
+                if (file_parts.length < 5) {
+                    rejectedFiles.push(f['filename']);
+                    errMsgs.push(`${f['filename']} does not have the correct format`);
+                    continue;
+                }
+                // console.log(file_parts);
+                const account = new Account();
+                const location = new Location();
+                if (file_parts[0] != null) {
+                    accntName = file_parts[0].replace(/_/g, ' ');
+                    console.log('accntName', accntName);
+                    temp = await account.getAccountDetailsUsingName(accntName);
+                    if (temp.length > 0) {
+                        dirPath += `${temp[0]['account_directory_name']}/`;
+                        account_id = temp[0]['account_id'];
+                        temp = null;
+                    } else {
+                        rejectedFiles.push(f['filename']);
+                        errMsgs.push(`Cannot get the account directory for ${file_parts[0]}`);
+                        continue;
+                    }
+                }
+                // this is the main (building location)
+                if (file_parts[1] != null) {
+                    buildingName = file_parts[1].replace(/_/g, ' ');
+                    console.log('buildingName', buildingName);
+                    temp = await location.getLocationDetailsUsingName(buildingName);
+                    if (temp.length > 0) {
+                        location_id = parentId = temp[0]['location_id'];
+                        if (temp[0]['location_directory_name'] == null || temp[0]['location_directory_name'].length == 0) {
+                            dirPath += file_parts[1].replace(/\s/g, '') + '/';
+                            const myLocation = new Location(temp[0]['location_id']);
+                            await myLocation.load();
+                            await myLocation.create({
+                                location_directory_name: file_parts[1].replace(/\s/g, '')
+                            });
+                        } else {
+                            dirPath += `${temp[0]['location_directory_name']}/`;
+                        }
+                        temp = null;
+                    } else {
+                        rejectedFiles.push(f['filename']);
+                        errMsgs.push(`Cannot get the location directory for ${file_parts[1]}`);
+                        continue;
+                    }
+                }
+                // this is the level part
+                if (file_parts[2] != null) {
+                    levelName = file_parts[2].replace(/_/g, ' ');
+                    console.log('levelName', levelName);
+                    temp = await location.getLocationDetailsUsingName(levelName, parentId);
+                    if (temp.length > 0) {
+                        // lets update the location directory
+                        const myLocation = new Location(temp[0]['location_id']);
+                        dirPath += file_parts[2].replace(/\s/g, '') + '/EmergencyEvacuationDiagrams/Primary/';
+                        location_id = temp[0]['location_id'];
+                        temp = null;
+                        await myLocation.load();
+                        await myLocation.create({
+                            location_directory_name: file_parts[2].replace(/\s/g, '')
+                        });
+                    } else {
+                        errMsgs.push(`There is no such sublocation with the name -  ${file_parts[2]}`);
+                        rejectedFiles.push(f['filename']);
+                        continue;
+                    }
+                }
+                // this is the date part
+                if (file_parts[4] != null) {
+                    dateOfActivity = file_parts[4].replace(/_/g, ' ');
+                    console.log('dateOfActivity', dateOfActivity);
+                    if (moment(dateOfActivity, 'DDMMYYYY').isValid()) {
+                        temp = moment(dateOfActivity, 'DDMMYYYY').format('YYYY-MM-DD');
+                        // console.log(temp);
+                    } else {
+                        errMsgs.push(`Invalid date format -  ${file_parts[4]}`);
+                        rejectedFiles.push(f['filename']);
+                        continue;
+                    }
+                }
+                const filteredName = f['filename'].replace(/\s+/g, '-');
+                f['key'] = `${dirPath}${filteredName}`;
+                f['dtActivity'] = moment(dateOfActivity, 'DDMMYYYY').format('YYYY-MM-DD');
+                evacDiagramFiles.push(f);
+                console.log(dirPath);
+                // console.log(evacDiagramFiles);
+                // console.log(errMsgs);
+            }
+
+
+
+            let marker = 0;
+            async.each(evacDiagramFiles, async (item: object, cb) => {
+                const dataStream = await fs.readFileSync(item['path']);
+                const params = {
+                    Bucket: aws_bucket_name,
+                    Key: item['key'],
+                    ACL: 'public-read',
+                    Body: dataStream
+                };
+                console.log('Processing ', item['path']);
+                aws_s3.putObject(params, async (e, d) => {
+                    if (e) {
+                        console.log(`error reading file from path`);
+                        return res.status(400).send({
+                            message: 'Upload Failed'
+                        });
+                    }
+                    const complianceDocObj = new ComplianceDocumentsModel();
+                    await complianceDocObj.create({
+                        account_id: account_id,
+                        building_id: location_id,
+                        compliance_kpis_id: '5',
+                        override_document: '-1',
+                        document_type: 'Primary',
+                        file_name: item['filename'],
+                        date_of_activity: item['dtActivity'],
+                        viewable_by_trp: '1',
+                        description: 'Admin upload',
+                        file_size: item['size'],
+                        file_type: item['mimetype'],
+                        timestamp: moment().format('YYYY-MM-DD HH:mm:ss')
+                    });
+                    const today = moment();
+                    // const dtActivityValidity = moment(dtActivity).add(validityDuration, 'months');
+                    const status = 1;
+                    /*
+                    let status = 0;
+                    if (dtActivityValidity.isAfter(today)) {
+                    status = 1;
+                    }
+                    */
+
+                    await complianceModel.create({
+                        compliance_kpis_id: 5,
+                        compliance_status: status,
+                        building_id: location_id,
+                        account_id: account_id,
+                        required: 1,
+                        override_by_evac: 0
+                    });
+                    marker++;
+                    // console.log(d);
+                    // console.log(marker);
+                    if (marker == evacDiagramFiles.length) {
+                        return res.status(200).send({
+                            message: 'Success'
+                        });
+                    }
                 });
-                marker++;
-                // console.log(d);
-                // console.log(marker);
-              if (marker == evacDiagramFiles.length) {
-                return res.status(200).send({
-                  message: 'Success'
-                });
-              }
             });
 
+            return res.status(200).send({
+                account_id : account_id,
+                location_id : location_id,
+                message: '',
+                rejected: rejectedFiles,
+                errorMsgs: errMsgs
+            });
         });
-
-          return res.status(200).send({
-            message: 'Test',
-            rejected: rejectedFiles,
-            errorMsgs: errMsgs
-          });
-        });
-
-      });
+    });
 
 
     router.get('/admin/list/compliance-documents/',
