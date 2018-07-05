@@ -1,0 +1,41 @@
+.my-drop-zone {
+  border-radius: 5px;
+  background-color: #ebebeb;
+  min-width: 100%;
+  height: 70px;
+}
+  /* Default class applied to drop zones on over */
+.invalid-drag { border: dotted 3px red; }
+.valid-drag { border: dotted 3px green; }
+.previewIcon{
+  width:100px;height:100px;
+  background-size:cover;
+  background-repeat:no-repeat;
+}
+
+.search-result{
+  background: #fffbe4;
+  width: 65%;
+  top: 220px;
+  border: 1px solid #969696;
+  display: block;
+}
+
+.search-result ul{
+  margin: 0px;
+}
+
+.search-result ul li,
+.search-result strong{
+  font-size: 14px;
+  padding: 12px 8px;
+}
+
+.search-result ul li:not(:last-child){
+  border-bottom: 1px solid #969696;
+}
+
+.search-result ul li:hover{
+  cursor: pointer;
+  background-color: #fff8cd;
+}

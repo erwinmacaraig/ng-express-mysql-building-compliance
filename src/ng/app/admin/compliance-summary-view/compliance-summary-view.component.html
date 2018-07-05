@@ -1,0 +1,422 @@
+<app-admin-account-info [accountId]="accountId"></app-admin-account-info>
+<div class="row">
+  <div class="col s12">
+    <h5>{{locationName}}</h5>
+  </div>
+  <div class="col s4">
+      <div class="row row-table-content">
+          <table class="table table-list">
+              <thead>
+                <tr>
+                  <th>Compliance Item</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let k of KPIS;" (click)="getUploadedDocumentsFromSelectedKPI(k)">
+                  <td class="with-image">
+                    <div class="image {{k['icon_class']}}"></div>
+                    <span>{{k['name']}}</span>
+                  </td>
+                  <td class="with-icon">
+                    <div class="arrow"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+      </div>
+  </div>
+  <div *ngIf="selectedKPI == 2" class="col s7">
+    <div class="text">
+        <h4 class="title blue-text">{{displayKPIName}}</h4>
+        <p class="description">
+          <!-- The Emergency Planning Committee develops the emergency plan, emergency response procedures and takes an active role in forming the Emergency Control Organisation (ECO). -->
+          {{displayKPIDescription}}
+        </p>
+    </div>
+    <div class="diagram-top-of-table">
+      <h5 class="blue-text title">Previous Versions</h5>
+      <div class="buttons">
+        <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs()" style="display: block;">Upload Document</button>
+      </div>
+    </div>
+    <div class="filter-container row">
+      <div class="col l6 m12 s12"> <!--
+        <div class="search-field">
+          <input placeholder="Search here" type="text">
+          <span class="material-icons">search</span>
+        </div> -->
+      </div>
+      <div class="col l3 m12 s12">
+        <select class="filter-by">
+          <option disabled="" selected="" value="0">Filter By</option>
+        </select>
+      </div>
+      <div class="col l3 m12 s12">
+        <select class="sort-by">
+          <option disabled="" selected="" value="0">Sort By</option>
+        </select>
+      </div>
+    </div>
+    <table class="striped table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Type</th>
+          <th>Filename</th>
+          <th>Date Of Activity</th>
+          <th>Validity (months)</th>
+          <th>Expiry</th>
+          <th>Timestamp</th>
+          <th style="width: 10%;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let doc of documentFiles">
+          <td>{{doc['compliance_documents_id']}}</td>
+          <td>{{doc['document_type']}}</td>
+          <td>{{doc['file_name']}}</td>
+          <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
+          <td>{{doc['validity_in_months']}}</td>
+          <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd'}}</td>
+          <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
+          <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="selectedKPI == 3" class="col s7">
+    <div class="text">
+        <h4 class="title blue-text">{{displayKPIName}}</h4>
+        <p class="description">
+          <!-- The Emergency Planning Committee develops the emergency plan, emergency response procedures and takes an active role in forming the Emergency Control Organisation (ECO). -->
+          {{displayKPIDescription}}
+        </p>
+    </div>
+      <div class="switch-container"  >
+          <p class="give-access-text">Completed the Fire Safety Advisory?</p>
+          <div class="switch" >
+              <input type="checkbox" [(checked)]="FSAStatus" (change)="toggleStatus($event, 3)">
+              <div class="yes">Yes</div>
+              <div class="no">No</div>
+              <div class="highlight"></div>
+              <div class="background"></div>
+          </div>
+      </div>
+  </div>
+
+  <div *ngIf="selectedKPI == 4" class="col s7">
+      <div class="text">
+          <h4 class="title blue-text">{{displayKPIName}}</h4>
+          <p class="description">
+              <!-- The Emergency Procedures Manual provides specific procedures and guidelines for dealing with various types of emergency. -->
+              {{displayKPIDescription}}
+          </p>
+      </div>
+      <div class="diagram-top-of-table">
+        <h5 class="blue-text title">Previous Versions</h5>
+        <div class="buttons">
+          <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs()" style="display: block;">Upload Document</button>
+        </div>
+      </div>
+      <div class="filter-container row">
+        <div class="col l6 m12 s12">
+
+        </div>
+        <div class="col l3 m12 s12">
+          <select class="filter-by">
+            <option disabled="" selected="" value="0">Filter By</option>
+          </select>
+        </div>
+        <div class="col l3 m12 s12">
+          <select class="sort-by">
+            <option disabled="" selected="" value="0">Sort By</option>
+          </select>
+        </div>
+      </div>
+      <table class="striped table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Filename</th>
+            <th>Date Of Activity</th>
+            <th>Validity (months)</th>
+            <th>Expiry</th>
+            <th>Timestamp</th>
+            <th style="width: 10%;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let doc of documentFiles">
+            <td>{{doc['compliance_documents_id']}}</td>
+            <td>{{doc['document_type']}}</td>
+            <td>{{doc['file_name']}}</td>
+            <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
+            <td>{{doc['validity_in_months']}}</td>
+            <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
+            <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
+            <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  <div *ngIf="selectedKPI == 5" class="col s7">
+    <div class="text">
+      <h4 class="title blue-text">{{displayKPIName}}</h4>
+      <p class="description">
+          <!-- Floor plan of a facility which helps occupants in locating nearest emergency evacuation path to assembly area. -->
+          {{displayKPIDescription}}
+      </p>
+    </div>
+    <div class="col l8 m12 s12">
+        <div class="diagram-top-of-table">
+          <h5 class="blue-text title">Diagram Details</h5>
+          <div class="buttons">
+            <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs()" style="display: block;">Upload Document</button>
+          </div>
+        </div>
+        <table class="striped table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Location/Level</th>
+                <th>Type</th>
+                <th>Filename</th>
+                <th>Date Of Activity</th>
+                <th>Validity (months)</th>
+                <th>Expiry</th>
+                <th>Timestamp</th>
+                <th style="width: 10%;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let doc of documentFiles">
+                <td>{{doc['compliance_documents_id']}}</td>
+                <td>{{doc['name']}}</td>
+                <td>{{doc['document_type']}}</td>
+                <td>{{doc['file_name']}}</td>
+                <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
+                <td>{{doc['validity_in_months']}}</td>
+                <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
+                <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
+                <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+              </tr>
+            </tbody>
+          </table>
+      </div>
+    </div>
+
+    <div *ngIf="selectedKPI == 9" class="col s7">
+      <div class="text">
+        <h4 class="title blue-text">{{displayKPIName}}</h4>
+        <p class="description">
+          <!-- A method of practicing how a building would be evacuated in the event of emergencies. AS3745 requires all facilities to participate in at least one evacuation exercise each year to test the emergency plan’s effectiveness.-->
+          {{displayKPIDescription}}
+        </p>
+      </div>
+      <div class="col l8 m12 s12">
+          <div class="diagram-top-of-table">
+            <h5 class="blue-text title">Document List</h5>
+            <div class="buttons">
+              <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs()" style="display: block;">Upload Document</button>
+            </div>
+          </div>
+          <table class="striped table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Filename</th>
+                  <th>Date Of Activity</th>
+                  <th>Validity (months)</th>
+                  <th>Expiry</th>
+                  <th>Timestamp</th>
+                  <th style="width: 10%;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let doc of documentFiles">
+                  <td>{{doc['compliance_documents_id']}}</td>
+                  <td>{{doc['document_type']}}</td>
+                  <td>{{doc['file_name']}}</td>
+                  <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
+                  <td>{{doc['validity_in_months']}}</td>
+                  <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
+                  <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
+                  <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+                </tr>
+              </tbody>
+            </table>
+        </div>
+      </div>
+
+      <div *ngIf="selectedKPI == 12" class="col s7">
+        <div class="text">
+          <h4 class="title blue-text">{{displayKPIName}}</h4>
+          <p class="description">
+            <!-- A method of practicing how a building would be evacuated in the event of emergencies. AS3745 requires all facilities to participate in at least one evacuation exercise each year to test the emergency plan’s effectiveness.-->
+            {{displayKPIDescription}}
+          </p>
+        </div>
+        <div class="col l8 m12 s12">
+            <div class="diagram-top-of-table">
+              <h5 class="blue-text title">Document List</h5>
+              <div class="buttons">
+                <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs()" style="display: block;">Upload Document</button>
+              </div>
+            </div>
+            <table class="striped table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Filename</th>
+                    <th>Date Of Activity</th>
+                    <th>Validity (months)</th>
+                    <th>Expiry</th>
+                    <th>Timestamp</th>
+                    <th style="width: 10%;">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let doc of documentFiles">
+                    <td>{{doc['compliance_documents_id']}}</td>
+                    <td>{{doc['document_type']}}</td>
+                    <td>{{doc['file_name']}}</td>
+                    <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
+                    <td>{{doc['validity_in_months']}}</td>
+                    <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
+                    <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
+                    <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+                  </tr>
+                </tbody>
+              </table>
+          </div>
+        </div>
+
+        <div *ngIf="selectedKPI == 13" class="col s7">
+          <div class="text">
+            <h4 class="title blue-text">{{displayKPIName}}</h4>
+            <p class="description">
+              <!-- A method of practicing how a building would be evacuated in the event of emergencies. AS3745 requires all facilities to participate in at least one evacuation exercise each year to test the emergency plan’s effectiveness.-->
+              {{displayKPIDescription}}
+            </p>
+          </div>
+          <div class="col l8 m12 s12">
+              <div class="diagram-top-of-table">
+                <h5 class="blue-text title">Document List</h5>
+                <div class="buttons">
+                  <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs()" style="display: block;">Upload Document</button>
+                </div>
+              </div>
+              <table class="striped table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Type</th>
+                      <th>Filename</th>
+                      <th>Date Of Activity</th>
+                      <th>Validity (months)</th>
+                      <th>Expiry</th>
+                      <th>Timestamp</th>
+                      <th style="width: 10%;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let doc of documentFiles">
+                      <td>{{doc['compliance_documents_id']}}</td>
+                      <td>{{doc['document_type']}}</td>
+                      <td>{{doc['file_name']}}</td>
+                      <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
+                      <td>{{doc['validity_in_months']}}</td>
+                      <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
+                      <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
+                      <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+                    </tr>
+                  </tbody>
+                </table>
+            </div>
+          </div>
+
+          <div class="modal" id="modalManageUpload" style="overflow: visible;">
+            <div class="modal-content" *ngIf="showModalUploadDocsLoader">
+                <div class="center" >
+                    <div class="preloader-wrapper active" >
+                        <div class="spinner-layer spinner-red-only">
+                            <div class="circle-clipper left">
+                                <div class="circle"></div>
+                            </div>
+                            <div class="gap-patch">
+                                <div class="circle"></div>
+                            </div>
+                            <div class="circle-clipper right">
+                                <div class="circle"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+          <form #form="ngForm" [hidden]="showModalUploadDocsLoader">
+            <div class="modal-content">
+                <h5>Upload document for {{displayKPIName}}</h5>
+                <div class="row" style="margin-top: 35px;">
+                    <div class="col m12 l6">
+                        <div class="input-field">
+                            <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+                            <input id="dateOfActivity" autocomplete="off" type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="date_of_activity" (click)="showDatePicker()" required >
+                            <label for="dateOfActivity" class="active" >Date of Activity</label>
+                        </div>
+                    </div>
+
+                    <div class="col m12 l6">
+                        <div class="input-field">
+                            <input id="validTill" type="text" name="valid_till_date" [(ngModel)]="validTillDate" readonly required >
+                            <label for="validTill" class="active">Valid Till</label>
+                        </div>
+                    </div>
+                    <div class="col m12 l6">
+                      <label for="accessType">Type</label>
+                      <select name="document_type" style="display: block;" id="accessType" ngModel required>
+                        <option value="-1" disabled selected>Select Document Type</option>
+                        <option value="Primary">Primary</option>
+                        <option value="Secondary">Secondary</option>
+                        <option value="Admin">Admin</option>
+                      </select>
+                      <br>
+                    </div>
+
+
+                    <div *ngIf="selectedKPI == 5 && sublocations.length > 0" class="col m12 l6">
+                      <label for="sublocation">Sublocation</label>
+                      <select name="sublocation" style="display: block;" id="sublocation" ngModel required>
+                        <option value="-1" disabled selected>Select Subloction</option>
+                        <option *ngFor="let sub of sublocations" [value]="sub['location_id']">{{sub['name']}}</option>
+                      </select>
+                      <br>
+                    </div>
+
+                    <div class="col l12">
+                      <label for="file">Please choose file</label><br>
+                      <input type="file" name="file" id="file" required class="file" #inpFileUploadDocs (change)="onFileSelected()" ngModel>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a class="modal-action modal-close waves-effect waves-red btn-flat" (click)="cancelUploadDocs(form)">Cancel</a>
+                <button class="waves-effect waves-blue btn-flat" type="submit" [disabled]="!form.valid" (click)="submitUploadDocs(form)">Submit</button>
+            </div>
+
+            </form>
+          </div>
+          <div preloader></div>
+ <!-- -->
+</div>
+
+
+
+
