@@ -27,8 +27,10 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   userForm: FormGroup;
   allUsersFormArrName: FormArray;
   smartSearchSelection: string;
+  smartSearchSelectionId: number;
   users = [];
   parentLocationOptionGroup = [];
+  parentLocationOptionGroupForNewUser = [];
   sublocationOptions = [];
   levelUsers;
   filteredList = [];
@@ -38,6 +40,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   genericSub: Subscription;
   genericEmailSearchSub: Subscription[] = [];
   buildings = [];
+  buildingsForNewUser = [];
   options: DatepickerOptions = {
     displayFormat: 'YYYY-MM-DD'
   };
@@ -162,10 +165,10 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             this.filteredList = [];
             this.adminService.searchLocationByName(searchValue).subscribe((response) => {
               this.filteredList = response['data'];
-              console.log('location result', this.filteredList);
+              // console.log('location result', this.filteredList);
               this.adminService.getAccountListingForAdmin(0, searchValue)
                 .subscribe((res) => {
-                  console.log('account list', res['data']['list']);
+                // console.log('account list', res['data']['list']);
                   Object.keys(res['data']['list']).forEach((k) => {
                     this.filteredList.push(res['data']['list'][k]);
                   });
@@ -203,11 +206,11 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
     this.filteredEmailList[index] = [];
     this.assignSearchEmailAbility(index);
-
+    console.log(item);
 
   }
 
-  assignSucceedingDefaultCourse(index:number = 0): void {
+  assignSucceedingDefaultCourse(index: number = 0): void {
     this.defaultTrainingCourse = (<FormArray>this.userForm.get('levelUsers')).controls[index].get('courseTraining').value;
   }
 
@@ -221,20 +224,22 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.adminService.getAllAccountUsers(accountId, 0, 'all').subscribe((response) => {
       const list = response['data']['list'];
       for (const l of list) {
-        for (const loc of l['locations-arr']) {
-          loc['location-parent'] = (loc['location-parent'] == null) ? '' : loc['location-parent'];
-          this.users.push({
-            email: l['email'],
-            role_name: ((loc['account-role']).concat(loc['em-role'])).join(','),
-            first_name: l['first_name'],
-            last_name: l['last_name'],
-            user_id: l['user_id'],
-            account_name: l['account'],
-            account_id: l['account_id'],
-            name: `${loc['location-parent']} ${loc['location-name']}`,
-            parent: loc['location-parent']
-          });
-        }
+        Object.keys(l['locations']).forEach((key) => {
+          l['locations'][key]['location-parent'] =
+            (l['locations'][key]['location-parent'] == null) ? '' : l['locations'][key]['location-parent'];
+            this.users.push({
+              email: l['email'],
+              role_name: ((l['locations'][key]['account-role']).concat(l['locations'][key]['em-role'])).join(','),
+              first_name: l['first_name'],
+              last_name: l['last_name'],
+              user_id: l['user_id'],
+              account_name: l['account'],
+              account_id: l['account_id'],
+              name: l['locations'][key]['location-name'],
+              parent: l['locations'][key]['location-parent'],
+              location_id: key
+            });
+        });
       }
       if (this.users.length > 0) {
         this.userForm = this.formBuilder.group({
@@ -250,6 +255,9 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.adminService.getAllLocationsOnAccount(accountId).subscribe((response) => {
       this.buildings = response['data']['buildings'];
       this.parentLocationOptionGroup = response['data']['levels'];
+
+      this.parentLocationOptionGroupForNewUser = response['data']['levels'];
+      this.buildingsForNewUser = response['data']['buildings'];
     });
 
 
@@ -286,13 +294,14 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   }
 
   public getSelection(id, type, name) {
+    this.smartSearchSelectionId = id;
+    this.smartSearchSelection = type;
+
     if (type == 'location') {
       this.getLocationSelection(id, name);
-      this.smartSearchSelection = 'location';
       this.accountIdForAddUser = 0;
       this.accountSearchResults = [];
       this.newUserAccount.reset();
-
     } else {
       this.accountIdForAddUser = id;
       this.newUserAccount.setValue(name);
@@ -424,18 +433,25 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.accountIdForAddUser = accountId;
     this.accountSearchResults = [];
     this.accountSearchSub = this.searchAccount();
+    this.adminService.getAllLocationsOnAccount(accountId).subscribe((response) => {
+      this.parentLocationOptionGroupForNewUser = response['data']['levels'];
+      this.buildingsForNewUser = response['data']['buildings'];
+    });
   }
 
   searchAccount(): Subscription {
+    console.log('searchAccount() was called');
     return this.newUserAccount.valueChanges.debounceTime(350).subscribe((value) => {
-      this.accountSearchResults = [];
       if (value != null && value.length > 0) {
         this.adminService.getAccountListingForAdmin(0, value)
         .subscribe((res) => {
+          this.accountSearchResults = [];
           Object.keys(res['data']['list']).forEach((k) => {
             this.accountSearchResults.push(res['data']['list'][k]);
           });
         });
+      } else {
+        this.accountSearchResults = [];
       }
     });
   }
@@ -443,7 +459,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   showModalNewUser() {
     $('#newUserModal').modal('open');
     this.accountSearchSub = this.searchAccount();
-  } 
+    this.accountSearchResults = [];
+  }
 
   cancelAddNewUser(): void {
     this.accountSearchSub.unsubscribe();
@@ -455,7 +472,56 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.newUserRole.reset();
     this.newUserLocation.reset();
     this.newUserAccount.reset();
-    
+  }
+
+  public registerNewUser() {
+    const values = [];
+    values.push({
+      first_name: this.newFirstName.value,
+      last_name: this.newLastname.value,
+      password: 'Password123',
+      email: this.newUserEmail.value,
+      role: this.newUserRole.value,
+      location: this.newUserLocation.value,
+      contact: '',
+      account_id: this.accountIdForAddUser
+    });
+    console.log(JSON.stringify(values));
+    this.adminService.submitNewUsers(JSON.stringify(values)).subscribe((response) => {
+
+      // update all buffers
+      if (this.smartSearchSelection == 'location') {
+        this.adminService.getLocationLevelUsers(this.smartSearchSelectionId.toString()).subscribe((locRes) => {
+          this.users = locRes['users'];
+        });
+      } else {
+        this.adminService.getAllAccountUsers(this.smartSearchSelectionId, 0, 'all').subscribe((acctRes) => {
+          const list = acctRes['data']['list'];
+          this.users = [];
+          const accountLocations = [];
+          for (const l of list) {
+            Object.keys(l['locations']).forEach((key) => {
+              l['locations'][key]['location-parent'] =
+                (l['locations'][key]['location-parent'] == null) ? '' : l['locations'][key]['location-parent'];
+                this.users.push({
+                  email: l['email'],
+                  role_name: ((l['locations'][key]['account-role']).concat(l['locations'][key]['em-role'])).join(','),
+                  first_name: l['first_name'],
+                  last_name: l['last_name'],
+                  user_id: l['user_id'],
+                  account_name: l['account'],
+                  account_id: l['account_id'],
+                  name: l['locations'][key]['location-name'],
+                  parent: l['locations'][key]['location-parent'],
+                  location_id: key
+                });
+            });
+          }
+        });
+      }
+      this.cancelAddNewUser();
+      $('#newUserModal').modal('close');
+    });
   }
 
 }

@@ -100,6 +100,7 @@ export class AdminRoute extends BaseRoute {
       let tempArr = [req.query.location];
       for (const s of sublocations) {
         tempArr.push(s['location_id']);
+        s['id'] = s['location_id'];
       }
 
       const userAccountRoles = await lauObj.getUsersInLocationId(tempArr);
@@ -625,12 +626,12 @@ export class AdminRoute extends BaseRoute {
     });
 
     router.post('/admin/upload/compliance/evac-diagrams/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-        const 
+        const
             evacDiagramFiles = [],
             errMsgs = [],
             rejectedFiles = [];
 
-        let 
+        let
             filename = '',
             temp,
             dirPath = '',
@@ -672,7 +673,7 @@ export class AdminRoute extends BaseRoute {
                 temp = null;
                 file_parts = f['originalname'].split(/\s+/);
 
-                let 
+                let
                 accntName ='',
                 buildingName = '',
                 levelName = '',

@@ -27,15 +27,6 @@
       <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
       <input id="dtTraining" [formControl]="dtTrainingField" autocomplete="off" type="text" (click)="showDatePicker()" required>
     </div>
-    <!--
-      <div class="col s3">
-        <select [formControl]="trainingCourseField" style="display: block;" id="trainingCourse">
-          <option [value]="null" [disabled]="true == true">Training Course</option>
-          <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
-        </select>
-      </div>
-     -->
-
     <div class="col s3">
       <select [formControl]="trainingModeField" style="display: block;" id="trainingMode">
         <option [value]="null" [disabled]="true == true">Training Mode</option>
@@ -52,16 +43,14 @@
             <th>Email Address</th>
             <th>First Name</th>
             <th>Last Name</th>
-            <th *ngIf="smartSearchSelection == 'location'">Account</th>
-            <th *ngIf="smartSearchSelection == 'account'">Main Location</th>
-            <th>Sub Location</th>
+            <th>Account</th>
+            <th>Location</th>
             <th>Training Course</th>
             <th>Add Exception</th>
           </tr>
         </thead>
         <tbody formArrayName="levelUsers" *ngIf="users.length > 0">
           <tr *ngFor="let u of userForm.get('levelUsers')['controls']; let i = index;" [formGroupName]="i">
-            <!-- <td></td> -->
             <td>
               <input formControlName="email" type="text" placeholder="search email" autocomplete="off">
               <input formControlName="user_id" type="hidden">
@@ -78,18 +67,14 @@
             </td>
             <td><input formControlName="first_name" type="text"></td>
             <td><input formControlName="last_name" type="text"></td>
-            <td *ngIf="smartSearchSelection == 'location'">
+            <td>
               <input formControlName="account_name" type="text">
               <input formControlName="accountId" type="hidden">
             </td>
-            <td *ngIf="smartSearchSelection == 'account'">
-                Main Location Name
-            </td>
-
             <td>
                 <select formControlName="sublocation_id" style="display: block;" id="trainingCourse">
                   <optgroup *ngFor="let parent of parentLocationOptionGroup" label="{{parent['parent_location_name']}}">
-                      <option *ngFor="let sub of parent['sublocations']" [value]="sub.location_id">{{sub.name}}</option>
+                      <option *ngFor="let sub of parent['sublocations']" [value]="sub.id">{{sub.name}}</option>
                   </optgroup>
                 </select>
             </td>
@@ -193,7 +178,7 @@
           <div class="col s12">
               <label>Choose new user emergency role</label>
               <select [formControl]="newUserRole" (change)="switchLocationDropDown($event)" style="display: block;">
-                <option disabled selected value="0">Roles</option>
+                <option [value]="null" [disabled]="true == true">Roles</option>
                 <option *ngFor="let r of roles" [value]="r.role_id">{{r.role_name}}</option>
               </select>
               <span *ngIf="!newUserRole.valid && newUserRole.touched">
@@ -204,8 +189,8 @@
           <div *ngIf="selectedRole == 1 || selectedRole == 11 || selectedRole == 15 || selectedRole == 16 || selectedRole == 18; else leveldropdown" class="col s12">
               <label>Assign location</label>
               <select [formControl]="newUserLocation" style="display: block;">
-                <option disabled selected value="0">Select Building Location</option>
-                <option *ngFor="let building of buildings" [value]="building.location_id">{{building.name}}</option>
+                <option [value]="null" [disabled]="true == true">Select Building Location</option>
+                <option *ngFor="let building of buildingsForNewUser" [value]="building.location_id">{{building.name}}</option>
               </select>
               <span *ngIf="!newUserLocation.valid && newUserLocation.touched">
                   Locations is required.
@@ -215,22 +200,43 @@
               <div class="col s12">
                 <label>Assign location</label>
                 <select [formControl]="newUserLocation" style="display: block;">
-                    <optgroup *ngFor="let parent of parentLocationOptionGroup" label="{{parent['parent_location_name']}}">
-                        <option *ngFor="let sub of parent['sublocations']" [value]="sub.location_id">{{sub.name}}</option>
+                    <optgroup label="">
+                        <option [value]="null" [disabled]="true == true">Select Location</option>
+                    </optgroup>
+                    <optgroup *ngFor="let parent of parentLocationOptionGroupForNewUser" label="{{parent['parent_location_name']}}">
+                        <option *ngFor="let sub of parent['sublocations']" [value]="sub.id">{{sub.name}}</option>
                     </optgroup>
                 </select>
                 <span *ngIf="!newUserLocation.valid && newUserLocation.touched">
                     Locations is required.
                   </span>
               </div>
-            </ng-template>            
+            </ng-template>
         </div>
         <div class="row button-container">
             <div class="col s12 m12 l12 right-align">
-              <a class=" btn modal-close grey lighten-1 waves-effect waves-light cancel">Cancel</a>
+              <a class=" btn modal-close grey lighten-1 waves-effect waves-light cancel" (click)="cancelAddNewUser()">Cancel</a>
+              <input type="submit" value="Submit" [ngClass]="{
+                  'btn': true,
+                  'cancel': (!newFirstName.valid ||
+                      !newUserEmail.valid ||
+                      !newLastname.valid ||
+                      !newUserAccount.valid ||
+                      !newUserRole.valid ||
+                      !newUserLocation.valid) == true,
+                  'waves-effect': true,
+                  'waves-light': true
+                }"
+                [disabled]="!newFirstName.valid ||
+                            !newUserEmail.valid ||
+                            !newLastname.valid ||
+                            !newUserAccount.valid ||
+                            !newUserRole.valid ||
+                            !newUserLocation.valid"
+                (click)="registerNewUser()" />
             </div>
         </div>
-      </div>      
+      </div>
     </form>
 </div>
 <div preloader></div>
