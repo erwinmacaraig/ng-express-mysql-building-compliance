@@ -48,7 +48,9 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("general_occupant_trainingTableTemplate") general_occupant_trainingTableTemplate : ElementRef;
 	@ViewChild("sundryTableTemplate") sundryTableTemplate : ElementRef;
 
-	userData = {};
+	userData = <any> {};
+    isFRP = false;
+    isTRP = false;
     complianceSublocations = [];
 	selectedComplianceTitle = '';
 	selectedComplianceDescription = '';
@@ -156,40 +158,49 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     evacExerciseComplianceId = 0;
 
 	constructor(
-  		private router : Router,
-  		private route: ActivatedRoute,
-  		private authService : AuthService,
-  		private userService: UserService,
-		private signupServices: SignupService,
-		private dashboard : DashboardPreloaderService,
-		private complianceService : ComplianceService,
-		private locationService : LocationsService,
-		private encryptDecrypt : EncryptDecryptService,
-        private adminService : AdminService,
-        private messageService : MessageService
-		){
+      private router : Router,
+      private route: ActivatedRoute,
+      private authService : AuthService,
+      private userService: UserService,
+      private signupServices: SignupService,
+      private dashboard : DashboardPreloaderService,
+      private complianceService : ComplianceService,
+      private locationService : LocationsService,
+      private encryptDecrypt : EncryptDecryptService,
+      private adminService : AdminService,
+      private messageService : MessageService
+    ) {
 
-		this.userData = this.authService.getUserData();
+    this.userData = this.authService.getUserData();
 
-        this.setDatePickerDefaultDate();
+    for(let role of this.userData.roles){
+        if(role.role_id == 1){
+            this.isFRP = true;
+        }
+        if(role.role_id == 2){
+            this.isTRP = true;
+        }
+    }
 
-		this.route.params.subscribe((params) => {
-			this.encryptedID = decodeURIComponent(params['encrypted']);
-			this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
-		});
+    this.setDatePickerDefaultDate();
 
-        this.msgSubs = this.messageService.getMessage().subscribe((message) => {
-            if(message.epcform){
-                if(message.epcform == 'hide'){
-                    this.showEPCform = false;
-                }
-            }else if(message.getLocationId){
-                this.messageService.sendMessage({
-                    'locationId' : this.locationID
-                });
-            }
-        });
-	}
+    this.route.params.subscribe((params) => {
+      this.encryptedID = decodeURIComponent(params['encrypted']);
+      this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
+    });
+
+    this.msgSubs = this.messageService.getMessage().subscribe((message) => {
+      if(message.epcform){
+          if(message.epcform == 'hide') {
+              this.showEPCform = false;
+          }
+      } else if(message.getLocationId) {
+          this.messageService.sendMessage({
+              'locationId' : this.locationID
+          });
+      }
+    });
+  }
 
     setDatePickerDefaultDate(){
         this.datepickerModel = moment().add(1, 'days').toDate();
@@ -207,8 +218,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 				if(comp.docs.length > 0) {
 					for(let doc of comp.docs){
-                        doc['timestamp_formatted'] = moment(doc["timestamp"]).format("DD/MM/YYYY");
-                        doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');
+            doc['timestamp_formatted'] = moment(doc["timestamp"]).format("DD/MM/YYYY");
+            doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');
 					}
 				}
 			}
@@ -270,7 +281,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
             }
             this.locationData = response.location;
             this.locationData['parentData'] = response.parent;
-            this.locationData.parentData['sublocations'] = response.siblings; console.log(this.locationData.parentData['sublocations']);
+            this.locationData.parentData['sublocations'] = response.siblings;
             this.locationData.parentData.location_id = this.encryptDecrypt.encrypt(this.locationData.parentData.location_id);
             if (response.siblings.length) {
                 for (let i = 0; i < response.siblings.length; i++) {
@@ -300,8 +311,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                         }
                     }
 
-                    if(cb){ 
-                        cb(); 
+                    if(cb){
+                        cb();
                     }else{
                         setTimeout(() => {
                             $('.row-diagram-details').css('left', ( $('.row-table-content').width() ) + 'px' );
@@ -316,7 +327,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 this.evacDiagramSublocations = responseSubs.data.sublocations;
             });
         });
-	}
+  }
 
 	ngAfterViewInit(){
 		$('.workspace.container').css('position', 'relative');
@@ -344,9 +355,9 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         });
 	}
 
-	clickSelectComplianceFromList(compliance){
+	clickSelectComplianceFromList(compliance) {
         this.selectedCompliance = compliance;
-        console.log(this.selectedCompliance);
+            console.log(this.selectedCompliance);
     		let attr = compliance.short_code,
     			allTr = $("tr[compliance]"),
     			tr = $("tr[compliance='"+attr+"']");
@@ -541,12 +552,27 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
     completedEvacExerEvent(event){
         this.complianceService.evacExerciseCompleted({
+            location_id : this.locationID,
             compliance_id : this.evacExerciseComplianceId,
             status : event.target.checked
         }).subscribe((response) => {
             this.ngOnInit(() => {
                 setTimeout(() => {
                     this.clickSelectComplianceFromList(this.KPIS[6]);
+                },500);
+            });
+        });
+    }
+
+    completedFASEvent(event){
+        this.complianceService.fsaCompleted({
+            location_id : this.locationID,
+            compliance_id : this.selectedCompliance['compliance']['compliance_id'],
+            status : event.target.checked
+        }).subscribe((response) => {
+            this.ngOnInit(() => {
+                setTimeout(() => {
+                    this.clickSelectComplianceFromList(this.KPIS[1]);
                 },500);
             });
         });

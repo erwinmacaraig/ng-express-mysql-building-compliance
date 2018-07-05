@@ -103,5 +103,19 @@ export class AdminService {
     return this.http.get(this.baseUrl + '/admin/location/search/', this.options);
   }
 
+  getLocationLevelUsers(parent_location_id: string) {
+    const httpParams = new HttpParams().set('location', parent_location_id);
+    this.options['params'] = httpParams;
+    return this.http.get(this.baseUrl + `/admin/training-validation-location-users/`, this.options);
+  }
+
+  getTrainingRequirementList() {
+    return this.http.get(`${this.baseUrl}/admin/list/training-requirements/`, this.options);
+  }
+
+  validateUserTrainings(users: string) {
+    return this.http.post(`${this.baseUrl}/admin/validate-training/`, {users: users}, this.options);
+  }
+
 }
 

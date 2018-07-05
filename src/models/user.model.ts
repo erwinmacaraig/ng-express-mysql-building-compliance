@@ -434,7 +434,7 @@ export class User extends BaseClass {
         WHERE
           certifications.user_id = ? ${filterStr}`;
 
-      
+
       const connection = db.createConnection(dbconfig);
       connection.query(sql_certifications, [uid], (error, results, fields) => {
         if (error) {
@@ -620,6 +620,9 @@ export class User extends BaseClass {
           first_name LIKE '%${filter['query']}%' OR last_name LIKE '%${filter['query']}%'
           OR email like '%${filter['query']}%'
           LIMIT 10`;
+        }
+        if ('query' in filter && filter['query'] == 'all') {
+          sql = `SELECT user_id FROM users WHERE account_id = ? AND archived = 0`;
         }
         const connection = db.createConnection(dbconfig);
         connection.query(sql, [accountId], (error, results) => {

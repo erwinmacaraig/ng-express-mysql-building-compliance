@@ -12,13 +12,13 @@
 
 .completion{
     text-align: center;
-    color: #c91e2f;
+    color: #3d3d3d;
     font-size: 14px;
     font-weight: bold;
 }
 
 .compliacne-rating{
-    color: #c91e2f;
+    color: #3d3d3d;
     font-size: 18px;
 }
 
@@ -49,7 +49,7 @@
     left: 0px;
     width: 100%;
     height: 100%;
-    border: 0.1em solid #c91e2f;
+    border: 0.1em solid #2196f3;
     border-radius: 50%;
     clip: rect(0em, 0.5em, 1em, 0em);
 }
@@ -67,7 +67,7 @@
     display: block;
     background: none;
     border-radius: 50%;
-    color: #c91e2f;
+    color: #3d3d3d;
     font-size: 0.25em;
     line-height: 2.9em;
     text-align: center;
@@ -76,7 +76,7 @@
 }
 
 .pie-wrapper .smaller {
-    color: #c91e2f;
+    color: #3d3d3d;
     font-size: .45em;
     vertical-align: top;
 }
@@ -566,7 +566,7 @@ td.btn-block-holder .btn{
 }
 
 table tbody tr td.with-bar .text{
-    color: #F44336 !important;
+    color: #3d3d3d !important;
     margin-right: 12px;
 }
 
@@ -590,7 +590,7 @@ table tbody tr td .progress{
     height: 10px;
     display: block;
     width: 100%;
-    background-color: #dc44534d;
+    background-color: #2196f33b;
     border-radius: 2px;
     margin: 0px;
     overflow: hidden;
@@ -601,7 +601,7 @@ table tbody tr td .progress .determinate{
     top: 0;
     left: 0;
     bottom: 0;
-    background-color: #cb0d20;
+    background-color: #2196F3;
     transition: width .3s linear;
 }
 

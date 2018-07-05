@@ -74,7 +74,7 @@
 						</p>
 					</th>
 					<th *ngIf="isFRP == true">Sub-location floor</th>
-					<th>No. of Tenants</th>
+					<th *ngIf="isFRP == true">No. of Tenants</th>
 					<th>No. of Wardens</th>
 					<th>Mobility Impaired</th>
 					<th>Compliance</th>
@@ -126,7 +126,7 @@
 					<td *ngIf="isFRP == true">
 						{{location.sublocation_count}}
 					</td>
-					<td>
+					<td *ngIf="isFRP == true">
 						<span style="margin-right:10px;">{{location.num_tenants}}</span>
 						<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', location.location_id]" > Add tenants </a> -->
 					</td>

@@ -5,7 +5,7 @@
             
             <div class="center" [hidden]="!showLoadingCompliance">
                 <div class="preloader-wrapper center big active" >
-                    <div class="spinner-layer spinner-red-only">
+                    <div class="spinner-layer spinner-blue-only">
                         <div class="circle-clipper left">
                             <div class="circle"></div>
                         </div>
@@ -37,8 +37,8 @@
 				<span class="end number">0 </span>
 				<span class="end">completion</span>
 			</p>
-			<h5 *ngIf="locationData.admin_verified == 0 && !showLoadingCompliance" class="red-text center">For Verification</h5>
-			<a *ngIf="locationData.admin_verified == 1 && !showLoadingCompliance" class="btn red waves-effect waves-light darken-3" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
+			<h5 *ngIf="locationData.admin_verified == 0 && !showLoadingCompliance" class="blue-text center">For Verification</h5>
+			<a *ngIf="locationData.admin_verified == 1 && !showLoadingCompliance" class="btn blue waves-effect waves-light" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
 		</div>
 	</div>
 	<div class="col l10 m10 s12">

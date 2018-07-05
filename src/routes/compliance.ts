@@ -297,24 +297,24 @@ import * as S3Zipper from 'aws-s3-zipper';
         }
 
         /*
-        ** New Compliance Percentage Computation Based On User's Role 
+        ** New Compliance Percentage Computation Based On User's Role
         ** Indexed with KPIS IDS
         */
-        let 
+        let
         frpRates = {
             2 : { kpis : 'EPC Meeting', valid : 10, no_docs : 0, expired_docs : 5, epc_headoffice_points : 10 },
             3 : { kpis : 'Fire Safety Advisor', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 15, epc_headoffice_points : 20 },
             5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             6 : { kpis : 'Warden Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             8 : { kpis : 'General Occupant Training', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 15, epc_headoffice_points : 20 },
             12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
         },
         trpRates = {
             2 : { kpis : 'EPC Meeting', valid : 0, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             3 : { kpis : 'Fire Safety Advisor', valid : 15, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 20, no_docs : 0, expired_docs : 15, epc_headoffice_points : 20 },
             5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             6 : { kpis : 'Warden Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             8 : { kpis : 'General Occupant Training', valid : 25, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
@@ -322,13 +322,13 @@ import * as S3Zipper from 'aws-s3-zipper';
             12 : { kpis : 'Chief Warden Training', valid : 0, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
         },
         trpWholeOcccupierRates = {
-            2 : { kpis : 'EPC Meeting', valid : 5, no_docs : 0, expired_docs : 2.5, epc_headoffice_points : 5 },
+            2 : { kpis : 'EPC Meeting', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 5 },
             3 : { kpis : 'Fire Safety Advisor', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            4 : { kpis : 'Emergency Procedures Manual', valid : 15, no_docs : 0, expired_docs : 7.5, epc_headoffice_points : 15 },
+            4 : { kpis : 'Emergency Procedures Manual', valid : 15, no_docs : 0, expired_docs : 10, epc_headoffice_points : 15 },
             5 : { kpis : 'Evac Diagram', valid : 5, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             6 : { kpis : 'Warden Training', valid : 20, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
             8 : { kpis : 'General Occupant Training', valid : 15, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 },
-            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 10, epc_headoffice_points : 20 },
+            9 : { kpis : 'Evacuation Exercise', valid : 20, no_docs : 0, expired_docs : 15, epc_headoffice_points : 20 },
             12 : { kpis : 'Chief Warden Training', valid : 10, no_docs : 0, expired_docs : 0, epc_headoffice_points : 0 }
         },
         locAccUserModel = new LocationAccountUser(),
@@ -336,7 +336,8 @@ import * as S3Zipper from 'aws-s3-zipper';
         loc = <any> (formData) ? (formData.location) ?  formData.location : {} :  {},
         userComplianceRole = '',
         userLocationData = <any> {},
-        isWholeBuildingOccupier = (role == 1) ?  true : false,
+
+        isWholeBuildingOccupier = false,
         rates = JSON.parse(JSON.stringify(frpRates)),
         theBuilding = <any>{
             location_id : -1
@@ -354,7 +355,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         }catch(e){}
 
         this.response['building'] = theBuilding;
-        
+
         const utils = new Utils(),
             training = new TrainingCertification(),
             locationModel = new Location(locationID),
@@ -366,11 +367,11 @@ import * as S3Zipper from 'aws-s3-zipper';
             paths = [];
         }
 
-        let 
+        let
             sublocsids = [],
             subLocsModel = new Location(),
             sublocs = <any> await subLocsModel.getChildren(locationID);
-            
+
         for(let sub of sublocs){
             sublocsids.push(sub.location_id);
         }
@@ -546,7 +547,7 @@ import * as S3Zipper from 'aws-s3-zipper';
               // console.log(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]);
             }
 
-            if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation) {
+            if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation || defs['em_roles']['DEPUTY_CHIEF_WARDEN'] in emrolesOnThisLocation) {
                 // console.log(emrolesOnThisLocation['12']);
                 if (emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'].length > 0) {
                     let locId;
@@ -559,18 +560,28 @@ import * as S3Zipper from 'aws-s3-zipper';
                             );
                         }
                     }
+                } else if (emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location'].length > 0) {
+                    let locId;
+                    for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location'].length; i++) {
+                        locId = emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location'][i].toString();
+                        if (emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['users'].length > 0) {
+                            emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['training'] =
+                            await training.getEMRUserCertifications(
+                              emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['users']
+                            );
+                        }
+                    }
                 } else {
                     console.log('There is no chief warden assigned to this location');
                 }
             }
 
-            this.response['emrolesOnThisLocation'] = emrolesOnThisLocation;
             // console.log(emrolesOnThisLocation);
         } catch (e) {
             console.log(e);
             emrolesOnThisLocation = {};
         }
-            
+
         for(let kpi of kpis){
             if(kpi.compliance_kpis_id == evacDiagramId){
                 kpi['measurement'] = 'Precent';
@@ -585,7 +596,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         arrWhereCompliance.push(['building_id = ' + locationID]);
         arrWhereCompliance.push(['account_id = ' + accountID + ' GROUP BY compliance_kpis_id' ]);
 
-        let 
+        let
         compliances = [],
         hasCompliancesFormData = false;
 
@@ -634,7 +645,6 @@ import * as S3Zipper from 'aws-s3-zipper';
         docsLocIds.push(theBuilding.location_id);
 
         whereDocs.push(['compliance_documents.building_id IN (' + docsLocIds.join(',') + ')' ]);
-        whereDocs.push(['compliance_documents.account_id = ' + accountID]);
         whereDocs.push(['compliance_documents.document_type = "Primary" ']);
         docs = await complianceDocsModel.getWhere(whereDocs);
 
@@ -652,12 +662,6 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         for(let d of docs){
             d.timestamp_formatted = (moment(d.timestamp_formatted).isValid()) ? moment(d.timestamp_formatted).format('DD/MM/YYYY') : '00/00/0000';
-
-            if(d.compliance_kpis_id == epmId){
-                try {
-                    d['filePaths'] = await utils.s3DownloadFilePathGen(accountID, d.building_id);
-                } catch (e) { }
-            }
         }
 
         for (let c in compliances) {
@@ -709,9 +713,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                     comp['days_remaining'] = validTillMoment.diff(today, 'days');
                     comp['valid'] = 1;
                     comp['percentage'] = '100%';
-                } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') >= 0 && validTillMoment.diff(today, 'days') <= 30) {
-                    comp['validity_status'] = 'expiring';
-                } else if (comp['docs'][0] && validTillMoment.diff(today, 'days') <= 0) {
+                }  else if (comp['docs'][0]) {
                     comp['validity_status'] = 'invalid';
                 }
 
@@ -794,7 +796,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                         console.log(e);
                       }
 
-                      
+
 
                       // computation per location section (signifance: FRP)
                       if (Object.keys(comp['location_details']).length === 0) {
@@ -835,6 +837,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                     comp['percentage'] = tempPercetage + '%';
                     if(tempPercetage >= 100){
                         comp['valid'] = 1;
+                        comp['validity_status'] = 'valid';
+                    }else if(tempPercetage > 0){
+                        comp['validity_status'] = 'invalid';
                     }
                 break;
 
@@ -842,11 +847,11 @@ import * as S3Zipper from 'aws-s3-zipper';
                     // General Occupant Training
                     if (defs['em_roles']['GENERAL_OCCUPANT'] in emrolesOnThisLocation) {
 
-                      comp['total_personnel'] = comp['general_occupant_total'] =
-                      emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['count'];
-                      comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']];
+                        comp['total_personnel'] = comp['general_occupant_total'] =
+                        emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['count'];
+                        comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']];
 
-                      try {
+                        try {
                             comp['total_personnel_trained'] =
                             await training.getEMRUserCertifications(
                               emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['users'],
@@ -856,6 +861,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['percentage'] = tempPercetage + '%';
                             if (tempPercetage >= 100){
                                 comp['valid'] = 1;
+                                comp['validity_status'] = 'valid';
+                            }else if(tempPercetage > 0){
+                                comp['validity_status'] = 'invalid';
                             }
                         } catch (e) {
                             comp['total_personnel'] = 0;
@@ -871,10 +879,10 @@ import * as S3Zipper from 'aws-s3-zipper';
                 break;
 
                 case 12:
-                    // Chief Warden Training
+                    // Chief Warden Training & Deputy Chief Warden
+                    
                     if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation) {
-                            comp['total_personnel'] =  comp['chief_warden_total'] =
-                            emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['count'];
+                        comp['total_personnel'] =  comp['chief_warden_total'] = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['count'];
                         comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']];
                         try {
                             comp['total_personnel_trained'] =
@@ -886,12 +894,16 @@ import * as S3Zipper from 'aws-s3-zipper';
                             /* If 1 Chief warden passed the training, this compliance is valid */
                             if( comp['total_personnel_trained']['total_passed'] > 0 ){
                                 tempPercetage = 100;
+                                comp['validity_status'] = 'valid';
                             }
 
                             // tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
                             comp['percentage'] = tempPercetage + '%';
                             if(tempPercetage >= 100){
                                 comp['valid'] = 1;
+                                comp['validity_status'] = 'valid';
+                            }else if(tempPercetage > 0){
+                                comp['validity_status'] = 'invalid';
                             }
                         } catch (e) {
                             comp['total_personnel'] = 0;
@@ -903,6 +915,67 @@ import * as S3Zipper from 'aws-s3-zipper';
                             comp['percentage'] = '0%';
                         }
                     }
+
+                    if (defs['em_roles']['DEPUTY_CHIEF_WARDEN'] in emrolesOnThisLocation) {
+                        if(comp['total_personnel'] == null || comp['total_personnel'] == ''){
+                            comp['total_personnel'] = 0;
+                            comp['chief_warden_total'] = 0;
+                        }
+
+                        comp['total_personnel'] +=  emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['count'];
+                        comp['chief_warden_total'] +=  emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['count'];
+                        try {
+                            let deputyTrained =
+                                await training.getEMRUserCertifications(
+                                    emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['users'],
+                                    {'em_role_id': defs['em_roles']['DEPUTY_CHIEF_WARDEN']}
+                                );
+
+                            if(comp['total_personnel_trained']['failed']){
+                                comp['total_personnel_trained']['failed'] = comp['total_personnel_trained']['failed'].concat(deputyTrained['failed']);
+                            }
+
+                            if(comp['total_personnel_trained']['passed']){
+                                comp['total_personnel_trained']['passed'] = comp['total_personnel_trained']['passed'].concat(deputyTrained['passed']);
+                            }
+
+                            if( deputyTrained['total_passed'] > 0 ){
+                                tempPercetage = 100;
+                                comp['validity_status'] = 'valid';
+                            }
+
+                            // tempPercetage = Math.round((comp['total_personnel_trained']['total_passed'] / comp['total_personnel']) * 100);
+                            if(comp['percentage_number'] < 100 || tempPercetage == 100){
+                                comp['percentage'] = tempPercetage + '%';
+                                if(tempPercetage >= 100){
+                                    comp['valid'] = 1;
+                                    comp['validity_status'] = 'valid';
+                                }else if(tempPercetage > 0){
+                                    comp['validity_status'] = 'invalid';
+                                }
+                            }
+                        } catch (e) {
+                            comp['total_personnel'] = 0;
+                            comp['total_personnel_trained'] = {
+                                'total_passed' : 0,
+                                'passed': [],
+                                'failed': []
+                            };
+                            comp['percentage'] = '0%';
+                        }
+                    }
+
+                    if(comp['total_personnel_trained']){
+                        let percentage = (comp['total_personnel_trained']['passed'].length / comp['total_personnel']) * 100;
+                        comp['total_personnel_trained']['percentage'] = Math.round(percentage)+'%';
+                        if(percentage > 0){
+                            comp['valid'] = 1;
+                            comp['validity_status'] = 'valid';
+                        }else if(percentage > 0){
+                            comp['validity_status'] = 'invalid';
+                        }
+                    }
+
                 break;
 
                 default:
@@ -971,7 +1044,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 comp['num_wardens'] = (wardens[0]) ? wardens[0]['count'] : 0;
             }
 
-            let 
+            let
             buildingDocs = [],
             kpisIdRef;
             if(comp.compliance_kpis_id == epcMeetingId){
@@ -989,26 +1062,35 @@ import * as S3Zipper from 'aws-s3-zipper';
                     }
                 }
 
-                if(buildingDocs[0]){
-                    validTillMoment = moment(buildingDocs[0]['valid_till'], ['DD/MM/YYYY']);
+                if(buildingDocs[0] && comp['docs'].length == 0){
+                    comp['docs'] = buildingDocs;
+                }else if(buildingDocs[0] && comp['docs'].length > 0){
+                    let
+                    bldg = moment(buildingDocs[0]['valid_till'], ['DD/MM/YYYY']),
+                    doc = moment(comp['docs'][0]['valid_till'], ['DD/MM/YYYY']);
+                    if(bldg.isAfter(doc)){
+                        comp['docs'] = buildingDocs;
+                    }
                 }
 
-                if (buildingDocs[0] && validTillMoment.diff(today, 'days') > 0) {
-                    comp['validity_status'] = 'valid';
-                    comp['days_remaining'] = validTillMoment.diff(today, 'days');
-                    comp['valid'] = 1;
-                    comp['percentage'] = '100%';
-                } else if (buildingDocs[0] && validTillMoment.diff(today, 'days') >= 0 && validTillMoment.diff(today, 'days') <= 30) {
-                    comp['validity_status'] = 'expiring';
-                } else if (buildingDocs[0] && validTillMoment.diff(today, 'days') <= 0) {
+                if (comp['docs'][0]) {
                     comp['validity_status'] = 'invalid';
+                    validTillMoment = moment(comp['docs'][0]['valid_till'], ['DD/MM/YYYY']);
+                    if (comp['docs'][0] && validTillMoment.diff(today, 'days') > 0) {
+                        comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : '';
+                        comp['validity_status'] = 'valid';
+                        comp['days_remaining'] = validTillMoment.diff(today, 'days');
+                        comp['valid'] = 1;
+                        comp['percentage'] = '100%';
+                    }
                 }
+
             }
 
             if(relateToSiblingsCompliance && locSiblingsIds.length > 0){
                 if( kpisIdForSiblingsRelated.indexOf( comp.compliance_kpis_id ) > -1 && (comp.compliance_status == 0 ||  validTillMoment.isBefore(today))  ){
 
-                    let 
+                    let
                     sibsComplianceModel = new ComplianceModel(),
                     sibsComplWhere = [];
 
@@ -1024,9 +1106,6 @@ import * as S3Zipper from 'aws-s3-zipper';
                         validTillMoment = moment(sibsCompliances[0]['valid_till']);
                         comp['compliance_status'] = 1;
                         comp['valid_till'] = (validTillMoment.isValid()) ? validTillMoment.format('DD/MM/YYYY') : null;
-
-                        console.log(comp['valid_till']);
-                        console.log(validTillMoment.format('DD/MM/YYYY'));
                     }
 
                     if(!comp['sibsCompliances']){
@@ -1075,7 +1154,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         try{
             userLocationData = await locAccUserModel.getByLocationIdAndUserId(locationID, userId);
-            if(role == 2){
+            if(role == 2 && loc.location_id == locationID && (userLocationData[0]['parent_id'] == -1 || userLocationData[0]['is_building'] == 1 ) ){
                 isWholeBuildingOccupier = (loc.location_id == locationID) ? true : false;
             }
         }catch(e){}
@@ -1131,15 +1210,28 @@ import * as S3Zipper from 'aws-s3-zipper';
                 }else{
                     if(comp['validity_status'] == 'valid' || comp['valid'] == 1){
                         tempPoints = rates[comp.compliance_kpis_id]['valid'];
-                    }else if(comp['validity_status'] == 'expiring' || comp['validity_status'] == 'invalid'){
+                    }else if( comp['validity_status'] == 'invalid' ){
                         tempPoints = rates[comp.compliance_kpis_id]['expired_docs'];
                     }
+                }
+            }
+
+            if( comp.compliance_kpis_id == 8 || comp.compliance_kpis_id == 6 ){
+
+            }
+
+            if( (comp.compliance_kpis_id == 8 || comp.compliance_kpis_id == 6 ) && comp['total_personnel_trained']['percentage']){
+                let num = comp.percentage_number;
+                let ratesValidPnts = rates[comp.compliance_kpis_id]['valid'];
+                if(num < 100){
+                    tempPoints = ratesValidPnts * parseFloat("0."+num);
                 }
             }
 
             comp['points'] = tempPoints;
         }
 
+        this.response['emrolesOnThisLocation'] = emrolesOnThisLocation;
         this.response['rates'] = rates;
         this.response.status = true;
         this.response.data = compliances;
@@ -1155,7 +1247,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         }
 
         if(totalcount > 0){
-            this.response['percent'] = Math.floor((validcount / 100) * 100);
+            this.response['percent'] = Math.round((validcount / 100) * 100);
         }
 
         res.statusCode = 200;
@@ -1179,7 +1271,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         userRoleRel = new UserRoleRelation(),
         r = 0,
         filter = {
-            locationIdOnly : true, 
+            locationIdOnly : true,
             archived : 0
         },
         locations = [],
@@ -1242,7 +1334,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         locModel = new Location(),
         r = 0,
         filter = {
-            locationIdOnly : true, 
+            locationIdOnly : true,
             archived : 0
         },
         locations = [],
@@ -1280,7 +1372,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         let compliances = <any> await complianceModel.getWhere(arrWhereCompliance);
 
         for(let loc of locations){
-            
+
             for(let i in kpis) {
                 let hasKpis = false;
                 for(let c in compliances){
@@ -1325,7 +1417,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
             compliance = await this.getLocationsLatestCompliance(req, res, true, formData);
             response.data.push( compliance );
-            
+
         }
 
         // response['locationIds'] = locationIds;
@@ -1421,7 +1513,7 @@ import * as S3Zipper from 'aws-s3-zipper';
     }
 
     public async saveEpcMinutesOfMeeting(req: AuthRequest, res: Response){
-        let 
+        let
         response = {
             status :  false, data : {}, message : ''
         },
@@ -1445,7 +1537,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             kpisIds.push(kpis[key]['compliance_kpis_id']);
         });
 
-        let 
+        let
         locModel = new Location(req.body.location_id),
         locAccRel = new LocationAccountRelation(),
         kpiEPC = <any> {};
@@ -1456,7 +1548,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
         }
 
-        let 
+        let
         validMonths = kpiEPC.validity_in_months,
         today = moment(),
         validTill = today.add(validMonths, 'months');
@@ -1464,16 +1556,16 @@ import * as S3Zipper from 'aws-s3-zipper';
         response['role'] = role;
 
         try{
-            let 
+            let
             location = <any> await locModel.load(),
             siblings = <any> (role == 2) ? await locAccRel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(req.user.account_id, req.body.location_id) : [],
             allLocs = JSON.parse(JSON.stringify(siblings));
             allLocs.push(location);
             response['allLocs'] = allLocs;
             response['compliances'] = <any> [];
-            
+
             for(let loc of allLocs){
-                let 
+                let
                 arrWhereCompliance = [],
                 complianceModel = new ComplianceModel();
 
@@ -1511,7 +1603,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                 for(let comp of compliances){
                     if(comp.compliance_kpis_id == 2){
-                        let 
+                        let
                         saveData = {
                             'account_id' : req.body.account_id,
                             'location_id' : comp.building_id,
@@ -1562,7 +1654,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                 response['compliances'].push(compliances);
             }
-            
+
             response.status = true;
 
         }catch(e){
@@ -1597,7 +1689,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         });
 
 
-        let 
+        let
         locModel = new Location(locationId),
         locAccRel = new LocationAccountRelation(),
         kpiEvacExer = <any> {};
@@ -1608,7 +1700,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
         }
 
-        let 
+        let
         validMonths = kpiEvacExer.validity_in_months,
         today = moment(),
         validTill = today.add(validMonths, 'months');
@@ -1617,16 +1709,16 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         if(role == 2){
             try{
-                let 
+                let
                 location = <any> await locModel.load(),
                 siblings = <any> await locAccRel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(req.user.account_id, locationId),
                 allLocs = JSON.parse(JSON.stringify(siblings));
                 allLocs.push(location);
                 response['allLocs'] = allLocs;
                 response['compliances'] = <any> [];
-                
+
                 for(let loc of allLocs){
-                    let 
+                    let
                     arrWhereCompliance = [],
                     complianceModel = new ComplianceModel();
 
@@ -1668,7 +1760,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                             let
                             complModel = new ComplianceModel(comp.compliance_id);
                             await complModel.load();
-                            
+
                             if(req.body.status == true){
                                 complModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
                                 complModel.set('compliance_status', 1);
@@ -1683,7 +1775,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                     response['compliances'].push(compliances);
                 }
-                
+
                 response.status = true;
 
             }catch(e){
@@ -1737,7 +1829,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         });
 
 
-        let 
+        let
         locModel = new Location(locationId),
         locAccRel = new LocationAccountRelation(),
         kpiFsa = <any> {};
@@ -1748,7 +1840,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
         }
 
-        let 
+        let
         validMonths = kpiFsa.validity_in_months,
         today = moment(),
         validTill = today.add(validMonths, 'months');
@@ -1757,16 +1849,16 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         if(role == 2){
             try{
-                let 
+                let
                 location = <any> await locModel.load(),
                 siblings = <any> await locAccRel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(req.user.account_id, locationId),
                 allLocs = JSON.parse(JSON.stringify(siblings));
                 allLocs.push(location);
                 response['allLocs'] = allLocs;
                 response['compliances'] = <any> [];
-                
+
                 for(let loc of allLocs){
-                    let 
+                    let
                     arrWhereCompliance = [],
                     complianceModel = new ComplianceModel();
 
@@ -1808,7 +1900,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                             let
                             complModel = new ComplianceModel(comp.compliance_id);
                             await complModel.load();
-                            
+
                             if(req.body.status == true){
                                 complModel.set('valid_till', validTill.format('YYYY-MM-DD HH:mm:ss'));
                                 complModel.set('compliance_status', 1);
@@ -1823,7 +1915,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                     response['compliances'].push(compliances);
                 }
-                
+
                 response.status = true;
 
             }catch(e){

@@ -187,6 +187,7 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
       index <= (<FormArray>this.userForm.get('users')).length; index++) {
         (<FormArray>this.userForm.get('users')).removeAt(index);
     }
+    this.selectedRole = [];
   }
 
 }
