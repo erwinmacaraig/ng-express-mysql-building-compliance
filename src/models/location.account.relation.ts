@@ -247,6 +247,7 @@ export class LocationAccountRelation extends BaseClass {
         if ('responsibility' in filter) {
           if (filter['responsibility'] === defs['Tenant']) {
             filterStr += ` AND lar.responsibility = 'Tenant'`;
+            filterStr += ` AND l.is_building = 0`;
             // not needed due to TRP whole occupier
             // filter['is_building'] = 0; - there are people assigned as Tenant that occupies the whole building
             // that is why the assumption is incorrect, thus commenting this line

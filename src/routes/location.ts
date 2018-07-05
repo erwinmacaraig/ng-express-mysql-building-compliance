@@ -1099,7 +1099,20 @@ const defs = require('../config/defs.json');
         }
 
         for(let sub of sublocations) {
-            let locAccModel = new LocationAccountRelation();
+            let accountModelTenantCount = new Account(),
+                child = await new Location().getParentsChildren(sub.location_id, 1),
+                sublocsIds = [sub.location_id];
+
+            for (let c of child) {
+                sublocsIds.push(c['location_id']);
+            }
+
+            sub['num_tenants'] = 0;
+            if(sublocsIds.length > 0){
+                sub['num_tenants'] = <any> await accountModelTenantCount.countTenantsFromLocationIds( sublocsIds.join(',') );
+            }
+
+            /*let locAccModel = new LocationAccountRelation();
             // locAcc = <any> await locAccModel.getByWhereInLocationIds( sub.location_id );
             const locationAccountUserObj = new LocationAccountUser();
             // listing of roles is implemented here because we are only listing roles on a sub location
@@ -1114,7 +1127,7 @@ const defs = require('../config/defs.json');
               }
             } catch (e) {
               sub['num_tenants']  = 0;
-            }
+            }*/
         }
 
         sublocations = sublocations.sort((a, b) => {
@@ -1133,6 +1146,7 @@ const defs = require('../config/defs.json');
 	    const parentId = <number>location.get('parent_id');
 
 	    if (parentId === -1 ) {
+            response.parent['name'] = '';
 	    	return response;
 	    }
 	    let siblings;
@@ -1330,6 +1344,7 @@ const defs = require('../config/defs.json');
             loc['mobility_impaired'] = impaired.length;
 
         }
+        
 
         if(pagination){
             let

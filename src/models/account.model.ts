@@ -722,6 +722,7 @@ export class Account extends BaseClass {
     }
 
     public countTenantsFromLocationIds(locationIds){
+        if(locationIds.trim().length == 0){ return 0; }
         return new Promise((resolve, reject) => {
             const sql = `
                 SELECT a1.account_id FROM location_account_user lau 
