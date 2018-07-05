@@ -99,7 +99,7 @@ export class UserEmRoleRelation extends BaseClass {
                     INNER JOIN user_em_roles_relation uer ON er.em_roles_id = uer.em_role_id
                     INNER JOIN users u ON u.user_id = uer.user_id
                     LEFT JOIN locations l ON l.location_id = uer.location_id
-                    WHERE u.account_id = ${accountId} AND l.location_id IN (${locIds}) AND l.archived = ${archived}`;
+                    WHERE u.account_id = ${accountId} AND l.location_id IN (${locIds}) AND l.archived = ${archived} AND u.archived = 0`;
 
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
