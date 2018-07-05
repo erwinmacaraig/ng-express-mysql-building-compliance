@@ -274,3 +274,7 @@ select option:disabled{
         width: 90%;
     }
 }
+
+.update-profile-container a.btn{
+    line-height: 45px;
+}

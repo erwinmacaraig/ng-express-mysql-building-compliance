@@ -5,17 +5,18 @@ import { NgForm } from '@angular/forms';
 import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { ViewChild, ElementRef } from '@angular/core';
 import { Subscription } from 'rxjs/Rx';
-
+import { UserService } from '../../services/users';
 import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
 declare var $: any;
+declare var Materialize: any;
 
 @Component({
   selector: 'app-admin-account-users',
   templateUrl: './account-users.component.html',
   styleUrls: ['./account-users.component.css'],
-  providers: [AdminService, DashboardPreloaderService]
+  providers: [AdminService, DashboardPreloaderService, UserService]
 })
 export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewInit {
   accountId = 0;
@@ -27,8 +28,23 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
   public currentPage = 0;
   @ViewChild('selectPage') selectedPage: ElementRef;
 
+  updateProfileData = {
+      user : <any> {
+          user_id : 0, first_name : '', last_name : ''
+      },
+      showForm : () => {
+          $('.update-profile-container').prop('hidden', false);
+          $('.to-hide-in-show-profile-update').prop('hidden', true);
+      },
+      hideForm : () => {
+          $('.update-profile-container').prop('hidden', true);
+          $('.to-hide-in-show-profile-update').prop('hidden', false);
+      }
+  };
+
   constructor(private adminService: AdminService, private route: ActivatedRoute, private router: Router,
-    public dashboard: DashboardPreloaderService
+    public dashboard: DashboardPreloaderService,
+    private userService: UserService
   ) {}
 
   ngOnInit() {
@@ -124,6 +140,32 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
 
       console.log(error);
     });
+  }
+
+  selectActionChangeEvent(user, event){
+      let val = event.target.value;
+      if(val == 'profile'){
+          console.log(user);
+          this.updateProfileData.user = user;
+          this.updateProfileData.showForm();
+
+          setTimeout(() => {
+              Materialize.updateTextFields();
+          }, 500);
+      }
+
+      event.target.value = "0";
+  }
+
+  submitUpdateProfile(formProfile:NgForm){
+        if(formProfile.valid){
+
+            this.userService.update(formProfile.value, (response) => {
+                this.updateProfileData.user.first_name = formProfile.value.first_name;
+                this.updateProfileData.user.last_name = formProfile.value.last_name;
+                this.ngOnInit();
+            });
+        }
   }
 
 }
