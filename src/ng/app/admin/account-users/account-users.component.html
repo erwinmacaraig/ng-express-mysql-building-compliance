@@ -98,7 +98,8 @@
                 <option value="profile">Update Profile</option>
                 <option value="credential">Update Credential</option>
                 <option value="invite">Send Invitation</option>
-                <!-- <option value="location">Assign Location & Role</option> -->
+                <!-- <option value="assign">Assign Trainings</option> -->
+                <option value="location-role">Assign Location & Role</option>
               </select>
           </td>
         </tr>
@@ -231,7 +232,7 @@
                         <th>Course</th>
                         <th>Training ID</th>
                         <th>Training</th>
-                        <th>Date Time</th>
+                        <th>Role</th>
                         <th style="width: 10%">Action</th>
                     </tr>
                 </thead>
@@ -253,7 +254,7 @@
                         <td>{{training.course_name}}</td>
                         <td>{{training.training_requirement_id}}</td>
                         <td>{{training.training_requirement_name}}</td>
-                        <td>{{training.datetime_added}}</td>
+                        <td>{{training.role_name}}</td>
                         <td>
                             <button class="btn grey waves-effect waves-light btn-small btn-send" (click)="sendInvitationClickEvent(training, $event)" >SEND</button>
                         </td>
@@ -269,4 +270,173 @@
         </div>
     </div>
 
+</div>
+
+<div class="assign-trainings-container" hidden>
+    
+    <div class="row">
+        <div class="col l6 m12 s12">
+            <h5>Courses & Trainings From Account ({{sendInvitationData.account.account_name}})</h5>
+            <table class="table striped highlight">
+                <thead>
+                    <th>Course</th>
+                    <th>Training</th>
+                    <th>Date Time</th>
+                </thead>
+                <tbody>
+                    <tr *ngIf="sendInvitationData.trainings.length == 0">
+                        <td colspan="3" class="center">
+                            <h6 *ngIf="sendInvitationData.trainings.length == 0 && sendInvitationData.fetching === true">
+                                Fetching data...
+                            </h6>
+
+                            <h6 *ngIf="sendInvitationData.trainings.length == 0 && sendInvitationData.fetching === false">
+                                No record found!
+                            </h6>
+
+                        </td>
+                    </tr>
+                    <tr *ngFor="let training of sendInvitationData.trainings">
+                        <td>{{training.course_name}}</td>
+                        <td>{{training.training_requirement_name}}</td>
+                        <td>{{training.datetime_added}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col l6 m12 s12">
+            
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <h5>
+                Existing Trainings Of {{assignTrainingsData.user.first_name}} {{assignTrainingsData.user.last_name}}
+            </h5>
+
+            <table class="table striped highlight">
+                <thead>
+                    <tr>
+                        <th>Training ID</th>
+                        <th>Training</th>
+                        <th>Course ID</th>
+                        <th>Course</th>
+                        <th style="width: 10%">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="assignTrainingsData.trainings.length == 0">
+                        <td colspan="6" class="center">
+                            <h6 *ngIf="assignTrainingsData.exisisting.data.length == 0 && assignTrainingsData.exisisting.fetching === true">
+                                Fetching data...
+                            </h6>
+
+                            <h6 *ngIf="assignTrainingsData.exisisting.data.length == 0 && assignTrainingsData.exisisting.fetching === false">
+                                No record found!
+                            </h6>
+                        </td>
+                    </tr>
+                    <tr *ngFor="let training of assignTrainingsData.exisisting.data">
+                        
+
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+
+</div>
+
+
+<div class="location-role-container" hidden>
+    <div class="row">
+        <div class="col l6 m12 s12">
+            <h5>
+                Assign {{assignLocationRoleData.user.first_name}} {{assignLocationRoleData.user.last_name}} To Locations
+                <a class="blue-text right" style="font-size: 20px;" >+Assign New</a>
+            </h5>
+            <table class="table striped highlight">
+                <thead>
+                    <tr>
+                        <th>Location</th>
+                        <th style="width: 30%;">Role</th>
+                        <th style="width: 9%;">Action</th>
+                    </tr>
+                </thead>
+                <tbody *ngIf="assignLocationRoleData.fetching == true">
+                    <tr>
+                        <td colspan="3" class="center">
+                            Fetching record...
+                        </td>
+                    </tr>
+                </tbody>
+
+                <tbody *ngIf="assignLocationRoleData.fetching == false && assignLocationRoleData.toEditLocations.length == 0">
+                    <tr>
+                        <td colspan="3" class="center">
+                            Click assign new link
+                        </td>
+                    </tr>
+                </tbody>
+
+                <tbody *ngIf="assignLocationRoleData.fetching == false && assignLocationRoleData.toEditLocations.length > 0">
+
+                    <tr *ngFor="let loc of assignLocationRoleData.toEditLocations; let i = index;">
+                        <td *ngIf="!loc.deleted">
+                            <a  class="blue-text change-location" (click)="assignLocationRoleData.clickSelectLocation(loc)" *ngIf="loc.location_id > 0">{{loc.name}} </a>
+
+                            <a  class="blue-text change-location" (click)="assignLocationRoleData.clickSelectLocation(loc)" *ngIf="loc.location_id == 0"> Select Location </a>
+
+                            <input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
+                        </td>
+                        <td *ngIf="!loc.deleted">
+                            <select name="role_id[{{i}}]" style="display: block;" (change)="assignLocationRoleData.onChangeSelectRole(loc, $event.currentTarget.value)" >
+                                <option value="0" [selected]="loc.role_id == 0" disabled>Select Role</option>
+                                <option value="1" [selected]="loc.role_id == 1">Building Manager</option>
+                                <option value="2" [selected]="loc.role_id == 2">Tenancy Responsible Personnel</option>
+                                <option value="{{eco.em_roles_id}}" *ngFor="let eco of assignLocationRoleData.eco_roles" [selected]="loc.role_id == eco.em_roles_id ">
+                                    {{eco.role_name}}
+                                </option>
+                            </select>
+                        </td>
+                        <td *ngIf="!loc.deleted">
+                            <a  class="red-text delete" (click)="assignLocationRoleData.removeAssigned(i)">Delete</a>
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+        <div class="col l6 m12 s12">
+            <h5>Select Location for {{assignLocationRoleData.user.first_name+' '+assignLocationRoleData.user.last_name}}</h5>
+            <div class="search-container" >
+                <div class="input-container">
+                    <input type="text" placeholder="Search Location" #inpSearchLocation  >
+                </div>
+                <div class="icon-container">
+                    <img src="assets/images/locations/search_icon.png" alt="">
+                </div>
+            </div>
+
+            <form #formLoc (submit)="submitSelectLocationModal(formLoc, $event)">
+
+                <div class="list-region" style="overflow-y: auto; height: 340px;">
+                    <p *ngIf="assignLocationRoleData.locations.length == 0">No location found</p>
+                    <ul class="locations">
+                    </ul>
+                </div>
+
+                <div class="button-container">
+                    <a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
+                    <button type="submit" class="btn orange waves-effect waves-light" [disabled]="!assignLocationRoleData.formLocValid" *ngIf="locations.length > 0"> Submit </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
 </div>

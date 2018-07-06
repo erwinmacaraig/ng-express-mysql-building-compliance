@@ -121,5 +121,9 @@ export class AdminService {
       return this.http.get(`${this.baseUrl}/admin/account/trainings/`+id, this.options);
   }
 
+  getHierarchyLocationsOnAccount(accountId){
+      return this.http.get(`${this.baseUrl}/admin/account/location-heirarchy/`+accountId, this.options);
+  }
+
 }
 
