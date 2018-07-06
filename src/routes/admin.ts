@@ -39,10 +39,108 @@ export class AdminRoute extends BaseRoute {
     async(req: AuthRequest, res: Response, next: NextFunction) => {
 
       const users: Array<object> = JSON.parse(req.body.users);
-      console.log(users);
-
+      // console.log(users);
+      const invalidUsers = [];
       for (const u of users) {
-        try {
+       if (parseInt( u['user_id'], 10) == 0) {
+         const user = new User();
+         const token = new Token();
+         const locationAccntRel = new LocationAccountRelation();
+         if (validator.isEmail(u['email'])) {
+           try {
+             await user.getByEmail(u['email']);
+           } catch (e) {
+              const locationAccntUser = new LocationAccountUser();
+               await user.create({
+                first_name: u['first_name'],
+                last_name: u['last_name'],
+                email: u['email'],
+                password: md5('Password123456'),
+                can_login: 1,
+                invited_by_user: req.user.user_id,
+                token: md5(u['email']),
+                account_id: u['account_id']
+               });
+
+               await token.create({
+                id: user.ID(),
+                id_type: 'user_id',
+                token: md5(u['email']),
+                action: 'verify',
+                verified: 1,
+                expiration_date: moment().format('YYYY-MM-DD HH-mm-ss')
+              });
+
+              if (parseInt(u['role_id'], 10) > 2) {
+                // EM Roles UserEmRoleRelation
+                try {
+                  const em_user = new UserEmRoleRelation();
+                  em_user.create({
+                    user_id: user.ID(),
+                    em_role_id: u['role_id'],
+                    location_id: u['location_id']
+                  });
+                } catch (e) {
+                  console.log('Unable to create emergency role', e);
+                }
+              } else {
+                try {
+                  await locationAccntUser.create({
+                    location_id: u['location_id'],
+                    account_id: u['account_id'],
+                    user_id: user.ID()
+                  });
+
+                } catch (e) {
+                    console.log('Cannot create entry in db');
+                }
+                try {
+                  await locationAccntRel.getLocationAccountRelation({
+                      'location_id': u['location_id'],
+                      'account_id': u['account_id'],
+                      'responsibility': defs['role_text'][u['role_id']]
+                  });
+                } catch (err) {
+                  await locationAccntRel.create({
+                    'location_id': u['location_id'],
+                    'account_id': u['account_id'],
+                    'responsibility': defs['role_text'][u['role_id']]
+                  });
+                }
+                // User Role Relation
+                const userRoleRelObj = new UserRoleRelation();
+                let accountRole = [];
+                accountRole = await userRoleRelObj.getUserRoleRelationId({
+                  user_id: user.ID(),
+                  role_id: u['role_id']
+                });
+                if (accountRole.length === 0) {
+                  await userRoleRelObj.create({
+                    user_id: user.ID(),
+                    role_id: u['role_id']
+                  });
+                }
+              }
+              try {
+                await new TrainingCertification().checkAndUpdateTrainingCert({
+                  'user_id': user.ID(),
+                  'certification_date': u['certification_date'],
+                  'training_requirement_id': u['training_requirement_id'],
+                  'course_method': u['course_method'],
+                  'pass': '1',
+                  'registered': '1',
+                  'description': 'Training validated by user ' + req.user.user_id + ' on ' + moment().format('YYYY-MM-DD HH:mm:ss')
+                });
+               } catch (e) {
+                 console.log(e, u);
+               }
+           }
+         } else {
+          invalidUsers.push(u['email']);
+         }
+       } else {
+         try {
+
           await new TrainingCertification().checkAndUpdateTrainingCert({
             'user_id': u['user_id'],
             'certification_date': u['certification_date'],
@@ -50,11 +148,13 @@ export class AdminRoute extends BaseRoute {
             'course_method': u['course_method'],
             'pass': '1',
             'registered': '1',
-            'description': 'Training validated on ' + moment().format('YYYY-MM-DD HH:mm:ss')
+            'description': 'Training validated by user ' + req.user.user_id + ' on ' + moment().format('YYYY-MM-DD HH:mm:ss')
           });
-        } catch (e) {
-          console.log(e, u);
-        }
+
+         } catch (e) {
+           console.log(e, u);
+         }
+       }
       }
 
       return res.status(200).send({

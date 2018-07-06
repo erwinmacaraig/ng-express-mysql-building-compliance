@@ -289,7 +289,7 @@ export class List {
                  INNER JOIN locations AS parent_location
                  ON locations.parent_id = parent_location.location_id
                  WHERE locations.parent_id IN (${buildingLocationsStr})
-                 ORDER BY locations.parent_id`; console.log(sql);
+                 ORDER BY locations.parent_id`;
         const connection = db.createConnection(dbconfig);
         connection.query(sql, [], (error, results) => {
           if (error) {
