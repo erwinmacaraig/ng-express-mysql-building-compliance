@@ -28,6 +28,7 @@ import * as AWS from 'aws-sdk';
 import * as async from 'async';
 import { TrainingRequirements } from '../models/training.requirements';
 import { TrainingCertification } from '../models/training.certification.model';
+import { AccountTrainingsModel } from '../models/account.trainings';
 
 const AWSCredential = require('../config/aws-access-credentials.json');
 
@@ -840,6 +841,7 @@ export class AdminRoute extends BaseRoute {
             });
         });
     });
+    
 
 
     router.get('/admin/list/compliance-documents/',
@@ -1028,8 +1030,28 @@ export class AdminRoute extends BaseRoute {
         });
        });
       });
+
+
+    
+
+    router.get('/admin/account/trainings/:accountId', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next:NextFunction) => {
+        let 
+        accountId = req.params.accountId,
+        response = {
+            status : true, data : [], message : '', accountId : accountId
+        };
+
+        response.data = <any> await new AccountTrainingsModel().getAccountTainings(accountId);
+
+        res.send(response);
+    });
+
+
+
   // ===============
   }
+
+
 
 
 }

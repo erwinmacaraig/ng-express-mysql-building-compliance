@@ -275,6 +275,19 @@ select option:disabled{
     }
 }
 
-.update-profile-container a.btn{
+.update-profile-container a.btn,
+.credentials-container a.btn{
     line-height: 45px;
+}
+
+.invitations-container .cancel{
+    font-size: 18px;
+    line-height: 37px;
+}
+
+.invitations-container table tbody .btn-send{
+    font-size: 14px !important;
+    line-height: 0px;
+    padding: 15px;
+    height: 30px !important;
 }

@@ -97,7 +97,8 @@
                 <option value="0" disabled selected>Select Action</option>
                 <option value="profile">Update Profile</option>
                 <option value="credential">Update Credential</option>
-                <option value="location">Assign Location & Role</option>
+                <option value="invite">Send Invitation</option>
+                <!-- <option value="location">Assign Location & Role</option> -->
               </select>
           </td>
         </tr>
@@ -162,4 +163,110 @@
             </form>
         </div>
     </div>
+</div>
+
+<div class="credentials-container" hidden>
+    <div class="row">
+        <div class="col l5 m12 s12">
+            
+            <form #formCredential="ngForm" (submit)="submitCredential(formCredential)">
+                <h5>Update {{updateCredentialsData.user.first_name}} {{updateCredentialsData.user.last_name}} Credential</h5>
+                <div class="row">
+                    <div class="col s12 input-field">
+                        <label for="userEmail">Email</label>
+                        <input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" [ngModel]="updateCredentialsData.user.email" required>
+                    </div>
+                    <div class="col s12 input-field">
+                        <label for="inpPassword">Password
+                            <small *ngIf=" inputPassword.value != inputConfirmPassword.value "> *Mismatched </small>
+                        </label>
+
+                        <input id="inpPassword" type="password" name="password" ngModel #inputPassword="ngModel"
+                        [ngClass]="{
+                            'invalid' : !inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+                        }"
+                        required minlength="6" maxlength="150"  >
+                    </div>
+                    <div class="col s12 input-field">
+                        <label for="confirmPassword"> Confirm password</label>
+
+                        <input id="confirmPassword" type="password" ngModel name="confirm_password" 
+                            ngModel #inputConfirmPassword="ngModel"
+                            [ngClass]="{
+                                'invalid' : !inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+                            }"
+                            required minlength="6" maxlength="150" >
+                    </div>
+
+                    <input type="text" name="user_id" ngModel [ngModel]="updateCredentialsData.user.user_id" required style="visibility: hidden;">
+                    <!-- <div class="col s12">
+                        <label for="userEmail">Email</label>
+                        <input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
+                    </div> -->
+                </div>
+
+                <div class="row button-container">
+                    <div class="col s12 m12 l12 right-align">
+                        <a  class="btn grey lighten-1 waves-light waves-effect modal-close" (click)="updateCredentialsData.hideForm()">Cancel</a>
+                        <button type="submit" class="btn orange waves-light waves-effect" [disabled]="formCredential.invalid">Submit</button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<div class="invitations-container" hidden>
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <h5>
+                Send Training Invitation To {{sendInvitationData.user.first_name}} {{sendInvitationData.user.last_name}}  
+            </h5>
+
+            <table class="table striped highlight">
+                <thead>
+                    <tr>
+                        <th>Course ID</th>
+                        <th>Course</th>
+                        <th>Training ID</th>
+                        <th>Training</th>
+                        <th>Date Time</th>
+                        <th style="width: 10%">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="sendInvitationData.trainings.length == 0">
+                        <td colspan="6" class="center">
+                            <h6 *ngIf="sendInvitationData.trainings.length == 0 && sendInvitationData.fetching === true">
+                                Fetching data...
+                            </h6>
+
+                            <h6 *ngIf="sendInvitationData.trainings.length == 0 && sendInvitationData.fetching === false">
+                                No record found!
+                            </h6>
+
+                        </td>
+                    </tr>
+                    <tr *ngFor="let training of sendInvitationData.trainings">
+                        <td>{{training.course_id}}</td>
+                        <td>{{training.course_name}}</td>
+                        <td>{{training.training_requirement_id}}</td>
+                        <td>{{training.training_requirement_name}}</td>
+                        <td>{{training.datetime_added}}</td>
+                        <td>
+                            <button class="btn grey waves-effect waves-light btn-small btn-send" (click)="sendInvitationClickEvent(training, $event)" >SEND</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 right-align">
+            <button  class="btn cancel red red-text white-text" (click)="sendInvitationData.hideForm()">Cancel</button>
+        </div>
+    </div>
+
 </div>
