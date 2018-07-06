@@ -117,5 +117,9 @@ export class AdminService {
     return this.http.post(`${this.baseUrl}/admin/validate-training/`, {users: users}, this.options);
   }
 
+  getAccountTrainings(id){
+      return this.http.get(`${this.baseUrl}/admin/account/trainings/`+id, this.options);
+  }
+
 }
 
