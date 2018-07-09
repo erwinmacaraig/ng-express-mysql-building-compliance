@@ -127,5 +127,15 @@ export class AdminService {
     , this.options);
   }
 
+  setTrainingToAccountRoles(accountId, courseId, trid, role) {
+    return this.http.post(`${this.baseUrl}/admin/assign-account-roles-training/`,
+      {'accountId': accountId,
+       'courseId': courseId,
+       'trid': trid,
+       'role': role
+      }, this.options
+    );
+  }
+
 }
 

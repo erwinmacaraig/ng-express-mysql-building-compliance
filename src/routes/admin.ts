@@ -36,6 +36,11 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.post('/admin/assign-account-roles-training/',
+    new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+
+    });
+
     router.post('/admin/assign-user-training/',
     new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
       const userId = req.body.userId;
@@ -46,7 +51,6 @@ export class AdminRoute extends BaseRoute {
       return res.status(200).send({
         message: 'Success'
       });
-
     });
     router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {

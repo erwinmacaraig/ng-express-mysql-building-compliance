@@ -103,6 +103,7 @@ export class AccountTrainingsModel extends BaseClass {
                     atr.account_training_id,
                     tr.training_requirement_id,
                     tr.training_requirement_name,
+                    atr.role,
                     em_roles.role_name,
                     tr.num_months_valid,
                     tr.description,
@@ -149,6 +150,22 @@ export class AccountTrainingsModel extends BaseClass {
           resolve(true);
         });
         connection.end();
+      });
+    }
+
+    public assignAccountRoleTraining(accountId:number = 0, courseId:number = 0, trid: number = 0, role: number = 0) {
+      return new Promise((resolve, reject) => {
+        const sql = `INSERT IGNORE INTO course_user_relation (user_id, course_id, training_requirement_id)
+            SELECT DISTINCT users.user_id, ${courseId}, ${trid}
+            FROM users
+            INNER JOIN
+            user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
+            INNER JOIN em_roles
+            ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
+            INNER JOIN accounts
+            ON accounts.account_id = users.account_id
+            WHERE user_em_roles_relation.em_role_id = ? AND
+            users.account_id = ?;`;
       });
     }
 
