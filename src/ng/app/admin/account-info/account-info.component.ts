@@ -82,7 +82,7 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit() {}
 
   ngOnDestroy() {
-    this.sub.unsubscribe();    
+    this.sub.unsubscribe();
   }
 }
 

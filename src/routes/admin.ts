@@ -1178,6 +1178,91 @@ export class AdminRoute extends BaseRoute {
         res.send(response);
     });
 
+    router.get('/admin/account/location-heirarchy/:accountId', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next:NextFunction) => {
+        let 
+        accountId = req.params.accountId,
+        locAccModel = new LocationAccountRelation(accountId),
+        response = {
+            status : true, data : [], locations : [], message : ''
+        },
+        filter = {},
+        locationsAccount = [];
+
+        filter['archived'] = 0;
+        filter['is_building'] = 1;
+        locationsAccount = await locAccModel.listAllLocationsOnAccount(accountId, filter);
+
+        let addChildrenLocationToParent = (data) => {
+            for(let i in data){
+                if('sublocations' in data[i] == false){
+                    data[i]['sublocations'] = [];
+                }
+
+                for(let x in data){
+                    if(data[x]['parent_id'] == data[i]['location_id']){
+                        if('sublocations' in data[i] == false){
+                            data[i]['sublocations'] = [];
+                        }
+
+                        let d = {};
+                        for(let l in data[x]){
+                            if(l.indexOf('@pi') == -1){
+                                d[l] = data[x][l];
+                            }
+                        }
+
+                        data[i]['sublocations'].push(d);
+                    }
+                }
+            }
+
+            let finalData = [];
+            for(let i in data){
+                let hasParent = false;
+                for(let x in data){
+                    if( data[i]['parent_id'] == data[x]['location_id'] ){
+                        hasParent = true;
+                    }
+                }
+                if(!hasParent){
+                    finalData.push( data[i] );
+                }
+            }
+
+            return finalData;
+        }
+
+        let responseLocations = [];
+        for(let loc of locationsAccount){
+            let 
+            deepLocModel = new Location(),
+            deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+
+            deepLocations.push(loc);
+            
+            let locMerged = addChildrenLocationToParent(deepLocations),
+                respLoc = (locMerged[0]) ? locMerged[0] : false;
+
+            if(respLoc){
+                
+                let alreadyHave = false;
+                for(let resloc of responseLocations){
+                    if(resloc.location_id == respLoc.location_id){
+                        alreadyHave = true;
+                    }
+                }
+
+                if(!alreadyHave){
+                    responseLocations.push(respLoc);
+                }
+            }
+        }
+
+        response.locations = responseLocations;
+
+        res.send(response);
+    });
+
 
 
   // ===============
