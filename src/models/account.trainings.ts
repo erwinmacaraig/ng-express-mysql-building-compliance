@@ -101,9 +101,10 @@ export class AccountTrainingsModel extends BaseClass {
             const sql_load = `
                 SELECT
                     atr.account_training_id,
+                    atr.role as role_id,
+                    IF( atr.role = 1, 'Building Manager', IF( atr.role = 2, 'Tenant Responsible Person', em.role_name ) ) as role_name,
                     tr.training_requirement_id,
                     tr.training_requirement_name,
-                    em_roles.role_name,
                     tr.num_months_valid,
                     tr.description,
                     sc.course_id,
@@ -113,7 +114,7 @@ export class AccountTrainingsModel extends BaseClass {
                 FROM account_trainings atr
                 INNER JOIN scorm_course sc ON sc.course_id = atr.course_id
                 INNER JOIN training_requirement tr ON tr.training_requirement_id = atr.training_requirement_id
-                INNER JOIN em_roles ON em_roles.em_roles_id = atr.role
+                LEFT JOIN em_roles em ON em.em_roles_id = atr.role
                 WHERE atr.account_id = ${accountId}
             `;
 
