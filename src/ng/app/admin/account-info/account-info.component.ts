@@ -70,7 +70,7 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
           }
           console.log(this.accountInfo);
 
-          this.msgSrvSub = this.msgSrv.sendMessage({
+          this.msgSrv.sendMessage({
               'accountInfo' : this.accountInfo
           });
         }
@@ -82,8 +82,7 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit() {}
 
   ngOnDestroy() {
-    this.sub.unsubscribe();
-    this.msgSrvSub.unsubscribe();
+    this.sub.unsubscribe();    
   }
 }
 

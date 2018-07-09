@@ -36,9 +36,20 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.post('/admin/assign-user-training/',
+    new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const userId = req.body.userId;
+      const trid = req.body.trid;
+      const courseId = req.body.courseId;
+      const accountTraining = new AccountTrainingsModel();
+      await accountTraining.assignAccountUserTraining(userId, courseId, trid);
+      return res.status(200).send({
+        message: 'Success'
+      });
+
+    });
     router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
-
       const users: Array<object> = JSON.parse(req.body.users);
       // console.log(users);
       const invalidUsers = [];
@@ -958,7 +969,7 @@ export class AdminRoute extends BaseRoute {
             });
         });
     });
-    
+
 
 
     router.get('/admin/list/compliance-documents/',
@@ -1149,10 +1160,10 @@ export class AdminRoute extends BaseRoute {
       });
 
 
-    
+
 
     router.get('/admin/account/trainings/:accountId', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next:NextFunction) => {
-        let 
+        let
         accountId = req.params.accountId,
         response = {
             status : true, data : [], message : '', accountId : accountId
