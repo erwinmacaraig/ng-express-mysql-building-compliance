@@ -357,7 +357,7 @@
         <div class="col l6 m12 s12">
             <h5>
                 Assign {{assignLocationRoleData.user.first_name}} {{assignLocationRoleData.user.last_name}} To Locations
-                <a class="blue-text right" style="font-size: 20px;" >+Assign New</a>
+                <a class="blue-text right" (click)="assignLocationRoleData.assignNewClickEvent.bind(this)()" style="font-size: 20px;" >+Assign New</a>
             </h5>
             <table class="table striped highlight">
                 <thead>
@@ -387,14 +387,16 @@
 
                     <tr *ngFor="let loc of assignLocationRoleData.toEditLocations; let i = index;">
                         <td *ngIf="!loc.deleted">
-                            <a  class="blue-text change-location" (click)="assignLocationRoleData.clickSelectLocation(loc)" *ngIf="loc.location_id > 0">{{loc.name}} </a>
+                            <p *ngIf="loc.role_id == 0">Select role first</p>
 
-                            <a  class="blue-text change-location" (click)="assignLocationRoleData.clickSelectLocation(loc)" *ngIf="loc.location_id == 0"> Select Location </a>
+                            <a  class="blue-text change-location" #selectLoc1 (click)="assignLocationRoleData.clickSelectLocation.bind(this)(loc, selectLoc1)" *ngIf="loc.location_id > 0 && loc.role_id > 0">{{loc.name}} </a>
+
+                            <a  class="blue-text change-location" #selectLoc2 (click)="assignLocationRoleData.clickSelectLocation.bind(this)(loc, selectLoc2)" *ngIf="loc.location_id == 0 && loc.role_id > 0"> Select Location </a>
 
                             <input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
                         </td>
                         <td *ngIf="!loc.deleted">
-                            <select name="role_id[{{i}}]" style="display: block;" (change)="assignLocationRoleData.onChangeSelectRole(loc, $event.currentTarget.value)" >
+                            <select name="role_id[{{i}}]" style="display: block;" (change)="assignLocationRoleData.onChangeSelectRole.bind(this)(loc, $event.currentTarget.value)" >
                                 <option value="0" [selected]="loc.role_id == 0" disabled>Select Role</option>
                                 <option value="1" [selected]="loc.role_id == 1">Building Manager</option>
                                 <option value="2" [selected]="loc.role_id == 2">Tenancy Responsible Personnel</option>
@@ -404,39 +406,59 @@
                             </select>
                         </td>
                         <td *ngIf="!loc.deleted">
-                            <a  class="red-text delete" (click)="assignLocationRoleData.removeAssigned(i)">Delete</a>
+                            <a  class="red-text delete" (click)="assignLocationRoleData.removeAssigned.bind(this)(i)">Delete</a>
                         </td>
                     </tr>
                 </tbody>
 
             </table>
+
+
+            <div class="button-container">
+                <a class="btn grey lighten-1 waves-effect waves-light" (click)="assignLocationRoleData.hideForm()"> Cancel </a>
+                <button type="submit" class="btn orange waves-effect waves-light"  (click)="assignLocationRoleData.saveLocationAssignments.bind(this)($event)" > Save </button>
+            </div>
         </div>
 
-        <div class="col l6 m12 s12">
-            <h5>Select Location for {{assignLocationRoleData.user.first_name+' '+assignLocationRoleData.user.last_name}}</h5>
-            <div class="search-container" >
-                <div class="input-container">
-                    <input type="text" placeholder="Search Location" #inpSearchLocation  >
+        <div class="col l6 m12 s12 right-panel">
+            
+            <div [hidden]="!assignLocationRoleData.locationsListShow" class="location-list">
+                <h5>Select Location for {{assignLocationRoleData.user.first_name+' '+assignLocationRoleData.user.last_name}}</h5>
+                <div class="search-container" >
+                    <div class="input-container">
+                        <input type="text" placeholder="Search Location" #inpSearchLocation id="inpSearchLocation" >
+                    </div>
+                    <div class="icon-container">
+                        <img src="assets/images/locations/search_icon.png" alt="">
+                    </div>
                 </div>
-                <div class="icon-container">
-                    <img src="assets/images/locations/search_icon.png" alt="">
-                </div>
+
+                <form #formLoc (submit)="assignLocationRoleData.submitSelectLocationModal.bind(this)(formLoc, $event)">
+
+                    <div class="list-region" style="overflow-y: auto; height: 340px;">
+                        <p *ngIf="assignLocationRoleData.locations.length == 0">No location found</p>
+                        <ul class="locations">
+                        </ul>
+                    </div>
+
+                    <div class="button-container right-align">
+                        <button type="submit" class="btn orange waves-effect waves-light" [disabled]="!assignLocationRoleData.formLocValid"  > Submit </button>
+                    </div>
+
+                </form>
             </div>
 
-            <form #formLoc (submit)="submitSelectLocationModal(formLoc, $event)">
-
-                <div class="list-region" style="overflow-y: auto; height: 340px;">
-                    <p *ngIf="assignLocationRoleData.locations.length == 0">No location found</p>
-                    <ul class="locations">
-                    </ul>
-                </div>
-
-                <div class="button-container">
-                    <a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
-                    <button type="submit" class="btn orange waves-effect waves-light" [disabled]="!assignLocationRoleData.formLocValid" *ngIf="locations.length > 0"> Submit </button>
-                </div>
-
-            </form>
+            <div class="center-message" [hidden]="assignLocationRoleData.locationsListShow">
+                Click a location from left table
+            </div>
         </div>
     </div>
+
+    
+    <div class="sending-container">
+        <div class="center-message">
+            Assigning Location and Role....
+        </div>
+    </div>
+
 </div>

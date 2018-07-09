@@ -98,16 +98,19 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
     @ViewChild('inpSearchLocation') inpSearchLocation : ElementRef;
 
     assignLocationRoleData = {
-        searchModalLocationSubs : <any> {},
+        searchLocationSubs : <any> {},
         user : <any> {},
         selectedLocationData : <any> {},
         role_text : <any> [],
         eco_roles : <any> [],
         locations : <any> [],
+        buildings : <any> [],
+        levels : <any> [],
         locationsCopy : <any> [],
         locationsBackup : <any> [],
         fetching : true,
         formLocValid: false,
+        locationsListShow: false,
         showForm : () => {
             $('.location-role-container').prop('hidden', false);
             $('.to-hide-in-show-profile-update').prop('hidden', true);
@@ -127,10 +130,18 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
         removeAssigned(index){
             this.assignLocationRoleData.toEditLocations[index]['deleted'] = true;
         },
-        clickSelectLocation(loc){
-            this.assignLocationRoleData.selectedLocationData = loc;
-            this.assignLocationRoleData.onChangeSelectRole(loc, loc.role_id);
-            this.assignLocationRoleData.buildLocationsList();
+        clickSelectLocation(loc, selectElem){
+            if(loc.role_id > 0){
+                this.assignLocationRoleData.selectedLocationData = loc;
+                this.assignLocationRoleData.onChangeSelectRole.bind(this)(loc, loc.role_id);
+                this.assignLocationRoleData.buildLocationsList.bind(this)();
+                this.assignLocationRoleData.locationsListShow = true;
+            }else{
+                selectElem.innerText = "Select role first";
+                setTimeout(() => {
+                    selectElem.innerText = "Select location"
+                },500);
+            }
         },
         onChangeSelectRole(location, roleId){
             this.assignLocationRoleData.selectedLocationData = location;
@@ -138,12 +149,12 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
             let rolesForBuildingsOnly = [1,11,15,16,18];
 
             if( rolesForBuildingsOnly.indexOf( parseInt(roleId) ) > -1 ){
-                this.assignLocationRoleData.locations = this.buildings;
+                this.assignLocationRoleData.locations = this.assignLocationRoleData.buildings;
             }else{
-                this.assignLocationRoleData.locations = this.levels;
+                this.assignLocationRoleData.locations = this.assignLocationRoleData.levels;
             }
 
-            this.assignLocationRoleData.locationsCopy = JSON.parse( JSON.stringify(this.locations) );
+            this.assignLocationRoleData.locationsCopy = JSON.parse( JSON.stringify(this.assignLocationRoleData.locations) );
 
             location.role_id = roleId;
 
@@ -154,71 +165,77 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                 this.assignLocationRoleData.selectedLocationData['location_id'] = 0;
             }
 
-            this.assignLocationRoleData.buildLocationsList();
+            this.assignLocationRoleData.locationsListShow = true;
+            this.assignLocationRoleData.buildLocationsList.bind(this)();
         },
         buildLocationsList(){
-            const ulLocations = $('.location-role-container ul.locations');
-            ulLocations.html('');
-            $('body').off('click.radio').on('click.radio', 'input[type="radio"][name="selectLocation"]', () => {
-                this.assignLocationRoleData.formLocValid = true;
-            });
+            this.assignLocationRoleData.locationsListShow = false;
+            setTimeout(() => {
 
-            console.log( this.assignLocationRoleData.selectedLocationData );
+                const ulLocations = $('.location-role-container ul.locations');
+                ulLocations.html('');
+                $('body').off('click.radio').on('click.radio', 'input[type="radio"][name="selectLocation"]', () => {
+                    this.assignLocationRoleData.formLocValid = true;
+                });
 
-            let maxDisplay = 25,
-                count = 1;
+                console.log( this.assignLocationRoleData.selectedLocationData );
 
-            if (parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 1 ||
-                parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 11 ||
-                parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 15 ||
-                parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 16 ||
-                parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 18
-               ) {
-              for (let loc of this.assignLocationRoleData.locations) {
-                if (count <= maxDisplay) {
-                    let $li = $(`
-                        <li class="list-division" id="${loc.location_id}">
-                            <div class="name-radio-plus">
-                                <div class="input">
-                                    <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
-                                    <label for="check-${loc.location_id}">${loc.name}</label>
-                                    <span hidden class="parent-id">${loc.parent_id}</span>
+                let maxDisplay = 25,
+                    count = 1;
+
+                if (parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 1 ||
+                    parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 11 ||
+                    parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 15 ||
+                    parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 16 ||
+                    parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 18
+                   ) {
+                  for (let loc of this.assignLocationRoleData.locations) {
+                    if (count <= maxDisplay) {
+                        let $li = $(`
+                            <li class="list-division" id="${loc.location_id}">
+                                <div class="name-radio-plus">
+                                    <div class="input">
+                                        <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
+                                        <label for="check-${loc.location_id}">${loc.name}</label>
+                                        <span hidden class="parent-id">${loc.parent_id}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        </li>`);
+                            </li>`);
 
-                    ulLocations.append($li);
-                    count++;
-                }
-              }
-            } else {
-              for (const loc of this.assignLocationRoleData.locations) {
-                if (count <= maxDisplay) {
-                  const $lh = $(`<lh lh-id="${loc['parent_location_id']}"><h6>${loc['parent_location_name']}</h6></lh>`);
-                  ulLocations.append($lh);
-                  if ('sublocations' in loc) {
-                    for (const subloc of loc.sublocations) {
-                      const $li = $(`
-                          <li class="list-division" id="${subloc.id}">
-                              <div class="name-radio-plus">
-                                  <div class="input">
-                                      <input required type="radio"
-                                      name="selectLocation"
-                                      value="${subloc.id}" id="check-${subloc.id}" lh-target="${loc['parent_location_id']}">
-                                      <label for="check-${subloc.id}">${subloc.name}</label>
-                                      <span hidden class="parent-id">${loc.parent_location_id}</span>
-                                  </div>
-                              </div>
-                          </li>`);
-                      ulLocations.append($li);
+                        ulLocations.append($li);
+                        count++;
                     }
                   }
-                  count++;
+                } else {
+                    for (const loc of this.assignLocationRoleData.locations) {
+                        if (count <= maxDisplay) {
+                            const $lh = $(`<lh lh-id="${loc['parent_location_id']}"><h6>${loc['parent_location_name']}</h6></lh>`);
+                            ulLocations.append($lh);
+                            if ('sublocations' in loc) {
+                                for (const subloc of loc.sublocations) {
+                                    const $li = $(`
+                                        <li class="list-division" id="${subloc.id}">
+                                        <div class="name-radio-plus">
+                                        <div class="input">
+                                        <input required type="radio"
+                                        name="selectLocation"
+                                        value="${subloc.id}" id="check-${subloc.id}" lh-target="${loc['parent_location_id']}">
+                                        <label for="check-${subloc.id}">${subloc.name}</label>
+                                        <span hidden class="parent-id">${loc.parent_location_id}</span>
+                                        </div>
+                                        </div>
+                                        </li>`);
+                                    ulLocations.append($li);
+                                }
+                            }
+                            count++;
+                        }
+                    }
                 }
-              }
-            }
+
+            }, 200);
         },
-        submitSelectLocationModal(formLoc, event){
+        submitSelectLocationModal(formLoc:NgForm, event){
             event.preventDefault();
             let locationFound = false;
             if(this.assignLocationRoleData.formLocValid){
@@ -242,10 +259,12 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                 console.log(this.assignLocationRoleData.selectedLocationData);
                 console.log(this.assignLocationRoleData.toEditLocations);
                 this.inpSearchLocation.nativeElement.value = "";
+                formLoc.reset();
+                this.assignLocationRoleData.locationsListShow = false;
             }
         },
         onKeyUpSearchLocationEvent(){
-            this.assignLocationRoleData.searchModalLocationSubs = Observable.fromEvent(this.inpSearchLocation.nativeElement, 'keyup')
+            this.assignLocationRoleData.searchLocationSubs = Observable.fromEvent(document.getElementById('inpSearchLocation'), 'keyup')
                 .debounceTime(500)
                 .subscribe((event) => {
 
@@ -261,39 +280,39 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                     parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 15 ||
                     parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 16 ||
                     parseInt(this.assignLocationRoleData.selectedLocationData['role_id'], 10) === 18
-                ) {
-                  findRelatedName = (data, mainParent?) => {
-                    for(let i in data){
-                        if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
-                            result.push(data[i]);
-                        }
-                    }
-                    return result;
-                  };
-                } else {
-                  findRelatedName = (data, mainParent?) => {
-                    for ( let i = 0; i < data.length; i++) {
-                      if (data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
-                        result.push(data[i]);
-                      }
-                    }
-                    for ( let i = 0; i < data.length; i++) {
-                        seenSubLocIndex = [];
-                        for (let s = 0; s < data[i]['sublocations'].length; s++) {
-                          if (data[i]['sublocations'][s]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
-                            if (seenIndex.indexOf(i)) {
-                              seenIndex.push(i);
+                    ) {
+                    findRelatedName = (data, mainParent?) => {
+                        for(let i in data){
+                            if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+                                result.push(data[i]);
                             }
-                            seenSubLocIndex.push(data[i]['sublocations'][s]);
-                            data[i]['sublocations'] = seenSubLocIndex;
-                          }
                         }
-                      }
-                      for (let si = 0; si < seenIndex.length; si++) {
-                        result.push(data[seenIndex[si]]);
-                      }
-                    return result;
-                  };
+                        return result;
+                    };
+                } else {
+                    findRelatedName = (data, mainParent?) => {
+                        for ( let i = 0; i < data.length; i++) {
+                            if (data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                                result.push(data[i]);
+                            }
+                        }
+                        for ( let i = 0; i < data.length; i++) {
+                            seenSubLocIndex = [];
+                            for (let s = 0; s < data[i]['sublocations'].length; s++) {
+                                if (data[i]['sublocations'][s]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                                    if (seenIndex.indexOf(i)) {
+                                        seenIndex.push(i);
+                                    }
+                                    seenSubLocIndex.push(data[i]['sublocations'][s]);
+                                    data[i]['sublocations'] = seenSubLocIndex;
+                                }
+                            }
+                        }
+                        for (let si = 0; si < seenIndex.length; si++) {
+                            result.push(data[seenIndex[si]]);
+                        }
+                        return result;
+                    };
                 }
 
                 if(value.length > 0){
@@ -304,7 +323,33 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                     this.assignLocationRoleData.locations = JSON.parse(JSON.stringify(this.assignLocationRoleData.locationsCopy));
                 }
                 this.assignLocationRoleData.buildLocationsList.call(this);
+                this.assignLocationRoleData.locationsListShow = true;
             });
+
+            $('body').off('click.radioscroll').on('click.radioscroll', '.name-radio-plus input[type="radio"]', () => {
+                window.scroll(0, 0);
+            });
+        },
+        saveLocationAssignments(event){
+            event.preventDefault();
+            let toSaveData = this.assignLocationRoleData.toEditLocations,
+                error = 0;
+            for(let data of toSaveData){
+                if(data.location_id == 0 && !data.deleted || data.role_id == 0 && !data.deleted){
+                    error++;
+                }
+            }
+
+            if(error == 0){
+                $('.sending-container').css('display', 'block');
+                this.userService.userLocationRoleAssignments({
+                    user_id : this.assignLocationRoleData.user.user_id, assignments : JSON.stringify(this.assignLocationRoleData.toEditLocations)
+                }, (response) => {
+                    $('.sending-container').css('display', '');
+                    this.dashboard.show();
+                    this.loadLastGetAllAccountsUsers();
+                });
+            }
         }
     };
     
@@ -344,8 +389,6 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                 this.userObjects = response['data']['list'];
                 this.total_pages = response['data']['total_pages'];
                 this.createRange = new Array(this.total_pages);
-                this.dashboard.hide();
-
             }, (error) => {
                 this.dashboard.hide();
                 console.log(error);
@@ -356,14 +399,10 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                 this.sendInvitationData.fetching = false;
             });
 
-            this.adminService.getHierarchyLocationsOnAccount(this.accountId).subscribe((response:any) => {
-                for(let loc of response.locations){
-                    loc['id'] = this.generateRandomChars(20);
-                }
-                this.assignLocationRoleData.locations = response.locations;
-                this.assignLocationRoleData.locationsBackup = JSON.parse( JSON.stringify( this.assignLocationRoleData.locations ) );
-
-                this.assignLocationRoleData.buildLocationsList.call(this);
+            this.adminService.getAllLocationsOnAccount(this.accountId).subscribe((response:any) => {
+                this.assignLocationRoleData.buildings = response.data.buildings;
+                this.assignLocationRoleData.levels = response.data.levels;
+                this.dashboard.hide();
             });
 
         });
@@ -372,13 +411,13 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
     ngOnDestroy() {
         this.sub.unsubscribe();
         this.msgSubs.unsubscribe();
-        // this.assignLocationRoleData.searchModalLocationSubs.unsubscribe();
+        this.assignLocationRoleData.searchLocationSubs.unsubscribe();
     }
 
     ngAfterViewInit() {
         $('.row.filter-container select').material_select();
         console.log('this.assignLocationRoleData', this.assignLocationRoleData);
-        this.assignLocationRoleData.onKeyUpSearchLocationEvent.call(this);
+        this.assignLocationRoleData.onKeyUpSearchLocationEvent.bind(this)();
     }
 
     prevPage() {
