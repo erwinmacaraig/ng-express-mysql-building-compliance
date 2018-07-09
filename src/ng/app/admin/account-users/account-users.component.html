@@ -169,7 +169,7 @@
 <div class="credentials-container" hidden>
     <div class="row">
         <div class="col l5 m12 s12">
-            
+
             <form #formCredential="ngForm" (submit)="submitCredential(formCredential)">
                 <h5>Update {{updateCredentialsData.user.first_name}} {{updateCredentialsData.user.last_name}} Credential</h5>
                 <div class="row">
@@ -191,7 +191,7 @@
                     <div class="col s12 input-field">
                         <label for="confirmPassword"> Confirm password</label>
 
-                        <input id="confirmPassword" type="password" ngModel name="confirm_password" 
+                        <input id="confirmPassword" type="password" ngModel name="confirm_password"
                             ngModel #inputConfirmPassword="ngModel"
                             [ngClass]="{
                                 'invalid' : !inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
@@ -222,7 +222,7 @@
     <div class="row">
         <div class="col l12 m12 s12">
             <h5>
-                Send Training Invitation To {{sendInvitationData.user.first_name}} {{sendInvitationData.user.last_name}}  
+                Send Training Invitation To {{sendInvitationData.user.first_name}} {{sendInvitationData.user.last_name}}
             </h5>
 
             <table class="table striped highlight">
@@ -256,7 +256,8 @@
                         <td>{{training.training_requirement_name}}</td>
                         <td>{{training.role_name}}</td>
                         <td>
-                            <button class="btn grey waves-effect waves-light btn-small btn-send" (click)="sendInvitationClickEvent(training, $event)" >SEND</button>
+                          <p><button class="btn grey waves-effect waves-light btn-small btn-send" (click)="sendInvitationClickEvent(training, $event)" >SEND</button></p>
+                          <p><button class="btn grey waves-effect waves-light btn-small btn-send" (click)="assignTraining(training, $event)" >ASSIGN</button></p>
                         </td>
                     </tr>
                 </tbody>

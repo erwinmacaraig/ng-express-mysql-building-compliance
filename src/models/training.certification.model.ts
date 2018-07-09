@@ -113,7 +113,6 @@ export class TrainingCertification extends BaseClass {
   public create(createData) {
     return new Promise((resolve, reject) => {
       Object.keys(createData).forEach((key) => {
-        console.log(`key is ${key} and value is ${createData[key]}`);
         this.dbData[key] = createData[key];
         if ('certifications_id' in createData) {
           this.id = createData['certifications_id'];

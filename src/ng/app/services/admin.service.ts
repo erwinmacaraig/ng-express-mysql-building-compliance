@@ -19,7 +19,7 @@ export class AdminService {
     this.baseUrl = (platformLocation as any).location.origin;
   }
 
-  getAccountListingForAdmin(page = 0, query = '', criteria = '') {
+   getAccountListingForAdmin(page = 0, query = '', criteria = '') {
     let httpParams = new HttpParams().set('page_num', page.toString());
 
     if (query.length > 0) {
@@ -123,6 +123,12 @@ export class AdminService {
 
   getHierarchyLocationsOnAccount(accountId){
       return this.http.get(`${this.baseUrl}/admin/account/location-heirarchy/`+accountId, this.options);
+  }
+  
+  setAccountUserTraining(userId, courseId, trid) {
+    return this.http.post(`${this.baseUrl}/admin/assign-user-training/`,
+    {'userId': userId, 'courseId': courseId, 'trid': trid}
+    , this.options);
   }
 
 }

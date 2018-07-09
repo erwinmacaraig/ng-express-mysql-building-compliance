@@ -183,6 +183,12 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   public getEmailSelection(index: number = -1, item) {
     // console.log(this.genericEmailSearchSub[index]);
+    let userRoleId = -1;
+    if ('em_role_id' in item) {
+      userRoleId = item['em_role_id'];
+    } else if ('role_id' in item) {
+      userRoleId = item['role_id'];
+    }
     this.genericEmailSearchSub[index].unsubscribe();
     this.genericAccountSearchSub[index].unsubscribe();
     (<FormArray>this.userForm.get('levelUsers')).controls[index].get('email').setValue(item['email']);
@@ -203,7 +209,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
     (<FormArray>this.userForm.get('levelUsers'))
     .controls[index].get('role_id')
-    .setValue(item['role_id']);
+    .setValue(userRoleId);
 
     (<FormArray>this.userForm.get('levelUsers'))
     .controls[index].get('accountId')
@@ -420,23 +426,26 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.dashboard.show();
     const values = [];
     const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
+    console.log(formUserControls);
     for (const ctrl of formUserControls) {
       values.push({
         email: ctrl.get('email').value,
         user_id: ctrl.get('user_id').value,
         first_name: ctrl.get('first_name').value,
         last_name: ctrl.get('last_name').value,
+        role_id: ctrl.get('role_id').value,
         certification_date: this.userForm.get('dtTraining').value,
         location_id: ctrl.get('sublocation_id').value,
         account_id: ctrl.get('accountId').value,
         course_method: this.userForm.get('courseMethod').value,
-        training_requirement_id: this.userForm.get('courseTraining').value
+        training_requirement_id: ctrl.get('courseTraining').value
       });
     }
     this.genericSub.unsubscribe();
     this.users = [];
     this.searchLocationField.reset();
     console.log(JSON.stringify(values));
+
     this.cancelUserForm();
     this.adminService.validateUserTrainings(JSON.stringify(values))
     .subscribe((response) => {

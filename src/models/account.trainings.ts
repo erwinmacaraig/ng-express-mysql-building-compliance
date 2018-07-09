@@ -70,7 +70,7 @@ export class AccountTrainingsModel extends BaseClass {
                 ('datetime_addded' in this.dbData) ? this.dbData['datetime_addded'] : 'NOW()',
             ];
             const connection = db.createConnection(dbconfig);
-            
+
             connection.query(sql_insert, param, (err, results, fields) => {
                 if (err) {
                     reject(err);
@@ -129,6 +129,28 @@ export class AccountTrainingsModel extends BaseClass {
             });
             connection.end();
         });
+    }
+
+    public assignAccountUserTraining(userId: number = 0, course_id: number = 0, training_requirement_id: number = 0) {
+      return new Promise((resolve, reject) => {
+        const assign_sql = `INSERT IGNORE INTO course_user_relation (
+                              user_id,
+                              course_id,
+                              training_requirement_id
+                            ) VALUES (
+                              ?, ?, ?
+                            )`;
+        const connection = db.createConnection(dbconfig);
+        const params = [userId, course_id, training_requirement_id];
+        connection.query(assign_sql, params, (error, results) => {
+          if (error) {
+            console.log('AccountTrainingsModel.assignAccountUserTraining()', assign_sql, error);
+            throw Error('Unable to assign training to user');
+          }
+          resolve(true);
+        });
+        connection.end();
+      });
     }
 
 }

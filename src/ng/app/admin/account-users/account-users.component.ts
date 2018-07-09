@@ -404,7 +404,6 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                 this.assignLocationRoleData.levels = response.data.levels;
                 this.dashboard.hide();
             });
-
         });
     }
 
@@ -577,5 +576,14 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
             alert ('Error sending invitation. Try again later.');
         });
     }
+    assignTraining(training, event) {
+
+      this.adminService.setAccountUserTraining(this.sendInvitationData.user.user_id,
+         training['course_id'], training['training_requirement_id']).subscribe((response) => {
+           console.log(response);
+         });
+    }
+
+
 
 }
