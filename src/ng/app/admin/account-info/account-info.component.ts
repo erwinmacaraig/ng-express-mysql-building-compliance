@@ -8,6 +8,8 @@ import { ViewChild, ElementRef } from '@angular/core';
 import { Subscription } from 'rxjs/Rx';
 
 import { AdminService } from './../../services/admin.service';
+import { MessageService } from './../../services/messaging.service';
+
 declare var $: any;
 
 @Component({
@@ -39,7 +41,9 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   };
   account_billing = '';
 
-  constructor(private adminService: AdminService) {}
+  msgSrvSub;
+
+  constructor(private adminService: AdminService, private msgSrv : MessageService) {}
 
   ngOnInit() {
 
@@ -65,6 +69,10 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
             this.account_billing += `, ${this.accountInfo['billing_country']}`;
           }
           console.log(this.accountInfo);
+
+          this.msgSrv.sendMessage({
+              'accountInfo' : this.accountInfo
+          });
         }
       });
 

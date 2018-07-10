@@ -113,7 +113,6 @@ export class TrainingCertification extends BaseClass {
   public create(createData) {
     return new Promise((resolve, reject) => {
       Object.keys(createData).forEach((key) => {
-        console.log(`key is ${key} and value is ${createData[key]}`);
         this.dbData[key] = createData[key];
         if ('certifications_id' in createData) {
           this.id = createData['certifications_id'];
@@ -322,9 +321,8 @@ export class TrainingCertification extends BaseClass {
           passSql += '  AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW() ';
       }else if(pass == 0){
           passSql += `
-            AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) < NOW() ${trainingIdSql}
-            OR c2.certifications_id IS NULL AND users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} AND certifications.certifications_id IS NULL
-            OR c2.certifications_id IS NULL AND users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} AND certifications.pass = 0
+            AND certifications.user_id NOT IN (SELECT user_id FROM certifications WHERE user_id IN (${userIds})  AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW() )
+             
            `;
       }
 
@@ -335,10 +333,9 @@ export class TrainingCertification extends BaseClass {
             FROM
               users
               LEFT JOIN certifications ON certifications.user_id = users.user_id
-              LEFT JOIN certifications c2 ON (certifications.user_id = c2.user_id AND certifications.certifications_id < c2.certifications_id)
               LEFT JOIN training_requirement ON training_requirement.training_requirement_id = certifications.training_requirement_id
             WHERE
-              c2.certifications_id IS NULL AND  users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}
+                users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}
             ORDER BY certifications.certification_date DESC
           `;
       }else{
@@ -356,11 +353,10 @@ export class TrainingCertification extends BaseClass {
             FROM
               users
               LEFT JOIN certifications ON certifications.user_id = users.user_id
-              LEFT JOIN certifications c2 ON (certifications.user_id = c2.user_id AND certifications.certifications_id < c2.certifications_id)
               LEFT JOIN training_requirement ON training_requirement.training_requirement_id = certifications.training_requirement_id
 
-            WHERE c2.certifications_id IS NULL AND users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}
-
+            WHERE users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}
+            GROUP BY certifications.certifications_id
             ORDER BY certifications.certification_date DESC ${limitSql}
           `;
       }

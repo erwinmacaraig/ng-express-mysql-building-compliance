@@ -18,24 +18,24 @@
       <div class="row">
         <div class="col s3">
             <div class="input-field">
-                <input id="input_text" type="text" placeholder="Account Name" [ngModel]="accountInfo.account_name" ngModel readonly="readonly">
-                <label for="input_text" class="active">
+                <input id="accountName" type="text" placeholder="Account Name" [ngModel]="accountInfo.account_name" ngModel readonly="readonly">
+                <label for="accountName" class="active">
                   Account Name
                 </label>
             </div>
         </div>
         <div class="col s3">
             <div class="input-field">
-                <input id="input_text" type="text" placeholder="Key Contact Name" readonly="readonly">
-                  <label for="input_text" class="active">
+                <input id="keyContactName" type="text" placeholder="Key Contact Name" readonly="readonly">
+                  <label for="keyContactName" class="active">
                       Key Contact
                   </label>
               </div>
         </div>
         <div class="col s3">
             <div class="input-field">
-                <input id="input_text" type="text" placeholder="email" readonly="readonly">
-                <label for="input_text" class="active">
+                <input id="inpEmail" type="text" placeholder="email" readonly="readonly">
+                <label for="inpEmail" class="active">
                     Email
                 </label>
               </div>
@@ -44,8 +44,8 @@
       <div class="row">
         <div class="col s5">
             <div class="input-field">
-                <input id="input_text" type="text" placeholder="Billing Address" [ngModel]="account_billing" ngModel readonly="readonly">
-                <label for="input_text" class="active">Billing Address</label>
+                <input id="billingAddress" type="text" placeholder="Billing Address" [ngModel]="account_billing" ngModel readonly="readonly">
+                <label for="billingAddress" class="active">Billing Address</label>
             </div>
         </div>
   </div>
@@ -65,7 +65,7 @@
                 <li><a [routerLink]="['/admin', 'locations-in-account', accountId]">Locations</a></li>
                 <li><a [routerLink]="['/admin', 'users-in-accounts', accountId]">Users</a></li>
                 <li><a>Subscriptions</a></li>
-                <li><a>Trainings</a></li>
+                <li><a [routerLink]="['/admin', 'account-trainings', accountId]">Trainings</a></li>
               </ul>
             </div>
           </nav>

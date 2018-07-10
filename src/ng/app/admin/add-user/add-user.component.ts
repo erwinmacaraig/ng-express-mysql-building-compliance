@@ -1,9 +1,7 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input } from '@angular/core';
-import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
-import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { ViewChild, ElementRef } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { Subscription, Observable } from 'rxjs/Rx';
 import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
 

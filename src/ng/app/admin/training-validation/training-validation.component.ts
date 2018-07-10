@@ -39,6 +39,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   locationId: number;
   genericSub: Subscription;
   genericEmailSearchSub: Subscription[] = [];
+  genericAccountSearchSub: Subscription[] = [];
   buildings = [];
   buildingsForNewUser = [];
   options: DatepickerOptions = {
@@ -58,6 +59,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   accountSearchResults = [];
   accountIdForAddUser = 0;
   accountSearchSub: Subscription;
+  initialAccountName = null;
+  selectedAccountId = 0;
   roles = [
     {
       role_id: 1,
@@ -121,12 +124,6 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.setDatePickerDefaultDate();
     this.dtTrainingField = new FormControl(this.datepickerModelFormatted, Validators.required);
 
-    this.newFirstName  = new FormControl(null, Validators.required);
-    this.newLastname = new FormControl(null, Validators.required);
-    this.newUserEmail = new FormControl(null, Validators.email);
-    this.newUserRole = new FormControl(null, Validators.required);
-    this.newUserLocation = new FormControl(null, Validators.required);
-    this.newUserAccount = new FormControl(null, Validators.required);
     this.adminService.getTrainingRequirementList().subscribe((response) => {
       this.training_requirements = response['data'];
       // console.log(this.training_requirements);
@@ -142,6 +139,9 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   ngOnDestroy() {
     this.genericSub.unsubscribe();
     for (const s of this.genericEmailSearchSub) {
+      s.unsubscribe();
+    }
+    for (const s of this.genericAccountSearchSub) {
       s.unsubscribe();
     }
   }
@@ -183,7 +183,14 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   public getEmailSelection(index: number = -1, item) {
     // console.log(this.genericEmailSearchSub[index]);
+    let userRoleId = -1;
+    if ('em_role_id' in item) {
+      userRoleId = item['em_role_id'];
+    } else if ('role_id' in item) {
+      userRoleId = item['role_id'];
+    }
     this.genericEmailSearchSub[index].unsubscribe();
+    this.genericAccountSearchSub[index].unsubscribe();
     (<FormArray>this.userForm.get('levelUsers')).controls[index].get('email').setValue(item['email']);
     (<FormArray>this.userForm.get('levelUsers')).controls[index].get('user_id').setValue(item['user_id']);
     (<FormArray>this.userForm.get('levelUsers')).controls[index].get('first_name').setValue(item['first_name']);
@@ -201,11 +208,17 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     .setValue(item['location_id']);
 
     (<FormArray>this.userForm.get('levelUsers'))
+    .controls[index].get('role_id')
+    .setValue(userRoleId);
+
+    (<FormArray>this.userForm.get('levelUsers'))
     .controls[index].get('accountId')
     .setValue(item['account_id']);
 
     this.filteredEmailList[index] = [];
+    this.accountSearchResults[index] = [];
     this.assignSearchEmailAbility(index);
+    this.searchAccount(index);
     console.log(item);
 
   }
@@ -225,8 +238,14 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       const list = response['data']['list'];
       for (const l of list) {
         Object.keys(l['locations']).forEach((key) => {
+          let role_id = 0;
           l['locations'][key]['location-parent'] =
             (l['locations'][key]['location-parent'] == null) ? '' : l['locations'][key]['location-parent'];
+            if (l['locations'][key]['em-role-id'].length > 0) {
+              role_id = l['locations'][key]['em-role-id'][0];
+            } else if (l['locations'][key]['account-role-id'].length > 0) {
+              role_id = l['locations'][key]['account-role-id'][0];
+            }
             this.users.push({
               email: l['email'],
               role_name: ((l['locations'][key]['account-role']).concat(l['locations'][key]['em-role'])).join(','),
@@ -237,6 +256,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
               account_id: l['account_id'],
               name: l['locations'][key]['location-name'],
               parent: l['locations'][key]['location-parent'],
+              role_id: role_id,
               location_id: key
             });
         });
@@ -249,6 +269,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
+        this.searchAccount();
       }
     });
 
@@ -288,6 +309,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
+        this.searchAccount();
       }
       // console.log(this.users);
     });
@@ -301,12 +323,14 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.getLocationSelection(id, name);
       this.accountIdForAddUser = 0;
       this.accountSearchResults = [];
-      this.newUserAccount.reset();
+      this.selectedAccountId = 0;
+      this.initialAccountName = null;
     } else {
-      this.accountIdForAddUser = id;
-      this.newUserAccount.setValue(name);
       this.getAccountSelection(id, name);
+      this.accountIdForAddUser = id;
       this.smartSearchSelection = 'account';
+      this.selectedAccountId = id;
+      this.initialAccountName = name;
     }
   }
 
@@ -317,11 +341,12 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       email: new FormControl(null, Validators.required),
       last_name: new FormControl(null, Validators.required),
       first_name: new FormControl(null, Validators.required),
+      role_id: new FormControl(null, Validators.required),
       courseTraining: new FormControl(this.defaultTrainingCourse, Validators.required),
       user_id: new FormControl('0', null),
-      accountId: new FormControl('0', null),
-      account_name: new FormControl(null, Validators.required),
-      sublocation_name: new FormControl(null, Validators.required),
+      accountId: new FormControl(this.selectedAccountId.toString(), null),
+      account_name: new FormControl(this.initialAccountName, Validators.required),
+      sublocation_name: new FormControl(null, null),
       sublocation_id: new FormControl('0', null)
     });
   }
@@ -331,7 +356,9 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.levelUsers = this.userForm.get('levelUsers') as FormArray;
     this.levelUsers.push(this.createFormItem());
     this.filteredEmailList[this.levelUsers.length - 1] = [];
+    this.accountSearchResults[this.levelUsers.length - 1] = [];
     this.assignSearchEmailAbility();
+    this.searchAccount();
 
   }
   private assignSearchEmailAbility(index?): void {
@@ -365,12 +392,14 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       index <= (<FormArray>this.userForm.get('levelUsers')).length; index++) {
         (<FormArray>this.userForm.get('levelUsers')).removeAt(index);
         this.genericEmailSearchSub[index].unsubscribe();
+        this.genericAccountSearchSub[index].unsubscribe();
     }
     (<FormArray>this.userForm.get('levelUsers')).removeAt(0);
   }
 
   public removeUser(index: number = 1) {
     this.genericEmailSearchSub[index].unsubscribe();
+    this.genericAccountSearchSub[index].unsubscribe();
     (<FormArray>this.userForm.get('levelUsers')).removeAt(index);
   }
 
@@ -397,23 +426,26 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.dashboard.show();
     const values = [];
     const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
+    console.log(formUserControls);
     for (const ctrl of formUserControls) {
       values.push({
         email: ctrl.get('email').value,
         user_id: ctrl.get('user_id').value,
         first_name: ctrl.get('first_name').value,
         last_name: ctrl.get('last_name').value,
+        role_id: ctrl.get('role_id').value,
         certification_date: this.userForm.get('dtTraining').value,
         location_id: ctrl.get('sublocation_id').value,
         account_id: ctrl.get('accountId').value,
         course_method: this.userForm.get('courseMethod').value,
-        training_requirement_id: this.userForm.get('courseTraining').value
+        training_requirement_id: ctrl.get('courseTraining').value
       });
     }
     this.genericSub.unsubscribe();
     this.users = [];
     this.searchLocationField.reset();
     console.log(JSON.stringify(values));
+
     this.cancelUserForm();
     this.adminService.validateUserTrainings(JSON.stringify(values))
     .subscribe((response) => {
@@ -427,38 +459,49 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.newUserRole.setValue(+e.target.value);
   }
 
-  getSelectedAccount(accountId, accountName): void {
-    this.accountSearchSub.unsubscribe();
-    this.newUserAccount.setValue(accountName);
-    this.accountIdForAddUser = accountId;
-    this.accountSearchResults = [];
-    this.accountSearchSub = this.searchAccount();
-    this.adminService.getAllLocationsOnAccount(accountId).subscribe((response) => {
-      this.parentLocationOptionGroupForNewUser = response['data']['levels'];
-      this.buildingsForNewUser = response['data']['buildings'];
-    });
+  getSelectedAccount(index, accountId, accountName): void {
+    // this.accountSearchSub.unsubscribe();
+    this.genericAccountSearchSub[index].unsubscribe();
+    (<FormArray>this.userForm.get('levelUsers'))
+      .controls[index].get('account_name')
+      .setValue(accountName);
+
+      this.genericAccountSearchSub[index].unsubscribe();
+    (<FormArray>this.userForm.get('levelUsers'))
+      .controls[index].get('accountId')
+      .setValue(accountId);
+
+    this.selectedAccountId = accountId;
+    this.accountSearchResults[index] = [];
+    this.searchAccount(index);
+
   }
 
-  searchAccount(): Subscription {
+  searchAccount(index?): void {
     console.log('searchAccount() was called');
-    return this.newUserAccount.valueChanges.debounceTime(350).subscribe((value) => {
+    let i = this.levelUsers.length - 1;
+    if (index != null)  {
+      i = index;
+    }
+    this.genericAccountSearchSub[i] =
+    this.levelUsers.controls[i].get('account_name').valueChanges.debounceTime(350).subscribe((value) => {
       if (value != null && value.length > 0) {
         this.adminService.getAccountListingForAdmin(0, value)
         .subscribe((res) => {
-          this.accountSearchResults = [];
+          this.accountSearchResults[i] = [];
           Object.keys(res['data']['list']).forEach((k) => {
-            this.accountSearchResults.push(res['data']['list'][k]);
+            this.accountSearchResults[i].push(res['data']['list'][k]);
           });
         });
       } else {
-        this.accountSearchResults = [];
+        this.accountSearchResults[i] = [];
       }
     });
   }
 
   showModalNewUser() {
     $('#newUserModal').modal('open');
-    this.accountSearchSub = this.searchAccount();
+    // this.accountSearchSub = this.searchAccount();
     this.accountSearchResults = [];
   }
 

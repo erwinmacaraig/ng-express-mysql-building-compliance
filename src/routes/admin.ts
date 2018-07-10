@@ -28,6 +28,8 @@ import * as AWS from 'aws-sdk';
 import * as async from 'async';
 import { TrainingRequirements } from '../models/training.requirements';
 import { TrainingCertification } from '../models/training.certification.model';
+import { AccountTrainingsModel } from '../models/account.trainings';
+import { Course } from '../models/course.model';
 
 const AWSCredential = require('../config/aws-access-credentials.json');
 
@@ -35,14 +37,164 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.post('/admin/create-training-for-account/',
+    new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      console.log(req.body);
+      const acctTraining = new AccountTrainingsModel();
+      let temp;
+      try {
+        temp = await acctTraining.checkAssignedTrainingOnAccount(req.body.account, req.body.course, req.body.role, req.body.trid);
+        console.log(temp);
+        return res.status(400).send({
+          message: 'Training course already exists'
+        });
+      } catch (e) {
+        console.log('Creating training record');
+        await acctTraining.create({
+          account_id: req.body.account,
+          course_id: req.body.course,
+          role: req.body.role,
+          training_requirement_id: req.body.trid
+
+        });
+        const trainings = await acctTraining.getAccountTrainings(req.body.account);
+        return res.status(200).send({
+          message: 'Record created',
+          trainings: trainings
+        });
+      }
+    });
+
+    router.post('/admin/assign-account-roles-training/',
+    new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const acctTraining = new AccountTrainingsModel();
+
+      await acctTraining.assignAccountRoleTraining(req.body.accountId,
+        req.body.courseId,
+        req.body.trid,
+        req.body.role
+      );
+      return res.status(200).send({
+        message: 'Success'
+      });
+    });
+
+    router.post('/admin/assign-user-training/',
+    new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const userId = req.body.userId;
+      const trid = req.body.trid;
+      const courseId = req.body.courseId;
+      const accountTraining = new AccountTrainingsModel();
+      await accountTraining.assignAccountUserTraining(userId, courseId, trid);
+      return res.status(200).send({
+        message: 'Success'
+      });
+    });
     router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
-
       const users: Array<object> = JSON.parse(req.body.users);
-      console.log(users);
-
+      // console.log(users);
+      const invalidUsers = [];
       for (const u of users) {
-        try {
+       if (parseInt( u['user_id'], 10) == 0) {
+         const user = new User();
+         const token = new Token();
+         const locationAccntRel = new LocationAccountRelation();
+         if (validator.isEmail(u['email'])) {
+           try {
+             await user.getByEmail(u['email']);
+           } catch (e) {
+              const locationAccntUser = new LocationAccountUser();
+               await user.create({
+                first_name: u['first_name'],
+                last_name: u['last_name'],
+                email: u['email'],
+                password: md5('Password123456'),
+                can_login: 1,
+                invited_by_user: req.user.user_id,
+                token: md5(u['email']),
+                account_id: u['account_id']
+               });
+
+               await token.create({
+                id: user.ID(),
+                id_type: 'user_id',
+                token: md5(u['email']),
+                action: 'verify',
+                verified: 1,
+                expiration_date: moment().format('YYYY-MM-DD HH-mm-ss')
+              });
+
+              if (parseInt(u['role_id'], 10) > 2) {
+                // EM Roles UserEmRoleRelation
+                try {
+                  const em_user = new UserEmRoleRelation();
+                  em_user.create({
+                    user_id: user.ID(),
+                    em_role_id: u['role_id'],
+                    location_id: u['location_id']
+                  });
+                } catch (e) {
+                  console.log('Unable to create emergency role', e);
+                }
+              } else {
+                try {
+                  await locationAccntUser.create({
+                    location_id: u['location_id'],
+                    account_id: u['account_id'],
+                    user_id: user.ID()
+                  });
+
+                } catch (e) {
+                    console.log('Cannot create entry in db');
+                }
+                try {
+                  await locationAccntRel.getLocationAccountRelation({
+                      'location_id': u['location_id'],
+                      'account_id': u['account_id'],
+                      'responsibility': defs['role_text'][u['role_id']]
+                  });
+                } catch (err) {
+                  await locationAccntRel.create({
+                    'location_id': u['location_id'],
+                    'account_id': u['account_id'],
+                    'responsibility': defs['role_text'][u['role_id']]
+                  });
+                }
+                // User Role Relation
+                const userRoleRelObj = new UserRoleRelation();
+                let accountRole = [];
+                accountRole = await userRoleRelObj.getUserRoleRelationId({
+                  user_id: user.ID(),
+                  role_id: u['role_id']
+                });
+                if (accountRole.length === 0) {
+                  await userRoleRelObj.create({
+                    user_id: user.ID(),
+                    role_id: u['role_id']
+                  });
+                }
+              }
+              try {
+                await new TrainingCertification().checkAndUpdateTrainingCert({
+                  'user_id': user.ID(),
+                  'certification_date': u['certification_date'],
+                  'training_requirement_id': u['training_requirement_id'],
+                  'course_method': u['course_method'],
+                  'pass': '1',
+                  'registered': '1',
+                  'description': 'Training validated by user ' + req.user.user_id + ' on ' + moment().format('YYYY-MM-DD HH:mm:ss')
+                });
+               } catch (e) {
+                 console.log(e, u);
+               }
+           }
+         } else {
+          invalidUsers.push(u['email']);
+         }
+       } else {
+         try {
+
           await new TrainingCertification().checkAndUpdateTrainingCert({
             'user_id': u['user_id'],
             'certification_date': u['certification_date'],
@@ -50,11 +202,13 @@ export class AdminRoute extends BaseRoute {
             'course_method': u['course_method'],
             'pass': '1',
             'registered': '1',
-            'description': 'Training validated on ' + moment().format('YYYY-MM-DD HH:mm:ss')
+            'description': 'Training validated by user ' + req.user.user_id + ' on ' + moment().format('YYYY-MM-DD HH:mm:ss')
           });
-        } catch (e) {
-          console.log(e, u);
-        }
+
+         } catch (e) {
+           console.log(e, u);
+         }
+       }
       }
 
       return res.status(200).send({
@@ -336,6 +490,7 @@ export class AdminRoute extends BaseRoute {
       let allUsers = [];
       allUsers = await account.generateAdminAccountUsers(req.params.accountId, selectedUsers);
       allUsers = allUsers.concat(await account.generateAdminEMUsers(req.params.accountId, selectedUsers));
+      // console.log(allUsers);
       const accountUsers = [];
       const allUserObject = {};
       const locations = {};
@@ -347,11 +502,14 @@ export class AdminRoute extends BaseRoute {
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
                 allUsers[i]['account_role']
               );
-
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role-id'].push(
+                allUsers[i]['role_id']
+              );
 
             }
             if (allUsers[i]['role_name'] && (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0)) {
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role-id'].push(allUsers[i]['role_id']);
             }
 
 
@@ -361,15 +519,21 @@ export class AdminRoute extends BaseRoute {
                 'em-role': [],
                 'account-role': [],
                 'location-name': allUsers[i]['name'],
-                'location-parent': allUsers[i]['parent_name']
+                'location-parent': allUsers[i]['parent_name'],
+                'account-role-id': [],
+                'em-role-id': []
               };
               if ((allUsers[i]['account_role']) && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)) {
                 allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
                   allUsers[i]['account_role']
                 );
+                allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role-id'].push(
+                  allUsers[i]['role_id']
+                );
               }
               if ( (allUsers[i]['role_name']) && (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0)) {
                 allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
+                allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role-id'].push(allUsers[i]['role_id']);
               }
 
             }
@@ -395,15 +559,22 @@ export class AdminRoute extends BaseRoute {
               'location-name': allUsers[i]['name'],
               'location-parent': allUsers[i]['parent_name'],
               'account-role': [],
-              'em-role': []
+              'em-role': [],
+              'account-role-id': [],
+              'em-role-id': []
+
             };
             if (allUsers[i]['account_role'] && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)) {
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
                 allUsers[i]['account_role']
               );
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role-id'].push(
+                allUsers[i]['role_id']
+              );
             }
             if (allUsers[i]['role_name'] && (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0)) {
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
+              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role-id'].push(allUsers[i]['role_id']);
             }
           }
         }
@@ -422,7 +593,7 @@ export class AdminRoute extends BaseRoute {
         data: {
           'list': accountUsers,
           'total_pages': pages,
-        } ,
+        },
 
       });
     });
@@ -842,6 +1013,7 @@ export class AdminRoute extends BaseRoute {
     });
 
 
+
     router.get('/admin/list/compliance-documents/',
     new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
       const list = new List();
@@ -1028,8 +1200,120 @@ export class AdminRoute extends BaseRoute {
         });
        });
       });
+
+
+
+
+    router.get('/admin/account/trainings/:accountId', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next:NextFunction) => {
+        let
+        accountId = req.params.accountId,
+        response = {
+            status : true, data : [], message : '', accountId : accountId, trqmts: [], courses: [], em_roles: []
+        };
+        const trqmt = new TrainingRequirements();
+        const course = new Course();
+        const em_roles = new UserEmRoleRelation();
+        response.trqmts = await trqmt.getWhere([]);
+        response.courses = await course.getWhere([]);
+        response.em_roles = <Array<object>> await em_roles.getEmRoles();
+
+
+        response.data = <any> await new AccountTrainingsModel().getAccountTrainings(accountId);
+
+        res.send(response);
+    });
+
+    router.get('/admin/account/location-heirarchy/:accountId', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next:NextFunction) => {
+        let
+        accountId = req.params.accountId,
+        locAccModel = new LocationAccountRelation(accountId),
+        response = {
+            status : true, data : [], locations : [], message : ''
+        },
+        filter = {},
+        locationsAccount = [];
+
+        filter['archived'] = 0;
+        filter['is_building'] = 1;
+        locationsAccount = await locAccModel.listAllLocationsOnAccount(accountId, filter);
+
+        let addChildrenLocationToParent = (data) => {
+            for(let i in data){
+                if('sublocations' in data[i] == false){
+                    data[i]['sublocations'] = [];
+                }
+
+                for(let x in data){
+                    if(data[x]['parent_id'] == data[i]['location_id']){
+                        if('sublocations' in data[i] == false){
+                            data[i]['sublocations'] = [];
+                        }
+
+                        let d = {};
+                        for(let l in data[x]){
+                            if(l.indexOf('@pi') == -1){
+                                d[l] = data[x][l];
+                            }
+                        }
+
+                        data[i]['sublocations'].push(d);
+                    }
+                }
+            }
+
+            let finalData = [];
+            for(let i in data){
+                let hasParent = false;
+                for(let x in data){
+                    if( data[i]['parent_id'] == data[x]['location_id'] ){
+                        hasParent = true;
+                    }
+                }
+                if(!hasParent){
+                    finalData.push( data[i] );
+                }
+            }
+
+            return finalData;
+        }
+
+        let responseLocations = [];
+        for(let loc of locationsAccount){
+            let
+            deepLocModel = new Location(),
+            deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
+
+            deepLocations.push(loc);
+
+            let locMerged = addChildrenLocationToParent(deepLocations),
+                respLoc = (locMerged[0]) ? locMerged[0] : false;
+
+            if(respLoc){
+
+                let alreadyHave = false;
+                for(let resloc of responseLocations){
+                    if(resloc.location_id == respLoc.location_id){
+                        alreadyHave = true;
+                    }
+                }
+
+                if(!alreadyHave){
+                    responseLocations.push(respLoc);
+                }
+            }
+        }
+
+        response.locations = responseLocations;
+
+        res.send(response);
+    });
+
+
+
   // ===============
   }
+
+
 
 
 }
