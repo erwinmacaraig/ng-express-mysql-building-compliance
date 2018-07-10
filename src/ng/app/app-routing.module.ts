@@ -217,7 +217,10 @@ const appRoutes: Routes = [
       { path: 'add-account-user/:accntId', component: AddAccountUserComponent },
       { path: 'locations-in-account/:accntId', component: LocationsInAccountComponent },
       { path: 'upload-compliance-docs', component: UploadComplianceDocComponent },
-      { path: 'view-location-compliance/:accntId/:locationId/:kpi', component: ComplianceSummaryViewComponent }
+      { path: 'view-location-compliance/:accntId/:locationId/:kpi', component: ComplianceSummaryViewComponent },
+      { path: 'activity-log-report/:location/:accountId', component : ReportsActivityLogComponent },
+      { path : 'trainings-report/:locationId/:accountId', component : ReportsTrainingsComponent },
+      { path : 'teams-report/:location/:accountId', component : ReportsTeamsComponent }
     ]
   }
 ];
