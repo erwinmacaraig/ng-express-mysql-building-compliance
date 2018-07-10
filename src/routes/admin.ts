@@ -29,6 +29,7 @@ import * as async from 'async';
 import { TrainingRequirements } from '../models/training.requirements';
 import { TrainingCertification } from '../models/training.certification.model';
 import { AccountTrainingsModel } from '../models/account.trainings';
+import { Course } from '../models/course.model';
 
 const AWSCredential = require('../config/aws-access-credentials.json');
 
@@ -36,9 +37,46 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.post('/admin/create-training-for-account/',
+    new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      console.log(req.body);
+      const acctTraining = new AccountTrainingsModel();
+      let temp;
+      try {
+        temp = await acctTraining.checkAssignedTrainingOnAccount(req.body.account, req.body.course, req.body.role, req.body.trid);
+        console.log(temp);
+        return res.status(400).send({
+          message: 'Training course already exists'
+        });
+      } catch (e) {
+        console.log('Creating training record');
+        await acctTraining.create({
+          account_id: req.body.account,
+          course_id: req.body.course,
+          role: req.body.role,
+          training_requirement_id: req.body.trid
+
+        });
+        const trainings = await acctTraining.getAccountTrainings(req.body.account);
+        return res.status(200).send({
+          message: 'Record created',
+          trainings: trainings
+        });
+      }
+    });
+
     router.post('/admin/assign-account-roles-training/',
     new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const acctTraining = new AccountTrainingsModel();
 
+      await acctTraining.assignAccountRoleTraining(req.body.accountId,
+        req.body.courseId,
+        req.body.trid,
+        req.body.role
+      );
+      return res.status(200).send({
+        message: 'Success'
+      });
     });
 
     router.post('/admin/assign-user-training/',
@@ -1170,16 +1208,23 @@ export class AdminRoute extends BaseRoute {
         let
         accountId = req.params.accountId,
         response = {
-            status : true, data : [], message : '', accountId : accountId
+            status : true, data : [], message : '', accountId : accountId, trqmts: [], courses: [], em_roles: []
         };
+        const trqmt = new TrainingRequirements();
+        const course = new Course();
+        const em_roles = new UserEmRoleRelation();
+        response.trqmts = await trqmt.getWhere([]);
+        response.courses = await course.getWhere([]);
+        response.em_roles = <Array<object>> await em_roles.getEmRoles();
 
-        response.data = <any> await new AccountTrainingsModel().getAccountTainings(accountId);
+
+        response.data = <any> await new AccountTrainingsModel().getAccountTrainings(accountId);
 
         res.send(response);
     });
 
     router.get('/admin/account/location-heirarchy/:accountId', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next:NextFunction) => {
-        let 
+        let
         accountId = req.params.accountId,
         locAccModel = new LocationAccountRelation(accountId),
         response = {
@@ -1234,17 +1279,17 @@ export class AdminRoute extends BaseRoute {
 
         let responseLocations = [];
         for(let loc of locationsAccount){
-            let 
+            let
             deepLocModel = new Location(),
             deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
 
             deepLocations.push(loc);
-            
+
             let locMerged = addChildrenLocationToParent(deepLocations),
                 respLoc = (locMerged[0]) ? locMerged[0] : false;
 
             if(respLoc){
-                
+
                 let alreadyHave = false;
                 for(let resloc of responseLocations){
                     if(resloc.location_id == respLoc.location_id){

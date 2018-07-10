@@ -32,13 +32,59 @@
               <td>{{training['training_requirement_name']}}</td>
               <td>{{training['role_name']}}</td>
               <td>
-                <p><button (click)="assignTrainingToRole(training)">Assign Training to all {{training['role_name']}}</button></p>
+                <p><button (click)="assignTrainingToRole(training)">Assign This Training to all {{training['role_name']}}</button></p>
               </td>
             </tr>
           </tbody>
         </table>
     </div>
   </div>
+
+  <div class="row">
+    <div class="col l12">
+        <h5>
+            Create new training for this account
+        </h5>
+      <form novalidate [formGroup]="trainingFormGroup" (ngSubmit)="createTraining()">
+          <table class="table striped highlight">
+            <thead>
+              <tr>
+                <th>Scorm Course</th>
+                <th>Role</th>
+                <th>Training Requirement</th>
+                <th style="width: 10%">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <select id="scormcourse" style="display: block;" formControlName="scormCourseField">
+                    <option [value]="null" [disabled]="true == true">Course</option>
+                    <option *ngFor="let c of courses" [value]="c['course_id']">{{c['course_name']}}</option>
+                  </select>
+                </td>
+                <td>
+                  <select id="role" style="display: block;" formControlName="roleField">
+                    <option [value]="null" [disabled]="true == true">Roles</option>
+                    <option *ngFor="let role of em_roles" [value]="role['em_roles_id']">{{role['role_name']}}</option>
+                  </select>
+                </td>
+                <td>
+                  <select id="trid" style="display: block;" formControlName="trainingRqmtField">
+                    <option [value]="null" [disabled]="true == true">Training Requirement</option>
+                    <option *ngFor="let r of trqmts" [value]="r['training_requirement_id']">{{r['training_requirement_name']}}</option>
+                  </select>
+                </td>
+                <td>
+                  <button type="submit" [disabled]="trainingFormGroup.invalid" class="btn orange waves-effect waves-light">Create</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+      </form>
+    </div>
+  </div>
+
 
   <div class="row">
       <div class="col l12 right-align">
