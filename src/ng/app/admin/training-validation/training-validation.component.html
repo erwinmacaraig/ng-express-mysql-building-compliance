@@ -44,6 +44,7 @@
             <th>First Name</th>
             <th>Last Name</th>
             <th>Account</th>
+            <th>Role</th>
             <th>Location</th>
             <th>Training Course</th>
             <th>Add Exception</th>
@@ -59,17 +60,27 @@
                     <li *ngFor="let item of filteredEmailList[i]; let j = index;">
                       <a (click)="getEmailSelection(i, item)">{{item['email']}} ({{item['role_name']}}, {{item['name']}})</a>
                     </li>
-                    <li>
-                        <a (click)="showModalNewUser()">Not in the list? Click here to register new user</a>
-                      </li>
                   </ul>
-                </div>
+              </div>
             </td>
             <td><input formControlName="first_name" type="text"></td>
             <td><input formControlName="last_name" type="text"></td>
             <td>
               <input formControlName="account_name" type="text">
               <input formControlName="accountId" type="hidden">
+              <div class="suggestions" *ngIf="accountSearchResults[i] != null && accountSearchResults[i].length > 0">
+                <ul *ngFor="let item of accountSearchResults[i]">
+                  <li>
+                    <a (click)="getSelectedAccount(i, item['id'], item['name'])">{{item['name']}}</a>
+                  </li>
+                </ul>
+              </div>
+            </td>
+            <td>
+              <select formControlName="role_id" style="display: block;">
+                  <option [value]="null" [disabled]="true == true">Roles</option>
+                  <option *ngFor="let r of roles" [value]="r.role_id">{{r.role_name}}</option>
+              </select>
             </td>
             <td>
                 <select formControlName="sublocation_id" style="display: block;" id="trainingCourse">
@@ -87,6 +98,17 @@
             <td class="with-remove">&nbsp;
               <a  class="remove" (click)="removeUser(i)">X</a>
             </td>
+            <!--
+            <td>Email: {{userForm.get('levelUsers')['controls'][i].get('email').valid}}
+                Last Name: {{userForm.get('levelUsers')['controls'][i].get('last_name').valid}}
+                First Name: {{userForm.get('levelUsers')['controls'][i].get('first_name').valid}}
+                Role: {{userForm.get('levelUsers')['controls'][i].get('role_id').valid}}
+
+                Course Training: {{userForm.get('levelUsers')['controls'][i].get('courseTraining').valid}}
+                User id: {{userForm.get('levelUsers')['controls'][i].get('user_id').valid}}
+                Account Id: {{userForm.get('levelUsers')['controls'][i].get('accountId').valid}}
+            </td>
+          -->
           </tr>
         </tbody>
         <tfoot>
@@ -113,130 +135,5 @@
   </div>
 </form>
 
-<div id="newUserModal" class="modal">
-    <form>
-      <div class="modal-content">
-        <h5>Add New User</h5>
-        <div class="row">
-          <div class="col s12">
-              <label>Enter new user first name:</label>
-              <input
-              [formControl]="newFirstName"
-              type="text"
-              placeholder="First Name"
-              >
-            <span
-              *ngIf="!newFirstName.valid &&
-              newFirstName.touched">
-                This first name is required.
-            </span>
-          </div>
 
-          <div class="col s12">
-            <label>Enter new user last name</label>
-            <input
-              [formControl]="newLastname"
-              type="text"
-              placeholder="Last Name">
-
-              <span
-              *ngIf="!newLastname.valid &&
-              newLastname.touched">
-                This last name is required.
-            </span>
-          </div>
-
-          <div class="col s12">
-            <label>New user email address:</label>
-            <input [formControl]="newUserEmail"
-              type="text"
-              placeholder="Email" #email>
-
-              <span *ngIf="!newUserEmail.valid &&
-              newUserEmail.touched">
-              Please provide a valid email.
-            </span>
-          </div>
-
-          <div class="col s12">
-              <label>Specify account of new user</label>
-              <input
-                  type="text"
-                  placeholder="Account Name"
-                  autocomplete="off"
-                  id="account_name"
-                  [formControl]="newUserAccount">
-            <div class="suggestions" *ngIf="accountSearchResults.length > 0">
-              <ul *ngFor="let item of accountSearchResults">
-                <li>
-                  <a (click)="getSelectedAccount(item['id'], item['name'])">{{item['name']}}</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="col s12">
-              <label>Choose new user emergency role</label>
-              <select [formControl]="newUserRole" (change)="switchLocationDropDown($event)" style="display: block;">
-                <option [value]="null" [disabled]="true == true">Roles</option>
-                <option *ngFor="let r of roles" [value]="r.role_id">{{r.role_name}}</option>
-              </select>
-              <span *ngIf="!newUserRole.valid && newUserRole.touched">
-                Please select user role.
-              </span>
-          </div>
-
-          <div *ngIf="selectedRole == 1 || selectedRole == 11 || selectedRole == 15 || selectedRole == 16 || selectedRole == 18; else leveldropdown" class="col s12">
-              <label>Assign location</label>
-              <select [formControl]="newUserLocation" style="display: block;">
-                <option [value]="null" [disabled]="true == true">Select Building Location</option>
-                <option *ngFor="let building of buildingsForNewUser" [value]="building.location_id">{{building.name}}</option>
-              </select>
-              <span *ngIf="!newUserLocation.valid && newUserLocation.touched">
-                  Locations is required.
-              </span>
-            </div>
-            <ng-template #leveldropdown>
-              <div class="col s12">
-                <label>Assign location</label>
-                <select [formControl]="newUserLocation" style="display: block;">
-                    <optgroup label="">
-                        <option [value]="null" [disabled]="true == true">Select Location</option>
-                    </optgroup>
-                    <optgroup *ngFor="let parent of parentLocationOptionGroupForNewUser" label="{{parent['parent_location_name']}}">
-                        <option *ngFor="let sub of parent['sublocations']" [value]="sub.id">{{sub.name}}</option>
-                    </optgroup>
-                </select>
-                <span *ngIf="!newUserLocation.valid && newUserLocation.touched">
-                    Locations is required.
-                  </span>
-              </div>
-            </ng-template>
-        </div>
-        <div class="row button-container">
-            <div class="col s12 m12 l12 right-align">
-              <a class=" btn modal-close grey lighten-1 waves-effect waves-light cancel" (click)="cancelAddNewUser()">Cancel</a>
-              <input type="submit" value="Submit" [ngClass]="{
-                  'btn': true,
-                  'cancel': (!newFirstName.valid ||
-                      !newUserEmail.valid ||
-                      !newLastname.valid ||
-                      !newUserAccount.valid ||
-                      !newUserRole.valid ||
-                      !newUserLocation.valid) == true,
-                  'waves-effect': true,
-                  'waves-light': true
-                }"
-                [disabled]="!newFirstName.valid ||
-                            !newUserEmail.valid ||
-                            !newLastname.valid ||
-                            !newUserAccount.valid ||
-                            !newUserRole.valid ||
-                            !newUserLocation.valid"
-                (click)="registerNewUser()" />
-            </div>
-        </div>
-      </div>
-    </form>
-</div>
 <div preloader></div>

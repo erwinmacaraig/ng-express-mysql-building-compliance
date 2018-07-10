@@ -1578,7 +1578,18 @@ export class UsersRoute extends BaseRoute {
                 }catch(e){}
             }
 
-            response.data.locations = locations;
+            let filteredLocs = [];
+
+            for(let loc of locations){
+                if(loc['role_id']){
+                    filteredLocs.push(loc);
+                }
+            }
+
+            response.data.locations = filteredLocs;
+
+
+
 			response.data.user = <any> user;
 			response.status = true;
 		}catch(e){

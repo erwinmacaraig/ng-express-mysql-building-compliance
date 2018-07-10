@@ -13,42 +13,60 @@ import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 declare var $: any;
 
 @Component({
-  selector: 'app-admin-account-locations',
-  templateUrl: './locations-in-accounts.component.html',
-  styleUrls: ['./locations-in-accounts.component.css'],
-  providers: [ AdminService, EncryptDecryptService, DashboardPreloaderService ]
+    selector: 'app-admin-account-locations',
+    templateUrl: './locations-in-accounts.component.html',
+    styleUrls: ['./locations-in-accounts.component.css'],
+    providers: [ AdminService, EncryptDecryptService, DashboardPreloaderService ]
 })
 export class LocationsInAccountComponent implements OnInit, AfterViewInit {
 
-  accountId = 0;
-  locations = [];
-  constructor(public http: HttpClient,
-    private adminService: AdminService,
-    private route: ActivatedRoute,
-    public encryptDecrypt: EncryptDecryptService,
-    public dashboard: DashboardPreloaderService) {
+    accountId = 0;
+    locations = [];
+    constructor(public http: HttpClient,
+        private adminService: AdminService,
+        private route: ActivatedRoute,
+        private router: Router,
+        public encryptDecrypt: EncryptDecryptService,
+        public dashboard: DashboardPreloaderService) {
 
     }
 
-  ngOnInit() {
-    this.dashboard.show();
-    this.route.params.subscribe((parameters) => {
-      this.accountId = parameters['accntId'];
-      this.adminService.taggedLocationsOnAccount(this.accountId).subscribe((response) => {
-        this.locations = response['data'];
-        for (const loc of this.locations) {
-          loc['id_encrypted'] = this.encryptDecrypt.encrypt(loc['location_id']);
+    ngOnInit() {
+        this.dashboard.show();
+        this.route.params.subscribe((parameters) => {
+            this.accountId = parameters['accntId'];
+            this.adminService.taggedLocationsOnAccount(this.accountId).subscribe((response) => {
+                this.locations = response['data'];
+                for (const loc of this.locations) {
+                    loc['id_encrypted'] = this.encryptDecrypt.encrypt(loc['location_id']);
+                }
+                console.log(response);
+                this.dashboard.hide();
+            }, (error) => {
+                console.log(error);
+                this.dashboard.hide();
+            });
+
+        });
+    }
+
+    selectActionEvent(selectAction, location){
+        let 
+        encLocId = this.encryptDecrypt.encrypt(location.location_id),
+        ecnAccntId = this.encryptDecrypt.encrypt(this.accountId);
+
+        if(selectAction.value == "activity-log"){
+            this.router.navigate(["/admin/activity-log-report/", encLocId, ecnAccntId])
+        }else if(selectAction.value == "team"){
+            this.router.navigate(["/admin/teams-report", encLocId, ecnAccntId]);
+        }else if(selectAction.value == "training"){
+            this.router.navigate(["/admin/trainings-report", encLocId, ecnAccntId]);
         }
-        console.log(response);
-        this.dashboard.hide();
-      }, (error) => {
-        console.log(error);
-        this.dashboard.hide();
-      });
 
-    });
-  }
 
-  ngAfterViewInit() {}
+        selectAction.value = 0;
+    }
+
+    ngAfterViewInit() {}
 
 }

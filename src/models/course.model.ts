@@ -32,7 +32,7 @@ export class Course extends BaseClass {
     });
   } // end load
 
-  public getWhere(arrWhere): Promise<object> {
+  public getWhere(arrWhere): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
           let sql = `SELECT * FROM scorm_course `,
               count = 0;
@@ -53,7 +53,7 @@ export class Course extends BaseClass {
                   throw new Error('Error loading scorm course');
               } else {
                   this.dbData = results;
-                  resolve(this.dbData);
+                  resolve(results);
               }
           });
           connection.end();

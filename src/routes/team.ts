@@ -1184,6 +1184,7 @@ export class TeamRoute extends BaseRoute {
             saveData['action'] = 'training-invite';
             await tokenTrainModel.create(saveData);
 
+            let roleText = (req.body.no_role_email) ? '' : `for your role as <strong>${req.body.role_name}</strong>`;
 
             const email = new EmailSender(opts);
             let emailBody = email.getEmailHTMLHeader();
@@ -1192,7 +1193,7 @@ export class TeamRoute extends BaseRoute {
 
             <p>
             You are reminded to take the <strong>${req.body.training_requirement_name} training</strong>
-            for your role as <strong>${req.body.role_name}</strong>.
+            ${roleText}.
                 <br />
             </p>
 
