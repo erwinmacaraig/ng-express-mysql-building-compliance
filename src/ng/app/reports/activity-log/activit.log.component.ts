@@ -24,6 +24,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 
 	userData = {};
     locationId = 0;
+    accountId = 0;
     activityLogs = [];
     pagination = {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
@@ -31,7 +32,8 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
     queries =  {
         limit : 50,
         offset : 0,
-        location_id : 0
+        location_id : 0,
+        account_id : 0
     };
 
     routerSubs;
@@ -63,6 +65,10 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         this.routerSubs = this.router.params.subscribe((params) => {
             this.locationId = this.encDecService.decrypt( params.location );
 
+            if(params['accountId']){
+                this.accountId = this.encDecService.decrypt( params.accountId );
+                this.queries.account_id = this.accountId;
+            }
 
             this.queries.location_id = this.locationId;
             this.getActivityReport((response:any) => {
@@ -181,6 +187,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
             this.pagination.prevPage = parseInt(type);
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
             this.queries.offset = offset;
+            this.queries.limit = 50;
             this.loadingTable = true;
             this.getActivityReport((response:any) => {
                 this.activityLogs = response.data;

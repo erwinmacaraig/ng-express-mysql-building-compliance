@@ -35,13 +35,16 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     queries =  {
         limit : 10,
         offset : 0,
-        location_id : 0
+        location_id : 0,
+        account_id : 0
     };
 
     pdfLoader = false;
     csvLoader = false;
     exportData = [];
     exportFetchMarker = {};
+
+    accountId = 0;
 
     constructor (
         private router: Router,
@@ -84,8 +87,14 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.sub = this.route.params.subscribe(params => {
+            this.dashboardPreloader.show();
             this.locationIdDecrypted = this.encryptDecrypt.decrypt(params['location']);
             console.log(`Decrypted location id ${this.locationIdDecrypted}`);
+
+            if(params['accountId']){
+                this.accountId = this.encryptDecrypt.decrypt( params.accountId );
+                this.queries.account_id = this.accountId;
+            }
 
             this.reportData = [];
             this.getTeamReport((response:any) => {
@@ -158,7 +167,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     }
 
     ngAfterViewInit(){
-        this.dashboardPreloader.show();
+        // this.dashboardPreloader.show();
         /*$('select').material_select();
         $('#selectLocation').val(this.locationIdDecrypted).material_select('update');
         $('#selectLocation').off('change.selectlocation').on('change.selectlocation', () => {
