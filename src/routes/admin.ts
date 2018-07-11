@@ -37,6 +37,44 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.post('/admin/assign-default-training/',
+    new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      if (req.body.account != null) {
+        const accountId = req.body.account;
+        const onlineTrainingAccess = parseInt(req.body.online_access, 10);
+        // update account
+        const accountObj = new Account(accountId);
+        await accountObj.load();
+        await accountObj.create({
+          online_access: onlineTrainingAccess
+        });
+
+        // assign default training to this account
+        if (onlineTrainingAccess) {
+          const acctTraining = new AccountTrainingsModel();
+          await acctTraining.assignAccountRoleTraining(accountId,
+            1,
+            17,
+            9
+          );
+          await acctTraining.assignAccountRoleTraining(accountId,
+            1,
+            17,
+            10
+          );
+          await acctTraining.assignAccountRoleTraining(accountId,
+            7,
+            16,
+            8
+          );
+        } else {
+
+        }
+      }
+
+
+    });
+
     router.post('/admin/create-training-for-account/',
     new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
       console.log(req.body);
@@ -99,6 +137,16 @@ export class AdminRoute extends BaseRoute {
        if (parseInt( u['user_id'], 10) == 0) {
          const user = new User();
          const token = new Token();
+         let accountId = u['account_id'];
+         if (accountId == 0) {
+           // create an account
+           const accountObj = new Account();
+           await accountObj.create({
+            account_name: u['account_name']
+           });
+           accountId = accountObj.ID();
+         }
+
          const locationAccntRel = new LocationAccountRelation();
          if (validator.isEmail(u['email'])) {
            try {
@@ -113,7 +161,7 @@ export class AdminRoute extends BaseRoute {
                 can_login: 1,
                 invited_by_user: req.user.user_id,
                 token: md5(u['email']),
-                account_id: u['account_id']
+                account_id: accountId
                });
 
                await token.create({
@@ -141,7 +189,7 @@ export class AdminRoute extends BaseRoute {
                 try {
                   await locationAccntUser.create({
                     location_id: u['location_id'],
-                    account_id: u['account_id'],
+                    account_id: accountId,
                     user_id: user.ID()
                   });
 
@@ -151,13 +199,13 @@ export class AdminRoute extends BaseRoute {
                 try {
                   await locationAccntRel.getLocationAccountRelation({
                       'location_id': u['location_id'],
-                      'account_id': u['account_id'],
+                      'account_id': accountId,
                       'responsibility': defs['role_text'][u['role_id']]
                   });
                 } catch (err) {
                   await locationAccntRel.create({
                     'location_id': u['location_id'],
-                    'account_id': u['account_id'],
+                    'account_id': accountId,
                     'responsibility': defs['role_text'][u['role_id']]
                   });
                 }
@@ -612,7 +660,12 @@ export class AdminRoute extends BaseRoute {
       }
       // GET ALL SUBLEVELS
       const list = new List();
-      let levelLocations;
+      let levelLocations: Object = {
+        resultArray: [],
+        resultObject: {},
+        resultLocationIds: []
+      };
+
       if (buildingIds.length == 0) {
         locationsForTRP = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
         for (const location of locationsForTRP) {
@@ -638,6 +691,8 @@ export class AdminRoute extends BaseRoute {
           uniqLocationsUnderFRP.push(location['location_id']);
         }
       }
+
+
       const locationInLAR = await list.generateLocationDetailsForAddUsers(uniqLocationsUnderFRP);
       return res.status(200).send({
         data: {
@@ -646,6 +701,7 @@ export class AdminRoute extends BaseRoute {
           lar: locationInLAR
         }
       });
+
     });
 
     router.get('/admin/check-user-email/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {

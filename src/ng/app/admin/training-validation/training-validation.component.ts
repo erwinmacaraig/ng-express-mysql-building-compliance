@@ -436,6 +436,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         role_id: ctrl.get('role_id').value,
         certification_date: this.userForm.get('dtTraining').value,
         location_id: ctrl.get('sublocation_id').value,
+        account_name: ctrl.get('account_name').value,
         account_id: ctrl.get('accountId').value,
         course_method: this.userForm.get('courseMethod').value,
         training_requirement_id: ctrl.get('courseTraining').value
@@ -447,11 +448,13 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     console.log(JSON.stringify(values));
 
     this.cancelUserForm();
+
     this.adminService.validateUserTrainings(JSON.stringify(values))
     .subscribe((response) => {
       this.genericSub = this.smartSearch();
       this.dashboard.hide();
     });
+
   }
 
   switchLocationDropDown(e: any) {
@@ -527,7 +530,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       role: this.newUserRole.value,
       location: this.newUserLocation.value,
       contact: '',
-      account_id: this.accountIdForAddUser
+      account_id: this.accountIdForAddUser,
     });
     console.log(JSON.stringify(values));
     this.adminService.submitNewUsers(JSON.stringify(values)).subscribe((response) => {
