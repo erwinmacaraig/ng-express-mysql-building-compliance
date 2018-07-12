@@ -1,3 +1,4 @@
+import { AccountTrainingsModel } from './../models/account.trainings';
 import { TrainingRequirements } from './../models/training.requirements';
 import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
@@ -976,7 +977,7 @@ export class UsersRoute extends BaseRoute {
                 if('locations' in user == false){ user['locations'] = []; }
                 if('locs' in user == false){ user['locs'] = []; }
                 for(let loc of locationsData){
-                    
+
                     if( loc.user_id == user.user_id ){
 
                         let userLocData = {
@@ -1013,9 +1014,9 @@ export class UsersRoute extends BaseRoute {
 
                         if(!exst){ user.locations.push(userLocData); }
 
-                        
+
                         user['locs'].push(loc);
-                        
+
                     }
 
                 }
@@ -2013,18 +2014,19 @@ export class UsersRoute extends BaseRoute {
         },
         isAccountEmailExempt = false,
         hasOnlineTraining = false,
-        userModel = new User(req.user.user_id);
+        userModel = new User(req.user.user_id),
+        accountTrainings = [];
 
         try{
             let account = <any> await accountModel.load();
             isAccountEmailExempt = (account.email_add_user_exemption == 1) ? true : false;
             hasOnlineTraining = (account.online_training == 1) ? true : false;
 
-            let 
+            let
             user = await userModel.load(),
             emRoles = <any> await new UserEmRoleRelation().getEmRoles();
 
-    		for(let i in users){
+    		for (let i in users) {
     			let userModel = new User(),
     				userRoleRelation = new UserRoleRelation(),
     				userEmRole = new UserEmRoleRelation(),
@@ -2034,7 +2036,7 @@ export class UsersRoute extends BaseRoute {
 
     			users[i]['errors'] = {};
 
-    			if(isEmailValid){
+    			if(isEmailValid) {
     				// isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
     				// if(!isBlackListedEmail){
 
@@ -2057,7 +2059,8 @@ export class UsersRoute extends BaseRoute {
     				hasError = true;
     			}
 
-    			if(!hasError){
+    			if(!hasError) {
+            accountTrainings = [];
     				let
     				token = this.generateRandomChars(30),
     				inviSaveData = {
@@ -2185,13 +2188,27 @@ export class UsersRoute extends BaseRoute {
                                 'user_id': userSaveModel.ID(),
                                 'role_id': users[i]['account_role_id']
                             });
-                        }else{
+                        } else {
+                            // get account trainings
+                            accountTrainings = await new AccountTrainingsModel().getAccountTrainings(accountId, {
+                              role: (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id']
+                            });
+
+                            for (const training of accountTrainings) {
+                              await new AccountTrainingsModel().assignAccountUserTraining(
+                                userSaveModel.ID(),
+                                training['course_id'],
+                                training['training_requirement_id']
+                              );
+                            }
+
                             const EMRoleUserRole = new UserEmRoleRelation();
                             await EMRoleUserRole.create({
                                 'user_id': userSaveModel.ID(),
                                 'em_role_id': (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
                                 'location_id': users[i]['account_location_id']
                             });
+
                         }
 
                     }else{
@@ -2215,7 +2232,7 @@ export class UsersRoute extends BaseRoute {
                                 subjectOfEmail = `You're assigned as Tenant Responsible Person`;
                             }
                             bodyOfEmail = `
-                            <div style="font-size:16px;"> 
+                            <div style="font-size:16px;">
                                 <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
 
                                 We are glad to inform that you are assigned as the ${roleName} for your location, ${locationFullName}. <br/>
@@ -2224,7 +2241,7 @@ export class UsersRoute extends BaseRoute {
                                 Please update the profile to set up your account on EvacConnect here : <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
 
                                 Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
-                                 
+
                                 Sincerely,<br/>
                                 EvacConnect
                             </div>
@@ -2239,15 +2256,15 @@ export class UsersRoute extends BaseRoute {
                             }
 
                             bodyOfEmail = `
-                            <div style="font-size:16px;"> 
+                            <div style="font-size:16px;">
                                 <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
 
                                 We are glad to inform that you are nominated to be a ${roleName} for your tenancy, ${account.account_name}, by your ${senderTxt}.<br/><br/>
-                                
+
                                 Follow this link to set up your password on EvacConnect: <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
 
                                 Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
-                                 
+
                                 Sincerely,<br/>
                                 EvacConnect
                             </div>
@@ -2283,7 +2300,7 @@ export class UsersRoute extends BaseRoute {
     				returnUsers.push( users[i] );
     			}
     		}
-            
+
 
         }catch(e){}
 
