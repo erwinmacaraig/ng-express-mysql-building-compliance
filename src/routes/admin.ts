@@ -130,9 +130,15 @@ export class AdminRoute extends BaseRoute {
           course_id: req.body.course,
           role: req.body.role,
           training_requirement_id: req.body.trid
-
         });
         const trainings = await acctTraining.getAccountTrainings(req.body.account);
+        // update account
+        const accountObj = new Account(req.body.account);
+        await accountObj.load();
+        await accountObj.create({
+          online_training: 1
+        });
+
         return res.status(200).send({
           message: 'Record created',
           trainings: trainings
