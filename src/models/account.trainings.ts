@@ -111,8 +111,12 @@ export class AccountTrainingsModel extends BaseClass {
         });
     }
 
-    public getAccountTrainings(accountId) {
+    public getAccountTrainings(accountId, filter = {}): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
+            let filterClause = '';
+            if ('role' in filter) {
+              filterClause = `AND atr.role = ${filter['role']}`;
+            }
             const sql_load = `
                 SELECT
                     atr.account_training_id,
@@ -132,7 +136,7 @@ export class AccountTrainingsModel extends BaseClass {
                 INNER JOIN scorm_course sc ON sc.course_id = atr.course_id
                 INNER JOIN training_requirement tr ON tr.training_requirement_id = atr.training_requirement_id
                 LEFT JOIN em_roles em ON em.em_roles_id = atr.role
-                WHERE atr.account_id = ${accountId}
+                WHERE atr.account_id = ${accountId} ${filterClause}
             `;
 
             const connection = db.createConnection(dbconfig);
@@ -144,7 +148,7 @@ export class AccountTrainingsModel extends BaseClass {
                 }
 
                 this.dbData = results;
-                resolve(this.dbData);
+                resolve(results);
             });
             connection.end();
         });
@@ -155,10 +159,8 @@ export class AccountTrainingsModel extends BaseClass {
                                      training_requirement_id: number = 0,
                                      disabled: number = 0) {
       return new Promise((resolve, reject) => {
-        let disabledClause = '';
-        if (disabled) {
-          disabledClause = `ON DUPLICATE KEY UPDATE disabled = 1`;
-        }
+        const disabledClause = `ON DUPLICATE KEY UPDATE disabled = ${disabled}`;
+
         const assign_sql = `INSERT IGNORE INTO course_user_relation (
                               user_id,
                               course_id,

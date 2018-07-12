@@ -1,3 +1,4 @@
+
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { AuthRequest } from '../interfaces/auth.interface';
@@ -756,7 +757,8 @@ export class AdminRoute extends BaseRoute {
 
     router.post('/admin/add-new-user/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
       const userForm = JSON.parse(req.body.users);
-      console.log(userForm);
+      // console.log(userForm);
+      let accountTrainings = [];
       const invalidUsers = [];
       let createData = {
         first_name: '',
@@ -781,6 +783,7 @@ export class AdminRoute extends BaseRoute {
             await user.getByEmail( u['email']);
           } catch (e) {
           //
+            accountTrainings = [];
             createData.first_name = u['first_name'];
             createData.last_name = u['last_name'];
             createData.email = u['email'];
@@ -824,6 +827,18 @@ export class AdminRoute extends BaseRoute {
                   em_role_id: u['role'],
                   location_id: u['location']
                 });
+
+                // get account trainings
+                accountTrainings = await new AccountTrainingsModel().getAccountTrainings(u['account_id'], {
+                  role: u['role']
+                });
+                for (const training of accountTrainings) {
+                  await new AccountTrainingsModel().assignAccountUserTraining(
+                    user.ID(),
+                    training['course_id'],
+                    training['training_requirement_id']
+                  );
+                }
               } catch (e) {
                 console.log('Unable to create emergency role', e, createData);
               }
