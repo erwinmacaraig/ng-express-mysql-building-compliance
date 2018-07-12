@@ -182,11 +182,26 @@ export class AccountTrainingsModel extends BaseClass {
     }
 
     public assignAccountRoleTraining(accountId: number = 0, courseId: number = 0,
-                                     trid: number = 0, role: number = 0, disabled: number = 0) {
+                                     trid: number = 0, role: number = 0, disable: number = 0) {
       return new Promise((resolve, reject) => {
-        const disabledClause = `ON DUPLICATE KEY UPDATE disabled = ${disabled}`;
+        let sql;
+        let params = [];
+        if (disable) {
+          sql = `UPDATE
+                  course_user_relation
+                INNER JOIN
+                  users
+                ON
+                  users.user_id = course_user_relation.user_id
+                SET
+                  course_user_relation.disabled = 1
+                WHERE
+              users.account_id = ?;`;
+          params = [accountId];
 
-        const sql = `INSERT IGNORE INTO course_user_relation (user_id, course_id, training_requirement_id)
+        } else {
+          const disabledClause = `ON DUPLICATE KEY UPDATE disabled = ${disable}`;
+          sql = `INSERT IGNORE INTO course_user_relation (user_id, course_id, training_requirement_id)
             SELECT DISTINCT users.user_id, ${courseId}, ${trid}
             FROM users
             INNER JOIN
@@ -197,8 +212,11 @@ export class AccountTrainingsModel extends BaseClass {
             ON accounts.account_id = users.account_id
             WHERE user_em_roles_relation.em_role_id = ? AND
             users.account_id = ? ${disabledClause};`;
+
+          params = [role, accountId];
+        }
         const connection = db.createConnection(dbconfig);
-        const params = [role, accountId];
+
         connection.query(sql, params, (error, results) => {
           if (error) {
             console.log('account.trainings.assignAccountRoleTraining', error, sql);
