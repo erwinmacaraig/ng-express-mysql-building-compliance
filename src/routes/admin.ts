@@ -1,3 +1,4 @@
+
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { AuthRequest } from '../interfaces/auth.interface';
@@ -36,6 +37,80 @@ const AWSCredential = require('../config/aws-access-credentials.json');
 export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
+
+    router.post('/admin/assign-default-training/',
+    new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      console.log(req.body);
+      if (req.body.account != null) {
+        const accountId = req.body.account;
+        const acctTraining = new AccountTrainingsModel();
+        let temp: any;
+        const arrayOfRolesCourseRelation = [{
+          'role': 8,
+          'course': 7,
+          'requirement': 16
+        },
+        {
+          'role': 9,
+          'course': 1,
+          'requirement': 17
+        }, {
+          'role': 10,
+          'course': 1,
+          'requirement': 17
+        }];
+        const onlineTrainingAccess = parseInt(req.body.online_access, 10);
+        // update account
+        const accountObj = new Account(accountId);
+        await accountObj.load();
+        await accountObj.create({
+          online_training: onlineTrainingAccess
+        });
+
+        // assign default training to this account
+        if (onlineTrainingAccess) {
+          // create/update record in account_trainings
+          for (const dref of arrayOfRolesCourseRelation) {
+            try {
+              temp = await acctTraining.checkAssignedTrainingOnAccount(accountId, dref.course, dref.role, dref.requirement);
+              console.log(temp);
+            } catch (e) {
+              console.log('Creating training record', dref.role);
+              await new AccountTrainingsModel().create({
+                account_id: accountId,
+                course_id: dref.course,
+                role: dref.role,
+                training_requirement_id: dref.requirement
+              });
+            }
+            await acctTraining.assignAccountRoleTraining(accountId,
+              dref.course,
+              dref.requirement,
+              dref.role
+            );
+          }
+
+        } else {
+          await acctTraining.removeAssignedTrainingOnAccount(accountId);
+          for (const dref of arrayOfRolesCourseRelation) {
+            // console.log(dref);
+            await acctTraining.assignAccountRoleTraining(accountId,
+              dref.course,
+              dref.requirement,
+              dref.role,
+              1
+            );
+          }
+
+        }
+        return res.status(200).send({
+          message: 'Success'
+        });
+      } // end if account
+
+
+
+    });
 
     router.post('/admin/create-training-for-account/',
     new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -99,6 +174,16 @@ export class AdminRoute extends BaseRoute {
        if (parseInt( u['user_id'], 10) == 0) {
          const user = new User();
          const token = new Token();
+         let accountId = u['account_id'];
+         if (accountId == 0) {
+           // create an account
+           const accountObj = new Account();
+           await accountObj.create({
+            account_name: u['account_name']
+           });
+           accountId = accountObj.ID();
+         }
+
          const locationAccntRel = new LocationAccountRelation();
          if (validator.isEmail(u['email'])) {
            try {
@@ -113,7 +198,7 @@ export class AdminRoute extends BaseRoute {
                 can_login: 1,
                 invited_by_user: req.user.user_id,
                 token: md5(u['email']),
-                account_id: u['account_id']
+                account_id: accountId
                });
 
                await token.create({
@@ -141,7 +226,7 @@ export class AdminRoute extends BaseRoute {
                 try {
                   await locationAccntUser.create({
                     location_id: u['location_id'],
-                    account_id: u['account_id'],
+                    account_id: accountId,
                     user_id: user.ID()
                   });
 
@@ -151,13 +236,13 @@ export class AdminRoute extends BaseRoute {
                 try {
                   await locationAccntRel.getLocationAccountRelation({
                       'location_id': u['location_id'],
-                      'account_id': u['account_id'],
+                      'account_id': accountId,
                       'responsibility': defs['role_text'][u['role_id']]
                   });
                 } catch (err) {
                   await locationAccntRel.create({
                     'location_id': u['location_id'],
-                    'account_id': u['account_id'],
+                    'account_id': accountId,
                     'responsibility': defs['role_text'][u['role_id']]
                   });
                 }
@@ -612,7 +697,12 @@ export class AdminRoute extends BaseRoute {
       }
       // GET ALL SUBLEVELS
       const list = new List();
-      let levelLocations;
+      let levelLocations: Object = {
+        resultArray: [],
+        resultObject: {},
+        resultLocationIds: []
+      };
+
       if (buildingIds.length == 0) {
         locationsForTRP = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
         for (const location of locationsForTRP) {
@@ -638,6 +728,8 @@ export class AdminRoute extends BaseRoute {
           uniqLocationsUnderFRP.push(location['location_id']);
         }
       }
+
+
       const locationInLAR = await list.generateLocationDetailsForAddUsers(uniqLocationsUnderFRP);
       return res.status(200).send({
         data: {
@@ -646,6 +738,7 @@ export class AdminRoute extends BaseRoute {
           lar: locationInLAR
         }
       });
+
     });
 
     router.get('/admin/check-user-email/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -664,7 +757,8 @@ export class AdminRoute extends BaseRoute {
 
     router.post('/admin/add-new-user/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
       const userForm = JSON.parse(req.body.users);
-      console.log(userForm);
+      // console.log(userForm);
+      let accountTrainings = [];
       const invalidUsers = [];
       let createData = {
         first_name: '',
@@ -689,6 +783,7 @@ export class AdminRoute extends BaseRoute {
             await user.getByEmail( u['email']);
           } catch (e) {
           //
+            accountTrainings = [];
             createData.first_name = u['first_name'];
             createData.last_name = u['last_name'];
             createData.email = u['email'];
@@ -732,6 +827,18 @@ export class AdminRoute extends BaseRoute {
                   em_role_id: u['role'],
                   location_id: u['location']
                 });
+
+                // get account trainings
+                accountTrainings = await new AccountTrainingsModel().getAccountTrainings(u['account_id'], {
+                  role: u['role']
+                });
+                for (const training of accountTrainings) {
+                  await new AccountTrainingsModel().assignAccountUserTraining(
+                    user.ID(),
+                    training['course_id'],
+                    training['training_requirement_id']
+                  );
+                }
               } catch (e) {
                 console.log('Unable to create emergency role', e, createData);
               }

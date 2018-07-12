@@ -1,5 +1,6 @@
 import * as db from 'mysql2';
 import * as Promise from 'promise';
+import { resolve } from 'path';
 const dbconfig = require('../config/db');
 const aws_credential = require('../config/aws-access-credentials.json');
 
@@ -267,7 +268,11 @@ export class List {
     generateSublocationsForListing(buildingLocations = []): Promise<Object> {
       return new Promise((resolve, reject) => {
         if (buildingLocations.length === 0) {
-          resolve([]);
+          resolve({
+            resultArray: [],
+            resultObject: {},
+            resultLocationIds: []
+          });
           return;
         }
         const buildingLocationsStr = buildingLocations.join(',');
@@ -333,6 +338,35 @@ export class List {
           });
         });
         connection.end();
+
+      });
+    }
+
+    public  generateSublocationsFromEMRoles(account: number = 0): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        const sql = `SELECT
+                          locations.location_id,
+                          locations.parent_id,
+                          locations.name,
+                          locations.formatted_address,
+                          parent_location.name as parent_location_name,
+                          parent_location.formatted_address as parent_location_formatted_address
+                     FROM locations
+                     INNER JOIN locations AS parent_location
+                     ON locations.parent_id = parent_location.location_id
+                     INNER JOIN user_em_roles_relation
+                     ON locations.location_id = user_em_roles_relation.location_id
+                     INNER JOIN users ON users.user_id = user_em_roles_relation.user_id
+                     WHERE users.account_id = ? AND locations.is_building = 0
+                     ORDER BY locations.parent_id`;
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [account], (error, results) => {
+          if (error) {
+            console.log('list.models.generateSublocationsFromEMRoles', error, sql);
+            throw Error('cannot generate list');
+          }
+          resolve(results);
+        });
 
       });
     }

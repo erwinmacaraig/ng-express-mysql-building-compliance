@@ -37,7 +37,8 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
     'billing_unit': '',
     'email_add_user_exemption': '',
     'lead': '',
-    'online_training': ''
+    'online_training': 0,
+    'epc_committee_on_hq': 0
   };
   account_billing = '';
 
@@ -83,6 +84,20 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.sub.unsubscribe();
+  }
+
+  public toggleOnlineTrainingAccess(e): void {
+    let toggleOnlineAccess = 0;
+    if (e.target.checked) {
+      toggleOnlineAccess = 1;
+    }
+    this.adminService.toggleOnlineTrainingAccess({
+      account: this.accountId,
+      online_access: toggleOnlineAccess
+    }).subscribe((response) => {
+        console.log(response);
+    });
+
   }
 }
 

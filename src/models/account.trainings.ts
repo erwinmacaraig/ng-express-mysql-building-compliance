@@ -43,14 +43,14 @@ export class AccountTrainingsModel extends BaseClass {
                     course_id = ?,
                     role = ?,
                     training_requirement_id = ?,
-                    datetime_addded = ?
+                    datetime_added = ?
                 WHERE account_training_id = ? `;
             const param = [
                 ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
                 ('course_id' in this.dbData) ? this.dbData['course_id'] : 0,
                 ('role' in this.dbData) ? this.dbData['role'] : 0,
                 ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
-                ('datetime_addded' in this.dbData) ? this.dbData['datetime_addded'] : moment().format('YYYY-MM-DD HH-mm-ss'),
+                ('datetime_added' in this.dbData) ? this.dbData['datetime_added'] : moment().format('YYYY-MM-DD HH-mm-ss'),
                 this.ID() ? this.ID() : 0
             ];
             const connection = db.createConnection(dbconfig);
@@ -82,7 +82,7 @@ export class AccountTrainingsModel extends BaseClass {
                 ('course_id' in this.dbData) ? this.dbData['course_id'] : 0,
                 ('role' in this.dbData) ? this.dbData['role'] : 0,
                 ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
-                ('datetime_addded' in this.dbData) ? this.dbData['datetime_addded'] : moment().format('YYYY-MM-DD HH-mm-ss'),
+                ('datetime_added' in this.dbData) ? this.dbData['datetime_added'] : moment().format('YYYY-MM-DD HH-mm-ss'),
             ];
             const connection = db.createConnection(dbconfig);
 
@@ -111,8 +111,12 @@ export class AccountTrainingsModel extends BaseClass {
         });
     }
 
-    public getAccountTrainings(accountId) {
+    public getAccountTrainings(accountId, filter = {}): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
+            let filterClause = '';
+            if ('role' in filter) {
+              filterClause = `AND atr.role = ${filter['role']}`;
+            }
             const sql_load = `
                 SELECT
                     atr.account_training_id,
@@ -132,7 +136,7 @@ export class AccountTrainingsModel extends BaseClass {
                 INNER JOIN scorm_course sc ON sc.course_id = atr.course_id
                 INNER JOIN training_requirement tr ON tr.training_requirement_id = atr.training_requirement_id
                 LEFT JOIN em_roles em ON em.em_roles_id = atr.role
-                WHERE atr.account_id = ${accountId}
+                WHERE atr.account_id = ${accountId} ${filterClause}
             `;
 
             const connection = db.createConnection(dbconfig);
@@ -144,21 +148,26 @@ export class AccountTrainingsModel extends BaseClass {
                 }
 
                 this.dbData = results;
-                resolve(this.dbData);
+                resolve(results);
             });
             connection.end();
         });
     }
 
-    public assignAccountUserTraining(userId: number = 0, course_id: number = 0, training_requirement_id: number = 0) {
+    public assignAccountUserTraining(userId: number = 0,
+                                     course_id: number = 0,
+                                     training_requirement_id: number = 0,
+                                     disabled: number = 0) {
       return new Promise((resolve, reject) => {
+        const disabledClause = `ON DUPLICATE KEY UPDATE disabled = ${disabled}`;
+
         const assign_sql = `INSERT IGNORE INTO course_user_relation (
                               user_id,
                               course_id,
                               training_requirement_id
                             ) VALUES (
                               ?, ?, ?
-                            )`;
+                            ) ${disabledClause}`;
         const connection = db.createConnection(dbconfig);
         const params = [userId, course_id, training_requirement_id];
         connection.query(assign_sql, params, (error, results) => {
@@ -172,8 +181,11 @@ export class AccountTrainingsModel extends BaseClass {
       });
     }
 
-    public assignAccountRoleTraining(accountId: number = 0, courseId: number = 0, trid: number = 0, role: number = 0) {
+    public assignAccountRoleTraining(accountId: number = 0, courseId: number = 0,
+                                     trid: number = 0, role: number = 0, disabled: number = 0) {
       return new Promise((resolve, reject) => {
+        const disabledClause = `ON DUPLICATE KEY UPDATE disabled = ${disabled}`;
+
         const sql = `INSERT IGNORE INTO course_user_relation (user_id, course_id, training_requirement_id)
             SELECT DISTINCT users.user_id, ${courseId}, ${trid}
             FROM users
@@ -184,7 +196,7 @@ export class AccountTrainingsModel extends BaseClass {
             INNER JOIN accounts
             ON accounts.account_id = users.account_id
             WHERE user_em_roles_relation.em_role_id = ? AND
-            users.account_id = ?;`;
+            users.account_id = ? ${disabledClause};`;
         const connection = db.createConnection(dbconfig);
         const params = [role, accountId];
         connection.query(sql, params, (error, results) => {
@@ -222,6 +234,26 @@ export class AccountTrainingsModel extends BaseClass {
           } else {
             reject('Training record exists');
           }
+        });
+        connection.end();
+      });
+    }
+
+    public removeAssignedTrainingOnAccount(account_id = 0) {
+      return new Promise((resolve, reject) => {
+        const sql = `DELETE
+                     FROM account_trainings
+                     WHERE
+                       account_id = ?
+                     `;
+        const connection = db.createConnection(dbconfig);
+        const params = [account_id];
+        connection.query(sql, params, (error, results) => {
+          if (error) {
+            console.log('account.trainings.checkAssignedTrainingOnAccount', error, sql);
+            throw Error('Cannot set up training');
+          }
+          resolve(true);
         });
         connection.end();
       });

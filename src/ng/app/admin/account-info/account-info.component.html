@@ -33,12 +33,12 @@
               </div>
         </div>
         <div class="col s3">
-            <div class="input-field">
-                <input id="inpEmail" type="text" placeholder="email" readonly="readonly">
-                <label for="inpEmail" class="active">
-                    Email
-                </label>
-              </div>
+          <div class="input-field">
+              <input id="inpEmail" type="text" placeholder="email" readonly="readonly">
+              <label for="inpEmail" class="active">
+                  Email
+              </label>
+          </div>
         </div>
       </div>
       <div class="row">
@@ -48,7 +48,18 @@
                 <label for="billingAddress" class="active">Billing Address</label>
             </div>
         </div>
-  </div>
+      </div>
+      <div class="row">
+        <div class="col s5">
+            <div>Settings</div>
+            <div class="checkbox">
+              <input id="epc" type="checkbox" [(ngModel)]="accountInfo.epc_committee_on_hq"> <label for="epc">EPC Meeting at Head Office</label>
+              <br>
+              <input id="ola" type="checkbox" [(ngModel)]="accountInfo.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
+            </div>
+        </div>
+      </div>
+
 </div>
 
 </div>
