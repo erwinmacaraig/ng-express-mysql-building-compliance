@@ -39,38 +39,74 @@ export class AdminRoute extends BaseRoute {
 
     router.post('/admin/assign-default-training/',
     new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      console.log(req.body);
       if (req.body.account != null) {
         const accountId = req.body.account;
+        const acctTraining = new AccountTrainingsModel();
+        let temp: any;
+        const arrayOfRolesCourseRelation = [{
+          'role': 8,
+          'course': 7,
+          'requirement': 16
+        },
+        {
+          'role': 9,
+          'course': 1,
+          'requirement': 17
+        }, {
+          'role': 10,
+          'course': 1,
+          'requirement': 17
+        }];
         const onlineTrainingAccess = parseInt(req.body.online_access, 10);
         // update account
         const accountObj = new Account(accountId);
         await accountObj.load();
         await accountObj.create({
-          online_access: onlineTrainingAccess
+          online_training: onlineTrainingAccess
         });
 
         // assign default training to this account
         if (onlineTrainingAccess) {
-          const acctTraining = new AccountTrainingsModel();
-          await acctTraining.assignAccountRoleTraining(accountId,
-            1,
-            17,
-            9
-          );
-          await acctTraining.assignAccountRoleTraining(accountId,
-            1,
-            17,
-            10
-          );
-          await acctTraining.assignAccountRoleTraining(accountId,
-            7,
-            16,
-            8
-          );
+          // create/update record in account_trainings
+          for (const dref of arrayOfRolesCourseRelation) {
+            try {
+              temp = await acctTraining.checkAssignedTrainingOnAccount(accountId, dref.course, dref.role, dref.requirement);
+              console.log(temp);
+            } catch (e) {
+              console.log('Creating training record', dref.role);
+              await new AccountTrainingsModel().create({
+                account_id: accountId,
+                course_id: dref.course,
+                role: dref.role,
+                training_requirement_id: dref.requirement
+              });
+            }
+            await acctTraining.assignAccountRoleTraining(accountId,
+              dref.course,
+              dref.requirement,
+              dref.role
+            );
+          }
+
         } else {
+          await acctTraining.removeAssignedTrainingOnAccount(accountId);
+          for (const dref of arrayOfRolesCourseRelation) {
+            // console.log(dref);
+            await acctTraining.assignAccountRoleTraining(accountId,
+              dref.course,
+              dref.requirement,
+              dref.role,
+              1
+            );
+          }
 
         }
-      }
+        return res.status(200).send({
+          message: 'Success'
+        });
+      } // end if account
+
 
 
     });

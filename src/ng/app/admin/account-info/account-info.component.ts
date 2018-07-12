@@ -87,12 +87,17 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public toggleOnlineTrainingAccess(e): void {
-    console.log(e.target);
+    let toggleOnlineAccess = 0;
     if (e.target.checked) {
-       console.log('At check');
-    } else {
-      console.log('At uncheck');
+      toggleOnlineAccess = 1;
     }
+    this.adminService.toggleOnlineTrainingAccess({
+      account: this.accountId,
+      online_access: toggleOnlineAccess
+    }).subscribe((response) => {
+        console.log(response);
+    });
+
   }
 }
 
