@@ -143,7 +143,7 @@ export class AccountTrainingsModel extends BaseClass {
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
 
-                  return console.log('account.trainings.getAccount',error,sql_load);
+                  return console.log('account.trainings.getAccount', error, sql_load);
 
                 }
 
