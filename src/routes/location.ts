@@ -54,6 +54,19 @@ const defs = require('../config/defs.json');
          });
 	   	});
 
+
+      router.get('/location/get-with-queries', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+
+        new LocationRoute().getLocation(req, res).then((data) => {
+          return res.status(200).send(data);
+         }).catch((e) => {
+            console.log(e);
+            return res.status(400).send({
+              message: 'No location found'
+            });
+         });
+           })
+
         router.post('/location/assign-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new LocationRoute().assignSubLocation(req, res).then((data) => {
                 return res.status(200).send({
@@ -988,7 +1001,10 @@ const defs = require('../config/defs.json');
 
 	public async getLocation(req: AuthRequest, res: Response) {
 		let
-        locationId = <number>req.params.location_id,
+        isQuery = (Object.keys(req.query).length > 0) ? true : false,
+        locationId = (isQuery) ? req.query.location_id : req.params.location_id,
+        accountId = (isQuery) ? req.query.account_id : req.user.account_id,
+        getRelatedOnly = (isQuery) ? (req.query.get_related_only == 'true') ? true : false : false,
         location = new Location(locationId),
         sublocations,
         othersub = [],
@@ -1021,6 +1037,10 @@ const defs = require('../config/defs.json');
         let countRelatedLoc = await locAccRel.listAllLocationsOnAccount(req.user.account_id, {
             'responsibility' : r, 'archived' : 0, 'location_id' : locationId, 'count' : true
         });
+        response['filter'] = {
+            'responsibility' : r, 'archived' : 0, 'location_id' : locationId, 'count' : true
+        };
+        response['countRelatedLoc'] = countRelatedLoc;
         if(countRelatedLoc[0]['count'] > 0){
             response.show_compliance = true;
         }
@@ -1051,17 +1071,24 @@ const defs = require('../config/defs.json');
         const wardenCalc = new WardenBenchmarkingCalculator();
 
         let sublocationIdsArray = [0];
-        if(locData.parent_id == -1){
-            sublocations = await location.getSublocations(req.user.user_id, r);
-        }else{
-            let ancestriesModel = new Location(),
-                ancestries = <any> await ancestriesModel.getAncestries(locData.location_id);
 
-            for(let i in ancestries){
-                location.setID(ancestries[i]['location_id']);
-                sublocations = await location.getSublocations(req.user.user_id, r);
+        if(getRelatedOnly == true){
+            let responsibility = (r == 1) ? 'Manager' : 'Tenant'; 
+            sublocations = await location.getChildrenTenantRelated(locData.location_id, accountId, responsibility);
+        }else{
+            if(locData.parent_id == -1){
+                sublocations = await location.getChildren(locData.location_id);
+            }else{
+                let ancestriesModel = new Location(),
+                    ancestries = <any> await ancestriesModel.getAncestries(locData.location_id);
+
+                for(let i in ancestries){
+                    location.setID(ancestries[i]['location_id']);
+                    sublocations = await location.getSublocations(req.user.user_id, r);
+                }
             }
         }
+
 
         for (let j = 0; j < sublocations.length; j++) {
           sublocationIdsArray.push(sublocations[j]['location_id']);

@@ -51,21 +51,45 @@ export class Location extends BaseClass {
         });
     }
 
-  public getChildren(parentId, call?): Promise<Array<object>> {
-    return new Promise((resolve) => {
-      const sql_load = `SELECT * FROM locations WHERE parent_id = ? AND archived = 0 `;
-      const param = [parentId];
-      const connection = db.createConnection(dbconfig);
+    public getChildren(parentId, call?): Promise<Array<object>> {
+        return new Promise((resolve) => {
+            const sql_load = `SELECT * FROM locations WHERE parent_id = ? AND archived = 0 `;
+            const param = [parentId];
+            const connection = db.createConnection(dbconfig);
 
-      connection.query(sql_load, param, (error, results, fields) => {
-        if (error) {
-          return console.log(error);
-        }
-        resolve(results);
-      });
-      connection.end();
-    });
-  }
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
+    public getChildrenTenantRelated(parentId, accountId, responsibility?){
+        return new Promise((resolve) => {
+            let paramResponsibility = (responsibility) ? responsibility : 'Tenant';
+
+            const sql_load = `
+                SELECT
+                    l.*
+                FROM locations l
+                INNER JOIN location_account_relation lar ON l.location_id = lar.location_id
+                WHERE l.parent_id = ${parentId} AND l.archived = 0 AND lar.account_id = ${accountId} AND lar.responsibility = '${paramResponsibility}'
+            `;
+            const param = [parentId];
+            const connection = db.createConnection(dbconfig);
+
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
 
     public countSubLocations(parentId){
         return new Promise((resolve) => {
@@ -666,9 +690,7 @@ export class Location extends BaseClass {
             };
 
             if (role_id === parseInt(defs['Manager'], 10) ) {
-
                 // FRP SECTION
-
                 if(!isAllLocationIds){
                     this.getParentsChildren(location).then((sublocations) => {
                       const subIds = [location_id];
@@ -758,7 +780,6 @@ export class Location extends BaseClass {
                     });
                     connection.end();
                 }
-
             } else if(role_id === parseInt(defs['Tenant'], 10) ) {
               sql = `SELECT
                       user_em_roles_relation.*,
@@ -960,6 +981,7 @@ export class Location extends BaseClass {
         });
       });
     }
+
     public locationHierarchy(location_id: number = 0, filter: object = {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         let theLocation = this.id;
@@ -999,7 +1021,8 @@ export class Location extends BaseClass {
         });
       });
     }
-    public getTheParentORBuiling(id) {
+
+    public getTheParentOrBuiling(id) {
         return new Promise((resolve, reject) => {
             const
             connection = db.createConnection(dbconfig),
@@ -1053,28 +1076,28 @@ export class Location extends BaseClass {
         });
     }
 
-  public searchLocation(searchCriteria: object = {}): Promise<Array<object>> {
-    return new Promise((resolve, reject) => {
-      let sql_search = `SELECT * FROM locations WHERE archived = 0`;
-      if ('name' in searchCriteria) {
-        sql_search += ` AND name LIKE '%${searchCriteria['name']}%'`;
-      }
-      if ('location_id' in searchCriteria) {
-        sql_search += ` AND location_id = ${searchCriteria['location_id']}`;
-      }
-      if ('parent_id' in searchCriteria) {
-        sql_search += ` AND parent_id = ${searchCriteria['parent_id']}`;
-      }
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_search, [], (error, results) => {
-        if (error) {
-          console.log('location.model.searchLocation', error, sql_search);
-          throw Error('There was an error getting the location details');
-        }
-        resolve(results);
-      });
-      connection.end();
-    });
-  }
+    public searchLocation(searchCriteria: object = {}): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            let sql_search = `SELECT * FROM locations WHERE archived = 0`;
+            if ('name' in searchCriteria) {
+                sql_search += ` AND name LIKE '%${searchCriteria['name']}%'`;
+            }
+            if ('location_id' in searchCriteria) {
+                sql_search += ` AND location_id = ${searchCriteria['location_id']}`;
+            }
+            if ('parent_id' in searchCriteria) {
+                sql_search += ` AND parent_id = ${searchCriteria['parent_id']}`;
+            }
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_search, [], (error, results) => {
+                if (error) {
+                    console.log('location.model.searchLocation', error, sql_search);
+                    throw Error('There was an error getting the location details');
+                }
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
 
 }

@@ -80,6 +80,9 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		'name' : '',
 		'parentData' : <any>{ location_id : 0 }
 	};
+
+    nameDisplay = '';
+
 	public tenants;
 	latestComplianceData = <any>[];
 	public totalPercentage;
@@ -157,50 +160,50 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
     evacExerciseComplianceId = 0;
 
-	constructor(
-      private router : Router,
-      private route: ActivatedRoute,
-      private authService : AuthService,
-      private userService: UserService,
-      private signupServices: SignupService,
-      private dashboard : DashboardPreloaderService,
-      private complianceService : ComplianceService,
-      private locationService : LocationsService,
-      private encryptDecrypt : EncryptDecryptService,
-      private adminService : AdminService,
-      private messageService : MessageService
-    ) {
+    constructor(
+        private router : Router,
+        private route: ActivatedRoute,
+        private authService : AuthService,
+        private userService: UserService,
+        private signupServices: SignupService,
+        private dashboard : DashboardPreloaderService,
+        private complianceService : ComplianceService,
+        private locationService : LocationsService,
+        private encryptDecrypt : EncryptDecryptService,
+        private adminService : AdminService,
+        private messageService : MessageService
+        ) {
 
-    this.userData = this.authService.getUserData();
+        this.userData = this.authService.getUserData(); 
 
-    for(let role of this.userData.roles){
-        if(role.role_id == 1){
-            this.isFRP = true;
+        for(let role of this.userData.roles){
+            if(role.role_id == 1){
+                this.isFRP = true;
+            }
+            if(role.role_id == 2){
+                this.isTRP = true;
+            }
         }
-        if(role.role_id == 2){
-            this.isTRP = true;
-        }
+
+        this.setDatePickerDefaultDate();
+
+        this.route.params.subscribe((params) => {
+            this.encryptedID = decodeURIComponent(params['encrypted']);
+            this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
+        });
+
+        this.msgSubs = this.messageService.getMessage().subscribe((message) => {
+            if(message.epcform){
+                if(message.epcform == 'hide') {
+                    this.showEPCform = false;
+                }
+            } else if(message.getLocationId) {
+                this.messageService.sendMessage({
+                    'locationId' : this.locationID
+                });
+            }
+        });
     }
-
-    this.setDatePickerDefaultDate();
-
-    this.route.params.subscribe((params) => {
-      this.encryptedID = decodeURIComponent(params['encrypted']);
-      this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
-    });
-
-    this.msgSubs = this.messageService.getMessage().subscribe((message) => {
-      if(message.epcform){
-          if(message.epcform == 'hide') {
-              this.showEPCform = false;
-          }
-      } else if(message.getLocationId) {
-          this.messageService.sendMessage({
-              'locationId' : this.locationID
-          });
-      }
-    });
-  }
 
     setDatePickerDefaultDate(){
         this.datepickerModel = moment().add(1, 'days').toDate();
@@ -225,6 +228,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 			}
 		}
 
+        let colors = this.complianceService.getColors();
 		for(let kpis of this.KPIS) {
             if (kpis.compliance.docs.length > 0) {
                 counter = counter + 1;
@@ -236,32 +240,33 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 				kpis['type'] = 'percent';
 			}
 
+            kpis['background_color'] = colors[kpis.compliance_kpis_id];
 			if(kpis.compliance_kpis_id == 4){
-				kpis['icon_class'] = 'light-green epm-icon';
+				kpis['icon_class'] = 'epm-icon';
 				kpis['short_code'] = 'epm';
 			}else if(kpis.compliance_kpis_id == 2){
-				kpis['icon_class'] = 'light-blue meeting-icon';
+				kpis['icon_class'] = 'epc-icon';
 				kpis['short_code'] = 'epc';
 			}else if(kpis.compliance_kpis_id == 9){
-				kpis['icon_class'] = 'teal evacuation-icon';
+				kpis['icon_class'] = 'evacuation-icon';
 				kpis['short_code'] = 'evacution_exercise';
 			}else if(kpis.compliance_kpis_id == 5){
-				kpis['icon_class'] = 'light-blue lighten-2 diagram-icon';
+				kpis['icon_class'] = 'diagram-icon';
 				kpis['short_code'] = 'evac_diagram';
 			}else if(kpis.compliance_kpis_id == 12){
-				kpis['icon_class'] = 'orange training-icon';
+				kpis['icon_class'] = 'chief-icon';
 				kpis['short_code'] = 'chief_warden_training';
 			}else if(kpis.compliance_kpis_id == 6){
-				kpis['icon_class'] = 'teal accent-3 training-icon';
+				kpis['icon_class'] = 'warden-icon';
 				kpis['short_code'] = 'warden_training';
 			}else if(kpis.compliance_kpis_id == 3){
-				kpis['icon_class'] = 'indigo training-icon';
+				kpis['icon_class'] = 'fsa-icon';
 				kpis['short_code'] = 'fire_safety_advisor';
 			}else if(kpis.compliance_kpis_id == 8){
-				kpis['icon_class'] = 'deep-purple training-icon';
+				kpis['icon_class'] = 'gen-occ-icon';
 				kpis['short_code'] = 'general_occupant_training';
 			}else if(kpis.compliance_kpis_id == 13){
-				kpis['icon_class'] = 'green training-icon';
+				kpis['icon_class'] = 'sundry-icon';
 				kpis['short_code'] = 'sundry';
 			}
 			let templateName = kpis['short_code']+'Template',
@@ -272,7 +277,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	ngOnInit(cb?) {
-        this.locationService.getById(this.locationID, (response) => {
+        this.locationService.getByIdWithQueries({
+            location_id : this.locationID,
+            account_id : this.userData.accountId,
+            get_related_only : (this.isFRP) ? false : (this.isTRP) ? true : false
+        }, (response) => {
             console.log(response);
             if (response.sublocations.length > 0) {
               this.complianceSublocations = response.sublocations;
@@ -297,6 +306,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
                 this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
                     this.latestComplianceData = responseCompl.data;
+                    if(responseCompl['building_based']){
+                        this.nameDisplay = responseCompl.building.name;
+                    }else{
+                        this.nameDisplay = (this.locationData.parentData.name) ? this.locationData.parentData.name+', '+this.locationData.name : this.locationData.name; 
+                    }
                     this.setKPISdataForDisplay();
 
                     this.totalPercentage = responseCompl.percent;
@@ -323,11 +337,14 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 });
             });
 
-            this.complianceService.getSublocationsEvacDiagrams(this.locationID, (responseSubs) => {
+            this.complianceService.getSublocationsEvacDiagrams({
+                location_id : this.locationID,
+                get_related_location : (this.isFRP == true) ? false : (this.isTRP == true) ? true : false 
+            }, (responseSubs) => {
                 this.evacDiagramSublocations = responseSubs.data.sublocations;
             });
         });
-  }
+    }
 
 	ngAfterViewInit(){
 		$('.workspace.container').css('position', 'relative');
