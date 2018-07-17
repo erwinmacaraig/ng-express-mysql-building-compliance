@@ -188,14 +188,42 @@ export class AdminRoute extends BaseRoute {
     router.get('/admin/location/search/',
     new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
-      const searchKey: object = {
+      const 
+      searchKey: object = <any> {
         name: req.query.name
-      };
-      const location = new Location();
-      const searchResult = await location.searchLocation(searchKey);
+      },
+      location = new Location(),
+      locAccModel = new LocationAccountRelation();
+
+      let 
+      limit = undefined,
+      accountId = undefined;
+      if(req.query['limit']){
+         limit = req.query.limit;
+      }
+      if(req.query['account_id']){
+         if(req.query.account_id > 0){
+             accountId = req.query.account_id;
+         }
+      }
+
+      let searchResult = <any> [];
+
+      if(accountId){
+          searchResult = await locAccModel.listAllLocationsOnAccount(accountId,  {
+              'archived' : 0, 'name' : req.query.name, 'limit' : limit, 'no_parent_name' : true
+          })
+      }else{
+          searchResult = await location.searchLocation(searchKey, limit, accountId);
+      }
+
       for (const s of searchResult) {
         s['type'] = 'location';
         s['id'] = s['location_id'];
+        if(req.query.sublocations){
+            let subLocModel = new Location(s['location_id']);
+            s['sublocations'] = await subLocModel.getSublocations();
+        }
       }
       return res.status(200).send({
         message: 'Success',
@@ -970,8 +998,6 @@ export class AdminRoute extends BaseRoute {
         });
     });
 
-
-
     router.get('/admin/list/compliance-documents/',
     new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
       const list = new List();
@@ -1260,8 +1286,28 @@ export class AdminRoute extends BaseRoute {
     });
 
 
+    router.post('/admin/generate-admin-report', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().generateAdminReport(req, res);
+    });
+
 
   // ===============
+  }
+
+  public async generateAdminReport(req: AuthRequest, res: Response){
+      let 
+      response = {
+          data : <any> [],
+          pagination : {
+              total : 0,
+              page : 0
+          },
+          type : req.body.type
+      };
+
+
+
+      res.send(response);
   }
 
 

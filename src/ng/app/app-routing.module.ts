@@ -99,6 +99,8 @@ import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upl
 import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/compliance-summary-view.component';
 import { AdminViewLocationComponent } from './admin/view-location/view-location.component';
 import { TrainingValidationComponent } from './admin/training-validation/training-validation.component';
+import { AdminReportsComponent } from './admin/reports/reports.component';
+
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -220,7 +222,8 @@ const appRoutes: Routes = [
       { path: 'view-location-compliance/:accntId/:locationId/:kpi', component: ComplianceSummaryViewComponent },
       { path: 'activity-log-report/:location/:accountId', component : ReportsActivityLogComponent },
       { path : 'trainings-report/:locationId/:accountId', component : ReportsTrainingsComponent },
-      { path : 'teams-report/:location/:accountId', component : ReportsTeamsComponent }
+      { path : 'teams-report/:location/:accountId', component : ReportsTeamsComponent },
+      { path : 'reports', component : AdminReportsComponent }
     ]
   }
 ];

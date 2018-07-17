@@ -1076,17 +1076,30 @@ export class Location extends BaseClass {
         });
     }
 
-    public searchLocation(searchCriteria: object = {}): Promise<Array<object>> {
+    public searchLocation(searchCriteria: object = {}, limit?, accountId?): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
-            let sql_search = `SELECT * FROM locations WHERE archived = 0`;
+            let joins = '';
+            if(accountId){
+                joins = `INNER JOIN location_account_relation lar ON l.location_id = lar.location_id`;
+            }
+
+            let sql_search = `SELECT l.* FROM locations l ${joins} WHERE l.archived = 0`;
             if ('name' in searchCriteria) {
-                sql_search += ` AND name LIKE '%${searchCriteria['name']}%'`;
+                sql_search += ` AND l.name LIKE '%${searchCriteria['name']}%'`;
             }
             if ('location_id' in searchCriteria) {
-                sql_search += ` AND location_id = ${searchCriteria['location_id']}`;
+                sql_search += ` AND l.location_id = ${searchCriteria['location_id']}`;
             }
             if ('parent_id' in searchCriteria) {
-                sql_search += ` AND parent_id = ${searchCriteria['parent_id']}`;
+                sql_search += ` AND l.parent_id = ${searchCriteria['parent_id']}`;
+            }
+
+            if(accountId){
+                sql_search += ` AND lar.account_id = ${accountId} `;
+            }
+
+            if(limit){
+                sql_search += ` LIMIT ${limit}`;
             }
             const connection = db.createConnection(dbconfig);
             connection.query(sql_search, [], (error, results) => {

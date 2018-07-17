@@ -1,0 +1,14 @@
+select{
+    display: block !important;
+    border: 1px solid #aaa;
+    font-size: 14px;
+}
+
+.margin-top-bottom-20{
+    margin: 20px 0px;
+}
+
+.btn-block{
+    height: 50px !important;
+    width: 100%;
+}
