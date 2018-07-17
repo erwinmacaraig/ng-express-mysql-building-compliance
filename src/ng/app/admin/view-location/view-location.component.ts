@@ -1,16 +1,7 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input} from '@angular/core';
-import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse, HttpParams, HttpEvent } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
-import { Router, ActivatedRoute, Params } from '@angular/router';
-import { ViewChild, ElementRef } from '@angular/core';
-import { Subscription, Observable } from 'rxjs/Rx';
-import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
+import { ActivatedRoute, Params } from '@angular/router';
 
 import { AdminService } from './../../services/admin.service';
-import { ComplianceService } from '../../services/compliance.service';
-import { EncryptDecryptService } from '../../services/encrypt.decrypt';
-import { DatepickerOptions } from 'ng2-datepicker';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 declare var $: any;
 declare var moment: any;
@@ -27,7 +18,30 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
   tab: any;
   people: Object[] = [];
   accounts: Object[] = [];
-  location_details: Object = {};
+  location_details: Object = {
+    parent_id: 0,
+    name: '',
+    unit: '',
+    street: '',
+    city: '',
+    state: '',
+    postal_code: '',
+    country: '',
+    formatted_address: '',
+    lat: '',
+    lng: '',
+    time_zone: '',
+    order: '',
+    is_building: 0,
+    location_directory_name: '',
+    archived: 0,
+    google_place_id: '',
+    google_photo_url: '',
+    admin_verified: '',
+    admin_verified_date: '',
+    admin_id: 0,
+    online_training: 0
+  };
   sublocations: Object[] = [];
   traversal: Object = {};
 
@@ -39,7 +53,30 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
     this.dashboard.show();
     this.route.params.subscribe((params: Params) => {
       this.locationId = +params['locationId'];
-      this.location_details = {};
+      this.location_details = {
+        parent_id: 0,
+        name: '',
+        unit: '',
+        street: '',
+        city: '',
+        state: '',
+        postal_code: '',
+        country: '',
+        formatted_address: '',
+        lat: '',
+        lng: '',
+        time_zone: '',
+        order: '',
+        is_building: 0,
+        location_directory_name: '',
+        archived: 0,
+        google_place_id: '',
+        google_photo_url: '',
+        admin_verified: '',
+        admin_verified_date: '',
+        admin_id: 0,
+        online_training: 0
+      };
       this.sublocations = [];
       this.accounts = [];
       this.traversal = {};
@@ -62,10 +99,24 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
     });
   }
 
+  public toggleOnlineTrainingAccess(e): void {
+    let toggleOnlineAccess = 0;
+    if (e.target.checked) {
+      toggleOnlineAccess = 1;
+    }
+    this.adminService.toggleOnlineTrainingAccess({
+      location: this.locationId,
+      online_access: toggleOnlineAccess
+    }).subscribe((response) => {
+        console.log(response);
+    });
+  }
+
   ngAfterViewInit() {
     $('.tabs').tabs();
   }
 
   ngOnDestroy() {}
+
 
 }

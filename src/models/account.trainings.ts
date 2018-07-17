@@ -142,9 +142,7 @@ export class AccountTrainingsModel extends BaseClass {
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
-
                   return console.log('account.trainings.getAccount', error, sql_load);
-
                 }
 
                 this.dbData = results;

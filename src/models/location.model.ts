@@ -7,6 +7,7 @@ const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
 
 import * as Promise from 'promise';
+import { resolve } from 'dns';
 export class Location extends BaseClass {
 
     constructor(id?: number){
@@ -246,7 +247,8 @@ export class Location extends BaseClass {
             postal_code = ?, country = ?, formatted_address = ?,
             lat = ?, lng = ?,time_zone = ?, \`order\` = ?,
             is_building = ?, location_directory_name = ?, archived = ?,
-            google_place_id = ?, google_photo_url = ?, admin_verified = ?, admin_verified_date = ?, admin_id = ?
+            google_place_id = ?, google_photo_url = ?, admin_verified = ?, admin_verified_date = ?, admin_id = ?,
+            online_training = ?
             WHERE location_id = ?`;
             const param = [
             ('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
@@ -270,6 +272,7 @@ export class Location extends BaseClass {
             ('admin_verified' in this.dbData) ? this.dbData['admin_verified'] : 0,
             ('admin_verified_date' in this.dbData) ? this.dbData['admin_verified_date'] : null,
             ('admin_id' in this.dbData) ? this.dbData['admin_id'] : 0,
+            ('online_training' in this.dbData) ? this.dbData['online_training'] : 0,
             this.ID() ? this.ID() : 0
             ];
 
@@ -308,8 +311,9 @@ export class Location extends BaseClass {
             google_photo_url,
             admin_verified,
             admin_verified_date,
-            admin_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            admin_id,
+            online_training)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
             const param = [
             ('parent_id' in this.dbData) ? this.dbData['parent_id'] : 0,
             ('name' in this.dbData) ? this.dbData['name'] : '',
@@ -332,6 +336,7 @@ export class Location extends BaseClass {
             ('admin_verified' in this.dbData) ? this.dbData['admin_verified'] : 0,
             ('admin_verified_date' in this.dbData) ? this.dbData['admin_verified_date'] : null,
             ('admin_id' in this.dbData) ? this.dbData['admin_id'] : 0,
+            ('online_training' in this.dbData) ? this.dbData['online_training'] : 0,
             ];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_insert, param, (err, results, fields) => {
@@ -1073,6 +1078,28 @@ export class Location extends BaseClass {
         }
         resolve(results);
       });
+      connection.end();
+    });
+  }
+
+  public toggleBulkOnlineTrainingAccess(locations = [], online_training = 0) {
+    return new Promise((resolve, reject) => {
+      if (locations.length == 0) {
+        resolve(false);
+        return;
+      }
+      const locationIds = locations.join(',');
+      const sql_update = `UPDATE locations SET online_training = ?
+                          WHERE location_id IN (${locationIds});`;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_update, [online_training], (error, results) => {
+          if (error) {
+            console.log('location.model.toggleBulkOnlineTrainingAccess', error, sql_update);
+            throw Error('cannot update');
+          }
+          resolve(true);
+      });
+
       connection.end();
     });
   }
