@@ -1,7 +1,6 @@
 
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-import { UtilsSync } from './util.sync';
 
 const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
@@ -396,7 +395,6 @@ export class Location extends BaseClass {
                   arrResults.push(ref);
               }
           }
-          console.log(arrResults);
           resolve(arrResults);
         });
 
@@ -607,19 +605,23 @@ export class Location extends BaseClass {
     * @param role_id
     * the ACCOUNT ROLE ID of the user logged in to the system
     */
-    public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: any, role_id: number = 0, isAllLocationIds?) {
+    public getEMRolesForThisLocation(em_role_id: number = 0, location_id?: any, role_id: number = 0, isAllLocationIds?, accountId?) {
         return new Promise((resolve, reject) => {
             let location = this.ID();
 
             let em_role_filter = '';
             let connection;
             let sql;
+            let accountClause = '';
 
             if (location_id) {
               location = location_id;
             }
             if (em_role_id > 0) {
               em_role_filter = ` AND user_em_roles_relation.em_role_id = ${em_role_id}`;
+            }
+            if (accountId) {
+              accountClause = ` AND users.account_id = ${accountId}`;
             }
             let location_em_roles = {};
             let subLocToEmRoles:{[key: number]: {}} = {};
@@ -697,6 +699,7 @@ export class Location extends BaseClass {
                                 WHERE
                                 users.archived = 0
                                 AND user_em_roles_relation.location_id IN (${subIdstring}) ${em_role_filter}
+                                ${accountClause}
                                 ORDER BY em_role_id
                                 `;
 
@@ -709,7 +712,6 @@ export class Location extends BaseClass {
                         if (!results.length) {
                           reject('There are no EM Roles for this location id - ' + location);
                         } else {
-                          // console.log('Roles from db are ', results);
                           resultModification(results);
                           resolve(location_em_roles);
                         }
@@ -739,6 +741,7 @@ export class Location extends BaseClass {
                             WHERE
                             users.archived = 0
                             AND user_em_roles_relation.location_id IN (${subIdstring}) ${em_role_filter}
+                            ${accountClause}
                             ORDER BY em_role_id
                             `;
 
@@ -751,7 +754,6 @@ export class Location extends BaseClass {
                     if (!results.length) {
                       reject('There are no EM Roles for this location id - ' + location);
                     } else {
-                      // console.log('Roles from db are ', results);
                       resultModification(results);
                       resolve(location_em_roles);
                     }
@@ -778,7 +780,7 @@ export class Location extends BaseClass {
                       locations.location_id = user_em_roles_relation.location_id
                     WHERE
                       user_em_roles_relation.location_id IN (${location}) ${em_role_filter}
-                    AND users.archived = 0
+                    AND users.archived = 0 ${accountClause}
                     ORDER BY em_role_id
                     `;
               connection = db.createConnection(dbconfig);
