@@ -4,7 +4,6 @@ import { Account } from '../models/account.model';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
-import { User } from '../models/user.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { Location } from '../models/location.model';
@@ -20,15 +19,11 @@ import { FileUploader } from '../models/upload-file';
 import { TrainingCertification } from './../models/training.certification.model';
 import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_calculator.model';
 import { EpcMinutesMeeting } from './../models/epc.meeting.minutes';
-import * as http from 'http';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as moment from 'moment';
 
 const AWSCredential = require('../config/aws-access-credentials.json');
 const defs = require('../config/defs.json');
-const validator = require('validator');
-const md5 = require('md5');
+
 const request = require('request');
 import * as S3Zipper from 'aws-s3-zipper';
 
@@ -55,7 +50,8 @@ import * as S3Zipper from 'aws-s3-zipper';
           new ComplianceRoute().getKPIS(req, res, next);
         });
 
-        router.post('/compliance/locations-latest-compliance', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+        router.post('/compliance/locations-latest-compliance',
+        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
             new ComplianceRoute().getLocationsLatestCompliance(req, res);
         });
 
@@ -63,11 +59,13 @@ import * as S3Zipper from 'aws-s3-zipper';
             new ComplianceRoute().paginateAllLocationIds(req, res);
         });
 
-        router.post('/compliance/total-compliance-rating-by-location', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
+        router.post('/compliance/total-compliance-rating-by-location',
+        new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
             new ComplianceRoute().totalComplianceRatingByLocationIds(req, res);
         });
 
-        router.get('/compliance/download-compliance-documents-pack/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+        router.get('/compliance/download-compliance-documents-pack/',
+        new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
             new ComplianceRoute().downloadDocumentCompliancePack(req, res, next);
         });
 
@@ -75,7 +73,6 @@ import * as S3Zipper from 'aws-s3-zipper';
             new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
                 const uploader = new FileUploader(req, res, next);
                 uploader.getFile().then((data) => {
-                    console.log(data);
                     res.end();
                 });
         });
@@ -177,16 +174,12 @@ import * as S3Zipper from 'aws-s3-zipper';
               return res.status(400).send(err);
             } else {
               const lastFile = result.zippedFiles[result.zippedFiles.length-1];
-              if (lastFile) {
-                console.log('Zip file: ', lastFile.Key); // next time start from here
-              }
               const filePath = `${dirPath}/${defs['COMPLIANCE-DOCS-PACK']}`;
               return res.download(filePath, (error) => {
                 if (error) {
                   console.log(error);
                   return res.status(400).send(error);
                 } else {
-                  console.log('Success');
                   /*
                   fs.unlink(filePath, function(e){
                     console.log('Cannot delete file.', e);
@@ -223,7 +216,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             accountID = req.user.account_id,
             userId = req.user.user_id,
             accountModel = new Account(accountID),
-            locAccModel = new LocationAccountRelation(),
+            // locAccModel = new LocationAccountRelation(),
             complianceModel = new ComplianceModel(),
             kpisModel = new ComplianceKpisModel(),
             complianceDocsModel = new ComplianceDocumentsModel(),
@@ -284,10 +277,10 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
         }
 
-        if(role == 2){
+        if(role == 2) {
             relateToSiblingsCompliance = true;
             locSiblings = <any> await locAccSiblingsModel.getLoctionSiblingsOfTenantRealtedToAccountAndLocation(accountID, locationID);
-            for(let loc of locSiblings){
+            for(const loc of locSiblings) {
                 locSiblingsIds.push(loc.location_id);
             }
             kpisIdForSiblingsRelated.push(epcMeetingId);
@@ -385,34 +378,16 @@ import * as S3Zipper from 'aws-s3-zipper';
             if(sublocsids.length > 0){
                 emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, emRolesLocationId, role, isAllLocId);
             }
-
-            // console.log('======================', emrolesOnThisLocation, '=====================');
             if (defs['em_roles']['GENERAL_OCCUPANT'] in emrolesOnThisLocation) {
 
-                /*
-                if (emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'].length > 0) {
-                    let locId;
-                    for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'].length; i++) {
-                        locId = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'][i].toString();
-                        if (emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']][locId]['users'].length > 0) {
-                            emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']][locId]['training'] =
-                            await training.getEMRUserCertifications(
-                              emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']][locId]['users'], {
-                                'em_role_id': defs['em_roles']['GENERAL_OCCUPANT'],
-                                'location': locId
-                              }
-                            );
-                        }
-                    }
-                }
-                */
             }
 
             if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation) {
 
-                if (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'].length > 0) {
+                if ('location' in emrolesOnThisLocation[defs['em_roles']['WARDEN']]) {
                     let locId;
-                    const calcResults = await wardenCalc.getBulkBenchmarkingResultOnLocations(emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location']);
+                    const calcResults = await wardenCalc.getBulkBenchmarkingResultOnLocations(
+                      emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location']);
 
                     for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'].length; i++) {
                         locId = emrolesOnThisLocation[defs['em_roles']['WARDEN']]['location'][i].toString();
@@ -424,7 +399,6 @@ import * as S3Zipper from 'aws-s3-zipper';
                                 'em_role_id': defs['em_roles']['WARDEN'],
                                 'location': locId
                             });
-                            // console.log(emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']);
                         }
                         if (locId in calcResults) {
                             emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens'] =
@@ -432,13 +406,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                         } else {
                             emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens'] = 0;
                         }
-                        /*
-                        emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] =
-                        (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'] >=
-                            emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens']) ?
-                        emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'] :
-                        emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_estimated_wardens'];
-                        */
+
                         emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['percentage'] =
                         Math.round(
                           (emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_passed'] /
@@ -495,16 +463,12 @@ import * as S3Zipper from 'aws-s3-zipper';
                     emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['count'] =
                       emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['count'];
 
-                  /*
-                    emrolesOnThisLocation[defs['em_roles']['WARDEN']]['count'] =
-                    emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['count'];
-                  */
                   }
                 }
                 emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']][locId]['training']['total_floor_wardens'] =
                    emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['users'].length;
               }
-              // console.log((defs['em_roles']['WARDEN'] in emrolesOnThisLocation && (locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])));
+
               if ((locId in emrolesOnThisLocation[defs['em_roles']['WARDEN']])) {
                 emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] =
                 emrolesOnThisLocation[defs['em_roles']['WARDEN']][locId]['training']['total_wardens'] +
@@ -546,10 +510,11 @@ import * as S3Zipper from 'aws-s3-zipper';
 
               // console.log(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]);
             }
+            /*
+            if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation ||
+                defs['em_roles']['DEPUTY_CHIEF_WARDEN'] in emrolesOnThisLocation) {
 
-            if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation || defs['em_roles']['DEPUTY_CHIEF_WARDEN'] in emrolesOnThisLocation) {
-                // console.log(emrolesOnThisLocation['12']);
-                if (emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'].length > 0) {
+                if ('location' in emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]) {
                     let locId;
                     for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'].length; i++) {
                         locId = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'][i].toString();
@@ -560,7 +525,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                             );
                         }
                     }
-                } else if (emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location'].length > 0) {
+                } else if ('location' in emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]) {
                     let locId;
                     for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location'].length; i++) {
                         locId = emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location'][i].toString();
@@ -574,7 +539,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 } else {
                     console.log('There is no chief warden assigned to this location');
                 }
-            }
+            } */
 
             // console.log(emrolesOnThisLocation);
         } catch (e) {
@@ -763,7 +728,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                     if (defs['em_roles']['FLOOR_WARDEN'] in emrolesOnThisLocation) {
                       const floorwardens = [];
                       // loop through the users
-                      console.log(emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users']);
+                      // console.log(emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users']);
                       for (const u of emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]['users']) {
                         if (emrolesOnThisLocation[defs['em_roles']['WARDEN']]['users'].indexOf(u) === -1) {
                           floorwardens.push(u);
@@ -880,7 +845,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
                 case 12:
                     // Chief Warden Training & Deputy Chief Warden
-                    
+
                     if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation) {
                         comp['total_personnel'] =  comp['chief_warden_total'] = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['count'];
                         comp['location_details'] = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']];

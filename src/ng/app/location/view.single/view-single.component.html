@@ -2,7 +2,7 @@
 	<div class="col l2 m2 s12">
 		<div class="manage-compliance">
 			<h5 class="center compliacne-rating">Compliance Rating</h5>
-            
+
             <div class="center" [hidden]="!showLoadingCompliance">
                 <div class="preloader-wrapper center big active" >
                     <div class="spinner-layer spinner-blue-only">
@@ -131,7 +131,8 @@
 
 							</td>
 							<td>
-								{{sub.trained_wardens}} / {{sub.total_wardens}}
+                <!-- {{sub.trained_wardens}} / {{sub.total_wardens}} -->
+                {{sub.trained_wardens}} / {{sub.total_estimated_wardens}}
 							</td>
 							<td>
 								<span style="margin-right:10px;">{{sub.num_tenants}}</span>
@@ -147,10 +148,10 @@
                                     <option value="benchmark-{{sub.location_id}}">Benchmark</option>
                                 </select>
                             </td>
-                            
+
                             <!--
 							<td class="with-bar">
-                                
+
 								<span *ngIf="locationData.admin_verified == 0" class="red-text">For Verification</span>
 								<div *ngIf="locationData.admin_verified > 0" class="text">0%</div>
 								<div *ngIf="locationData.admin_verified > 0" class="progress-container">
@@ -158,7 +159,7 @@
 								    	<div class="determinate" style="width: 0%;"></div>
 									</div>
                                 </div>
-                                
+
                             </td>
                             -- >
 
