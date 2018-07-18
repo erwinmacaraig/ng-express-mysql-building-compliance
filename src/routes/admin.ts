@@ -39,8 +39,11 @@ export class AdminRoute extends BaseRoute {
 
     router.post('/admin/assign-default-training/',
     new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-      console.log(req.body);
+
       const onlineTrainingAccess = parseInt(req.body.online_access, 10);
+      let em_users = [];
+      let user_assignment = [];
+      console.log(req.body);
       if (req.body.account != null) {
         const accountId = req.body.account;
         const acctTraining = new AccountTrainingsModel();
@@ -112,21 +115,36 @@ export class AdminRoute extends BaseRoute {
         await new Location().toggleBulkOnlineTrainingAccess(locIds, onlineTrainingAccess);
 
         // get users from these location ids
-        const em_users = await new UserEmRoleRelation().getUsersInLocationIds(locIds.join(','));
+        em_users = await new UserEmRoleRelation().getUsersInLocationIds(locIds.join(','));
+        // console.log(em_users);
         for (const user of em_users) {
-          const account_trainings = await new AccountTrainingsModel().getAccountTrainings(user['account_id'], user['em_role_id']);
+          const account_trainings = await new AccountTrainingsModel().getAccountTrainings(user['account_id'], {'role': user['em_role_id']});
           for (const training of account_trainings) {
+              user_assignment.push({
+                user_id: user['user_id'],
+                name: user['first_name'] + ' ' + user['last_name'],
+                role: user['em_role_id'],
+                course: training['course_id'],
+                trid: training['training_requirement_id'],
+                online_access: onlineTrainingAccess
+              });
+              let disable = 1;
+              if (onlineTrainingAccess) {
+                disable = 0;
+              }
               await new AccountTrainingsModel().assignAccountUserTraining(
                 user['user_id'],
                 training['course_id'],
                 training['training_requirement_id'],
-                onlineTrainingAccess
+                disable
               );
           }
         }
       }
       return res.status(200).send({
-        message: 'Success'
+        message: 'Success',
+        users: em_users,
+        assigned: user_assignment
       });
 
     });

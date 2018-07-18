@@ -111,7 +111,7 @@
                     <p class="blue-text"></p>
                   </div>
                   <div class="buttons" *ngIf="tr.course_user_relation_id != 0">
-                    <button (click)="loadTrainingCourse(tr)" class="btn red lighten-1 waves-effect waves-light">Go To Training</button>
+                    <button type="button" [disabled]="tr['disabled']" (click)="loadTrainingCourse(tr)" class="btn red lighten-1 waves-effect waves-light">Go To Training</button>
                   </div>
                 </div>
             </div>
@@ -141,7 +141,7 @@
                       <p class="blue-text"></p>
                     </div>
                     <div class="buttons">
-                      <button class="btn blue waves-effect waves-light" (click)="loadTrainingCourse(training)">Take Training</button>
+                      <button type="button" [disabled]="training.disabled" class="btn blue waves-effect waves-light" (click)="loadTrainingCourse(training)">Take Training</button>
                     </div>
                   </div>
             </div>
