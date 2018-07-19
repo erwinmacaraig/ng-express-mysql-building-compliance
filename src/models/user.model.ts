@@ -517,7 +517,6 @@ export class User extends BaseClass {
     }
 
     public query(queries){
-
         return new Promise((resolve, reject) => {
             let selectQuery = 'users.*';
             if(queries.select){
@@ -597,6 +596,22 @@ export class User extends BaseClass {
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
                     console.log(sql_load);
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
+    public getAllActive(){
+        return new Promise((resolve, reject) => {
+            const sql_load = "SELECT * FROM users WHERE archived = 0";
+            const param = [ ];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
                     return console.log(error);
                 }
                 this.dbData = results;

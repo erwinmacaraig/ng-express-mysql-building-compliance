@@ -14,62 +14,145 @@
         </div>
     </ng-template>
 
-    <div class="row">
-        <div class="col l12 m12 s12">
-            <h4 class="blue-text">
-                Report
-            </h4>
+    <div class="row" [hidden]="hideFormField">
+        <ng-container *ngTemplateOutlet="formField"></ng-container>
+    </div>
+
+    <div class="row" [hidden]="hideTrainingReport">
+        <ng-container *ngTemplateOutlet="trainingReportContainer"></ng-container>
+    </div>
+
+    <div class="row" [hidden]="hidePagination">
+        <ng-container *ngTemplateOutlet="paginationContainer"></ng-container>
+    </div>
+
+</div>
+
+<ng-template #formField>
+    <div class="col l12 m12 s12">
+        <h4 class="blue-text"> Report </h4>
+    </div>
+    <div class="col l3 m8 s12">
+        <div class="round-input-container search-account-container" #searchAccountContainer>
+            <input type="text" class="round-input" placeholder="Search Account"  >
+            <div class="search-result">
+                <ul *ngIf="searchedAccounts.length > 0">
+                    <li class="search-result-layer" (click)="clickSelectFromSearch('account', account, $event)" *ngFor="let account of searchedAccounts">{{account.account_name}}</li>
+                </ul>
+                <p class="message" *ngIf="searchedAccounts.length == 0">No Account Found</p>
+            </div>
+            <div class="loading">
+                <ng-container *ngTemplateOutlet="loader"></ng-container>
+            </div>
         </div>
-        <div class="col l3 m8 s12">
-            <div class="round-input-container search-account-container" #searchAccountContainer>
-                <input type="text" class="round-input" placeholder="Search Account"  >
-                <div class="search-result">
-                    <ul *ngIf="searchedAccounts.length > 0">
-                        <li class="search-result-layer" (click)="clickSelectFromSearch('account', account, $event)" *ngFor="let account of searchedAccounts">{{account.account_name}}</li>
-                    </ul>
-                    <p class="message" *ngIf="searchedAccounts.length == 0">No Account Found</p>
-                </div>
-                <div class="loading">
-                    <ng-container *ngTemplateOutlet="loader"></ng-container>
-                </div>
-            </div>
 
-            <div class="round-input-container search-location-container" #searchLocationContainer>
-                <input type="text" class="round-input" placeholder="Search Location"  >
-                <div class="search-result">
-                    <ul *ngIf="searchedLocations.length > 0">
-                        <li class="search-result-layer" (click)="clickSelectFromSearch('location', location, $event)" *ngFor="let location of searchedLocations">{{location.name}}
-                            <span *ngIf="location.sublocations.length > 0" class="right-arrow"> > </span>
-                            <ul *ngIf="location.sublocations.length > 0">
-                                <li *ngFor="let sub of location.sublocations" (click)="clickSelectFromSearch('location', sub, $event, location)"> {{sub.name}} </li>
-                            </ul>
-                        </li>
-                    </ul>
-                    <p class="message" *ngIf="searchedLocations.length == 0">No Location Found</p>
-                </div>
-                <div class="loading">
-                    <ng-container *ngTemplateOutlet="loader"></ng-container>
-                </div>
+        <div class="round-input-container search-location-container" #searchLocationContainer>
+            <input type="text" class="round-input" placeholder="Search Location"  >
+            <div class="search-result">
+                <ul *ngIf="searchedLocations.length > 0">
+                    <li class="search-result-layer" (click)="clickSelectFromSearch('location', location, $event)" *ngFor="let location of searchedLocations">{{location.name}}
+                        <span *ngIf="location.sublocations.length > 0" class="right-arrow"> > </span>
+                        <ul *ngIf="location.sublocations.length > 0">
+                            <li *ngFor="let sub of location.sublocations" (click)="clickSelectFromSearch('location', sub, $event, location)"> {{sub.name}} </li>
+                        </ul>
+                    </li>
+                </ul>
+                <p class="message" *ngIf="searchedLocations.length == 0">No Location Found</p>
             </div>
+            <div class="loading">
+                <ng-container *ngTemplateOutlet="loader"></ng-container>
+            </div>
+        </div>
 
-            <div class="margin-top-bottom-20">
-                <input id="inpAllLocs" #inpAllLocs class="filled-in" type="checkbox">
-                <label for="inpAllLocs"> All Locations </label>
-            </div>
+        <div class="margin-top-bottom-20">
+            <input id="inpAllLocs" #inpAllLocs class="filled-in" type="checkbox">
+            <label for="inpAllLocs"> All Locations </label>
+        </div>
 
-            <div class="margin-top-bottom-20">
-                <select #selectReportType>
-                    <option value="0" disabled selected>Select Report Type</option>
-                    <option value="training">Training</option>
-                    <option value="location">Location</option>
-                    <option value="account">Account</option>
-                    <option value="face">Face to Face</option>
-                </select>
-            </div>
+        <div class="margin-top-bottom-20">
+            <select #selectReportType>
+                <option value="0" disabled selected>Select Report Type</option>
+                <option value="training">Training</option>
+                <option value="location">Location</option>
+                <option value="account">Account</option>
+                <option value="face">Face to Face</option>
+            </select>
+        </div>
 
-            <div class="margin-top-bottom-20">
-                <button class="btn btn-block blue waves-effect waves-light" (click)="generateReport()" >Generate Report</button>
-            </div>
+        <div class="margin-top-bottom-20">
+            <button class="btn btn-block blue waves-effect waves-light" (click)="generateReport()" >Generate Report</button>
         </div>
     </div>
-</div>
+</ng-template>
+
+<ng-template #trainingReportContainer>
+    <div class="col l12 m12 s12 relative">
+        <h4 class="blue-text left"> Training Report </h4>
+        <div class="right right-buttons">
+            <ng-container *ngTemplateOutlet="rightButtons"></ng-container>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th>Location</th>
+                    <th>Account</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Training Status</th>
+                    <th>Emergency Role</th>
+                    <th>Expiration Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="trainingReportData.length == 0">
+                    <td colspan="7" class="center-align">No Record Found</td>
+                </tr>
+                <tr *ngFor="let training of trainingReportData">
+                    <td>{{ training.locations.join(', ') }}</td>
+                    <td>{{training.account_name}}</td>
+                    <td>{{training.full_name}}</td>
+                    <td>{{training.email}}</td>
+                    <td>{{training.status}}</td>
+                    <td>{{ training.em_roles.join(', ') }}</td>
+                    <td>{{training.expiry_date_formatted}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</ng-template>
+
+<ng-template #paginationContainer>
+    <div class="col l12 m12 s12 center pagination" [hidden]="pagination.total <= pagination.limit">
+        <div class="inline-block">
+            <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
+        </div>
+
+        <div class="inline-block select">
+            <select #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+                <option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+            </select>
+        </div>
+
+        <div class="inline-block">
+            <button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #rightButtons>
+    <div style="width: 35px;" *ngIf="csvLoader">
+        <div class="progress" style="margin: 2px auto;">
+            <div class="indeterminate"></div>
+        </div>
+    </div>
+    <a (click)="csvExport()" *ngIf="!csvLoader">
+        <div class="image excel"></div>
+    </a>
+
+    <button class="btn red button-right-cancel darken-2" (click)="goBackClickEvent()">Go Back</button>
+</ng-template>
+
+<div preloader></div>

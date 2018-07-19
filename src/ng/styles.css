@@ -353,7 +353,7 @@ app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
 
 .round-input-container .search-result ul li  > ul{
     position: absolute;
-    right: -152px;
+    left: 434px;
     top: -1px;
     display: none;
 }

@@ -1294,21 +1294,169 @@ export class AdminRoute extends BaseRoute {
   // ===============
   }
 
-  public async generateAdminReport(req: AuthRequest, res: Response){
-      let 
-      response = {
-          data : <any> [],
-          pagination : {
-              total : 0,
-              page : 0
-          },
-          type : req.body.type
-      };
 
 
+    public async generateAdminTrainingReport(req: AuthRequest, res: Response){
+        let 
+        response = <any> {
+            pagination : <any> {
+                total : 0,
+                pages : 0
+            },
+            data : <any>[],
+            certificates : <any>[],
+            message : '',
+        },
+        accountId = (req.body.account_id) ? req.body.account_id : 0,
+        locationId = (req.body.location_id) ? req.body.location_id : 0,
+        limit = (req.body.limit) ? req.body.limit : 25,
+        offset = (req.body.offset) ? req.body.offset : 0,
+        page = (req.body.page) ? req.body.page : 1,
+        type = (req.body.type) ? req.body.type : '',
+        locationModel = new Location(locationId),
+        sublocationModel = new Location(),
+        locations = [],
+        users = [],
+        accountModel = new Account(),
+        accounts = <any> [],
+        usersModel = new User(),
+        allUserIds = [],
+        allLocationIds = [];
 
-      res.send(response);
-  }
+        if(locationId > 0){
+            try{
+                let 
+                loc = await locationModel.load(),
+                deepLocations = [];
+                locations.push(loc);
+                allLocationIds.push(locationId);
+
+                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationId);
+                for(let deeploc of deepLocations){
+                    allLocationIds.push(deeploc.location_id);
+                }
+            }catch(e){}
+        }else{
+            let whereLoc = [];
+            whereLoc.push(' archived = 0 ');
+            try{
+                locations = <any> await locationModel.getWhere( whereLoc );
+            }catch(e){  }
+        }
+
+        for(let loc of locations){
+            allLocationIds.push(loc.location_id);
+        }
+
+        let 
+        locAccUser = new UserEmRoleRelation(),
+        config = {};
+
+        if(accountId > 0){
+            config['account_id'] = accountId;
+        }
+
+        if(allLocationIds.length > 0){
+            users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
+        }
+
+
+        for(let user of users){
+            allUserIds.push(user.user_id);
+        }
+
+        let offsetLimit =  offset+','+limit,
+            courseMethod = 'online_by_evac',
+            trainCertModel = new TrainingCertification(),
+            trainCertCountModel = new TrainingCertification(),
+            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, false, courseMethod ),
+            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, true, courseMethod );
+
+        response['certificates'] = certificates;
+
+        for(let cert of certificates){
+            cert['em_roles'] = [];
+            cert['locations'] = [];
+            for(let user of users){
+                if(user.user_id == cert.user_id){
+                    cert['first_name'] = user.first_name;
+                    cert['last_name'] = user.last_name;
+                    cert['full_name'] = user.first_name+' '+user.last_name;
+                    cert['email'] = user.email;
+                    cert['account_id'] = user.account_id;
+                    cert['account_name'] = user.account_name;
+                    if(cert['em_roles'].indexOf(user.role_name) == -1){
+                        cert['em_roles'].push(user.role_name);
+                    }
+                    if(cert['locations'].indexOf(user.location_name) == -1){
+                        cert['locations'].push(user.location_name);
+                    }
+                }
+            }
+
+            if(cert['certification_date'] != null){
+                cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
+            }else{
+                cert['certification_date_formatted'] = 'n/a';
+            }
+
+            cert['expiry_date_formatted'] = moment(cert['expiry_date']).format('DD/MM/YYYY');
+
+            if(cert['training_requirement_name'] == null){
+                cert['training_requirement_name'] = '--';
+            }
+        }
+
+        response.pagination.total = (certificatesCount[0]) ? certificatesCount[0]['count'] : 0;
+
+        let finalResult = [];
+        for(let cert of certificates){
+            let isIn = false;
+            for(let fin of finalResult){
+                if(cert.user_id == fin.user_id){
+                    isIn = true;
+                }
+            }
+            if(!isIn){
+                finalResult.push(cert);
+            }
+        }
+
+        response.data = finalResult;
+
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
+
+        return response;
+    }
+
+    public async generateAdminReport(req: AuthRequest, res: Response){
+        let 
+        response = <any> {},
+        type = (req.body.type) ? req.body.type : '';
+
+        if(type.trim().length > 0){
+            if(type == 'training'){
+                response = await this.generateAdminTrainingReport(req, res);
+            }
+        }
+
+        res.send(response);
+    }
 
 
 

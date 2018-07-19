@@ -339,11 +339,13 @@ export class UserEmRoleRelation extends BaseClass {
                     er.role_name,
                     accounts.account_name,
                     l.name,
+                    IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name,
                     l.location_id
                 FROM user_em_roles_relation em
                 INNER JOIN users u ON em.user_id = u.user_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
                 INNER JOIN locations l ON l.location_id = em.location_id
+                INNER JOIN locations p ON p.location_id = l.parent_id
                 INNER JOIN accounts ON accounts.account_id = u.account_id
                 WHERE u.archived = ${archived} ${configFilter}`;
 
