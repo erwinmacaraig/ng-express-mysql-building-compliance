@@ -97,8 +97,17 @@ export class AdminService {
     return this.http.get(this.baseUrl + `/admin/account-sublocations/${parent}/`, this.options);
   }
 
-  searchLocationByName(name: string) {
-    const httpParams = new HttpParams().set('name', name);
+  searchLocationByName(name: string, params?) {
+    let httpParams = {};
+
+    httpParams['name'] = name;
+
+    if(params){
+        for(let i in params){
+            httpParams[i] = params[i];
+        }
+    }
+
     this.options['params'] = httpParams;
     return this.http.get(this.baseUrl + '/admin/location/search/', this.options);
   }
@@ -155,6 +164,10 @@ export class AdminService {
 
   toggleOnlineTrainingAccess(reqBody = {}) {
     return this.http.post(`${this.baseUrl}/admin/assign-default-training/`,reqBody, this.options);
+  }
+  
+  generateAdminReport(form:Object){
+      return this.http.post(`${this.baseUrl}/admin/generate-admin-report`, form);
   }
 
 }

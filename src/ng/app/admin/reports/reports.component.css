@@ -1,0 +1,150 @@
+select{
+    display: block !important;
+    border: 1px solid #aaa;
+    font-size: 14px;
+}
+
+.margin-top-bottom-20{
+    margin: 20px 0px;
+}
+
+.btn-block{
+    height: 50px !important;
+    width: 100%;
+}
+
+.relative{
+    position: relative;
+}
+
+.button-right-cancel{
+    font-size: 14px !important;
+    height: 35px !important;
+    line-height: 25px;
+}
+
+thead th{
+    border-radius: 0px;
+    font-weight: normal;
+    background-color: #3d3d3d !important;
+    padding: 10px;
+    font-size: 14px;
+    color: #fff;
+}
+
+table.bordered>thead>tr,
+table.bordered>tbody>tr {
+    border-bottom: 1px solid #d3d3d3;
+}
+
+table tr td{
+    padding: 10px;
+    font-size: 14px;
+    line-height: 27px;
+}
+
+table tr td:last-child{
+    
+}
+
+table tr td a:hover{
+    text-decoration: underline;
+}
+
+table tr td .circle-initial{
+    float: left;
+    width: 30px;
+    height: 30px;
+    background-color: #36bb9b;
+    line-height: 30px;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    margin-right: 8px;
+}
+
+table tr td.location-name img{
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+table tr td.location-name .circle{
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+table tr td .btn{
+    font-size: 12px !important;
+    padding: 0px 10px;
+    max-height: 30px;
+    line-height: 29px;
+}
+
+.inline-block{
+    display: inline-block;
+}
+
+.pagination button{
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+    vertical-align: inherit;
+}
+
+.pagination select:not(.to-materialize){
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+}
+
+.pagination .select{
+    margin: 0px 10px;
+}
+
+.right-buttons{
+    display: table;
+    position: relative;
+    top: 16px;
+}
+
+.right-buttons > *{
+    display: table-cell;
+}
+
+.right-buttons > *:not(:last-child){
+    padding-right: 15px;
+}
+
+.right-buttons .text{
+    font-size: 15px;
+    display: inline-block;
+}
+
+.right-buttons .image{
+    width: 30px;
+    height: 30px;
+    background-image: url(/assets/images/sprite_report.png);
+    display: inline-block;
+    vertical-align: middle;
+    background-size: 1380%;
+}
+
+.right-buttons a{
+    color: #666;
+}
+
+.image.pdf{
+    background-position: 56% 69%;
+}
+
+.image.excel{
+    background-position: 46% 92%;
+}
+
+.image.print{
+    background-position: 45.5% 68%;
+}
