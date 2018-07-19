@@ -1,6 +1,6 @@
 <div class="container-fluid">
 
-	<div class="row margin-bottom-30">
+	<div class="row " style="margin-bottom: 0px;">
 
 		<div class="col l3 m12 s12 my-compliance-container">
 			<h5 class="orange-text margin-bottom-30">My Compliance</h5>
@@ -9,71 +9,61 @@
 
                 <canvas #compliancePieChart width="200" height="200"></canvas>
 
-		        <!-- <svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"  overflow="visible" x="666.6666666666667" y="666.6666666666667" viewBox="0 0 500 500">
-		            <g>
-
-		                <circle fill="#fff" r="235" cy="250.500029" cx="249.499965" class="background" style="pointer-events:inherit" id="svg_1"></circle>
-
-		                <circle stroke="#56aaff" stroke-dashoffset="0" stroke-dasharray="10.9 89.9" id="svg_4" stroke-width="4" fill="transparent" r="15.915497" cy="279.282896" cx="218.176144" class="donut-ring" transform="matrix(-0.9286816717935729,-13.587699563557583,13.587699563557583,-0.9286816717935729,-3342.19593751393,3474.8768302577887) "></circle>
-
-		                <circle stroke="#87a3d3" stroke-dashoffset="0" stroke-dasharray="10.9 89.9" stroke-width="4" fill="transparent" r="15.91546630859375" cy="293.0732441650174" cx="243.82356708221377" class="donut-ring" transform="matrix(8.012866759353932,-11.01281051202957,11.01281051202957,8.012866759353932,-4930.820752688912,586.5891118224711) " id="svg_5" ></circle>
-
-		                <circle stroke="#30969b" stroke-dashoffset="0" stroke-dasharray="10.9 89.9" stroke-width="4" fill="transparent" r="15.915466" cy="287.320708" cx="272.214547" class="donut-ring" transform="matrix(13.209792491388196,-3.315028116244612,3.315028116244612,13.209792491388196,-4298.373945033815,-2642.048046529079) " id="svg_7"></circle>
-
-		                <circle stroke="#0cc9d3" stroke-dashoffset="0" stroke-dasharray="10.9 89.9" stroke-width="4" fill="transparent" r="15.915466" cy="264.571027" cx="290.354767" class="donut-ring" transform="matrix(12.254123673743335,5.943440255073769,-5.943440255073769,12.254123673743335,-1735.581179421688,-4716.792266129814) " id="svg_8"></circle>
-
-		                <circle stroke="#ea6e4f" stroke-dashoffset="0" stroke-dasharray="10.9 89.9" stroke-width="4" fill="transparent" r="15.915482" cy="235.565475" cx="289.679409" class="donut-ring" transform="matrix(5.600978740727789,12.414389482489408,-12.414389482489408,5.600978740727789,1551.9133099135247,-4664.590194796821) " id="svg_9"></circle>
-
-		                <circle stroke="#59e59d" stroke-dashoffset="0" stroke-dasharray="10.9 89.9" stroke-width="4" fill="transparent" r="15.915474" cy="213.714478" cx="270.554071" class="donut-ring" transform="matrix(-3.6614464966249196,13.117996746050114,-13.117996746050114,-3.6614464966249196,4044.125042405439,-2515.623276111468) " id="svg_10"></circle>
-
-		                <circle stroke="#5454d3" stroke-dashoffset="0" stroke-dasharray="10.9 89.9" stroke-width="4" fill="transparent" r="15.915459" cy="209.246767" cx="241.672481" class="donut-ring" transform="matrix(-11.256444952113268,7.666842643296654,-7.666842643296654,-11.256444952113268,4574.634976486406,753.5098619044727) " id="svg_11"></circle>
-
-		                <circle stroke="#5fb230" stroke-dashoffset="0" stroke-dasharray="10.9 89.9" stroke-width="4" fill="transparent" r="15.915474" cy="252.079844" cx="207.438116" class="donut-ring" transform="matrix(-9.475372588441815,-9.782910782953802,9.782910782953802,-9.475372588441815,-250.52122442032066,4668.899055185551) " id="svg_13" fill-opacity="1" stroke-opacity="1"></circle>
-
-		                <circle stroke="#8352b7" stroke-dashoffset="0" stroke-dasharray="10.9 89.9" stroke-width="4" fill="transparent" r="15.915489196777344" cy="224.31176" cx="216.82745299999996" class="donut-ring" transform="rotate(0.21951133012771606 250.00004577638498,251.00004577636963) matrix(-13.553377005945812,-1.339403155038674,1.339403155038674,-13.553377005945812,2888.300294562376,3581.6012570002736) " id="svg_14" fill-opacity="1" stroke-opacity="1"></circle>
-
-		                <text xmlns="http://www.w3.org/2000/svg" stroke="#000000" transform="matrix(12.089815766469668,0,0,12.953996230053018,-3038.2228466204465,-3278.51832960948) " fill="#191919" x="269.78971035805444" y="277.3078651854088" id="svg_15" text-anchor="middle" xml:space="preserve" stroke-opacity="0" font-size="12" fill-opacity="1">00</text>
-
-		                <text xmlns="http://www.w3.org/2000/svg" stroke="#000000" fill="#191919" stroke-width="null" stroke-dasharray="10.9 89.9" x="461.2454360522051" y="468.8433897262176" id="svg_16" font-size="11" text-anchor="middle" xml:space="preserve" stroke-opacity="0" transform="matrix(8.159006118774414,0,0,8.031051920621254,-3402.9839923690683,-3478.8482357141816) " fill-opacity="1">%</text>
-		            </g>
-		        </svg> -->
-
 		    </div>
+            
+            <div class="search-location-container">
+                <div class="input-container" [ngClass]="{ 'disabled' : !isAllComplianceLoaded  }">
+                    <input type="text" #inpSearchLocation placeholder="Type location here" [disabled]="!isAllComplianceLoaded">
+                </div>
 
-			<div class="center-block text-button-container">
+                <div class="search-result" #divSearchLocationResult>
+                    <strong *ngIf="searchingLocation">Fething...</strong>
+                    <strong *ngIf="!searchingLocation && searchedLocations.length == 0">No record found</strong>
+                    <ul *ngIf="!searchingLocation">
+                        <li *ngFor="let loc of searchedLocations" (click)="clickSelectSearchedLocation(loc)">{{loc.name}}</li>
+                    </ul>
+                </div>
+            </div>
 
-			    <div class="display-table compliance-title-container center-block">
-                    <!-- <div class="cell image green"></div> -->
+            <div class="compliance-text">
+                <h5>{{complianceTextOne}}</h5>
+                <h5>{{complianceTextTwo}}</h5>
+            </div>
+
+            <!-- <div class="center-block text-button-container">
+            
+                <div class="display-table compliance-title-container center-block">
+                    <div class="cell image green"></div>
                     <div class="cell text center">
                         {{selectedComplianceName}}
                         <h5 class="center"> {{countOfBuildings}} Total number of buildings  </h5>
                     </div>
                 </div>
-
-			    <!-- <div class="display-table compliance-validity-container center-block">
-			    	<div class="cell image check"></div>
-			    	<div class="cell text">
-			    		Valid Till : <br>
-			    		0/00/0000
-			    	</div>
-			    </div> -->
-
-          <!-- <button class="btn orange waves-effect waves-light center-block display-block"> Manage Compliance </button> -->
-          <!-- <div class="container">
-            <div class="input-field col s12">
-              <input id="location" type="text" class="validate" [formControl]="search">
-              <label for="location">Search location</label>
-            </div>
-            <div class="suggestions" *ngIf="filteredList.length > 0">
-              <ul *ngFor="let item of filteredList">
-                <li>
-                  <a>{{item['name']}}</a>
-                </li>
-              </ul>
-
-            </div>
-          </div> -->
-			</div>
+            
+                <div class="display-table compliance-validity-container center-block">
+                    <div class="cell image check"></div>
+                    <div class="cell text">
+                        Valid Till : <br>
+                        0/00/0000
+                    </div>
+                </div>
+            
+                <button class="btn orange waves-effect waves-light center-block display-block"> Manage Compliance </button>
+                <div class="container">
+                    <div class="input-field col s12">
+                        <input id="location" type="text" class="validate" [formControl]="search">
+                        <label for="location">Search location</label>
+                    </div>
+                    <div class="suggestions" *ngIf="filteredList.length > 0">
+                        <ul *ngFor="let item of filteredList">
+                            <li>
+                                <a>{{item['name']}}</a>
+                            </li>
+                        </ul>
+            
+                    </div>
+                </div>
+            </div> -->
 
 
 		</div>
@@ -86,7 +76,7 @@
 						<tr class="grey darken-4 white-text">
 							<th>Location</th>
 							<th>Compliance</th>
-							<th>Training Licences</th>
+							<th style="width: 13%;">Training Licences</th>
 							<!-- <th></th> -->
 						</tr>
 					</thead>
@@ -117,8 +107,26 @@
                             <td colspan="4" class="center">No plans found</td>
                         </tr>
                         <tr *ngFor="let loc of locations" >
-                            <td><span *ngIf="loc.parent">{{loc.parent.name}}, </span>{{loc.name}}</td>
+                            <td>
+                                <a *ngIf="loc.sublocation_count > 0 " [routerLink]="['/location', 'view', loc.enc_location_id]" class="black-text">
+                                    <span *ngIf="loc.name.length > 0">
+                                        <span *ngIf="loc.parent">{{loc.parent.name}}, </span>{{loc.name}}
+                                    </span>
+                                    <span *ngIf="loc.name.length == 0">
+                                        {{loc.formatted_address}}
+                                    </span>
+                                </a>
+                                <a *ngIf="loc.sublocation_count == 0" [routerLink]="['/location', 'view-sublocation', loc.enc_location_id]" class="black-text">
+                                    <span *ngIf="loc.name.length > 0">
+                                        <span *ngIf="loc.parent">{{loc.parent.name}}, </span>{{loc.name}}
+                                    </span>
+                                    <span *ngIf="loc.name.length == 0">
+                                        {{loc.formatted_address}}
+                                    </span>
+                                </a>
+                            </td>
                             <td class="with-bar">
+                                <a [routerLink]="['/location/compliance/view/', loc.enc_location_id]">
                                 <div *ngIf="loc.fetchingCompliance" class="progress fetching">
                                     <div class="indeterminate"></div>
                                 </div>
@@ -128,6 +136,7 @@
                                         <div class="determinate" [ngStyle]="{ 'width' : loc.compliance_percentage+'%' }"></div>
                                     </div>
                                 </div>
+                                </a>
                             </td>
                             <td> 0/0 </td>
                             <!--<td>  <button class="btn light-blue waves-effect waves-light">Shop</button>  </td>-->
@@ -230,49 +239,61 @@
 				</ul>
 			</div>
 
+            <div class="width100 margin-bottom-30">
+                <h5 class="orange-text margin-bottom-30" >
+                    Training License
+                </h5>
+
+                <div class="training-license-container margin-bottom-30" *ngIf="!showPlansLoader">
+                    <div class="filter-container">
+                        <select>
+                            <option value="0" disabled selected>Select location</option>
+                            <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
+                        </select>
+                    </div>
+
+                    <p class="font-size-16 blue-text">Remaining License: --</p>
+                </div>
+
+                <div class="training-license-container margin-bottom-30 " *ngIf="showPlansLoader">
+                    <div class="loader-div">
+                        <div class="preloader-wrapper big active center">
+                            <div class="spinner-layer spinner-blue-only">
+                                <div class="circle-clipper left">
+                                    <div class="circle">
+                                    </div>
+                                </div>
+                                <div class="gap-patch">
+                                    <div class="circle">
+                                    </div>
+                                </div>
+                                <div class="circle-clipper right">
+                                    <div class="circle">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 		</div>
 
 	</div>
 
 	<div class="row">
 
-		<div class="col l3 m6 s12">
-			<h5 class="orange-text margin-bottom-30" >
-				Training License
-			</h5>
-
-			<div class="training-license-container margin-bottom-30" *ngIf="!showPlansLoader">
-				<div class="filter-container">
-					<select>
-						<option value="0" disabled selected>Select location</option>
-						<option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
-					</select>
-				</div>
-
-				<p class="font-size-16 blue-text">Remaining License: --</p>
-			</div>
-
-			<div class="training-license-container margin-bottom-30 " *ngIf="showPlansLoader">
-				<div class="loader-div">
-					<div class="preloader-wrapper big active center">
-						<div class="spinner-layer spinner-blue-only">
-							<div class="circle-clipper left">
-								<div class="circle">
-								</div>
-							</div>
-							<div class="gap-patch">
-								<div class="circle">
-								</div>
-							</div>
-							<div class="circle-clipper right">
-								<div class="circle">
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+        <div class="col l3 m12 s12">
+            <div class="legends">
+                <ul>
+                    <li *ngFor="let kpi of KPIS; let i = index;" [hidden]="kpi.compliance_kpis_id == 13">
+                        <div class="box-color" [ngStyle]="{ 'background-color' : colors[i] }"></div>
+                        <div class="rating">{{kpi.ratings}}</div>
+                        <div class="text">{{kpi.name}}</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
 		<div class="col l3 m6 s12">
 			<h5 class="orange-text">My Trainings</h5>

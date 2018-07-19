@@ -1137,7 +1137,7 @@ export class TeamRoute extends BaseRoute {
 
     public async trainingSendInvite(req: AuthRequest, res: Response){
         const user = new User(req.body.user_id);
-        
+
         try{
 
             const userDbData = await user.load();
@@ -1184,6 +1184,7 @@ export class TeamRoute extends BaseRoute {
             saveData['action'] = 'training-invite';
             await tokenTrainModel.create(saveData);
 
+            let roleText = (req.body.no_role_email) ? '' : `for your role as <strong>${req.body.role_name}</strong>`;
 
             const email = new EmailSender(opts);
             let emailBody = email.getEmailHTMLHeader();
@@ -1192,7 +1193,7 @@ export class TeamRoute extends BaseRoute {
 
             <p>
             You are reminded to take the <strong>${req.body.training_requirement_name} training</strong>
-            for your role as <strong>${req.body.role_name}</strong>.
+            ${roleText}.
                 <br />
             </p>
 
@@ -1226,76 +1227,6 @@ export class TeamRoute extends BaseRoute {
             });
         }
     }
-
-  /*public async buildWardenList(req: AuthRequest, res: Response, archived?) {
-
-    // get all parent locations associated with this account
-    const accountId = req.user.account_id;
-    const account = new Account(accountId);
-    const userRoleRel = new UserRoleRelation();
-    const role = await userRoleRel.getByUserId(req.user.user_id, true);
-    const emRoleRelation = new UserEmRoleRelation();
-    let emroles = await emRoleRelation.getEmRoles();
-    // what is the highest rank role of the user who invited this warden
-    // const locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id);
-
-    let result = <any>[];
-    try {
-      result = await account.buildWardenList(req.user.user_id);
-    }catch (e) {
-
-    }
-
-    const temp = JSON.stringify(result);
-    const wardens = JSON.parse(temp);
-
-    // get parent location details given a location id
-     for (let warden of wardens) {
-      warden['profile_pic'] = '';
-      if (warden['last_login']){
-        warden['last_login'] = moment(warden['last_login'], ["YYYY-MM-DD HH:mm:ss"]).format("MMM. DD, YYYY hh:mmA");
-      }
-      let locationInstance = new Location(warden['parent_id']);
-       await locationInstance.load();
-      let pId = <number>locationInstance.get('parent_id');
-      while (pId !== -1) {
-        locationInstance = new Location(pId);
-        await locationInstance.load();
-        pId = <number>locationInstance.get('parent_id');
-      }
-      warden['parent_name'] = locationInstance.get('name') ? locationInstance.get('name') : locationInstance.get('formatted_address');
-    }
-
-    let emroleids = [0];
-    for(let i in emroles){
-      if(emroles[i]['is_warden_role'] == 1){
-        emroleids.push( emroles[i]['em_roles_id'] );
-      }
-    }
-
-    let newWardenResponse = [];
-    for(let warden of wardens){
-      let locAccUserModel = new LocationAccountUser(),
-        arrWhere = [];
-
-      arrWhere.push([ "user_id = "+warden['user_id'] ]);
-      arrWhere.push([ "location_id = "+warden['location_id'] ]);
-      arrWhere.push([ "archived = 0 " ]);
-      arrWhere.push([ "role_id IN ("+emroleids.join(",")+") " ]);
-
-      try{
-        let locAccUserRec = await locAccUserModel.getMany(arrWhere);
-
-        warden['location_account_user_id'] = locAccUserRec[0]['location_account_user_id'];
-        newWardenResponse.push(warden);
-      }catch(e){
-
-      }
-
-    }
-
-    return newWardenResponse;
-  }*/
 
     public async buildPEEPList(req: AuthRequest, res:Response, archived?){
         let accountId = req['user']['account_id'],
@@ -1471,67 +1402,6 @@ export class TeamRoute extends BaseRoute {
 
 
 
-  /**
-  public async buildPEEPList(req: AuthRequest, res: Response, archived?) {
-    const account = new Account(req.user.account_id);
-    const result = await account.buildPEEPList(req.user.account_id, req.user.user_id, archived);
-    const temp = JSON.stringify(result);
-    const peeps = JSON.parse(temp);
-    const emRoleRelation = new UserEmRoleRelation();
-    let emroles = await emRoleRelation.getEmRoles();
-    for (const peep of peeps) {
-      peep['profile_pic'] = '';
-      if(peep['last_login']){
-        peep['last_login'] = moment(peep['last_login'], ["YYYY-MM-DD HH:mm:ss"]).format("MMM. DD, YYYY hh:mmA");
-      }
-      let locationInstance = new Location(peep['location_id']);
-      await locationInstance.load();
-      let pId = <number>locationInstance.get('parent_id');
-      while (pId !== -1) {
-        locationInstance = new Location(pId);
-        await locationInstance.load();
-        pId = <number>locationInstance.get('parent_id');
-      }
-      peep['parent_name'] = locationInstance.get('name') ? locationInstance.get('name') : locationInstance.get('formatted_address');
-    }
-
-    let emroleids = [0];
-    for(let i in emroles){
-      if(emroles[i]['is_warden_role'] == 1){
-        emroleids.push( emroles[i]['em_roles_id'] );
-      }
-    }
-
-    let newPeep = [];
-    for(let peep of peeps){
-      if(!archived && peep['location_account_user_id']){
-        newPeep.push(peep);
-      }else if(!archived && peep['user_invitations_id']){
-        newPeep.push(peep);
-      }else if(archived && peep['location_account_user_id']){
-        newPeep.push(peep);
-      }
-    }
-
-    for(let peep of newPeep){
-      peep['mobility_impaired_details'] = {};
-      if(peep['location_account_user_id']){
-        let arrWhere = [];
-        arrWhere.push( "user_id = "+peep["user_id"] );
-        arrWhere.push( "location_id = "+peep["location_id"] );
-
-        let mob = await new MobilityImpairedModel().getMany(arrWhere);
-        peep['mobility_impaired_details'] = (mob[0]) ? mob[0] : {};
-        if(mob[0]){
-          peep['mobility_impaired_details']['date_created'] = moment(mob[0]['date_created']).format('MMM. DD, YYYY');
-        }
-      }
-    }
-
-    return newPeep;
-
-  }
-  */
 
 
 }

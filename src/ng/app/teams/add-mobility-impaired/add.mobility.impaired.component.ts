@@ -327,7 +327,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
     public submitPEEP(f) {
-      let allInputValid = false;
+      let allInputValid = true;
       if (f.valid) {
         for(let i in this.addedUsers){
           this.addedUsers[i]['role_id'] = (this.addedUsers[i]['account_role_id'] == 1 ||

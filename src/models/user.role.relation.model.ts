@@ -180,4 +180,33 @@ export class UserRoleRelation extends BaseClass {
       });
     }
 
+    public getTRPbyLocationId(locationId){
+        return new Promise((resolve, reject) => {
+
+            const sql_load = `
+                SELECT u.*
+                FROM user_role_relation urr
+                INNER JOIN location_account_user lau ON urr.user_id = lau.user_id
+                INNER JOIN users u ON urr.user_id = u.user_id
+                WHERE lau.location_id = ${locationId} AND urr.role_id = 2
+            `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                
+                if(results){
+                    this.dbData = results;
+                    resolve(results);
+                }else{
+                    reject();
+                }
+
+            });
+            connection.end();
+
+        });
+    }
+
 }

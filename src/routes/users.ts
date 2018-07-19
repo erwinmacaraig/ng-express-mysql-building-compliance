@@ -1,3 +1,4 @@
+import { AccountTrainingsModel } from './../models/account.trainings';
 import { TrainingRequirements } from './../models/training.requirements';
 import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
@@ -976,7 +977,7 @@ export class UsersRoute extends BaseRoute {
                 if('locations' in user == false){ user['locations'] = []; }
                 if('locs' in user == false){ user['locs'] = []; }
                 for(let loc of locationsData){
-                    
+
                     if( loc.user_id == user.user_id ){
 
                         let userLocData = {
@@ -1013,9 +1014,9 @@ export class UsersRoute extends BaseRoute {
 
                         if(!exst){ user.locations.push(userLocData); }
 
-                        
+
                         user['locs'].push(loc);
-                        
+
                     }
 
                 }
@@ -1578,7 +1579,18 @@ export class UsersRoute extends BaseRoute {
                 }catch(e){}
             }
 
-            response.data.locations = locations;
+            let filteredLocs = [];
+
+            for(let loc of locations){
+                if(loc['role_id']){
+                    filteredLocs.push(loc);
+                }
+            }
+
+            response.data.locations = filteredLocs;
+
+
+
 			response.data.user = <any> user;
 			response.status = true;
 		}catch(e){
@@ -1997,181 +2009,300 @@ export class UsersRoute extends BaseRoute {
         accountId = req.user.account_id,
         accountModel = new Account(accountId),
 		returnUsers = [],
-        account = {},
+        account = <any> {
+            account_name : ''
+        },
         isAccountEmailExempt = false,
-        hasOnlineTraining = false;
+        hasOnlineTraining = false,
+        userModel = new User(req.user.user_id),
+        accountTrainings = [];
 
         try{
             let account = <any> await accountModel.load();
             isAccountEmailExempt = (account.email_add_user_exemption == 1) ? true : false;
             hasOnlineTraining = (account.online_training == 1) ? true : false;
-        }catch(e){
 
-        }
+            let
+            user = await userModel.load(),
+            emRoles = <any> await new UserEmRoleRelation().getEmRoles();
 
-		for(let i in users){
-			let userModel = new User(),
-				userRoleRelation = new UserRoleRelation(),
-				userEmRole = new UserEmRoleRelation(),
-				emRoles = await new UserEmRoleRelation().getEmRoles(),
-				isEmailValid = this.isEmailValid(users[i]['email']),
-				isBlackListedEmail = false,
-				hasError = false;
+    		for (let i in users) {
+    			let userModel = new User(),
+    				userRoleRelation = new UserRoleRelation(),
+    				userEmRole = new UserEmRoleRelation(),
+    				isEmailValid = this.isEmailValid(users[i]['email']),
+    				isBlackListedEmail = false,
+    				hasError = false;
 
-			users[i]['errors'] = {};
+    			users[i]['errors'] = {};
 
-			if(isEmailValid){
-				// isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
-				// if(!isBlackListedEmail){
+    			if(isEmailValid) {
+    				// isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
+    				// if(!isBlackListedEmail){
 
-				await userModel.getByEmail(users[i]['email']).then(
-					() => {
-						console.log(userModel.getDBData());
-						hasError = true;
-						users[i]['errors']['email_taken'] = true;
-					},
-					() => {}
-				);
-
-
-				// }else{
-				// 	users[i]['errors']['blacklisted'] = true;
-				// 	hasError = true;
-				// }
-			}else{
-				users[i]['errors']['invalid'] = true;
-				hasError = true;
-			}
-
-			if(!hasError){
-				let
-				token = this.generateRandomChars(30),
-				inviSaveData = {
-					'first_name' : users[i]['first_name'],
-					'last_name' : users[i]['last_name'],
-					'email' : users[i]['email'],
-					'contact_number' : users[i]['mobile_number'],
-					'location_id' : users[i]['account_location_id'],
-					'account_id' : req['user']['account_id'],
-					'role_id' : (users[i]['account_role_id'] == 1 || users[i]['account_role_id'] == 2) ? users[i]['account_role_id'] : 0,
-					'eco_role_id' : (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
-					'invited_by_user' : req['user']['user_id'],
-                    'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0,
-                    'was_used' : (isAccountEmailExempt) ? 1 : 0
-				},
-                user  = new User(),
-                encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max'),
-                userSaveData = {
-                    'first_name': users[i]['first_name'],
-                    'last_name': users[i]['last_name'],
-                    'password': '',
-                    'email': users[i]['email'],
-                    'token': token,
-                    'account_id': accountId,
-                    'invited_by_user': req['user']['user_id'],
-                    'can_login': 0,
-                    'mobile_number': users[i]['mobile_number'],
-                    'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0
-                },
-                tokenSaveData = {
-                    'token' : token,
-                    'action' : 'verify',
-                    'id' : 0,
-                    'id_type' : 'user_id',
-                    'verified' : 0
-                },
-                tokenModel = new Token(),
-                emailLink = req.protocol + '://' + req.get('host');
-
-                if(hasOnlineTraining || isAccountEmailExempt){
-
-                    if(isAccountEmailExempt){
-                        userSaveData.password = encryptedPassword;
-                        userSaveData.can_login = 1;
-                        tokenSaveData.verified = 1;
-                    }else if(hasOnlineTraining){
-                        tokenSaveData.action = 'setup-password';
-
-                        emailLink += '/signup/profile-completion/' + token;
-                    }
-
-                    await user.create(userSaveData);
-                    tokenSaveData.id = user.ID();
-
-                    if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
-                        let locationAcctUser = new LocationAccountUser();
-                        await locationAcctUser.create({
-                            'location_id': users[i]['account_location_id'],
-                            'account_id': accountId,
-                            'user_id': user.ID(),
-                            'role_id': users[i]['account_role_id']
-                        });
-
-                        const userRoleRel = new UserRoleRelation();
-                        await userRoleRel.create({
-                            'user_id': user.ID(),
-                            'role_id': users[i]['account_role_id']
-                        });
-                    }else{
-                        const EMRoleUserRole = new UserEmRoleRelation();
-                        await EMRoleUserRole.create({
-                            'user_id': user.ID(),
-                            'em_role_id': (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
-                            'location_id': users[i]['account_location_id']
-                        });
-                    }
-
-                }else{
-                    let invitation = new UserInvitation();
-                    await invitation.create(inviSaveData);
-
-                    tokenSaveData.id_type = 'user_invitations_id';
-                    tokenSaveData.id = invitation.ID();
-                    emailLink += '/signup/warden-profile-completion/'+token;
-                }
-
-                await tokenModel.create(tokenSaveData);
-
-
-                if(!isAccountEmailExempt){
-
-    				const opts = {
-    					from : 'allantaw2@gmail.com',
-    					fromName : 'EvacConnect',
-    					to : [],
-    					cc: [],
-    					body : '',
-    					attachments: [],
-    					subject : 'EvacConnect Profile Setup'
-    				};
-    				const email = new EmailSender(opts);
-    				const link = emailLink;
-    				let emailBody = email.getEmailHTMLHeader();
-    				emailBody += `<h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3> <br/>
-    				<h4>You were added to EvacConnect Compliance Management System.</h4> <br/>
-    				<h5>Click on the link below to setup your account.</h5> <br/>
-    				<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
-
-    				emailBody += email.getEmailHTMLFooter();
-
-    				email.assignOptions({
-    					body : emailBody,
-    					to: [inviSaveData['email']],
-    					cc: ['jmanoharan@evacgroup.com.au']
-    				});
-    				email.send(
-    					(data) => console.log(data),
-    					(err) => console.log(err)
+    				await userModel.getByEmail(users[i]['email']).then(
+    					() => {
+    						console.log(userModel.getDBData());
+    						hasError = true;
+    						users[i]['errors']['email_taken'] = true;
+    					},
+    					() => {}
     				);
-                }
 
 
+    				// }else{
+    				// 	users[i]['errors']['blacklisted'] = true;
+    				// 	hasError = true;
+    				// }
+    			}else{
+    				users[i]['errors']['invalid'] = true;
+    				hasError = true;
+    			}
 
-			}else{
-				returnUsers.push( users[i] );
-			}
+    			if(!hasError) {
+            accountTrainings = [];
+    				let
+    				token = this.generateRandomChars(30),
+    				inviSaveData = {
+    					'first_name' : users[i]['first_name'],
+    					'last_name' : users[i]['last_name'],
+    					'email' : users[i]['email'],
+    					'contact_number' : users[i]['mobile_number'],
+    					'location_id' : users[i]['account_location_id'],
+    					'account_id' : req['user']['account_id'],
+    					'role_id' : (users[i]['account_role_id'] == 1 || users[i]['account_role_id'] == 2) ? users[i]['account_role_id'] : 0,
+    					'eco_role_id' : (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
+    					'invited_by_user' : req['user']['user_id'],
+                        'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0,
+                        'was_used' : (isAccountEmailExempt) ? 1 : 0
+    				},
+                    userSaveModel  = new User(),
+                    encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max'),
+                    userSaveData = {
+                        'first_name': users[i]['first_name'],
+                        'last_name': users[i]['last_name'],
+                        'password': '',
+                        'email': users[i]['email'],
+                        'token': token,
+                        'account_id': accountId,
+                        'invited_by_user': req['user']['user_id'],
+                        'can_login': 0,
+                        'mobile_number': users[i]['mobile_number'],
+                        'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0
+                    },
+                    tokenSaveData = {
+                        'token' : token,
+                        'action' : 'verify',
+                        'id' : 0,
+                        'id_type' : 'user_id',
+                        'verified' : 0
+                    },
+                    tokenModel = new Token(),
+                    emailLink = req.protocol + '://' + req.get('host'),
+                    locationModel = new Location(),
+                    acestrieIds = <any> await locationModel.getAncestryIds(users[i]['account_location_id']),
+                    idsLocation = [],
+                    bodyOfEmail = '',
+                    subjectOfEmail = '',
+                    emailRole = `Warden`,
+                    locationFullName = '';
 
-		}
+                    idsLocation.push(users[i]['account_location_id']);
+                    idsLocation = idsLocation.concat(acestrieIds[0]['ids']);
+
+                    let locations = <any> await locationModel.getByInIds(idsLocation.join(','), 0),
+                        building = <any> {},
+                        location = <any> {},
+                        trps = <any> [],
+                        frp = <any> user,
+                        senderTxt = '';
+
+                    for(let loc of locations){
+                        if(loc.is_building == 1){
+                            building = loc;
+                        }else if(loc.parent_id == -1){
+                            building = loc;
+                        }
+
+                        if(users[i]['account_location_id'] == loc.location_id){
+                            location = loc;
+                        }
+                    }
+
+                    if(Object.keys(building).length > 0){
+                        if(building.location_id != location.location_id){
+                            locationFullName = building.name + ', '+location.name;
+                        }else{
+                            locationFullName = building.name;
+                        }
+                    }else{
+                        locationFullName = location.name;
+                    }
+
+                    try{
+
+                        trps = await userRoleRelation.getTRPbyLocationId(users[i]['account_location_id']);
+                        let userIsTrp = false;
+                        for(let trp of trps){
+                            if(trp.user_id == req.user.user_id){
+                                userIsTrp = true;
+                            }
+                        }
+                        if(userIsTrp){
+                            senderTxt = `Tenant Responsible Person (TRP), <span style="text-transform: capitalize;">${frp.first_name} ${frp.last_name}</span>`;
+                        }else{
+                            throw "User is not a TRP";
+                        }
+
+                    }catch(e){
+                        senderTxt = `Building Manager (FRP), <span style="text-transform: capitalize;">${frp.first_name} ${frp.last_name}</span>`;
+                    }
+
+                    if(hasOnlineTraining || isAccountEmailExempt){
+
+                        if(isAccountEmailExempt){
+                            userSaveData.password = encryptedPassword;
+                            userSaveData.can_login = 1;
+                            tokenSaveData.verified = 1;
+                        }else if(hasOnlineTraining){
+                            tokenSaveData.action = 'setup-password';
+                            emailLink += '/signup/profile-completion/' + token;
+                        }
+
+                        await userSaveModel.create(userSaveData);
+                        tokenSaveData.id = userSaveModel.ID();
+
+                        if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                            let locationAcctUser = new LocationAccountUser();
+                            await locationAcctUser.create({
+                                'location_id': users[i]['account_location_id'],
+                                'account_id': accountId,
+                                'user_id': userSaveModel.ID(),
+                                'role_id': users[i]['account_role_id']
+                            });
+
+                            emailRole = (users[i]['account_role_id'] == 1) ? 'Building Manager' : 'Tenant Responsible Person';
+
+                            const userRoleRel = new UserRoleRelation();
+                            await userRoleRel.create({
+                                'user_id': userSaveModel.ID(),
+                                'role_id': users[i]['account_role_id']
+                            });
+                        } else {
+                            // get account trainings
+                            accountTrainings = await new AccountTrainingsModel().getAccountTrainings(accountId, {
+                              role: (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id']
+                            });
+
+                            for (const training of accountTrainings) {
+                              await new AccountTrainingsModel().assignAccountUserTraining(
+                                userSaveModel.ID(),
+                                training['course_id'],
+                                training['training_requirement_id']
+                              );
+                            }
+
+                            const EMRoleUserRole = new UserEmRoleRelation();
+                            await EMRoleUserRole.create({
+                                'user_id': userSaveModel.ID(),
+                                'em_role_id': (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
+                                'location_id': users[i]['account_location_id']
+                            });
+
+                        }
+
+                    }else{
+                        let invitation = new UserInvitation();
+                        await invitation.create(inviSaveData);
+
+                        tokenSaveData.id_type = 'user_invitations_id';
+                        tokenSaveData.id = invitation.ID();
+                        emailLink += '/signup/warden-profile-completion/'+token;
+                    }
+
+                    await tokenModel.create(tokenSaveData);
+
+                    if(!isAccountEmailExempt){
+
+                        if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                            let roleName = 'Building Manager (FRP)';
+                            subjectOfEmail = `You're assigned as Building Manager`;
+                            if(parseInt(users[i]['account_role_id']) == 2){
+                                roleName = 'Tenant Responsible Person (TRP)';
+                                subjectOfEmail = `You're assigned as Tenant Responsible Person`;
+                            }
+                            bodyOfEmail = `
+                            <div style="font-size:16px;">
+                                <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
+
+                                We are glad to inform that you are assigned as the ${roleName} for your location, ${locationFullName}. <br/>
+                                In this role, yout will take charge of managing  emergency planning responsibilities wihin your tenancy. <br/><br/>
+
+                                Please update the profile to set up your account on EvacConnect here : <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
+
+                                Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
+
+                                Sincerely,<br/>
+                                EvacConnect
+                            </div>
+                            `;
+                        }else{
+                            let roleName = '';
+                            for(let em of emRoles){
+                                if(em.em_roles_id == parseInt(users[i]['account_role_id'])){
+                                    subjectOfEmail = `You're nominated as `+em.role_name;
+                                    roleName = em.role_name;
+                                }
+                            }
+
+                            bodyOfEmail = `
+                            <div style="font-size:16px;">
+                                <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
+
+                                We are glad to inform that you are nominated to be a ${roleName} for your tenancy, ${account.account_name}, by your ${senderTxt}.<br/><br/>
+
+                                Follow this link to set up your password on EvacConnect: <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
+
+                                Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
+
+                                Sincerely,<br/>
+                                EvacConnect
+                            </div>
+                            `;
+                        }
+
+        				const opts = {
+        					from : '',
+        					fromName : 'EvacConnect',
+        					to : [],
+        					cc: [],
+        					body : '',
+        					attachments: [],
+        					subject : subjectOfEmail
+        				};
+        				const email = new EmailSender(opts);
+        				let emailBody = email.getEmailHTMLHeader();
+                        emailBody += bodyOfEmail;
+        				emailBody += email.getEmailHTMLFooter();
+
+        				email.assignOptions({
+        					body : emailBody,
+        					to: [inviSaveData['email']],
+        					cc: ['jmanoharan@evacgroup.com.au']
+        				});
+        				email.send(
+        					(data) => console.log(data),
+        					(err) => console.log(err)
+        				);
+                    }
+
+    			}else{
+    				returnUsers.push( users[i] );
+    			}
+    		}
+
+
+        }catch(e){}
 
 		res.statusCode = 200;
 		response.status = true;

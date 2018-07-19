@@ -138,20 +138,17 @@
     border-radius: 5px;
     position: absolute;
     top: 19px;
-    left: 7px;
-    width: 98%;
+    left: 42px;
+    width: 89%;
 }
 
 .row-table-content .progress-loading-container .loading{
-    background-color: #dc4453;
+    background-color: #75beff;
     height: 20px;
-    border-radius: 5px;
+    border-radius: 0px;
     position: absolute;
     min-width: 0.5%;
-    top: 19px;
-    left: 43px;
-    max-width: 85%;
-    border: 1px solid;
+    left: 1px;
 }
 
 .row-table-content .progress-loading-container .loading .tip-percentage{
@@ -287,7 +284,7 @@ table tbody tr td.with-bar.red-theme .progress-container p{
 
 table tbody tr td.with-bar.green-theme .text,
 table tbody tr td.with-bar.green-theme .progress-container p{
-    color: #26a69a !important;
+    color: #67c100 !important;
 }
 
 table tbody tr td.with-bar.orange-theme .text,
@@ -347,7 +344,7 @@ table tbody tr td.with-bar.red-theme .progress .determinate{
 }
 
 table tbody tr td.with-bar.green-theme .progress .determinate{
-    background-color: #26a69a;
+    background-color: #67c100;
 }
 
 table tbody tr td.with-bar.orange-theme .progress .determinate{
@@ -514,6 +511,7 @@ table th:first-child{
 .documents-container .document .text-container .file-name{
     margin-top: 0px;
     max-width: 270px;
+    word-wrap: break-word;
 }
 
 .documents-container .document .text-container .dates{
@@ -705,4 +703,20 @@ a:hover{
 [type="radio"]:checked+label{
     padding-left: 25px !important;
     margin-right: 15px !important;
+}
+
+#modalEvacExer{
+    width: 35%;
+}
+
+@media only screen and (max-width: 1024px) {
+    #modalEvacExer{
+        width: 60%;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    #modalEvacExer{
+        width: 95%;
+    }
 }

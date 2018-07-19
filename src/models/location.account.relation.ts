@@ -36,22 +36,23 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
-    public getByLocationId(locationId: Number) {
+    public getByLocationId(locationId: Number, include_account: boolean = false): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM location_account_relation WHERE location_id = ?';
+            let sql_load = '';
+            sql_load = 'SELECT * FROM location_account_relation WHERE location_id = ?';
+            if (include_account) {
+              sql_load = `SELECT * FROM location_account_relation
+                INNER JOIN accounts
+                ON location_account_relation.account_id = accounts.account_id
+                WHERE location_account_relation.location_id = ?`;
+            }
             const param = [locationId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
               if (error) {
                 return console.log(error);
               }
-              if(!results.length){
-                reject('Record not found');
-              }else{
-                this.dbData = results[0];
-                this.setID(results[0]['location_account_relation_id']);
-                resolve(this.dbData);
-              }
+              resolve(results);
             });
             connection.end();
         });
@@ -246,9 +247,8 @@ export class LocationAccountRelation extends BaseClass {
         if ('responsibility' in filter) {
           if (filter['responsibility'] === defs['Tenant']) {
             filterStr += ` AND lar.responsibility = 'Tenant'`;
-            // not needed due to TRP whole occupier
-            // filter['is_building'] = 0; - there are people assigned as Tenant that occupies the whole building
-            // that is why the assumption is incorrect, thus commenting this line
+            filterStr += ` AND l.is_building = 0`;
+
           }
           if (filter['responsibility'] === defs['Manager']) {
             filterStr += ` AND lar.responsibility = 'Manager'`;
@@ -265,6 +265,10 @@ export class LocationAccountRelation extends BaseClass {
             filterStr += ` AND l.archived = ${filter['archived']}`;
         }
 
+        if('location_id' in filter){
+            filterStr += ` AND l.location_id = ${filter['location_id']}`;
+        }
+
         let offsetLimit = ``;
 
         if('limit' in filter){
@@ -278,7 +282,7 @@ export class LocationAccountRelation extends BaseClass {
         let nameSearchForTRP = '';
         // if('name' in filter && filter['name'].length > 0 && ('responsibility' in filter && filter['responsibility'] === defs['Tenant'])){
         if('name' in filter){
-            nameSearchForTRP = (filter['name'].length > 0) ? ` AND CONCAT(p1.name, ' ', l.name) LIKE '%${filter['name']}%'` : '  ';
+            nameSearchForTRP = (filter['name'].length > 0) ? ` AND IF (p1.name IS NULL, l.name, IF (CHAR_LENGTH(p1.name) = 0,  l.name, CONCAT(p1.name, ', ', l.name))) LIKE '%${filter['name']}%'` : '  ';
         }
 
         let orderBy = '';
@@ -291,32 +295,6 @@ export class LocationAccountRelation extends BaseClass {
         }
 
         let selectParentName = ('no_parent_name' in filter) ? 'l.name,' : `IF (p1.name IS NULL, l.name, IF (CHAR_LENGTH(p1.name) = 0,  l.name, CONCAT(p1.name, ', ', l.name))) as name,`;
-
-        /*let sql_get_locations = `
-              SELECT
-                location_account_relation.*,
-                ${selectParentName}
-                locations.is_building,
-                locations.parent_id,
-                locations.google_photo_url,
-                locations.admin_verified,
-                locations.location_directory_name
-              FROM
-                location_account_relation
-              INNER JOIN
-                locations
-              ON
-                locations.location_id = location_account_relation.location_id
-              LEFT JOIN
-                locations as parent_locations
-              ON
-                locations.parent_id = parent_locations.location_id
-              WHERE
-                location_account_relation.account_id = ?
-                ${filterStr}
-                ${nameSearchForTRP}
-              GROUP BY location_account_relation.location_id
-              ${orderBy}`;*/
 
         let sql_get_locations = `
             SELECT
@@ -334,7 +312,26 @@ export class LocationAccountRelation extends BaseClass {
             l.formatted_address,
             lar.responsibility,
             lar.location_account_relation_id,
-            lar.account_id
+            lar.account_id,
+            IF(l.is_building = 1, l.location_id,
+
+                IF(p1.is_building = 1, p1.location_id,
+                   IF(p1.parent_id = -1, p1.location_id,
+                      IF(p2.is_building = 1, p2.location_id,
+                        IF(p2.parent_id = -1, p2.location_id,
+                            IF(p3.is_building = 1, p3.location_id,
+                               IF(p3.parent_id = -1, p3.location_id,
+                                    IF(p4.is_building = 1, p4.location_id,
+                                       IF(p4.parent_id = -1, p4.location_id,
+                                            0
+                                    ) )
+                            ) )
+                        ) )
+                   ) )
+
+                )
+
+            as building_id
 
             FROM locations l
             LEFT JOIN locations p1 ON l.parent_id = p1.location_id
@@ -386,95 +383,68 @@ export class LocationAccountRelation extends BaseClass {
 
                 ) src
             `;
+        }else if('locationIdOnly' in filter){
+            sql_get_locations = `
+                SELECT
+                l.location_id
+
+                FROM locations l
+                LEFT JOIN locations p1 ON l.parent_id = p1.location_id
+                LEFT JOIN locations p2 ON p1.parent_id = p2.location_id
+                LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
+                LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
+
+                LEFT JOIN  location_account_relation lar
+                ON lar.location_id = l.location_id
+                OR p1.location_id = lar.location_id
+                OR p2.location_id = lar.location_id
+                OR p3.location_id = lar.location_id
+                OR p4.location_id = lar.location_id
+
+                WHERE
+                lar.account_id = ?
+                ${filterStr}
+                ${nameSearchForTRP}
+                GROUP BY l.location_id
+                ${orderBy} ${offsetLimit}
+            `;
         }else{
             sql_get_locations += ` ${offsetLimit}`;
         }
-
-        /*if ('responsibility' in filter && filter['responsibility'] === defs['Tenant']) {
-            sql_get_locations += ` ${offsetLimit}`;
-        }
-        if('count' in filter && filter['responsibility'] === defs['Tenant']){
-            sql_get_locations = `
-              SELECT
-                COUNT(location_account_relation.location_account_relation_id) as count,
-                IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name
-              FROM
-                location_account_relation
-              INNER JOIN
-                locations
-              ON
-                locations.location_id = location_account_relation.location_id
-              LEFT JOIN
-                locations as parent_locations
-              ON
-                locations.parent_id = parent_locations.location_id
-              WHERE
-                location_account_relation.account_id = ?
-                ${filterStr}
-              ${orderBy};`;
-        }*/
-
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_locations, [accountId], (error, results) => {
             if (error) {
                 console.log('location.account.relation.listAllLocationsOnAccount', error, sql_get_locations);
                 throw Error('Cannot get all locations for this account');
             }
-
             resolve(results);
-
-            /*
-            if (filter['responsibility'] === defs['Manager']) {
-                const locationReferencesArr = [];
-                const building_locations = [];
-                const other_locations = [];
-                const originIds = [];
-                let originIdStr = '';
-                for (const loc of results) {
-                    // || loc.parent_id == -1
-                    if(loc.is_building == 1){
-                        building_locations.push(loc);
-                    }
-                    originIds.push(loc['location_id']);
-                }
-                originIdStr = originIds.join(',');
-                const locRef = new Location();
-                let arcNum = 0;
-                if('archived' in filter && filter['responsibility'] === defs['Manager']){
-                    arcNum = filter['archived'];
-                }
-
-                locRef.getParentsChildren(originIdStr, 0, true, arcNum).then((locationObjRef) => {
-                    locationObjRef = Array.from(new Set(locationObjRef));
-                    for(let loc of building_locations){
-                        locationObjRef.push(loc.location_id);
-                    }
-                    return locRef.bulkLocationDetails(locationObjRef, filter);
-                }).then((locations) => {
-                    resolve(locations);
-                    return;
-                }).catch((e) => {
-                    console.log(`There was a problem getting the location details`, e);
-                });
-            } else {
-                if ('count' in filter) {
-                    resolve(results);
-                }else {
-                    if (results.length > 0) {
-                        for (const loc of results) {
-                            resultSet.push(loc);
-                        }
-                        resolve(resultSet);
-                    } else {
-                        resolve([]);
-                    }
-                }
-            }
-            */
         });
         connection.end();
 
       });
-
     }
+
+    public getLoctionSiblingsOfTenantRealtedToAccountAndLocation(accountId, locationId, count?){
+        return new Promise((resolve, reject) => {
+            const select = (count) ? 'COUNT(siblings.location_id) as count' : 'siblings.*';
+            const sql_load = `
+                SELECT ${select}
+                FROM locations siblings
+                INNER JOIN locations location ON siblings.parent_id = location.parent_id
+                INNER JOIN location_account_relation lar ON siblings.location_id = lar.location_id
+
+                WHERE  lar.account_id = ${accountId} AND lar.responsibility = 'Tenant' AND location.location_id = ${locationId} AND siblings.location_id != ${locationId} AND siblings.archived = 0
+            `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load,  (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              this.dbData = results;
+              resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
 }

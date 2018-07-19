@@ -57,13 +57,13 @@
               <p class="checkbox" >
                 <input id="location-{{i}}"  class="filled-in" type="checkbox">
                 <label for="location-{{i}}">
-                  <span>{{item['account_name']}}</span>
+                  <a [routerLink]="['/admin', 'users-in-accounts', item['account_id']]"><span>{{item['account_name']}}</span></a>
                 </label>
               </p>
             </td>
             <td>
               <div class="text">
-                <a href="">{{item['locations'].length}}</a>
+                <a [routerLink]="['/admin', 'locations-in-account', item['account_id']]">{{item['locations'].length}}</a>
               </div>
             </td>
             <td>{{item['billing_address']}}</td>

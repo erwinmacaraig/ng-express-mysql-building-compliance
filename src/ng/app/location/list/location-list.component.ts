@@ -91,7 +91,9 @@ export class LocationListComponent implements OnInit, OnDestroy {
     paramArchived = <any> false;
     routerSubs;
 
-  constructor (
+    showLoadingSublocations = false;
+
+    constructor (
       private platformLocation: PlatformLocation,
       private http: HttpClient,
       private auth: AuthService,
@@ -104,7 +106,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
       private actRouter: ActivatedRoute,
       private elemRef : ElementRef,
       private userService : UserService
-  ) {
+    ) {
         this.baseUrl = (platformLocation as any).location.origin;
         this.options = { headers : this.headers };
         this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
@@ -365,6 +367,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
             console.log(formAddTenant.value);
             console.log(formAddTenant.value.location_id);
             */
+           formAddTenant.controls.location_id.setValue( $('#modalAddNewTenant select.location-id').val() );
             this.userService.sendTRPInvitation(formAddTenant.value).subscribe(() => {
               this.getLocationsForListing(() => {
                 this.showModalNewTenantLoader = false;
@@ -406,6 +409,18 @@ export class LocationListComponent implements OnInit, OnDestroy {
             	for(let i in this.locationsBackup){
 					if(this.locationsBackup[i]['location_id'] == locIdEnc){
 						this.selectedLocation = this.locationsBackup[i];
+                        this.showLoadingSublocations = true;
+                        this.locationService.getSublocationsOfParent(this.encryptDecrypt.decrypt(locIdEnc)).subscribe((subResponse) => {
+                            this.selectedLocation['sublocations'] = [];
+                            this.selectedLocation['sublocations'].push(this.selectedLocation);
+                            if(subResponse.data.length > 0){
+                                this.selectedLocation['sublocations'] = this.selectedLocation['sublocations'].concat(subResponse.data);
+                            }
+                            this.showLoadingSublocations = false;
+                            setTimeout(() => {
+                                $('#modalAddNewTenant select.location-id').material_select();
+                            }, 300);
+                        });
 					}
 				}
 				this.showNewTenant();
@@ -441,6 +456,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				}
 
             }
+
+            target.val(0).material_select();
 
 		});
 	}

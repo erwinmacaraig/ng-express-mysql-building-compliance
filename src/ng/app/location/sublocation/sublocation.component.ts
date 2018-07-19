@@ -9,6 +9,9 @@ import { LocationsService } from '../../services/locations';
 import { UserService } from '../../services/users';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { AuthService } from '../../services/auth.service';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { ComplianceService } from '../../services/compliance.service';
+import { DonutService } from '../../services/donut';
 
 import { Countries } from '../../models/country.model';
 import { Timezone } from '../../models/timezone';
@@ -23,7 +26,7 @@ declare var Materialize: any;
     selector: 'app-view-locations-sub',
     templateUrl: './sublocation.component.html',
     styleUrls: ['./sublocation.component.css'],
-    providers: [EncryptDecryptService, AccountsDataProviderService]
+    providers: [EncryptDecryptService, AccountsDataProviderService, DashboardPreloaderService, ComplianceService, DonutService]
 })
 export class SublocationComponent implements OnInit, OnDestroy {
     @ViewChild('formAddTenant') formAddTenant: NgForm;
@@ -70,6 +73,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
     showCompliance = false;
 
+    latestCompliance = <any> {};
+
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
         private activeRoute: ActivatedRoute,
@@ -77,7 +82,10 @@ export class SublocationComponent implements OnInit, OnDestroy {
         private userService : UserService,
         private elemRef: ElementRef,
         private auth: AuthService,
-        private accountService: AccountsDataProviderService
+        private accountService: AccountsDataProviderService,
+        private dashboardService: DashboardPreloaderService,
+        private complianceService: ComplianceService,
+        private donutService: DonutService
     ) {
 
         this.userData = this.auth.getUserData();
@@ -109,24 +117,10 @@ export class SublocationComponent implements OnInit, OnDestroy {
               this.parentData['name'] = this.parentData['formatted_address'];
             }
 
-            let isInLocation = false,
-                itInLocationEmRole = false,
-                itInLocationTrpFrpRole = false;
-            for(let rl of response.users_locations){
-                if(rl.location_id == this.locationData['location_id']){
-                    isInLocation = true;
-                    if('user_em_roles_relation_id' in rl){
-                        itInLocationEmRole = true;
-                    }
-                    if('location_account_user_id' in rl && itInLocationTrpFrpRole == false){
-                        itInLocationTrpFrpRole = true;
-                    }
-                }
-            }
-
-            this.showCompliance = false;
-            if(isInLocation && itInLocationTrpFrpRole){
+            if(response.show_compliance){
                 this.showCompliance = true;
+            }else{
+                this.showCompliance = false;
             }
 
             callBack();
@@ -138,12 +132,28 @@ export class SublocationComponent implements OnInit, OnDestroy {
         this.routeSubs = this.activeRoute.params.subscribe((params) => {
             this.encryptedID = params['encrypted'];
             this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
+            this.dashboardService.show();
             this.getLocationData(() => {
                 this.userService.getTenantsInLocation(this.locationID, (tenantsResponse) => {
                     this.tenants = tenantsResponse.data;
                     // console.log(this.tenants);
 
                 });
+                this.dashboardService.hide();
+            });
+            this.complianceService.getLocationsLatestCompliance(this.locationID, (response) => {
+                this.donutService.updateDonutChart('#specificChart', response.percent, true);
+                let nom = 0, denom = 0;
+                for(let com of response.data){
+                    if(com.compliance_kpis_id != 13){
+                        if(com.valid == 1){
+                            nom++;
+                        }
+                        denom++;
+                    }
+                }
+                $('.manage-compliance .completion .start').html(nom);
+                $('.manage-compliance .completion .end-num').html(denom);
             });
         });
 

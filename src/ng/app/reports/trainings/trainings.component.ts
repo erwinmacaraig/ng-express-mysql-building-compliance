@@ -31,6 +31,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	backupResults = [];
 	routeSubs;
     locationId = 0;
+    accountId = 0;
 	arrLocationIds = [];
 
     pagination = {
@@ -40,6 +41,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         limit : 25,
         offset : 0,
         location_id: null,
+        account_id: null,
         course_method : 'none',
         training_id : 0,
         searchKey: '',
@@ -76,6 +78,12 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
 		this.routeSubs = this.activatedRoute.params.subscribe((params) => {
             this.locationId = this.encryptDecrypt.decrypt( params.locationId );
+
+            if(params.accountId){
+                this.accountId = this.encryptDecrypt.decrypt( params.accountId );
+                this.queries.account_id = this.accountId;
+            }
+
             this.arrLocationIds = this.locationId.toString().split('-');
 
         	this.getLocationReport((response) => {

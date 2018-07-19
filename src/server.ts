@@ -80,7 +80,8 @@ export class Server {
    * @class Server
    * @method config
    */
-  public config() {
+  public config() {    
+
       // add static paths
       this.app.use(express.static(path.join(__dirname, 'public')));
 
