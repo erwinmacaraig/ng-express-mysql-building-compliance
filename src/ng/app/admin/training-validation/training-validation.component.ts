@@ -22,6 +22,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   searchLocationField: FormControl = new FormControl(null, Validators.required);
   dtTrainingField: FormControl;
   defaultTrainingCourse = null;
+  courseTraining: FormControl;
   trainingModeField: FormControl;
   training_requirements = [];
   userForm: FormGroup;
@@ -61,6 +62,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   accountSearchSub: Subscription;
   initialAccountName = null;
   selectedAccountId = 0;
+  exceptionCtrl = [];
   roles = [
     {
       role_id: 1,
@@ -123,7 +125,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.userForm = new FormGroup({});
     this.setDatePickerDefaultDate();
     this.dtTrainingField = new FormControl(this.datepickerModelFormatted, Validators.required);
-
+    this.courseTraining = new FormControl(null, Validators.required),
     this.adminService.getTrainingRequirementList().subscribe((response) => {
       this.training_requirements = response['data'];
       // console.log(this.training_requirements);
@@ -232,6 +234,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.filteredList = [];
     this.filteredAccountList = [];
     this.users = [];
+    this.exceptionCtrl = [];
     this.searchLocationField.setValue(accountName);
     this.genericSub = this.smartSearch();
     this.adminService.getAllAccountUsers(accountId, 0, 'all').subscribe((response) => {
@@ -265,11 +268,15 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.userForm = this.formBuilder.group({
           levelUsers: this.formBuilder.array([this.createFormItem()]),
           dtTraining: this.dtTrainingField,
-          courseMethod: this.trainingModeField
+          courseMethod: this.trainingModeField,
+          courseTraining: this.courseTraining,
+          exceptions: new FormArray([]),
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
         this.searchAccount();
+        this.exceptionCtrl.push(1);
+
       }
     });
 
@@ -293,6 +300,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.filteredList = [];
     this.filteredAccountList = [];
     this.genericSub = this.smartSearch();
+    this.exceptionCtrl = [];
     this.adminService.getLocationLevelUsers(this.locationId.toString()).subscribe((response) => {
       this.users = response['users'];
       this.parentLocationOptionGroup.push({
@@ -305,11 +313,13 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.userForm = this.formBuilder.group({
           levelUsers: this.formBuilder.array([this.createFormItem()]),
           dtTraining: this.dtTrainingField,
-          courseMethod: this.trainingModeField
+          courseMethod: this.trainingModeField,
+          courseTraining: this.courseTraining,
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
         this.searchAccount();
+        this.exceptionCtrl.push(1);
       }
       // console.log(this.users);
     });
@@ -334,7 +344,27 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
   }
 
+  createFormForException(): FormGroup {
+    return this.formBuilder.group({
 
+    });
+    /*
+for (const ctrl of formUserControls) {
+      values.push({
+        email: ctrl.get('email').value,
+        user_id: ctrl.get('user_id').value,
+        first_name: ctrl.get('first_name').value,
+        last_name: ctrl.get('last_name').value,
+        role_id: ctrl.get('role_id').value,
+        certification_date: this.userForm.get('dtTraining').value,
+        location_id: ctrl.get('sublocation_id').value,
+        account_name: ctrl.get('account_name').value,
+        account_id: ctrl.get('accountId').value,
+        course_method: this.userForm.get('courseMethod').value,
+        training_requirement_id: this.userForm.get('courseTraining').value
+      });
+    */
+  }
 
   createFormItem(): FormGroup {
     return this.formBuilder.group({
@@ -342,13 +372,13 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       last_name: new FormControl(null, Validators.required),
       first_name: new FormControl(null, Validators.required),
       role_id: new FormControl(null, Validators.required),
-      courseTraining: new FormControl(this.defaultTrainingCourse, Validators.required),
       user_id: new FormControl('0', null),
       accountId: new FormControl(this.selectedAccountId.toString(), null),
       account_name: new FormControl(this.initialAccountName, Validators.required),
       sublocation_name: new FormControl(null, null),
       sublocation_id: new FormControl('0', null)
     });
+
   }
 
   addUserFormItem(e: Event): void {
@@ -359,7 +389,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.accountSearchResults[this.levelUsers.length - 1] = [];
     this.assignSearchEmailAbility();
     this.searchAccount();
-
+    this.exceptionCtrl.push(1);
   }
   private assignSearchEmailAbility(index?): void {
     let i = this.levelUsers.length - 1;
@@ -395,12 +425,14 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.genericAccountSearchSub[index].unsubscribe();
     }
     (<FormArray>this.userForm.get('levelUsers')).removeAt(0);
+    this.exceptionCtrl = [];
   }
 
   public removeUser(index: number = 1) {
     this.genericEmailSearchSub[index].unsubscribe();
     this.genericAccountSearchSub[index].unsubscribe();
     (<FormArray>this.userForm.get('levelUsers')).removeAt(index);
+    this.exceptionCtrl.splice(index, 1);
   }
 
   setDatePickerDefaultDate() {
@@ -408,6 +440,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
   }
   onChangeDatePicker(event) {
+    console.log(event);
     if (!moment(this.datepickerModel).isValid()) {
         this.datepickerModel = new Date();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
@@ -416,6 +449,17 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
     this.dtTrainingField.setValue(this.datepickerModelFormatted);
     this.isShowDatepicker = false;
+  }
+
+  onChangeDatePickerForException(event, index) {
+    console.log(event);
+    if (!moment(this.datepickerModel).isValid()) {
+        this.datepickerModel = new Date();
+        this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
+    } else {
+        this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
+    }
+
   }
 
   showDatePicker() {
@@ -439,7 +483,18 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         account_name: ctrl.get('account_name').value,
         account_id: ctrl.get('accountId').value,
         course_method: this.userForm.get('courseMethod').value,
-        training_requirement_id: ctrl.get('courseTraining').value
+        training_requirement_id: this.userForm.get('courseTraining').value
+      });
+    }
+
+    const formExceptions = (<FormArray>this.userForm.get('exceptions')).controls;
+    const u_ex = [];
+    for (const e of formExceptions) {
+      u_ex.push({
+        user_id: e.get('exception_user_id').value,
+        certification_date: e.get('dtTrainingException').value,
+        training_requirement_id: e.get('trainingCourseException').value,
+        course_method: e.get('trainingModeException').value
       });
     }
     this.genericSub.unsubscribe();
@@ -447,14 +502,16 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.searchLocationField.reset();
     console.log(JSON.stringify(values));
 
-    this.cancelUserForm();
+    console.log(JSON.stringify(u_ex));
 
+    this.cancelUserForm();
+    /*
     this.adminService.validateUserTrainings(JSON.stringify(values))
     .subscribe((response) => {
       this.genericSub = this.smartSearch();
       this.dashboard.hide();
-    });
-
+    }); */
+    this.dashboard.hide();
   }
 
   switchLocationDropDown(e: any) {
@@ -481,7 +538,6 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   }
 
   searchAccount(index?): void {
-    console.log('searchAccount() was called');
     let i = this.levelUsers.length - 1;
     if (index != null)  {
       i = index;
@@ -520,6 +576,28 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.newUserAccount.reset();
   }
 
+  public showRowAddException(index, ctrl): void {
+    this.exceptionCtrl[index] = ctrl;
+
+    if (ctrl) {
+      // Remove
+      (<FormArray>this.userForm.get('exceptions')).removeAt(index);
+    } else {
+      // Add
+      const uid = (<FormArray>this.userForm.get('levelUsers')).controls[index].get('user_id').value;
+      (<FormArray>this.userForm.get('exceptions')).push(
+        new FormGroup({
+          exception_user_id: new FormControl(uid, null),
+          dtTrainingException: new FormControl(null, Validators.required),
+          trainingCourseException: new FormControl(null, Validators.required),
+          trainingModeException: new FormControl(null, Validators.required)
+        })
+      );
+    }
+
+  }
+
+  /*
   public registerNewUser() {
     const values = [];
     values.push({
@@ -569,5 +647,6 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       $('#newUserModal').modal('close');
     });
   }
+  */
 
 }

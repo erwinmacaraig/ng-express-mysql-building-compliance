@@ -28,15 +28,21 @@
       <input id="dtTraining" [formControl]="dtTrainingField" autocomplete="off" type="text" (click)="showDatePicker()" required>
     </div>
     <div class="col s3">
+      <select [formControl]="courseTraining" style="display: block;" id="trainingCourse">
+        <option [value]="null" [disabled]="true == true">Training Course</option>
+        <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
+      </select>
+    </div>
+    <div class="col s3">
       <select [formControl]="trainingModeField" style="display: block;" id="trainingMode">
         <option [value]="null" [disabled]="true == true">Training Mode</option>
         <option value="offline_by_evac">Face to Face</option>
       </select>
     </div>
   </div>
-  <div class="row">
+  <div class="row" *ngIf="users.length > 0">
     <div class="col s12">
-      <table>
+      <table id="trainingListTable">
         <thead>
           <tr>
             <!-- <th>TRP</th> -->
@@ -46,12 +52,11 @@
             <th>Account</th>
             <th>Role</th>
             <th>Location</th>
-            <th>Training Course</th>
             <th>Add Exception</th>
           </tr>
         </thead>
-        <tbody formArrayName="levelUsers" *ngIf="users.length > 0">
-          <tr *ngFor="let u of userForm.get('levelUsers')['controls']; let i = index;" [formGroupName]="i">
+        <tbody formArrayName="levelUsers" *ngFor="let u of userForm.get('levelUsers')['controls']; let i = index;">
+          <tr [formGroupName]="i">
             <td>
               <input formControlName="email" type="text" placeholder="search email" autocomplete="off">
               <input formControlName="user_id" type="hidden">
@@ -89,27 +94,33 @@
                   </optgroup>
                 </select>
             </td>
-            <td>
-              <select formControlName="courseTraining" style="display: block;" id="trainingCourse" (change)="assignSucceedingDefaultCourse(i)">
-                <option [value]="null" [disabled]="true == true">Training Course</option>
-                <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
-              </select>
-            </td>
             <td class="with-remove">&nbsp;
               <a  class="remove" (click)="removeUser(i)">X</a>
+              <button type="button" (click)="showRowAddException(i, 0)">Add</button>
             </td>
-            <!--
-            <td>Email: {{userForm.get('levelUsers')['controls'][i].get('email').valid}}
-                Last Name: {{userForm.get('levelUsers')['controls'][i].get('last_name').valid}}
-                First Name: {{userForm.get('levelUsers')['controls'][i].get('first_name').valid}}
-                Role: {{userForm.get('levelUsers')['controls'][i].get('role_id').valid}}
-
-                Course Training: {{userForm.get('levelUsers')['controls'][i].get('courseTraining').valid}}
-                User id: {{userForm.get('levelUsers')['controls'][i].get('user_id').valid}}
-                Account Id: {{userForm.get('levelUsers')['controls'][i].get('accountId').valid}}
-            </td>
-          -->
           </tr>
+          <tr [hidden]="exceptionCtrl[i]">
+            <td>
+              <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePickerForException($event, i)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+              <input formControlName="dtTrainingException" id="dtTrainingException-{{i}}" autocomplete="off" type="text" (click)="showDatePicker()" required>
+            </td>
+            <td colspan="2">
+                <select formControlName="trainingCourseException" style="display: block;" id="trainingCourseException-{{i}}">
+                    <option [value]="null" [disabled]="true == true">Training Course</option>
+                    <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
+                </select>
+            </td>
+            <td colspan="2">
+                <select formControlName="trainingModeException" style="display: block;" id="trainingModeException-{{i}}">
+                    <option [value]="null" [disabled]="true == true">Training Mode</option>
+                    <option value="offline_by_evac">Face to Face</option>
+                </select>
+            </td>
+            <td colspan="2">
+                <button type="button" (click)="showRowAddException(i, 1)">Cancel</button>
+            </td>
+          </tr>
+
         </tbody>
         <tfoot>
           <tr *ngIf="users.length > 0">
