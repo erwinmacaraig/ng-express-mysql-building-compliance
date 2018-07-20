@@ -49,3 +49,10 @@ td.with-remove a.remove:hover{
   background-color: #fff8cd;
 }
 
+
+input.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched {
+  border: 1px solid red;
+}
+

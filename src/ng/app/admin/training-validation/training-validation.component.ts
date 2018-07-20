@@ -112,8 +112,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       role_id: 18,
       role_name: 'Deputy Building Warden',
     },
-
   ];
+  addedUserExceptions: object = {};
 
   constructor(private adminService: AdminService, private formBuilder: FormBuilder,
     public dashboard: DashboardPreloaderService) {}
@@ -270,7 +270,6 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           dtTraining: this.dtTrainingField,
           courseMethod: this.trainingModeField,
           courseTraining: this.courseTraining,
-          exceptions: new FormArray([]),
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
@@ -315,6 +314,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           dtTraining: this.dtTrainingField,
           courseMethod: this.trainingModeField,
           courseTraining: this.courseTraining,
+
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
@@ -348,22 +348,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     return this.formBuilder.group({
 
     });
-    /*
-for (const ctrl of formUserControls) {
-      values.push({
-        email: ctrl.get('email').value,
-        user_id: ctrl.get('user_id').value,
-        first_name: ctrl.get('first_name').value,
-        last_name: ctrl.get('last_name').value,
-        role_id: ctrl.get('role_id').value,
-        certification_date: this.userForm.get('dtTraining').value,
-        location_id: ctrl.get('sublocation_id').value,
-        account_name: ctrl.get('account_name').value,
-        account_id: ctrl.get('accountId').value,
-        course_method: this.userForm.get('courseMethod').value,
-        training_requirement_id: this.userForm.get('courseTraining').value
-      });
-    */
+
   }
 
   createFormItem(): FormGroup {
@@ -376,7 +361,7 @@ for (const ctrl of formUserControls) {
       accountId: new FormControl(this.selectedAccountId.toString(), null),
       account_name: new FormControl(this.initialAccountName, Validators.required),
       sublocation_name: new FormControl(null, null),
-      sublocation_id: new FormControl('0', null)
+      sublocation_id: new FormControl('0', null),
     });
 
   }
@@ -468,8 +453,10 @@ for (const ctrl of formUserControls) {
 
   public validateTrainingOnSubmit() {
     this.dashboard.show();
+    console.log(this.userForm);
     const values = [];
     const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
+    const u_ex = [];
     console.log(formUserControls);
     for (const ctrl of formUserControls) {
       values.push({
@@ -487,30 +474,35 @@ for (const ctrl of formUserControls) {
       });
     }
 
-    const formExceptions = (<FormArray>this.userForm.get('exceptions')).controls;
-    const u_ex = [];
-    for (const e of formExceptions) {
-      u_ex.push({
-        user_id: e.get('exception_user_id').value,
-        certification_date: e.get('dtTrainingException').value,
-        training_requirement_id: e.get('trainingCourseException').value,
-        course_method: e.get('trainingModeException').value
+    Object.keys(this.addedUserExceptions).forEach((key) => {
+      console.log(this.addedUserExceptions[key]);
+      values.push({
+        email: this.addedUserExceptions[key]['email'],
+        user_id: this.addedUserExceptions[key]['user_id'],
+        first_name: this.addedUserExceptions[key]['first_name'],
+        last_name: this.addedUserExceptions[key]['last_name'],
+        role_id: this.addedUserExceptions[key]['role_id'],
+        certification_date: this.addedUserExceptions[key]['certification_date'],
+        location_id: this.addedUserExceptions[key]['sublocation_id'],
+        account_name: this.addedUserExceptions[key]['account_name'],
+        account_id: this.addedUserExceptions[key]['accountId'],
+        course_method: this.addedUserExceptions[key]['course_method'],
+        training_requirement_id: this.addedUserExceptions[key]['training_requirement_id']
       });
-    }
+    });
+
     this.genericSub.unsubscribe();
     this.users = [];
     this.searchLocationField.reset();
     console.log(JSON.stringify(values));
 
-    console.log(JSON.stringify(u_ex));
-
     this.cancelUserForm();
-    /*
+
     this.adminService.validateUserTrainings(JSON.stringify(values))
     .subscribe((response) => {
       this.genericSub = this.smartSearch();
       this.dashboard.hide();
-    }); */
+    });
     this.dashboard.hide();
   }
 
@@ -576,24 +568,25 @@ for (const ctrl of formUserControls) {
     this.newUserAccount.reset();
   }
 
-  public showRowAddException(index, ctrl): void {
-    this.exceptionCtrl[index] = ctrl;
 
-    if (ctrl) {
-      // Remove
-      (<FormArray>this.userForm.get('exceptions')).removeAt(index);
-    } else {
-      // Add
-      const uid = (<FormArray>this.userForm.get('levelUsers')).controls[index].get('user_id').value;
-      (<FormArray>this.userForm.get('exceptions')).push(
-        new FormGroup({
-          exception_user_id: new FormControl(uid, null),
-          dtTrainingException: new FormControl(null, Validators.required),
-          trainingCourseException: new FormControl(null, Validators.required),
-          trainingModeException: new FormControl(null, Validators.required)
-        })
-      );
-    }
+  public confirmException(index) {
+
+    this.addedUserExceptions[index] = {
+      email: (<FormArray>this.userForm.get('levelUsers')).controls[index].get('email').value,
+      last_name: (<FormArray>this.userForm.get('levelUsers')).controls[index].get('last_name').value,
+      first_name: (<FormArray>this.userForm.get('levelUsers')).controls[index].get('first_name').value,
+      role_id: (<FormArray>this.userForm.get('levelUsers')).controls[index].get('role_id').value,
+      user_id: (<FormArray>this.userForm.get('levelUsers')).controls[index].get('user_id').value,
+      accountId: (<FormArray>this.userForm.get('levelUsers')).controls[index].get('accountId').value,
+      account_name: (<FormArray>this.userForm.get('levelUsers')).controls[index].get('account_name').value,
+      sublocation_name: (<FormArray>this.userForm.get('levelUsers')).controls[index].get('sublocation_name').value,
+      sublocation_id: (<FormArray>this.userForm.get('levelUsers')).controls[index].get('sublocation_id').value,
+      certification_date: $(`#dtTrainingException-${index}`).val(),
+      training_requirement_id: $(`#trainingCourseException-${index}`).val(),
+      course_method: $(`#trainingModeException-${index}`).val(),
+    };
+    this.exceptionCtrl[index] = 1;
+    console.log(this.addedUserExceptions);
 
   }
 

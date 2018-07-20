@@ -95,32 +95,31 @@
                 </select>
             </td>
             <td class="with-remove">&nbsp;
-              <a  class="remove" (click)="removeUser(i)">X</a>
-              <button type="button" (click)="showRowAddException(i, 0)">Add</button>
+              <a class="remove" (click)="removeUser(i)">X</a>
+              <button type="button" (click)="exceptionCtrl[i] = 0" *ngIf="u.get('user_id').value != '0'">Add</button>
             </td>
           </tr>
           <tr [hidden]="exceptionCtrl[i]">
             <td>
-              <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePickerForException($event, i)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
-              <input formControlName="dtTrainingException" id="dtTrainingException-{{i}}" autocomplete="off" type="text" (click)="showDatePicker()" required>
+                <input id="dtTrainingException-{{i}}" autocomplete="off" type="text">
             </td>
             <td colspan="2">
-                <select formControlName="trainingCourseException" style="display: block;" id="trainingCourseException-{{i}}">
+                <select style="display: block;" id="trainingCourseException-{{i}}">
                     <option [value]="null" [disabled]="true == true">Training Course</option>
                     <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
                 </select>
             </td>
             <td colspan="2">
-                <select formControlName="trainingModeException" style="display: block;" id="trainingModeException-{{i}}">
+                <select style="display: block;" id="trainingModeException-{{i}}">
                     <option [value]="null" [disabled]="true == true">Training Mode</option>
                     <option value="offline_by_evac">Face to Face</option>
                 </select>
             </td>
             <td colspan="2">
-                <button type="button" (click)="showRowAddException(i, 1)">Cancel</button>
+                <button type="button" (click)="exceptionCtrl[i] = 1">Cancel</button>
+                <button type="button" (click)="confirmException(i)">Confirm</button>
             </td>
           </tr>
-
         </tbody>
         <tfoot>
           <tr *ngIf="users.length > 0">
@@ -133,6 +132,7 @@
       <br>
       <div class="button-container right-align">
           <a class="btn grey lighten-1 waves-effect waves-light cancel" (click)="cancelUserForm()"> Cancel </a>
+
           <input type="submit" [ngClass]="{'btn': true,
                                            'grey': (userForm.valid && searchLocationField.valid) == false,
                                            'lighten-1': (userForm.valid && searchLocationField.valid) == false,
@@ -141,6 +141,7 @@
                                            'waves-effect': (userForm.valid && searchLocationField.valid) == true,
                                            'waves-light': (userForm.valid && searchLocationField.valid) == true}" value="Submit"
           [disabled]="!userForm.valid || !searchLocationField.valid" />
+
       </div>
     </div>
   </div>
