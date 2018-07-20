@@ -22,6 +22,14 @@
         <ng-container *ngTemplateOutlet="trainingReportContainer"></ng-container>
     </div>
 
+    <div class="row" [hidden]="hideLocationReport">
+        <ng-container *ngTemplateOutlet="locationReportContainer"></ng-container>
+    </div>
+
+    <div class="row" [hidden]="hideAccountReport">
+        <ng-container *ngTemplateOutlet="accountReportContainer"></ng-container>
+    </div>
+
     <div class="row" [hidden]="hidePagination">
         <ng-container *ngTemplateOutlet="paginationContainer"></ng-container>
     </div>
@@ -65,7 +73,7 @@
         </div>
 
         <div class="margin-top-bottom-20">
-            <input id="inpAllLocs" #inpAllLocs class="filled-in" type="checkbox">
+            <input id="inpAllLocs" #inpAllLocs class="filled-in" checked="checked" type="checkbox">
             <label for="inpAllLocs"> All Locations </label>
         </div>
 
@@ -75,7 +83,7 @@
                 <option value="training">Training</option>
                 <option value="location">Location</option>
                 <option value="account">Account</option>
-                <option value="face">Face to Face</option>
+                <!-- <option value="face">Face to Face</option> -->
             </select>
         </div>
 
@@ -118,6 +126,89 @@
                     <td>{{training.status}}</td>
                     <td>{{ training.em_roles.join(', ') }}</td>
                     <td>{{training.expiry_date_formatted}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</ng-template>
+
+<ng-template #locationReportContainer>
+    <div class="col l12 m12 s12 relative">
+        <h4 class="blue-text left"> Location Report </h4>
+        <div class="right right-buttons">
+            <ng-container *ngTemplateOutlet="rightButtons"></ng-container>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th>Location</th>
+                    <th>Account</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone/Mobile</th>
+                    <th>Emergency Role</th>
+                    <th>Mobility Impaired</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="locationReportData.length == 0">
+                    <td colspan="7" class="center-align">No Record Found</td>
+                </tr>
+                <tr *ngFor="let report of locationReportData">
+                    <td>{{ report.location_name }}</td>
+                    <td>{{ report.account_name }}</td>
+                    <td>{{ report.first_name }} {{ report.last_name }}</td>
+                    <td>{{ report.email }}</td>
+                    <td>
+                        {{ report.phone_number }}
+                        <span *ngIf="report.phone_number.trim().length > 0 && report.mobile_number.trim().length > 0"> /</span>
+                        {{ report.mobile_number }}
+                    </td>
+                    <td>{{ report.role_name }}</td>
+                    <td>
+                        <span *ngIf="report.mobility_impaired == 1">Yes</span>
+                        <span *ngIf="report.mobility_impaired == 0">No</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</ng-template>
+
+<ng-template #accountReportContainer>
+    <div class="col l12 m12 s12 relative">
+        <h4 class="blue-text left"> Account Report </h4>
+        <div class="right right-buttons">
+            <ng-container *ngTemplateOutlet="rightButtons"></ng-container>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th width="35%">Location</th>
+                    <th>Account</th>
+                    <th>Name</th>
+                    <th>Account Role</th>
+                    <th width="10%">Email</th>
+                    <th>Last Logged In</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="accountReportData.length == 0">
+                    <td colspan="6" class="center-align">No Record Found</td>
+                </tr>
+                <tr *ngFor="let report of accountReportData">
+                    <td>{{ report.locations.join(' | ') }}</td>
+                    <td>{{ report.account_name }}</td>
+                    <td>{{ report.first_name }} {{ report.last_name }}</td>
+                    <td>{{ report.roles.join(', ') }}</td>
+                    <td>{{ report.email }}</td>
+                    <td>{{ report.last_login_formatted }}</td>
                 </tr>
             </tbody>
         </table>

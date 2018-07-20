@@ -333,21 +333,25 @@ export class UserEmRoleRelation extends BaseClass {
               configFilter += ` AND l.location_id IN (${locationIds}) `;
           }
 
-            const sql_load = `
-                SELECT
+          let 
+          limitQuery = ('limit' in config) ? ' LIMIT '+config['limit'] : '',
+          selectQuery = ('count' in config) ? ' COUNT(u.user_id) as count ' : `
                     u.*, em.em_role_id,
                     er.role_name,
                     accounts.account_name,
                     l.name,
                     IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name,
-                    l.location_id
+                    l.location_id`;
+
+            const sql_load = `
+                SELECT ${selectQuery}
                 FROM user_em_roles_relation em
                 INNER JOIN users u ON em.user_id = u.user_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
                 INNER JOIN locations l ON l.location_id = em.location_id
                 INNER JOIN locations p ON p.location_id = l.parent_id
                 INNER JOIN accounts ON accounts.account_id = u.account_id
-                WHERE u.archived = ${archived} ${configFilter}`;
+                WHERE u.archived = ${archived} ${configFilter} ${limitQuery}`;
 
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {

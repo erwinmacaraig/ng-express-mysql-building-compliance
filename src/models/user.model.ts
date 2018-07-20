@@ -654,4 +654,38 @@ export class User extends BaseClass {
       });
     }
 
+    public getIsFrpTrp(accountId?, count?, limit?, locationIds?){
+        return new Promise((resolve, reject) => {
+            let select = ' users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.last_login, accounts.account_name ';
+            if(count){
+                select = ' COUNT(users.user_id) as count '
+            }
+            
+            let where = '';
+            if(accountId){
+                where += ` AND users.account_id = ${accountId} `;
+            }
+
+            where += ' AND users.user_id IN (SELECT user_id FROM user_role_relation ) ';
+
+            if(locationIds){
+                where += ` AND users.user_id IN (SELECT user_id FROM location_account_user WHERE location_id IN (${locationIds}) ) `;
+            }
+
+            let offsetLimit = (limit) ? ' LIMIT '+limit : '';
+
+            let sql_load = `SELECT ${select} FROM users INNER JOIN accounts ON users.account_id = accounts.account_id WHERE users.archived = 0 ${where} ${offsetLimit} `;
+            
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
 }

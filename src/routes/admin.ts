@@ -1643,6 +1643,203 @@ export class AdminRoute extends BaseRoute {
         return response;
     }
 
+    public async generateAdminLocationReport(req: AuthRequest, res: Response){
+        let 
+        response = <any> {
+            pagination : <any> {
+                total : 0,
+                pages : 0
+            },
+            data : <any>[],
+            message : '',
+        },
+        accountId = (req.body.account_id) ? req.body.account_id : 0,
+        locationId = (req.body.location_id) ? req.body.location_id : 0,
+        limit = (req.body.limit) ? req.body.limit : 25,
+        offset = (req.body.offset) ? req.body.offset : 0,
+        page = (req.body.page) ? req.body.page : 1,
+        type = (req.body.type) ? req.body.type : '',
+        locationModel = new Location(locationId),
+        sublocationModel = new Location(),
+        locations = [],
+        users = [],
+        accountModel = new Account(),
+        accounts = <any> [],
+        usersModel = new User(),
+        allUserIds = [],
+        allLocationIds = [];
+
+        if(locationId > 0){
+            try{
+                let 
+                loc = await locationModel.load(),
+                deepLocations = [];
+                locations.push(loc);
+                allLocationIds.push(locationId);
+
+                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationId);
+                for(let deeploc of deepLocations){
+                    allLocationIds.push(deeploc.location_id);
+                }
+            }catch(e){}
+        }else{
+            let whereLoc = [];
+            whereLoc.push(' archived = 0 ');
+            try{
+                locations = <any> await locationModel.getWhere( whereLoc );
+            }catch(e){  }
+        }
+
+        for(let loc of locations){
+            allLocationIds.push(loc.location_id);
+        }
+
+        let 
+        locAccUser = new UserEmRoleRelation(),
+        offsetLimit =  offset+','+limit,
+        config = {},
+        countUsersDB = [];
+
+        if(accountId > 0){
+            config['account_id'] = accountId;
+        }
+
+        config['limit'] = offsetLimit;
+
+        if(allLocationIds.length > 0){
+            users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
+            let countConfig = JSON.parse(JSON.stringify(config));
+            delete countConfig['limit'];
+            countConfig['count'] = true;
+            countUsersDB = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, countConfig);
+        }
+
+        response.data = users;
+
+        response.pagination.total = (countUsersDB[0]) ? countUsersDB[0]['count'] : 0;
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
+
+        return response;
+    }
+
+    public async generateAdminAccountReport(req: AuthRequest, res: Response){
+        let 
+        response = <any> {
+            pagination : <any> {
+                total : 0,
+                pages : 0
+            },
+            data : <any>[],
+            message : '',
+        },
+        accountId = (req.body.account_id) ? req.body.account_id : 0,
+        locationId = (req.body.location_id) ? req.body.location_id : 0,
+        limit = (req.body.limit) ? req.body.limit : 25,
+        offset = (req.body.offset) ? req.body.offset : 0,
+        page = (req.body.page) ? req.body.page : 1,
+        type = (req.body.type) ? req.body.type : '',
+        usersModel = new User(),
+        locationModel = new Location(locationId),
+        sublocationModel = new Location(),
+        users = [],
+        accountIdParam = false,
+        countParam = false,
+        limitParam = offset+','+limit,
+        locationIdsParam = <any> false;
+
+        if(accountId > 0){
+            accountIdParam = accountId;
+        }
+
+        if(locationId > 0){
+            try{
+                locationIdsParam = [];
+
+                let 
+                loc = await locationModel.load(),
+                deepLocations = [];
+                locationIdsParam.push(locationId);
+
+                console.log('locationIdsParam', locationIdsParam);
+
+                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationId);
+                for(let deeploc of deepLocations){
+                    locationIdsParam.push(deeploc.location_id);
+                }
+
+                console.log('locationIdsParam', locationIdsParam);
+            }catch(e){}
+        }
+
+        users = <any> await usersModel.getIsFrpTrp(accountIdParam, countParam, limitParam, locationIdsParam);
+
+        for(let user of users){
+            let userRole = new UserRoleRelation();
+            user['roles'] = [];
+            try{
+                let roles = <any> await userRole.getByUserId(user.user_id);
+                for(let role of roles){
+                    if(role.role_id == 1){
+                        user['roles'].push('FRP');
+                    }else if(role.role_id == 2){
+                        user['roles'].push('TRP');
+                    }
+                }
+            }catch(e){}
+
+            let 
+            locAccUser = new LocationAccountUser(),
+            userLocations = <any> await locAccUser.getByUserId(user.user_id, true);
+
+            user['locations'] = [];
+            for(let loc of userLocations){
+                user['locations'].push(loc.location_name);
+            }
+
+            user['last_login_formatted'] = moment(user['last_login']).format('DD/MM/YYYY');
+        }
+
+        response.data = users;
+
+        let usersCount = <any> await usersModel.getIsFrpTrp(accountIdParam, true, undefined, locationIdsParam);
+
+        response.pagination.total = (usersCount[0]) ? usersCount[0]['count'] : 0;
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
+
+        return response;
+
+    }
+
     public async generateAdminReport(req: AuthRequest, res: Response){
         let 
         response = <any> {},
@@ -1651,6 +1848,10 @@ export class AdminRoute extends BaseRoute {
         if(type.trim().length > 0){
             if(type == 'training'){
                 response = await this.generateAdminTrainingReport(req, res);
+            }else if(type == 'location'){
+                response = await this.generateAdminLocationReport(req, res);
+            }else if(type == 'account'){
+                response = await this.generateAdminAccountReport(req, res);
             }
         }
 

@@ -34,8 +34,12 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     hideFormField = false;
     hideTrainingReport = true;
     hidePagination = true;
+    hideLocationReport = true;
+    hideAccountReport = true;
 
     trainingReportData = [];
+    locationReportData = [];
+    accountReportData = [];
 
     pagination = {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : [], limit : 25, offset : 0
@@ -173,6 +177,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                     });
                 }else{
                     this.selectedLocation = {};
+                    this.inpAllLocs.nativeElement.checked = true;
                 }
             }
         );
@@ -196,12 +201,20 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         if( (this.reportType != '0') && (Object.keys(this.selectedLocation).length > 0  || this.inpAllLocs.nativeElement.checked == true) ){
             this.hideFormField = true;
             this.hideTrainingReport = true;
+            this.hideLocationReport = true;
+            this.hideAccountReport = true;
 
             this.dashboardPreloader.show();
             this.callGenerateReport((response:any) => {
                 if(this.reportType == 'training'){
                     this.hideTrainingReport = false;
                     this.trainingReportData = response.data;
+                }else if(this.reportType == 'location'){
+                    this.hideLocationReport = false;
+                    this.locationReportData = response.data;
+                }else if(this.reportType == 'account'){
+                    this.hideAccountReport = false;
+                    this.accountReportData = response.data;
                 }
 
                 this.pagination.currentPage = 1;
@@ -243,6 +256,8 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.hideFormField = false;
         this.hideTrainingReport = true;
         this.hidePagination = true;
+        this.hideLocationReport = true;
+        this.hideAccountReport = true;
         this.csvLoader = true;
     }
 
@@ -305,6 +320,12 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         if(this.reportType == 'training'){
             title = 'Training Report';
             columns = ["Locations", "Account", "Name", "Email", "Training Status", "Emergency Role", "Expiration Date"];
+        }else if(this.reportType == 'location'){
+            title = 'Location Report';
+            columns = ["Locations", "Account", "Name", "Email", "Phone/Mobile", "Emergency Role", "Mobility Impaired"];
+        }else if(this.reportType == 'account'){
+            title = 'Account Report';
+            columns = ["Locations", "Account", "Name", "Account Role", "Email", "Last Logged In"];
         }
 
         csvData[ getLength() ] = [title];
@@ -321,6 +342,20 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                     roles = log.em_roles.join(', ');
 
                     csvData[ getLength() ] = [ locNames, log.account_name, log.full_name, log.email, log.status, roles, log.expiry_date_formatted ];
+                }else if(this.reportType == 'location'){
+                    let 
+                    impaired = (log.mobility_impaired == 1) ? 'yes' : 'no',
+                    phoneMobile = log.phone_number;
+                    phoneMobile += (log.phone_number.trim().length > 0 && log.mobile_number.trim().length > 0) ? ' / ' : ' ';
+                    phoneMobile += log.mobile_number;
+
+                    csvData[ getLength() ] = [ log.location_name, log.account_name, log.first_name+' '+log.last_name, log.email, phoneMobile, log.role_name, impaired ];
+                }else if(this.reportType == 'account'){
+                    let 
+                    locNames = log.locations.join(' | '),
+                    roles = log.roles.join(', ');
+                    
+                    csvData[ getLength() ] = [ locNames, log.account_name, log.first_name+' '+log.last_name, roles, log.email, log.last_login_formatted ];
                 }
             }
 
