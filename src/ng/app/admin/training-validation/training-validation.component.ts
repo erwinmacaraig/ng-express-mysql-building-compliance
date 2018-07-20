@@ -26,7 +26,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   trainingModeField: FormControl;
   training_requirements = [];
   userForm: FormGroup;
-  allUsersFormArrName: FormArray;
+
   smartSearchSelection: string;
   smartSearchSelectionId: number;
   users = [];
@@ -114,14 +114,15 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     },
   ];
   addedUserExceptions: object = {};
-
+  ngDateObjects = [];
+  showDateSelection = [];
   constructor(private adminService: AdminService, private formBuilder: FormBuilder,
     public dashboard: DashboardPreloaderService) {}
 
   ngOnInit() {
     this.genericSub = this.smartSearch();
     this.trainingModeField = new FormControl(null, Validators.required);
-    this.allUsersFormArrName = new FormArray([]);
+
     this.userForm = new FormGroup({});
     this.setDatePickerDefaultDate();
     this.dtTrainingField = new FormControl(this.datepickerModelFormatted, Validators.required);
@@ -344,13 +345,6 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
   }
 
-  createFormForException(): FormGroup {
-    return this.formBuilder.group({
-
-    });
-
-  }
-
   createFormItem(): FormGroup {
     return this.formBuilder.group({
       email: new FormControl(null, Validators.required),
@@ -368,6 +362,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   addUserFormItem(e: Event): void {
     e.preventDefault();
+    this.ngDateObjects.push(moment().toDate());
     this.levelUsers = this.userForm.get('levelUsers') as FormArray;
     this.levelUsers.push(this.createFormItem());
     this.filteredEmailList[this.levelUsers.length - 1] = [];
@@ -423,9 +418,12 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   setDatePickerDefaultDate() {
     this.datepickerModel = moment().toDate();
     this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
+
+    this.ngDateObjects.push(moment().toDate());
+    this.showDateSelection.push(false);
+    // this.ngDateObjects[0] = moment(this.ngDateObjects[0]).format('YYYY-MM-DD');
   }
   onChangeDatePicker(event) {
-    console.log(event);
     if (!moment(this.datepickerModel).isValid()) {
         this.datepickerModel = new Date();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
@@ -438,12 +436,15 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   onChangeDatePickerForException(event, index) {
     console.log(event);
-    if (!moment(this.datepickerModel).isValid()) {
-        this.datepickerModel = new Date();
-        this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
+
+    if (!moment(this.ngDateObjects[index]).isValid()) {
+      this.ngDateObjects[index] = new Date();
+      $(`#dtTrainingException-${index}`).val(moment(this.ngDateObjects[index]).format('YYYY-MM-DD'));
     } else {
-        this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
+        $(`#dtTrainingException-${index}`).val(moment(this.ngDateObjects[index]).format('YYYY-MM-DD'));
     }
+    this.showDateSelection[index] = false;
+
 
   }
 
@@ -590,56 +591,5 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   }
 
-  /*
-  public registerNewUser() {
-    const values = [];
-    values.push({
-      first_name: this.newFirstName.value,
-      last_name: this.newLastname.value,
-      password: 'Password123',
-      email: this.newUserEmail.value,
-      role: this.newUserRole.value,
-      location: this.newUserLocation.value,
-      contact: '',
-      account_id: this.accountIdForAddUser,
-    });
-    console.log(JSON.stringify(values));
-    this.adminService.submitNewUsers(JSON.stringify(values)).subscribe((response) => {
-
-      // update all buffers
-      if (this.smartSearchSelection == 'location') {
-        this.adminService.getLocationLevelUsers(this.smartSearchSelectionId.toString()).subscribe((locRes) => {
-          this.users = locRes['users'];
-        });
-      } else {
-        this.adminService.getAllAccountUsers(this.smartSearchSelectionId, 0, 'all').subscribe((acctRes) => {
-          const list = acctRes['data']['list'];
-          this.users = [];
-          const accountLocations = [];
-          for (const l of list) {
-            Object.keys(l['locations']).forEach((key) => {
-              l['locations'][key]['location-parent'] =
-                (l['locations'][key]['location-parent'] == null) ? '' : l['locations'][key]['location-parent'];
-                this.users.push({
-                  email: l['email'],
-                  role_name: ((l['locations'][key]['account-role']).concat(l['locations'][key]['em-role'])).join(','),
-                  first_name: l['first_name'],
-                  last_name: l['last_name'],
-                  user_id: l['user_id'],
-                  account_name: l['account'],
-                  account_id: l['account_id'],
-                  name: l['locations'][key]['location-name'],
-                  parent: l['locations'][key]['location-parent'],
-                  location_id: key
-                });
-            });
-          }
-        });
-      }
-      this.cancelAddNewUser();
-      $('#newUserModal').modal('close');
-    });
-  }
-  */
 
 }

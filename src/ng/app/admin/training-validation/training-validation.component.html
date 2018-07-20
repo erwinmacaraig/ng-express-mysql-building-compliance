@@ -101,7 +101,8 @@
           </tr>
           <tr [hidden]="exceptionCtrl[i]">
             <td>
-                <input id="dtTrainingException-{{i}}" autocomplete="off" type="text">
+              <ng-datepicker [(ngModel)]="ngDateObjects[i]" (ngModelChange)="onChangeDatePickerForException($event, i)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="showDateSelection[i]" ></ng-datepicker>
+              <input id="dtTrainingException-{{i}}" autocomplete="off" type="text" value="{{datepickerModelFormatted}}" (click)="showDateSelection[i]=true">
             </td>
             <td colspan="2">
                 <select style="display: block;" id="trainingCourseException-{{i}}">
