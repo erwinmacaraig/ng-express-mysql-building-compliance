@@ -18,7 +18,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
   tab: any;
   people: Object[] = [];
   accounts: Object[] = [];
-  location_details: Object = {
+  location_details = <any> {
     parent_id: 0,
     name: '',
     unit: '',

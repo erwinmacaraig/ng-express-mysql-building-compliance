@@ -124,7 +124,10 @@ import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upl
 import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/compliance-summary-view.component';
 import { AdminViewLocationComponent } from './admin/view-location/view-location.component';
 import { TrainingValidationComponent } from './admin/training-validation/training-validation.component';
+
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
+import { AdminReportsComponent } from './admin/reports/reports.component';
+
 @NgModule({
   declarations: [
     SafeHtmlPipe,
@@ -224,7 +227,8 @@ import { AccountTrainingComponent } from './admin/account-training/account-train
     ComplianceSummaryViewComponent,
     AdminViewLocationComponent,
     TrainingValidationComponent,
-    AccountTrainingComponent
+    AccountTrainingComponent,
+    AdminReportsComponent
   ],
   imports: [
     BrowserModule,

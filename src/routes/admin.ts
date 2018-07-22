@@ -358,14 +358,42 @@ export class AdminRoute extends BaseRoute {
     router.get('/admin/location/search/',
     new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
-      const searchKey: object = {
+      const 
+      searchKey: object = <any> {
         name: req.query.name
-      };
-      const location = new Location();
-      const searchResult = await location.searchLocation(searchKey);
+      },
+      location = new Location(),
+      locAccModel = new LocationAccountRelation();
+
+      let 
+      limit = undefined,
+      accountId = undefined;
+      if(req.query['limit']){
+         limit = req.query.limit;
+      }
+      if(req.query['account_id']){
+         if(req.query.account_id > 0){
+             accountId = req.query.account_id;
+         }
+      }
+
+      let searchResult = <any> [];
+
+      if(accountId){
+          searchResult = await locAccModel.listAllLocationsOnAccount(accountId,  {
+              'archived' : 0, 'name' : req.query.name, 'limit' : limit, 'no_parent_name' : true
+          })
+      }else{
+          searchResult = await location.searchLocation(searchKey, limit, accountId);
+      }
+
       for (const s of searchResult) {
         s['type'] = 'location';
         s['id'] = s['location_id'];
+        if(req.query.sublocations){
+            let subLocModel = new Location(s['location_id']);
+            s['sublocations'] = await subLocModel.getSublocations();
+        }
       }
       return res.status(200).send({
         message: 'Success',
@@ -1162,8 +1190,6 @@ export class AdminRoute extends BaseRoute {
         });
     });
 
-
-
     router.get('/admin/list/compliance-documents/',
     new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
       const list = new List();
@@ -1459,9 +1485,378 @@ export class AdminRoute extends BaseRoute {
     });
 
 
+    router.post('/admin/generate-admin-report', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().generateAdminReport(req, res);
+    });
+
 
   // ===============
   }
+
+
+
+    public async generateAdminTrainingReport(req: AuthRequest, res: Response){
+        let 
+        response = <any> {
+            pagination : <any> {
+                total : 0,
+                pages : 0
+            },
+            data : <any>[],
+            certificates : <any>[],
+            message : '',
+        },
+        accountId = (req.body.account_id) ? req.body.account_id : 0,
+        locationId = (req.body.location_id) ? req.body.location_id : 0,
+        limit = (req.body.limit) ? req.body.limit : 25,
+        offset = (req.body.offset) ? req.body.offset : 0,
+        page = (req.body.page) ? req.body.page : 1,
+        type = (req.body.type) ? req.body.type : '',
+        locationModel = new Location(locationId),
+        sublocationModel = new Location(),
+        locations = [],
+        users = [],
+        accountModel = new Account(),
+        accounts = <any> [],
+        usersModel = new User(),
+        allUserIds = [],
+        allLocationIds = [];
+
+        if(locationId > 0){
+            try{
+                let 
+                loc = await locationModel.load(),
+                deepLocations = [];
+                locations.push(loc);
+                allLocationIds.push(locationId);
+
+                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationId);
+                for(let deeploc of deepLocations){
+                    allLocationIds.push(deeploc.location_id);
+                }
+            }catch(e){}
+        }else{
+            let whereLoc = [];
+            whereLoc.push(' archived = 0 ');
+            try{
+                locations = <any> await locationModel.getWhere( whereLoc );
+            }catch(e){  }
+        }
+
+        for(let loc of locations){
+            allLocationIds.push(loc.location_id);
+        }
+
+        let 
+        locAccUser = new UserEmRoleRelation(),
+        config = {};
+
+        if(accountId > 0){
+            config['account_id'] = accountId;
+        }
+
+        if(allLocationIds.length > 0){
+            users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
+        }
+
+
+        for(let user of users){
+            allUserIds.push(user.user_id);
+        }
+
+        let offsetLimit =  offset+','+limit,
+            courseMethod = 'online_by_evac',
+            trainCertModel = new TrainingCertification(),
+            trainCertCountModel = new TrainingCertification(),
+            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, false, courseMethod ),
+            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, true, courseMethod );
+
+        response['certificates'] = certificates;
+
+        for(let cert of certificates){
+            cert['em_roles'] = [];
+            cert['locations'] = [];
+            for(let user of users){
+                if(user.user_id == cert.user_id){
+                    cert['first_name'] = user.first_name;
+                    cert['last_name'] = user.last_name;
+                    cert['full_name'] = user.first_name+' '+user.last_name;
+                    cert['email'] = user.email;
+                    cert['account_id'] = user.account_id;
+                    cert['account_name'] = user.account_name;
+                    if(cert['em_roles'].indexOf(user.role_name) == -1){
+                        cert['em_roles'].push(user.role_name);
+                    }
+                    if(cert['locations'].indexOf(user.location_name) == -1){
+                        cert['locations'].push(user.location_name);
+                    }
+                }
+            }
+
+            if(cert['certification_date'] != null){
+                cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
+            }else{
+                cert['certification_date_formatted'] = 'n/a';
+            }
+
+            cert['expiry_date_formatted'] = moment(cert['expiry_date']).format('DD/MM/YYYY');
+
+            if(cert['training_requirement_name'] == null){
+                cert['training_requirement_name'] = '--';
+            }
+        }
+
+        response.pagination.total = (certificatesCount[0]) ? certificatesCount[0]['count'] : 0;
+
+        let finalResult = [];
+        for(let cert of certificates){
+            let isIn = false;
+            for(let fin of finalResult){
+                if(cert.user_id == fin.user_id){
+                    isIn = true;
+                }
+            }
+            if(!isIn){
+                finalResult.push(cert);
+            }
+        }
+
+        response.data = finalResult;
+
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
+
+        return response;
+    }
+
+    public async generateAdminLocationReport(req: AuthRequest, res: Response){
+        let 
+        response = <any> {
+            pagination : <any> {
+                total : 0,
+                pages : 0
+            },
+            data : <any>[],
+            message : '',
+        },
+        accountId = (req.body.account_id) ? req.body.account_id : 0,
+        locationId = (req.body.location_id) ? req.body.location_id : 0,
+        limit = (req.body.limit) ? req.body.limit : 25,
+        offset = (req.body.offset) ? req.body.offset : 0,
+        page = (req.body.page) ? req.body.page : 1,
+        type = (req.body.type) ? req.body.type : '',
+        locationModel = new Location(locationId),
+        sublocationModel = new Location(),
+        locations = [],
+        users = [],
+        accountModel = new Account(),
+        accounts = <any> [],
+        usersModel = new User(),
+        allUserIds = [],
+        allLocationIds = [];
+
+        if(locationId > 0){
+            try{
+                let 
+                loc = await locationModel.load(),
+                deepLocations = [];
+                locations.push(loc);
+                allLocationIds.push(locationId);
+
+                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationId);
+                for(let deeploc of deepLocations){
+                    allLocationIds.push(deeploc.location_id);
+                }
+            }catch(e){}
+        }else{
+            let whereLoc = [];
+            whereLoc.push(' archived = 0 ');
+            try{
+                locations = <any> await locationModel.getWhere( whereLoc );
+            }catch(e){  }
+        }
+
+        for(let loc of locations){
+            allLocationIds.push(loc.location_id);
+        }
+
+        let 
+        locAccUser = new UserEmRoleRelation(),
+        offsetLimit =  offset+','+limit,
+        config = {},
+        countUsersDB = [];
+
+        if(accountId > 0){
+            config['account_id'] = accountId;
+        }
+
+        config['limit'] = offsetLimit;
+
+        if(allLocationIds.length > 0){
+            users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
+            let countConfig = JSON.parse(JSON.stringify(config));
+            delete countConfig['limit'];
+            countConfig['count'] = true;
+            countUsersDB = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, countConfig);
+        }
+
+        response.data = users;
+
+        response.pagination.total = (countUsersDB[0]) ? countUsersDB[0]['count'] : 0;
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
+
+        return response;
+    }
+
+    public async generateAdminAccountReport(req: AuthRequest, res: Response){
+        let 
+        response = <any> {
+            pagination : <any> {
+                total : 0,
+                pages : 0
+            },
+            data : <any>[],
+            message : '',
+        },
+        accountId = (req.body.account_id) ? req.body.account_id : 0,
+        locationId = (req.body.location_id) ? req.body.location_id : 0,
+        limit = (req.body.limit) ? req.body.limit : 25,
+        offset = (req.body.offset) ? req.body.offset : 0,
+        page = (req.body.page) ? req.body.page : 1,
+        type = (req.body.type) ? req.body.type : '',
+        usersModel = new User(),
+        locationModel = new Location(locationId),
+        sublocationModel = new Location(),
+        users = [],
+        accountIdParam = false,
+        countParam = false,
+        limitParam = offset+','+limit,
+        locationIdsParam = <any> false;
+
+        if(accountId > 0){
+            accountIdParam = accountId;
+        }
+
+        if(locationId > 0){
+            try{
+                locationIdsParam = [];
+
+                let 
+                loc = await locationModel.load(),
+                deepLocations = [];
+                locationIdsParam.push(locationId);
+
+                console.log('locationIdsParam', locationIdsParam);
+
+                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationId);
+                for(let deeploc of deepLocations){
+                    locationIdsParam.push(deeploc.location_id);
+                }
+
+                console.log('locationIdsParam', locationIdsParam);
+            }catch(e){}
+        }
+
+        users = <any> await usersModel.getIsFrpTrp(accountIdParam, countParam, limitParam, locationIdsParam);
+
+        for(let user of users){
+            let userRole = new UserRoleRelation();
+            user['roles'] = [];
+            try{
+                let roles = <any> await userRole.getByUserId(user.user_id);
+                for(let role of roles){
+                    if(role.role_id == 1){
+                        user['roles'].push('FRP');
+                    }else if(role.role_id == 2){
+                        user['roles'].push('TRP');
+                    }
+                }
+            }catch(e){}
+
+            let 
+            locAccUser = new LocationAccountUser(),
+            userLocations = <any> await locAccUser.getByUserId(user.user_id, true);
+
+            user['locations'] = [];
+            for(let loc of userLocations){
+                user['locations'].push(loc.location_name);
+            }
+
+            user['last_login_formatted'] = moment(user['last_login']).format('DD/MM/YYYY');
+        }
+
+        response.data = users;
+
+        let usersCount = <any> await usersModel.getIsFrpTrp(accountIdParam, true, undefined, locationIdsParam);
+
+        response.pagination.total = (usersCount[0]) ? usersCount[0]['count'] : 0;
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
+
+        return response;
+
+    }
+
+    public async generateAdminReport(req: AuthRequest, res: Response){
+        let 
+        response = <any> {},
+        type = (req.body.type) ? req.body.type : '';
+
+        if(type.trim().length > 0){
+            if(type == 'training'){
+                response = await this.generateAdminTrainingReport(req, res);
+            }else if(type == 'location'){
+                response = await this.generateAdminLocationReport(req, res);
+            }else if(type == 'account'){
+                response = await this.generateAdminAccountReport(req, res);
+            }
+        }
+
+        res.send(response);
+    }
 
 
 
