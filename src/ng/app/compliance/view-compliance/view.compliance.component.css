@@ -179,23 +179,6 @@
     left: 10px;
 }
 
-
-.training-icon{
-	background: url(/assets/images/compliance/training_icon.png) no-repeat;
-}
-
-.meeting-icon{
-	background: url(/assets/images/compliance/meeting_icon.png) no-repeat;
-}
-
-.evacuation-icon{
-	background: url(/assets/images/compliance/evacuation_icon.png) no-repeat;
-}
-
-.diagram-icon{
-	background: url(/assets/images/compliance/diagram_icon.png) no-repeat;
-}
-
 table tbody{
 	font-size: 14px;
 }
@@ -431,7 +414,48 @@ table th:first-child{
 }
 
 .epm-icon{
-    background-image: url(/assets/images/compliance/epm_icon.png);
+    background-image: url(/assets/images/compliance/icons/epm.png);
+    background-size: 63% !important;
+}
+
+.epc-icon{
+    background-image: url(/assets/images/compliance/icons/epc_meeting.png);
+    background-size: 63% !important;
+}
+
+.evacuation-icon{
+    background-image: url(/assets/images/compliance/icons/evacuation_exercise.png);
+    background-size: 63% !important;
+}
+
+.diagram-icon{
+    background-image: url(/assets/images/compliance/icons/evacuation_diagram.png);
+    background-size: 63% !important;
+}
+
+.chief-icon{
+    background-image: url(/assets/images/compliance/icons/chiefwarden_training.png);
+    background-size: 63% !important;
+}
+
+.warden-icon{
+    background-image: url(/assets/images/compliance/icons/warden_training.png);
+    background-size: 63% !important;
+}
+
+.fsa-icon{
+    background-image: url(/assets/images/compliance/icons/fire_advisor.png);
+    background-size: 63% !important;
+}
+
+.gen-occ-icon{
+    background-image: url(/assets/images/compliance/icons/occupant_training.png);
+    background-size: 63% !important;
+}
+
+.sundry-icon{
+    background-image: url(/assets/images/compliance/icons/sundry_compliance.png);
+    background-size: 63% !important;
 }
 
 .compliance-title-container .check{

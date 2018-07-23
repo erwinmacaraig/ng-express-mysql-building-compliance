@@ -347,7 +347,7 @@ export class TrainingCertification extends BaseClass {
               certifications.certification_date,
               certifications.pass,
               certifications.registered,
-              users.user_id, users.first_name, users.last_name,
+              users.user_id, users.first_name, users.last_name, users.account_id,
               DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
               IF (DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
             FROM

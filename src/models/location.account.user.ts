@@ -423,9 +423,19 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public getByUserId(UserId: Number) {
+    public getByUserId(UserId: Number, getLocationDetails?) {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM location_account_user WHERE user_id = ?';
+            let sql_load = 'SELECT * FROM location_account_user WHERE user_id = ?';
+            if(getLocationDetails){
+                sql_load = `
+                SELECT l.*, lau.location_account_user_id, lau.account_id,
+                IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name
+                FROM location_account_user lau
+                INNER JOIN locations l ON lau.location_id = l.location_id
+                LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE user_id = ?
+                `;
+            }
             const param = [UserId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {
