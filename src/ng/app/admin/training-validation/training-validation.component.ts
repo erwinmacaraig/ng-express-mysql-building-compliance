@@ -498,7 +498,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     console.log(JSON.stringify(values));
 
     this.cancelUserForm();
-
+    this.exceptionCtrl = [];
     this.adminService.validateUserTrainings(JSON.stringify(values))
     .subscribe((response) => {
       this.genericSub = this.smartSearch();
