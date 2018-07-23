@@ -1564,81 +1564,82 @@ export class AdminRoute extends BaseRoute {
             allUserIds.push(user.user_id);
         }
 
-        let offsetLimit =  offset+','+limit,
-            courseMethod = 'online_by_evac',
-            trainCertModel = new TrainingCertification(),
-            trainCertCountModel = new TrainingCertification(),
-            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, false, courseMethod ),
-            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, true, courseMethod );
+        if(allUserIds.length > 0){
+            let offsetLimit =  offset+','+limit,
+                courseMethod = 'online_by_evac',
+                trainCertModel = new TrainingCertification(),
+                trainCertCountModel = new TrainingCertification(),
+                certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, false, courseMethod ),
+                certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, true, courseMethod );
 
-        response['certificates'] = certificates;
+            for(let cert of certificates){
+                cert['em_roles'] = [];
+                cert['locations'] = [];
+                for(let user of users){
+                    if(user.user_id == cert.user_id){
+                        cert['first_name'] = user.first_name;
+                        cert['last_name'] = user.last_name;
+                        cert['full_name'] = user.first_name+' '+user.last_name;
+                        cert['email'] = user.email;
+                        cert['account_id'] = user.account_id;
+                        cert['account_name'] = user.account_name;
+                        if(cert['em_roles'].indexOf(user.role_name) == -1){
+                            cert['em_roles'].push(user.role_name);
+                        }
+                        if(cert['locations'].indexOf(user.location_name) == -1){
+                            cert['locations'].push(user.location_name);
+                        }
+                    }
+                }
 
-        for(let cert of certificates){
-            cert['em_roles'] = [];
-            cert['locations'] = [];
-            for(let user of users){
-                if(user.user_id == cert.user_id){
-                    cert['first_name'] = user.first_name;
-                    cert['last_name'] = user.last_name;
-                    cert['full_name'] = user.first_name+' '+user.last_name;
-                    cert['email'] = user.email;
-                    cert['account_id'] = user.account_id;
-                    cert['account_name'] = user.account_name;
-                    if(cert['em_roles'].indexOf(user.role_name) == -1){
-                        cert['em_roles'].push(user.role_name);
-                    }
-                    if(cert['locations'].indexOf(user.location_name) == -1){
-                        cert['locations'].push(user.location_name);
-                    }
+                if(cert['certification_date'] != null){
+                    cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
+                }else{
+                    cert['certification_date_formatted'] = 'n/a';
+                }
+
+                cert['expiry_date_formatted'] = moment(cert['expiry_date']).format('DD/MM/YYYY');
+
+                if(cert['training_requirement_name'] == null){
+                    cert['training_requirement_name'] = '--';
                 }
             }
 
-            if(cert['certification_date'] != null){
-                cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
-            }else{
-                cert['certification_date_formatted'] = 'n/a';
-            }
+            response.pagination.total = (certificatesCount[0]) ? certificatesCount[0]['count'] : 0;
 
-            cert['expiry_date_formatted'] = moment(cert['expiry_date']).format('DD/MM/YYYY');
-
-            if(cert['training_requirement_name'] == null){
-                cert['training_requirement_name'] = '--';
-            }
-        }
-
-        response.pagination.total = (certificatesCount[0]) ? certificatesCount[0]['count'] : 0;
-
-        let finalResult = [];
-        for(let cert of certificates){
-            let isIn = false;
-            for(let fin of finalResult){
-                if(cert.user_id == fin.user_id){
-                    isIn = true;
+            let finalResult = [];
+            for(let cert of certificates){
+                let isIn = false;
+                for(let fin of finalResult){
+                    if(cert.user_id == fin.user_id){
+                        isIn = true;
+                    }
+                }
+                if(!isIn){
+                    finalResult.push(cert);
                 }
             }
-            if(!isIn){
-                finalResult.push(cert);
+
+            response.data = finalResult;
+
+
+            if(response.pagination.total > limit){
+                let div = response.pagination.total / limit,
+                    rem = (response.pagination.total % limit) * 1,
+                    totalpages = Math.floor(div);
+
+                if(rem > 0){
+                    totalpages++;
+                }
+
+                response.pagination.pages = totalpages;
+            }
+
+            if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+                response.pagination.pages = 1;
             }
         }
 
-        response.data = finalResult;
-
-
-        if(response.pagination.total > limit){
-            let div = response.pagination.total / limit,
-                rem = (response.pagination.total % limit) * 1,
-                totalpages = Math.floor(div);
-
-            if(rem > 0){
-                totalpages++;
-            }
-
-            response.pagination.pages = totalpages;
-        }
-
-        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
-            response.pagination.pages = 1;
-        }
 
         return response;
     }
