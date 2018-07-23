@@ -219,12 +219,26 @@ export class AdminRoute extends BaseRoute {
          const token = new Token();
          let accountId = u['account_id'];
          if (accountId == 0) {
-           // create an account
-           const accountObj = new Account();
-           await accountObj.create({
-            account_name: u['account_name']
-           });
-           accountId = accountObj.ID();
+           // checks if the account with the given name is existing
+           const accountDetails = await new Account().getAccountDetailsUsingName(u['account_name']);
+           if (accountDetails.length > 0) {
+              accountId = accountDetails['account_id'];
+           } else {
+              // create an account
+              const accountObj = new Account();
+              const location = new Location(u['location_id']);
+              await location.load();
+              await accountObj.create({
+               account_name: u['account_name'],
+               location_id: u['location_id'],
+               billing_street: location.get('street'),
+               billing_city: location.get('city'),
+               billing_state: location.get('state'),
+               billing_postal_code: location.get('postal_code'),
+               billing_country: location.get('country')
+              });
+              accountId = accountObj.ID();
+           }
          }
 
          const locationAccntRel = new LocationAccountRelation();

@@ -504,7 +504,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.genericSub = this.smartSearch();
       this.dashboard.hide();
     });
-    this.dashboard.hide();
+
+    // this.dashboard.hide();
   }
 
   switchLocationDropDown(e: any) {
