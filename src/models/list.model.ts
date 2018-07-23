@@ -57,6 +57,9 @@ export class List {
           const inClause = filter['location'].join(',');
           whereClause += ` AND locations.location_id IN (${inClause})`;
         }
+        if ('is_building' in filter) {
+          whereClause += ` AND locations.is_building = ${filter['is_buidling']}`;
+        }
         const sql = `SELECT
           locations.parent_id,
           locations.location_id,

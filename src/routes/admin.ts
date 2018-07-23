@@ -488,12 +488,14 @@ export class AdminRoute extends BaseRoute {
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const list = new List();
       const accountId = req.params.accountId;
-      let temp = [];
+      const allLocations = [];
+      // let temp = [];
       const lar_locations = [];
       let accountLocations: Array<object> = await list.listTaggedLocationsOnAccount(accountId);
       for (const location of accountLocations) {
         lar_locations.push(location['location_id']);
         location['display_name'] = '';
+        /*
         // loop through the assumed heirarchy
         temp = [];
         let tempColName = '';
@@ -505,11 +507,15 @@ export class AdminRoute extends BaseRoute {
         }
         temp.push(location['name']);
         location['display_name'] = temp.join(' >> ');
+        */
+        location['display_name'] = location['name'];
+
       }
       const locationsFromLAU: Array<object> = await list.listTaggedLocationsOnAccountFromLAU(accountId, {'exclusion_ids': lar_locations});
       for (const location of locationsFromLAU) {
         lar_locations.push(location['location_id']);
         location['display_name'] = '';
+        /*
         // loop through the assumed heirarchy
         temp = [];
         let tempColName = '';
@@ -521,11 +527,18 @@ export class AdminRoute extends BaseRoute {
         }
         temp.push(location['name']);
         location['display_name'] = temp.join(' >> ');
+        */
+        location['display_name'] = location['name'];
       }
       accountLocations = accountLocations.concat(locationsFromLAU);
+      for (const aloc of accountLocations) {
+        if (aloc['is_building'] == 1) {
+          allLocations.push(aloc);
+        }
+      }
 
       return res.status(200).send({
-        data: accountLocations
+        data: allLocations
       });
     });
 
