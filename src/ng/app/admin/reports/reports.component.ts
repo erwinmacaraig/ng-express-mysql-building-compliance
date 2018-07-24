@@ -239,7 +239,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
             type : this.reportType,
             location_id : (!this.inpAllLocs.nativeElement.checked) ? this.selectedLocation.location_id : 0,
             account_id : (Object.keys(this.selectedAccount).length > 0) ? this.selectedAccount.account_id : 0,
-            offset : 0,
+            offset : this.pagination.offset,
             limit : this.pagination.limit
         };
 
@@ -259,6 +259,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.hideLocationReport = true;
         this.hideAccountReport = true;
         this.csvLoader = true;
+        this.pagination.offset = 0;
     }
 
     pageChange(type){
@@ -299,6 +300,13 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.pagination.selection = [];
                 for(let i = 1; i<=this.pagination.pages; i++){
                     this.pagination.selection.push({ 'number' : i });
+                }
+                if(this.reportType == 'training'){
+                    this.trainingReportData = response.data;
+                }else if(this.reportType == 'location'){
+                    this.locationReportData = response.data;
+                }else if(this.reportType == 'account'){
+                    this.accountReportData = response.data;
                 }
                 setTimeout(() => {
                     this.dashboardPreloader.hide();

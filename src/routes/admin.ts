@@ -1645,6 +1645,8 @@ export class AdminRoute extends BaseRoute {
             }catch(e){  }
         }
 
+        response['locations'] = locations;
+
         for(let loc of locations){
             allLocationIds.push(loc.location_id);
         }
@@ -1661,6 +1663,8 @@ export class AdminRoute extends BaseRoute {
             users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
         }
 
+        response['users'] = users;
+
 
         for(let user of users){
             allUserIds.push(user.user_id);
@@ -1668,11 +1672,13 @@ export class AdminRoute extends BaseRoute {
 
         if(allUserIds.length > 0){
             let offsetLimit =  offset+','+limit,
-                courseMethod = 'online_by_evac',
+                courseMethod = undefined,
                 trainCertModel = new TrainingCertification(),
                 trainCertCountModel = new TrainingCertification(),
-                certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, false, courseMethod ),
-                certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, true, courseMethod );
+                certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, false, courseMethod, undefined, undefined, '' ),
+                certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, true, courseMethod, undefined, undefined, '' );
+
+            response['certificates'] = certificates;
 
             for(let cert of certificates){
                 cert['em_roles'] = [];
@@ -1695,12 +1701,12 @@ export class AdminRoute extends BaseRoute {
                 }
 
                 if(cert['certification_date'] != null){
-                    cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
+                    cert['certification_date_formatted'] = (moment(cert['certification_date']).isValid()) ? moment(cert['certification_date']).format('DD/MM/YYYY') : '';
                 }else{
                     cert['certification_date_formatted'] = 'n/a';
                 }
 
-                cert['expiry_date_formatted'] = moment(cert['expiry_date']).format('DD/MM/YYYY');
+                cert['expiry_date_formatted'] = (moment(cert['expiry_date']).isValid()) ? moment(cert['expiry_date']).format('DD/MM/YYYY') : '';
 
                 if(cert['training_requirement_name'] == null){
                     cert['training_requirement_name'] = '--';

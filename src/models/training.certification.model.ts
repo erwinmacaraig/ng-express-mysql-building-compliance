@@ -309,7 +309,7 @@ export class TrainingCertification extends BaseClass {
     });
   }
 
-  public getCertificatesByInUsersId(userIds, limit?, count?, courseMethod?, pass?, trainingId?) {
+  public getCertificatesByInUsersId(userIds, limit?, count?, courseMethod?, pass?, trainingId?, orderBy?) {
     return new Promise((resolve) => {
       const limitSql = (limit) ? ' LIMIT '+limit : '';
       const courseMethodSql = (courseMethod) ? ' AND  certifications.course_method = "'+courseMethod+'" ' : '';
@@ -322,9 +322,10 @@ export class TrainingCertification extends BaseClass {
       }else if(pass == 0){
           passSql += `
             AND certifications.user_id NOT IN (SELECT user_id FROM certifications WHERE user_id IN (${userIds})  AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW() )
-             
            `;
       }
+
+      let orderSql = (orderBy) ? orderBy : 'ORDER BY certifications.certification_date DESC';
 
       if(count){
           sql = `
@@ -336,7 +337,7 @@ export class TrainingCertification extends BaseClass {
               LEFT JOIN training_requirement ON training_requirement.training_requirement_id = certifications.training_requirement_id
             WHERE
                 users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}
-            ORDER BY certifications.certification_date DESC
+            ${orderSql}
           `;
       }else{
           sql = `
@@ -357,7 +358,7 @@ export class TrainingCertification extends BaseClass {
 
             WHERE users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}
             GROUP BY certifications.certifications_id
-            ORDER BY certifications.certification_date DESC ${limitSql}
+            ${orderSql} ${limitSql}
           `;
       }
       const connection = db.createConnection(dbconfig);
