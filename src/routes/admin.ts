@@ -218,6 +218,7 @@ export class AdminRoute extends BaseRoute {
          const user = new User();
          const token = new Token();
          let accountId = u['account_id'];
+         const locationAccntRel = new LocationAccountRelation();
          if (accountId == 0) {
            // checks if the account with the given name is existing
            const accountDetails = await new Account().getAccountDetailsUsingName(u['account_name']);
@@ -238,10 +239,23 @@ export class AdminRoute extends BaseRoute {
                billing_country: location.get('country')
               });
               accountId = accountObj.ID();
+
+              // tag this new account to location_account_relation
+              try {
+                await locationAccntRel.getLocationAccountRelation({
+                    'location_id': u['location_id'],
+                    'account_id': accountId,
+                    'responsibility': defs['role_text'][2]
+                });
+              } catch (err) {
+                await locationAccntRel.create({
+                  'location_id': u['location_id'],
+                  'account_id': accountId,
+                  'responsibility': defs['role_text'][2]
+                });
+              }
            }
          }
-
-         const locationAccntRel = new LocationAccountRelation();
          if (validator.isEmail(u['email'])) {
            try {
              await user.getByEmail(u['email']);
@@ -279,6 +293,7 @@ export class AdminRoute extends BaseRoute {
                 } catch (e) {
                   console.log('Unable to create emergency role', e);
                 }
+
               } else {
                 try {
                   await locationAccntUser.create({
@@ -290,6 +305,7 @@ export class AdminRoute extends BaseRoute {
                 } catch (e) {
                     console.log('Cannot create entry in db');
                 }
+                /*
                 try {
                   await locationAccntRel.getLocationAccountRelation({
                       'location_id': u['location_id'],
@@ -303,6 +319,7 @@ export class AdminRoute extends BaseRoute {
                     'responsibility': defs['role_text'][u['role_id']]
                   });
                 }
+                */
                 // User Role Relation
                 const userRoleRelObj = new UserRoleRelation();
                 let accountRole = [];
@@ -372,14 +389,14 @@ export class AdminRoute extends BaseRoute {
     router.get('/admin/location/search/',
     new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
-      const 
+      const
       searchKey: object = <any> {
         name: req.query.name
       },
       location = new Location(),
       locAccModel = new LocationAccountRelation();
 
-      let 
+      let
       limit = undefined,
       accountId = undefined;
       if(req.query['limit']){
@@ -516,14 +533,40 @@ export class AdminRoute extends BaseRoute {
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const list = new List();
       const accountId = req.params.accountId;
-      const allLocations = [];
-      // let temp = [];
+      const allLocations = {};
+      const filteredLocations = [];
+      let temp = [];
       const lar_locations = [];
       let accountLocations: Array<object> = await list.listTaggedLocationsOnAccount(accountId);
       for (const location of accountLocations) {
         lar_locations.push(location['location_id']);
-        location['display_name'] = '';
+        if (location['is_building'] == 1) {
+          allLocations[location['location_id']] = {
+            location_id: location['location_id'],
+            display_name: location['name'],
+            formatted_address: location['formatted_address'],
+            responsibility: location['responsibility']
+          };
+        } else {
+          temp = [];
+          let tempColName = '';
+          let tempColLocId = '';
+          for (let p = 5; p > 0; p--) {
+            tempColName = `p${p}_name`;
+            tempColLocId = `p${p}_location_id`;
+            if (location[tempColName] != null && location[`p${p}_is_building`] == 1) {
+              allLocations[location[tempColLocId]] = {
+                location_id: location[tempColLocId],
+                display_name: location[tempColName],
+                formatted_address: location['formatted_address'],
+                responsibility: location['responsibility']
+              };
+              break;
+            }
+          }
+        }
         /*
+        location['display_name'] = '';
         // loop through the assumed heirarchy
         temp = [];
         let tempColName = '';
@@ -535,15 +578,43 @@ export class AdminRoute extends BaseRoute {
         }
         temp.push(location['name']);
         location['display_name'] = temp.join(' >> ');
+
+        // location['display_name'] = location['name'];
         */
-        location['display_name'] = location['name'];
 
       }
       const locationsFromLAU: Array<object> = await list.listTaggedLocationsOnAccountFromLAU(accountId, {'exclusion_ids': lar_locations});
       for (const location of locationsFromLAU) {
         lar_locations.push(location['location_id']);
-        location['display_name'] = '';
+
+        if (location['is_building'] == 1) {
+          allLocations[location['location_id']] = {
+            location_id: location['location_id'],
+            display_name: location['name'],
+            formatted_address: location['formatted_address'],
+            responsibility: location['responsibility']
+          };
+        } else {
+          temp = [];
+          let tempColName = '';
+          let tempColLocId = '';
+          for (let p = 5; p > 0; p--) {
+            tempColName = `p${p}_name`;
+            tempColLocId = `p${p}_location_id`;
+            if (location[tempColName] != null && location[`p${p}_is_building`] == 1) {
+              allLocations[location[tempColLocId]] = {
+                location_id: location[tempColLocId],
+                display_name: location[tempColName],
+                formatted_address: location['formatted_address'],
+                responsibility: location['responsibility']
+              };
+              break;
+            }
+          }
+        }
+
         /*
+        location['display_name'] = '';
         // loop through the assumed heirarchy
         temp = [];
         let tempColName = '';
@@ -555,18 +626,20 @@ export class AdminRoute extends BaseRoute {
         }
         temp.push(location['name']);
         location['display_name'] = temp.join(' >> ');
+
+        // location['display_name'] = location['name'];
         */
-        location['display_name'] = location['name'];
       }
       accountLocations = accountLocations.concat(locationsFromLAU);
-      for (const aloc of accountLocations) {
-        if (aloc['is_building'] == 1) {
-          allLocations.push(aloc);
-        }
-      }
-
+      Object.keys(allLocations).forEach((loc) => {
+        filteredLocations.push(allLocations[loc]);
+      });
+      /*
+      raw: accountLocations,
+      filtered: filteredLocations
+      */
       return res.status(200).send({
-        data: allLocations
+        data: filteredLocations
       });
     });
 
@@ -954,6 +1027,7 @@ export class AdminRoute extends BaseRoute {
                 } catch (e) {
                   console.log('Cannot create entry in db with ', createData);
                 }
+                /*
                 try {
                     await locationAccntRel.getLocationAccountRelation({
                         'location_id': u['location'],
@@ -967,6 +1041,7 @@ export class AdminRoute extends BaseRoute {
                         'responsibility': defs['role_text'][u['role']]
                     });
                 }
+                */
                 // User Role Relation
                 const userRoleRelObj = new UserRoleRelation();
                 let accountRole = [];
@@ -1523,7 +1598,7 @@ export class AdminRoute extends BaseRoute {
 
 
     public async generateAdminTrainingReport(req: AuthRequest, res: Response){
-        let 
+        let
         response = <any> {
             pagination : <any> {
                 total : 0,
@@ -1551,7 +1626,7 @@ export class AdminRoute extends BaseRoute {
 
         if(locationId > 0){
             try{
-                let 
+                let
                 loc = await locationModel.load(),
                 deepLocations = [];
                 locations.push(loc);
@@ -1574,7 +1649,7 @@ export class AdminRoute extends BaseRoute {
             allLocationIds.push(loc.location_id);
         }
 
-        let 
+        let
         locAccUser = new UserEmRoleRelation(),
         config = {};
 
@@ -1672,7 +1747,7 @@ export class AdminRoute extends BaseRoute {
     }
 
     public async generateAdminLocationReport(req: AuthRequest, res: Response){
-        let 
+        let
         response = <any> {
             pagination : <any> {
                 total : 0,
@@ -1699,7 +1774,7 @@ export class AdminRoute extends BaseRoute {
 
         if(locationId > 0){
             try{
-                let 
+                let
                 loc = await locationModel.load(),
                 deepLocations = [];
                 locations.push(loc);
@@ -1722,7 +1797,7 @@ export class AdminRoute extends BaseRoute {
             allLocationIds.push(loc.location_id);
         }
 
-        let 
+        let
         locAccUser = new UserEmRoleRelation(),
         offsetLimit =  offset+','+limit,
         config = {},
@@ -1766,7 +1841,7 @@ export class AdminRoute extends BaseRoute {
     }
 
     public async generateAdminAccountReport(req: AuthRequest, res: Response){
-        let 
+        let
         response = <any> {
             pagination : <any> {
                 total : 0,
@@ -1798,7 +1873,7 @@ export class AdminRoute extends BaseRoute {
             try{
                 locationIdsParam = [];
 
-                let 
+                let
                 loc = await locationModel.load(),
                 deepLocations = [];
                 locationIdsParam.push(locationId);
@@ -1830,7 +1905,7 @@ export class AdminRoute extends BaseRoute {
                 }
             }catch(e){}
 
-            let 
+            let
             locAccUser = new LocationAccountUser(),
             userLocations = <any> await locAccUser.getByUserId(user.user_id, true);
 
@@ -1869,7 +1944,7 @@ export class AdminRoute extends BaseRoute {
     }
 
     public async generateAdminReport(req: AuthRequest, res: Response){
-        let 
+        let
         response = <any> {},
         type = (req.body.type) ? req.body.type : '';
 

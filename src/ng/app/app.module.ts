@@ -127,6 +127,7 @@ import { TrainingValidationComponent } from './admin/training-validation/trainin
 
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
 import { AdminReportsComponent } from './admin/reports/reports.component';
+import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
 
 @NgModule({
   declarations: [
@@ -228,7 +229,8 @@ import { AdminReportsComponent } from './admin/reports/reports.component';
     AdminViewLocationComponent,
     TrainingValidationComponent,
     AccountTrainingComponent,
-    AdminReportsComponent
+    AdminReportsComponent,
+    AdminAddAccountComponent
   ],
   imports: [
     BrowserModule,

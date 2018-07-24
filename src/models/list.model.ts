@@ -24,14 +24,19 @@ export class List {
             locations.formatted_address,
             p1.name as p1_name,
             p1.location_id as p1_location_id,
+            p1.is_building as p1_is_building,
             p2.name as p2_name,
             p2.location_id as p2_location_id,
+            p2.is_building as p2_is_building,
             p3.name as p3_name,
             p3.location_id as p3_location_id,
+            p3.is_building as p3_is_building,
             p4.name as p4_name,
             p4.location_id as p4_location_id,
+            p4.is_building as p4_is_building,
             p5.name as p5_name,
-            p5.location_id as p5_location_id
+            p5.location_id as p5_location_id,
+            p5.is_building as p5_is_building
         FROM location_account_user INNER JOIN locations ON location_account_user.location_id = locations.location_id
         LEFT JOIN locations as p1 ON p1.location_id = locations.parent_id
           LEFT JOIN locations as p2 ON p2.location_id = p1.parent_id
@@ -68,14 +73,19 @@ export class List {
           locations.formatted_address,
           p1.name as p1_name,
           p1.location_id as p1_location_id,
+          p1.is_building as p1_is_building,
           p2.name as p2_name,
           p2.location_id as p2_location_id,
+          p2.is_building as p2_is_building,
           p3.name as p3_name,
           p3.location_id as p3_location_id,
+          p3.is_building as p3_is_building,
           p4.name as p4_name,
           p4.location_id as p4_location_id,
+          p4.is_building as p4_is_building,
           p5.name as p5_name,
           p5.location_id as p5_location_id,
+          p5.is_building as p5_is_building,
           location_account_relation.account_id,
           location_account_relation.responsibility
         FROM locations INNER JOIN location_account_relation ON locations.location_id = location_account_relation.location_id
