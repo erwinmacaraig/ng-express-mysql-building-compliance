@@ -1,50 +1,50 @@
-nav {
-  color: #fff;
-  background-color: #39a1ff;
-  width: 100%;
-  height: 65px;
-  box-shadow: none !important;
+ul{
+    margin:0px;
 }
 
-// FIX SIDENAV SPACING
-.side-nav li>a {
-  padding: 0 16px;
-}
-//FIX SIDEBAR DIVIDERS
-.side-nav .divider {
-  margin:0;
-  height:8px;
-  border-bottom:1px solid #e0e0e0;
-  background-color: transparent;
+ul li{
+    display: block;
+    color: #fff;
+    padding: 10px;
 }
 
-// SIDENAV HEADER
-.sidenav-header {
-/* background: url("../images/user-bg.jpg") no-repeat center center; */
-background-size: cover;
-margin-bottom: 0px;
-padding: 15px 0 0 15px;
-  .row {
-    margin-bottom: 0;
-  }
-}
-.sidenav-footer {
-margin-bottom: 0px;
-padding: 0;
-  .row {
-    margin-bottom: 0;
-    .social-icons {
-      a {
-        opacity: 0.5;
-        padding: 0;
-        text-align:center;
-        &:hover {
-          background-color:inherit;
-          opacity: 1;
-        }
-      }
-    }
-  }
+ul li:hover {
+    background-color: #2196f3;
 }
 
+ul li .logo,
+ul li .text{
+    display: inline-block;
+    vertical-align: middle;
+}
 
+ul li .logo{
+    background: url(/assets/images/admin_icon.png);
+    background-repeat: no-repeat;
+    background-size: 670%;
+    width: 30px;
+    height: 30px;
+}
+
+ul li .text{
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 14px;
+    letter-spacing: 0.2px;
+}
+
+.logo.account{
+    background-position: 4% 39% !important;
+}
+
+.logo.training{
+    background-position: 29% 39% !important;
+}
+
+.logo.reports{
+    background-position: 89% 63% !important;
+}
+
+.logo.upload{
+    background-position: 89% 39% !important;
+}
