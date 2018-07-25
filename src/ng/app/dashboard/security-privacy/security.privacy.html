@@ -1,0 +1,377 @@
+<div class="row">
+    <div class="col l12 m12 s12">
+        
+        <h4 class="blue-text title1">Change Password</h4>
+        <div class="row mb35">
+            <div class="col l4 m12 s12">
+                
+                <form #formPasswords="ngForm" (ngSubmit)="submitForm(formPasswords)">
+
+                    <div class="input-field">
+                        <input 
+                            [disabled]="disableForm" 
+                            #inputOldPassword="ngModel" 
+                            ngModel 
+                            name="old_password" 
+                            [ngClass]="{ 'active' : disableForm == false, 'invalid' : !inputOldPassword.valid && inputOldPassword.dirty }"  
+                            required
+                            type="password" 
+                            id="inputOldPassword" />
+                        <label for="inputOldPassword" [ngClass]="{ 'active' : disableForm == false }" >Enter Old Password</label>
+                    </div>
+                    <div class="input-field">
+                        <input 
+                            [disabled]="disableForm"
+                            #inputNewPassword="ngModel"
+                            ngModel 
+                            name="new_password" 
+                            [ngClass]="{ 'active' : disableForm == false, 'invalid' : !inputNewPassword.valid && inputNewPassword.dirty || inputNewPassword.value != inputConfirmNewPassword.value }"  
+                            required 
+                            minlength="6" 
+                            type="password" 
+                            id="inputNewPassword" />
+                        <label for="inputNewPassword" [ngClass]="{ 'active' : disableForm == false }" >Enter New Password</label>
+                    </div>
+                    <div class="input-field mb20">
+                        <input 
+                        [disabled]="disableForm" 
+                        ngModel
+                        #inputConfirmNewPassword="ngModel"
+                        name="confirm_password" 
+                        [ngClass]="{ 'active' : disableForm == false, 'invalid' : !inputConfirmNewPassword.valid && inputConfirmNewPassword.dirty || inputNewPassword.value != inputConfirmNewPassword.value }" 
+                        required minlength="6" 
+                        type="password" 
+                        id="inputConfirmNewPassword" />
+                        <label for="inputConfirmNewPassword" [ngClass]="{ 'active' : disableForm == false }" >Confirm New Password</label>
+                    </div>
+
+                <p class="left red-text">{{errorMessage}}</p>
+                <button type="submit" [disabled]="!formPasswords.valid" class="btn orange waves-effect waves-light right"  >Submit</button>
+
+                </form>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    
+
+    </div>
+</div>
+
+<div class="content-container">
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <h4 class="blue-text title1 mb35">Security & Privacy</h4>
+            <h5 class="blue-text title2 mb20">About these terms and conditions</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            The EvacConnect website is provided by Evacuation Services Australia Pty Ltd ABN 19 - 136 815 784. The terms and conditions set out below govern your use of the EvacConnect website and the services provided by that website.
+                        </li>
+                        <li>
+                            These terms and conditions include: • Part A Use of the website. • Part B Privacy policy. • Part C Use of the services on the website.
+                        </li>
+                        <li>
+                            You must read these terms and conditions in full. If you do not accept these terms and conditions select “do not agree”. 
+                        </li>
+                        <li>
+                            If after reading these terms and conditions you do accept these terms and conditions, select “I agree”. By selecting “I agree”, you acknowledge and agree that: • You have read the terms and conditions in full; • You have entered into a binding legal agreement electronically; and • You intend to be bound by the agreement.
+                        </li>
+                        <li>
+                            EvacConnect may change the conditions from time to time. If this occurs, EvacConnect will notify you and such amendments will immediately be incorporated into this terms and conditions. If after being notified of the change to these terms and conditions you continue to access the Service, you will be deemed to have accepted the amended terms and conditions.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <h5 class="blue-text title2 mb20">Payments policy</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            You may pay for services provided by EvacConnect by Australian credit card (unless paid for by your employer or building management).
+                        </li>
+                        <li>
+                            You are responsible for: • Ensuring that you select the correct service; • Paying for all services provided by EvacConnect at your request; and • Providing valid and up to date credit card details to EvacConnect.
+                        </li>
+                        <li>
+                            All prices include 10% GST. All sales of services are final. EvacConnect does not offer refunds.
+                        </li>
+                        <li>
+                            After you have completed the sign up process and EvacConnect has verified your credit card details an electronic receipt will be displayed. It is your responsibility to print or store this receipt.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <h4 class="blue-text title1 mb35">PART A – THE WEBSITE</h4>
+            <h5 class="blue-text title2 mb20">The Service</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            EvacConnect is the provider of an online platform which permits you to complete training and register and maintain compliance with training requirements (Service).
+                        </li>
+                        <li>
+                            This Service is available to you only in Australia. You agree not to use or attempt to use the Service from outside these locations.
+                        </li>
+                        <li>
+                            You are responsible for ensuring that you have sufficient software and hardware to access the Service.
+                        </li>
+                        <li>
+                            EvacConnect reserves the right to modify, suspend, or discontinue the Service (or any part of it) from time to time with or without notice to you for the purposes of maintaining or repairing or updating the Service.
+                        </li>
+                        <li>
+                            EvacConnect will use all reasonable endeavours to miminise any disruption caused, however subject to your statutory rights EvacConnect will not be liable to you if the Service or any part of it becomes temporarily unavailable.
+                        </li>
+                        <li>
+                            Certain content available via the Service may include materials from third parties. EvacConnect does not review or evaluate the accuracy of any third party materials. This is your responsibility. It is also your responsibility to ensure that you do not use the third-party materials in a manner that may infringe or violate the rights of the person who owns those materials.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="col l12 m12 s12">
+            <h5 class="blue-text title2 mb20">Your Account</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            You agree to provide accurate and complete information when you register with, and as you use, the Service (Registration Data), and you agree to update your Registration Data to keep it accurate and complete. EvacConnect may store and use the Registration Data you provide for use in maintaining and billing fees to your Account.
+                        </li>
+                        <li>
+                            As a registered user of the Service, you will be issued with an account (Account). You must not reveal your Account information to anyone else. EvacConnect is not responsible for any loss suffered by you as a result of the unauthorized use of your Account. If you become aware that your Account information has become available to someone else, you must notify EvacConnect as soon possible.
+                        </li>
+                        <li>
+                            You are the only person authorised to use the Account. You must not allow others to access your Account. EvacConnect may track your usage of your Account to verify this from time to time.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="col l12 m12 s12">
+            <h5 class="blue-text title2 mb20">Intellectual Property</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            You agree that the Service, including but not limited to all products, graphics, user interface, the scripts and software used to implement the Service, contains proprietary information and material that is owned by EvacConnect and/or its licensors, and is protected by applicable intellectual property and other laws, including but not limited to copyright.
+                        </li>
+                        <li>
+                            You agree that the right to access the Service is being licensed, not sold to you.
+                        </li>
+                        <li>
+                            You must not use any proprietary information or materials in any way whatsoever except for use of the Service in compliance with this agreement. No portion of the Service may be reproduced in any form or by any means, except as expressly permitted in these terms. You must not attempt to modify, sell, distribute, lease, or create derivative works based on the Service.
+                        </li>
+                        <li>
+                            EvacConnect reserves the right to suspend your access to the Service without notice to you if EvacConnect believes that this is necessary to protect its intellectual property.
+                        </li>
+                        <li>
+                            EvacConnect owns the Service. The use of any party of the Service except for the purpose for which it has been licenced to you is a breach of EvacConnect’s intellectual property rights.
+                        </li>
+                        <li>
+                            You may be subject to criminal and civil penalty if you breach these rights. EvacConnect values its intellectual property and will take any steps necessary to prevent the unauthorised use of this property.
+                        </li>
+                        <li>
+                            The EvacConnect logo is a trademark.
+                        </li>
+                        <li>
+                            There may be other trademarks contained on this website.
+                        </li>
+                        <li>
+                            You are granted no right or license with respect to any of the aforesaid trademarks and any use of such trademarks.
+                        </li>
+                        <li>
+                            The Service is provided to you on a paid subscription.
+                        </li>
+                        <li>
+                            Paid subscriptions will automatically renew for the applicable time period you have selected. You will be charged for each subsequent renewed subscription period on the day that your current subscription ends.
+                        </li>
+                        <li>
+                            If you want to cancel your automatic renewal to the paid subscription you must notify EvacConnect no later than 14 days before your subscription is due to expire.
+                        </li>
+                        <li>
+                            If you breach a term of this agreement, EvacConnect may, without notice to you, cancel your Account and this agreement. Once your Account is cancelled, access to the Service will be terminated. You will not be entitled to a refund of any amounts paid for the Service if EvacConnect terminates the agreement under this clause.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="col l12 m12 s12">
+            <h5 class="blue-text title2 mb20">Intellectual Property</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            You acknowledge that EvacConnect is provided and online service and therefore access to the Service may be dependent on external factors outside the control of EvacConnect. For example, EvacConnect has no control over temporary internet interruptions which may affect your ability to access the Service or EvacConnect’s ability to provide the Service.
+                        </li>
+                        <li>
+                            EvacConnect does not guarantee that your use of the Service will be uninterrupted or error-free. It may be necessary for EvacConnect to remove the Service for maintenance reasons without notice to you. Subject to the Competition and Consumer Act 2010 (Cth), you agree that EvacConnect will not be liable for any inability to access the Services and you will not be entitled to request a refund or seek compensation as a result of the Services being temporarily unavailable. 
+                        </li>
+                        <li>
+                            If EvacConnect is liable under the Competition and Consumer Act 2010 (Cth), you agree that EvacConnect’s liability is restricted to either: a. Extending your ability to access the Services by that period in which the Services were unavailable; or b. In EvacConnect’s sole discretion, a refund of any amounts paid which relate to the period in which the Services were unavailable.
+                        </li>
+                        <li>
+                            EvacConnect will not be liable to you for loss or damaged suffered by you are a result of you failing to use the Service properly or failing to use the Service in accordance with these terms and conditions.
+                        </li>
+                        <li>
+                            Subject to your statutory rights, If EvacConnect cancels the your Account or access to the Service for any reason, you agree: a. not to hold EvacConnect liable for any loss or damage suffered by you; or b. that the maximum loss or damage that could be suffered by you is the amount you have paid for the Service. alternatively, that the loss or damage suffered by you is limited to the amount you have paid for the Service.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="col l12 m12 s12">
+            <h5 class="blue-text title2 mb20">Miscellaneous</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            This Agreement constitutes the entire agreement between you and EvacConnect and governs your use of the Service, superseding any prior agreements between you and EvacConnect. You also may be subject to additional terms and conditions that may apply when you use affiliate services, third-party content, or third-party software.
+                        </li>
+                        <li>
+                            If any part of this Agreement is held invalid or unenforceable, that portion shall be construed in a manner consistent with applicable law to reflect, as nearly as possible, the original intentions of the parties, and the remaining portions shall remain in full force and effect. EvacConnect’s failure to enforce any right or provisions in this Agreement will not constitute a waiver of such or any other provision.
+                        </li>
+                        <li>
+                            The laws in the State of Queensland govern this agreement. a. You agree that the exclusive jurisdiction for any claim or dispute arising under this agreement or your use of the Service is the courts of Queensland.
+                        </li>
+                        <li>
+                            EvacConnect will usually contact you by email in which case notices shall become effective immediately. You also agree to EvacConnect contacting you by fax or post.
+                        </li>
+                        <li>
+                            Any information collected by EvacConnect will be in accordance with EvacConnect’s privacy policy in Part B of this agreement and otherwise in accordance with all applicable laws.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <h4 class="blue-text title1 mb35">PART B – PRIVACY POLICY</h4>
+            <h5 class="blue-text title2 mb20">Evac’s Policy</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            Information collected by EvacConnect will be stored by Evacuation Services Australia Pty Ltd (EVAC) who is committed to respecting the privacy of its customers. The following policy discusses how personal information received by EVAC will be dealt with.
+                        </li>
+                        <li>
+                            EVAC is required by law to comply with the provisions of the Privacy Act 1988 (Cth) and the national privacy principles referred to in that act. EVAC may change the privacy policy from time to time to ensure that it’s policies remain in accordance with the Privacy Act 1988 (Cth) and the national privacy principles.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="col l12 m12 s12">
+            <h5 class="blue-text title2 mb20">When EVAC May Collect Information</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            Any information requested or collected by EVAC, will be directly necessary for a particular function or activity carried out by EVAC and for a lawful purpose. Individuals and organisations have the option of not identifying themselves when communicating with EVAC, providing this is practicable.
+                        </li>
+                        <li>
+                            EVAC will, where reasonable and practicable, only collect information about an individual or an organisation directly from that individual or organisation.
+                        </li>
+                        <li>
+                            EVAC will ensure that any information collected is relevant to that purpose, is not excessive, and is accurate, up to date and complete, and that the collection of the information does not intrude on the personal affairs of the individual or organisation.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="col l12 m12 s12">
+            <h5 class="blue-text title2 mb20">How EVAC Will Use Information</h5>
+            <p class="title3">
+                Evac will not use or disclose information:
+            </p>
+            <ol>
+                <li>
+                    without ensuring that the information is relevant, accurate, up to date, complete and not misleading;
+                </li>
+                <li>
+                    for a purpose other than that for which it was collected without consent unless the use of the information for that other purpose is necessary to prevent or lessen a serious and imminent threat to the life or health of the individual to whom the information relates or of another person; or
+                </li>
+                <li>
+                    which relates to an individual’s ethnic or racial origin; political opinions; religious or philosophical beliefs; trade union membership; health or sexual activities.
+                </li>
+            </ol>
+        </div>
+
+        <div class="col l12 m12 s12">
+            <h5 class="blue-text title2 mb20">Right of Access and Corrections to Information</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            At the request of an individual or organisation, EVAC will confirm whether it holds any information about that party and if so, the nature of the information, the purpose for which is held, and allow the individual or organisation access to the information.
+                        </li>
+                        <li>
+                            If an individual or organisation notifies EVAC that information held about that party is incorrect, EVAC will make appropriate amendments at the individual/organisation’s request.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="col l12 m12 s12">
+            <h5 class="blue-text title2 mb20">Storage, Security and Disposal of Information</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            EVAC will take all reasonable steps to prevent unauthorised use or disclosure of information held by it. EVAC will also ensure that information is kept for no longer than is necessary, that the information is disposed of securely, that the information is protected against loss, unauthorised access, use, modification or disclosure.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb35">
+        <div class="col l12 m12 s12">
+            <h4 class="blue-text title1 mb35">PART C – USE OF TRAINING WEBSITE SERVICES</h4>
+            <h5 class="blue-text title2 mb20">Conditions on use of website services</h5>
+            <div class="row">
+                <div class="col l8 m12 s12">
+                    <ol>
+                        <li>
+                            The EvacConnect website allows users to complete training modules and certify compliance with evacuation safety procedures.
+                        </li>
+                        <li>
+                            The website will maintain a record of completion, which may be made available to a user’s workplace or building owners. Any user who is signed up to the website by their employer or a building owner acknowledges and agrees that EvacConnect may provide, at the employer or building owner’s request, a record of completion of the training modules of an individual user.
+                        </li>
+                        <li>
+                            Users must record their completion of each training module accurately. EvacConnect will not be liable or responsible for a user who falsely certifies completion of a training module.
+                        </li>
+                        <li>
+                            The EvacConnect training modules may contain legal information. This is of a general nature only and has not been prepared taking into account each user’s specific situation.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-container">
+        <i class="material-icons">arrow_downward</i>
+    </div>
+</div>
+
+<div preloader></div>
