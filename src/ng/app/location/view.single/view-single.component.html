@@ -121,15 +121,21 @@
 						</tr>
 						<tr *ngFor="let sub of locationData.sublocations">
 							<td>
-								<a [routerLink]="['/location/view/', sub.location_id]" class="location-name-link" *ngIf="sub.children.length > 0">
-									{{sub.name}}
-								</a>
+                <div *ngIf="sub.children?.length > 0; else nochildren">
+                    <a [routerLink]="['/location/view/', sub.location_id]" class="location-name-link">
+                      {{sub.name}}
+                    </a>
+                </div>
+                <ng-template #nochildren>
+                  <div>
+                    <a [routerLink]="['/location/view-sublocation/', sub.location_id]" class="location-name-link">
+                      {{sub.name}}
+                    </a>
+                  </div>
+                </ng-template>
 
-								<a [routerLink]="['/location/view-sublocation/', sub.location_id]" class="location-name-link" *ngIf="sub.children.length == 0">
-									{{sub.name}}
-								</a>
+              </td>
 
-							</td>
 							<td>
                 <!-- {{sub.trained_wardens}} / {{sub.total_wardens}} -->
                 {{sub.trained_wardens}} / {{sub.total_estimated_wardens}}
@@ -141,8 +147,8 @@
                             <td class="select-blue">
                                 <select class="select-from-row">
                                     <option value="0">Manage</option>
-                                    <option value="view-{{sub.location_id}}" *ngIf="sub.children.length > 0">View Location</option>
-                                    <option value="viewsub-{{sub.location_id}}" *ngIf="sub.children.length == 0">View Location</option>
+                                    <option value="view-{{sub.location_id}}" *ngIf="sub.children?.length > 0">View Location</option>
+                                    <option value="viewsub-{{sub.location_id}}" *ngIf="sub.children?.length == 0">View Location</option>
                                     <option value="addtenants-{{sub.location_id}}" >Add Tenants</option>
                                     <option value="archive">Archive</option>
                                     <option value="benchmark-{{sub.location_id}}">Benchmark</option>

@@ -37,6 +37,28 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.post('/admin/new/account/',
+      new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+        //  console.log(req.body);
+        let account;
+        let message = '';
+        if (parseInt(req.body.account_id, 10) > 0) {
+          message = 'Account successfully updated';
+          account = new Account(req.body.account_id);
+          await account.load();
+          await account.create(req.body);
+        } else {
+          message = 'Account successfully created';
+          account = new Account();
+          await account.create(req.body);
+        }
+        const dbData = await account.load();
+        return res.status(200).send({
+          message: message,
+          data: dbData
+        });
+      });
+
     router.post('/admin/assign-default-training/',
     new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
 
