@@ -41,25 +41,23 @@
 </div>
 
 <ng-template #formField>
-    <div class="col l12 m12 s12">
-        <h4 class="blue-text"> Report </h4>
+    <div class="col l4 m12 s12">
+        <h5 class="blue-text"> Report </h5>
+        <p class="instruction">
+            To generate a report, either fill in the buildign name and location or search for your account below, then choose a report type.
+        </p>
     </div>
+
+    <div class="clearfix"></div>
+    
     <div class="col l3 m8 s12">
-        <div class="round-input-container search-account-container" #searchAccountContainer>
-            <input type="text" class="round-input" placeholder="Search Account"  >
-            <div class="search-result">
-                <ul *ngIf="searchedAccounts.length > 0">
-                    <li class="search-result-layer" (click)="clickSelectFromSearch('account', account, $event)" *ngFor="let account of searchedAccounts">{{account.account_name}}</li>
-                </ul>
-                <p class="message" *ngIf="searchedAccounts.length == 0">No Account Found</p>
-            </div>
-            <div class="loading">
-                <ng-container *ngTemplateOutlet="loader"></ng-container>
-            </div>
+        <div class="input-top-labels">
+            <div class="icon location"></div>
+            <div class="text">Location</div>
         </div>
 
         <div class="round-input-container search-location-container" #searchLocationContainer>
-            <input type="text" class="round-input" placeholder="Search Location"  >
+            <input type="text" class="round-input location" placeholder="Enter Building Name, Location Name"  >
             <div class="search-result">
                 <ul *ngIf="searchedLocations.length > 0">
                     <li class="search-result-layer" (click)="clickSelectFromSearch('location', location, $event)" *ngFor="let location of searchedLocations">{{location.name}}
@@ -75,10 +73,53 @@
                 <ng-container *ngTemplateOutlet="loader"></ng-container>
             </div>
         </div>
+        
+    </div>
 
-        <div class="margin-top-bottom-20">
+    <div class="col or-container hide-on-med-and-down">
+        <div class="or">
+            - or -
+        </div>
+    </div>
+
+    <div class="col m12 s12 show-on-medium-and-down hide-on-large-only">
+        <div class="or">
+            - or -
+        </div>
+    </div>
+
+    <div class="col l3 m8 s12">
+        <div class="input-top-labels">
+            <div class="icon account"></div>
+            <div class="text">Account</div>
+        </div>
+    
+        <div class="round-input-container search-account-container" #searchAccountContainer>
+            <input type="text" class="round-input account" placeholder="Enter Account Name"  >
+            <div class="search-result">
+                <ul *ngIf="searchedAccounts.length > 0">
+                    <li class="search-result-layer" (click)="clickSelectFromSearch('account', account, $event)" *ngFor="let account of searchedAccounts">{{account.account_name}}</li>
+                </ul>
+                <p class="message" *ngIf="searchedAccounts.length == 0">No Account Found</p>
+            </div>
+            <div class="loading">
+                <ng-container *ngTemplateOutlet="loader"></ng-container>
+            </div>
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="col l3 m8 s12">
+        
+        <!-- <div class="margin-top-bottom-20">
             <input id="inpAllLocs" #inpAllLocs class="filled-in" checked="checked" type="checkbox">
             <label for="inpAllLocs"> All Locations </label>
+        </div> -->
+
+        <div class="input-top-labels">
+            <div class="icon report"></div>
+            <div class="text">Report</div>
         </div>
 
         <div class="margin-top-bottom-20">
@@ -92,7 +133,7 @@
         </div>
 
         <div class="margin-top-bottom-20">
-            <button class="btn btn-block blue waves-effect waves-light" (click)="generateReport()" >Generate Report</button>
+            <button class="btn btn-block orange waves-effect waves-light" (click)="generateReport()" >Generate Report</button>
         </div>
     </div>
 </ng-template>
