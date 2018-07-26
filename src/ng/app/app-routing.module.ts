@@ -100,6 +100,8 @@ import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/
 import { AdminViewLocationComponent } from './admin/view-location/view-location.component';
 import { TrainingValidationComponent } from './admin/training-validation/training-validation.component';
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
+import { AdminReportsComponent } from './admin/reports/reports.component';
+import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -223,7 +225,9 @@ const appRoutes: Routes = [
       { path: 'view-location-compliance/:accntId/:locationId/:kpi', component: ComplianceSummaryViewComponent },
       { path: 'activity-log-report/:location/:accountId', component : ReportsActivityLogComponent },
       { path : 'trainings-report/:locationId/:accountId', component : ReportsTrainingsComponent },
-      { path : 'teams-report/:location/:accountId', component : ReportsTeamsComponent }
+      { path : 'teams-report/:location/:accountId', component : ReportsTeamsComponent },
+      { path : 'reports', component : AdminReportsComponent },
+      { path: 'new-account', component: AdminAddAccountComponent }
     ]
   }
 ];

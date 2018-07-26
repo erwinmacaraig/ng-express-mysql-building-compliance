@@ -37,6 +37,15 @@ export class LocationsService {
       });
   }
 
+  getByIdWithQueries(form, callBack) {
+    this.http.get(this.baseUrl + '/location/get-with-queries', { params : form})
+      .subscribe(res => {
+        callBack(res);
+      }, err => {
+        callBack( JSON.parse(err.error) );
+      });
+  }
+
   getDeepLocationsById(id, callBack) {
     this.http.get(this.baseUrl + '/location/get-deep-by-id/' + id, this.options)
       .subscribe(res => {

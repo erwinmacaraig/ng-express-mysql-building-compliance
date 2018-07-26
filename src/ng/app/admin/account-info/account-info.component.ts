@@ -1,12 +1,6 @@
 
 import { Component, OnInit, OnDestroy, AfterViewInit, Input } from '@angular/core';
-import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
-import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { ViewChild, ElementRef } from '@angular/core';
 import { Subscription } from 'rxjs/Rx';
-
 import { AdminService } from './../../services/admin.service';
 import { MessageService } from './../../services/messaging.service';
 

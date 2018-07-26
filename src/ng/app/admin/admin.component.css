@@ -1,0 +1,133 @@
+.admin-wrapper{
+    position: relative;
+    min-height: 99.99vh;
+}
+
+
+.left-navigation{
+    width: 185px;
+    position: absolute;
+    left: 0px;
+    height: 100%;
+    background-color: #232323;
+    z-index: 9;
+}
+
+.left-navigation .logo{
+    background-color: #fff;
+    min-height: 70px;
+    width: 100%;
+    position: relative;
+}
+
+.evaclogo{
+    background: url(/assets/images/admin_icon.png);
+    background-repeat: no-repeat;
+    background-size: 100%;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+.top-navigation{
+    height: 70px;
+    background-color: #000;
+    padding: 10px 15px;
+}
+
+.right-navigation{
+    position: relative;
+    width: 100%;
+    padding-left: 185px;
+}
+
+.search-container{
+    width: 50%;
+}
+
+.search-container .icon{
+    background: url(/assets/images/admin_icon.png);
+    background-repeat: no-repeat;
+    background-size: 550%;
+    width: 30px;
+    height: 30px;
+    background-position: 92% 92% !important;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.search-container .input-field{
+    position: relative;
+    margin-top: 1rem;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0px;
+    width: 90%;
+}
+
+.search-container .input-field input[type="text"]{
+    background: transparent;
+    border: none;
+    margin: 0px !important;
+    color: #fff;
+}
+
+.search-container .input-field input[type="text"]:focus{
+    border: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    border-bottom: none !important;
+}
+
+.search-container .spacer{
+    display: inline-block;
+    vertical-align: middle;
+    color: #fff;
+    padding: 0px 0px 3px 8px;
+}
+
+.right-container{
+    position: absolute;
+    right: 15px;
+    top: 13px;
+    color: #fff;
+}
+
+.right-container .field{
+    display: inline-block;
+    padding: 0px 5px;
+}
+
+.right-container .field > *{
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.right-container .field .logo{
+    background: url(/assets/images/admin_icon.png);
+    background-repeat: no-repeat;
+    background-size: 600%;
+    width: 30px;
+    height: 30px;
+    background-position: 31% 63% !important;
+}
+
+.right-container .field .logo:hover{
+    cursor: pointer;
+}
+
+.right-container .field .logo.message{
+    background-position: 61% 63% !important;
+}
+
+.user-icon{
+    background-color: #ddd;
+    width: 40px;
+    height: 40px;
+    border-radius: 30px;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
