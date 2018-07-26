@@ -30,6 +30,10 @@
         <ng-container *ngTemplateOutlet="accountReportContainer"></ng-container>
     </div>
 
+    <div class="row" [hidden]="hideFaceToFaceReport">
+        <ng-container *ngTemplateOutlet="faceToFaceReportContainer"></ng-container>
+    </div>
+
     <div class="row" [hidden]="hidePagination">
         <ng-container *ngTemplateOutlet="paginationContainer"></ng-container>
     </div>
@@ -83,7 +87,7 @@
                 <option value="training">Training</option>
                 <option value="location">Location</option>
                 <option value="account">Account</option>
-                <!-- <option value="face">Face to Face</option> -->
+                <option value="face">Face to Face</option>
             </select>
         </div>
 
@@ -119,12 +123,12 @@
                     <td colspan="7" class="center-align">No Record Found</td>
                 </tr>
                 <tr *ngFor="let training of trainingReportData">
-                    <td>{{ training.locations.join(', ') }}</td>
+                    <td>{{ (training.locations.length > 1) ? 'Multiple' : training.locations.join('') }}</td>
                     <td>{{training.account_name}}</td>
                     <td>{{training.full_name}}</td>
                     <td>{{training.email}}</td>
                     <td>{{training.status}}</td>
-                    <td>{{ training.em_roles.join(', ') }}</td>
+                    <td>{{ training.roles.join(', ') }}</td>
                     <td>{{training.expiry_date_formatted}}</td>
                 </tr>
             </tbody>
@@ -158,16 +162,16 @@
                     <td colspan="7" class="center-align">No Record Found</td>
                 </tr>
                 <tr *ngFor="let report of locationReportData">
-                    <td>{{ report.location_name }}</td>
+                    <td>{{ (report.locations.length > 1) ? 'Multiple' : report.locations.join('') }}</td>
                     <td>{{ report.account_name }}</td>
-                    <td>{{ report.first_name }} {{ report.last_name }}</td>
+                    <td>{{ report.full_name }}</td>
                     <td>{{ report.email }}</td>
                     <td>
                         {{ report.phone_number }}
                         <span *ngIf="report.phone_number.trim().length > 0 && report.mobile_number.trim().length > 0"> /</span>
                         {{ report.mobile_number }}
                     </td>
-                    <td>{{ report.role_name }}</td>
+                    <td>{{ report.roles.join(', ') }}</td>
                     <td>
                         <span *ngIf="report.mobility_impaired == 1">Yes</span>
                         <span *ngIf="report.mobility_impaired == 0">No</span>
@@ -203,12 +207,45 @@
                     <td colspan="6" class="center-align">No Record Found</td>
                 </tr>
                 <tr *ngFor="let report of accountReportData">
-                    <td>{{ report.locations.join(' | ') }}</td>
+                    <td>{{ (report.locations.length > 1) ? 'Multiple' : report.locations.join('') }}</td>
                     <td>{{ report.account_name }}</td>
                     <td>{{ report.first_name }} {{ report.last_name }}</td>
                     <td>{{ report.roles.join(', ') }}</td>
                     <td>{{ report.email }}</td>
                     <td>{{ report.last_login_formatted }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</ng-template>
+
+<ng-template #faceToFaceReportContainer>
+    <div class="col l12 m12 s12 relative">
+        <h4 class="blue-text left"> Face To Face Notifications Report </h4>
+        <div class="right right-buttons">
+            <ng-container *ngTemplateOutlet="rightButtons"></ng-container>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th>Account</th>
+                    <th>Name</th>
+                    <th width="10%">Email</th>
+                    <th>Email CC</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="faceToFaceReportData.length == 0">
+                    <td colspan="4" class="center-align">No Record Found</td>
+                </tr>
+                <tr *ngFor="let report of faceToFaceReportData">
+                    <td>{{ report.account_name }}</td>
+                    <td>{{ report.full_name }}</td>
+                    <td>{{ report.email }}</td>
+                    <td>{{ report.cc_emails }}</td>
                 </tr>
             </tbody>
         </table>

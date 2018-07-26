@@ -78,11 +78,15 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public getLocationsByUserIds(userIds) {
+    public getLocationsByUserIds(userIds, locId?) {
         return new Promise((resolve, reject) => {
+            let whereLoc = (locId) ? ` AND lau.location_id = ${locId} ` : '';
+
             const sql_load = `SELECT
                     lau.location_account_user_id,
                     lau.user_id,
+                    IF(urr.role_id IS NOT NULL, IF(urr.role_id = 1, 'FRP', 'TRP'), '') as role_name,
+                    IF(urr.role_id IS NOT NULL, urr.role_id, '') as role_id,
                     l.parent_id,
                     l.location_id,
                     l.formatted_address,
@@ -94,7 +98,8 @@ export class LocationAccountUser extends BaseClass {
                     FROM location_account_user lau
                     INNER JOIN locations l ON l.location_id = lau.location_id
                     LEFT JOIN locations ploc ON ploc.location_id = l.parent_id
-                    WHERE lau.user_id IN (`+userIds+`)`;
+                    LEFT JOIN user_role_relation urr ON urr.user_id = lau.user_id
+                    WHERE lau.user_id IN (`+userIds+`) ${whereLoc} `;
 
             const connection = db.createConnection(dbconfig);
 

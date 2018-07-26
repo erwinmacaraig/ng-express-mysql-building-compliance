@@ -36,10 +36,12 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     hidePagination = true;
     hideLocationReport = true;
     hideAccountReport = true;
+    hideFaceToFaceReport = true;
 
     trainingReportData = [];
     locationReportData = [];
     accountReportData = [];
+    faceToFaceReportData = [];
 
     pagination = {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : [], limit : 25, offset : 0
@@ -191,7 +193,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
             type : this.reportType,
             location_id : (!this.inpAllLocs.nativeElement.checked) ? this.selectedLocation.location_id : 0,
             account_id : (Object.keys(this.selectedAccount).length > 0) ? this.selectedAccount.account_id : 0,
-            offset : 0,
+            offset : -1,
             limit : this.pagination.total
         });
     }
@@ -203,6 +205,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
             this.hideTrainingReport = true;
             this.hideLocationReport = true;
             this.hideAccountReport = true;
+            this.hideFaceToFaceReport = true;
 
             this.dashboardPreloader.show();
             this.callGenerateReport((response:any) => {
@@ -215,6 +218,9 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                 }else if(this.reportType == 'account'){
                     this.hideAccountReport = false;
                     this.accountReportData = response.data;
+                }else if(this.reportType == 'face'){
+                    this.hideFaceToFaceReport = false;
+                    this.faceToFaceReportData = response.data;
                 }
 
                 this.pagination.currentPage = 1;
@@ -258,6 +264,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.hidePagination = true;
         this.hideLocationReport = true;
         this.hideAccountReport = true;
+        this.hideFaceToFaceReport = true;
         this.csvLoader = true;
         this.pagination.offset = 0;
     }
@@ -334,6 +341,9 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         }else if(this.reportType == 'account'){
             title = 'Account Report';
             columns = ["Locations", "Account", "Name", "Account Role", "Email", "Last Logged In"];
+        }else if(this.reportType == 'face'){
+            title = 'Face To Face Notifications Report';
+            columns = ["Account", "Name", "Email", "Email CC"];
         }
 
         csvData[ getLength() ] = [title];
@@ -346,24 +356,28 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
             for(let log of this.exportData){
                 if(this.reportType == 'training'){
                     let 
-                    locNames = log.locations.join(', '),
-                    roles = log.em_roles.join(', ');
+                    locNames = (log.locations.length > 1) ? 'Multiple'  : log.locations.join(', '),
+                    roles = log.roles.join(', ');
 
                     csvData[ getLength() ] = [ locNames, log.account_name, log.full_name, log.email, log.status, roles, log.expiry_date_formatted ];
                 }else if(this.reportType == 'location'){
-                    let 
+                    let
+                    locNames = (log.locations.length > 1) ? 'Multiple'  : log.locations.join(', '),
                     impaired = (log.mobility_impaired == 1) ? 'yes' : 'no',
+                    roles = log.roles.join(', '),
                     phoneMobile = log.phone_number;
                     phoneMobile += (log.phone_number.trim().length > 0 && log.mobile_number.trim().length > 0) ? ' / ' : ' ';
                     phoneMobile += log.mobile_number;
 
-                    csvData[ getLength() ] = [ log.location_name, log.account_name, log.first_name+' '+log.last_name, log.email, phoneMobile, log.role_name, impaired ];
+                    csvData[ getLength() ] = [ locNames, log.account_name, log.full_name, log.email, phoneMobile, roles, impaired ];
                 }else if(this.reportType == 'account'){
                     let 
-                    locNames = log.locations.join(' | '),
+                    locNames = (log.locations.length > 1) ? 'Multiple'  : log.locations.join(', '),
                     roles = log.roles.join(', ');
                     
-                    csvData[ getLength() ] = [ locNames, log.account_name, log.first_name+' '+log.last_name, roles, log.email, log.last_login_formatted ];
+                    csvData[ getLength() ] = [ locNames, log.account_name, log.full_name, roles, log.email, log.last_login_formatted ];
+                }else if(this.reportType == 'face'){
+                    csvData[ getLength() ] = [ log.account_name, log.full_name, log.email, log.cc_emails ];
                 }
             }
 

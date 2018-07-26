@@ -1597,7 +1597,108 @@ export class AdminRoute extends BaseRoute {
 
 
 
-    public async generateAdminTrainingReport(req: AuthRequest, res: Response){
+    private async getUsersOfReport(req: AuthRequest, frptrp?){
+        let
+        accountId = (req.body.account_id) ? req.body.account_id : 0,
+        locationId = (req.body.location_id) ? req.body.location_id : 0,
+        type = (req.body.type) ? req.body.type : '',
+        locationModel = new Location(locationId),
+        sublocationModel = new Location(),
+        accountModel = new Account(),
+        usersModel = new User(),
+        users = <any> [],
+        allAccountIds = [],
+        accounts = <any> [],
+        locations = <any> [],
+        allLocationIds = [],
+        limit = (req.body.limit) ? req.body.limit : 25,
+        offset = (req.body.offset) ? (req.body.offset > -1) ? req.body.offset : 0  : 0,
+        offLimit = (limit == -1) ? false : offset+','+limit,
+        usersCount = [];
+
+        if(locationId > 0){
+            try{
+                let
+                loc = await locationModel.load(),
+                deepLocations = [];
+                locations.push(loc);
+                allLocationIds.push(locationId);
+
+                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationId);
+                for(let deeploc of deepLocations){
+                    allLocationIds.push(deeploc.location_id);
+                }
+            }catch(e){}
+        }else{
+            let whereLoc = [];
+            whereLoc.push(' archived = 0 ');
+            try{
+                locations = <any> await locationModel.getWhere( whereLoc );
+                for(let loc of locations){
+                    allLocationIds.push(loc.location_id);
+                }
+            }catch(e){  }
+        }
+
+        if(type == 'face'){
+            users = <any> await usersModel.getAllActive(accountId);
+            usersCount = <any> await usersModel.getAllActive(accountId, true);
+        }else{
+            if(frptrp){
+                users = <any> await usersModel.getIsFrpTrp(accountId, false, offLimit, allLocationIds.join(','));
+                usersCount = <any> await usersModel.getIsFrpTrp(accountId, true, undefined, allLocationIds.join(','));
+            }else{
+                users = <any> await usersModel.getIsEm(accountId, false, offLimit, allLocationIds.join(','));
+                usersCount = <any> await usersModel.getIsEm(accountId, true, undefined, allLocationIds.join(','));
+            }
+        }
+
+
+        let total = (usersCount[0]) ? usersCount[0]['count'] : 0;
+        let pages = 0;
+
+        if(total > limit){
+            let div = total / limit,
+                rem = (total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            pages = totalpages;
+        }
+
+        if(pages == 0 && total <= limit && total > 0){
+            pages = 1;
+        }
+
+        return {
+            'users' : users,
+            'total' : (usersCount[0]) ? usersCount[0]['count'] : 0,
+            'pages' : pages
+        };
+    }
+
+    private async getLocationsOfUsersReport(req: AuthRequest, userIds, frptrp?){
+        let 
+        locationId = (req.body.location_id) ? req.body.location_id : 0,
+        locAccUser = new LocationAccountUser(),
+        userEmModel = new UserEmRoleRelation(),
+        locations = <any> [];
+
+        if(userIds.length > 0){
+            if(frptrp){
+                locations = <any> await locAccUser.getLocationsByUserIds(userIds.join(','), locationId);
+            }else{
+                locations = <any> await userEmModel.getLocationsByUserIds(userIds.join(','), locationId);
+            }
+        }
+
+        return locations;
+    }
+
+    private async getUsersAndPaginations(req: AuthRequest){
         let
         response = <any> {
             pagination : <any> {
@@ -1609,365 +1710,114 @@ export class AdminRoute extends BaseRoute {
             message : '',
         },
         accountId = (req.body.account_id) ? req.body.account_id : 0,
-        locationId = (req.body.location_id) ? req.body.location_id : 0,
-        limit = (req.body.limit) ? req.body.limit : 25,
-        offset = (req.body.offset) ? req.body.offset : 0,
-        page = (req.body.page) ? req.body.page : 1,
         type = (req.body.type) ? req.body.type : '',
-        locationModel = new Location(locationId),
-        sublocationModel = new Location(),
-        locations = [],
-        users = [],
-        accountModel = new Account(),
-        accounts = <any> [],
-        usersModel = new User(),
+        users = <any> [],
         allUserIds = [],
-        allLocationIds = [];
+        isFrpTrp = (type == 'account') ? true : false,
+        locationModel = new Location(),
+        locations = <any> [];
 
-        if(locationId > 0){
-            try{
-                let
-                loc = await locationModel.load(),
-                deepLocations = [];
-                locations.push(loc);
-                allLocationIds.push(locationId);
+        let useraAndCountResponse = <any> await this.getUsersOfReport(req, isFrpTrp);
 
-                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationId);
-                for(let deeploc of deepLocations){
-                    allLocationIds.push(deeploc.location_id);
-                }
-            }catch(e){}
-        }else{
-            let whereLoc = [];
-            whereLoc.push(' archived = 0 ');
-            try{
-                locations = <any> await locationModel.getWhere( whereLoc );
-            }catch(e){  }
-        }
-
-        response['locations'] = locations;
-
-        for(let loc of locations){
-            allLocationIds.push(loc.location_id);
-        }
-
-        let
-        locAccUser = new UserEmRoleRelation(),
-        config = {};
-
-        if(accountId > 0){
-            config['account_id'] = accountId;
-        }
-
-        if(allLocationIds.length > 0){
-            users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
-        }
-
-        response['users'] = users;
-
+        users = useraAndCountResponse.users;
 
         for(let user of users){
             allUserIds.push(user.user_id);
         }
 
-        if(allUserIds.length > 0){
-            let offsetLimit =  offset+','+limit,
-                courseMethod = undefined,
-                trainCertModel = new TrainingCertification(),
-                trainCertCountModel = new TrainingCertification(),
-                certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, false, courseMethod, undefined, undefined, '' ),
-                certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, true, courseMethod, undefined, undefined, '' );
-
-            response['certificates'] = certificates;
-
-            for(let cert of certificates){
-                cert['em_roles'] = [];
-                cert['locations'] = [];
-                for(let user of users){
-                    if(user.user_id == cert.user_id){
-                        cert['first_name'] = user.first_name;
-                        cert['last_name'] = user.last_name;
-                        cert['full_name'] = user.first_name+' '+user.last_name;
-                        cert['email'] = user.email;
-                        cert['account_id'] = user.account_id;
-                        cert['account_name'] = user.account_name;
-                        if(cert['em_roles'].indexOf(user.role_name) == -1){
-                            cert['em_roles'].push(user.role_name);
-                        }
-                        if(cert['locations'].indexOf(user.location_name) == -1){
-                            cert['locations'].push(user.location_name);
-                        }
-                    }
-                }
-
-                if(cert['certification_date'] != null){
-                    cert['certification_date_formatted'] = (moment(cert['certification_date']).isValid()) ? moment(cert['certification_date']).format('DD/MM/YYYY') : '';
-                }else{
-                    cert['certification_date_formatted'] = 'n/a';
-                }
-
-                cert['expiry_date_formatted'] = (moment(cert['expiry_date']).isValid()) ? moment(cert['expiry_date']).format('DD/MM/YYYY') : '';
-
-                if(cert['training_requirement_name'] == null){
-                    cert['training_requirement_name'] = '--';
-                }
-            }
-
-            response.pagination.total = (certificatesCount[0]) ? certificatesCount[0]['count'] : 0;
-
-            let finalResult = [];
-            for(let cert of certificates){
-                let isIn = false;
-                for(let fin of finalResult){
-                    if(cert.user_id == fin.user_id){
-                        isIn = true;
-                    }
-                }
-                if(!isIn){
-                    finalResult.push(cert);
-                }
-            }
-
-            response.data = finalResult;
-
-
-            if(response.pagination.total > limit){
-                let div = response.pagination.total / limit,
-                    rem = (response.pagination.total % limit) * 1,
-                    totalpages = Math.floor(div);
-
-                if(rem > 0){
-                    totalpages++;
-                }
-
-                response.pagination.pages = totalpages;
-            }
-
-            if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
-                response.pagination.pages = 1;
-            }
-        }
-
-
-        return response;
-    }
-
-    public async generateAdminLocationReport(req: AuthRequest, res: Response){
-        let
-        response = <any> {
-            pagination : <any> {
-                total : 0,
-                pages : 0
-            },
-            data : <any>[],
-            message : '',
-        },
-        accountId = (req.body.account_id) ? req.body.account_id : 0,
-        locationId = (req.body.location_id) ? req.body.location_id : 0,
-        limit = (req.body.limit) ? req.body.limit : 25,
-        offset = (req.body.offset) ? req.body.offset : 0,
-        page = (req.body.page) ? req.body.page : 1,
-        type = (req.body.type) ? req.body.type : '',
-        locationModel = new Location(locationId),
-        sublocationModel = new Location(),
-        locations = [],
-        users = [],
-        accountModel = new Account(),
-        accounts = <any> [],
-        usersModel = new User(),
-        allUserIds = [],
-        allLocationIds = [];
-
-        if(locationId > 0){
-            try{
-                let
-                loc = await locationModel.load(),
-                deepLocations = [];
-                locations.push(loc);
-                allLocationIds.push(locationId);
-
-                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationId);
-                for(let deeploc of deepLocations){
-                    allLocationIds.push(deeploc.location_id);
-                }
-            }catch(e){}
-        }else{
-            let whereLoc = [];
-            whereLoc.push(' archived = 0 ');
-            try{
-                locations = <any> await locationModel.getWhere( whereLoc );
-            }catch(e){  }
-        }
-
-        for(let loc of locations){
-            allLocationIds.push(loc.location_id);
-        }
-
-        let
-        locAccUser = new UserEmRoleRelation(),
-        offsetLimit =  offset+','+limit,
-        config = {},
-        countUsersDB = [];
-
-        if(accountId > 0){
-            config['account_id'] = accountId;
-        }
-
-        config['limit'] = offsetLimit;
-
-        if(allLocationIds.length > 0){
-            users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
-            let countConfig = JSON.parse(JSON.stringify(config));
-            delete countConfig['limit'];
-            countConfig['count'] = true;
-            countUsersDB = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, countConfig);
-        }
-
-        response.data = users;
-
-        response.pagination.total = (countUsersDB[0]) ? countUsersDB[0]['count'] : 0;
-
-        if(response.pagination.total > limit){
-            let div = response.pagination.total / limit,
-                rem = (response.pagination.total % limit) * 1,
-                totalpages = Math.floor(div);
-
-            if(rem > 0){
-                totalpages++;
-            }
-
-            response.pagination.pages = totalpages;
-        }
-
-        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
-            response.pagination.pages = 1;
-        }
-
-        return response;
-    }
-
-    public async generateAdminAccountReport(req: AuthRequest, res: Response){
-        let
-        response = <any> {
-            pagination : <any> {
-                total : 0,
-                pages : 0
-            },
-            data : <any>[],
-            message : '',
-        },
-        accountId = (req.body.account_id) ? req.body.account_id : 0,
-        locationId = (req.body.location_id) ? req.body.location_id : 0,
-        limit = (req.body.limit) ? req.body.limit : 25,
-        offset = (req.body.offset) ? req.body.offset : 0,
-        page = (req.body.page) ? req.body.page : 1,
-        type = (req.body.type) ? req.body.type : '',
-        usersModel = new User(),
-        locationModel = new Location(locationId),
-        sublocationModel = new Location(),
-        users = [],
-        accountIdParam = false,
-        countParam = false,
-        limitParam = offset+','+limit,
-        locationIdsParam = <any> false;
-
-        if(accountId > 0){
-            accountIdParam = accountId;
-        }
-
-        if(locationId > 0){
-            try{
-                locationIdsParam = [];
-
-                let
-                loc = await locationModel.load(),
-                deepLocations = [];
-                locationIdsParam.push(locationId);
-
-                console.log('locationIdsParam', locationIdsParam);
-
-                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationId);
-                for(let deeploc of deepLocations){
-                    locationIdsParam.push(deeploc.location_id);
-                }
-
-                console.log('locationIdsParam', locationIdsParam);
-            }catch(e){}
-        }
-
-        users = <any> await usersModel.getIsFrpTrp(accountIdParam, countParam, limitParam, locationIdsParam);
+        locations = <any> await this.getLocationsOfUsersReport(req, allUserIds, isFrpTrp);
+        response['locations'] = locations;
 
         for(let user of users){
-            let userRole = new UserRoleRelation();
-            user['roles'] = [];
-            try{
-                let roles = <any> await userRole.getByUserId(user.user_id);
-                for(let role of roles){
-                    if(role.role_id == 1){
-                        user['roles'].push('FRP');
-                    }else if(role.role_id == 2){
-                        user['roles'].push('TRP');
+            if(!user['locations']){
+                user['locations'] = [];
+            }
+
+            if(!user['roles']){
+                user['roles'] = [];
+            }
+
+            for(let loc of locations){
+                if(loc.user_id == user.user_id){
+                    if(user['locations'].indexOf(loc.name) == -1){
+                        user['locations'].push(loc.name);
+                    }
+                    if(user['roles'].indexOf(loc.role_name) == -1){
+                        user['roles'].push(loc.role_name);
                     }
                 }
-            }catch(e){}
-
-            let
-            locAccUser = new LocationAccountUser(),
-            userLocations = <any> await locAccUser.getByUserId(user.user_id, true);
-
-            user['locations'] = [];
-            for(let loc of userLocations){
-                user['locations'].push(loc.location_name);
             }
-
-            user['last_login_formatted'] = moment(user['last_login']).format('DD/MM/YYYY');
         }
 
-        response.data = users;
-
-        let usersCount = <any> await usersModel.getIsFrpTrp(accountIdParam, true, undefined, locationIdsParam);
-
-        response.pagination.total = (usersCount[0]) ? usersCount[0]['count'] : 0;
-
-        if(response.pagination.total > limit){
-            let div = response.pagination.total / limit,
-                rem = (response.pagination.total % limit) * 1,
-                totalpages = Math.floor(div);
-
-            if(rem > 0){
-                totalpages++;
-            }
-
-            response.pagination.pages = totalpages;
-        }
-
-        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
-            response.pagination.pages = 1;
-        }
-
+        response['users'] = users;
+        response.pagination.total = useraAndCountResponse.total;
+        response.pagination.pages = useraAndCountResponse.pages;
         return response;
-
     }
 
     public async generateAdminReport(req: AuthRequest, res: Response){
         let
-        response = <any> {},
+        response = <any> {
+            pagination : <any> {
+                total : 0,
+                pages : 0
+            },
+            data : <any>[],
+            message : '',
+        },
+        accountId = (req.body.account_id) ? req.body.account_id : 0,
         type = (req.body.type) ? req.body.type : '';
 
         if(type.trim().length > 0){
-            if(type == 'training'){
-                response = await this.generateAdminTrainingReport(req, res);
-            }else if(type == 'location'){
-                response = await this.generateAdminLocationReport(req, res);
-            }else if(type == 'account'){
-                response = await this.generateAdminAccountReport(req, res);
+            let data = <any> await this.getUsersAndPaginations(req);
+            response['data'] = data.users;
+
+            for(let user of data.users){
+                user['full_name'] = user.first_name+' '+user.last_name;
             }
+
+            if(type == 'training'){
+                for(let user of data.users){
+                    let
+                    trainCertModel = new TrainingCertification(),
+                    certificates = <any> await trainCertModel.getCertificatesByInUsersId(user.user_id);
+
+                    user['certificates'] = certificates;
+                    user['status'] = (certificates.length > 0) ? certificates[0]['status'] : 'Invalid';
+                    let expDate = moment(certificates[0]['expiry_date']);
+
+                    user['expiry_date_formatted'] = (certificates.length > 0) ? (expDate.isValid()) ?  expDate.format('DD/MM/YYYY') : '' : '';
+                }
+            }else if(type == 'face'){
+                let 
+                allAccountIds = [],
+                userModel = new User(),
+                frptrps = <any> [];
+
+                for(let user of data.users){
+                    if(allAccountIds.indexOf(user.account_id) > -1){
+                        allAccountIds.push(user.account_id);
+                    }
+                }
+
+                frptrps = <any> await userModel.getIsFrpTrp(allAccountIds.join(','));
+                let emails = [];
+                for(let frp of frptrps){
+                    if(emails.indexOf(frp.email) == -1){
+                        emails.push(frp.email);
+                    }
+                }
+
+                for(let user of data.users){
+                    user['cc_emails'] = emails.join(',');
+                }
+            }
+
+            response.pagination.total = data.pagination.total;
+            response.pagination.pages = data.pagination.pages;
         }
+
 
         res.send(response);
     }
-
-
-
-
 }
