@@ -99,7 +99,6 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
       this.accountFormValue[field] = accountDetails[field];
     });
     this.accountId = accountDetails['account_id'];
-    console.log(this.accountFormValue);
     this.ngOnInit();
   }
 
