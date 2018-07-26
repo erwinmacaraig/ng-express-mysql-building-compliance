@@ -1795,10 +1795,12 @@ export class AdminRoute extends BaseRoute {
                 frptrps = <any> [];
 
                 for(let user of data.users){
-                    if(allAccountIds.indexOf(user.account_id) > -1){
+                    if(allAccountIds.indexOf(user.account_id) == -1){
                         allAccountIds.push(user.account_id);
                     }
                 }
+
+                response['allAccountIds'] = allAccountIds;
 
                 frptrps = <any> await userModel.getIsFrpTrp(allAccountIds.join(','));
                 let emails = [];
@@ -1809,7 +1811,7 @@ export class AdminRoute extends BaseRoute {
                 }
 
                 for(let user of data.users){
-                    user['cc_emails'] = emails.join(',');
+                    user['cc_emails'] = emails.join(', ');
                 }
             }
 
