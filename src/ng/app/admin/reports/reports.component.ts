@@ -19,7 +19,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     @ViewChild('searchAccountContainer') searchAccountContainer : ElementRef;
     @ViewChild('searchLocationContainer') searchLocationContainer : ElementRef;
-    @ViewChild('inpAllLocs') inpAllLocs : ElementRef;
+    // @ViewChild('inpAllLocs') inpAllLocs : ElementRef;
     @ViewChild('selectReportType') selectReportType : ElementRef
 
     searchAccountSubs;
@@ -68,13 +68,13 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.searchLocationEvent();
         this.dismissSearchEvent();
 
-        this.inpAllLocs.nativeElement.addEventListener('change', (event:any) => {
+        /*this.inpAllLocs.nativeElement.addEventListener('change', (event:any) => {
             let elemsLocs = this.getInputSearchLoaderElems(this.searchLocationContainer.nativeElement);
             if(event.target.checked){
                 this.selectedLocation = {};
                 elemsLocs.input.value = '';
             }
-        });
+        });*/
     }
 
     clickSelectFromSearch(type, data, event, parent?){
@@ -90,7 +90,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         }else{
             this.selectedLocation = data;
             elemsLocs.input.value = (parent)? parent.name+' - '+data.name : data.name;
-            this.inpAllLocs.nativeElement.checked = false;
+            // this.inpAllLocs.nativeElement.checked = false;
         }
 
         elemsAccnts.searchResult.style.display = 'none';
@@ -161,6 +161,8 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                 }else{
                     this.selectedAccount = {};
                 }
+                this.selectedLocation = {};
+                this.searchLocationContainer.nativeElement.querySelector('.round-input').value = "";
             }
         );
     }
@@ -179,8 +181,10 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                     });
                 }else{
                     this.selectedLocation = {};
-                    this.inpAllLocs.nativeElement.checked = true;
+                    // this.inpAllLocs.nativeElement.checked = true;
                 }
+                this.selectedAccount = {};
+                this.searchAccountContainer.nativeElement.querySelector('.round-input').value = "";
             }
         );
     }
@@ -191,7 +195,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
             this.csvLoader = false;
         }, {
             type : this.reportType,
-            location_id : (!this.inpAllLocs.nativeElement.checked) ? this.selectedLocation.location_id : 0,
+            location_id : (this.selectedLocation.location_id > 0) ? this.selectedLocation.location_id : 0,
             account_id : (Object.keys(this.selectedAccount).length > 0) ? this.selectedAccount.account_id : 0,
             offset : -1,
             limit : this.pagination.total
@@ -200,7 +204,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     generateReport(){
         this.reportType = this.selectReportType.nativeElement.value;
-        if( (this.reportType != '0') && (Object.keys(this.selectedLocation).length > 0  || this.inpAllLocs.nativeElement.checked == true) ){
+        if( (this.reportType != '0') && ( Object.keys(this.selectedLocation).length > 0  || Object.keys(this.selectedAccount).length > 0 ) ){
             this.hideFormField = true;
             this.hideTrainingReport = true;
             this.hideLocationReport = true;
@@ -243,7 +247,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     callGenerateReport(callBack, paramForm?){
         let form = {
             type : this.reportType,
-            location_id : (!this.inpAllLocs.nativeElement.checked) ? this.selectedLocation.location_id : 0,
+            location_id : (this.selectedLocation.location_id > 0) ? this.selectedLocation.location_id : 0,
             account_id : (Object.keys(this.selectedAccount).length > 0) ? this.selectedAccount.account_id : 0,
             offset : this.pagination.offset,
             limit : this.pagination.limit
