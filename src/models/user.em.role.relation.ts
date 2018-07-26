@@ -516,8 +516,10 @@ export class UserEmRoleRelation extends BaseClass {
       });
     }
 
-    public getLocationsByUserIds(userIds) {
+    public getLocationsByUserIds(userIds, locId?) {
         return new Promise((resolve, reject) => {
+            let whereLoc = (locId) ? ` AND uemr.location_id = ${locId} ` : '';
+
             const sql_load = `SELECT
                     uemr.user_id,
                     uemr.em_role_id as role_id,
@@ -528,16 +530,20 @@ export class UserEmRoleRelation extends BaseClass {
                     l.formatted_address,
                     l.google_place_id,
                     l.google_photo_url,
-                    l.is_building
+                    l.is_building,
+                    IF(ploc.name IS NOT NULL, CONCAT( IF(TRIM(ploc.name) <> '', CONCAT(ploc.name, ', '), ''), l.name), l.name) as name,
+                    ploc.name as parent_name
                     FROM user_em_roles_relation uemr
                     INNER JOIN locations l ON l.location_id = uemr.location_id
+                    LEFT JOIN locations ploc ON ploc.location_id = l.parent_id
                     INNER JOIN em_roles er ON er.em_roles_id = uemr.em_role_id
-                    WHERE uemr.user_id IN (`+userIds+`)`;
+                    WHERE uemr.user_id IN (`+userIds+`) ${whereLoc} `;
 
             const connection = db.createConnection(dbconfig);
 
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
+                    console.log('sql_load', sql_load);
                     return console.log(error);
                 }
                 this.dbData = results;
@@ -574,5 +580,4 @@ export class UserEmRoleRelation extends BaseClass {
             connection.end();
         });
     }
-
 }

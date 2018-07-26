@@ -353,9 +353,12 @@ app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
 
 .round-input-container .search-result ul li  > ul{
     position: absolute;
-    left: 434px;
+    right: 0px;
     top: -1px;
     display: none;
+    transform: translate(100% ,0%);
+    max-height: 400px;
+    overflow: auto;
 }
 
 .round-input-container .search-result ul li{

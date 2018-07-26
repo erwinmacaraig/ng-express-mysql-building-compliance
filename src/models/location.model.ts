@@ -888,8 +888,7 @@ export class Location extends BaseClass {
           connection.end();
         });
     }
-
-
+    
     public getTenantAccounts(location = 0): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         let locId = this.ID();
@@ -1120,26 +1119,26 @@ export class Location extends BaseClass {
         });
     }
 
-  public toggleBulkOnlineTrainingAccess(locations = [], online_training = 0) {
-    return new Promise((resolve, reject) => {
-      if (locations.length == 0) {
-        resolve(false);
-        return;
-      }
-      const locationIds = locations.join(',');
-      const sql_update = `UPDATE locations SET online_training = ?
-                          WHERE location_id IN (${locationIds});`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, [online_training], (error, results) => {
-          if (error) {
-            console.log('location.model.toggleBulkOnlineTrainingAccess', error, sql_update);
-            throw Error('cannot update');
+    public toggleBulkOnlineTrainingAccess(locations = [], online_training = 0) {
+        return new Promise((resolve, reject) => {
+          if (locations.length == 0) {
+            resolve(false);
+            return;
           }
-          resolve(true);
-      });
+          const locationIds = locations.join(',');
+          const sql_update = `UPDATE locations SET online_training = ?
+                              WHERE location_id IN (${locationIds});`;
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql_update, [online_training], (error, results) => {
+              if (error) {
+                console.log('location.model.toggleBulkOnlineTrainingAccess', error, sql_update);
+                throw Error('cannot update');
+              }
+              resolve(true);
+          });
 
-      connection.end();
-    });
-  }
+          connection.end();
+        });
+    }
 
 }

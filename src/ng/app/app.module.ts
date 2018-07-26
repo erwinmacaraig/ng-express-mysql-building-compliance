@@ -26,7 +26,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
 import { UserDashboardComponent  } from './dashboard/user/user.component';
-
+import { SecurityPrivacyComponent } from './dashboard/security-privacy/security.privacy';
 
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
@@ -139,6 +139,7 @@ import { AdminAddAccountComponent } from './admin/add-account/add-account.compon
     ChangepasswordComponent,
     NavbarComponent,
     DashboardComponent,
+    SecurityPrivacyComponent,
 
     FrpTrpDashboardComponent,
     UserDashboardComponent,
