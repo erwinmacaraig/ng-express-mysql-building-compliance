@@ -1497,9 +1497,11 @@ export class UsersRoute extends BaseRoute {
                     const temp = await course_user_rel.getRelationDetails({'user': userId, 'training_requirement': t['training_requirement_id']});
                     t['course_user_relation_id'] = temp['course_user_relation_id'];
                     t['course_launcher'] = temp['course_launcher'];
+                    t['disabled'] = temp['disabled'];
                   } catch (e) {
                     t['course_user_relation_id'] = 0;
                     t['course_launcher'] = '';
+                    t['disable'] = 1;
                   }
                 }
                 if( user['mobility_impaired'] == 1 ){

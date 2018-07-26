@@ -849,7 +849,7 @@ export class TeamRoute extends BaseRoute {
                 'em_role_id': defs['em_roles']['GENERAL OCCUPANT'],
                 'location_id': req.body.sublocation
             });
-        }else{
+        } else {
             const EMRoleUserRole = new UserEmRoleRelation();
             await EMRoleUserRole.create({
                 'user_id': user.ID(),

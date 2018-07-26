@@ -367,7 +367,7 @@ export class LocationAccountRelation extends BaseClass {
                     LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
                     LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
 
-                    INNER JOIN  location_account_relation lar
+                    LEFT JOIN  location_account_relation lar
                     ON lar.location_id = l.location_id
                     OR p1.location_id = lar.location_id
                     OR p2.location_id = lar.location_id
@@ -378,9 +378,8 @@ export class LocationAccountRelation extends BaseClass {
                     lar.account_id = ?
                     ${filterStr}
                     ${nameSearchForTRP}
-                    GROUP BY l.location_id
-                    ${orderBy}
 
+                    GROUP BY l.location_id
                 ) src
             `;
         }else if('locationIdOnly' in filter){
@@ -411,13 +410,26 @@ export class LocationAccountRelation extends BaseClass {
         }else{
             sql_get_locations += ` ${offsetLimit}`;
         }
+
+        // console.log('sql_get_locations', sql_get_locations);
+
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_locations, [accountId], (error, results) => {
             if (error) {
                 console.log('location.account.relation.listAllLocationsOnAccount', error, sql_get_locations);
                 throw Error('Cannot get all locations for this account');
             }
-            resolve(results);
+
+            if('count' in filter){
+                if(results[0]['count'] == null){
+                    resolve([{ count : 0 }]);
+                }else{
+                    resolve(results);
+                }
+            }else{
+                resolve(results);
+            }
+            
         });
         connection.end();
 
