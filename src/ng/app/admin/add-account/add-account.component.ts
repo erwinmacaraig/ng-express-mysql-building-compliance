@@ -103,4 +103,25 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
     this.ngOnInit();
   }
 
+  resetNewAccountForm() {
+    this.newAccountForm.reset();
+    this.filteredAccounts = [];
+    this.accountId = 0;
+    this.accountFormValue = {
+      account_name: null,
+      key_contact: null,
+      new_account_type: null,
+      billing_street: null,
+      billing_city: null,
+      billing_state: null,
+      billing_postal_code: null,
+      account_contact_num: null,
+      account_email: null,
+      epc_committee_on_hq: false,
+      online_training: false,
+      account_id: 0
+    };
+
+  }
+
 }
