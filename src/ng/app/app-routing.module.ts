@@ -87,6 +87,8 @@ import { ReportsTrainingsComponent  } from './reports/trainings/trainings.compon
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
+// NOTIFICATION
+import { NotificationListComponent } from './notification/notification-list.component';
 
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
@@ -125,7 +127,8 @@ const appRoutes: Routes = [
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
       { path: 'company-information', component: CompanyInformationComponent },
-      { path : 'send-invite', component : SendInviteComponent }
+      { path: 'send-invite', component : SendInviteComponent },
+      { path: 'notification-list', component: NotificationListComponent }
     ]
   },
   //
@@ -229,7 +232,8 @@ const appRoutes: Routes = [
       { path : 'reports', component : AdminReportsComponent },
       { path: 'new-account', component: AdminAddAccountComponent }
     ]
-  }
+  },
+
 ];
 
 @NgModule({

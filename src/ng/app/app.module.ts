@@ -112,6 +112,9 @@ import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 import { EpcMinutesMeetingComponent } from './compliance/epc-minutes-meeting/epc.minutes.meeting';
 
+// NOTIFICATION
+import { NotificationListComponent } from './notification/notification-list.component';
+
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -216,6 +219,8 @@ import { AdminAddAccountComponent } from './admin/add-account/add-account.compon
     ReportsActivityLogComponent,
     AssignCoursesComponent,
     EpcMinutesMeetingComponent,
+    // NOTIFICATION
+    NotificationListComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,
