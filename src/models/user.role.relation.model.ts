@@ -208,5 +208,4 @@ export class UserRoleRelation extends BaseClass {
 
         });
     }
-
 }

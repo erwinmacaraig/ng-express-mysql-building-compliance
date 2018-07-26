@@ -62,6 +62,10 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().updateUser(req, res, next);
 	    });
 
+        router.post('/users/change-password', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+            new  UsersRoute().changePassword(req, res);
+        });
+
 		router.post('/users/upload-profile-picture', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().uploadProfilePicture(req, res, next);
 	    });
@@ -574,6 +578,53 @@ export class UsersRoute extends BaseRoute {
           }
 
         }
+    }
+
+    public async changePassword(req: Request , res: Response){
+        let
+        response = {
+            status : false,
+            data : {},
+            message : ''
+        },
+        oldPassword = req.body.old_password,
+        newPassword = req.body.new_password,
+        confirmPassword = req.body.confirm_password,
+        errorLength = 0;
+
+        if( newPassword.length < 6 || confirmPassword.length < 6){
+            errorLength++;
+        }
+
+        if(errorLength == 0){
+            if(confirmPassword == newPassword){
+                try{
+                    let
+                    userModel = new User(req.body.user_id),
+                    userData = await userModel.load(),
+                    hasPass = false;
+
+                    if( md5('Ideation'+oldPassword+'Max') == userData['password']){
+                        userModel.set('password', md5('Ideation'+newPassword+'Max'));
+                        userModel.setID(req.body.user_id);
+
+                        await userModel.dbUpdate();
+                        response.data = userData;
+                        response.status = true;
+                    }else{
+                        response.message = 'Invalid old password';
+                    }
+                }catch(e){
+                    response.message = 'No user found';
+                }
+            }else{
+                response.message = 'Password mismatch';
+            }
+        }else{
+            response.message = 'All fields must be greater than 6 characters';
+        }
+
+        res.send(response);
     }
 
 	public async updateUser(req: Request , res: Response, next: NextFunction){

@@ -15,10 +15,10 @@
 				<li *ngIf="showLinks.locations" class="nav-list-locations">
 					<a [routerLink]="['/location', 'list']" *ngIf="locationLinkForFrp"><img alt="Location" src="assets/images/location.png" ><span>Locations</span></a>
 					<a [routerLink]="['/location', 'warden']" *ngIf="!locationLinkForFrp"><img alt="Location" src="assets/images/location.png" ><span>Locations</span></a>
-        </li>
-        <li *ngIf="showLinks.team" class="nav-list-team">
-            <a [routerLink]="['/teams']"> <img alt="Team" src="assets/images/team.png" ><span>Team</span> </a>
-          </li>
+                </li>
+                <li *ngIf="showLinks.team" class="nav-list-team">
+                    <a [routerLink]="['/teams']"> <img alt="Team" src="assets/images/team.png" ><span>Team</span> </a>
+                </li>
 				<li *ngIf="showLinks.training" class="nav-list-trainings">
 					<a [routerLink]="['/trainings', 'my-training-profile', encryptedUserId]"><img alt="Training" src="assets/images/training.png" ><span>Training</span></a>
 				</li >
@@ -127,7 +127,9 @@
         <!-- <li *ngIf="showShopLink"><a [routerLink]="['/shop/compliance-package']">Shop</a></li> -->
         <!-- <li><a href="/">Subscription</a></li> -->
         <li *ngIf="evac_role == 'admin'"><a [routerLink]="['/admin', 'accounts']" target="_blank">Administration</a></li>
-        <li><a href="/">Security & Privacy</a></li>
+        <li>
+            <a [routerLink]="['/dashboard/security-privacy']">Security & Privacy</a>
+        </li>
 
         <li><a href="/signout">Sign Out</a></li>
 			</ul>
