@@ -13,13 +13,14 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { ExportToCSV } from '../../services/export.to.csv';
 
 declare var $: any;
 @Component({
     selector: 'app-add-user',
     templateUrl: './add.user.component.html',
     styleUrls: ['./add.user.component.css'],
-    providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService]
+    providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService, ExportToCSV]
 })
 export class AddUserComponent implements OnInit, OnDestroy {
 	@ViewChild('f') addWardenForm: NgForm;
@@ -72,7 +73,8 @@ export class AddUserComponent implements OnInit, OnDestroy {
         private router : Router,
         private actRoute : ActivatedRoute,
         private encdecrypt : EncryptDecryptService,
-        private adminService : AdminService
+        private adminService : AdminService,
+        private exportToCSV : ExportToCSV
         ) {
 
         this.userData = this.authService.getUserData();
@@ -357,10 +359,14 @@ export class AddUserComponent implements OnInit, OnDestroy {
               this.showLoadingButton = false;
           });
       }
-
     }
 
     showModalCSV(){
+        $('#modaCsvUpload').modal({
+            dismissible: false,
+            startingTop: '6%',
+            endingTop: '5%'
+        });
         $('#modaCsvUpload').modal('open');
     }
 
@@ -502,6 +508,64 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
             this.buildLocationsListInModal();
         });
+    }
+
+    clickDownloadTemplate(){
+        let 
+        csvData = {},
+        getLength = () => {
+            return Object.keys(csvData).length;
+        };
+
+        csvData[ getLength() ] = ["First Name", "Last Name", "Email", "Username", "Phone", "Mobile", "Location Id", "ER Id"];
+        csvData[ getLength() ] = [ "Joe", "Doe", "joedoe@example.com", "joedoe", "132456", "63917864112", "123", "8;9;12" ];
+
+        this.exportToCSV.setData(csvData, 'upload-users-template');
+        this.exportToCSV.export();
+    }
+
+    downloadLocationReference(){
+        let 
+        csvData = {},
+        getLength = () => {
+            return Object.keys(csvData).length;
+        };
+
+        csvData[ getLength() ] = ["Location Id", "Location Name"];
+
+        for(let level of this.levels){
+            let 
+            sublocations = (level.sublocations) ? level.sublocations : [],
+            sublocationColums = [],
+            parentName = level.parent_location_name;
+
+            csvData[ getLength() ] = [ level.parent_location_id, parentName ];
+
+            for(let sub of sublocations){
+                csvData[ getLength() ] = [ sub.id, parentName+' >> '+sub.name ];
+            }
+        }
+
+
+        this.exportToCSV.setData(csvData, 'locations-reference');
+        this.exportToCSV.export();
+    }
+
+    downloadEcoReference(){
+        let 
+        csvData = {},
+        getLength = () => {
+            return Object.keys(csvData).length;
+        };
+
+        csvData[ getLength() ] = ["Role Id", "Role Name", "Warden"];
+
+        for(let eco of this.ecoRoles){
+            csvData[ getLength() ] = [eco.em_roles_id, eco.role_name, eco.is_warden_role];
+        }
+
+        this.exportToCSV.setData(csvData, 'eco-reference');
+        this.exportToCSV.export();
     }
 
     ngOnDestroy(){

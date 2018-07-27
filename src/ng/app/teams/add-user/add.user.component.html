@@ -47,10 +47,9 @@
 					<td style="position: relative;">
 						<div *ngIf="user.errors.email_taken || user.errors.blacklisted || user.errors.invalid"  style=" position: absolute; right: 5px; top: 5px; background-color: #f44336; padding: 1% 3%; color: #fff; border-radius: 5px;">
 							<span *ngIf="user.errors.email_taken">Email is taken</span>
-              <span *ngIf="user.errors.invalid" >Invalid email</span>
+                            <span *ngIf="user.errors.invalid" >Invalid email</span>
 						</div>
-            <input type="email" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" required
-            pattern='^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$'>
+                        <input type="email" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" required pattern='^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$'>
 					</td>
 					<td >
 						<select [(ngModel)]="user.account_role_id" name="accountRole{{i}}" (change)="changeRoleEvent(user)" required pattern="[1-9][0-9]*">
@@ -180,16 +179,30 @@
 
 		<div class="center">
 			<p style="font-size: 16px;">If you have a large number of contracts, you can upload them using a CSV file.</p>
-			<h6 class="blue-text" style="margin: 30px 0px;">
-				Step 1 - Download CSV Template
+			
+            <h6 class="blue-text" style="margin: 15px 0px;line-height: 20px;">
+				Step 1 - Download All
 			</h6>
-			<p style="margin: 30px 0px;">
-				<a href="https://s3.amazonaws.com/allan-delfin/templates/user_import.csv" class="btn orange lighten-1 waves-effect waves-light">
+			<p style="margin: 10px 0px;">
+				<a (click)="clickDownloadTemplate()" class="btn download orange lighten-1 waves-effect waves-light">
 					<div class="csv-icon"></div>
 					<span>Download CSV Template</span>
 				</a>
 			</p>
-			<h6 class="blue-text" style="margin: 30px 0px;">
+            <p style="margin: 10px 0px;">
+                <a (click)="downloadLocationReference()" class="btn download red lighten-1 waves-effect waves-light">
+                    <div class="csv-icon"></div>
+                    <span>Download Location Reference</span>
+                </a>
+            </p>
+            <p style="margin: 10px 0px;">
+                <a (click)="downloadEcoReference()" class="btn download green lighten-1 waves-effect waves-light">
+                    <div class="csv-icon"></div>
+                    <span>Download ECO Reference</span>
+                </a>
+            </p>
+
+			<h6 class="blue-text" style="margin: 20px 0px;">
 				Step 2 - Upload CSV File
 			</h6>
 			<div class="upload-container">
@@ -199,16 +212,22 @@
 
         		<input type="file" name="file" accept=".csv" #inputFileCSV (change)="fileChangeEvent($event, btnSelectCSV)" placeholder="Select CSV File" class="btn blue waves-effect waves-light hide" />
 			</div>
-			<h6 class="blue-text" style="margin: 30px 0px;">
-				Step 3 - Will this upload overwrite your existing users uploaded in the system?
-			</h6>
-			<div class="switch">
-				<input type="checkbox" id="override">
-				<div class="yes">Yes</div>
-				<div class="no">No</div>
-				<div class="highlight"></div>
-				<div class="background"></div>
-			</div>
+			<!-- <h6 class="blue-text" style="margin: 20px 0px;">
+                Step 3 - Will this upload overwrite your existing users uploaded in the system?
+            </h6> -->
+
+            <div class="checkbox">
+                <input type="checkbox" class="filled-in" checked="checked" />
+                <label for="filled-in-box" style="padding-left: 25px;">Email Mandatory</label>
+            </div>
+
+			<!-- <div class="switch">
+                <input type="checkbox" id="override">
+                <div class="yes">Yes</div>
+                <div class="no">No</div>
+                <div class="highlight"></div>
+                <div class="background"></div>
+            </div> -->
 		</div>
 
 		<div class="button-container center">
