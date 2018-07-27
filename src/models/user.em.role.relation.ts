@@ -501,9 +501,14 @@ export class UserEmRoleRelation extends BaseClass {
 
     }
 
-    public getManyByUserIds(userIds) {
+    public getManyByUserIds(userIds, notRoleIds?) {
       return new Promise((resolve, reject) => {
-          const sql_load = 'SELECT em.*, er.role_name  FROM user_em_roles_relation em INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id WHERE em.user_id IN ('+userIds+')';
+          let sql_load = 'SELECT em.*, er.role_name  FROM user_em_roles_relation em INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id WHERE em.user_id IN ('+userIds+')';
+          if(notRoleIds){
+              if(notRoleIds.length > 0){
+                    sql_load += ' AND em.em_role_id NOT IN ('+notRoleIds+')';
+              }
+          }
           const connection = db.createConnection(dbconfig);
           connection.query(sql_load, (error, results, fields) => {
               if (error) {
@@ -516,11 +521,11 @@ export class UserEmRoleRelation extends BaseClass {
       });
     }
 
-    public getLocationsByUserIds(userIds, locId?) {
-        return new Promise((resolve, reject) => {
-            let whereLoc = (locId) ? ` AND uemr.location_id = ${locId} ` : '';
 
-            const sql_load = `SELECT
+    public getLocationsByUserIds(userIds, notRoleIdsOrLocId?, isLocParam?) {
+        return new Promise((resolve, reject) => {
+            let whereLoc = (notRoleIdsOrLocId && isLocParam) ? ` AND uemr.location_id = ${notRoleIdsOrLocId} ` : '';
+            let sql_load = `SELECT
                     uemr.user_id,
                     uemr.em_role_id as role_id,
                     er.role_name,
@@ -539,6 +544,11 @@ export class UserEmRoleRelation extends BaseClass {
                     INNER JOIN em_roles er ON er.em_roles_id = uemr.em_role_id
                     WHERE uemr.user_id IN (`+userIds+`) ${whereLoc} `;
 
+            if(notRoleIdsOrLocId && !isLocParam){
+                if(notRoleIdsOrLocId.length > 0){
+                    sql_load += ' AND uemr.em_role_id NOT IN ('+notRoleIdsOrLocId+')';
+                }
+            }
             const connection = db.createConnection(dbconfig);
 
             connection.query(sql_load, (error, results, fields) => {
