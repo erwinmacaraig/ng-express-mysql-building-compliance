@@ -170,5 +170,9 @@ export class LocationsService {
     return this.http.post<any>(this.baseUrl + '/location/update', formData, this.options);
   }
 
+  searchLocationHierarchy(key){
+    return this.http.post<any>(this.baseUrl + '/location/search-locations-hierarchy/'+key, this.options);
+  }
+
 
 }
