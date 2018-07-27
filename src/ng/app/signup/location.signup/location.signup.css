@@ -1,0 +1,128 @@
+#modalLocationSignup{
+    width: 35%;
+}
+
+.modal{
+    max-height: 100% !important;
+    overflow: visible;
+}
+
+.modal .modal-content {
+    padding: 30px 0px 10px 0px;
+}
+
+.modal .modal-content .container{
+    width: 85%;
+}
+
+.modal .modal-content .input-container{
+    width: 90%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.title{
+    font-size: 24px;
+    color: #39a1ff;
+}
+
+.please-fill-up{
+    font-size: 16px;
+    margin: 25px 0px 15px 0px !important;
+}
+
+.modal .modal-content .input-container .btn{
+    width: 100%;
+    text-transform: none;
+    text-decoration: none;
+    height: 45px;
+    line-height: 45px;
+    font-size: 16px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.btn-submit,
+.btn-submit:hover,
+.btn-submit:active,
+.btn-submit:focus{
+    background-color: #f7941d;
+    box-shadow: none !important;
+}
+
+.btn-close,
+.btn-close:hover,
+.btn-close:active,
+.btn-close:focus{
+    background-color: #ddd;
+    box-shadow: none !important;
+    color: #111;
+}
+
+.select-field label {
+    left: 10px !important;
+}
+
+@media only screen 
+  and (min-width: 1024px)
+  and (max-width: 1440px){
+
+    #modalLocationSignup{
+        width: 50%;
+    }
+
+    .modal .modal-content {
+        padding: 20px 0px;
+    }
+
+    .input-field{
+        width: 100%;
+    }
+}
+
+@media only screen 
+  and (max-width: 1024px){
+
+    #modalLocationSignup{
+        width: 60%;
+    }
+
+    .modal .modal-content {
+        padding: 20px 0px;
+    }
+
+    .input-field{
+        width: 100%;
+    }
+}
+
+@media only screen 
+  and (min-width: 480px)
+  and (max-width: 768px){
+    
+    .modal{
+        overflow-y: none;
+    }
+
+    .col{
+        padding: 0px;
+    }
+
+    #modalLocationSignup{
+        width: 90%;
+        margin-bottom: 100px;
+    }
+
+}
+
+@media only screen 
+  and (max-width: 480px){
+    #modalLocationSignup{
+        width: 95%;
+        margin-bottom: 100px;
+    }
+
+    .modal{
+        overflow: overlay;
+    }
+}

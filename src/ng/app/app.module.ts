@@ -45,6 +45,7 @@ import { SignupSelectRoleComponent } from './signup/select.role/select.role.comp
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 import { NoemailComponent } from './noemail/noemail.component';
+import { LocationSignupComponent } from './signup/location.signup/location.signup';
 
 
 import { SearchLocationComponent } from './location/search/search-location.component';
@@ -158,6 +159,7 @@ import { AdminAddAccountComponent } from './admin/add-account/add-account.compon
     SendInviteComponent,
     CustomHttpDataProviderComponent,
     NoemailComponent,
+    LocationSignupComponent,
 
     SublocationComponent,
     SearchLocationComponent,
