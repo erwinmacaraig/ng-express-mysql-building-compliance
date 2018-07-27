@@ -45,7 +45,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     };
 
     queries = {
-        roles : 'users',
+        roles : 'users,no_gen_occ',
         impaired : -1,
         type : 'client',
         offset :  0,
