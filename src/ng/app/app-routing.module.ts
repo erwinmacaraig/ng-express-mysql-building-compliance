@@ -87,6 +87,9 @@ import { ReportsTrainingsComponent  } from './reports/trainings/trainings.compon
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
+// NOTIFICATION
+import { NotificationListComponent } from './notification/list/notification-list.component';
+import { NotificationConfigurationComponent } from './notification/configuration/notification-config.component';
 
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
@@ -125,7 +128,10 @@ const appRoutes: Routes = [
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
       { path: 'company-information', component: CompanyInformationComponent },
-      { path : 'send-invite', component : SendInviteComponent }
+      { path: 'send-invite', component : SendInviteComponent },
+      { path: 'notification-list', component: NotificationListComponent },
+      { path: 'notification-config', component: NotificationConfigurationComponent },
+      { path : 'send-invite', component : SendInviteComponent },
     ]
   },
   //
@@ -212,7 +218,7 @@ const appRoutes: Routes = [
     path : 'assign-courses', canActivate: [AuthGuard], component : AssignCoursesComponent
   },
   {
-    path: 'admin', canActivate: [AuthGuard], component: AdminComponent,
+    path: 'admin', component: AdminComponent,
     children: [
       { path: 'accounts', component: ListAccountsComponent },
       { path: 'training-validation', component: TrainingValidationComponent },
@@ -229,7 +235,8 @@ const appRoutes: Routes = [
       { path : 'reports', component : AdminReportsComponent },
       { path: 'new-account', component: AdminAddAccountComponent }
     ]
-  }
+  },
+
 ];
 
 @NgModule({

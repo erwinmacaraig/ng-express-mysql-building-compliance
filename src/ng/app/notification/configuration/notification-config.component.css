@@ -1,0 +1,15 @@
+textarea {
+  box-shadow: none;
+}
+.title{
+  color:#64b5f6;
+  font-size: 1.5rem;
+  margin: 20px 0px;
+}
+.search-field input{
+	margin: 3px 14px 0px 0px !important;
+  padding: 0px;
+  display: inline-block;
+  width: 90%;
+  border-bottom: 0px;
+}
