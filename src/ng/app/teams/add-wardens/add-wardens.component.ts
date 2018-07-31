@@ -13,13 +13,14 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { ExportToCSV } from '../../services/export.to.csv';
 
 declare var $: any;
 @Component({
     selector: 'app-teams-add-warden',
     templateUrl: './add-wardens.component.html',
     styleUrls: ['./add-wardens.component.css'],
-    providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService]
+    providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService, ExportToCSV]
 })
 export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     @ViewChild('f') addWardenForm: NgForm;
@@ -67,6 +68,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     showLocationsRecursive = false;
     formLocValid = false;
 
+    modalCSVMessage = '';
+
     constructor(
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
@@ -76,7 +79,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         private router : Router,
         private actRoute : ActivatedRoute,
         private encdecrypt : EncryptDecryptService,
-        private adminService : AdminService
+        private adminService : AdminService,
+        private exportToCSV : ExportToCSV
         ) {
 
         this.userData = this.authService.getUserData();
@@ -173,6 +177,11 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     }
 
     showModalCSV(){
+        $('#modaCsvUpload').modal({
+            dismissible: false,
+            startingTop: '6%',
+            endingTop: '5%'
+        });
         $('#modaCsvUpload').modal('open');
     }
 
@@ -479,25 +488,57 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         btnSelectCSV.innerHTML = this.CSVFileToUpload[0]['name'];
     }
 
-    public onUploadCSVAction() {
-        let override = $('#override')[0].checked;
+    onUploadCSVAction() {
+        /*let override = $('#override')[0].checked;
+        console.log(override);*/
+
+        let emailMandatory = $('#emailMandatory').prop('checked');
         let formData: any = new FormData();
 
         formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
-        formData.append('override',  override);
-        this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
-          console.log(data);
-          this.csvInvalidRecords = data.invalid;
-          this.csvValidRecords = data.valid;
-          this.recordOverride = data['data-override'];
-          this.csvHeaderNames = Object.keys(data.valid[0]);
-          $('#modaCsvUpload').modal('close');
-          setTimeout(() => {
-            $('#modalUploadConfirmation').modal('open');
-        }, 300);
+        formData.append('is_email_required',  emailMandatory);
+
+        this.modalCSVMessage = 'Sending...';
+
+        this.dataProvider.uploadCSV(formData).subscribe((data:any) => {
+            let invalidMsgs = [];
+            for(let i in data.invalid){
+                invalidMsgs.push(data.invalid[i][0]+' '+data.invalid[i][1]);
+            }
+
+            if(invalidMsgs.length > 0){
+                if(data.valid.length > 0){
+                    this.modalCSVMessage = 'Success, ';
+                }else{
+                    this.modalCSVMessage = 'Sorry, ';
+                }
+                this.modalCSVMessage += 'but unable to save these following: <br/>';
+                this.modalCSVMessage += '<ul>';
+                for(let i in invalidMsgs){
+                    this.modalCSVMessage += '<li style="font-size:16px;">'+invalidMsgs[i]+'</li>';
+                }
+                this.modalCSVMessage += '</ul>';
+            }else{
+                this.modalCSVMessage = 'Success!';
+                this.CSVFileToUpload = [];
+                $('.btn-select-csv').html('Select CSV File');
+                setTimeout(() => {
+                    
+                    this.modalCSVMessage = '';
+                }, 2000);
+            }
+
+            console.log(data);
         }, (e) => {
-          console.log(e);
+            this.modalCSVMessage = e.error.message;
+            setTimeout(() => {
+                this.modalCSVMessage = '';
+            }, 1500);
         });
+    }
+
+    closeModalCSVmessage(){
+        this.modalCSVMessage = '';
     }
 
     public onConfirmCSVUpload() {
@@ -570,6 +611,64 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 
             this.buildLocationsListInModal();
         });
+    }
+
+    clickDownloadTemplate(){
+        let 
+        csvData = {},
+        getLength = () => {
+            return Object.keys(csvData).length;
+        };
+
+        csvData[ getLength() ] = ["First Name", "Last Name", "Email", "Username", "Phone", "Mobile", "Location Id", "ER Id"];
+        csvData[ getLength() ] = [ "Joe", "Doe", "joedoe@example.com", "joedoe", "132456", "63917864112", "123", "8;9;12" ];
+
+        this.exportToCSV.setData(csvData, 'upload-users-template');
+        this.exportToCSV.export();
+    }
+
+    downloadLocationReference(){
+        let 
+        csvData = {},
+        getLength = () => {
+            return Object.keys(csvData).length;
+        };
+
+        csvData[ getLength() ] = ["Location Id", "Location Name"];
+
+        for(let level of this.levels){
+            let 
+            sublocations = (level.sublocations) ? level.sublocations : [],
+            sublocationColums = [],
+            parentName = level.parent_location_name;
+
+            csvData[ getLength() ] = [ level.parent_location_id, parentName ];
+
+            for(let sub of sublocations){
+                csvData[ getLength() ] = [ sub.id, parentName+' >> '+sub.name ];
+            }
+        }
+
+
+        this.exportToCSV.setData(csvData, 'locations-reference');
+        this.exportToCSV.export();
+    }
+
+    downloadEcoReference(){
+        let 
+        csvData = {},
+        getLength = () => {
+            return Object.keys(csvData).length;
+        };
+
+        csvData[ getLength() ] = ["Role Id", "Role Name", "Warden"];
+
+        for(let eco of this.ecoRoles){
+            csvData[ getLength() ] = [eco.em_roles_id, eco.role_name, eco.is_warden_role];
+        }
+
+        this.exportToCSV.setData(csvData, 'eco-reference');
+        this.exportToCSV.export();
     }
 
     ngOnDestroy(){

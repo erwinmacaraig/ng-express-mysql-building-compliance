@@ -177,7 +177,7 @@
 			<div class="text">Add Users by CSV Upload</div>
 		</div>
 
-		<div class="center">
+		<div class="center" [hidden]="modalCSVMessage.length > 0">
 			<p style="font-size: 16px;">If you have a large number of contracts, you can upload them using a CSV file.</p>
 			
             <h6 class="blue-text" style="margin: 15px 0px;line-height: 20px;">
@@ -208,7 +208,7 @@
 			<div class="upload-container">
 				<p class="text">Drag & Drop CSV File</p>
 				<p class="text">or</p>
-        		<button class="btn blue waves-effect waves-light" #btnSelectCSV (click)="selectCSVButtonClick(inputFileCSV)">Select CSV File</button>
+        		<button class="btn blue waves-effect waves-light btn-select-csv" #btnSelectCSV (click)="selectCSVButtonClick(inputFileCSV)">Select CSV File</button>
 
         		<input type="file" name="file" accept=".csv" #inputFileCSV (change)="fileChangeEvent($event, btnSelectCSV)" placeholder="Select CSV File" class="btn blue waves-effect waves-light hide" />
 			</div>
@@ -217,8 +217,8 @@
             </h6> -->
 
             <div class="checkbox">
-                <input type="checkbox" class="filled-in" checked="checked" />
-                <label for="filled-in-box" style="padding-left: 25px;">Email Mandatory</label>
+                <input id="emailMandatory" type="checkbox" class="filled-in" checked="checked" />
+                <label for="emailMandatory" style="padding-left: 25px;">Email Mandatory</label>
             </div>
 
 			<!-- <div class="switch">
@@ -230,7 +230,12 @@
             </div> -->
 		</div>
 
-		<div class="button-container center">
+        <div class="center" [hidden]="modalCSVMessage.length == 0">
+            <h5 [innerHtml]="modalCSVMessage | safeHtml"></h5>
+            <a (click)="closeModalCSVmessage()" [hidden]="modalCSVMessage.length == 0 || modalCSVMessage.indexOf('<ul>') == -1 || modalCSVMessage.indexOf('Sending') > -1">Close</a>
+        </div>
+
+		<div class="button-container center" [hidden]="modalCSVMessage.length > 0">
 			<button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
 			<button class="btn orange waves-effect waves-light" (click)="onUploadCSVAction()"> Submit </button>
 		</div>

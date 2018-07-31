@@ -22,6 +22,7 @@ declare var $: any;
     styleUrls: ['./add.user.component.css'],
     providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService, ExportToCSV]
 })
+
 export class AddUserComponent implements OnInit, OnDestroy {
 	@ViewChild('f') addWardenForm: NgForm;
     @ViewChild('invitefrm') emailInviteForm: NgForm;
@@ -63,6 +64,8 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
     searchModalLocationSubs;
     formLocValid = false;
+
+    modalCSVMessage = '';
 
     constructor(
         private authService: AuthService,
@@ -406,17 +409,56 @@ export class AddUserComponent implements OnInit, OnDestroy {
     };
 
     onUploadCSVAction() {
-        let override = $('#override')[0].checked;
-        console.log(override);
+        /*let override = $('#override')[0].checked;
+        console.log(override);*/
+
+        let emailMandatory = $('#emailMandatory').prop('checked');
         let formData: any = new FormData();
 
         formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
-        formData.append('override',  override);
-        this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
+        formData.append('is_email_required',  emailMandatory);
+
+        this.modalCSVMessage = 'Sending...';
+
+        this.dataProvider.uploadCSV(formData).subscribe((data:any) => {
+            let invalidMsgs = [];
+            for(let i in data.invalid){
+                invalidMsgs.push(data.invalid[i][0]+' '+data.invalid[i][1]);
+            }
+
+            if(invalidMsgs.length > 0){
+                if(data.valid.length > 0){
+                    this.modalCSVMessage = 'Success, ';
+                }else{
+                    this.modalCSVMessage = 'Sorry, ';
+                }
+                this.modalCSVMessage += 'but unable to save these following: <br/>';
+                this.modalCSVMessage += '<ul>';
+                for(let i in invalidMsgs){
+                    this.modalCSVMessage += '<li style="font-size:16px;">'+invalidMsgs[i]+'</li>';
+                }
+                this.modalCSVMessage += '</ul>';
+            }else{
+                this.modalCSVMessage = 'Success!';
+                this.CSVFileToUpload = [];
+                $('.btn-select-csv').html('Select CSV File');
+                setTimeout(() => {
+                    
+                    this.modalCSVMessage = '';
+                }, 2000);
+            }
+
             console.log(data);
         }, (e) => {
-            console.log(e);
+            this.modalCSVMessage = e.error.message;
+            setTimeout(() => {
+                this.modalCSVMessage = '';
+            }, 1500);
         });
+    }
+
+    closeModalCSVmessage(){
+        this.modalCSVMessage = '';
     }
 
     isAdvancedUpload() {
