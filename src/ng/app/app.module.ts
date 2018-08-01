@@ -61,6 +61,8 @@ import { VerificationComponent } from './location/verification/verification.comp
 import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
 import { WardenLocationComponent } from './location/warden/warden.location.component';
 
+import { ImportCsvButtonComponent } from './import-csv/import-csv';
+
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
 import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.impaired.component';
@@ -174,6 +176,7 @@ import { AdminAddAccountComponent } from './admin/add-account/add-account.compon
     WardenLocationComponent,
     // ViewSublocationComponent
 
+    ImportCsvButtonComponent,
     TeamsComponent,
     TeamsAddWardenComponent,
     MobilityImpairedComponent,
