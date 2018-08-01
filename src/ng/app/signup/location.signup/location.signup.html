@@ -19,7 +19,7 @@
                             <input id="inpLocation" #inpLocation type="text"  >
                             <label for="inpLocation">Enter Building Name Or Location</label>
                         </div>
-                        <div class="search-result" [hidden]="!isSearching">
+                        <div class="search-result" [hidden]="!showSearchresult">
                             <ul *ngIf="searchedLocations.length > 0">
                                 <li class="search-result-layer" *ngFor="let location of searchedLocations">{{location.name}}
                                     <span *ngIf="location.sublocations.length > 0" class="right-arrow"> > </span>

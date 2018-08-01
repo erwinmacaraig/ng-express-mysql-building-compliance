@@ -171,7 +171,7 @@ export class LocationsService {
   }
 
   searchLocationHierarchy(key){
-    return this.http.post<any>(this.baseUrl + '/location/search-locations-hierarchy/'+key, this.options);
+    return this.http.get<any>(this.baseUrl + '/location/search-locations-hierarchy/'+key, this.options);
   }
 
 

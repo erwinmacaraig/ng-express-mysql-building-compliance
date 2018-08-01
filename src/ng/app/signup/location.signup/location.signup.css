@@ -132,11 +132,10 @@
     position: absolute;
     background-color: #fcffd9;
     width: 100%;
-    top: 44px;
+    top: 60px;
     left: 0px;
     border: 1px solid #b5b5b5;
     z-index: 999;
-    display: none;
 }
 
 .search-result ul{
@@ -191,7 +190,6 @@
     position: absolute;
     top: 20px;
     right: 15px;
-    display: none;
 }
 
 .loading .preloader-wrapper.small {

@@ -877,18 +877,20 @@ export class UsersRoute extends BaseRoute {
 
         if(query.roles){
             queryRoles = query.roles.split(',');
-            if( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1){
+            if( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1 ){
                 modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_role_relation) ');
                 if(query.search){
                     modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
                 }
             }
+
             if( queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1) == true ){
                 if(noGeneralOcc){
                     modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8) ');
                 }else{
                     modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 ) ');
                 }
+
                 modelQueries.orWhere.push(' AND users.archived = '+archived);
                 modelQueries.orWhere.push(' AND users.account_id = '+accountId);
                 if(query.impaired){
@@ -913,6 +915,35 @@ export class UsersRoute extends BaseRoute {
                     modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
                 }
             }
+
+            if( queryRoles.indexOf('no_roles') > -1 ){
+                let isImpairedQuery = '';
+                if(query.impaired){
+                    if(query.impaired > -1){
+                        if(query.impaired == 1){
+                            isImpairedQuery = ' AND users.mobility_impaired = 1 ';
+                        }else if(query.impaired == 0){
+                            isImpairedQuery = ' AND users.mobility_impaired = 0 ';
+                        }
+                    }
+                }
+
+                let noEmrole = ' OR users.user_id NOT IN (SELECT user_id FROM user_em_roles_relation) AND users.archived = '+archived+' AND users.account_id = '+accountId;
+                if(query.search){
+                    noEmrole += ' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ';
+                }
+                noEmrole += isImpairedQuery;
+
+                let noRole = ' OR users.user_id NOT IN (SELECT user_id FROM user_role_relation) AND users.archived = '+archived+' AND users.account_id = '+accountId;
+                if(query.search){
+                    noRole += ' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ';
+                }
+                noRole += isImpairedQuery;
+
+                modelQueries.orWhere.push(noEmrole);
+                modelQueries.orWhere.push(noRole);
+            }
+
         }else{
             if(query.search){
                 modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');

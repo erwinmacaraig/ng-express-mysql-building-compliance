@@ -17,24 +17,14 @@ export class LocationSignupComponent implements OnInit, OnDestroy, AfterViewInit
     roleId = 0;
     searchedLocations = <any> [];
     searchSubs;
-    isSearching = false;
-    showLoader = false;
+    showSearchresult = true;
+    showLoader = true;
 
     constructor(
         private router: Router,
         private activatedRoute : ActivatedRoute,
         private locService: LocationsService
         ) {
-
-        this.searchedLocations.push({
-            name : 'Adasda sdas',
-            sublocations : []
-        });
-
-        this.searchedLocations.push({
-            name : 'Xasf dsaf',
-            sublocations : []
-        });
 
         /*this.activatedRoute.url.subscribe(url =>{
             console.log(url);
@@ -56,14 +46,14 @@ export class LocationSignupComponent implements OnInit, OnDestroy, AfterViewInit
             let key = this.inpLocation.nativeElement.value.trim();
             if(key.length > 0){
                 this.showLoader = true;
-                this.isSearching = true;
+                this.showSearchresult = true;
                 this.locService.searchLocationHierarchy(key).subscribe((response) => {
-                    
-                    this.isSearching = false;
+                    this.showSearchresult = false;
                     this.showLoader = false;
+                    this.searchedLocations = response;
                 });
             }else{
-                this.isSearching = false;
+                this.showSearchresult = false;
                 this.showLoader = false;
                 this.searchedLocations = [];
             }

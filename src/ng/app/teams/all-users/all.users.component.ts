@@ -24,7 +24,7 @@ declare var $: any;
 })
 export class AllUsersComponent implements OnInit, OnDestroy {
 
-	userData = {};
+	userData = <any> {};
 	listData = [];
 	selectedToArchive = {
 		first_name : '', last_name : '', parent_data : {}, locations : []
@@ -33,7 +33,19 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	copyOfList = [];
 	selectedFromList = [];
 
-	filters = [];
+	filters = [
+        { value : 2, name : 'Tenant Responsible' },
+        { value : 8, name : 'General Occupant' },
+        { value : 9, name : 'Warden' },
+        { value : 10, name : 'Floor / Area Warden' },
+        { value : 11, name : 'Chief Warden' },
+        { value : 12, name : 'Fire Safety Advisor' },
+        { value : 13, name : 'Emergency Planning Committee Member' },
+        { value : 14, name : 'First Aid Officer' },
+        { value : 15, name : 'Deputy Chief Warden' },
+        { value : 16, name : 'Building Warden' },
+        { value : 18, name : 'Deputy Building Warden' }
+    ];
 
 	loadingTable = false;
 
@@ -42,7 +54,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	};
 
 	queries = {
-		roles : 'frp,trp,users',
+		roles : 'frp,trp,users,no_roles',
 		impaired : null,
 		type : 'client',
 		offset :  0,
@@ -92,6 +104,14 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		){
 		this.userData = this.authService.getUserData();
 
+        for(let role of this.userData.roles){
+            if(role.role_id == 1){
+                this.filters.unshift({
+                    value : 1, name : 'Building Manager'
+                })
+            }
+        }
+
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 
@@ -108,7 +128,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			this.listData = response.data.users;
 
 			let tempRoles = {};
-			this.filters = [];
+			
 			for(let i in this.listData){
 				this.listData[i]['bg_class'] = this.generateRandomBGClass();
 				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
@@ -125,10 +145,6 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 					if( this.listData[i]['roles'][r]['role_name'] ){
 						if( !tempRoles[ this.listData[i]['roles'][r]['role_name'] ] ){
 							tempRoles[ this.listData[i]['roles'][r]['role_name'] ] = this.listData[i]['roles'][r]['role_name'];
-							this.filters.push({
-								value : this.listData[i]['roles'][r]['role_id'],
-								name : this.listData[i]['roles'][r]['role_name']
-							});
 						}
 					}
 				}
