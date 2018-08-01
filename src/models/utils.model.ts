@@ -325,7 +325,7 @@ export class Utils {
       });
     }
 */
-    public processCSVUpload(filename: string) {
+    public processCSVUpload(filename: string, config?) {
       return new Promise((resolve, reject) => {
 
         let counter = 0;
@@ -335,25 +335,42 @@ export class Utils {
         // filename with file path
         const arrayOfRows = [];
         const CSVStream =  csv.fromPath(<string>filename)
-          .on('data', (data) => {
+          .on('data', (data:any) => {
+              let rows = [];
+              for(let i in data){
+                  if(config){
+                      if(config.columnStart && config.columnEnd){
+                          let index = parseInt(i) + 1;
 
-              if (counter > 0 ) {
-                for (let i = 0; i < columnNames.length; i++) {
-                  fieldnames[columnNames[i]] = <string>data[i];
-                }
-                arrayOfRows.push(fieldnames);
-                fieldnames = {};
-              } else {
-                for (let n = 0; n < data.length; n++) {
-                  columnNames.push(defs['table_headers'][data[n]]);
-                }
-                // columnNames = data;
+                          if( index >= config.columnStart &&  index <= config.columnEnd ){
+                              rows.push(data[i]);
+
+                              if(config.columnEnd == index){
+                                  arrayOfRows.push(rows);
+                                  rows = [];
+                              }
+                          }
+                      }
+                  }else{
+                      arrayOfRows.push(data[i]);
+                  }
               }
-              counter = counter + 1;
 
            })
            .on('end', () => {
-             resolve(arrayOfRows);
+             if(config){
+                if(config.rowStart){
+                    let returnData = [];
+                    for(let i in arrayOfRows){
+                        if( (parseInt(i) + 1) >= config.rowStart ){
+                            returnData.push(arrayOfRows[i]);
+                        }
+                    }
+                    resolve(returnData);
+                }
+             }else{
+                resolve(arrayOfRows);
+             }
            })
            .on('error', (error) => {
              console.log(error);

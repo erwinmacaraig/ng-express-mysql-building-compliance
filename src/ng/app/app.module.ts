@@ -62,6 +62,8 @@ import { VerificationComponent } from './location/verification/verification.comp
 import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
 import { WardenLocationComponent } from './location/warden/warden.location.component';
 
+import { ImportCsvButtonComponent } from './import-csv/import-csv';
+
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
 import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.impaired.component';
@@ -112,6 +114,9 @@ import { ReportsTrainingsComponent } from './reports/trainings/trainings.compone
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 import { EpcMinutesMeetingComponent } from './compliance/epc-minutes-meeting/epc.minutes.meeting';
+
+// NOTIFICATION
+import { NotificationListComponent } from './notification/notification-list.component';
 
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
@@ -173,6 +178,7 @@ import { AdminAddAccountComponent } from './admin/add-account/add-account.compon
     WardenLocationComponent,
     // ViewSublocationComponent
 
+    ImportCsvButtonComponent,
     TeamsComponent,
     TeamsAddWardenComponent,
     MobilityImpairedComponent,
@@ -219,6 +225,8 @@ import { AdminAddAccountComponent } from './admin/add-account/add-account.compon
     ReportsActivityLogComponent,
     AssignCoursesComponent,
     EpcMinutesMeetingComponent,
+    // NOTIFICATION
+    NotificationListComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,

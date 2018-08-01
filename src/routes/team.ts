@@ -29,6 +29,7 @@ const defs = require('../config/defs');
 import * as moment from 'moment';
 import * as csv from 'fast-csv';
 
+import { AdminRoute } from './admin';
 
 
 /**
@@ -153,9 +154,9 @@ export class TeamRoute extends BaseRoute {
       });
     });
 
-    router.post('/team/warden/csv-upload', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+    router.post('/team/csv-upload', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
     //  router.post('/team/warden/csv-upload', (req: AuthRequest, res: Response, next: NextFunction) => {
-      new TeamRoute().processCSVUpload(req, res, next).then((data) => {
+      new TeamRoute().uploadCSV(req, res, next).then((data) => {
         return res.status(200).send(data);
       }).catch((e) => {
         res.status(400).send({
@@ -202,33 +203,215 @@ export class TeamRoute extends BaseRoute {
     this.render(req, res, 'index.hbs', options);
   }
 
-    public async processCSVUpload(req: AuthRequest, res: Response, next: NextFunction) {
+    public async uploadCSV(req: AuthRequest, res: Response, next: NextFunction) {
         const uploader = new FileUploader(req, res, next);
         const invalidRecords = [];
+        const validRecords = [];
         const filename = await uploader.uploadFileToLocalServer();
+        let isEmailRequired = (req.body.is_email_required) ? req.body.is_email_required : false;
+        const emailColumn = 2;
+        const accountId = (req.body.account_id) ? req.body.account_id : req.user.account_id;
+        let isImpaired = (req.body.mobility_impaired) ? req.body.mobility_impaired : false;
+
+        isEmailRequired = (isEmailRequired == 'true') ? true : false;
+        isImpaired = (isImpaired == 'true') ? true : false;
 
         const utils = new Utils();
         let data;
-        data = await utils.processCSVUpload(<string>filename);
+        data = await utils.processCSVUpload(<string>filename, {
+            columnStart : 1, columnEnd : 8, rowStart : 2
+        });
 
-        const validRecords = [];
-        for (let i = 0; i < data.length; i++) {
-            const user = new User();
-            if ( ('ECO Role' in  data[i])   && ((data[i]['ECO Role']).length === 0) ) {
-                data[i]['ECO Role'] = 'General Occupant';
-            }
-            try {
-                const dbData = await user.getByEmail(data[i]['Email']);
+        if(data.length == 0){
+            throw "Format not valid";
+        }
 
-                invalidRecords.push(data[i]);
-            } catch (e) {
-                if (validator.isEmail(data[i]['Email'])) {
-                    validRecords.push(data[i]);
-                } else {
-                    invalidRecords.push(data[i]);
+        let validInputs = [];
+        for(let i in data){
+            let 
+            user = new User(),
+            rowRecord = data[i],
+            firstName = rowRecord[0],
+            lastName = rowRecord[1],
+            email = rowRecord[2].trim(),
+            username = rowRecord[3],
+            phone = rowRecord[4],
+            mobile = rowRecord[5],
+            locationId = rowRecord[6],
+            erId = rowRecord[7],
+            firstLayerValid = false,
+            emailIsValid = false,
+            isRowValid = false,
+            errMsg = '';
+
+            if(firstName.trim().length > 0 && lastName.trim().length > 0 && locationId.trim().length > 0 && erId.trim().length > 0){
+                firstLayerValid = true;
+                if(isEmailRequired){
+                    if (validator.isEmail(email)) {
+                        try {
+                            const 
+                            userEmail = new User(),
+                            dbData = await userEmail.getByEmail(email);
+                            errMsg = '(email taken)';
+                        } catch (e) { emailIsValid = true; }
+                    }else{
+                        errMsg = '(email invalid)';
+                    }
+                }else if(email.trim().length > 0){
+                    if (validator.isEmail(email)) {
+                        try {
+                            const 
+                            userEmail = new User(),
+                            dbData = await userEmail.getByEmail(email);
+                            errMsg = '(email taken)';
+                        } catch (e) { emailIsValid = true; }
+                    }else{
+                        errMsg = '(email invalid)';
+                    }
                 }
             }
+
+            if(emailIsValid){
+                let blackListedEmail = new BlacklistedEmails();
+                if(blackListedEmail.isEmailBlacklisted(email)){
+                    emailIsValid = false;
+                    errMsg = '(Email is not allowed)';
+                }
+            }
+
+            if(firstLayerValid){
+                if(isEmailRequired == false && username.trim().length == 0){
+                    errMsg = '(username invalid)';
+                    isRowValid = false;
+                }else if(emailIsValid){
+                    isRowValid = true;
+                }
+            }else{
+                errMsg = 'Row : '+(parseInt(i) + 2)+' (Some fields are missing) ';
+            }
+
+            if(isRowValid){
+                validInputs.push(rowRecord);
+            }else{
+                rowRecord[1] += ' '+errMsg;
+                invalidRecords.push(rowRecord);
+            }
         }
+
+        let adminRoute = new AdminRoute();
+        req.params = { 'accountId' : accountId };
+        let buildingsLevels = <any> await adminRoute.getLocationListing(req, res, true);
+
+        let allLocIds = [];
+        for(let building of buildingsLevels.data.buildings){
+            if(allLocIds.indexOf(building.location_id) == -1){
+                allLocIds.push(building.location_id);
+            }
+        }
+
+        for(let level of buildingsLevels.data.levels){
+            for(let sub of level.sublocations){
+                allLocIds.push(sub.id);
+            }
+        }
+
+        for(let i in validInputs){
+            let 
+            rowRecord = validInputs[i],
+            locModel = new Location(),
+            emRoles = rowRecord[7].split(';').map(function(a){  return parseInt(a); }),
+            validEmRoles = [],
+            emRoleModel = new UserEmRoleRelation(),
+            errMsg = '',
+            erInvalid = false,
+            locInvalid = false;
+
+            for(let emid of emRoles){
+                for(let m in defs['em_roles']){
+                    if(defs['em_roles'][m] == emid && validEmRoles.indexOf(emid) == -1){
+                        validEmRoles.push(emid);
+                    }
+                }
+            }
+
+            if(validEmRoles.length == 0){
+                errMsg = '(EM Id invalid)';
+                erInvalid = true;
+            }
+
+            try{
+                locModel.setID(rowRecord[6]);
+                await locModel.load();
+
+                let locFound = false;
+                for(let locid of allLocIds){
+                    if(locid == rowRecord[6]){
+                        locFound = true;
+                    }
+                }
+
+                if(!locFound){
+                    locInvalid = true;
+                    errMsg = '(Location Id invalid)';
+                }
+
+            }catch(e){
+                locInvalid = true;
+                errMsg = '(Location Id invalid)';
+            }
+
+            if(!erInvalid && !locInvalid){
+                validRecords.push(rowRecord);
+            }else{
+                rowRecord[1] += ' '+errMsg;
+                invalidRecords.push(rowRecord);
+            }
+        }
+
+        try{
+            for(let i in validRecords){
+                let 
+                userSaveModel = new User(),
+                rowRecord = validRecords[i],
+                token = this.generateRandomChars(15),
+                emRoles = rowRecord[7].split(';').map(function(a){  return parseInt(a); }),
+                tokenModel = new Token();
+                await userSaveModel.create({
+                    'first_name' : rowRecord[0],
+                    'last_name' : rowRecord[1],
+                    'email' : rowRecord[2],
+                    'user_name' : rowRecord[3],
+                    'phone_number' : rowRecord[4],
+                    'mobile_number' : rowRecord[5],
+                    'password' : md5('Ideation'+defs['DEFAULT_USER_PASSWORD']+'Max'),
+                    'token' : token,
+                    'account_id' : accountId,
+                    'mobility_impaired' : (isImpaired) ? 1 : 0,
+                    'can_login' : 1
+                });
+
+                await tokenModel.create({
+                    'token': token,
+                    'action': 'verify',
+                    'verified': 1,
+                    'expiration_date': '',
+                    'id': userSaveModel.ID(),
+                    'id_type': 'user_id'
+                });
+
+                for(let emid of emRoles){
+                    let userEmRole = new UserEmRoleRelation();
+                    await userEmRole.create({
+                        'user_id' : userSaveModel.ID(),
+                        'em_role_id' : emid,
+                        'location_id' : rowRecord[6]
+                    });
+                }
+            }
+        }catch(e){
+            console.log(e);
+        }
+
         fs.unlink(<string>filename, () => {
             console.log(`Successfully delete file: ${filename}`);
         });

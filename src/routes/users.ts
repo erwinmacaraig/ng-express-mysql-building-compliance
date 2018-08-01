@@ -831,10 +831,16 @@ export class UsersRoute extends BaseRoute {
             group : false
         },
         archived : 0,
-        queryRoles = [],
+        queryRoles = query.roles.split(','),
         userIds = [0],
         userIdObj = [],
-        emRolesDef = defs.em_roles;
+        noGeneralOcc = (queryRoles.indexOf('no_gen_occ') > -1) ? true : false,
+        emRolesDef = defs.em_roles,
+        getFRP = ( queryRoles.indexOf('frp') > -1 ) ? true : false,
+        getTRP = ( queryRoles.indexOf('trp') > -1) ? true : false,
+        getUSERS = ( queryRoles.indexOf('users') > -1 ) ? true : false;
+
+        console.log(queryRoles, noGeneralOcc);
 
         const training_requirements = await new TrainingCertification().getRequiredTrainings();
 
@@ -878,7 +884,11 @@ export class UsersRoute extends BaseRoute {
                 }
             }
             if( queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1) == true ){
-                modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1) ');
+                if(noGeneralOcc){
+                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8) ');
+                }else{
+                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 ) ');
+                }
                 modelQueries.orWhere.push(' AND users.archived = '+archived);
                 modelQueries.orWhere.push(' AND users.account_id = '+accountId);
                 if(query.impaired){
@@ -894,7 +904,11 @@ export class UsersRoute extends BaseRoute {
                     modelQueries.orWhere.push(' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
                 }
             }else if(queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') == -1 && queryRoles.indexOf('trp') == -1) == true){
-                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 ) ');
+                if(noGeneralOcc){
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8) ');
+                }else{
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 ) ');
+                }
                 if(query.search){
                     modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
                 }
@@ -964,10 +978,6 @@ export class UsersRoute extends BaseRoute {
         }
 
         if(query.roles && query.users_locations){
-            let queryRoles = query.roles.split(','),
-                getFRP = ( queryRoles.indexOf('frp') > -1 ) ? true : false,
-                getTRP = ( queryRoles.indexOf('trp') > -1) ? true : false,
-                getUSERS = ( queryRoles.indexOf('users') > -1 ) ? true : false;
 
             let accountModel = new Account(),
                 locAccUserModel = new LocationAccountUser(),
@@ -975,7 +985,7 @@ export class UsersRoute extends BaseRoute {
                 locationsDB = <any> [],
                 locations = <any> [],
                 locationIds = [],
-                locationsEmRoles = (getUSERS) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : [],
+                locationsEmRoles = (getUSERS && !noGeneralOcc) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : (getUSERS && noGeneralOcc) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(','), '8') : [],
                 locationFRPTRP =  (getFRP || getTRP) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(',')) : [];
 
 
@@ -1076,7 +1086,7 @@ export class UsersRoute extends BaseRoute {
             let userRoleModel = new UserRoleRelation(),
                 usersRolesRelation = <any> await userRoleModel.getManyByUserIds(userIds.join(',')),
                 userEmRoleModel = new UserEmRoleRelation(),
-                usersEmRoles = <any> await userEmRoleModel.getManyByUserIds(userIds.join(','));
+                usersEmRoles = (noGeneralOcc) ? <any> await userEmRoleModel.getManyByUserIds(userIds.join(','), '8') : <any> await userEmRoleModel.getManyByUserIds(userIds.join(','));
 
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }

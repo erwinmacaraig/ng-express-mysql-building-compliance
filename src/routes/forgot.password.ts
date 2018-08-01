@@ -104,7 +104,7 @@ const md5 = require('md5');
 						multiTokenModel = new Token(),
                         tokens = <any> [];
 
-					try{
+                    try{
                         tokens = await multiTokenModel.getAllByUserId(userdata['user_id']);
                         for(let t in tokens){
                             if(tokens[t]['action'] == 'forgot-password'){
@@ -114,31 +114,31 @@ const md5 = require('md5');
                         }
                     }catch(e){ }
 
-                    userdata['token'] = saveData['token'];
+					userdata['token'] = saveData['token'];
 
-                    tokenModel.create(saveData).then(
-                        () => {
-                            this.sendEmailChangePassword(req, userdata,
-                                () => {
-                                    response.data = saveData;
-                                    response.message = 'Email was sent to you, please open the email and click the link to confirm reset password request. Thank you!';
-                                    response.status = true;
-                                    res.statusCode = 200;
-                                    res.send(response);
-                                },
-                                () => {
-                                    response.message = "Email was not sent";
-                                    res.send(response);
-                                }
-                            );
+					tokenModel.create(saveData).then(
+						() => {
+							this.sendEmailChangePassword(req, userdata,
+								() => {
+									response.data = saveData;
+									response.message = 'Email was sent to you, please open the email and click the link to confirm reset password request. Thank you!';
+									response.status = true;
+									res.statusCode = 200;
+									res.send(response);
+								},
+								() => {
+									response.message = "Email was not sent";
+									res.send(response);
+								}
+							);
 
 
-                        },
-                        () => {
-                            response.message = "Unsuccessful token saving";
-                            res.send(response);
-                        }
-                    );
+						},
+						() => {
+							response.message = "Unsuccessful token saving";
+							res.send(response);
+						}
+					);
 				},
 				(e) => {
 					response.message = 'Email does not exist';
