@@ -101,15 +101,18 @@ const md5 = require('md5');
 							expiration_date : expDateFormat
 						},
 						tokenModel = new Token(),
-						multiTokenModel = new Token();
+						multiTokenModel = new Token(),
+                        tokens = <any> [];
 
-					let tokens = await multiTokenModel.getAllByUserId(userdata['user_id']);
-					for(let t in tokens){
-						if(tokens[t]['action'] == 'forgot-password'){
-							let tokenDelete = new Token(tokens[t]['token_id']);
-							await tokenDelete.delete();
-						}
-					}
+                    try{
+                        tokens = await multiTokenModel.getAllByUserId(userdata['user_id']);
+                        for(let t in tokens){
+                            if(tokens[t]['action'] == 'forgot-password'){
+                                let tokenDelete = new Token(tokens[t]['token_id']);
+                                await tokenDelete.delete();
+                            }
+                        }
+                    }catch(e){ }
 
 					userdata['token'] = saveData['token'];
 
