@@ -879,59 +879,7 @@ export class AdminRoute extends BaseRoute {
     router.get('/admin/location-listing/:accountId/',
     new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
-      const locAccntRelObj = new LocationAccountRelation();
-      let locationsForManager;
-      let locationsForTRP;
-      const buildingIds = [];
-
-      locationsForManager = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Manager']});
-      for (const location of locationsForManager) {
-        buildingIds.push(location['location_id']);
-      }
-      // GET ALL SUBLEVELS
-      const list = new List();
-      let levelLocations: Object = {
-        resultArray: [],
-        resultObject: {},
-        resultLocationIds: []
-      };
-
-      if (buildingIds.length == 0) {
-        locationsForTRP = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
-        for (const location of locationsForTRP) {
-          buildingIds.push(location['parent_id']);
-        }
-        const locationObj = new Location();
-        locationsForManager = await locationObj.bulkLocationDetails(buildingIds);
-      }
-      levelLocations = await list.generateSublocationsForListing(buildingIds);
-      /*
-      console.log('======================= BUILDING IDS ======================== ');
-      console.log(buildingIds);
-      console.log('*********************** LEVEL LOCATIONS ***************************');
-      console.log(levelLocations);
-      */
-      // get locations for location_account_relation and merged it in buildingIds
-      const locationsForTrpFromLAR =
-        await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
-
-      const uniqLocationsUnderFRP = [];
-      for (const location of locationsForTrpFromLAR) {
-        if (levelLocations['resultLocationIds'].indexOf(location['location_id']) === -1) {
-          uniqLocationsUnderFRP.push(location['location_id']);
-        }
-      }
-
-
-      const locationInLAR = await list.generateLocationDetailsForAddUsers(uniqLocationsUnderFRP);
-      return res.status(200).send({
-        data: {
-          buildings: locationsForManager,
-          levels: levelLocations['resultArray'].concat(locationInLAR),
-          lar: locationInLAR
-        }
-      });
-
+        new AdminRoute().getLocationListing(req, res);
     });
 
     router.get('/admin/check-user-email/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -1843,5 +1791,70 @@ export class AdminRoute extends BaseRoute {
 
 
         res.send(response);
+    }
+
+    public async getLocationListing(req: AuthRequest, res: Response, toReturn?){
+        const locAccntRelObj = new LocationAccountRelation();
+      let locationsForManager;
+      let locationsForTRP;
+      const buildingIds = [];
+
+      locationsForManager = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Manager']});
+      for (const location of locationsForManager) {
+        buildingIds.push(location['location_id']);
+      }
+      // GET ALL SUBLEVELS
+      const list = new List();
+      let levelLocations: Object = {
+        resultArray: [],
+        resultObject: {},
+        resultLocationIds: []
+      };
+
+      if (buildingIds.length == 0) {
+        locationsForTRP = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
+        for (const location of locationsForTRP) {
+          buildingIds.push(location['parent_id']);
+        }
+        const locationObj = new Location();
+        locationsForManager = await locationObj.bulkLocationDetails(buildingIds);
+      }
+      levelLocations = await list.generateSublocationsForListing(buildingIds);
+      /*
+      console.log('======================= BUILDING IDS ======================== ');
+      console.log(buildingIds);
+      console.log('*********************** LEVEL LOCATIONS ***************************');
+      console.log(levelLocations);
+      */
+      // get locations for location_account_relation and merged it in buildingIds
+      const locationsForTrpFromLAR =
+        await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
+
+      const uniqLocationsUnderFRP = [];
+      for (const location of locationsForTrpFromLAR) {
+        if (levelLocations['resultLocationIds'].indexOf(location['location_id']) === -1) {
+          uniqLocationsUnderFRP.push(location['location_id']);
+        }
+      }
+
+      const locationInLAR = await list.generateLocationDetailsForAddUsers(uniqLocationsUnderFRP);
+      if(!toReturn){
+          return res.status(200).send({
+            data: {
+              buildings: locationsForManager,
+              levels: levelLocations['resultArray'].concat(locationInLAR),
+              lar: locationInLAR
+            }
+          });
+      }else{
+          return {
+            data: {
+              buildings: locationsForManager,
+              levels: levelLocations['resultArray'].concat(locationInLAR),
+              lar: locationInLAR
+            }
+          };
+      }
+       
     }
 }

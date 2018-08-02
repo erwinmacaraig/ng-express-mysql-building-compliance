@@ -23,6 +23,7 @@ import { WardenInvitationFormComponent } from './signup/warden-invite/warden-inv
 import { ProfileCompletionComponent } from './signup/profile-completion/profile-completion.component';
 import { TenantInvitationFormComponent } from './signup/trp-invite/tenant-invite.component';
 import { NoemailComponent } from './noemail/noemail.component';
+import { LocationSignupComponent } from './signup/location.signup/location.signup';
 
 import { AuthGuard } from './services/auth-guard.service';
 import { PersonInfoResolver} from './services/person-info.resolver';
@@ -115,7 +116,8 @@ const appRoutes: Routes = [
         { path: 'warden-signup', component: WardenSignupComponent },
         { path: 'warden-profile-completion/:token', component: WardenInvitationFormComponent },
         { path: 'profile-completion/:token', component: ProfileCompletionComponent },
-        { path: 'tenant-profile-completion/:token', component: TenantInvitationFormComponent }
+        { path: 'tenant-profile-completion/:token', component: TenantInvitationFormComponent },
+        { path: 'select-location', component : LocationSignupComponent }
       ]
   },
   { path: 'no-email', component: NoemailComponent },

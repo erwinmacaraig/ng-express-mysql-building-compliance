@@ -78,9 +78,11 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public getLocationsByUserIds(userIds, locId?) {
+    public getLocationsByUserIds(userIds, locId?, roleIds?) {
         return new Promise((resolve, reject) => {
             let whereLoc = (locId) ? ` AND lau.location_id = ${locId} ` : '';
+            let whereRoles = (locId && locId.length > 0) ? ` AND urr.role_id IN ${roleIds} ` : '';
+            
 
             const sql_load = `SELECT
                     lau.location_account_user_id,
@@ -99,7 +101,7 @@ export class LocationAccountUser extends BaseClass {
                     INNER JOIN locations l ON l.location_id = lau.location_id
                     LEFT JOIN locations ploc ON ploc.location_id = l.parent_id
                     LEFT JOIN user_role_relation urr ON urr.user_id = lau.user_id
-                    WHERE lau.user_id IN (`+userIds+`) ${whereLoc} `;
+                    WHERE lau.user_id IN (`+userIds+`) ${whereLoc} ${whereRoles} `;
 
             const connection = db.createConnection(dbconfig);
 

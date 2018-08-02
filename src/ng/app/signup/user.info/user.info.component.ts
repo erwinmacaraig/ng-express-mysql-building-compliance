@@ -77,10 +77,10 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
         }
 
         if(this.roleId == 3){
-            this.signupService.getSecurityQuestions((securityQuestionsResponse) => {
+            /*this.signupService.getSecurityQuestions((securityQuestionsResponse) => {
                 this.securityQuestions = securityQuestionsResponse.data;
                 setTimeout(() => { $('#securityQuestion').material_select(); }, 100);
-            });
+            });*/
         }
 
     }
@@ -121,7 +121,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
                 this.modalLoader.message = 'Sign up successful!';
             }
 
-            this.modalLoader.iconColor = 'green';
+            this.modalLoader.iconColor = 'green'
             this.modalLoader.icon = 'check';
             this.resetFormElement(f);
             this.elems['modalLoader'].modal('open');
@@ -130,7 +130,12 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
             this.auth.setUserData(res.data.user);
 
             setTimeout(() => {
-                this.router.navigate(['/setup-company']);
+                let accountType = $('#accountType');
+                if( parseInt(accountType.val()) == 1 || parseInt(accountType.val()) == 2 ){
+                    this.router.navigate(['/setup-company']);
+                }else{
+                    this.router.navigate(['/login']);
+                }
             }, 3000);
         } else {
             this.modalLoader.iconColor = 'red';
@@ -170,8 +175,8 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
         };
 
         if(userData['role_id'] == 3){
-            userData['question_id'] = $('#securityQuestion').val();
-            userData['security_answer'] = controls.security_answer.value;
+            /*userData['question_id'] = $('#securityQuestion').val();
+            userData['security_answer'] = controls.security_answer.value;*/
         }
 
         if (this.invitationCodePresent) {

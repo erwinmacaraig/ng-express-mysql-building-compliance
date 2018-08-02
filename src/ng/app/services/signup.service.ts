@@ -27,7 +27,11 @@ export class SignupService {
         .subscribe(res => {
             callBack(res);
         }, err => {
-            callBack( JSON.parse(err.error) );
+            if(typeof err.error == 'string'){
+                callBack( JSON.parse(err.error) );
+            }else{
+                callBack( err.error );
+            }
         });
     }
 
