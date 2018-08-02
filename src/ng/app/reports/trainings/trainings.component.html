@@ -107,7 +107,12 @@
                         <td>{{re.certification_date_formatted}}</td>
                         <td>
                             <span *ngIf="re.status == 'valid' && re.pass == 1 " class="blue-text">Compliant</span>
-                            <span *ngIf="re.status != 'valid' || re.pass == 0 " class="grey-text">Not Compliant</span>
+                            <span *ngIf="re.status != 'valid' || re.pass == 0 " class="grey-text">
+                                Not Compliant
+                                <small *ngIf="re.pass == 0">(Failed)</small>
+                                <small *ngIf="re.status == 'expired'">(Expired)</small>
+                                <small *ngIf="re.status == 'not taken'">(Not Taken)</small>
+                            </span>
                         </td>
                     </tr>
                 </tbody>
