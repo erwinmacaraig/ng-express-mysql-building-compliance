@@ -61,12 +61,12 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
     documentTypeValue = "0";
 
     constructor(
-        public http: HttpClient, 
+        public http: HttpClient,
         public encryptDecrypt: EncryptDecryptService,
-        public router: Router, 
-        platformLocation: PlatformLocation, 
+        public router: Router,
+        platformLocation: PlatformLocation,
         public adminService: AdminService,
-        public dashboard: DashboardPreloaderService) 
+        public dashboard: DashboardPreloaderService)
     {
         this.baseUrl = (platformLocation as any).location.origin;
         this.setDatePickerDefaultDate();

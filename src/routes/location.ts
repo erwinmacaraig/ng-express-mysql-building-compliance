@@ -54,6 +54,19 @@ const defs = require('../config/defs.json');
          });
 	   	});
 
+
+      router.get('/location/get-with-queries', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+
+        new LocationRoute().getLocation(req, res).then((data) => {
+          return res.status(200).send(data);
+         }).catch((e) => {
+            console.log(e);
+            return res.status(400).send({
+              message: 'No location found'
+            });
+         });
+           })
+
         router.post('/location/assign-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new LocationRoute().assignSubLocation(req, res).then((data) => {
                 return res.status(200).send({
@@ -116,6 +129,10 @@ const defs = require('../config/defs.json');
                     message: err
                 });
             });
+        });
+
+        router.get('/location/search-locations-hierarchy/:key', (req: AuthRequest, res: Response) => {
+            new LocationRoute().searchLocationsHierarchy(req, res);
         });
 
         router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -281,17 +298,11 @@ const defs = require('../config/defs.json');
         momentToday = moment(),
         userModel = new User(user_id),
         locationModel = new Location();
-
-        console.log(queryObject);
-
         res.set('Content-Type', 'text/html');
 
         try{
           let momentToken = moment(tokenData['expiration_date']),
             user = await userModel.load();
-
-          console.log(  momentToken.isAfter(momentToday) && tokenData['verified'] == 0 );
-
           if(momentToken.isAfter(momentToday) && tokenData['verified'] == 0){
 
             try{
@@ -618,7 +629,6 @@ const defs = require('../config/defs.json');
   		// checks for location name if same name exists
   		subs = await locationParent.getSublocations(req.user.user_id, r);
   		for (let s of subs) {
-  			console.log(s['name'].toUpperCase() + ' compared with ' + sublocation_name.toUpperCase());
   			if (s['name'].toUpperCase() === sublocation_name.toUpperCase()) {
   				throw new Error('Sub location with the name provided already exists');
   			}
@@ -988,7 +998,10 @@ const defs = require('../config/defs.json');
 
 	public async getLocation(req: AuthRequest, res: Response) {
 		let
-        locationId = <number>req.params.location_id,
+        isQuery = (Object.keys(req.query).length > 0) ? true : false,
+        locationId = (isQuery) ? req.query.location_id : req.params.location_id,
+        accountId = (isQuery) ? req.query.account_id : req.user.account_id,
+        getRelatedOnly = (isQuery) ? (req.query.get_related_only == 'true') ? true : false : false,
         location = new Location(locationId),
         sublocations,
         othersub = [],
@@ -1021,6 +1034,10 @@ const defs = require('../config/defs.json');
         let countRelatedLoc = await locAccRel.listAllLocationsOnAccount(req.user.account_id, {
             'responsibility' : r, 'archived' : 0, 'location_id' : locationId, 'count' : true
         });
+        response['filter'] = {
+            'responsibility' : r, 'archived' : 0, 'location_id' : locationId, 'count' : true
+        };
+        response['countRelatedLoc'] = countRelatedLoc;
         if(countRelatedLoc[0]['count'] > 0){
             response.show_compliance = true;
         }
@@ -1051,31 +1068,80 @@ const defs = require('../config/defs.json');
         const wardenCalc = new WardenBenchmarkingCalculator();
 
         let sublocationIdsArray = [0];
-        if(locData.parent_id == -1){
-            sublocations = await location.getSublocations(req.user.user_id, r);
-        }else{
-            let ancestriesModel = new Location(),
-                ancestries = <any> await ancestriesModel.getAncestries(locData.location_id);
 
-            for(let i in ancestries){
-                location.setID(ancestries[i]['location_id']);
-                sublocations = await location.getSublocations(req.user.user_id, r);
+        if(getRelatedOnly == true){
+            let responsibility = (r == 1) ? 'Manager' : 'Tenant'; 
+            sublocations = await location.getChildrenTenantRelated(locData.location_id, accountId, responsibility);
+        }else{
+            if(locData.parent_id == -1){
+                sublocations = await location.getChildren(locData.location_id);
+            }else{
+                let ancestriesModel = new Location(),
+                    ancestries = <any> await ancestriesModel.getAncestries(locData.location_id);
+
+                for(let i in ancestries){
+                    location.setID(ancestries[i]['location_id']);
+                    sublocations = await location.getSublocations(req.user.user_id, r);
+                }
             }
         }
+
 
         for (let j = 0; j < sublocations.length; j++) {
           sublocationIdsArray.push(sublocations[j]['location_id']);
         }
 
         // Get nominated and get total no of actual wardens and wardens that passed
-        let nominatedWardensObj;
+        let nominatedWardensObj, nominatedFloorWardensObj, floorWardenRoles, wardenRoles;
         const training = new TrainingCertification();
+        const calcResults = await wardenCalc.getBulkBenchmarkingResultOnLocations(sublocationIdsArray);
         try {
-          const wardenRoles = await location.getEMRolesForThisLocation(defs['em_roles']['WARDEN']);
-          nominatedWardensObj = wardenRoles[defs['em_roles']['WARDEN']];
+          wardenRoles = await location.getEMRolesForThisLocation(defs['em_roles']['WARDEN'], 0, r, 0, req.user.account_id);
+        } catch(e) {
+          wardenRoles = {};
+        }
+        try {
+          floorWardenRoles = await location.getEMRolesForThisLocation(defs['em_roles']['FLOOR_WARDEN'], 0, r, 0, req.user.account_id);
+        } catch(e) {
+          floorWardenRoles = {};
+        }
 
-          const calcResults = await wardenCalc.getBulkBenchmarkingResultOnLocations(sublocationIdsArray);
 
+
+        let allWardens = [];
+
+        for (const sub of sublocations) {
+          // this part is for warden benchmarking
+          if (sub['location_id'] in calcResults) {
+            sub['total_estimated_wardens'] = calcResults[sub['location_id']]['total_estimated_wardens'];
+          } else {
+            sub['total_estimated_wardens'] = 0;
+          }
+          allWardens = [];
+          // check first if there are wardens (technically use in rather than checking if empty object)
+          if (defs['em_roles']['WARDEN'] in wardenRoles) {
+            nominatedWardensObj = wardenRoles[defs['em_roles']['WARDEN']];
+            if (sub['location_id'] in nominatedWardensObj) {
+              allWardens = allWardens.concat(nominatedWardensObj[sub['location_id']]['users']);
+            }
+          }
+          if (defs['em_roles']['FLOOR_WARDEN'] in floorWardenRoles) {
+            nominatedFloorWardensObj = floorWardenRoles[defs['em_roles']['FLOOR_WARDEN']];
+            if (sub['location_id'] in nominatedFloorWardensObj) {
+              allWardens = allWardens.concat(nominatedFloorWardensObj[sub['location_id']]['users']);
+            }
+          }
+          allWardens = Array.from(new Set(allWardens));
+          sub['trained_wardens'] = 0;
+          sub['nominated_wardens'] = 0;
+          if (allWardens.length > 0) {
+            const trainingDetailsForLocation = await training.getEMRUserCertifications(allWardens);
+            sub['trained_wardens'] = trainingDetailsForLocation['total_passed'];
+            sub['nominated_wardens'] = allWardens.length;
+          }
+        }
+        /*
+        try {
           for(let i = 0; i < sublocations.length; i++) {
             if (sublocations[i]['location_id'] in nominatedWardensObj) {
               sublocations[i]['nominated_wardens'] = (nominatedWardensObj[sublocations[i]['location_id']]['users']).length;
@@ -1096,7 +1162,7 @@ const defs = require('../config/defs.json');
           // console.log(sublocations);
         } catch(e) {
           console.log('There are no wardens for this building');
-        }
+        } */
 
         for(let sub of sublocations) {
             let accountModelTenantCount = new Account(),
@@ -1307,12 +1373,12 @@ const defs = require('../config/defs.json');
                 loc['num_tenants'] = temp.length;
             }*/
 
-            let 
+            let
                 subLocsModel = new Location(),
                 sublocsids = [],
                 sublocs = <any> await subLocsModel.getChildren(loc['location_id']),
                 accountModelTenantCount = new Account();
-            
+
             for(let sub of sublocs){
                 sublocsids.push(sub.location_id);
             }
@@ -1344,7 +1410,7 @@ const defs = require('../config/defs.json');
             loc['mobility_impaired'] = impaired.length;
 
         }
-        
+
 
         if(pagination){
             let
@@ -1493,6 +1559,21 @@ const defs = require('../config/defs.json');
         response.locations = responseLocations;
 
         res.send(response);
+    }
+
+    public async searchLocationsHierarchy(req: AuthRequest, res: Response){
+        let
+        locModel = new Location(),
+        subLocs = new Location(),
+        locations = <any> [];
+
+        locations = <any> await locModel.searchLocation({ name : req.params.key }, 7);
+        for(let loc of locations){
+            let sublocModel = new Location(loc.location_id);
+            loc['sublocations'] = <any> await sublocModel.getSublocations();
+        }
+
+        res.send(locations);
     }
 
 	public getDeepLocationsById(req: AuthRequest, res: Response){

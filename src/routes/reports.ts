@@ -424,11 +424,11 @@ export class ReportsRoute extends BaseRoute {
             if(cert['certification_date'] != null){
                 cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
             }else{
-                cert['certification_date_formatted'] = 'n/a';
+                cert['certification_date_formatted'] = '';
             }
 
             if(cert['training_requirement_name'] == null){
-                cert['training_requirement_name'] = '--';
+                cert['training_requirement_name'] = '';
             }
         }
 

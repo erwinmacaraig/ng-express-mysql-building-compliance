@@ -113,6 +113,36 @@ export class Account extends BaseClass {
       });
     }
 
+    public getActive() {
+        return new Promise((resolve, reject) => {
+            const sql_load = 'SELECT * FROM accounts WHERE archived = 0';
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              this.dbData = results;
+              resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
+    public getByIds(ids) {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT * FROM accounts WHERE archived = 0 AND account_id IN (${ids})`;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              this.dbData = results;
+              resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
     public getByUserId(userId: Number) {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT accounts.* FROM accounts INNER JOIN users ON accounts.account_id = users.account_id WHERE users.user_id = ?';
@@ -180,7 +210,6 @@ export class Account extends BaseClass {
             });
             connection.end();
         });
-
     }
 
     public searchByAccountName(name: String) {

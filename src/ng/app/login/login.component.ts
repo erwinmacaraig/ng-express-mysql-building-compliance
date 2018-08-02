@@ -106,7 +106,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.errorOccuredMessage = this.loginMessageStatus;
 
       } else {
-        let errJSON = JSON.parse(err.error);
+        let errJSON = (typeof err.error == 'object') ? err.error : JSON.parse(JSON.stringify(err.error));
         if(errJSON.verified === false){
           $('#modalSendVerification').modal('open');
           this.userId = errJSON.data[2];

@@ -143,10 +143,13 @@ export class UserRoleRelation extends BaseClass {
         });
     }
 
-    public getManyByUserIds(userIds) {
+    public getManyByUserIds(userIds, roleIds?) {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM user_role_relation WHERE user_id IN ('+userIds+')';
-            const connection = db.createConnection(dbconfig);
+            const 
+            roleidsQ = (roleIds) ? ' AND role_id IN ('+roleIds+') ' : '',
+            sql_load = 'SELECT * FROM user_role_relation WHERE user_id IN ('+userIds+') ' + roleidsQ,
+            connection = db.createConnection(dbconfig);
+            
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
                     return console.log(error);
@@ -208,5 +211,4 @@ export class UserRoleRelation extends BaseClass {
 
         });
     }
-
 }

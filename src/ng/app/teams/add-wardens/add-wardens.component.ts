@@ -13,13 +13,15 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { ExportToCSV } from '../../services/export.to.csv';
+import { MessageService } from '../../services/messaging.service';
 
 declare var $: any;
 @Component({
     selector: 'app-teams-add-warden',
     templateUrl: './add-wardens.component.html',
     styleUrls: ['./add-wardens.component.css'],
-    providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService]
+    providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService, ExportToCSV, MessageService]
 })
 export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     @ViewChild('f') addWardenForm: NgForm;
@@ -76,7 +78,9 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         private router : Router,
         private actRoute : ActivatedRoute,
         private encdecrypt : EncryptDecryptService,
-        private adminService : AdminService
+        private adminService : AdminService,
+        private exportToCSV : ExportToCSV,
+        private messageService: MessageService
         ) {
 
         this.userData = this.authService.getUserData();
@@ -131,8 +135,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
             dismissible: false
         });
 
-        this.dragDropFileEvent();
         this.onKeyUpSearchModalLocationEvent();
+        this.messageService.sendMessage({ 'csv-upload' : {  'title' : 'Nominate Wardens by CSV Upload'  } });
     }
 
     filterLocationForSelectedValue(){
@@ -170,38 +174,6 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         loopAddKey(this.locations);
 
         return [selected];
-    }
-
-    showModalCSV(){
-        $('#modaCsvUpload').modal('open');
-    }
-
-    isAdvancedUpload() {
-      var div = document.createElement('div');
-      return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
-    };
-
-    dragDropFileEvent(){
-        let modal = $('#modaCsvUpload'),
-            uploadContainer = modal.find('.upload-container'),
-            inputFile = uploadContainer.find('input[name="file"]');
-
-        if(this.isAdvancedUpload()){
-            uploadContainer.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            })
-            .on('dragover dragenter', () =>  {
-                uploadContainer.css({ 'border' : '2px dotted #fc4148' });
-            })
-            .on('dragleave dragend drop', () => {
-                uploadContainer.css({ 'border' : '' });
-            })
-            .on('drop', (e) => {
-                this.droppedFile = e.originalEvent.dataTransfer.files;
-                uploadContainer.find('input[type="file"]')[0].files = e.originalEvent.dataTransfer.files;
-            });
-        }
     }
 
     showModalInvite(){
@@ -449,10 +421,6 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
       }
     }
 
-    selectCSVButtonClick(inputFileCSV) {
-        inputFileCSV.click();
-    }
-
     sendInviteOnClick() {
         this.bulkEmailInvite = (this.emailInviteForm.controls.inviteTxtArea.value).split(',');
         const validEmails = [];
@@ -472,41 +440,6 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         }
         );
         this.emailInviteForm.controls.inviteTxtArea.reset();
-    }
-
-    public fileChangeEvent(fileInput: any, btnSelectCSV) {
-        this.CSVFileToUpload = <Array<File>> fileInput.target.files;
-        btnSelectCSV.innerHTML = this.CSVFileToUpload[0]['name'];
-    }
-
-    public onUploadCSVAction() {
-        let override = $('#override')[0].checked;
-        let formData: any = new FormData();
-
-        formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
-        formData.append('override',  override);
-        this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
-          console.log(data);
-          this.csvInvalidRecords = data.invalid;
-          this.csvValidRecords = data.valid;
-          this.recordOverride = data['data-override'];
-          this.csvHeaderNames = Object.keys(data.valid[0]);
-          $('#modaCsvUpload').modal('close');
-          setTimeout(() => {
-            $('#modalUploadConfirmation').modal('open');
-        }, 300);
-        }, (e) => {
-          console.log(e);
-        });
-    }
-
-    public onConfirmCSVUpload() {
-      const csvRecord = JSON.stringify(this.csvValidRecords);
-      this.dataProvider.finalizeCSVRecord(csvRecord, this.recordOverride).subscribe((data) => {
-        $('#modalUploadConfirmation').modal('close');
-      }, (error: HttpErrorResponse) => {
-        alert('There was an error.');
-      });
     }
 
     onKeyUpSearchModalLocationEvent(){

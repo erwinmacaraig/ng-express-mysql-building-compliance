@@ -75,8 +75,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
     countOfBuildings = 0;
 
-    colors = ['#835cb7', '#f0932b', '#eb4d4b', '#6ab04c', '#30336b', '#22a6b3', '#be2edd', '#95afc0', '#badc58', '#01a3a4', '#10ac84', '#8395a7'];
-
+    colors = [];
     complianceTextOne = 'Total number of buildings';
     complianceTextTwo = <any>'Loading...';
     complianceTextOneDefault = this.complianceTextOne;
@@ -105,6 +104,11 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 			this.courses = response.data;
 		});
 
+        let complianceColors = this.complianceService.getColors();
+        for(let i in complianceColors){
+            this.colors.push(complianceColors[i]);
+        }
+
         this.getLocationsForListing((response:any) => {
             this.locations = response.locations;
             for(let loc of this.locations){
@@ -117,11 +121,6 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                     loc['fetchingCompliance'] = false;
                     loc['compliance_percentage'] = compRes.percent;
                     loc['compliance'] = compRes.data;
-
-                    if(this.isAllFetchingComplianceDone()){
-                        
-                    }
-
                 });
             }
 
@@ -502,6 +501,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             if (this.locations.length > 0) {
                 for (let i = 0; i < this.locations.length; i++) {
                     this.locations[i]['enc_location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
+                    this.locations[i]['enc_parent_id'] = this.encryptDecrypt.encrypt(this.locations[i].parent_id);
                 }
             }
 

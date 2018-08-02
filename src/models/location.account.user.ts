@@ -78,11 +78,17 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public getLocationsByUserIds(userIds) {
+    public getLocationsByUserIds(userIds, locId?, roleIds?) {
         return new Promise((resolve, reject) => {
+            let whereLoc = (locId) ? ` AND lau.location_id = ${locId} ` : '';
+            let whereRoles = (locId && locId.length > 0) ? ` AND urr.role_id IN ${roleIds} ` : '';
+            
+
             const sql_load = `SELECT
                     lau.location_account_user_id,
                     lau.user_id,
+                    IF(urr.role_id IS NOT NULL, IF(urr.role_id = 1, 'FRP', 'TRP'), '') as role_name,
+                    IF(urr.role_id IS NOT NULL, urr.role_id, '') as role_id,
                     l.parent_id,
                     l.location_id,
                     l.formatted_address,
@@ -94,7 +100,8 @@ export class LocationAccountUser extends BaseClass {
                     FROM location_account_user lau
                     INNER JOIN locations l ON l.location_id = lau.location_id
                     LEFT JOIN locations ploc ON ploc.location_id = l.parent_id
-                    WHERE lau.user_id IN (`+userIds+`)`;
+                    LEFT JOIN user_role_relation urr ON urr.user_id = lau.user_id
+                    WHERE lau.user_id IN (`+userIds+`) ${whereLoc} ${whereRoles} `;
 
             const connection = db.createConnection(dbconfig);
 
@@ -423,9 +430,19 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public getByUserId(UserId: Number) {
+    public getByUserId(UserId: Number, getLocationDetails?) {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM location_account_user WHERE user_id = ?';
+            let sql_load = 'SELECT * FROM location_account_user WHERE user_id = ?';
+            if(getLocationDetails){
+                sql_load = `
+                SELECT l.*, lau.location_account_user_id, lau.account_id,
+                IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name
+                FROM location_account_user lau
+                INNER JOIN locations l ON lau.location_id = l.location_id
+                LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE user_id = ?
+                `;
+            }
             const param = [UserId];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, param, (error, results, fields) => {

@@ -190,6 +190,7 @@ export class CourseUserRelation extends BaseClass {
       }
       const sql_get = `SELECT
                         course_user_relation.course_user_relation_id,
+                        course_user_relation.disabled,
                         course_user_relation.user_id,
                         course_user_relation.course_id,
                         course_user_relation.training_requirement_id,

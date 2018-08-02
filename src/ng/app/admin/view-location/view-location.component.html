@@ -18,6 +18,11 @@
     </div>
     <p><strong>Location Id:</strong> <span>{{location_details['location_id']}}</span></p>
     <p><strong>Address</strong> <span>{{location_details['formatted_address']}}</span></p>
+    <br>
+    <div>Settings</div>
+    <div class="checkbox">
+      <input id="ola" type="checkbox" [(ngModel)]="location_details.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
+    </div>
   </div>
 </div>
 <div class="row">

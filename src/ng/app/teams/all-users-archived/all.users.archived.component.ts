@@ -5,8 +5,10 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/users';
 import { AuthService } from '../../services/auth.service';
+import { AccountsDataProviderService  } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { CourseService } from '../../services/course';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -18,11 +20,11 @@ declare var $: any;
   selector: 'app-all-users-archived',
   templateUrl: './all.users.archived.component.html',
   styleUrls: ['./all.users.archived.component.css'],
-  providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService]
+  providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService, CourseService, AccountsDataProviderService]
 })
 export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 
-	userData = {};
+	userData = <any> {};
 	listData = [];
 	selectedToArchive = {
 		first_name : '', last_name : '', parent_data : {}, locations : []
@@ -31,7 +33,19 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 	copyOfList = [];
 	selectedFromList = [];
 
-	filters = [];
+	filters = [
+        { value : 2, name : 'Tenant Responsible' },
+        { value : 8, name : 'General Occupant' },
+        { value : 9, name : 'Warden' },
+        { value : 10, name : 'Floor / Area Warden' },
+        { value : 11, name : 'Chief Warden' },
+        { value : 12, name : 'Fire Safety Advisor' },
+        { value : 13, name : 'Emergency Planning Committee Member' },
+        { value : 14, name : 'First Aid Officer' },
+        { value : 15, name : 'Deputy Chief Warden' },
+        { value : 16, name : 'Building Warden' },
+        { value : 18, name : 'Deputy Building Warden' }
+    ];
 
 	loadingTable = false;
 
@@ -40,19 +54,22 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
 	};
 
 	queries = {
-		roles : 'frp,trp,users',
-		impaired : null,
-		type : 'client',
-		offset :  0,
-		limit : 10,
-		archived : 1,
-		pagination : true,
-		user_training : true,
-		users_locations : true,
-		search : ''
-	};
+        roles : 'frp,trp,users,no_roles',
+        impaired : null,
+        type : 'client',
+        offset :  0,
+        limit : 10,
+        archived : 1,
+        pagination : true,
+        user_training : true,
+        users_locations : true,
+        search : '',
+        online_trainings : true
+    };
 
-	searchMemberInput;
+	multipleLocations = [];
+
+    searchMemberInput;
 
     options: DatepickerOptions = {
         displayFormat: 'MMM D[,] YYYY',
@@ -66,122 +83,180 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
         first_name : '', last_name : ''
     };
 
+    selectedToInvite = [];
+
+    emTrainings = [];
+
+    allAreSelected = false;
+    sendInviteToAll = false;
+    sendInviteToAllNonCompliant = false;
+
+    isOnlineTrainingAvailable = false;
+
 	constructor(
 		private userService : UserService,
-		private authService : AuthService,
-		private dashboardService : DashboardPreloaderService,
-		private encDecrService : EncryptDecryptService,
-		private router : Router
+        private authService : AuthService,
+        private dashboardService : DashboardPreloaderService,
+        private encDecrService : EncryptDecryptService,
+        private router : Router,
+        private courseService : CourseService,
+        private accountService : AccountsDataProviderService
 		){
 		this.userData = this.authService.getUserData();
 
+        for(let role of this.userData.roles){
+            if(role.role_id == 1){
+                this.filters.unshift({
+                    value : 1, name : 'Building Manager'
+                })
+            }
+        }
+
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+
+        this.courseService.getAllEmRolesTrainings((response) => {
+            this.emTrainings = response.data;
+        });
 	}
 
 	getListData(callBack?){
 
 		this.userService.queryUsers(this.queries, (response) => {
-			this.pagination.total = response.data.pagination.total;
-			this.pagination.pages = response.data.pagination.pages;
-			this.listData = response.data.users;
+            this.pagination.total = response.data.pagination.total;
+            this.pagination.pages = response.data.pagination.pages;
+            this.listData = response.data.users;
 
-			let tempRoles = {};
-			this.filters = [];
-			for(let i in this.listData){
-				this.listData[i]['bg_class'] = this.generateRandomBGClass();
-				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
+            let tempRoles = {};
+            
+            for(let i in this.listData){
+                this.listData[i]['bg_class'] = this.generateRandomBGClass();
+                this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
 
-				for(let l in this.listData[i]['locations']){
-					if(this.listData[i]['locations'][l]['parent_name'] == null){
-						this.listData[i]['locations'][l]['parent_name'] = '';
-					}
-				}
+                for(let l in this.listData[i]['locations']){
+                    if(this.listData[i]['locations'][l]['parent_name'] == null){
+                        this.listData[i]['locations'][l]['parent_name'] = '';
+                    }
 
-				for(let r in this.listData[i]['roles']){
-					if( this.listData[i]['roles'][r]['role_name'] ){
-						if( !tempRoles[ this.listData[i]['roles'][r]['role_name'] ] ){
-							tempRoles[ this.listData[i]['roles'][r]['role_name'] ] = this.listData[i]['roles'][r]['role_name'];
-							this.filters.push({
-								value : this.listData[i]['roles'][r]['role_id'],
-								name : this.listData[i]['roles'][r]['role_name']
-							});
-						}
-					}
-				}
-			}
+                    this.listData[i]['locations'][l]['enc_location_id'] = this.encDecrService.encrypt( this.listData[i]['locations'][l]['location_id'] );
+                }
 
-			setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
+                for(let r in this.listData[i]['roles']){
+                    if( this.listData[i]['roles'][r]['role_name'] ){
+                        if( !tempRoles[ this.listData[i]['roles'][r]['role_name'] ] ){
+                            tempRoles[ this.listData[i]['roles'][r]['role_name'] ] = this.listData[i]['roles'][r]['role_name'];
+                        }
+                    }
+                }
 
-			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
+                this.listData[i]['sendinvitation'] = false;
+                let hasEcoRole = false;
+                for(let r in this.listData[i]['roles']){
+                    if( this.listData[i]['roles'][r]['role_id'] != 1 && this.listData[i]['roles'][r]['role_id'] != 2 ){
+                        hasEcoRole = true;
+                    }
+                }
 
-			if(callBack){
-				callBack();
-			}
-		});
+                if(hasEcoRole){
+                    this.listData[i]['sendinvitation'] = true;
+                }
+
+                let isSelected = false;
+                this.listData[i]['isselected'] = false;
+                for(let sel of this.selectedFromList){
+                    if(sel.user_id == this.listData[i]['user_id']){
+                        this.listData[i]['isselected'] = true;
+                        isSelected = true;
+                    }
+                }
+
+                if(!isSelected && this.allAreSelected){
+                    this.listData[i]['isselected'] = true;
+                    this.selectedFromList.push(this.listData[i]);
+                }
+
+            }
+
+            setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
+
+            this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
+
+            if(callBack){
+                callBack();
+            }
+        });
 	}
 
 	ngOnInit(){
 		this.dashboardService.show();
-		this.getListData(() => { 
-			if(this.pagination.pages > 0){
-				this.pagination.currentPage = 1;
-				this.pagination.prevPage = 1;
-			}
+        this.getListData(() => { 
+            if(this.pagination.pages > 0){
+                this.pagination.currentPage = 1;
+                this.pagination.prevPage = 1;
+            }
 
-			for(let i = 1; i<=this.pagination.pages; i++){
-				this.pagination.selection.push({ 'number' : i });
-			}
-			setTimeout(() => {
-				this.dashboardService.hide(); 
-				$('.row.filter-container select').material_select();
-			}, 100);
-		});
+            for(let i = 1; i<=this.pagination.pages; i++){
+                this.pagination.selection.push({ 'number' : i });
+            }
+
+            this.dashboardService.hide();
+        });
 
 	}
 
 	ngAfterViewInit(){
 		$('.modal').modal({
-			dismissible: false
-		});
+            dismissible: false
+        });
 
-		$('.row.filter-container select').material_select();
+        this.accountService.isOnlineTrainingValid((response) => {
+            if(response.valid){
+                this.isOnlineTrainingAvailable = true;
+            }
+            setTimeout(() => {
+                $('.row.filter-container select').material_select();
+            }, 100);
+        });
+
         $('#modalMobility select').material_select();
 
-		this.dashboardService.show();
-
-		this.filterByEvent();
-		this.sortByEvent();
-		this.bulkManageActionEvent();
-		this.searchMemberEvent();
+        this.filterByEvent();
+        this.sortByEvent();
+        this.bulkManageActionEvent();
+        this.searchMemberEvent();
 	}
 
 	filterByEvent(){
+        let __this = this;
+        $('select.filter-by').on('change', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            let selected = $('select.filter-by').val();
+            __this.dashboardService.show();
+            if(parseInt(selected) != 0){
+                __this.queries.roles = selected;
+            }else{
+                __this.queries.roles = 'frp,trp,users,no_roles';
+            }
 
-		$('select.filter-by').on('change', () => {
-			let selected = $('select.filter-by').val();
-			if(parseInt(selected) != 0){
-				let temp = [],
-					addedIds = {};
-				for(let list of this.copyOfList){
-					let add = false;
-					for(let role of list.roles){
-						if( role.role_id == selected ){
-							add = true;
-						}
-					}
+            __this.pagination = {
+                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+            };
 
-					if(add){
-						temp.push(list);
-					}
-				}
-				this.listData = temp;
-			}else{
-				this.listData = this.copyOfList;
-			}
-		});
-		
-	}
+            __this.getListData(() => { 
+                if(__this.pagination.pages > 0){
+                    __this.pagination.currentPage = 1;
+                    __this.pagination.prevPage = 1;
+                }
+
+                for(let i = 1; i<=__this.pagination.pages; i++){
+                    __this.pagination.selection.push({ 'number' : i });
+                }
+
+                __this.dashboardService.hide();
+            });
+        });    
+    }
 
 	sortByEvent(){
 		$('select.sort-by').on('change', () => {
@@ -244,12 +319,19 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
             this.selectedPeep = list;
             event.target.value = 0;
             $('#modalMobilityHealty').modal('open');
-        }else{
-			event.target.value = "0";
-			this.showModalLoader = false;
-			this.selectedToArchive = list;
-			$('#modalArchive').modal('open');
-		}
+        }else if(selected == 'invite'){
+            this.selectedToInvite = [];
+            this.selectedToInvite.push(list);
+            event.target.value = 0;
+            $('#modalSendInvitation').modal('open');
+        }else if(selected == 'restore'){
+            event.target.value = "0";
+            this.showModalLoader = false;
+            this.selectedToArchive = list;
+            event.target.value = 0;
+            $('#modalArchive').modal('open');
+        }
+        
 	}
 
 	unArchiveClick(){

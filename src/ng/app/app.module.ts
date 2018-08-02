@@ -26,7 +26,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
 import { UserDashboardComponent  } from './dashboard/user/user.component';
-
+import { SecurityPrivacyComponent } from './dashboard/security-privacy/security.privacy';
 
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
@@ -45,6 +45,7 @@ import { SignupSelectRoleComponent } from './signup/select.role/select.role.comp
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 import { NoemailComponent } from './noemail/noemail.component';
+import { LocationSignupComponent } from './signup/location.signup/location.signup';
 
 
 import { SearchLocationComponent } from './location/search/search-location.component';
@@ -60,6 +61,8 @@ import { LocationComponent } from './location/location.component';
 import { VerificationComponent } from './location/verification/verification.component';
 import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
 import { WardenLocationComponent } from './location/warden/warden.location.component';
+
+import { ImportCsvButtonComponent } from './import-csv/import-csv';
 
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
@@ -112,6 +115,9 @@ import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 import { EpcMinutesMeetingComponent } from './compliance/epc-minutes-meeting/epc.minutes.meeting';
 
+// NOTIFICATION
+import { NotificationListComponent } from './notification/notification-list.component';
+
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -124,7 +130,11 @@ import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upl
 import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/compliance-summary-view.component';
 import { AdminViewLocationComponent } from './admin/view-location/view-location.component';
 import { TrainingValidationComponent } from './admin/training-validation/training-validation.component';
+
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
+import { AdminReportsComponent } from './admin/reports/reports.component';
+import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
+
 @NgModule({
   declarations: [
     SafeHtmlPipe,
@@ -135,6 +145,7 @@ import { AccountTrainingComponent } from './admin/account-training/account-train
     ChangepasswordComponent,
     NavbarComponent,
     DashboardComponent,
+    SecurityPrivacyComponent,
 
     FrpTrpDashboardComponent,
     UserDashboardComponent,
@@ -153,6 +164,7 @@ import { AccountTrainingComponent } from './admin/account-training/account-train
     SendInviteComponent,
     CustomHttpDataProviderComponent,
     NoemailComponent,
+    LocationSignupComponent,
 
     SublocationComponent,
     SearchLocationComponent,
@@ -166,6 +178,7 @@ import { AccountTrainingComponent } from './admin/account-training/account-train
     WardenLocationComponent,
     // ViewSublocationComponent
 
+    ImportCsvButtonComponent,
     TeamsComponent,
     TeamsAddWardenComponent,
     MobilityImpairedComponent,
@@ -212,6 +225,8 @@ import { AccountTrainingComponent } from './admin/account-training/account-train
     ReportsActivityLogComponent,
     AssignCoursesComponent,
     EpcMinutesMeetingComponent,
+    // NOTIFICATION
+    NotificationListComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,
@@ -224,7 +239,9 @@ import { AccountTrainingComponent } from './admin/account-training/account-train
     ComplianceSummaryViewComponent,
     AdminViewLocationComponent,
     TrainingValidationComponent,
-    AccountTrainingComponent
+    AccountTrainingComponent,
+    AdminReportsComponent,
+    AdminAddAccountComponent
   ],
   imports: [
     BrowserModule,

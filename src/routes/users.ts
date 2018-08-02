@@ -1,3 +1,4 @@
+import { AccountTrainingsModel } from './../models/account.trainings';
 import { TrainingRequirements } from './../models/training.requirements';
 import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
@@ -60,6 +61,10 @@ export class UsersRoute extends BaseRoute {
 		router.post('/users/update', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().updateUser(req, res, next);
 	    });
+
+        router.post('/users/change-password', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+            new  UsersRoute().changePassword(req, res);
+        });
 
 		router.post('/users/upload-profile-picture', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().uploadProfilePicture(req, res, next);
@@ -575,6 +580,53 @@ export class UsersRoute extends BaseRoute {
         }
     }
 
+    public async changePassword(req: Request , res: Response){
+        let
+        response = {
+            status : false,
+            data : {},
+            message : ''
+        },
+        oldPassword = req.body.old_password,
+        newPassword = req.body.new_password,
+        confirmPassword = req.body.confirm_password,
+        errorLength = 0;
+
+        if( newPassword.length < 6 || confirmPassword.length < 6){
+            errorLength++;
+        }
+
+        if(errorLength == 0){
+            if(confirmPassword == newPassword){
+                try{
+                    let
+                    userModel = new User(req.body.user_id),
+                    userData = await userModel.load(),
+                    hasPass = false;
+
+                    if( md5('Ideation'+oldPassword+'Max') == userData['password']){
+                        userModel.set('password', md5('Ideation'+newPassword+'Max'));
+                        userModel.setID(req.body.user_id);
+
+                        await userModel.dbUpdate();
+                        response.data = userData;
+                        response.status = true;
+                    }else{
+                        response.message = 'Invalid old password';
+                    }
+                }catch(e){
+                    response.message = 'No user found';
+                }
+            }else{
+                response.message = 'Password mismatch';
+            }
+        }else{
+            response.message = 'All fields must be greater than 6 characters';
+        }
+
+        res.send(response);
+    }
+
 	public async updateUser(req: Request , res: Response, next: NextFunction){
 		let
 		response = {
@@ -779,10 +831,24 @@ export class UsersRoute extends BaseRoute {
             group : false
         },
         archived : 0,
-        queryRoles = [],
-        userIds = [0],
+        queryRoles = query.roles.split(','),
+        userIds = [],
         userIdObj = [],
-        emRolesDef = defs.em_roles;
+        noGeneralOcc = (queryRoles.indexOf('no_gen_occ') > -1) ? true : false,
+        emRolesDef = defs.em_roles,
+        getFRP = ( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1 ) ? true : false,
+        getTRP = ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ? true : false,
+        emRoleIds = [8,9,10,11,12,13,14,15,16,18],
+        emRoleIdSelected = [],
+        getUSERS = ( queryRoles.indexOf('users') > -1 || queryRoles.indexOf() > -1 ) ? true : false,
+        getUsersByEmRoleId = false;
+
+        for(let id of emRoleIds){
+            if(queryRoles.indexOf(''+id) > -1){
+                getUsersByEmRoleId = true;
+                emRoleIdSelected.push(id);
+            }
+        }
 
         const training_requirements = await new TrainingCertification().getRequiredTrainings();
 
@@ -818,15 +884,33 @@ export class UsersRoute extends BaseRoute {
         modelQueries.joins.push(' LEFT JOIN file_user ON users.user_id = file_user.user_id LEFT JOIN files ON files.file_id = file_user.file_id ');
 
         if(query.roles){
-            queryRoles = query.roles.split(',');
-            if( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1){
-                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_role_relation) ');
+
+            let emRoleIdInQuery = '';
+            if(getUsersByEmRoleId){
+                emRoleIdInQuery = ' AND em_role_id IN ('+emRoleIdSelected.join(',')+') ';
+            }
+
+            if( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ){
+                let roleIdsQ = ' WHERE role_id IN (1,2) ';
+                if(getFRP || !getTRP){
+                    roleIdsQ = ' WHERE role_id IN (1) '
+                }
+                if(!getFRP || getTRP){
+                    roleIdsQ = ' WHERE role_id IN (2) '
+                }
+                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_role_relation '+roleIdsQ+' ) ');
                 if(query.search){
                     modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
                 }
             }
-            if( queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1) == true ){
-                modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1) ');
+
+            if( (queryRoles.indexOf('users') > -1 || getUsersByEmRoleId) && ( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ) == true ){
+                if(noGeneralOcc){
+                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+' ) ');
+                }else{
+                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 '+emRoleIdInQuery+' ) ');
+                }
+
                 modelQueries.orWhere.push(' AND users.archived = '+archived);
                 modelQueries.orWhere.push(' AND users.account_id = '+accountId);
                 if(query.impaired){
@@ -841,28 +925,50 @@ export class UsersRoute extends BaseRoute {
                 if(query.search){
                     modelQueries.orWhere.push(' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
                 }
-            }else if(queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') == -1 && queryRoles.indexOf('trp') == -1) == true){
-                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 ) ');
+            }else if( queryRoles.indexOf('users') > -1 || getUsersByEmRoleId && ( (queryRoles.indexOf('frp') == -1 || queryRoles.indexOf('1') == -1) && ( queryRoles.indexOf('trp') == -1 || queryRoles.indexOf('2') == -1 ) ) == true){
+                if(noGeneralOcc){
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+') ');
+                }else{
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 '+emRoleIdInQuery+') ');
+                }
                 if(query.search){
                     modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
                 }
             }
+
+            if( queryRoles.indexOf('no_roles') > -1 ){
+                let isImpairedQuery = '';
+                if(query.impaired){
+                    if(query.impaired > -1){
+                        if(query.impaired == 1){
+                            isImpairedQuery = ' AND users.mobility_impaired = 1 ';
+                        }else if(query.impaired == 0){
+                            isImpairedQuery = ' AND users.mobility_impaired = 0 ';
+                        }
+                    }
+                }
+
+                let noEmrole = ' OR users.user_id NOT IN (SELECT user_id FROM user_em_roles_relation) AND users.archived = '+archived+' AND users.account_id = '+accountId;
+                if(query.search){
+                    noEmrole += ' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ';
+                }
+                noEmrole += isImpairedQuery;
+
+                let noRole = ' OR users.user_id NOT IN (SELECT user_id FROM user_role_relation) AND users.archived = '+archived+' AND users.account_id = '+accountId;
+                if(query.search){
+                    noRole += ' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ';
+                }
+                noRole += isImpairedQuery;
+
+                modelQueries.orWhere.push(noEmrole);
+                modelQueries.orWhere.push(noRole);
+            }
+
         }else{
             if(query.search){
                 modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
             }
         }
-
-        /*if(query.search){
-            if(query.search.trim().length > 0){
-                modelQueries.where.push( ' CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" ' );
-                if(modelQueries.orWhere.length == 0){
-                    modelQueries.orWhere.push( ' OR users.email LIKE "%'+query.search+'%" ' );
-                }else{
-                    modelQueries.orWhere.push( ' AND users.email LIKE "%'+query.search+'%" ' );
-                }
-            }
-        }*/
 
         modelQueries.select['custom'] = [" IF(files.url IS NULL, '', files.url) as profile_pic "];
 
@@ -911,11 +1017,10 @@ export class UsersRoute extends BaseRoute {
             }
         }
 
-        if(query.roles && query.users_locations){
-            let queryRoles = query.roles.split(','),
-                getFRP = ( queryRoles.indexOf('frp') > -1 ) ? true : false,
-                getTRP = ( queryRoles.indexOf('trp') > -1) ? true : false,
-                getUSERS = ( queryRoles.indexOf('users') > -1 ) ? true : false;
+        if(query.roles && query.users_locations && userIds.length > 0){
+            let frptrpIds = [];
+            if(getFRP){ frptrpIds.push(1); }
+            if(getTRP){ frptrpIds.push(2); }
 
             let accountModel = new Account(),
                 locAccUserModel = new LocationAccountUser(),
@@ -923,9 +1028,12 @@ export class UsersRoute extends BaseRoute {
                 locationsDB = <any> [],
                 locations = <any> [],
                 locationIds = [],
-                locationsEmRoles = (getUSERS) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : [],
-                locationFRPTRP =  (getFRP || getTRP) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(',')) : [];
+                locationsEmRoles = (getUSERS && !noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : (getUSERS && noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(','), '8') : [],
+                locationFRPTRP =  (getFRP || getTRP) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','), false,  (frptrpIds.length > 0) ? frptrpIds.join(',') : false  ) : [];
 
+            if(!getUSERS && !noGeneralOcc && getUsersByEmRoleId){
+                locationsEmRoles = <any> await emRolesModel.getLocationsByUserIdsAndRoleIds(userIds.join(','), emRoleIdSelected.join(','));
+            }
 
             for(let loc of locationsEmRoles){
                 if(!locationIds[ loc.location_id ]){
@@ -933,7 +1041,6 @@ export class UsersRoute extends BaseRoute {
                     locationIds.push(loc.location_id);
                 }
             }
-
 
             for(let loc of locationFRPTRP){
                 if(!locationIds[ loc.location_id ]){
@@ -976,7 +1083,7 @@ export class UsersRoute extends BaseRoute {
                 if('locations' in user == false){ user['locations'] = []; }
                 if('locs' in user == false){ user['locs'] = []; }
                 for(let loc of locationsData){
-                    
+
                     if( loc.user_id == user.user_id ){
 
                         let userLocData = {
@@ -1013,18 +1120,24 @@ export class UsersRoute extends BaseRoute {
 
                         if(!exst){ user.locations.push(userLocData); }
 
-                        
+
                         user['locs'].push(loc);
-                        
+
                     }
 
                 }
             }
 
             let userRoleModel = new UserRoleRelation(),
-                usersRolesRelation = <any> await userRoleModel.getManyByUserIds(userIds.join(',')),
+                usersRolesRelation = <any> await userRoleModel.getManyByUserIds(userIds.join(','), (frptrpIds.length > 0) ? frptrpIds.join(',') : false ),
                 userEmRoleModel = new UserEmRoleRelation(),
-                usersEmRoles = <any> await userEmRoleModel.getManyByUserIds(userIds.join(','));
+                usersEmRoles = (noGeneralOcc && !getUsersByEmRoleId) ? <any> await userEmRoleModel.getManyByUserIds(userIds.join(','), '8') : (!getUsersByEmRoleId) ? <any> await userEmRoleModel.getManyByUserIds(userIds.join(',')) : [];
+
+            if(getUsersByEmRoleId){
+                usersEmRoles = <any> await userEmRoleModel.getManyByUserIds(userIds.join(','), false, emRoleIdSelected.join(','));
+            }
+
+            response['usersEmRoles'] = usersEmRoles;
 
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
@@ -1037,7 +1150,7 @@ export class UsersRoute extends BaseRoute {
 
                 for(let rol of usersRolesRelation){
                     let role = { role_name : '', role_id : 0 };
-                    if(rol.user_id == user.user_id && ( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1 ) && usersRolesIds.indexOf(rol.role_id) == -1 ){
+                    if(rol.user_id == user.user_id && ( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || (queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1) ) && usersRolesIds.indexOf(rol.role_id) == -1 ){
                         role.role_name = (rol.role_id == 1) ? 'FRP' : 'TRP';
                         role.role_id = (rol.role_id == 1) ? 1 : 2;
                         user['roles'].push(role);
@@ -1049,7 +1162,7 @@ export class UsersRoute extends BaseRoute {
                 for(let em of usersEmRoles){
                     let role = { role_name : '', role_id : 0 , trids: []};
 
-                    if(queryRoles.indexOf('users') > -1 && em.user_id == user.user_id && usersRolesIds.indexOf(em.em_role_id) == -1){
+                    if((queryRoles.indexOf('users') > -1 || getUsersByEmRoleId)  && em.user_id == user.user_id && usersRolesIds.indexOf(em.em_role_id) == -1){
                         role.role_name = em.role_name;
                         role.role_id = em.em_role_id;
                         user['roles'].push(role);
@@ -1496,9 +1609,11 @@ export class UsersRoute extends BaseRoute {
                     const temp = await course_user_rel.getRelationDetails({'user': userId, 'training_requirement': t['training_requirement_id']});
                     t['course_user_relation_id'] = temp['course_user_relation_id'];
                     t['course_launcher'] = temp['course_launcher'];
+                    t['disabled'] = temp['disabled'];
                   } catch (e) {
                     t['course_user_relation_id'] = 0;
                     t['course_launcher'] = '';
+                    t['disable'] = 1;
                   }
                 }
                 if( user['mobility_impaired'] == 1 ){
@@ -2013,18 +2128,19 @@ export class UsersRoute extends BaseRoute {
         },
         isAccountEmailExempt = false,
         hasOnlineTraining = false,
-        userModel = new User(req.user.user_id);
+        userModel = new User(req.user.user_id),
+        accountTrainings = [];
 
         try{
             let account = <any> await accountModel.load();
             isAccountEmailExempt = (account.email_add_user_exemption == 1) ? true : false;
             hasOnlineTraining = (account.online_training == 1) ? true : false;
 
-            let 
+            let
             user = await userModel.load(),
             emRoles = <any> await new UserEmRoleRelation().getEmRoles();
 
-    		for(let i in users){
+    		for (let i in users) {
     			let userModel = new User(),
     				userRoleRelation = new UserRoleRelation(),
     				userEmRole = new UserEmRoleRelation(),
@@ -2034,7 +2150,7 @@ export class UsersRoute extends BaseRoute {
 
     			users[i]['errors'] = {};
 
-    			if(isEmailValid){
+    			if(isEmailValid) {
     				// isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
     				// if(!isBlackListedEmail){
 
@@ -2057,7 +2173,8 @@ export class UsersRoute extends BaseRoute {
     				hasError = true;
     			}
 
-    			if(!hasError){
+    			if(!hasError) {
+            accountTrainings = [];
     				let
     				token = this.generateRandomChars(30),
     				inviSaveData = {
@@ -2185,13 +2302,27 @@ export class UsersRoute extends BaseRoute {
                                 'user_id': userSaveModel.ID(),
                                 'role_id': users[i]['account_role_id']
                             });
-                        }else{
+                        } else {
+                            // get account trainings
+                            accountTrainings = await new AccountTrainingsModel().getAccountTrainings(accountId, {
+                              role: (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id']
+                            });
+
+                            for (const training of accountTrainings) {
+                              await new AccountTrainingsModel().assignAccountUserTraining(
+                                userSaveModel.ID(),
+                                training['course_id'],
+                                training['training_requirement_id']
+                              );
+                            }
+
                             const EMRoleUserRole = new UserEmRoleRelation();
                             await EMRoleUserRole.create({
                                 'user_id': userSaveModel.ID(),
                                 'em_role_id': (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
                                 'location_id': users[i]['account_location_id']
                             });
+
                         }
 
                     }else{
@@ -2215,7 +2346,7 @@ export class UsersRoute extends BaseRoute {
                                 subjectOfEmail = `You're assigned as Tenant Responsible Person`;
                             }
                             bodyOfEmail = `
-                            <div style="font-size:16px;"> 
+                            <div style="font-size:16px;">
                                 <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
 
                                 We are glad to inform that you are assigned as the ${roleName} for your location, ${locationFullName}. <br/>
@@ -2224,7 +2355,7 @@ export class UsersRoute extends BaseRoute {
                                 Please update the profile to set up your account on EvacConnect here : <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
 
                                 Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
-                                 
+
                                 Sincerely,<br/>
                                 EvacConnect
                             </div>
@@ -2239,15 +2370,15 @@ export class UsersRoute extends BaseRoute {
                             }
 
                             bodyOfEmail = `
-                            <div style="font-size:16px;"> 
+                            <div style="font-size:16px;">
                                 <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
 
                                 We are glad to inform that you are nominated to be a ${roleName} for your tenancy, ${account.account_name}, by your ${senderTxt}.<br/><br/>
-                                
+
                                 Follow this link to set up your password on EvacConnect: <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
 
                                 Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
-                                 
+
                                 Sincerely,<br/>
                                 EvacConnect
                             </div>
@@ -2283,7 +2414,7 @@ export class UsersRoute extends BaseRoute {
     				returnUsers.push( users[i] );
     			}
     		}
-            
+
 
         }catch(e){}
 

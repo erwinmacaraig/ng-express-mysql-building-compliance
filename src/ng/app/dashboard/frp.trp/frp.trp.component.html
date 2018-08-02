@@ -126,16 +126,24 @@
                                 </a>
                             </td>
                             <td class="with-bar">
-                                <a [routerLink]="['/location/compliance/view/', loc.enc_location_id]">
-                                <div *ngIf="loc.fetchingCompliance" class="progress fetching">
-                                    <div class="indeterminate"></div>
-                                </div>
-                                <div *ngIf="!loc.fetchingCompliance" class="text" [ngClass]="{ 'green-text' : loc.compliance_percentage == 100 }">{{loc.compliance_percentage}}%</div>
-                                <div *ngIf="!loc.fetchingCompliance" class="progress-container" >
-                                    <div class="progress" [ngClass]="{ 'green-theme' : loc.compliance_percentage == 100 }">
-                                        <div class="determinate" [ngStyle]="{ 'width' : loc.compliance_percentage+'%' }"></div>
+                                <ng-template #innerLink>
+                                    <div *ngIf="loc.fetchingCompliance" class="progress fetching">
+                                        <div class="indeterminate"></div>
                                     </div>
-                                </div>
+                                    <div *ngIf="!loc.fetchingCompliance" class="text" [ngClass]="{ 'green-text' : loc.compliance_percentage == 100 }">{{loc.compliance_percentage}}%</div>
+                                    <div *ngIf="!loc.fetchingCompliance" class="progress-container" >
+                                        <div class="progress" [ngClass]="{ 'green-theme' : loc.compliance_percentage == 100 }">
+                                            <div class="determinate" [ngStyle]="{ 'width' : loc.compliance_percentage+'%' }"></div>
+                                        </div>
+                                    </div>
+                                </ng-template>
+
+                                <a *ngIf="loc.is_building == 1" [attr.disabled]="!loc.fetchingCompliance" [routerLink]="['/location/compliance/view/', loc.enc_location_id]">
+                                    <ng-container *ngTemplateOutlet="innerLink"></ng-container>
+                                </a>
+
+                                <a *ngIf="loc.is_building == 0" [attr.disabled]="!loc.fetchingCompliance" [routerLink]="['/location/compliance/view/', loc.enc_parent_id]">
+                                    <ng-container *ngTemplateOutlet="innerLink"></ng-container>
                                 </a>
                             </td>
                             <td> 0/0 </td>

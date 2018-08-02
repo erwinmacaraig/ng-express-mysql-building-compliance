@@ -37,6 +37,140 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.post('/admin/new/account/',
+      new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+        //  console.log(req.body);
+        let account;
+        let message = '';
+        if (parseInt(req.body.account_id, 10) > 0) {
+          message = 'Account successfully updated';
+          account = new Account(req.body.account_id);
+          await account.load();
+          await account.create(req.body);
+        } else {
+          message = 'Account successfully created';
+          account = new Account();
+          await account.create(req.body);
+        }
+        const dbData = await account.load();
+        return res.status(200).send({
+          message: message,
+          data: dbData
+        });
+      });
+
+    router.post('/admin/assign-default-training/',
+    new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+
+      const onlineTrainingAccess = parseInt(req.body.online_access, 10);
+      let em_users = [];
+      let user_assignment = [];
+      console.log(req.body);
+      if (req.body.account != null) {
+        const accountId = req.body.account;
+        const acctTraining = new AccountTrainingsModel();
+        let temp: any;
+        const arrayOfRolesCourseRelation = [{
+          'role': 8,
+          'course': 7,
+          'requirement': 16
+        },
+        {
+          'role': 9,
+          'course': 1,
+          'requirement': 17
+        }, {
+          'role': 10,
+          'course': 1,
+          'requirement': 17
+        }];
+
+        // update account
+        const accountObj = new Account(accountId);
+        await accountObj.load();
+        await accountObj.create({
+          online_training: onlineTrainingAccess
+        });
+
+        // assign default training to this account
+        if (onlineTrainingAccess) {
+          // create/update record in account_trainings
+          for (const dref of arrayOfRolesCourseRelation) {
+            try {
+              temp = await acctTraining.checkAssignedTrainingOnAccount(accountId, dref.course, dref.role, dref.requirement);
+              console.log(temp);
+            } catch (e) {
+              console.log('Creating training record', dref.role);
+              await new AccountTrainingsModel().create({
+                account_id: accountId,
+                course_id: dref.course,
+                role: dref.role,
+                training_requirement_id: dref.requirement
+              });
+            }
+            await acctTraining.assignAccountRoleTraining(accountId,
+              dref.course,
+              dref.requirement,
+              dref.role
+            );
+          }
+
+        } else {
+          await acctTraining.removeAssignedTrainingOnAccount(accountId);
+          for (const dref of arrayOfRolesCourseRelation) {
+            // console.log(dref);
+            await acctTraining.assignAccountRoleTraining(accountId,
+              dref.course,
+              dref.requirement,
+              dref.role,
+              1
+            );
+          }
+        }
+      } // end if account
+      if (req.body.location != null) {
+        const locationArrObjects = <Array<object>> await new Location().getParentsChildren(req.body.location, 1);
+        const locIds = [req.body.location];
+        for (const location of locationArrObjects) {
+          locIds.push(location['location_id']);
+        }
+        await new Location().toggleBulkOnlineTrainingAccess(locIds, onlineTrainingAccess);
+
+        // get users from these location ids
+        em_users = await new UserEmRoleRelation().getUsersInLocationIds(locIds.join(','));
+        // console.log(em_users);
+        for (const user of em_users) {
+          const account_trainings = await new AccountTrainingsModel().getAccountTrainings(user['account_id'], {'role': user['em_role_id']});
+          for (const training of account_trainings) {
+              user_assignment.push({
+                user_id: user['user_id'],
+                name: user['first_name'] + ' ' + user['last_name'],
+                role: user['em_role_id'],
+                course: training['course_id'],
+                trid: training['training_requirement_id'],
+                online_access: onlineTrainingAccess
+              });
+              let disable = 1;
+              if (onlineTrainingAccess) {
+                disable = 0;
+              }
+              await new AccountTrainingsModel().assignAccountUserTraining(
+                user['user_id'],
+                training['course_id'],
+                training['training_requirement_id'],
+                disable
+              );
+          }
+        }
+      }
+      return res.status(200).send({
+        message: 'Success',
+        users: em_users,
+        assigned: user_assignment
+      });
+
+    });
+
     router.post('/admin/create-training-for-account/',
     new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
       console.log(req.body);
@@ -55,9 +189,15 @@ export class AdminRoute extends BaseRoute {
           course_id: req.body.course,
           role: req.body.role,
           training_requirement_id: req.body.trid
-
         });
         const trainings = await acctTraining.getAccountTrainings(req.body.account);
+        // update account
+        const accountObj = new Account(req.body.account);
+        await accountObj.load();
+        await accountObj.create({
+          online_training: 1
+        });
+
         return res.status(200).send({
           message: 'Record created',
           trainings: trainings
@@ -99,7 +239,45 @@ export class AdminRoute extends BaseRoute {
        if (parseInt( u['user_id'], 10) == 0) {
          const user = new User();
          const token = new Token();
+         let accountId = u['account_id'];
          const locationAccntRel = new LocationAccountRelation();
+         if (accountId == 0) {
+           // checks if the account with the given name is existing
+           const accountDetails = await new Account().getAccountDetailsUsingName(u['account_name']);
+           if (accountDetails.length > 0) {
+              accountId = accountDetails['account_id'];
+           } else {
+              // create an account
+              const accountObj = new Account();
+              const location = new Location(u['location_id']);
+              await location.load();
+              await accountObj.create({
+               account_name: u['account_name'],
+               location_id: u['location_id'],
+               billing_street: location.get('street'),
+               billing_city: location.get('city'),
+               billing_state: location.get('state'),
+               billing_postal_code: location.get('postal_code'),
+               billing_country: location.get('country')
+              });
+              accountId = accountObj.ID();
+
+              // tag this new account to location_account_relation
+              try {
+                await locationAccntRel.getLocationAccountRelation({
+                    'location_id': u['location_id'],
+                    'account_id': accountId,
+                    'responsibility': defs['role_text'][2]
+                });
+              } catch (err) {
+                await locationAccntRel.create({
+                  'location_id': u['location_id'],
+                  'account_id': accountId,
+                  'responsibility': defs['role_text'][2]
+                });
+              }
+           }
+         }
          if (validator.isEmail(u['email'])) {
            try {
              await user.getByEmail(u['email']);
@@ -113,7 +291,7 @@ export class AdminRoute extends BaseRoute {
                 can_login: 1,
                 invited_by_user: req.user.user_id,
                 token: md5(u['email']),
-                account_id: u['account_id']
+                account_id: accountId
                });
 
                await token.create({
@@ -137,30 +315,33 @@ export class AdminRoute extends BaseRoute {
                 } catch (e) {
                   console.log('Unable to create emergency role', e);
                 }
+
               } else {
                 try {
                   await locationAccntUser.create({
                     location_id: u['location_id'],
-                    account_id: u['account_id'],
+                    account_id: accountId,
                     user_id: user.ID()
                   });
 
                 } catch (e) {
                     console.log('Cannot create entry in db');
                 }
+                /*
                 try {
                   await locationAccntRel.getLocationAccountRelation({
                       'location_id': u['location_id'],
-                      'account_id': u['account_id'],
+                      'account_id': accountId,
                       'responsibility': defs['role_text'][u['role_id']]
                   });
                 } catch (err) {
                   await locationAccntRel.create({
                     'location_id': u['location_id'],
-                    'account_id': u['account_id'],
+                    'account_id': accountId,
                     'responsibility': defs['role_text'][u['role_id']]
                   });
                 }
+                */
                 // User Role Relation
                 const userRoleRelObj = new UserRoleRelation();
                 let accountRole = [];
@@ -230,14 +411,42 @@ export class AdminRoute extends BaseRoute {
     router.get('/admin/location/search/',
     new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
-      const searchKey: object = {
+      const
+      searchKey: object = <any> {
         name: req.query.name
-      };
-      const location = new Location();
-      const searchResult = await location.searchLocation(searchKey);
+      },
+      location = new Location(),
+      locAccModel = new LocationAccountRelation();
+
+      let
+      limit = undefined,
+      accountId = undefined;
+      if(req.query['limit']){
+         limit = req.query.limit;
+      }
+      if(req.query['account_id']){
+         if(req.query.account_id > 0){
+             accountId = req.query.account_id;
+         }
+      }
+
+      let searchResult = <any> [];
+
+      if(accountId){
+          searchResult = await locAccModel.listAllLocationsOnAccount(accountId,  {
+              'archived' : 0, 'name' : req.query.name, 'limit' : limit, 'no_parent_name' : true
+          })
+      }else{
+          searchResult = await location.searchLocation(searchKey, limit, accountId);
+      }
+
       for (const s of searchResult) {
         s['type'] = 'location';
         s['id'] = s['location_id'];
+        if(req.query.sublocations){
+            let subLocModel = new Location(s['location_id']);
+            s['sublocations'] = await subLocModel.getSublocations();
+        }
       }
       return res.status(200).send({
         message: 'Success',
@@ -346,11 +555,39 @@ export class AdminRoute extends BaseRoute {
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const list = new List();
       const accountId = req.params.accountId;
+      const allLocations = {};
+      const filteredLocations = [];
       let temp = [];
       const lar_locations = [];
       let accountLocations: Array<object> = await list.listTaggedLocationsOnAccount(accountId);
       for (const location of accountLocations) {
         lar_locations.push(location['location_id']);
+        if (location['is_building'] == 1) {
+          allLocations[location['location_id']] = {
+            location_id: location['location_id'],
+            display_name: location['name'],
+            formatted_address: location['formatted_address'],
+            responsibility: location['responsibility']
+          };
+        } else {
+          temp = [];
+          let tempColName = '';
+          let tempColLocId = '';
+          for (let p = 5; p > 0; p--) {
+            tempColName = `p${p}_name`;
+            tempColLocId = `p${p}_location_id`;
+            if (location[tempColName] != null && location[`p${p}_is_building`] == 1) {
+              allLocations[location[tempColLocId]] = {
+                location_id: location[tempColLocId],
+                display_name: location[tempColName],
+                formatted_address: location['formatted_address'],
+                responsibility: location['responsibility']
+              };
+              break;
+            }
+          }
+        }
+        /*
         location['display_name'] = '';
         // loop through the assumed heirarchy
         temp = [];
@@ -363,10 +600,42 @@ export class AdminRoute extends BaseRoute {
         }
         temp.push(location['name']);
         location['display_name'] = temp.join(' >> ');
+
+        // location['display_name'] = location['name'];
+        */
+
       }
       const locationsFromLAU: Array<object> = await list.listTaggedLocationsOnAccountFromLAU(accountId, {'exclusion_ids': lar_locations});
       for (const location of locationsFromLAU) {
         lar_locations.push(location['location_id']);
+
+        if (location['is_building'] == 1) {
+          allLocations[location['location_id']] = {
+            location_id: location['location_id'],
+            display_name: location['name'],
+            formatted_address: location['formatted_address'],
+            responsibility: location['responsibility']
+          };
+        } else {
+          temp = [];
+          let tempColName = '';
+          let tempColLocId = '';
+          for (let p = 5; p > 0; p--) {
+            tempColName = `p${p}_name`;
+            tempColLocId = `p${p}_location_id`;
+            if (location[tempColName] != null && location[`p${p}_is_building`] == 1) {
+              allLocations[location[tempColLocId]] = {
+                location_id: location[tempColLocId],
+                display_name: location[tempColName],
+                formatted_address: location['formatted_address'],
+                responsibility: location['responsibility']
+              };
+              break;
+            }
+          }
+        }
+
+        /*
         location['display_name'] = '';
         // loop through the assumed heirarchy
         temp = [];
@@ -379,11 +648,20 @@ export class AdminRoute extends BaseRoute {
         }
         temp.push(location['name']);
         location['display_name'] = temp.join(' >> ');
+
+        // location['display_name'] = location['name'];
+        */
       }
       accountLocations = accountLocations.concat(locationsFromLAU);
-
+      Object.keys(allLocations).forEach((loc) => {
+        filteredLocations.push(allLocations[loc]);
+      });
+      /*
+      raw: accountLocations,
+      filtered: filteredLocations
+      */
       return res.status(200).send({
-        data: accountLocations
+        data: filteredLocations
       });
     });
 
@@ -601,51 +879,7 @@ export class AdminRoute extends BaseRoute {
     router.get('/admin/location-listing/:accountId/',
     new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
-      const locAccntRelObj = new LocationAccountRelation();
-      let locationsForManager;
-      let locationsForTRP;
-      const buildingIds = [];
-
-      locationsForManager = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Manager']});
-      for (const location of locationsForManager) {
-        buildingIds.push(location['location_id']);
-      }
-      // GET ALL SUBLEVELS
-      const list = new List();
-      let levelLocations;
-      if (buildingIds.length == 0) {
-        locationsForTRP = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
-        for (const location of locationsForTRP) {
-          buildingIds.push(location['parent_id']);
-        }
-        const locationObj = new Location();
-        locationsForManager = await locationObj.bulkLocationDetails(buildingIds);
-      }
-      levelLocations = await list.generateSublocationsForListing(buildingIds);
-      /*
-      console.log('======================= BUILDING IDS ======================== ');
-      console.log(buildingIds);
-      console.log('*********************** LEVEL LOCATIONS ***************************');
-      console.log(levelLocations);
-      */
-      // get locations for location_account_relation and merged it in buildingIds
-      const locationsForTrpFromLAR =
-        await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
-
-      const uniqLocationsUnderFRP = [];
-      for (const location of locationsForTrpFromLAR) {
-        if (levelLocations['resultLocationIds'].indexOf(location['location_id']) === -1) {
-          uniqLocationsUnderFRP.push(location['location_id']);
-        }
-      }
-      const locationInLAR = await list.generateLocationDetailsForAddUsers(uniqLocationsUnderFRP);
-      return res.status(200).send({
-        data: {
-          buildings: locationsForManager,
-          levels: levelLocations['resultArray'].concat(locationInLAR),
-          lar: locationInLAR
-        }
-      });
+        new AdminRoute().getLocationListing(req, res);
     });
 
     router.get('/admin/check-user-email/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -664,7 +898,8 @@ export class AdminRoute extends BaseRoute {
 
     router.post('/admin/add-new-user/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
       const userForm = JSON.parse(req.body.users);
-      console.log(userForm);
+      // console.log(userForm);
+      let accountTrainings = [];
       const invalidUsers = [];
       let createData = {
         first_name: '',
@@ -689,6 +924,7 @@ export class AdminRoute extends BaseRoute {
             await user.getByEmail( u['email']);
           } catch (e) {
           //
+            accountTrainings = [];
             createData.first_name = u['first_name'];
             createData.last_name = u['last_name'];
             createData.email = u['email'];
@@ -732,6 +968,18 @@ export class AdminRoute extends BaseRoute {
                   em_role_id: u['role'],
                   location_id: u['location']
                 });
+
+                // get account trainings
+                accountTrainings = await new AccountTrainingsModel().getAccountTrainings(u['account_id'], {
+                  role: u['role']
+                });
+                for (const training of accountTrainings) {
+                  await new AccountTrainingsModel().assignAccountUserTraining(
+                    user.ID(),
+                    training['course_id'],
+                    training['training_requirement_id']
+                  );
+                }
               } catch (e) {
                 console.log('Unable to create emergency role', e, createData);
               }
@@ -749,6 +997,7 @@ export class AdminRoute extends BaseRoute {
                 } catch (e) {
                   console.log('Cannot create entry in db with ', createData);
                 }
+                /*
                 try {
                     await locationAccntRel.getLocationAccountRelation({
                         'location_id': u['location'],
@@ -762,6 +1011,7 @@ export class AdminRoute extends BaseRoute {
                         'responsibility': defs['role_text'][u['role']]
                     });
                 }
+                */
                 // User Role Relation
                 const userRoleRelObj = new UserRoleRelation();
                 let accountRole = [];
@@ -1011,8 +1261,6 @@ export class AdminRoute extends BaseRoute {
             });
         });
     });
-
-
 
     router.get('/admin/list/compliance-documents/',
     new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
@@ -1309,11 +1557,304 @@ export class AdminRoute extends BaseRoute {
     });
 
 
+    router.post('/admin/generate-admin-report', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().generateAdminReport(req, res);
+    });
+
 
   // ===============
   }
 
 
 
+    private async getUsersOfReport(req: AuthRequest, frptrp?){
+        let
+        accountId = (req.body.account_id) ? req.body.account_id : 0,
+        locationId = (req.body.location_id) ? req.body.location_id : 0,
+        type = (req.body.type) ? req.body.type : '',
+        locationModel = new Location(locationId),
+        sublocationModel = new Location(),
+        accountModel = new Account(),
+        usersModel = new User(),
+        users = <any> [],
+        allAccountIds = [],
+        accounts = <any> [],
+        locations = <any> [],
+        allLocationIds = [],
+        limit = (req.body.limit) ? req.body.limit : 25,
+        offset = (req.body.offset) ? (req.body.offset > -1) ? req.body.offset : 0  : 0,
+        offLimit = (limit == -1) ? false : offset+','+limit,
+        usersCount = [];
 
+        if(locationId > 0){
+            try{
+                let
+                loc = await locationModel.load(),
+                deepLocations = [];
+                locations.push(loc);
+                allLocationIds.push(locationId);
+
+                deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(locationId);
+                for(let deeploc of deepLocations){
+                    allLocationIds.push(deeploc.location_id);
+                }
+            }catch(e){}
+        }else{
+            let whereLoc = [];
+            whereLoc.push(' archived = 0 ');
+            try{
+                locations = <any> await locationModel.getWhere( whereLoc );
+                for(let loc of locations){
+                    allLocationIds.push(loc.location_id);
+                }
+            }catch(e){  }
+        }
+
+        if(type == 'face'){
+            users = <any> await usersModel.getAllActive(accountId);
+            usersCount = <any> await usersModel.getAllActive(accountId, true);
+        }else{
+            if(frptrp){
+                users = <any> await usersModel.getIsFrpTrp(accountId, false, offLimit, allLocationIds.join(','));
+                usersCount = <any> await usersModel.getIsFrpTrp(accountId, true, undefined, allLocationIds.join(','));
+            }else{
+                users = <any> await usersModel.getIsEm(accountId, false, offLimit, allLocationIds.join(','));
+                usersCount = <any> await usersModel.getIsEm(accountId, true, undefined, allLocationIds.join(','));
+            }
+        }
+
+
+        let total = (usersCount[0]) ? usersCount[0]['count'] : 0;
+        let pages = 0;
+
+        if(total > limit){
+            let div = total / limit,
+                rem = (total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            pages = totalpages;
+        }
+
+        if(pages == 0 && total <= limit && total > 0){
+            pages = 1;
+        }
+
+        return {
+            'users' : users,
+            'total' : (usersCount[0]) ? usersCount[0]['count'] : 0,
+            'pages' : pages
+        };
+    }
+
+    private async getLocationsOfUsersReport(req: AuthRequest, userIds, frptrp?){
+        let 
+        locationId = (req.body.location_id) ? req.body.location_id : 0,
+        locAccUser = new LocationAccountUser(),
+        userEmModel = new UserEmRoleRelation(),
+        locations = <any> [];
+
+        if(userIds.length > 0){
+            if(frptrp){
+                locations = <any> await locAccUser.getLocationsByUserIds(userIds.join(','), locationId);
+            }else{
+                locations = <any> await userEmModel.getLocationsByUserIds(userIds.join(','), locationId);
+            }
+        }
+
+        return locations;
+    }
+
+    private async getUsersAndPaginations(req: AuthRequest){
+        let
+        response = <any> {
+            pagination : <any> {
+                total : 0,
+                pages : 0
+            },
+            data : <any>[],
+            certificates : <any>[],
+            message : '',
+        },
+        accountId = (req.body.account_id) ? req.body.account_id : 0,
+        type = (req.body.type) ? req.body.type : '',
+        users = <any> [],
+        allUserIds = [],
+        isFrpTrp = (type == 'account') ? true : false,
+        locationModel = new Location(),
+        locations = <any> [];
+
+        let useraAndCountResponse = <any> await this.getUsersOfReport(req, isFrpTrp);
+
+        users = useraAndCountResponse.users;
+
+        for(let user of users){
+            allUserIds.push(user.user_id);
+        }
+
+        locations = <any> await this.getLocationsOfUsersReport(req, allUserIds, isFrpTrp);
+        response['locations'] = locations;
+
+        for(let user of users){
+            if(!user['locations']){
+                user['locations'] = [];
+            }
+
+            if(!user['roles']){
+                user['roles'] = [];
+            }
+
+            for(let loc of locations){
+                if(loc.user_id == user.user_id){
+                    if(user['locations'].indexOf(loc.name) == -1){
+                        user['locations'].push(loc.name);
+                    }
+                    if(user['roles'].indexOf(loc.role_name) == -1){
+                        user['roles'].push(loc.role_name);
+                    }
+                }
+            }
+        }
+
+        response['users'] = users;
+        response.pagination.total = useraAndCountResponse.total;
+        response.pagination.pages = useraAndCountResponse.pages;
+        return response;
+    }
+
+    public async generateAdminReport(req: AuthRequest, res: Response){
+        let
+        response = <any> {
+            pagination : <any> {
+                total : 0,
+                pages : 0
+            },
+            data : <any>[],
+            message : '',
+        },
+        accountId = (req.body.account_id) ? req.body.account_id : 0,
+        type = (req.body.type) ? req.body.type : '';
+
+        if(type.trim().length > 0){
+            let data = <any> await this.getUsersAndPaginations(req);
+            response['data'] = data.users;
+
+            for(let user of data.users){
+                user['full_name'] = user.first_name+' '+user.last_name;
+            }
+
+            if(type == 'training'){
+                for(let user of data.users){
+                    let
+                    trainCertModel = new TrainingCertification(),
+                    certificates = <any> await trainCertModel.getCertificatesByInUsersId(user.user_id);
+
+                    user['certificates'] = certificates;
+                    user['status'] = (certificates.length > 0) ? certificates[0]['status'] : 'Invalid';
+                    let expDate = moment(certificates[0]['expiry_date']);
+
+                    user['expiry_date_formatted'] = (certificates.length > 0) ? (expDate.isValid()) ?  expDate.format('DD/MM/YYYY') : '' : '';
+                }
+            }else if(type == 'face'){
+                let 
+                allAccountIds = [],
+                userModel = new User(),
+                frptrps = <any> [];
+
+                for(let user of data.users){
+                    if(allAccountIds.indexOf(user.account_id) == -1){
+                        allAccountIds.push(user.account_id);
+                    }
+                }
+
+                response['allAccountIds'] = allAccountIds;
+
+                frptrps = <any> await userModel.getIsFrpTrp(allAccountIds.join(','));
+                let emails = [];
+                for(let frp of frptrps){
+                    if(emails.indexOf(frp.email) == -1){
+                        emails.push(frp.email);
+                    }
+                }
+
+                for(let user of data.users){
+                    user['cc_emails'] = emails.join(', ');
+                }
+            }
+
+            response.pagination.total = data.pagination.total;
+            response.pagination.pages = data.pagination.pages;
+        }
+
+
+        res.send(response);
+    }
+
+    public async getLocationListing(req: AuthRequest, res: Response, toReturn?){
+        const locAccntRelObj = new LocationAccountRelation();
+      let locationsForManager;
+      let locationsForTRP;
+      const buildingIds = [];
+
+      locationsForManager = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Manager']});
+      for (const location of locationsForManager) {
+        buildingIds.push(location['location_id']);
+      }
+      // GET ALL SUBLEVELS
+      const list = new List();
+      let levelLocations: Object = {
+        resultArray: [],
+        resultObject: {},
+        resultLocationIds: []
+      };
+
+      if (buildingIds.length == 0) {
+        locationsForTRP = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
+        for (const location of locationsForTRP) {
+          buildingIds.push(location['parent_id']);
+        }
+        const locationObj = new Location();
+        locationsForManager = await locationObj.bulkLocationDetails(buildingIds);
+      }
+      levelLocations = await list.generateSublocationsForListing(buildingIds);
+      /*
+      console.log('======================= BUILDING IDS ======================== ');
+      console.log(buildingIds);
+      console.log('*********************** LEVEL LOCATIONS ***************************');
+      console.log(levelLocations);
+      */
+      // get locations for location_account_relation and merged it in buildingIds
+      const locationsForTrpFromLAR =
+        await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
+
+      const uniqLocationsUnderFRP = [];
+      for (const location of locationsForTrpFromLAR) {
+        if (levelLocations['resultLocationIds'].indexOf(location['location_id']) === -1) {
+          uniqLocationsUnderFRP.push(location['location_id']);
+        }
+      }
+
+      const locationInLAR = await list.generateLocationDetailsForAddUsers(uniqLocationsUnderFRP);
+      if(!toReturn){
+          return res.status(200).send({
+            data: {
+              buildings: locationsForManager,
+              levels: levelLocations['resultArray'].concat(locationInLAR),
+              lar: locationInLAR
+            }
+          });
+      }else{
+          return {
+            data: {
+              buildings: locationsForManager,
+              levels: levelLocations['resultArray'].concat(locationInLAR),
+              lar: locationInLAR
+            }
+          };
+      }
+       
+    }
 }

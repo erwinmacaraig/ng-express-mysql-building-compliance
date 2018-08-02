@@ -51,6 +51,20 @@ export class ComplianceService {
 		this.behaviorSubject.next(data);
 	}
 
+    public getColors(){
+        return {
+            2 : '#835cb7',
+            3 : '#f0932b',
+            4 : '#eb4d4b',
+            5 : '#6ab04c',
+            6 : '#30336b',
+            8 : '#22a6b3',
+            9 : '#be2edd',
+            12 : '#95afc0',
+            13 : '#3d3d3d'
+        }
+    }
+
 	public getKPIS(callBack){
 		this.http.get(this.baseUrl + '/compliance/kpis', this.options)
 			.subscribe(res => {
@@ -69,8 +83,8 @@ export class ComplianceService {
 			});
     }
 
-    public getSublocationsEvacDiagrams(locationID, callBack){
-        this.http.post(this.baseUrl + '/compliance/get-sublocations-evac-diagrams', { location_id : locationID })
+    public getSublocationsEvacDiagrams(form, callBack){
+        this.http.post(this.baseUrl + '/compliance/get-sublocations-evac-diagrams', form)
             .subscribe(res => {
                 callBack(res);
             }, err => {
