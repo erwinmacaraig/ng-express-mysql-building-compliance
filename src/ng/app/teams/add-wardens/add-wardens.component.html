@@ -93,23 +93,23 @@
 	</div>
 </div>
 
-<div id="modalUploadConfirmation" class="modal">
+<!-- <div id="modalUploadConfirmation" class="modal">
   <div class="modal-content">
     <div class="header-container center">
-			<div class="image csv-wardens"></div>
-			<div class="text">Nominate Wardens by CSV Upload Confirmation</div>
+            <div class="image csv-wardens"></div>
+            <div class="text">Nominate Wardens by CSV Upload Confirmation</div>
     </div>
     <div class="container">
       <table class="table striped">
-				<thead>
-					<tr>
-						<th *ngFor="let i of csvHeaderNames">
+                <thead>
+                    <tr>
+                        <th *ngFor="let i of csvHeaderNames">
               {{i}}
             </th>
 
-					</tr>
-				</thead>
-				<tbody>
+                    </tr>
+                </thead>
+                <tbody>
           <tr *ngFor="let record of csvValidRecords;">
             <td *ngFor="let i of csvHeaderNames">
               {{record[i]}}
@@ -132,7 +132,7 @@
     </div>
 
   </div>
-</div>
+</div> -->
 
 <div id="modalInvite" class="modal">
   <form #invitefrm="ngForm">
