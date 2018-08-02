@@ -4,52 +4,63 @@
   </div>
 </div>
 
-<div class="row">
-  <div class="col l12 m12 s12">
-    <h5 class="orange-text margin-bottom-30">Select Location</h5>
-    <div class="input-field">
-      <input placeholder="Search building" class="search-field">
-    </div>
-  </div>
-</div>
 
-<div class="row">
-  <div class="col l12 m12 s12">
-    <h5 class="orange-text margin-bottom-30">Select User</h5>
-    <div class="checkbox">
-      <input id="trp" type="checkbox"> <label for="trp">TRP (Tenant Contact Person)</label>
+  <div class="row">
+      <div class="col l12 m12 s12">
+        <h5 class="orange-text margin-bottom-30">Select Location</h5>
+        <div class="input-field">
+          <input [formControl]="searchBldgField" placeholder="Search building" class="search-field" >
+        </div>
+      </div>
     </div>
-    <div class="checkbox">
-      <input id="eco" type="checkbox"> <label for="eco">
-        ECO
-        (Deputy Chief Warden,
-        Chief Warden,
-        Floor Warden,
-        Warden,
-        General Occupant)
-      </label>
-    </div>
-    <div class="checkbox">
-      <input id="all" type="checkbox"> <label for="all">All Users</label>
-    </div>
-  </div>
-</div>
+    <form novalidate [formGroup]="notConfigFormGrp">
+      <div class="row">
+        <div class="col l12 m12 s12">
+          <h5 class="orange-text margin-bottom-30">Select User</h5>
+          <div class="checkbox">
+            <input formControlName="trp_user" id="trp" type="checkbox"> <label for="trp">TRP (Tenant Contact Person)</label>
+          </div>
+          <div class="checkbox">
+            <input formControlName="eco_user" id="eco" type="checkbox"> <label for="eco">
+              ECO
+              (Deputy Chief Warden,
+              Chief Warden,
+              Floor Warden,
+              Warden,
+              General Occupant)
+            </label>
+          </div>
+          <div class="checkbox">
+            <input formControlName="all_users" id="all" type="checkbox"> <label for="all">All Users</label>
+          </div>
+        </div>
+      </div>
 
-<div class="row">
-  <div class="col l12 m12 s12">
-    <h5 class="orange-text margin-bottom-30">Default Message</h5>
-    <div input-field>
-      <textarea class="materialize-textarea"></textarea>
-      <label>Message</label>
-    </div>
-  </div>
-</div>
+      <div class="row">
+        <div class="col l12 m12 s12">
+          <h5 class="orange-text margin-bottom-30">Default Message</h5>
+          <div input-field>
+            <textarea formControlName="messageField" class="materialize-textarea"></textarea>
+            <label>Message</label>
+          </div>
+        </div>
+      </div>
 
-<div class="row">
-  <div class="col l12 m12 s12">
-    <h5 class="orange-text margin-bottom-30">Email Frequency</h5>
-    <select style="display: block;">
+      <div class="row">
+        <div class="col l12 m12 s12">
+          <h5 class="orange-text margin-bottom-30">Email Frequency</h5>
+          <select formControlName="frequency_field" style="display: block;">
+            <option value="15">15 Days</option>
+            <option value="30">30 Days</option>
+            <option value="60">60 Days</option>
+          </select>
+        </div>
+      </div>
 
-    </select>
-  </div>
-</div>
+      <div class="row">
+        <div class="col l12 m12 s12">
+          <button type="button">Cancel</button>
+          <button class="btn orange waves-effect waves-light" type="submit">Send</button>
+        </div>
+      </div>
+</form>
