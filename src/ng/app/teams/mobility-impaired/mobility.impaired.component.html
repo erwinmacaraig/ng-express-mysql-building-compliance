@@ -17,20 +17,18 @@
 	</div>
 
 	<div class="col l4 m5 s12">
-		<div class="search-field">
-			<input type="text" placeholder="Search member name or email" id="searchMemberInput">
-			<span class="material-icons">search</span>
-		</div>
-	</div>
+        <div class="search-field">
+            <input type="text" placeholder="Search member name or email" id="searchMemberInput">
+            <span class="material-icons">search</span>
+        </div>
+    </div>
 
 	<div class="col l2 m4 s6">
-		<select class="filter-by">
-			<option value="0" selected>Filter By (All)</option>
-			<option value="incomplete">Needs peep completion</option>
-			<option value="completed">Peep completed</option>
-			<option value="user-validation-needed">User validation needed</option>
-		</select>
-	</div>
+        <select class="filter-by">
+            <option value="0" selected>Filter By (All)</option>
+            <option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
+        </select>
+    </div>
 
 	<div class="col l2 m6 s6">
 		<select class="sort-by">
@@ -72,12 +70,12 @@
 				</tr>
 			</thead>
 			<tbody [hidden]="loadingTable">
-				<tr *ngIf="peepList.length == 0">
+				<tr *ngIf="listData.length == 0">
 					<td colspan="6" class="center">
 						<h6>No record found</h6>
 					</td>
 				</tr>
-				<tr *ngFor="let peep of peepList; let i = index;">
+				<tr *ngFor="let peep of listData; let i = index;">
 					<td>
                         <p class="checkbox" >
                             <input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)" [disabled]="allAreSelected" [checked]="peep.isselected"  >
@@ -85,11 +83,11 @@
                             <a  (click)="clickMultipleLocation(peep.locations)" *ngIf="peep.locations.length > 1">Multiple locations</a>
                             <span *ngIf="peep.locations.length == 1">
                                 <a [routerLink]="['/location/view/', peep.locations[0]['enc_location_id']]" *ngIf="peep.locations[0]['sublocations_count'] > 0">
-                                    <span *ngIf="peep.locations[0].parent_name">{{ peep.locations[0].parent_name }}, </span> {{peep.locations[0].name}}
+                                    {{peep.locations[0].name}}
                                 </a>
 
                                 <a [routerLink]="['/location/view-sublocation/', peep.locations[0]['enc_location_id']]" *ngIf="peep.locations[0]['sublocations_count'] == 0">
-                                    <span *ngIf="peep.locations[0].parent_name">{{ peep.locations[0].parent_name }}, </span> {{peep.locations[0].name}}
+                                    {{peep.locations[0].name}}
                                 </a>
                             </span>
                         </p>
@@ -101,7 +99,7 @@
 							</div>
 						</div>
 						<div class="text">
-							<a *ngIf="peep.user_id" [routerLink]="['/teams/view-user/', peep.id_encrypted]">
+							<a *ngIf="peep.user_id" [routerLink]="['/teams/View-user/', peep.id_encrypted]">
 								{{peep.first_name}} {{peep.last_name}}
 							</a>
 							<span *ngIf="!peep.user_id">{{peep['first_name']}} {{peep['last_name']}}</span>
@@ -153,7 +151,7 @@
 </div>
 
 <div class="row">
-	<div class="col l12 m12 s12 center pagination" [hidden]="peepList.length == 0 || pagination.total <= queries.limit || loadingTable">
+	<div class="col l12 m12 s12 center pagination" [hidden]="listData.length == 0 || pagination.total <= queries.limit || loadingTable">
 		<div class="inline-block">
 			<button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1" > Prev </button>
 		</div>
@@ -310,7 +308,7 @@
                 <li *ngFor="let loc of multipleLocations;">
                     <input type="radio" ngModel name="location_id" id="rad-{{loc.location_id}}" value="{{loc.location_id}}" />
                     <label for="rad-{{loc.location_id}}">
-                        <span *ngIf="loc.parent_name.length > 0">{{loc.parent_name}}, </span>{{loc.name}}
+                        {{loc.name}}
                     </label>
                 </li>
             </ul>

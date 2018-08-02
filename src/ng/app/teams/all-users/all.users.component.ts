@@ -226,28 +226,34 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	filterByEvent(){
-
-		$('select.filter-by').on('change', () => {
+        let __this = this;
+		$('select.filter-by').on('change', function(e){
+            e.preventDefault();
+            e.stopPropagation();
 			let selected = $('select.filter-by').val();
+            __this.dashboardService.show();
 			if(parseInt(selected) != 0){
-				let temp = [],
-					addedIds = {};
-				for(let list of this.copyOfList){
-					let add = false;
-					for(let role of list.roles){
-						if( role.role_id == selected ){
-							add = true;
-						}
-					}
-
-					if(add){
-						temp.push(list);
-					}
-				}
-				this.listData = temp;
+				__this.queries.roles = selected;
 			}else{
-				this.listData = this.copyOfList;
+				__this.queries.roles = 'frp,trp,users,no_roles';
 			}
+
+            __this.pagination = {
+                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+            };
+
+            __this.getListData(() => { 
+                if(__this.pagination.pages > 0){
+                    __this.pagination.currentPage = 1;
+                    __this.pagination.prevPage = 1;
+                }
+
+                for(let i = 1; i<=__this.pagination.pages; i++){
+                    __this.pagination.selection.push({ 'number' : i });
+                }
+
+                __this.dashboardService.hide();
+            });
 		});	
 	}
 
