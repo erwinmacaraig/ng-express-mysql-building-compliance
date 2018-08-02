@@ -342,7 +342,7 @@ export class TrainingCertification extends BaseClass {
       }else{
           sql = `
             SELECT
-              training_requirement.training_requirement_name,
+              IF(training_requirement.training_requirement_name IS NOT NULL, training_requirement.training_requirement_name, IF(tr2.training_requirement_name IS NOT NULL, tr2.training_requirement_name, 'No user role') ) as training_requirement_name,
               training_requirement.num_months_valid,
               certifications.course_method,
               certifications.certification_date,
@@ -350,11 +350,14 @@ export class TrainingCertification extends BaseClass {
               certifications.registered,
               users.user_id, users.first_name, users.last_name, users.account_id,
               DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
-              IF (DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
+              IF ( certifications.certification_date IS NOT NULL,  IF(DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired'), 'not taken') as status
             FROM
               users
               LEFT JOIN certifications ON certifications.user_id = users.user_id
               LEFT JOIN training_requirement ON training_requirement.training_requirement_id = certifications.training_requirement_id
+              LEFT JOIN user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
+              LEFT JOIN em_role_training_requirements ON user_em_roles_relation.em_role_id = em_role_training_requirements.em_role_id
+              LEFT JOIN training_requirement as tr2 ON tr2.training_requirement_id = em_role_training_requirements.training_requirement_id
 
             WHERE users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}
             GROUP BY certifications.certifications_id

@@ -1,0 +1,161 @@
+#modaCsvUpload{
+    width: 28%;
+    max-height: 100%;
+}
+
+#modaCsvUpload .modal-header{
+    margin: 20px 0px;
+}
+
+#modaCsvUpload a.btn{
+    line-height: 42px;
+}
+
+.modal .header-container .text{
+    display: inline-block;
+    width: 150px;
+    color: #414141;
+    line-height: 20px;
+    text-align: left;
+    vertical-align: middle;
+    transition: all 0.5s;
+}
+
+.modal .header-container .text{
+    width: 60%;
+    font-size: 24px;
+    color: #0089ec;
+    line-height: 28px;
+}
+
+.modal .header-container .image{
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+    width: 38px;
+    height: 38px;
+}
+
+.modal-content .csv-icon{
+    display: inline-block;
+    width: 35px;
+    height: 26px;
+    background: url(/assets/images/team_icons.png) no-repeat;
+    background-position: 82% 70%;
+    vertical-align: middle;
+}
+
+.modal .header-container .csv-wardens{
+    background-position: 95.5% 12%;
+}
+
+.modal .header-container .image{
+    width: 60px;
+    height: 60px;
+}
+
+.modal-content .upload-container{
+    border-radius: 5px;
+    background-color: #ebebeb;
+}
+
+.modal-content .upload-container .text{
+    margin: 10px 0px;
+    font-size: 16px;
+}
+
+.modal-content .upload-container .btn{
+    font-size: 14px !important;
+}
+
+.modal-content .upload-container{
+    padding: 20px;
+}
+
+.btn-import{
+    background-color: transparent !important;
+    font-size: 14px !important;
+    width: 230px;
+    height: 65px !important;
+    text-align: left;
+    border-radius: 10px !important;
+    border: 1px solid #ed5463;
+    padding: 0px;
+    color: rgba(0, 0, 0, 0.8) !important;
+    padding: 10px;
+    margin: 6px 0px;
+}
+
+.btn-import .image {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+    width: 38px;
+    height: 38px;
+}
+
+.btn-import .csv-wardens{
+    background-position: 79.5% 35%;
+}
+
+.btn-import .text {
+    display: inline-block;
+    width: 160px;
+    color: #414141;
+    line-height: 20px;
+    text-align: left;
+    vertical-align: middle;
+    -webkit-transition: all 0.5s;
+    transition: all 0.5s;
+}
+
+@media only screen
+  and (max-width: 1440px) {
+    #modaCsvUpload{
+        width: 42% !important;
+    }
+}
+
+@media only screen
+  and (max-width: 1024px) {
+    #modaCsvUpload{
+        width: 50% !important;
+    }
+}
+
+@media only screen
+  and (max-width: 768px) {
+    #modaCsvUpload{
+        width: 70% !important;
+    }
+}
+
+@media only screen
+  and (max-width: 500px) {
+    #modaCsvUpload{
+        width: 95% !important;
+    }
+}
+
+.btn.download{
+    width: 385px;
+    height: 54px !important;
+    line-height: 54px !important;
+}
+
+.checkbox{
+    pointer-events: all;
+    z-index: 999999;
+    margin: 20px 0px 10px 0px;
+}
+
+.checkbox input[type="checkbox"]{
+    line-height: 19px !important;
+    padding-left: 25px;
+}

@@ -108,8 +108,8 @@ export class PersonDataProviderService {
     return this.http.get(this.baseUrl + '/team/list/archived-peep', this.options);
   }
 
-  public uploadCSVWardenList(formData: any) {
-    return this.http.post<any>(this.baseUrl + '/team/warden/csv-upload', formData);
+  public uploadCSV(formData: any) {
+    return this.http.post<any>(this.baseUrl + '/team/csv-upload', formData);
   }
 
   public finalizeCSVRecord(records: string, override: string) {

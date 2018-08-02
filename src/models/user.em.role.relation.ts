@@ -501,12 +501,17 @@ export class UserEmRoleRelation extends BaseClass {
 
     }
 
-    public getManyByUserIds(userIds, notRoleIds?) {
+    public getManyByUserIds(userIds, notRoleIds?, inRoleId?) {
       return new Promise((resolve, reject) => {
           let sql_load = 'SELECT em.*, er.role_name  FROM user_em_roles_relation em INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id WHERE em.user_id IN ('+userIds+')';
           if(notRoleIds){
               if(notRoleIds.length > 0){
                     sql_load += ' AND em.em_role_id NOT IN ('+notRoleIds+')';
+              }
+          }
+          if(inRoleId){
+              if(inRoleId.length > 0){
+                    sql_load += ' AND em.em_role_id IN ('+inRoleId+')';
               }
           }
           const connection = db.createConnection(dbconfig);
@@ -521,8 +526,10 @@ export class UserEmRoleRelation extends BaseClass {
       });
     }
 
-    public getLocationsByUserIds(userIds, notRoleIds?) {
+
+    public getLocationsByUserIds(userIds, notRoleIdsOrLocId?, isLocParam?) {
         return new Promise((resolve, reject) => {
+            let whereLoc = (notRoleIdsOrLocId && isLocParam) ? ` AND uemr.location_id = ${notRoleIdsOrLocId} ` : '';
             let sql_load = `SELECT
                     uemr.user_id,
                     uemr.em_role_id as role_id,
@@ -533,21 +540,61 @@ export class UserEmRoleRelation extends BaseClass {
                     l.formatted_address,
                     l.google_place_id,
                     l.google_photo_url,
-                    l.is_building
+                    l.is_building,
+                    IF(ploc.name IS NOT NULL, CONCAT( IF(TRIM(ploc.name) <> '', CONCAT(ploc.name, ', '), ''), l.name), l.name) as name,
+                    ploc.name as parent_name
                     FROM user_em_roles_relation uemr
                     INNER JOIN locations l ON l.location_id = uemr.location_id
+                    LEFT JOIN locations ploc ON ploc.location_id = l.parent_id
                     INNER JOIN em_roles er ON er.em_roles_id = uemr.em_role_id
-                    WHERE uemr.user_id IN (`+userIds+`)`;
+                    WHERE uemr.user_id IN (`+userIds+`) ${whereLoc} `;
 
-            if(notRoleIds){
-                if(notRoleIds.length > 0){
-                    sql_load += ' AND uemr.em_role_id NOT IN ('+notRoleIds+')';
+            if(notRoleIdsOrLocId && !isLocParam){
+                if(notRoleIdsOrLocId.length > 0){
+                    sql_load += ' AND uemr.em_role_id NOT IN ('+notRoleIdsOrLocId+')';
                 }
             }
             const connection = db.createConnection(dbconfig);
 
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
+                    console.log('sql_load', sql_load);
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
+    public getLocationsByUserIdsAndRoleIds(userIds, roleIds?) {
+        return new Promise((resolve, reject) => {
+            let whereLoc = (roleIds) ? ` AND uemr.em_role_id IN (${roleIds}) ` : '';
+            let sql_load = `SELECT
+                    uemr.user_id,
+                    uemr.em_role_id as role_id,
+                    er.role_name,
+                    l.name,
+                    l.parent_id,
+                    l.location_id,
+                    l.formatted_address,
+                    l.google_place_id,
+                    l.google_photo_url,
+                    l.is_building,
+                    IF(ploc.name IS NOT NULL, CONCAT( IF(TRIM(ploc.name) <> '', CONCAT(ploc.name, ', '), ''), l.name), l.name) as name,
+                    ploc.name as parent_name
+                    FROM user_em_roles_relation uemr
+                    INNER JOIN locations l ON l.location_id = uemr.location_id
+                    LEFT JOIN locations ploc ON ploc.location_id = l.parent_id
+                    INNER JOIN em_roles er ON er.em_roles_id = uemr.em_role_id
+                    WHERE uemr.user_id IN (`+userIds+`) ${whereLoc} `;
+
+            const connection = db.createConnection(dbconfig);
+
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    console.log('sql_load', sql_load);
                     return console.log(error);
                 }
                 this.dbData = results;
@@ -584,5 +631,4 @@ export class UserEmRoleRelation extends BaseClass {
             connection.end();
         });
     }
-
 }

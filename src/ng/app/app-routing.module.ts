@@ -10,6 +10,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
 import { UserDashboardComponent  } from './dashboard/user/user.component';
+import { SecurityPrivacyComponent } from './dashboard/security-privacy/security.privacy';
 
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
@@ -22,6 +23,7 @@ import { WardenInvitationFormComponent } from './signup/warden-invite/warden-inv
 import { ProfileCompletionComponent } from './signup/profile-completion/profile-completion.component';
 import { TenantInvitationFormComponent } from './signup/trp-invite/tenant-invite.component';
 import { NoemailComponent } from './noemail/noemail.component';
+import { LocationSignupComponent } from './signup/location.signup/location.signup';
 
 import { AuthGuard } from './services/auth-guard.service';
 import { PersonInfoResolver} from './services/person-info.resolver';
@@ -87,6 +89,8 @@ import { ReportsTrainingsComponent  } from './reports/trainings/trainings.compon
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
+// NOTIFICATION
+import { NotificationListComponent } from './notification/notification-list.component';
 
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
@@ -112,7 +116,8 @@ const appRoutes: Routes = [
         { path: 'warden-signup', component: WardenSignupComponent },
         { path: 'warden-profile-completion/:token', component: WardenInvitationFormComponent },
         { path: 'profile-completion/:token', component: ProfileCompletionComponent },
-        { path: 'tenant-profile-completion/:token', component: TenantInvitationFormComponent }
+        { path: 'tenant-profile-completion/:token', component: TenantInvitationFormComponent },
+        { path: 'select-location', component : LocationSignupComponent }
       ]
   },
   { path: 'no-email', component: NoemailComponent },
@@ -120,12 +125,15 @@ const appRoutes: Routes = [
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-user-password/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
-  { path: 'dashboard', component: DashboardComponent, children: [
+  { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent, children: [
       { path: 'main', component : FrpTrpDashboardComponent },
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
       { path: 'company-information', component: CompanyInformationComponent },
-      { path : 'send-invite', component : SendInviteComponent }
+      { path: 'send-invite', component : SendInviteComponent },
+      { path: 'notification-list', component: NotificationListComponent },
+      { path : 'send-invite', component : SendInviteComponent },
+      { path : 'security-privacy', component : SecurityPrivacyComponent }
     ]
   },
   //
@@ -212,7 +220,7 @@ const appRoutes: Routes = [
     path : 'assign-courses', canActivate: [AuthGuard], component : AssignCoursesComponent
   },
   {
-    path: 'admin', canActivate: [AuthGuard], component: AdminComponent,
+    path: 'admin', component: AdminComponent,
     children: [
       { path: 'accounts', component: ListAccountsComponent },
       { path: 'training-validation', component: TrainingValidationComponent },
@@ -229,7 +237,8 @@ const appRoutes: Routes = [
       { path : 'reports', component : AdminReportsComponent },
       { path: 'new-account', component: AdminAddAccountComponent }
     ]
-  }
+  },
+
 ];
 
 @NgModule({

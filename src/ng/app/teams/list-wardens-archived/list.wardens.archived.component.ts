@@ -9,6 +9,8 @@ import { AuthService } from '../../services/auth.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { UserService } from '../../services/users';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { AccountsDataProviderService  } from '../../services/accounts';
+import { CourseService } from '../../services/course';
 import * as moment from 'moment';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -20,7 +22,7 @@ declare var $: any;
   selector: 'app-list-wardens-archived',
   templateUrl: './list.wardens.archived.component.html',
   styleUrls: ['./list.wardens.archived.component.css'],
-  providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService]
+  providers: [EncryptDecryptService, UserService, DashboardPreloaderService, AccountsDataProviderService, CourseService]
 })
 export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 
@@ -33,7 +35,17 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 	copyOfList = [];
 	selectedFromList = [];
 
-	filters = [];
+	filters = [
+        { value : 9, name : 'Warden' },
+        { value : 10, name : 'Floor / Area Warden' },
+        { value : 11, name : 'Chief Warden' },
+        { value : 12, name : 'Fire Safety Advisor' },
+        { value : 13, name : 'Emergency Planning Committee Member' },
+        { value : 14, name : 'First Aid Officer' },
+        { value : 15, name : 'Deputy Chief Warden' },
+        { value : 16, name : 'Building Warden' },
+        { value : 18, name : 'Deputy Building Warden' }
+    ];
 
 	loadingTable = false;
 
@@ -42,7 +54,7 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
     };
 
     queries = {
-        roles : 'users',
+        roles : 'users,no_gen_occ',
         impaired : -1,
         type : 'client',
         offset :  0,
@@ -53,6 +65,8 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
         users_locations : true,
         search : ''
     };
+
+    multipleLocations = [];
 
     searchMemberInput;
 
@@ -68,18 +82,35 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
         first_name : '', last_name : ''
     };
 
+    selectedToInvite = [];
+
+    emTrainings = [];
+
+    allAreSelected = false;
+    sendInviteToAll = false;
+    sendInviteToAllNonCompliant = false;
+
+    isOnlineTrainingAvailable = false;
+
 	constructor(
-		private userService : UserService,
 		private authService : AuthService,
-		private dashboardService : DashboardPreloaderService,
-		private encDecrService : EncryptDecryptService,
-		private dataProvider: PersonDataProviderService,
-		private router : Router
+        private router : Router,
+        private userService : UserService,
+        private encDecrService : EncryptDecryptService,
+        private dataProvider: PersonDataProviderService,
+        private dashboardService : DashboardPreloaderService,
+        private locationService: LocationsService,
+        private courseService : CourseService,
+        private accountService : AccountsDataProviderService
 		){
 		this.userData = this.authService.getUserData();
 
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+
+        this.courseService.getAllEmRolesTrainings((response) => {
+            this.emTrainings = response.data;
+        });
 	}
 
 	getListData(callBack?){
@@ -90,12 +121,12 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
             this.wardenArr = response.data.users;
 
             let tempRoles = {};
-            this.filters = [];
             for(let i in this.wardenArr){
                 this.wardenArr[i]['bg_class'] = this.generateRandomBGClass();
                 this.wardenArr[i]['id_encrypted'] = this.encDecrService.encrypt(this.wardenArr[i]['user_id']);
 
                 for(let l in this.wardenArr[i]['locations']){
+                    this.wardenArr[i]['locations'][l]['enc_location_id'] = this.encDecrService.encrypt(this.wardenArr[i]['locations'][l]['location_id']);
                     if(this.wardenArr[i]['locations'][l]['parent_name'] == null){
                         this.wardenArr[i]['locations'][l]['parent_name'] = '';
                     }
@@ -105,12 +136,34 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
                     if( this.wardenArr[i]['roles'][r]['role_name'] ){
                         if( !tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] ){
                             tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] = this.wardenArr[i]['roles'][r]['role_name'];
-                            this.filters.push({
-                                value : this.wardenArr[i]['roles'][r]['role_id'],
-                                name : this.wardenArr[i]['roles'][r]['role_name']
-                            });
                         }
                     }
+                }
+
+                this.wardenArr[i]['sendinvitation'] = false;
+                let hasEcoRole = false;
+                for(let r in this.wardenArr[i]['roles']){
+                    if( this.wardenArr[i]['roles'][r]['role_id'] != 1 && this.wardenArr[i]['roles'][r]['role_id'] != 2 ){
+                        hasEcoRole = true;
+                    }
+                }
+
+                if(hasEcoRole){
+                    this.wardenArr[i]['sendinvitation'] = true;
+                }
+
+                let isSelected = false;
+                this.wardenArr[i]['isselected'] = false;
+                for(let sel of this.selectedFromList){
+                    if(sel.user_id == this.wardenArr[i]['user_id']){
+                        this.wardenArr[i]['isselected'] = true;
+                        isSelected = true;
+                    }
+                }
+
+                if(!isSelected && this.allAreSelected){
+                    this.wardenArr[i]['isselected'] = true;
+                    this.selectedFromList.push(this.wardenArr[i]);
                 }
             }
 
@@ -157,32 +210,37 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
         this.searchMemberEvent();
     }
 
-	filterByEvent(){
+    filterByEvent(){
+        let __this = this;
+        $('select.filter-by').on('change', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            let selected = $('select.filter-by').val();
+            __this.dashboardService.show();
+            if(parseInt(selected) != 0){
+                __this.queries.roles = selected;
+            }else{
+                __this.queries.roles = 'users,no_gen_occ';
+            }
 
-		$('select.filter-by').on('change', () => {
-	      let selected = $('select.filter-by').val();
-	      if(parseInt(selected) != 0){
-	        let temp = [],
-	          addedIds = {};
-	        for(let list of this.copyOfList){
-	          let add = false;
-	          for(let role of list.roles){
-	            if( role.role_id == selected ){
-	              add = true;
-	            }
-	          }
+            __this.pagination = {
+                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+            };
 
-	          if(add){
-	            temp.push(list);
-	          }
-	        }
-	        this.wardenArr = temp;
-	      }else{
-	        this.wardenArr = this.copyOfList;
-	      }
-	    });
+            __this.getListData(() => { 
+                if(__this.pagination.pages > 0){
+                    __this.pagination.currentPage = 1;
+                    __this.pagination.prevPage = 1;
+                }
 
-	}
+                for(let i = 1; i<=__this.pagination.pages; i++){
+                    __this.pagination.selection.push({ 'number' : i });
+                }
+
+                __this.dashboardService.hide();
+            });
+        });    
+    }
 
 	sortByEvent(){
 		$('select.sort-by').on('change', () => {
@@ -448,4 +506,11 @@ export class ListArchivedWardensComponent implements OnInit, OnDestroy {
 			});
 		}
 	}
+
+    clickMultipleLocation(locations){
+        this.multipleLocations = locations;
+        $('#modalSelectMultipleLocations').modal('open');
+    }
+
+    
 }
