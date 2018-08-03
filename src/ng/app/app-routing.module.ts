@@ -105,6 +105,7 @@ import { TrainingValidationComponent } from './admin/training-validation/trainin
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
 import { AdminReportsComponent } from './admin/reports/reports.component';
 import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
+import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -222,6 +223,7 @@ const appRoutes: Routes = [
     children: [
       { path: 'accounts', component: ListAccountsComponent },
       { path: 'training-validation', component: TrainingValidationComponent },
+      { path: 'paper-attendance-upload', component: PaperAttendanceComponent },
       { path: 'account-trainings/:accntId', component: AccountTrainingComponent },
       { path: 'view-location/:locationId', component: AdminViewLocationComponent },
       { path: 'users-in-accounts/:accntId', component: AccountUsersListComponent },

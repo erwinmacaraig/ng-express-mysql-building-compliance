@@ -1,0 +1,77 @@
+<div class="row">
+  <div class="col l4 m12 s12">
+    <div class="icon report"></div>
+    <h5 class="blue-text">Paper Attendance</h5>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col s6">
+    <ngfFormData
+    [files]      = "files"
+    postName     = "file"
+    [(FormData)] = "sendableFormData"
+    ></ngfFormData>
+
+    <ngfUploadStatus
+    [(percent)] = "progress"
+    [httpEvent] = "httpEvent"
+    ></ngfUploadStatus>
+
+      <div
+          ngfDrop
+          multiple         = "1"
+          selectable       = "1"
+          [(validDrag)]    = "baseDropValid"
+          (fileOver)       = "hasBaseDropZoneOver=$event"
+          [(files)]        = "files"
+          [accept]         = "accept"
+          [maxSize]        = "maxSize"
+          [(dragFiles)]    = "dragFiles"
+          [(lastInvalids)] = "lastInvalids"
+          class            = "well my-drop-zone"
+          [class.invalid-drag] = "baseDropValid===false"
+          [class.valid-drag]   = "baseDropValid"
+          >
+          Drop or tap to select the file or files to upload
+      </div>
+    </div>
+  <div *ngIf="files.length > 0" class="col s6">
+    <div *ngIf="['image/gif','image/png','image/jpeg'].indexOf(files[files.length-1].type) >= 0">
+      <div class="previewIcon" [ngfBackground]="files[files.length-1]"></div>
+    </div>
+    <strong>{{ files[files.length-1].name }}</strong>
+
+    {{ files[files.length-1].type }}
+
+    {{ files[files.length-1].size/1024/1024 | number:'.2' }} MB
+
+    <a (click)="files=[]">
+        <i class="small material-icons red-text">delete_forever</i>
+    </a>
+  </div>
+</div>
+<div class="row filter-container">
+  <div class="col l6 m6 s12 margin-bottom-20">
+    <div class="datepicker">
+      <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+      <input id="dtTraining" [formControl]="dtTrainingField" autocomplete="off" type="text" (click)="showDatePicker()" required>
+      <span class="material-icons">date_range</span>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col l6 m6 s12 margin-bottom-20">
+      <select [formControl]="courseTraining" style="display: block;" id="trainingCourse">
+          <option [value]="null" [disabled]="true == true">Training Course</option>
+          <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
+      </select>
+    </div>
+</div>
+<div class="row">
+  <div class="col l6 m6 s12">
+      <button type="button" class="btn grey lighten-1 waves-light waves-effect">Cancel</button>
+      <button type="button" class="btn orange waves-light waves-effect" (click)="uploadFiles(files)">Submit</button>
+  </div>
+</div>
+

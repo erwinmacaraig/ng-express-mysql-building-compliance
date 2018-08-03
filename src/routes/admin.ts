@@ -30,7 +30,7 @@ import { TrainingRequirements } from '../models/training.requirements';
 import { TrainingCertification } from '../models/training.certification.model';
 import { AccountTrainingsModel } from '../models/account.trainings';
 import { Course } from '../models/course.model';
-
+import { PaperAttendanceDocumentModel } from '../models/paper.attendance.doc.model';
 const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
@@ -1098,6 +1098,10 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
+    router.post('/admin/upload/paper-attendance/', new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
+
+    });
+
     router.post('/admin/upload/compliance/evac-diagrams/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
         const
             evacDiagramFiles = [],
@@ -1703,7 +1707,7 @@ export class AdminRoute extends BaseRoute {
     }
 
     private async getLocationsOfUsersReport(req: AuthRequest, userIds, frptrp?){
-        let 
+        let
         locationId = (req.body.location_id) ? req.body.location_id : 0,
         locAccUser = new LocationAccountUser(),
         userEmModel = new UserEmRoleRelation(),
@@ -1811,7 +1815,7 @@ export class AdminRoute extends BaseRoute {
                     user['expiry_date_formatted'] = (certificates.length > 0) ? (expDate.isValid()) ?  expDate.format('DD/MM/YYYY') : '' : '';
                 }
             }else if(type == 'face'){
-                let 
+                let
                 allAccountIds = [],
                 userModel = new User(),
                 frptrps = <any> [];
