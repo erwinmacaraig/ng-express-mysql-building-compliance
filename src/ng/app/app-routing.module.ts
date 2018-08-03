@@ -158,7 +158,7 @@ const appRoutes: Routes = [
     { path : 'warden', component : WardenLocationComponent }
   ]},
   {
-    path : 'view-location/:encrypted', canActivate: [ AuthGuard ], component : ViewSingleLocation
+    path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
   },
   {
     path : 'teams', canActivate: [AuthGuard], component : TeamsComponent,
@@ -220,7 +220,7 @@ const appRoutes: Routes = [
     path : 'assign-courses', canActivate: [AuthGuard], component : AssignCoursesComponent
   },
   {
-    path: 'admin', component: AdminComponent,
+    path: 'admin', canActivate: [AuthGuard], component: AdminComponent,
     children: [
       { path: 'accounts', component: ListAccountsComponent },
       { path: 'training-validation', component: TrainingValidationComponent },
