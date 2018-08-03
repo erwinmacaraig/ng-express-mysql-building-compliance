@@ -199,7 +199,7 @@ const md5 = require('md5');
 			('confirm_password' in data) &&
 			('role_id' in data)
 		){
-			if(data.role_id == 3){
+			/*if(data.role_id == 3){
 				if('question_id' in data && 'security_answer' in data){
 					return true;
 				}else{
@@ -207,7 +207,9 @@ const md5 = require('md5');
 				}
 			}else{
 				return true;
-			}
+			}*/
+
+            return true;
 
 		}else{
 			return false;
@@ -281,7 +283,7 @@ const md5 = require('md5');
 			response.data['role_id'] = ' Role id is required and must be a number ';
 			errors++;
 		}else if(data.role_id == 3){
-			if( !validator.isInt( ''+data.question_id+'' ) ){
+			/*if( !validator.isInt( ''+data.question_id+'' ) ){
 				response.data['role_id'] = ' Question id is required and must be a number ';
 				errors++;
 			}
@@ -289,7 +291,7 @@ const md5 = require('md5');
 			if(validator.isEmpty( ''+data.security_answer+'' )){
 				response.data['security_answer'] = ' Answer is required ';
 				errors++;
-			}
+			}*/
 		}
 
 		if(errors > 0){
@@ -637,7 +639,9 @@ const md5 = require('md5');
 						};
 						emailUserdata['user_id'] = user.ID();
 
-						if(reqBody.role_id == 3){
+                        this.saveUserExtend(reqBody, userRole, user, req, res, emailUserdata, response);
+
+						/*if(reqBody.role_id == 3){
 							let
 							securityAnswersModel = new SecurityAnswers(),
 							saveSecurityData = {
@@ -657,7 +661,7 @@ const md5 = require('md5');
 							);
 						}else{
 							this.saveUserExtend(reqBody, userRole, user, req, res, emailUserdata, response);
-						}
+						}*/
 					}
 				);
 			},

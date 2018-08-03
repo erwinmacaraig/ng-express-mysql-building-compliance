@@ -165,9 +165,13 @@ export class AdminService {
   toggleOnlineTrainingAccess(reqBody = {}) {
     return this.http.post(`${this.baseUrl}/admin/assign-default-training/`,reqBody, this.options);
   }
-  
-  generateAdminReport(form:Object){
+
+  generateAdminReport(form: Object) {
       return this.http.post(`${this.baseUrl}/admin/generate-admin-report`, form);
+  }
+
+  createAccount(reqBody = {}) {
+    return this.http.post(`${this.baseUrl}/admin/new/account/`, reqBody);
   }
 
 }

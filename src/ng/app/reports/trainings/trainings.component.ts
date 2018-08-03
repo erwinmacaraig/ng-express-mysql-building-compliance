@@ -391,7 +391,13 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 if(re.status == 'valid' && re.pass == 1){
                     d.push( 'Compliant' );
                 }else{
-                    d.push( 'Not Compliant' );
+                    let desc = '(Not Taken)';
+                    if(re.pass == 0){
+                        desc = '(Failed)';
+                    }else if(re.status == 'expired'){
+                        desc = '(Expired)';
+                    }
+                    d.push( 'Not Compliant '+desc );
                 }
                 csvData[ getLength() ] = d;
             }

@@ -301,4 +301,8 @@ export class UserService {
         });
     }
 
+    changePassword(formData){
+        return this.http.post(this.baseUrl+"/users/change-password", formData);
+    }
+
 }

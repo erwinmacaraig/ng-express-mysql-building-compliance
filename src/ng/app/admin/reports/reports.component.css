@@ -148,3 +148,55 @@ table tr td .btn{
 .image.print{
     background-position: 45.5% 68%;
 }
+
+.instruction{
+    color: #797979;
+    font-size: 16px;
+}
+
+.input-top-labels{
+    
+}
+
+.input-top-labels .icon{
+    display: inline-block;
+    vertical-align: middle;
+    background-image: url(/assets/images/admin-report-icon.png);
+    background-size: 400%;
+    background-repeat: no-repeat;
+    width: 35px;
+    height: 35px;
+}
+
+.input-top-labels .icon.location{
+    background-position: 8% 42%;
+}
+
+.input-top-labels .icon.account{
+    background-position: 90% 42%;
+}
+
+.input-top-labels .icon.report{
+    background-position: 49% 42%;
+}
+
+.input-top-labels .text{
+    display: inline-block;
+    vertical-align: middle;
+    color: #2196F3 !important;
+    font-size: 20px;
+    color: #595d61;
+}
+
+.or-container{
+    height: 100px;
+    width: 65px;
+    float: left;
+    text-align: center;
+    line-height: 150px;
+}
+
+.or{
+    color: #6f6f6f;
+    font-size: 20px;
+}

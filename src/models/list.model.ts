@@ -127,6 +127,9 @@ export class List {
             accounts.billing_state,
             accounts.billing_postal_code,
             accounts.billing_country,
+            accounts.epc_committee_on_hq,
+            accounts.online_training,
+            accounts.key_contact,
             location_account_user.location_id
           FROM
             accounts
@@ -177,6 +180,13 @@ export class List {
                 'id': r['account_id'],
                 'account_name': r['account_name'],
                 'name':  r['account_name'],
+                'key_contact': r['key_contact'],
+                'billing_street': r['billing_street'],
+                'billing_city': r['billing_city'],
+                'billing_state': r['billing_state'],
+                'billing_postal_code': r['billing_postal_code'],
+                'epc_committee_on_hq': r['epc_committee_on_hq'],
+                'online_training': r['online_training'],
                 'billing_address': `${billingAddress}`,
                 'locations': [r['location_id']],
                 'type': 'account'
@@ -210,6 +220,9 @@ export class List {
             accounts.billing_state,
             accounts.billing_postal_code,
             accounts.billing_country,
+            accounts.epc_committee_on_hq,
+            accounts.online_training,
+            accounts.key_contact,
             location_account_relation.location_id
           FROM
             accounts
@@ -259,6 +272,13 @@ export class List {
                 'id': r['account_id'],
                 'account_name': r['account_name'],
                 'name':  r['account_name'],
+                'key_contact': r['key_contact'],
+                'billing_street': r['billing_street'],
+                'billing_city': r['billing_city'],
+                'billing_state': r['billing_state'],
+                'billing_postal_code': r['billing_postal_code'],
+                'epc_committee_on_hq': r['epc_committee_on_hq'],
+                'online_training': r['online_training'],
                 'billing_address': `${billingAddress}`,
                 'locations': [r['location_id']],
                 'type': 'account'

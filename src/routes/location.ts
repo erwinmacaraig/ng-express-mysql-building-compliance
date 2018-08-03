@@ -131,6 +131,10 @@ const defs = require('../config/defs.json');
             });
         });
 
+        router.get('/location/search-locations-hierarchy/:key', (req: AuthRequest, res: Response) => {
+            new LocationRoute().searchLocationsHierarchy(req, res);
+        });
+
         router.post('/location/create', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 			    new LocationRoute().createLocation(req, res).then((data) => {
 	            return res.status(200).send({
@@ -1555,6 +1559,21 @@ const defs = require('../config/defs.json');
         response.locations = responseLocations;
 
         res.send(response);
+    }
+
+    public async searchLocationsHierarchy(req: AuthRequest, res: Response){
+        let
+        locModel = new Location(),
+        subLocs = new Location(),
+        locations = <any> [];
+
+        locations = <any> await locModel.searchLocation({ name : req.params.key }, 7);
+        for(let loc of locations){
+            let sublocModel = new Location(loc.location_id);
+            loc['sublocations'] = <any> await sublocModel.getSublocations();
+        }
+
+        res.send(locations);
     }
 
 	public getDeepLocationsById(req: AuthRequest, res: Response){
