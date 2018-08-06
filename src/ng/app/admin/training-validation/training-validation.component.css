@@ -20,6 +20,10 @@ td.with-remove a.remove{
     color: #39a1ff;
 }
 
+.link-to-upload {
+  cursor: pointer;
+}
+
 .search-result{
     position: absolute;
     background: #fbfbfb;
@@ -136,7 +140,7 @@ table tfoot tr td a{
     line-height: 45px;
     border-radius: 0px !important;
     -webkit-transition: all 0.3s;
-    transition: all 0.3s; 
+    transition: all 0.3s;
 }
 
 .hover-grow:hover{

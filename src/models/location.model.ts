@@ -888,8 +888,7 @@ export class Location extends BaseClass {
           connection.end();
         });
     }
-
-
+    
     public getTenantAccounts(location = 0): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         let locId = this.ID();
@@ -1090,7 +1089,7 @@ export class Location extends BaseClass {
                 joins = `INNER JOIN location_account_relation lar ON l.location_id = lar.location_id`;
             }
 
-            let sql_search = `SELECT l.* FROM locations l ${joins} WHERE l.archived = 0`;
+            let sql_search = `SELECT l.*, IF(p.name IS NOT NULL, CONCAT(p.name,', ',l.name), l.name) as location_name FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id ${joins} WHERE l.archived = 0`;
             if ('name' in searchCriteria) {
                 sql_search += ` AND l.name LIKE '%${searchCriteria['name']}%'`;
             }
@@ -1120,26 +1119,26 @@ export class Location extends BaseClass {
         });
     }
 
-  public toggleBulkOnlineTrainingAccess(locations = [], online_training = 0) {
-    return new Promise((resolve, reject) => {
-      if (locations.length == 0) {
-        resolve(false);
-        return;
-      }
-      const locationIds = locations.join(',');
-      const sql_update = `UPDATE locations SET online_training = ?
-                          WHERE location_id IN (${locationIds});`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, [online_training], (error, results) => {
-          if (error) {
-            console.log('location.model.toggleBulkOnlineTrainingAccess', error, sql_update);
-            throw Error('cannot update');
+    public toggleBulkOnlineTrainingAccess(locations = [], online_training = 0) {
+        return new Promise((resolve, reject) => {
+          if (locations.length == 0) {
+            resolve(false);
+            return;
           }
-          resolve(true);
-      });
+          const locationIds = locations.join(',');
+          const sql_update = `UPDATE locations SET online_training = ?
+                              WHERE location_id IN (${locationIds});`;
+          const connection = db.createConnection(dbconfig);
+          connection.query(sql_update, [online_training], (error, results) => {
+              if (error) {
+                console.log('location.model.toggleBulkOnlineTrainingAccess', error, sql_update);
+                throw Error('cannot update');
+              }
+              resolve(true);
+          });
 
-      connection.end();
-    });
-  }
+          connection.end();
+        });
+    }
 
 }

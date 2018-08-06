@@ -24,7 +24,8 @@ export class DashboardComponent implements OnInit {
 	responseMessage = '';
 
 	routerSubs;
-	isFRPTRP = false;
+    isFRP = false;
+	isTRP = false;
 
 	constructor(
 		private http: HttpClient,
@@ -46,9 +47,14 @@ export class DashboardComponent implements OnInit {
 					this.userRoles = this.userData['roles'];
 
 					for(let i in this.userRoles){
-						if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
-							this.isFRPTRP = true;
+                        if( this.userRoles[i]['role_id'] == 1 ){
+                            this.isFRP = true;
+                        }
+                        if( this.userRoles[i]['role_id'] == 2 ){
+                            this.isTRP = true;
+                        }
 
+						if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
 							if(this.userData['accountId'] < 1){
 								router.navigate(['/setup-company']);
 							}
@@ -56,9 +62,11 @@ export class DashboardComponent implements OnInit {
 					}
 
 					if(val.url == '/' || val.url == '/dashboard'){
-						if(this.isFRPTRP){
-							router.navigate(['/dashboard/main']);
-						}else{
+                        if(this.isTRP && val.url == '/'){
+                           router.navigate(['/teams/list-wardens']);
+                        }else if(this.isFRP && (val.url == '/dashboard' || val.url == '/') ){
+                           router.navigate(['/dashboard/main']);
+                        }else{
 							router.navigate(['/dashboard/user']);
 						}
 					}

@@ -1,6 +1,9 @@
 <div class="row">
-  <div class="col s12 top-title-button">
+  <div class="col s9 top-title-button">
     <h4 class="title left">Training Validation</h4>
+  </div>
+  <div class="col s3 top-title-button">
+    <h4 class="title right link-to-upload"  [routerLink]="['/admin', 'paper-attendance-upload']">Paper Attendance</h4>
   </div>
 </div>
 
@@ -25,7 +28,7 @@
             </div>
         </div>
     </div>
-    
+
   </div>
   <div class="row filter-container">
     <div class="col l4 m6 s12 margin-bottom-20">
@@ -53,7 +56,6 @@
       <table id="trainingListTable" class="table bordered">
         <thead>
           <tr>
-            <!-- <th>TRP</th> -->
             <th>Email Address</th>
             <th>First Name</th>
             <th>Last Name</th>
@@ -75,6 +77,7 @@
                     </li>
                   </ul>
               </div>
+
             </td>
             <td><input formControlName="first_name" type="text"></td>
             <td><input formControlName="last_name" type="text"></td>
@@ -155,6 +158,5 @@
     </div>
   </div>
 </form>
-
 
 <div preloader></div>
