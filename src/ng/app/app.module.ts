@@ -45,6 +45,7 @@ import { SignupSelectRoleComponent } from './signup/select.role/select.role.comp
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 import { NoemailComponent } from './noemail/noemail.component';
+import { LocationSignupComponent } from './signup/location.signup/location.signup';
 
 
 import { SearchLocationComponent } from './location/search/search-location.component';
@@ -60,6 +61,8 @@ import { LocationComponent } from './location/location.component';
 import { VerificationComponent } from './location/verification/verification.component';
 import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
 import { WardenLocationComponent } from './location/warden/warden.location.component';
+
+import { ImportCsvButtonComponent } from './import-csv/import-csv';
 
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
@@ -162,6 +165,7 @@ import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attenda
     SendInviteComponent,
     CustomHttpDataProviderComponent,
     NoemailComponent,
+    LocationSignupComponent,
 
     SublocationComponent,
     SearchLocationComponent,
@@ -175,6 +179,7 @@ import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attenda
     WardenLocationComponent,
     // ViewSublocationComponent
 
+    ImportCsvButtonComponent,
     TeamsComponent,
     TeamsAddWardenComponent,
     MobilityImpairedComponent,

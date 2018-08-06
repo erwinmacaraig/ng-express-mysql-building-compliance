@@ -78,15 +78,19 @@
 						</p> -->
 
 						<p class="checkbox" >
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
-							<label for="location-{{i}}" >
-								<span *ngIf="warden.locations.length > 1">Multiple locations</span>
-								<span *ngIf="warden.locations.length == 1">
-									<span *ngIf="warden.locations[0].parent_name.trim().length > 0">{{ warden.locations[0].parent_name }}, </span>
-									{{warden.locations[0].name}}
-								</span>
-							</label>
-						</p>
+                            <input id="location-{{i}}" [disabled]="allAreSelected" [checked]="warden.isselected" class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
+                            <label for="location-{{i}}" ></label>
+                            <a  (click)="clickMultipleLocation(warden.locations)" *ngIf="warden.locations.length > 1">Multiple locations</a>
+                            <span *ngIf="warden.locations.length == 1">
+                                <a [routerLink]="['/location/view/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] > 0">
+                                    {{warden.locations[0].name}}
+                                </a>
+
+                                <a [routerLink]="['/location/view-sublocation/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] == 0">
+                                    {{warden.locations[0].name}}
+                                </a>
+                            </span>
+                        </p>
 					</td>
 					<td>
 						<div class="image-container lighten-3" [ngClass]="warden.bg_class" *ngIf="warden.profile_pic.length > 0">
@@ -110,8 +114,9 @@
 						</div>
 					</td>
 					<td>
-						<span class="over red-text">0/0</span>
-					</td>
+              <span [ngClass]="{'over red-text': warden.assigned_courses == 0 && warden.trainings == 0, 'over green-text': warden.assigned_courses > 0 || warden.trainings > 0}">
+                        {{warden.assigned_courses}} / {{warden.trainings}} </span>
+                    </td>
 					<td>
 						{{warden['last_login']}}
 					</td>

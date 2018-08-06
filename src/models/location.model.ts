@@ -1089,7 +1089,7 @@ export class Location extends BaseClass {
                 joins = `INNER JOIN location_account_relation lar ON l.location_id = lar.location_id`;
             }
 
-            let sql_search = `SELECT l.* FROM locations l ${joins} WHERE l.archived = 0`;
+            let sql_search = `SELECT l.*, IF(p.name IS NOT NULL, CONCAT(p.name,', ',l.name), l.name) as location_name FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id ${joins} WHERE l.archived = 0`;
             if ('name' in searchCriteria) {
                 sql_search += ` AND l.name LIKE '%${searchCriteria['name']}%'`;
             }

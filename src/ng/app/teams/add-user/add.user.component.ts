@@ -13,6 +13,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { MessageService } from '../../services/messaging.service';
 
 declare var $: any;
 @Component({
@@ -21,6 +22,7 @@ declare var $: any;
     styleUrls: ['./add.user.component.css'],
     providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService]
 })
+
 export class AddUserComponent implements OnInit, OnDestroy {
 	@ViewChild('f') addWardenForm: NgForm;
     @ViewChild('invitefrm') emailInviteForm: NgForm;
@@ -72,7 +74,8 @@ export class AddUserComponent implements OnInit, OnDestroy {
         private router : Router,
         private actRoute : ActivatedRoute,
         private encdecrypt : EncryptDecryptService,
-        private adminService : AdminService
+        private adminService : AdminService,
+        private messageService: MessageService
         ) {
 
         this.userData = this.authService.getUserData();
@@ -138,6 +141,15 @@ export class AddUserComponent implements OnInit, OnDestroy {
             this.dashboardPreloaderService.hide();
             this.addMoreRow();
         });
+    }
+
+    ngAfterViewInit(){
+        $('.modal').modal({
+            dismissible: false
+        });
+
+        this.onKeyUpSearchModalLocationEvent();
+        this.messageService.sendMessage({ 'csv-upload' : {  'title' : 'Add Users by CSV Upload'  } });
     }
 
     addMoreRow(){
@@ -321,17 +333,6 @@ export class AddUserComponent implements OnInit, OnDestroy {
         // this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
     }
 
-    ngAfterViewInit(){
-        $('.modal').modal({
-            dismissible: false
-        });
-
-
-        this.dragDropFileEvent();
-
-        this.onKeyUpSearchModalLocationEvent();
-    }
-
     submitUsers(f) {
       // console.log(f);
       let allInputValid = true;
@@ -357,20 +358,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
               this.showLoadingButton = false;
           });
       }
-
-    }
-
-    showModalCSV(){
-        $('#modaCsvUpload').modal('open');
     }
 
     showModalInvite(){
         $('#modalInvite').modal('open');
-    }
-
-    selectCSVButtonClick(inputFileCSV){
-        console.log(inputFileCSV);
-        inputFileCSV.click();
     }
 
     sendInviteOnClick() {
@@ -391,53 +382,6 @@ export class AddUserComponent implements OnInit, OnDestroy {
         }
         );
         this.emailInviteForm.controls.inviteTxtArea.reset();
-    }
-
-    fileChangeEvent(fileInput: any, btnSelectCSV) {
-        this.CSVFileToUpload = <Array<File>> fileInput.target.files;
-        console.log(this.CSVFileToUpload);
-        btnSelectCSV.innerHTML = this.CSVFileToUpload[0]['name'];
-    };
-
-    onUploadCSVAction() {
-        let override = $('#override')[0].checked;
-        console.log(override);
-        let formData: any = new FormData();
-
-        formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
-        formData.append('override',  override);
-        this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
-            console.log(data);
-        }, (e) => {
-            console.log(e);
-        });
-    }
-
-    isAdvancedUpload() {
-        var div = document.createElement('div');
-        return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
-    };
-
-    dragDropFileEvent(){
-        let modal = $('#modaCsvUpload'),
-        uploadContainer = modal.find('.upload-container'),
-        inputFile = uploadContainer.find('input[name="file"]');
-
-        if(this.isAdvancedUpload()){
-            uploadContainer.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            })
-            .on('dragover dragenter', () =>  {
-                uploadContainer.css({ 'border' : '2px dotted #fc4148' });
-            })
-            .on('dragleave dragend drop', () => {
-                uploadContainer.css({ 'border' : '' });
-            })
-            .on('drop', (e) => {
-                uploadContainer.find('input[type="file"]')[0].files = e.originalEvent.dataTransfer.files;
-            });
-        }
     }
 
     onKeyUpSearchModalLocationEvent(){
