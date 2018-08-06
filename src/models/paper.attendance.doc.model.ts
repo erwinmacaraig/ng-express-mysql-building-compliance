@@ -4,7 +4,7 @@ import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
-import { resolve } from 'url';
+
 
 export class PaperAttendanceDocumentModel extends BaseClass {
   constructor(id?: number) {
@@ -93,6 +93,25 @@ export class PaperAttendanceDocumentModel extends BaseClass {
         }
         this.dbData = results[0];
         this.setID(results[0]['paper_attendance_docs_id']);
+      });
+      connection.end();
+    });
+  }
+
+  public getLastInsertedId(): Promise<number> {
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT paper_attendance_docs_id FROM paper_attendance_docs ORDER BY paper_attendance_docs_id DESC LIMIT 1`;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql, [], (error, results) => {
+        if (error) {
+          console.log('Cannot get last id PaperAttendanceDocumentModel');
+          throw Error(error);
+        }
+        if (results.length > 0) {
+          resolve(results[0]['paper_attendance_docs_id']);
+        } else {
+          resolve(0);
+        }
       });
       connection.end();
     });

@@ -1,3 +1,4 @@
+
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { AuthRequest } from '../interfaces/auth.interface';
@@ -1098,9 +1099,79 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
-    router.post('/admin/upload/paper-attendance/', new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
+    router.post('/admin/upload/paper-attendance/',
+    new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
+      // get the last id and increment it
+      const attendance = new PaperAttendanceDocumentModel();
+      let idDir = await attendance.getLastInsertedId();
+      idDir = idDir + 1;
+      let filename;
 
+      // process upload
+      // const fu = new FileUploader(req, res, next);
+      // console.log(req);
+      /*
+      console.log(req['files']);
+      console.log(req.body);
+      console.log(idDir);
+      */
+    const multerConfig = multer.diskStorage({
+      destination: (rq, file, callback) => {
+          callback(null, __dirname + '/../public/temp');
+      },
+      filename: (rq, file, callback) => {
+          filename = file.originalname.replace(/\s+/g, '-');
+          callback(null, filename);
+      }
     });
+
+    AWS.config.accessKeyId = AWSCredential.AWSAccessKeyId;
+    AWS.config.secretAccessKey = AWSCredential.AWSSecretKey;
+    AWS.config.region = AWSCredential.AWS_REGION;
+    const aws_bucket_name = AWSCredential.AWS_Bucket;
+    const aws_s3 = new AWS.S3();
+    const paperAttendanceUploader = multer({storage: multerConfig}).single('file');
+    paperAttendanceUploader(req, res, async (err) => {
+      if (err) {
+        console.log('This is the error', err);
+        return res.status(400).send({
+          message: 'There was a problem uploading the file'
+        });
+      }
+      // console.log(req['file']);
+      // console.log(req.body);
+
+      const dataStream = await fs.readFileSync(req['file']['path']);
+      // console.log(`paper_attendance/${idDir}/${filename}`);
+      // console.log(req['file']['path']);
+
+      const params = {
+        Bucket: aws_bucket_name,
+        Key: `paper_attendance/${idDir}/${filename}`,
+        ACL: 'public-read',
+        Body: dataStream
+      };
+      aws_s3.putObject(params, async (e, d) => {
+        if (e) {
+          console.log(`error reading file from path`);
+          return res.status(400).send({
+            message: 'Upload Failed'
+          });
+        } else {
+          // console.log(d);
+          await attendance.create({
+            dtTraining: req.body.dtTraining,
+            intTrainingCourse: req.body.training,
+            intUploadedBy: req.user.user_id,
+            strOriginalfilename: filename
+          });
+        }
+      });
+    });
+    return res.status(200).send({
+      message: 'Success test'
+    });
+  });
 
     router.post('/admin/upload/compliance/evac-diagrams/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
         const

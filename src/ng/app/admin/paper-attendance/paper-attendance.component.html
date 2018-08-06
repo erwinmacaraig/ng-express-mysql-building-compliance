@@ -35,21 +35,21 @@
           >
           Drop or tap to select the file or files to upload
       </div>
+      <div *ngIf="files.length > 0" style="padding: 20px;">
+        <div *ngIf="['image/gif','image/png','image/jpeg'].indexOf(files[files.length-1].type) >= 0">
+          <div class="previewIcon" [ngfBackground]="files[files.length-1]"></div>
+        </div>
+        <strong>{{ files[files.length-1].name }}</strong>
+
+        {{ files[files.length-1].type }}
+
+        {{ files[files.length-1].size/1024/1024 | number:'.2' }} MB
+
+        <a (click)="files=[]">
+            <i class="small material-icons red-text">delete_forever</i>
+        </a>
+      </div>
     </div>
-  <div *ngIf="files.length > 0" class="col s6">
-    <div *ngIf="['image/gif','image/png','image/jpeg'].indexOf(files[files.length-1].type) >= 0">
-      <div class="previewIcon" [ngfBackground]="files[files.length-1]"></div>
-    </div>
-    <strong>{{ files[files.length-1].name }}</strong>
-
-    {{ files[files.length-1].type }}
-
-    {{ files[files.length-1].size/1024/1024 | number:'.2' }} MB
-
-    <a (click)="files=[]">
-        <i class="small material-icons red-text">delete_forever</i>
-    </a>
-  </div>
 </div>
 <div class="row filter-container">
   <div class="col l6 m6 s12 margin-bottom-20">
@@ -70,8 +70,11 @@
 </div>
 <div class="row">
   <div class="col l6 m6 s12">
-      <button type="button" class="btn grey lighten-1 waves-light waves-effect">Cancel</button>
-      <button type="button" class="btn orange waves-light waves-effect" (click)="uploadFiles(files)">Submit</button>
+      <button type="button" class="btn grey lighten-1 waves-light waves-effect" [routerLink]="['/admin', 'training-validation']">Cancel</button>
+      <button type="button" class="btn orange waves-light waves-effect" (click)="uploadFiles(files)"
+      [disabled]="!files.length || !courseTraining.valid"
+      >Submit</button>
   </div>
 </div>
+<div preloader></div>
 

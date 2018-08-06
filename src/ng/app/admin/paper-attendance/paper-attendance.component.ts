@@ -2,14 +2,18 @@ import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { DatepickerOptions } from 'ng2-datepicker';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { HttpClient, HttpRequest, HttpResponse, HttpEvent } from '@angular/common/http';
 import { AdminService } from './../../services/admin.service';
+import { Router } from '@angular/router';
+import { PlatformLocation } from '@angular/common';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
 declare var moment: any;
 @Component({
   selector: 'app-paper-attendance',
   templateUrl: './paper-attendance.component.html',
   styleUrls: ['./paper-attendance.component.css'],
-  providers: [AdminService]
+  providers: [AdminService, DashboardPreloaderService]
 })
 export class PaperAttendanceComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -36,7 +40,15 @@ export class PaperAttendanceComponent implements OnInit, AfterViewInit, OnDestro
     displayFormat: 'YYYY-MM-DD'
   };
   training_requirements = [];
-  constructor(private adminService: AdminService) {}
+  private baseUrl: String;
+  constructor(
+    private adminService: AdminService,
+    public http: HttpClient,
+    public router: Router,
+    public dashboard: DashboardPreloaderService,
+    private platformLocation: PlatformLocation) {
+    this.baseUrl = (platformLocation as any).location.origin;
+  }
 
   ngOnInit() {
     this.setDatePickerDefaultDate();
@@ -72,13 +84,32 @@ export class PaperAttendanceComponent implements OnInit, AfterViewInit, OnDestro
     this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
   }
 
-  uploadFiles(files: File[]) {
+  uploadFiles(files: File[]): Subscription {
     console.log(files);
     const myForm = new FormData();
     myForm.append('file', files[0], files[0]['name']);
     myForm.append('dtTraining', this.dtTrainingField.value);
     myForm.append('training', this.courseTraining.value);
-
+    let req;
+    this.dashboard.show();
+    req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/paper-attendance/`, myForm, {
+      reportProgress: true
+    });
+    return this.httpEmitter = this.http.request(req).subscribe(
+      event => {
+          this.httpEvent = event;
+          if (event instanceof HttpResponse) {
+              delete this.httpEmitter;
+              this.dashboard.hide();
+              console.log('request done', event);
+              this.router.navigate(['/admin', 'training-validation']);
+          }
+      },
+      error => {
+          console.log('Error Uploading', error);
+          this.dashboard.hide();
+      }
+    );
   }
 
 }
