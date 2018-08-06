@@ -134,6 +134,7 @@ import { TrainingValidationComponent } from './admin/training-validation/trainin
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
 import { AdminReportsComponent } from './admin/reports/reports.component';
 import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
+import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
 
 @NgModule({
   declarations: [
@@ -241,7 +242,8 @@ import { AdminAddAccountComponent } from './admin/add-account/add-account.compon
     TrainingValidationComponent,
     AccountTrainingComponent,
     AdminReportsComponent,
-    AdminAddAccountComponent
+    AdminAddAccountComponent,
+    PaperAttendanceComponent
   ],
   imports: [
     BrowserModule,
