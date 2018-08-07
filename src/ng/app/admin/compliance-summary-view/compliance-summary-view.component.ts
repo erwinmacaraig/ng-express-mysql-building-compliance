@@ -55,6 +55,8 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   baseUrl;
   genericSub: Subscription;
 
+  totalPercentage = 0;
+
   @ViewChild('inpFileUploadDocs') inpFileUploadDocs: ElementRef;
   constructor(
     private adminService: AdminService,
@@ -87,6 +89,56 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
           initKPI = this.KPIS[i];
         }
       }
+
+        this.getLatestCompliance();
+
+      this.getUploadedDocumentsFromSelectedKPI(initKPI);
+      this.dashboard.hide();
+    });
+
+    // get sublocations here
+    this.adminService.getAccountSublocations(this.locationId).subscribe((response) => {
+      this.sublocations = response['data'];
+    });
+
+    this.genericSub =
+        this.adminService.FSA_EvacExer_Status(this.accountId.toString(), this.locationId.toString(), '3').subscribe((response) => {
+          console.log(response);
+          this.FSAStatus = (response['data']['compliance_status'] == 1) ? true : false;
+    });
+
+  }
+
+  ngAfterViewInit() {
+    $('.modal').modal({
+      dismissible: false
+    });
+  }
+
+  ngOnDestroy() {}
+
+  getLatestCompliance(){
+      this.complianceService.getLocationsLatestCompliance({
+          location_id : this.locationId,
+          account_id : this.accountId
+      }, (responseCompl) => {
+        let latestComplianceData = responseCompl.data;
+        for(let kpi of this.KPIS) {
+            for(let comp of latestComplianceData){
+                if( comp.compliance_kpis_id == kpi['compliance_kpis_id'] ){
+                    kpi['compliance'] = comp;
+                }
+
+                if(comp.docs.length > 0) {
+                    for(let doc of comp.docs){
+                        doc['timestamp_formatted'] = moment(doc["timestamp"]).format("DD/MM/YYYY");
+                        doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');
+                    }
+                }
+            }
+        }
+
+        this.totalPercentage = responseCompl.percent;
 
         let colors = this.complianceService.getColors();
         for(let kpis of this.KPIS) {
@@ -127,30 +179,9 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
                 kpis['short_code'] = 'sundry';
             }
         }
-      this.getUploadedDocumentsFromSelectedKPI(initKPI);
-      this.dashboard.hide();
-    });
 
-    // get sublocations here
-    this.adminService.getAccountSublocations(this.locationId).subscribe((response) => {
-      this.sublocations = response['data'];
-    });
-
-    this.genericSub =
-        this.adminService.FSA_EvacExer_Status(this.accountId.toString(), this.locationId.toString(), '3').subscribe((response) => {
-          console.log(response);
-          this.FSAStatus = (response['data']['compliance_status'] == 1) ? true : false;
-    });
-
-  }
-
-  ngAfterViewInit() {
-    $('.modal').modal({
-      dismissible: false
     });
   }
-
-  ngOnDestroy() {}
 
   public getUploadedDocumentsFromSelectedKPI(kpi) {
     this.selectedKPI = kpi['compliance_kpis_id'];
