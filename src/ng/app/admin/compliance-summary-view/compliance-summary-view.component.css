@@ -49,10 +49,8 @@
     width: 60%;
 }
 
-
 .row-table-content{
     transition: all 0.5s;
-    width: 30vw;
 }
 
 .row-table-content table{
@@ -78,122 +76,6 @@
     background-position: 30.5% 35.7%;
     vertical-align: middle;
     display: inline-block;
-}
-
-.row-table-content .progress-loading-container{
-    width: 100%;
-    color: #fff;
-    position: relative;
-    height: 60px;
-    margin-bottom: 5%;
-}
-
-.row-table-content .progress-loading-container .left-icon,
-.row-table-content .progress-loading-container .right-icon{
-    position: absolute;
-    top: 10%;
-    width: 45px;
-    height: 45px;
-    background-color: #e7e7e7;
-    border-radius: 60px;
-    z-index: 2;
-}
-
-.row-table-content .progress-loading-container .left-icon{
-    left: 0%;
-}
-
-.row-table-content .progress-loading-container .right-icon{
-    right: 0%;
-}
-
-.row-table-content .progress-loading-container .left-icon .image,
-.row-table-content .progress-loading-container .right-icon .image{
-    width: 30px;
-    height: 30px;
-    background-color: white;
-    border-radius: 40px;
-    border: 3px solid #fff;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-right: -50%;
-    transform: translate(-50%, -50%);
-}
-
-.row-table-content .progress-loading-container .left-icon .image{
-    background-image: url(/assets/images/building_icon.png);
-}
-
-.row-table-content .progress-loading-container .right-icon .image{
-    background-image: url(/assets/images/check_icon.png);
-}
-
-.row-table-content .progress-loading-container .background{
-    background-color: #e7e7e7;
-    height: 20px;
-    border-radius: 5px;
-    position: absolute;
-    top: 19px;
-    left: 7px;
-    width: 98%;
-}
-
-.row-table-content .progress-loading-container .loading{
-    background-color: #dc4453;
-    height: 20px;
-    border-radius: 5px;
-    position: absolute;
-    min-width: 0.5%;
-    top: 19px;
-    left: 43px;
-    max-width: 85%;
-    border: 1px solid;
-}
-
-.row-table-content .progress-loading-container .loading .tip-percentage{
-    position: absolute;
-    top: -43px;
-    right: -20px;
-}
-
-.row-table-content .progress-loading-container .loading .percentage{
-    width: 40px;
-    height: 30px;
-    line-height: 30px;
-    background-color: #525151;
-    border-radius: 8px;
-    font-size: 12px;
-    color: #fff;
-    text-align: center;
-}
-
-.row-table-content .progress-loading-container .loading .arrow-down{
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 15px 7.5px 0 7.5px;
-    border-color: #525151 transparent transparent transparent;
-    position: absolute;
-    bottom: -13px;
-    left: 10px;
-}
-
-
-.training-icon{
-	background: url(/assets/images/compliance/training_icon.png) no-repeat;
-}
-
-.meeting-icon{
-	background: url(/assets/images/compliance/meeting_icon.png) no-repeat;
-}
-
-.evacuation-icon{
-	background: url(/assets/images/compliance/evacuation_icon.png) no-repeat;
-}
-
-.diagram-icon{
-	background: url(/assets/images/compliance/diagram_icon.png) no-repeat;
 }
 
 table tbody{
@@ -718,4 +600,145 @@ a:hover{
     #modalEvacExer{
         width: 95%;
     }
+}
+
+.row-table-content .progress-loading-container{
+    width: 100%;
+    color: #fff;
+    position: relative;
+    height: 60px;
+    margin-bottom: 5%;
+}
+
+.row-table-content .progress-loading-container .left-icon,
+.row-table-content .progress-loading-container .right-icon{
+    position: absolute;
+    top: 10%;
+    width: 45px;
+    height: 45px;
+    background-color: #e7e7e7;
+    border-radius: 60px;
+    z-index: 2;
+}
+
+.row-table-content .progress-loading-container .left-icon{
+    left: 0%;
+}
+
+.row-table-content .progress-loading-container .right-icon{
+    right: 0%;
+}
+
+.row-table-content .progress-loading-container .left-icon .image,
+.row-table-content .progress-loading-container .right-icon .image{
+    width: 30px;
+    height: 30px;
+    background-color: white;
+    border-radius: 40px;
+    border: 3px solid #fff;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+}
+
+.row-table-content .progress-loading-container .left-icon .image{
+    background-image: url(/assets/images/building_icon.png);
+}
+
+.row-table-content .progress-loading-container .right-icon .image{
+    background-image: url(/assets/images/check_icon.png);
+}
+
+.row-table-content .progress-loading-container .background{
+    background-color: #e7e7e7;
+    height: 20px;
+    border-radius: 5px;
+    position: absolute;
+    top: 19px;
+    left: 42px;
+    width: 89%;
+}
+
+.row-table-content .progress-loading-container .loading{
+    background-color: #75beff;
+    height: 20px;
+    border-radius: 0px;
+    position: absolute;
+    min-width: 0.5%;
+    left: 1px;
+}
+
+.row-table-content .progress-loading-container .loading .tip-percentage{
+    position: absolute;
+    top: -43px;
+    right: -20px;
+}
+
+.row-table-content .progress-loading-container .loading .percentage{
+    width: 40px;
+    height: 30px;
+    line-height: 30px;
+    background-color: #525151;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #fff;
+    text-align: center;
+}
+
+.row-table-content .progress-loading-container .loading .arrow-down{
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 15px 7.5px 0 7.5px;
+    border-color: #525151 transparent transparent transparent;
+    position: absolute;
+    bottom: -13px;
+    left: 10px;
+}
+
+.epm-icon{
+    background-image: url(/assets/images/compliance/icons/epm.png);
+    background-size: 63% !important;
+}
+
+.epc-icon{
+    background-image: url(/assets/images/compliance/icons/epc_meeting.png);
+    background-size: 63% !important;
+}
+
+.evacuation-icon{
+    background-image: url(/assets/images/compliance/icons/evacuation_exercise.png);
+    background-size: 63% !important;
+}
+
+.diagram-icon{
+    background-image: url(/assets/images/compliance/icons/evacuation_diagram.png);
+    background-size: 63% !important;
+}
+
+.chief-icon{
+    background-image: url(/assets/images/compliance/icons/chiefwarden_training.png);
+    background-size: 63% !important;
+}
+
+.warden-icon{
+    background-image: url(/assets/images/compliance/icons/warden_training.png);
+    background-size: 63% !important;
+}
+
+.fsa-icon{
+    background-image: url(/assets/images/compliance/icons/fire_advisor.png);
+    background-size: 63% !important;
+}
+
+.gen-occ-icon{
+    background-image: url(/assets/images/compliance/icons/occupant_training.png);
+    background-size: 63% !important;
+}
+
+.sundry-icon{
+    background-image: url(/assets/images/compliance/icons/sundry_compliance.png);
+    background-size: 63% !important;
 }

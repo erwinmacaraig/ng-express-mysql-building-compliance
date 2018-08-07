@@ -470,3 +470,50 @@ a.disabled{
     line-height: 19px !important;
     padding-left: 25px;
 }
+
+#modalLocations{
+    top: 2%;
+    height: 100vh;
+}
+
+#modalLocations .modal-content{
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+@media only screen
+  and (max-width: 1440px) {
+    #modalInvite,
+    #modalLocations{
+        width: 35% !important;
+    }
+}
+
+@media only screen
+  and (min-width: 1025px)
+  and (max-width: 1439px) {
+    #modalLocations{
+        width: 50% !important;
+    }
+}
+
+@media only screen
+  and (max-width: 1024px) {
+    #modalLocations{
+        width: 60% !important;
+    }
+}
+
+@media only screen
+  and (max-width: 768px) {
+    #modalLocations{
+        width: 90% !important;
+    }
+}
+
+@media only screen
+  and (max-width: 500px) {
+    #modalLocations{
+        width: 90% !important;
+    }
+}
