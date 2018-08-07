@@ -214,7 +214,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 	public async getLocationsLatestCompliance(req: AuthRequest, res: Response, toReturn?, formData?) {
         let 
         locationID = (formData) ? formData.location_id : req.body.location_id,
-        accountID = req.user.account_id,
+        accountID = (req.body.account_id) ? req.body.account_id : req.user.account_id,
         userId = req.user.user_id,
         accountModel = new Account(accountID),
         locAccModel = new LocationAccountRelation(),
@@ -338,7 +338,8 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
         }catch(e){}
 
-        if(!role){
+        this.response['user'] = req.user;
+        if(!role && req.user.evac_role != 'admin'){
             try {
                 role = await userRoleRelObj.getByUserId(userId, true, locationID);
             } catch (e) {
@@ -349,6 +350,10 @@ import * as S3Zipper from 'aws-s3-zipper';
                     role = 0;
                 }
             }
+        }
+
+        if(req.user.evac_role == 'admin'){
+            role = 1;
         }
 
         if(role == 2){

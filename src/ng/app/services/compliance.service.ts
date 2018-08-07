@@ -74,8 +74,12 @@ export class ComplianceService {
 			});
 	}
 
-	public getLocationsLatestCompliance(locationID, callBack){
-		this.http.post(this.baseUrl + '/compliance/locations-latest-compliance', { location_id : locationID })
+	public getLocationsLatestCompliance(locationIDorForm, callBack){
+        let param = { location_id : locationIDorForm };
+        if(typeof locationIDorForm == 'object'){
+            param = locationIDorForm;
+        }
+		this.http.post(this.baseUrl + '/compliance/locations-latest-compliance', param)
 			.subscribe(res => {
 				callBack(res);
 			}, err => {
