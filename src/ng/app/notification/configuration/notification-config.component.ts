@@ -1,3 +1,4 @@
+import { AccountsDataProviderService } from './../../services/accounts';
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs/Subscription';
@@ -7,7 +8,8 @@ declare var $: any;
 @Component({
   selector: 'app-notification-config',
   templateUrl: './notification-config.component.html',
-  styleUrls: ['./notification-config.component.css']
+  styleUrls: ['./notification-config.component.css'],
+  providers: [ AccountsDataProviderService ]
 })
 export class NotificationConfigurationComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -20,8 +22,9 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
   public frequency_field: FormControl;
   public eco_user: FormControl;
   private sub: Subscription;
-  private defaultMessage = 'Test Message';
-  constructor() {}
+  public defaultMessage = 'Test Message';
+  public buildingArray = [];
+  constructor(private accountService: AccountsDataProviderService) {}
 
   ngOnInit() {
     this.notConfigFormGrp = new FormGroup({
@@ -32,10 +35,45 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
       messageField: new FormControl(this.defaultMessage, Validators.required)
     });
     this.searchBldgField = new FormControl();
+    this.sub = this.buildingSearches();
   }
 
   ngAfterViewInit() {}
 
   ngOnDestroy() {}
+
+  public buildingSearches(): Subscription {
+    return this.searchBldgField.valueChanges.debounceTime(350).subscribe((val) => {
+      if (val.length > 0) {
+        this.buildingArray = [];
+        this.accountService.searchForBuildings(val).subscribe((response) => {
+          console.log(response);
+          this.buildingArray = response['data'];
+        });
+      }
+    });
+  }
+
+  public getSelection(locationId = 0, locationName = '') {
+    this.sub.unsubscribe();
+    this.buildingId = locationId;
+    this.searchBldgField.setValue(locationName);
+    this.buildingArray = [];
+    this.sub = this.buildingSearches();
+  }
+
+  public createNewConfig() {
+    let values = {};
+    values = {
+      frequency: this.notConfigFormGrp.get('frequency_field').value,
+      all_users: this.notConfigFormGrp.get('all_users').value,
+      eco_user: this.notConfigFormGrp.get('eco_user').value,
+      trp_user: this.notConfigFormGrp.get('trp_user').value,
+      message: this.notConfigFormGrp.get('messageField').value,
+      building_id: this.buildingId
+    };
+
+    console.log(JSON.stringify(values));
+  }
 
 }

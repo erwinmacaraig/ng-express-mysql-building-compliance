@@ -13,3 +13,64 @@ textarea {
   width: 90%;
   border-bottom: 0px;
 }
+.search-field,
+select{
+    background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 5px;
+    height: 50px;
+    vertical-align: bottom;
+    position: relative;
+}
+
+.search-field input:focus{
+    border-bottom: 0px;
+    box-shadow: none;
+}
+
+.search-field .material-icons,
+.material-icons{
+    width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    position: absolute;
+    top: 29%;
+    right: 20px;
+}
+
+.search-field input.ng-invalid.ng-touched,
+input.ng-invalid.ng-touched {
+    border: none;
+}
+
+.search-result{
+  position: absolute;
+  background: #fbfbfb;
+  width: 100%;
+  left: 0px;
+  top: 49px;
+  border: 1px solid #969696;
+  display: block;
+  z-index: 99;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.search-result ul{
+margin: 0px;
+}
+
+.search-result ul li,
+.search-result strong{
+font-size: 14px;
+padding: 12px 8px;
+}
+
+.search-result ul li:not(:last-child){
+border-bottom: 1px solid #969696;
+}
+
+.search-result ul li:hover{
+cursor: pointer;
+background-color: #fff8cd;
+}

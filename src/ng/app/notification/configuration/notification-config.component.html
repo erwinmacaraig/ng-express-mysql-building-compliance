@@ -8,8 +8,17 @@
   <div class="row">
       <div class="col l12 m12 s12">
         <h5 class="orange-text margin-bottom-30">Select Location</h5>
-        <div class="input-field">
+        <div class="search-field">
           <input [formControl]="searchBldgField" placeholder="Search building" class="search-field" >
+
+          <div class="search-result" *ngIf="buildingArray.length > 0">
+            <ul>
+              <li *ngFor="let item of buildingArray">
+                <a (click)="getSelection(item['location_id'], item['name'])">{{item['name']}}</a>
+              </li>
+            </ul>
+          </div>
+
         </div>
       </div>
     </div>
@@ -40,7 +49,7 @@
         <div class="col l12 m12 s12">
           <h5 class="orange-text margin-bottom-30">Default Message</h5>
           <div input-field>
-            <textarea formControlName="messageField" class="materialize-textarea"></textarea>
+            <textarea formControlName="messageField" class="materialize-textarea">{{ defaultMessage }}</textarea>
             <label>Message</label>
           </div>
         </div>
@@ -60,7 +69,7 @@
       <div class="row">
         <div class="col l12 m12 s12">
           <button type="button">Cancel</button>
-          <button class="btn orange waves-effect waves-light" type="submit">Send</button>
+          <button class="btn orange waves-effect waves-light" type="submit" (click)="createNewConfig()">Send</button>
         </div>
       </div>
 </form>

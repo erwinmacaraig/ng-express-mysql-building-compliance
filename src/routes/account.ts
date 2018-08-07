@@ -10,7 +10,7 @@ import { UserInvitation } from './../models/user.invitation.model';
 
 import { EmailSender } from '../models/email.sender';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
-
+import { List } from '../models/list.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 const validator = require('validator');
@@ -67,10 +67,18 @@ const validator = require('validator');
 	   		new AccountRoute().getAll(req, res);
 	   	});
 
-        router.get('/accounts/is-online-training-valid', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-            new AccountRoute().isOnlineTrainingValid(req, res);
-        });
+      router.get('/accounts/is-online-training-valid', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AccountRoute().isOnlineTrainingValid(req, res);
+      });
 
+      router.get('/accounts/search-building/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AccountRoute().searchForBuildings(req, res);
+      });
+
+      router.post('/accounts/create-notification-config/', new MiddlewareAuth().authenticate,
+      (req: AuthRequest, res: Response, next: NextFunction) => {
+        new AccountRoute().notificationConfig(req, res);
+      });
    	}
 
 	/**
@@ -81,7 +89,43 @@ const validator = require('validator');
 	*/
 	constructor() {
 		super();
-	}
+  }
+
+  public async notificationConfig(req: AuthRequest, res: Response) {
+    // get sub levels within the building that belongs to the account
+    const location = new Location();
+    const sublevels = await location.getChildren(req.body.building_id);
+
+    // filter these sublevels that belongs to the account
+    
+  }
+
+
+  public async searchForBuildings(req: AuthRequest, res: Response) {
+    const accountId = req.user.account_id;
+    const queryBldgName = req.query.bldgName;
+    const larIds = [];
+
+    const list = new List();
+    const lar = await list.listTaggedLocationsOnAccount(accountId, {
+      is_building: 1,
+      name: queryBldgName
+    });
+
+    for (const location of lar) {
+      larIds.push(location['location_id']);
+    }
+    const locationsFromLAU: Array<object> = await list.listTaggedLocationsOnAccountFromLAU(accountId, {'exclusion_ids': larIds,
+      is_building: 1,
+      name: queryBldgName
+    });
+
+    const accountLocations = lar.concat(locationsFromLAU);
+    return res.status(200).send({
+      data: accountLocations
+    });
+
+  }
 
 	public async getAll(req: Request, res: Response){
 		let  response = {
@@ -777,7 +821,7 @@ const validator = require('validator');
 			response.message = 'search a name, invalid field';
 			res.send(response);
 		}
-	}
+  }
 
 }
 

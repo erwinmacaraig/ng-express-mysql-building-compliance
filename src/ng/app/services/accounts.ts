@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -93,5 +93,11 @@ export class AccountsDataProviderService {
             callBack( JSON.parse(err.error) );
           });
     }
+
+  searchForBuildings(buildingName = '') {
+    const httpParams = new HttpParams().set('bldgName', buildingName);
+    this.options['params'] = httpParams;
+    return this.http.get(this.baseUrl + '/accounts/search-building/', this.options);
+  }
 
 }
