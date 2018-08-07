@@ -55,6 +55,8 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   baseUrl;
   genericSub: Subscription;
 
+  totalPercentage = 0;
+
   @ViewChild('inpFileUploadDocs') inpFileUploadDocs: ElementRef;
   constructor(
     private adminService: AdminService,
@@ -78,13 +80,18 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       let initKPI;
       this.kpisObject = response['data'];
       for (const k of response['data']) {
-          this.KPIS.push(k);
+          if(k.description !== null){
+            this.KPIS.push(k);
+          }
       }
       for ( let i = 0; i < this.KPIS.length; i++) {
         if (this.KPIS[i] != undefined && this.selectedKPI == this.KPIS[i]['compliance_kpis_id']) {
           initKPI = this.KPIS[i];
         }
       }
+
+        this.getLatestCompliance();
+
       this.getUploadedDocumentsFromSelectedKPI(initKPI);
       this.dashboard.hide();
     });
@@ -109,6 +116,72 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   }
 
   ngOnDestroy() {}
+
+  getLatestCompliance(){
+      this.complianceService.getLocationsLatestCompliance({
+          location_id : this.locationId,
+          account_id : this.accountId
+      }, (responseCompl) => {
+        let latestComplianceData = responseCompl.data;
+        for(let kpi of this.KPIS) {
+            for(let comp of latestComplianceData){
+                if( comp.compliance_kpis_id == kpi['compliance_kpis_id'] ){
+                    kpi['compliance'] = comp;
+                }
+
+                if(comp.docs.length > 0) {
+                    for(let doc of comp.docs){
+                        doc['timestamp_formatted'] = moment(doc["timestamp"]).format("DD/MM/YYYY");
+                        doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');
+                    }
+                }
+            }
+        }
+
+        this.totalPercentage = responseCompl.percent;
+
+        let colors = this.complianceService.getColors();
+        for(let kpis of this.KPIS) {
+            let mes = kpis['measurement'].toLowerCase();
+            if(mes == 'traffic' || mes == 'evac'){
+                kpis['type'] = 'date';
+            }else{
+                kpis['type'] = 'percent';
+            }
+
+            kpis['background_color'] = colors[kpis['compliance_kpis_id']];
+            if(kpis['compliance_kpis_id'] == 4){
+                kpis['icon_class'] = 'epm-icon';
+                kpis['short_code'] = 'epm';
+            }else if(kpis['compliance_kpis_id'] == 2){
+                kpis['icon_class'] = 'epc-icon';
+                kpis['short_code'] = 'epc';
+            }else if(kpis['compliance_kpis_id'] == 9){
+                kpis['icon_class'] = 'evacuation-icon';
+                kpis['short_code'] = 'evacution_exercise';
+            }else if(kpis['compliance_kpis_id'] == 5){
+                kpis['icon_class'] = 'diagram-icon';
+                kpis['short_code'] = 'evac_diagram';
+            }else if(kpis['compliance_kpis_id'] == 12){
+                kpis['icon_class'] = 'chief-icon';
+                kpis['short_code'] = 'chief_warden_training';
+            }else if(kpis['compliance_kpis_id'] == 6){
+                kpis['icon_class'] = 'warden-icon';
+                kpis['short_code'] = 'warden_training';
+            }else if(kpis['compliance_kpis_id'] == 3){
+                kpis['icon_class'] = 'fsa-icon';
+                kpis['short_code'] = 'fire_safety_advisor';
+            }else if(kpis['compliance_kpis_id'] == 8){
+                kpis['icon_class'] = 'gen-occ-icon';
+                kpis['short_code'] = 'general_occupant_training';
+            }else if(kpis['compliance_kpis_id'] == 13){
+                kpis['icon_class'] = 'sundry-icon';
+                kpis['short_code'] = 'sundry';
+            }
+        }
+
+    });
+  }
 
   public getUploadedDocumentsFromSelectedKPI(kpi) {
     this.selectedKPI = kpi['compliance_kpis_id'];

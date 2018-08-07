@@ -367,18 +367,44 @@ a.disabled{
 
 ul li {margin-left: 0; padding-left: 2.5em;}
 
+#modalLocations{
+    top: 2%;
+    height: 100vh;
+}
+
+#modalLocations .modal-content{
+    max-height: 100%;
+    overflow-y: auto;
+}
+
 @media only screen
   and (max-width: 1440px) {
-    #modalInvite{
+    #modalInvite,
+    #modalLocations{
         width: 35% !important;
     }
 }
 
 @media only screen
-  and (max-width: 1024px) {
-    #modalInvite,
-    #modalLocations{
+  and (min-width: 1025px)
+  and (max-width: 1439px) {
+    #modalInvite{
         width: 40% !important;
+    }
+
+    #modalLocations{
+        width: 50% !important;
+    }
+}
+
+@media only screen
+  and (max-width: 1024px) {
+    #modalInvite{
+        width: 40% !important;
+    }
+
+    #modalLocations{
+        width: 60% !important;
     }
 }
 
@@ -386,7 +412,7 @@ ul li {margin-left: 0; padding-left: 2.5em;}
   and (max-width: 768px) {
     #modalInvite,
     #modalLocations{
-        width: 60% !important;
+        width: 90% !important;
     }
 
     .top-title-button h4{

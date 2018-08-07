@@ -120,7 +120,7 @@
 
 		<form #formLoc (submit)="submitSelectLocationModal(formLoc, $event)">
 
-    		<div class="list-region" style="overflow-y: auto; height: 340px;">
+    		<div class="list-region">
     			<p *ngIf="locations.length == 0">No location found</p>
 
                 <ul class="locations"></ul>

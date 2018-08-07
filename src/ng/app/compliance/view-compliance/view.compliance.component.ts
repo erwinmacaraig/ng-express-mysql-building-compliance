@@ -221,8 +221,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 				if(comp.docs.length > 0) {
 					for(let doc of comp.docs){
-            doc['timestamp_formatted'] = moment(doc["timestamp"]).format("DD/MM/YYYY");
-            doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');
+                        doc['timestamp_formatted'] = moment(doc["timestamp"]).format("DD/MM/YYYY");
+                        doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');
 					}
 				}
 			}
