@@ -2174,7 +2174,7 @@ export class UsersRoute extends BaseRoute {
     			}
 
     			if(!hasError) {
-            accountTrainings = [];
+                    accountTrainings = [];
     				let
     				token = this.generateRandomChars(30),
     				inviSaveData = {
