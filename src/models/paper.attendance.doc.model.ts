@@ -48,6 +48,7 @@ export class PaperAttendanceDocumentModel extends BaseClass {
         }
         this.id = results.insertId;
         this.dbData['paper_attendance_docs_id'] = this.id;
+        resolve(true);
       });
       connection.end();
     });
@@ -93,6 +94,7 @@ export class PaperAttendanceDocumentModel extends BaseClass {
         }
         this.dbData = results[0];
         this.setID(results[0]['paper_attendance_docs_id']);
+        resolve(this.dbData);
       });
       connection.end();
     });

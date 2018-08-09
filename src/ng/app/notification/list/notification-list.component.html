@@ -3,7 +3,7 @@
     <h5 class="title">Email Notification List</h5>
   </div>
   <div class="col l2 m3 s12 ">
-		<button class="btn orange waves-effect waves-light add-peep pull right">
+		<button class="btn orange waves-effect waves-light add-peep pull right" [routerLink]="['/dashboard', 'notification-config']">
 			<span class="image"></span>
 			Send New Email
 		</button>
@@ -50,13 +50,45 @@
           </th>
           <th>Date Email Sent</th>
           <th>No of Receiver</th>
-          <th>No of Respond</th>
+          <th>No of Responder</th>
           <th>Email Frequency</th>
           <th>FRP</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
+        <tr *ngFor="let config of configList">
+          <td>
+            <p class="checkbox">
+                <input id="allLocations1" class="filled-in" type="checkbox">
+                <label for="allLocations1">{{ config['name'] }}</label>
+              </p>
+          </td>
+          <td>
+            {{ config['user_type'] | uppercase }}
+          </td>
+          <td>
+            {{ config['dtLastSent'] | date : 'dd/MM/yyyy' }}
+          </td>
+          <td>
+            {{ config['recipients'] }}
+          </td>
+          <td>
+            {{ config['responders'] }}
+          </td>
+          <td>
+            {{ config['frequency'] }} (in days)
+          </td>
+          <td>
+            {{ config['first_name'] }} {{ config['last_name'] }}
+          </td>
+          <td>
+              <select>
+                  <option value="0"  selected disabled>Select action</option>
+              </select>
+          </td>
+        </tr>
+
       </tbody>
     </table>
   </div>

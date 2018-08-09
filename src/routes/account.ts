@@ -7,14 +7,16 @@ import { LocationAccountRelation } from '../models/location.account.relation';
 import { UserRoleRelation } from '../models/user.role.relation.model';
 import { LocationAccountUser } from '../models/location.account.user';
 import { UserInvitation } from './../models/user.invitation.model';
-
+import {NotificationConfiguration } from '../models/notification_config.model';
+import { NotificationToken } from '../models/notification_token.model';
 import { EmailSender } from '../models/email.sender';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
-
+import { List } from '../models/list.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 const validator = require('validator');
-
+const cryptoJs = require('crypto-js');
+import * as moment from 'moment';
 /**
  * / route
  *
@@ -67,10 +69,23 @@ const validator = require('validator');
 	   		new AccountRoute().getAll(req, res);
 	   	});
 
-        router.get('/accounts/is-online-training-valid', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-            new AccountRoute().isOnlineTrainingValid(req, res);
-        });
+      router.get('/accounts/is-online-training-valid', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AccountRoute().isOnlineTrainingValid(req, res);
+      });
 
+      router.get('/accounts/search-building/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AccountRoute().searchForBuildings(req, res);
+      });
+
+      router.post('/accounts/create-notification-config/', new MiddlewareAuth().authenticate,
+      (req: AuthRequest, res: Response, next: NextFunction) => {
+        new AccountRoute().notificationConfig(req, res);
+      });
+
+      router.get('/accounts/list-notification-config/', new MiddlewareAuth().authenticate,
+      (req: AuthRequest, res: Response, next: NextFunction) => {
+        new AccountRoute().listNotificationConfig(req, res);
+      });
    	}
 
 	/**
@@ -81,7 +96,153 @@ const validator = require('validator');
 	*/
 	constructor() {
 		super();
-	}
+  }
+
+  public async listNotificationConfig(req: AuthRequest, res: Response) {
+    const configurator = new NotificationConfiguration();
+    const list = await configurator.generateConfigData(req.user.account_id);
+
+    return res.status(200).send({
+      data: list
+    });
+  }
+
+  public async notificationConfig(req: AuthRequest, res: Response) {
+    const config = JSON.parse(req.body.config);
+    // get sub levels within the building that belongs to the account
+    const location = new Location();
+    const configurator = new NotificationConfiguration();
+    const sublevels = [];
+    let userType = '';
+
+    const sublevelsObj = await location.getChildren(config['building_id']);
+    for(const s of sublevelsObj) {
+      sublevels.push(s['location_id']);
+    }
+    sublevels.push(config['building_id']);
+
+    let trp = [];
+    let eco = [];
+    let allUsers = [];
+    const allUserIds = [];
+    let allUserIdStr = '';
+    const lauObj = new LocationAccountUser();
+    const urr = new UserRoleRelation();
+
+    // filter these sublevels that belongs to the account
+    if (config['trp_user']) {
+      userType = 'trp';
+      allUsers = await lauObj.TRPUsersForNotification(req.user.account_id, sublevels);
+    } else if (config['eco_user']) {
+      userType = 'eco';
+      allUsers = await urr.emUsersForNotification(req.user.account_id, sublevels);
+    } else if (config['all_users']) {
+      userType = 'all';
+      trp = await lauObj.TRPUsersForNotification(req.user.account_id, sublevels);
+      eco = await urr.emUsersForNotification(req.user.account_id, sublevels);
+      allUsers = trp.concat(eco);
+
+    }
+    for (const u of allUsers) {
+      if (allUserIds.indexOf(u['user_id']) == -1) {
+        allUserIds.push(u['user_id']);
+      }
+    }
+    if (allUserIds.length > 0) {
+      allUserIdStr = allUserIds.join(',');
+    }
+
+    await configurator.create({
+      building_id: config['building_id'],
+      account_id: req.user.account_id,
+      user_type: userType,
+      users: allUserIdStr,
+      message: config['message'],
+      frequency: config['frequency'],
+      recipients: allUserIds.length,
+      building_manager: req.user.user_id,
+      dtLastSent: moment().format('YYYY-MM-DD')
+    });
+
+    // create token
+    for (const uid of allUserIds) {
+      let strToken = cryptoJs.AES.encrypt(`${uid}_${userType}_${configurator.ID()}`, process.env.KEY).toString();
+      let notificationToken = new NotificationToken();
+      await notificationToken.create({
+        strToken: strToken,
+        user_id: uid,
+        notification_config_id: configurator.ID(),
+        dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD')
+      });
+      notificationToken = null;
+    }
+
+    // send email
+    const configToken = new NotificationToken();
+    const sendOutToken = await configToken.getTokensByConfigId(configurator.ID());
+
+    for (const s of sendOutToken) {
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : ['jmanoharan@evacgroup.com.au', 'rsantos@evacgroup.com.au', 'allantaw2@gmail.com'],
+        cc: ['emacaraig@evacgroup.com.au'],
+        body : '',
+        attachments: [],
+        subject : 'EvacConnect Email Notification'
+      };
+      const email = new EmailSender(opts);
+      const link = req.protocol + '://' + req.get('host') + '/verify-notification/' + s['strToken'];
+      let emailBody = email.getEmailHTMLHeader();
+
+      emailBody += `<h3 style="text-transform:capitalize;">Hi ${s['first_name']} ${s['last_name']} - ${s['email']},</h3> <br/>
+      <h4>${config['message']}</h4>
+			<h5>Click on the link below for corresponding response </h5> <br/>
+			<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a>
+      <br>`;
+
+      emailBody += email.getEmailHTMLFooter();
+      email.assignOptions({
+        body : emailBody
+      });
+      email.send(
+        (data) => console.log(data),
+        (err) => console.log(err)
+      );
+    }
+
+    return res.status(200).send({
+      configId: configurator.ID()
+    });
+
+  }
+
+
+  public async searchForBuildings(req: AuthRequest, res: Response) {
+    const accountId = req.user.account_id;
+    const queryBldgName = req.query.bldgName;
+    const larIds = [];
+
+    const list = new List();
+    const lar = await list.listTaggedLocationsOnAccount(accountId, {
+      is_building: 1,
+      name: queryBldgName
+    });
+
+    for (const location of lar) {
+      larIds.push(location['location_id']);
+    }
+    const locationsFromLAU: Array<object> = await list.listTaggedLocationsOnAccountFromLAU(accountId, {'exclusion_ids': larIds,
+      is_building: 1,
+      name: queryBldgName
+    });
+
+    const accountLocations = lar.concat(locationsFromLAU);
+    return res.status(200).send({
+      data: accountLocations
+    });
+
+  }
 
 	public async getAll(req: Request, res: Response){
 		let  response = {
@@ -777,7 +938,7 @@ const validator = require('validator');
 			response.message = 'search a name, invalid field';
 			res.send(response);
 		}
-	}
+  }
 
 }
 

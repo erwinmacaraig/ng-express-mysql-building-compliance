@@ -145,11 +145,11 @@ export class UserRoleRelation extends BaseClass {
 
     public getManyByUserIds(userIds, roleIds?) {
         return new Promise((resolve, reject) => {
-            const 
+            const
             roleidsQ = (roleIds) ? ' AND role_id IN ('+roleIds+') ' : '',
             sql_load = 'SELECT * FROM user_role_relation WHERE user_id IN ('+userIds+') ' + roleidsQ,
             connection = db.createConnection(dbconfig);
-            
+
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
                     return console.log(error);
@@ -198,7 +198,7 @@ export class UserRoleRelation extends BaseClass {
                 if (error) {
                     return console.log(error);
                 }
-                
+
                 if(results){
                     this.dbData = results;
                     resolve(results);
@@ -210,5 +210,46 @@ export class UserRoleRelation extends BaseClass {
             connection.end();
 
         });
+    }
+    public emUsersForNotification(account_id = 0, locations = []): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        if (!locations.length) {
+          resolve([]);
+          return;
+        }
+        const locationStr = locations.join(',');
+        const sql = `SELECT
+                        users.user_id,
+                        users.first_name,
+                        users.last_name,
+                        users.email,
+                        user_em_roles_relation.location_id,
+                        em_roles.role_name
+                      FROM
+                        users
+                      INNER JOIN
+                        user_em_roles_relation
+                      ON
+                        users.user_id = user_em_roles_relation.user_id
+                      INNER JOIN
+                        em_roles
+                       ON
+                        em_roles.em_roles_id = user_em_roles_relation.em_role_id
+                      WHERE
+                        users.account_id = ?
+                      AND
+                        user_em_roles_relation.location_id IN (${locationStr})
+                      GROUP BY users.user_id`;
+
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [account_id], (error, results) => {
+          if (error) {
+            console.log('Cannot retrieve a record - emUsersForNotification');
+            throw Error(error);
+          }
+          resolve(results);
+        });
+        connection.end();
+      });
     }
 }

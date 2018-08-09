@@ -27,7 +27,6 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
 import { UserDashboardComponent  } from './dashboard/user/user.component';
 import { SecurityPrivacyComponent } from './dashboard/security-privacy/security.privacy';
-
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
@@ -116,7 +115,9 @@ import { AssignCoursesComponent } from './assign-courses/assign.courses.componen
 import { EpcMinutesMeetingComponent } from './compliance/epc-minutes-meeting/epc.minutes.meeting';
 
 // NOTIFICATION
-import { NotificationListComponent } from './notification/notification-list.component';
+import { NotificationListComponent } from './notification/list/notification-list.component';
+import { NotificationConfigurationComponent } from './notification/configuration/notification-config.component';
+
 
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
@@ -228,6 +229,7 @@ import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attenda
     EpcMinutesMeetingComponent,
     // NOTIFICATION
     NotificationListComponent,
+    NotificationConfigurationComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,

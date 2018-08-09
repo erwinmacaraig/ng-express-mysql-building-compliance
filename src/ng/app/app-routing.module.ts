@@ -90,7 +90,9 @@ import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
 // NOTIFICATION
-import { NotificationListComponent } from './notification/notification-list.component';
+import { NotificationListComponent } from './notification/list/notification-list.component';
+import { NotificationConfigurationComponent } from './notification/configuration/notification-config.component';
+
 
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
@@ -133,8 +135,10 @@ const appRoutes: Routes = [
       { path: 'company-information', component: CompanyInformationComponent },
       { path: 'send-invite', component : SendInviteComponent },
       { path: 'notification-list', component: NotificationListComponent },
+      { path: 'notification-config', component: NotificationConfigurationComponent },
       { path : 'send-invite', component : SendInviteComponent },
       { path : 'security-privacy', component : SecurityPrivacyComponent }
+
     ]
   },
   //
@@ -221,7 +225,7 @@ const appRoutes: Routes = [
     path : 'assign-courses', canActivate: [AuthGuard], component : AssignCoursesComponent
   },
   {
-    path: 'admin', canActivate: [AuthGuard], component: AdminComponent,
+    path: 'admin', component: AdminComponent,
     children: [
       { path: 'accounts', component: ListAccountsComponent },
       { path: 'training-validation', component: TrainingValidationComponent },
