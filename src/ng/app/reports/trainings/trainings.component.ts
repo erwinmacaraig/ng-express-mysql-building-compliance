@@ -96,7 +96,13 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             });
         });
 
-        this.reportService.getParentLocationsForReporting().subscribe((response) => {
+        let qParams = undefined;
+        if(this.userData['evac_role'] == 'admin'){
+            qParams = {
+                'account_id' : this.accountId
+            };
+        }
+        this.reportService.getParentLocationsForReporting(qParams).subscribe((response) => {
             this.rootLocationsFromDb = response['data'];
 
             setTimeout(() => {
@@ -115,8 +121,6 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                         urlparam = '';
 
                     urlparam = values.join('-');
-
-
                 });
             },100);
         });
@@ -186,7 +190,12 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 this.queries.offset = 0;
                 this.loadingTable = true;
                 this.dashboardPreloader.show();
-                this.router.navigate(['/reports/trainings/' + this.encryptDecrypt.encrypt(urlparam)]);
+
+                if(this.userData['evac_role'] == 'admin'){
+                    this.router.navigate(['/admin/trainings-report/' + this.encryptDecrypt.encrypt(urlparam) + "/" + this.encryptDecrypt.encrypt(this.accountId) ]);
+                }else{
+                    this.router.navigate(['/reports/trainings/' + this.encryptDecrypt.encrypt(urlparam) ]);
+                }
             }
 
         });
