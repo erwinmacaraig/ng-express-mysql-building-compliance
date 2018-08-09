@@ -355,6 +355,7 @@ export class ReportsRoute extends BaseRoute {
         if (location_id == 0 || getAll) {
             try{
                 let responseLocations = <any> await this.listLocations(req,res, true, { 'archived' : 0 });
+
                 locations = responseLocations.data;
             }catch(e){}
         } else{
@@ -373,6 +374,7 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){  }
         }
 
+        
         let allUserIds = [0],
             allLocationIds = [],
             allLocations = [],
@@ -387,25 +389,76 @@ export class ReportsRoute extends BaseRoute {
             config['account_id'] = accountId;
         }
 
-        for(let loc of locations){
-            allLocationIds.push(loc.location_id);
-            try{
-                locationModel = new Location(loc.location_id)
-                let location = await locationModel.load(),
-                    deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(loc.location_id);
+        let 
+        allLocModel = new Location(),
+        allDbLocations = await allLocModel.getAllLocations(),
+        mergeToParent = function(data){
 
-                location['name'] = (location['name'].length === 0) ? location['formatted_address'] : location['name'];
+            for(let p in data){
+                let parent = data[p];
 
-                allLocations.push(location);
-
-                for(let deeploc of deepLocations){
-                    deeploc['name'] = (deeploc['name'].length === 0) ? deeploc['formatted_address'] : deeploc['name'];
-
-                    allLocationIds.push(deeploc.location_id);
-                    allLocations.push(deeploc);
+                if(parent.sublocations === undefined){
+                    parent['sublocations'] = [];
                 }
 
-            }catch(e){ }
+                for(let c in data){
+                    let child = data[c];
+                    if('is_here' in child){
+                      if(child.parent_id == parent.location_id && child.is_here === true){
+                        parent.sublocations.push(child);
+                      }
+                    }else{
+                          if(child.parent_id == parent.location_id){
+                              parent.sublocations.push(child);
+                          }
+                    }
+                }
+            }
+
+            let finalData = [];
+            for(let i in data){
+                if(data[i]['parent_id'] == -1){
+                    finalData.push(data[i]);
+                }
+            }
+
+            return finalData;
+        },
+        findLocationFromHierarhy = function(data, locationId){
+            for(let d of data){
+                if(d.location_id == locationId){
+                    return d;
+                }else if(d.sublocations.length > 0){
+                    let res = findLocationFromHierarhy(d.sublocations, locationId);
+                    if(res){
+                        return res;
+                    }
+                }
+            }
+        },
+        hierarchies = mergeToParent(allDbLocations);
+
+        response['hierarchies'] = hierarchies;
+        
+        let collectLocIdsFromHierarchy = function(data){
+            let response = [];
+            for(let d of data){
+                response.push(d.location_id);
+                if(d.sublocations.length > 0){
+                    let subResponse = collectLocIdsFromHierarchy(d.sublocations);
+                    response = response.concat(subResponse);
+                }
+            }
+            return response;
+        };
+
+        for(let loc of locations){
+            allLocationIds.push(loc.location_id);
+            let hier = findLocationFromHierarhy(hierarchies, loc.location_id);
+            if(hier){
+                let ids = collectLocIdsFromHierarchy(hier.sublocations);
+                allLocationIds = allLocationIds.concat(ids);
+            }
         }
 
         if(role == 1 || getAll){
@@ -492,7 +545,6 @@ export class ReportsRoute extends BaseRoute {
         if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
             response.pagination.pages = 1;
         }
-
 
         res.send(response);
     }
