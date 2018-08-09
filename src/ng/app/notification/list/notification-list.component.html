@@ -50,37 +50,37 @@
           </th>
           <th>Date Email Sent</th>
           <th>No of Receiver</th>
-          <th>No of Respond</th>
+          <th>No of Responder</th>
           <th>Email Frequency</th>
           <th>FRP</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr *ngFor="let config of configList">
           <td>
             <p class="checkbox">
                 <input id="allLocations1" class="filled-in" type="checkbox">
-                <label for="allLocations1">Building 1</label>
+                <label for="allLocations1">{{ config['name'] }}</label>
               </p>
           </td>
           <td>
-            FRP
+            {{ config['user_type'] | uppercase }}
           </td>
           <td>
-            24-May-2018
+            {{ config['dtLastSent'] | date : 'dd/MM/yyyy' }}
           </td>
           <td>
-            10
+            {{ config['recipients'] }}
           </td>
           <td>
-            12
+            {{ config['responders'] }}
           </td>
           <td>
-            30
+            {{ config['frequency'] }} (in days)
           </td>
           <td>
-            FRP One
+            {{ config['first_name'] }} {{ config['last_name'] }}
           </td>
           <td>
               <select>
@@ -88,38 +88,7 @@
               </select>
           </td>
         </tr>
-        <tr>
-            <td>
-                <p class="checkbox">
-                    <input id="allLocations2" class="filled-in" type="checkbox">
-                    <label for="allLocations2">Building 2</label>
-                  </p>
-              </td>
-              <td>
-                TRP
-              </td>
-              <td>
-                24-Jun-2018
-              </td>
-              <td>
-                14
-              </td>
-              <td>
-                14
-              </td>
-              <td>
-                31
-              </td>
-              <td>
-                FRP Two
-              </td>
-              <td>
-                <select>
-                    <option value="0" selected disabled>Select action</option>
-                </select>
-              </td>
 
-        </tr>
       </tbody>
     </table>
   </div>

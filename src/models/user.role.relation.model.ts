@@ -211,20 +211,45 @@ export class UserRoleRelation extends BaseClass {
 
         });
     }
-    public emUsersForNotification(account_id = 0, locations = []) {
+    public emUsersForNotification(account_id = 0, locations = []): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
-
+        if (!locations.length) {
+          resolve([]);
+          return;
+        }
+        const locationStr = locations.join(',');
         const sql = `SELECT
+                        users.user_id,
                         users.first_name,
                         users.last_name,
-                        users.email
+                        users.email,
+                        user_em_roles_relation.location_id,
+                        em_roles.role_name
                       FROM
                         users
                       INNER JOIN
                         user_em_roles_relation
                       ON
-                        users.user_is = user_em_roles_relation
-        `;
+                        users.user_id = user_em_roles_relation.user_id
+                      INNER JOIN
+                        em_roles
+                       ON
+                        em_roles.em_roles_id = user_em_roles_relation.em_role_id
+                      WHERE
+                        users.account_id = ?
+                      AND
+                        user_em_roles_relation.location_id IN (${locationStr})
+                      GROUP BY users.user_id`;
+
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [account_id], (error, results) => {
+          if (error) {
+            console.log('Cannot retrieve a record - emUsersForNotification');
+            throw Error(error);
+          }
+          resolve(results);
+        });
+        connection.end();
       });
     }
 }

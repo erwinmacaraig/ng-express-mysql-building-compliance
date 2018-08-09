@@ -100,4 +100,14 @@ export class AccountsDataProviderService {
     return this.http.get(this.baseUrl + '/accounts/search-building/', this.options);
   }
 
+  createConfig(configStr = '') {
+    return this.http.post(this.baseUrl + '/accounts/create-notification-config/', {
+      config: configStr
+    });
+  }
+
+  listNotificationConfig() {
+    return this.http.get(`${this.baseUrl}/accounts/list-notification-config/`, this.options);
+  }
+
 }

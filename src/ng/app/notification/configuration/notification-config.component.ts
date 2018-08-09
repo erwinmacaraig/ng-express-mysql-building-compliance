@@ -2,6 +2,7 @@ import { AccountsDataProviderService } from './../../services/accounts';
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs/Subscription';
+import { Router } from '@angular/router';
 
 
 declare var $: any;
@@ -24,7 +25,7 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
   private sub: Subscription;
   public defaultMessage = 'Test Message';
   public buildingArray = [];
-  constructor(private accountService: AccountsDataProviderService) {}
+  constructor(private accountService: AccountsDataProviderService, private router: Router) {}
 
   ngOnInit() {
     this.notConfigFormGrp = new FormGroup({
@@ -40,14 +41,15 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
 
   ngAfterViewInit() {}
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    this.sub.unsubscribe();
+  }
 
   public buildingSearches(): Subscription {
     return this.searchBldgField.valueChanges.debounceTime(350).subscribe((val) => {
       if (val.length > 0) {
         this.buildingArray = [];
         this.accountService.searchForBuildings(val).subscribe((response) => {
-          console.log(response);
           this.buildingArray = response['data'];
         });
       }
@@ -73,7 +75,10 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
       building_id: this.buildingId
     };
 
-    console.log(JSON.stringify(values));
+    // console.log(JSON.stringify(values));
+    this.accountService.createConfig(JSON.stringify(values)).subscribe((response) => {
+      this.router.navigate(['/dashboard', 'notification-list']);
+    });
   }
 
 }
