@@ -71,7 +71,7 @@ const md5 = require('md5');
 	 * @param {Response}     res
 	 * @param {NextFunction} next
 	 */
-	public index(req: Request, res: Response, next: NextFunction){
+	public async index(req: Request, res: Response, next: NextFunction){
 
 		let reqBody = req.body,
 			response = {
@@ -114,7 +114,16 @@ const md5 = require('md5');
                         }
                     }catch(e){ }
 
-					userdata['token'] = saveData['token'];
+                    if(userdata['token'] == null){
+                        let userModelToken = new User(userdata['user_id']);
+                        userdata['token'] = saveData['token'];
+                        for(let i in userdata){
+                            userModelToken.set(i, userdata[i]);
+                        }
+                        await userModelToken.dbUpdate();
+                    }else{
+                        userdata['token'] = saveData['token'];
+                    }
 
 					tokenModel.create(saveData).then(
 						() => {
@@ -131,8 +140,6 @@ const md5 = require('md5');
 									res.send(response);
 								}
 							);
-
-
 						},
 						() => {
 							response.message = "Unsuccessful token saving";

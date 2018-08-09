@@ -41,6 +41,7 @@
     position: relative;
     width: 100%;
     padding-left: 185px;
+    overflow: hidden;
 }
 
 .search-container{
