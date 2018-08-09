@@ -192,11 +192,25 @@ export class AddUserComponent implements OnInit, OnDestroy {
     filterLocationsToDisplayByUserRole(user, data){
         let resp = [],
             copy = JSON.parse(JSON.stringify(data));
-        if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
+       /* if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
             resp = JSON.parse( JSON.stringify( this.buildings ) );
         } else {
             resp = JSON.parse( JSON.stringify( this.levels ) );
+        }*/
+
+        for(let loc of this.buildings){
+            loc['sublocations'] = [];
+            for(let level of this.levels){
+                if(loc.location_id == level.parent_location_id){
+                    for(let sub of level.sublocations){
+                        sub['location_id'] = sub.id;
+                    }
+                    loc['sublocations'] = level.sublocations;
+                }
+            }
+            resp.push(loc);
         }
+
         this.locationsCopy = JSON.parse( JSON.stringify( resp ) );
         return resp;
     }
@@ -212,7 +226,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         let maxDisplay = 25,
             count = 1;
 
-        if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
+        /*if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
             parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
             parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
             parseInt(this.selectedUser['account_role_id'], 10) === 16 ||
@@ -258,6 +272,39 @@ export class AddUserComponent implements OnInit, OnDestroy {
               count++;
             }
           }
+        }*/
+
+        for (const loc of this.locations) {
+            if (count <= maxDisplay) {
+                let ul = ``;
+                if(loc.sublocations.length > 0){
+                    ul += '<ul style="padding-left: 20px; max-height: 153px; overflow: auto;">';
+                        for(let sub of loc.sublocations){
+                            ul += `<li class="list-division" id="${sub.location_id}">
+                                    <div class="name-radio-plus">
+                                        <div class="input">
+                                            <input required type="radio" name="selectLocation" value="${sub.location_id}" id="check-${sub.location_id}">
+                                            <label for="check-${sub.location_id}">${sub.name}</label>
+                                        </div>
+                                    </div>
+                                </li>`;
+                        }
+                    ul += '</ul>';
+                }
+                let $li = $(`
+                <li class="list-division" id="${loc.location_id}">
+                    <div class="name-radio-plus">
+                        <div class="input">
+                            <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
+                            <label for="check-${loc.location_id}">${loc.name}</label>
+                        </div>
+                    </div>
+                    ${ul}
+                </li>`);
+
+                ulModal.append($li);
+                count++;
+            }
         }
     }
 
@@ -282,8 +329,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         event.preventDefault();
         let locationFound = false;
         if(this.formLocValid){
-            let
-            selectedLocationId = $(form).find('input[type="radio"]:checked').val();
+            let selectedLocationId = $(form).find('input[type="radio"]:checked').val();
 
             this.selectedUser['account_location_id'] = selectedLocationId;
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
@@ -299,26 +345,26 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 }
             }
             if (!locationFound) {
-              for (const loc of this.locationsCopy) {
-                if ('sublocations' in loc) {
-                  for (const sublocs of loc['sublocations']) {
-                    if (sublocs['id'] == selectedLocationId) {
-                      this.selectedUser['location_name'] = `${loc['parent_location_name']}, ${sublocs['name']}`;
-                      if (/^[_-\s]$/.test(loc['parent_location_name'])) {
-                        this.selectedUser['location_name'] = `${sublocs['name']}`;
-                      }
-                      locationFound = true;
-                      break;
+                for (const loc of this.locationsCopy) {
+                    if ('sublocations' in loc) {
+                        for (const sublocs of loc['sublocations']) {
+                            if (sublocs['id'] == selectedLocationId) {
+                                this.selectedUser['location_name'] = `${loc['name']}, ${sublocs['name']}`;
+                                if (/^[_-\s]$/.test(loc['name'])) {
+                                    this.selectedUser['location_name'] = `${sublocs['name']}`;
+                                }
+                                locationFound = true;
+                                break;
+                            }
+                        }
                     }
-                  }
                 }
-              }
             }
 
             for (const u of this.addedUsers) {
-              if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(u['email'])) {
-                u.errors['invalid'] = `${u['email']} is invalid`;
-              }
+                if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(u['email'])) {
+                    u.errors['invalid'] = `${u['email']} is invalid`;
+                }
             }
 
             // console.log(this.addedUsers);
@@ -395,6 +441,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
             const seenIndex = [];
             let findRelatedName;
 
+            /*
             if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
                 parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
                 parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
@@ -435,6 +482,31 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 return result;
               };
             }
+            */
+           
+            findRelatedName = (data, mainParent?) => {
+                for ( let i = 0; i < data.length; i++) {
+                    if (data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                        result.push(data[i]);
+                    }
+                }
+                for ( let i = 0; i < data.length; i++) {
+                    seenSubLocIndex = [];
+                    for (let s = 0; s < data[i]['sublocations'].length; s++) {
+                        if (data[i]['sublocations'][s]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                            if (seenIndex.indexOf(i)) {
+                                seenIndex.push(i);
+                            }
+                            seenSubLocIndex.push(data[i]['sublocations'][s]);
+                            data[i]['sublocations'] = seenSubLocIndex;
+                        }
+                    }
+                }
+                for (let si = 0; si < seenIndex.length; si++) {
+                    result.push(data[seenIndex[si]]);
+                }
+                return result;
+            };
 
             if(value.length > 0){
                 result = [];

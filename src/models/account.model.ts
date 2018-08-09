@@ -427,7 +427,6 @@ export class Account extends BaseClass {
 
         if(locationIds){
             locationSql = ' AND compliance_documents.building_id IN ('+locationIds+')';
-            console.log('locationSql', locationSql);
         }
 
         return new Promise((resolve, reject) => {
@@ -505,6 +504,9 @@ export class Account extends BaseClass {
         }
         if('user_ids' in filter){
             filterStr += ' AND users.user_id IN ('+filter['user_ids']+') ';
+        }
+        if('not_in_user_ids' in filter){
+            filterStr += ' AND users.user_id NOT IN ('+filter['not_in_user_ids'].join(',')+') ';
         }
 
         const sql_all = `

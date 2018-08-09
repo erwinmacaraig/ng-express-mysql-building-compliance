@@ -358,6 +358,8 @@ export class CourseRoute extends BaseRoute {
                             user['trainings'].push( tr );
                         }
                     }
+
+                    console.log('sendEmailTrainingInvitation');
                     await this.sendEmailTrainingInvitation(user, req, res);
                 }
             }

@@ -49,33 +49,44 @@ export class ReportsRoute extends BaseRoute {
         * @route
         * getting the list of parent locations for this user under his account
         */
-        router.get('/reports/list-locations/',
-          new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-          const locAccntRelObj = new LocationAccountRelation();
-          const userRoleRel = new UserRoleRelation();
-          let r = 0;
-          const filter = {};
-          let locationListing;
-          try {
-            r = await userRoleRel.getByUserId(req.user.user_id, true);
-          } catch (e) {
-            console.log('location route get-parent-locations-by-account-d', e);
-            r = 0;
-          }
-          filter['responsibility'] = r;
-          if (r === defs['Tenant']) {
-            locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+        router.get('/reports/list-locations',
+            new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+                const 
+                locAccntRelObj = new LocationAccountRelation(),
+                userRoleRel = new UserRoleRelation(),
+                filter = {};
 
-          } else if (r === defs['Manager']) {
-            // filter['is_building'] = 1;
-            locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
-          }
+                let 
+                r = 0,
+                locationListing,
+                accountId = (req.query.account_id) ? req.query.account_id : req.user.account_id;
 
-          // console.log(locationListing);
-          return  res.send({
-              data : locationListing
-          });
-        });
+                if(req.user.evac_role == 'admin'){
+                    r = 1;
+                }else{
+                    try {
+                        r = await userRoleRel.getByUserId(req.user.user_id, true);
+                    } catch (e) {
+                        console.log('location route get-parent-locations-by-account-d', e);
+                        r = 0;
+                    }
+                }
+
+
+                filter['responsibility'] = r;
+                if (r === defs['Tenant']) {
+                    locationListing = await locAccntRelObj.listAllLocationsOnAccount(accountId, filter);
+                } else if (r === defs['Manager']) {
+                    // filter['is_building'] = 1;
+                    locationListing = await locAccntRelObj.listAllLocationsOnAccount(accountId, filter);
+                }
+
+                // console.log(locationListing);
+                return  res.send({
+                    data : locationListing
+                });
+            }
+        );
 
        /**
         * @route
@@ -122,11 +133,17 @@ export class ReportsRoute extends BaseRoute {
             }
         },
         offset = req.body.offset,
-        limit = req.body.limit,
+        limit = (req.body.limit)? req.body.limit : 5,
         locationModel = new Location(location_id),
         locations = <any> [],
         toReturn = <any> [],
-        isAdmin = (req.user.evac_role == 'admin') ? true : false;
+        isAdmin = (req.user.evac_role == 'admin') ? true : false,
+        userRoleModel = new UserRoleRelation(),
+        role = 0;
+
+        try{
+            role = await userRoleModel.getByUserId(req.user.user_id, true);
+        }catch(e){}
 
         if(location_id == 0){
             try{
@@ -184,6 +201,10 @@ export class ReportsRoute extends BaseRoute {
 
             for(let sub of sublocationsDbData){
                 subids.push(sub.location_id);
+
+                if(role == 1){
+                    accountId = undefined;
+                }
 
                 let
                 locAccUserModel = new LocationAccountUser(),
@@ -318,7 +339,13 @@ export class ReportsRoute extends BaseRoute {
         sublocationModel = new Location(),
         locations = <any> [],
         getAll = (req.body.getall) ? req.body.getall : false,
-        filterExceptLocation = (req.body.nofilter_except_location) ? req.body.nofilter_except_location : false;
+        filterExceptLocation = (req.body.nofilter_except_location) ? req.body.nofilter_except_location : false,
+        userRoleModel = new UserRoleRelation(),
+        role = 0;
+
+        try{
+            role = await userRoleModel.getByUserId(req.user.user_id, true);
+        }catch(e){}
 
         if(getAll || filterExceptLocation){
             training_id = false;
@@ -326,12 +353,10 @@ export class ReportsRoute extends BaseRoute {
         }
 
         if (location_id == 0 || getAll) {
-
             try{
                 let responseLocations = <any> await this.listLocations(req,res, true, { 'archived' : 0 });
                 locations = responseLocations.data;
             }catch(e){}
-
         } else{
             let ids = location_id.split('-'),
                 locsIds = [0],
@@ -358,43 +383,45 @@ export class ReportsRoute extends BaseRoute {
           config['searchKey'] = req.body.searchKey;
         }
 
-        config['account_id'] = accountId;
+        if(role != 1){
+            config['account_id'] = accountId;
+        }
 
-        if (location_id == 0 || getAll) {
+        for(let loc of locations){
+            allLocationIds.push(loc.location_id);
+            try{
+                locationModel = new Location(loc.location_id)
+                let location = await locationModel.load(),
+                    deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(loc.location_id);
 
-            let accountModel = new Account();
+                location['name'] = (location['name'].length === 0) ? location['formatted_address'] : location['name'];
 
-            users = <any> await accountModel.getAllEMRolesOnThisAccount(accountId, {
-                search : (config['searchKey']) ? config['searchKey'] : ''
-            });
+                allLocations.push(location);
 
-        }else{
-           
-            for(let loc of locations){
-                allLocationIds.push(loc.location_id);
-                try{
-                    locationModel = new Location(loc.location_id)
-                    let location = await locationModel.load(),
-                        deepLocations = <any> await sublocationModel.getDeepLocationsByParentId(loc.location_id);
+                for(let deeploc of deepLocations){
+                    deeploc['name'] = (deeploc['name'].length === 0) ? deeploc['formatted_address'] : deeploc['name'];
 
-                    location['name'] = (location['name'].length === 0) ? location['formatted_address'] : location['name'];
-
-                    allLocations.push(location);
-
-                    for(let deeploc of deepLocations){
-                        deeploc['name'] = (deeploc['name'].length === 0) ? deeploc['formatted_address'] : deeploc['name'];
-
-                        allLocationIds.push(deeploc.location_id);
-                        allLocations.push(deeploc);
-                    }
-
-                }catch(e){
-
+                    allLocationIds.push(deeploc.location_id);
+                    allLocations.push(deeploc);
                 }
-            }
 
-            let locAccUser = new UserEmRoleRelation();
-            users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
+            }catch(e){ }
+        }
+
+        if(role == 1 || getAll){
+            let userEmRole = new UserEmRoleRelation();
+            
+            users = <any> await userEmRole.getUsersInLocationIds(allLocationIds.join(','),0, config);
+        }else{
+            if ( location_id == 0 || getAll ) {
+                let accountModel = new Account();
+                users = <any> await accountModel.getAllEMRolesOnThisAccount(accountId, {
+                    search : (config['searchKey']) ? config['searchKey'] : ''
+                });
+            }else{
+                let locAccUser = new UserEmRoleRelation();
+                users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
+            }
         }
 
         for(let user of users){
@@ -783,7 +810,6 @@ export class ReportsRoute extends BaseRoute {
                 let responseLocations = <any> await this.listLocations(req,res, true, {'archived' : 0});
                 locations = responseLocations.data;
             }catch(e){}
-
         }else{
             let ids = location_id.split('-'),
                 locsIds = [0],
@@ -847,8 +873,6 @@ export class ReportsRoute extends BaseRoute {
         if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
             response.pagination.pages = 1;
         }
-
-
 
         res.status(200).send(response);
     }
