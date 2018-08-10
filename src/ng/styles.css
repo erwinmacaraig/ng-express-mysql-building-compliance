@@ -311,3 +311,92 @@ span.day-unit.is-today {
 app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
     font-size: 14px !important;
 }
+
+.round-input-container{
+    margin: 20px 0px !important;
+    border: 1px solid #aaa !important;
+    border-radius: 5px !important;
+    padding: 0px 10px !important;
+    position: relative;
+}
+
+.round-input{
+    margin-bottom: 0px !important;
+    border: 0px !important;
+    font-size: 14px;
+}
+
+.round-input:focus{
+    box-shadow: none !important;
+}
+
+.round-input-container .search-result{
+    position: absolute;
+    background-color: #fcffd9;
+    width: 100%;
+    top: 44px;
+    left: 0px;
+    border: 1px solid #b5b5b5;
+    z-index: 999;
+    display: none;
+}
+
+.round-input-container .search-result ul{
+    background-color: #fcffd9;
+    border: 1px solid #ddd;
+    margin: 0px;
+    transition: all 0.5s;
+    -webkit-transition: all 0.5s ease-in; 
+    -moz-transition: all 0.5s ease-in; 
+    -ms-transition: lall 0.5s ease-in; 
+}
+
+.round-input-container .search-result ul li  > ul{
+    position: absolute;
+    right: 0px;
+    top: -1px;
+    display: none;
+    transform: translate(100% ,0%);
+    max-height: 400px;
+    overflow: auto;
+}
+
+.round-input-container .search-result ul li{
+    padding: 10px;
+    font-size: 14px;
+    border-bottom: 1px solid #c5c5c5;
+    position: relative;
+    min-width: 150px;
+}
+
+.round-input-container .search-result .message{
+    padding: 10px;
+    font-size: 14px;
+}
+
+.round-input-container .search-result ul > li:hover > ul{
+    display: block;
+}
+
+.round-input-container .search-result ul li .right-arrow{
+    float: right;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.round-input-container .search-result ul li:hover{
+    background-color: #f8ffad;
+    cursor: pointer;
+}
+
+.round-input-container .loading{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: none;
+}
+
+.round-input-container .loading .preloader-wrapper.small {
+    width: 25px;
+    height: 25px;
+}

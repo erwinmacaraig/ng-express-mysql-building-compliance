@@ -1,14 +1,12 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input } from '@angular/core';
-import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
-import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { ViewChild, ElementRef } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { Subscription, Observable } from 'rxjs/Rx';
 import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
 
-
 import { AdminService } from './../../services/admin.service';
+import { MessageService } from './../../services/messaging.service';
 
 declare var $: any;
 
@@ -84,7 +82,8 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
     private platformLocation: PlatformLocation,
     private formBuilder: FormBuilder,
     private adminService: AdminService,
-    private route: ActivatedRoute) {
+    private route: ActivatedRoute,
+    private messageService: MessageService) {
 
     this.baseUrl = (platformLocation as any).location.origin;
   }
@@ -105,6 +104,7 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     // $('select').material_select();
+    this.messageService.sendMessage({ 'csv-upload' : {  'title' : 'Add Users by CSV Upload'  } });
   }
 
   createFormItem(): FormGroup {
@@ -187,6 +187,7 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
       index <= (<FormArray>this.userForm.get('users')).length; index++) {
         (<FormArray>this.userForm.get('users')).removeAt(index);
     }
+    this.selectedRole = [];
   }
 
 }

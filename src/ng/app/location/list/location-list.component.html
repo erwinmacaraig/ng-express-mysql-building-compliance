@@ -74,7 +74,7 @@
 						</p>
 					</th>
 					<th *ngIf="isFRP == true">Sub-location floor</th>
-					<th>No. of Tenants</th>
+					<th *ngIf="isFRP == true">No. of Tenants</th>
 					<th>No. of Wardens</th>
 					<th>Mobility Impaired</th>
 					<th>Compliance</th>
@@ -126,7 +126,7 @@
 					<td *ngIf="isFRP == true">
 						{{location.sublocation_count}}
 					</td>
-					<td>
+					<td *ngIf="isFRP == true">
 						<span style="margin-right:10px;">{{location.num_tenants}}</span>
 						<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', location.location_id]" > Add tenants </a> -->
 					</td>
@@ -145,7 +145,8 @@
                         </div>
 
 						<span *ngIf="location.admin_verified == 0 && !location.fetchingCompliance" class="red-text">For verification</span>
-						<a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance" [routerLink]="['/location/compliance/view/', location.location_id]">
+						
+                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 1" [routerLink]="['/location/compliance/view/', location.location_id]">
 							<div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
 							<div class="progress-container" >
 								<div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
@@ -153,14 +154,24 @@
 								</div>
 							</div>
 						</a>
+
+                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0" [routerLink]="['/location/compliance/view/', location.parent_id]">
+                            <div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
+                            <div class="progress-container" >
+                                <div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
+                                    <div class="determinate" [ngStyle]="{ 'width' : location.compliance_percentage+'%' }"></div>
+                                </div>
+                            </div>
+                        </a>
 					</td>
 					<td class="select-blue">
-						<select class="select-from-row">
+						<select class="select-from-row" [attr.select-action]="location.location_id">
 							<option value="0">Manage</option>
 							<option value="addtenants-{{location.location_id}}">Add Tenants</option>
 							<option value="addwardens-{{location.location_id}}">Add Wardens</option>
 							<option value="view-{{location.location_id}}">View Location</option>
-							<option value="compliance-{{location.location_id}}">View Compliance</option>
+                            <option *ngIf="location.is_building == 1" value="compliance-{{location.location_id}}" >View Compliance</option>
+							<option *ngIf="location.is_building == 0" value="compliance-{{location.parent_id}}" >View Compliance</option>
                             <option *ngIf="!paramArchived" value="archive-{{location.location_id}}">Archive</option>
 							<option *ngIf="paramArchived" value="archive-{{location.location_id}}">Restore</option>
 							<!-- <option value="benchmark-{{location.location_id}}">Benchmark</option> -->

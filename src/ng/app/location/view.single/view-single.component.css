@@ -277,13 +277,13 @@ table.no-borders td{
 
 .completion{
     text-align: center;
-    color: #c91e2f;
+    color: #3d3d3d;
     font-size: 14px;
     font-weight: bold;
 }
 
 .compliacne-rating{
-    color: #c91e2f;
+    color: #3d3d3d;
     font-size: 18px;
 }
 
@@ -315,7 +315,7 @@ table.no-borders td{
     left: 0px;
     width: 100%;
     height: 100%;
-    border: 0.1em solid #c91e2f;
+    border: 0.1em solid #2196f3;
     border-radius: 50%;
     clip: rect(0em, 0.5em, 1em, 0em);
 }
@@ -333,7 +333,7 @@ table.no-borders td{
     display: block;
     background: none;
     border-radius: 50%;
-    color: #c91e2f;
+    color: #3d3d3d;
     font-size: 0.25em;
     line-height: 2.9em;
     text-align: center;
@@ -342,7 +342,7 @@ table.no-borders td{
 }
 
 .pie-wrapper .smaller {
-    color: #c91e2f;
+    color: #3d3d3d;
     font-size: .45em;
     vertical-align: top;
 }

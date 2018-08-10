@@ -247,9 +247,8 @@ export class LocationAccountRelation extends BaseClass {
         if ('responsibility' in filter) {
           if (filter['responsibility'] === defs['Tenant']) {
             filterStr += ` AND lar.responsibility = 'Tenant'`;
-            // not needed due to TRP whole occupier
-            // filter['is_building'] = 0; - there are people assigned as Tenant that occupies the whole building
-            // that is why the assumption is incorrect, thus commenting this line
+            filterStr += ` AND l.is_building = 0`;
+
           }
           if (filter['responsibility'] === defs['Manager']) {
             filterStr += ` AND lar.responsibility = 'Manager'`;
@@ -283,7 +282,7 @@ export class LocationAccountRelation extends BaseClass {
         let nameSearchForTRP = '';
         // if('name' in filter && filter['name'].length > 0 && ('responsibility' in filter && filter['responsibility'] === defs['Tenant'])){
         if('name' in filter){
-            nameSearchForTRP = (filter['name'].length > 0) ? ` AND CONCAT(p1.name, ' ', l.name) LIKE '%${filter['name']}%'` : '  ';
+            nameSearchForTRP = (filter['name'].length > 0) ? ` AND IF (p1.name IS NULL, l.name, IF (CHAR_LENGTH(p1.name) = 0,  l.name, CONCAT(p1.name, ', ', l.name))) LIKE '%${filter['name']}%'` : '  ';
         }
 
         let orderBy = '';
@@ -296,32 +295,6 @@ export class LocationAccountRelation extends BaseClass {
         }
 
         let selectParentName = ('no_parent_name' in filter) ? 'l.name,' : `IF (p1.name IS NULL, l.name, IF (CHAR_LENGTH(p1.name) = 0,  l.name, CONCAT(p1.name, ', ', l.name))) as name,`;
-
-        /*let sql_get_locations = `
-              SELECT
-                location_account_relation.*,
-                ${selectParentName}
-                locations.is_building,
-                locations.parent_id,
-                locations.google_photo_url,
-                locations.admin_verified,
-                locations.location_directory_name
-              FROM
-                location_account_relation
-              INNER JOIN
-                locations
-              ON
-                locations.location_id = location_account_relation.location_id
-              LEFT JOIN
-                locations as parent_locations
-              ON
-                locations.parent_id = parent_locations.location_id
-              WHERE
-                location_account_relation.account_id = ?
-                ${filterStr}
-                ${nameSearchForTRP}
-              GROUP BY location_account_relation.location_id
-              ${orderBy}`;*/
 
         let sql_get_locations = `
             SELECT
@@ -394,7 +367,7 @@ export class LocationAccountRelation extends BaseClass {
                     LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
                     LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
 
-                    INNER JOIN  location_account_relation lar
+                    LEFT JOIN  location_account_relation lar
                     ON lar.location_id = l.location_id
                     OR p1.location_id = lar.location_id
                     OR p2.location_id = lar.location_id
@@ -405,9 +378,8 @@ export class LocationAccountRelation extends BaseClass {
                     lar.account_id = ?
                     ${filterStr}
                     ${nameSearchForTRP}
-                    GROUP BY l.location_id
-                    ${orderBy}
 
+                    GROUP BY l.location_id
                 ) src
             `;
         }else if('locationIdOnly' in filter){
@@ -439,29 +411,7 @@ export class LocationAccountRelation extends BaseClass {
             sql_get_locations += ` ${offsetLimit}`;
         }
 
-        /*if ('responsibility' in filter && filter['responsibility'] === defs['Tenant']) {
-            sql_get_locations += ` ${offsetLimit}`;
-        }
-        if('count' in filter && filter['responsibility'] === defs['Tenant']){
-            sql_get_locations = `
-              SELECT
-                COUNT(location_account_relation.location_account_relation_id) as count,
-                IF (parent_locations.name IS NULL, locations.name, CONCAT(parent_locations.name, ', ', locations.name)) as name
-              FROM
-                location_account_relation
-              INNER JOIN
-                locations
-              ON
-                locations.location_id = location_account_relation.location_id
-              LEFT JOIN
-                locations as parent_locations
-              ON
-                locations.parent_id = parent_locations.location_id
-              WHERE
-                location_account_relation.account_id = ?
-                ${filterStr}
-              ${orderBy};`;
-        }*/
+        // console.log('sql_get_locations', sql_get_locations);
 
         const connection = db.createConnection(dbconfig);
         connection.query(sql_get_locations, [accountId], (error, results) => {
@@ -470,56 +420,16 @@ export class LocationAccountRelation extends BaseClass {
                 throw Error('Cannot get all locations for this account');
             }
 
-            resolve(results);
-
-            /*
-            if (filter['responsibility'] === defs['Manager']) {
-                const locationReferencesArr = [];
-                const building_locations = [];
-                const other_locations = [];
-                const originIds = [];
-                let originIdStr = '';
-                for (const loc of results) {
-                    // || loc.parent_id == -1
-                    if(loc.is_building == 1){
-                        building_locations.push(loc);
-                    }
-                    originIds.push(loc['location_id']);
-                }
-                originIdStr = originIds.join(',');
-                const locRef = new Location();
-                let arcNum = 0;
-                if('archived' in filter && filter['responsibility'] === defs['Manager']){
-                    arcNum = filter['archived'];
-                }
-
-                locRef.getParentsChildren(originIdStr, 0, true, arcNum).then((locationObjRef) => {
-                    locationObjRef = Array.from(new Set(locationObjRef));
-                    for(let loc of building_locations){
-                        locationObjRef.push(loc.location_id);
-                    }
-                    return locRef.bulkLocationDetails(locationObjRef, filter);
-                }).then((locations) => {
-                    resolve(locations);
-                    return;
-                }).catch((e) => {
-                    console.log(`There was a problem getting the location details`, e);
-                });
-            } else {
-                if ('count' in filter) {
+            if('count' in filter){
+                if(results[0]['count'] == null){
+                    resolve([{ count : 0 }]);
+                }else{
                     resolve(results);
-                }else {
-                    if (results.length > 0) {
-                        for (const loc of results) {
-                            resultSet.push(loc);
-                        }
-                        resolve(resultSet);
-                    } else {
-                        resolve([]);
-                    }
                 }
+            }else{
+                resolve(results);
             }
-            */
+            
         });
         connection.end();
 

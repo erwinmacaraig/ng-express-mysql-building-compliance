@@ -1,13 +1,9 @@
 
 import { Component, OnInit, OnDestroy, AfterViewInit, Input } from '@angular/core';
-import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
-import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { ViewChild, ElementRef } from '@angular/core';
 import { Subscription } from 'rxjs/Rx';
-
 import { AdminService } from './../../services/admin.service';
+import { MessageService } from './../../services/messaging.service';
+
 declare var $: any;
 
 @Component({
@@ -35,11 +31,14 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
     'billing_unit': '',
     'email_add_user_exemption': '',
     'lead': '',
-    'online_training': ''
+    'online_training': 0,
+    'epc_committee_on_hq': 0
   };
   account_billing = '';
 
-  constructor(private adminService: AdminService) {}
+  msgSrvSub;
+
+  constructor(private adminService: AdminService, private msgSrv : MessageService) {}
 
   ngOnInit() {
 
@@ -65,6 +64,10 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
             this.account_billing += `, ${this.accountInfo['billing_country']}`;
           }
           console.log(this.accountInfo);
+
+          this.msgSrv.sendMessage({
+              'accountInfo' : this.accountInfo
+          });
         }
       });
 
@@ -75,6 +78,23 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.sub.unsubscribe();
+  }
+
+  public toggleOnlineTrainingAccess(e): void {
+    let toggleOnlineAccess = 0;
+    if (e.target.checked) {
+      toggleOnlineAccess = 1;
+    }
+    this.adminService.toggleOnlineTrainingAccess({
+      account: this.accountId,
+      online_access: toggleOnlineAccess
+    }).subscribe((response) => {
+        console.log(response);
+        this.msgSrv.sendMessage({
+          'update_account_training_listing': true
+        });
+    });
+
   }
 }
 

@@ -1,0 +1,58 @@
+.title1{
+    font-size: 28px
+}
+
+.title2{
+    font-size: 20px;
+}
+
+.title3{
+    font-size: 18px;
+}
+
+.mb20{
+    margin-bottom: 20px;
+}
+
+.mb35{
+    margin-bottom: 35px;
+}
+
+ol{
+    padding-left: 15px;
+}
+
+ol li{
+    font-size: 16px;
+    margin: 10px 0px;
+    padding-left: 10px;
+}
+
+.parag{
+    font-size: 15px;
+    line-height: 24px;
+}
+
+.content-container{
+    position: relative;
+    max-height: 44vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.scroll-container{
+    position: fixed;
+    bottom: 10px;
+    width: 50px;
+    height: 50px;
+    background-color: #040404c7;
+    text-align: center;
+    line-height: 77px;
+    left: 50%;
+    border-radius: 30px;
+    color: #fff;
+}
+
+.scroll-container i{
+    font-size: 35px;
+}

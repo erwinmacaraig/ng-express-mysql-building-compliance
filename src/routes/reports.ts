@@ -113,6 +113,7 @@ export class ReportsRoute extends BaseRoute {
         userRoleRel = new UserRoleRelation(),
         r = 0,
         location_id = req.body.location_id,
+        accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
         response = {
             status : true, data : [], message : '',
             pagination : {
@@ -122,13 +123,12 @@ export class ReportsRoute extends BaseRoute {
         },
         offset = req.body.offset,
         limit = req.body.limit,
-        accntId = req.user.account_id,
         locationModel = new Location(location_id),
         locations = <any> [],
-        toReturn = <any> [];
+        toReturn = <any> [],
+        isAdmin = (req.user.evac_role == 'admin') ? true : false;
 
         if(location_id == 0){
-
             try{
                 let responseLocations = <any> await this.listLocations(req,res, true, {
                     'offset' : offset, 'limit' : limit, 'archived' : 0
@@ -141,7 +141,6 @@ export class ReportsRoute extends BaseRoute {
 
                 response.pagination.total = countLocations.data[0]['count'];
             }catch(e){}
-
         }else{
             let ids = location_id.split('-'),
                 locsIds = [0],
@@ -151,7 +150,7 @@ export class ReportsRoute extends BaseRoute {
                 locsIds.push(ids[i]);
             }
 
-            whereLoc.push([ 'location_id IN ('+locsIds+') AND archived = 0' ]);
+            whereLoc.push([ 'location_id IN ('+locsIds.join(',')+') AND archived = 0' ]);
 
             try{
                 locations = <any> await locationModel.getWhere(whereLoc, offset+','+limit);
@@ -188,8 +187,8 @@ export class ReportsRoute extends BaseRoute {
 
                 let
                 locAccUserModel = new LocationAccountUser(),
-                wardensSub = <any> await emModel.getWardensInLocationIds(sub.location_id, 0, accntId),
-                mobs = <any> await mobilityModel.getImpairedUsersInLocationIds(sub.location_id, accntId),
+                wardensSub = <any> await emModel.getWardensInLocationIds(sub.location_id, 0, accountId),
+                mobs = <any> await mobilityModel.getImpairedUsersInLocationIds(sub.location_id, accountId),
                 whereLocUser = [],
                 data = {
                     location_id : sub.location_id,
@@ -240,6 +239,7 @@ export class ReportsRoute extends BaseRoute {
             temp,
             totalWardens = 0,
             userIds = [],
+            accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
             filter = {
                 archived : 0
             },
@@ -276,13 +276,13 @@ export class ReportsRoute extends BaseRoute {
         filter['no_parent_name'] = true;
 
         if (r == defs['Tenant']) {
-            const locationListingTRP = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+            const locationListingTRP = await locAccntRelObj.listAllLocationsOnAccount(accountId, filter);
             response.data = locationListingTRP;
         }else if (r == defs['Manager']) {
-            const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+            const locationsForBuildingManager = await locAccntRelObj.listAllLocationsOnAccount(accountId, filter);
             response.data = locationsForBuildingManager;
         }else{
-            const locations = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+            const locations = await locAccntRelObj.listAllLocationsOnAccount(accountId, filter);
             response.data = locations;
         }
 
@@ -313,6 +313,7 @@ export class ReportsRoute extends BaseRoute {
             sublocations : []
         },
         location_id = req.body.location_id,
+        accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
         locationModel = new Location(location_id),
         sublocationModel = new Location(),
         locations = <any> [],
@@ -340,7 +341,7 @@ export class ReportsRoute extends BaseRoute {
                 locsIds.push(ids[i]);
             }
 
-            whereLoc.push([ 'location_id IN ('+locsIds+') AND archived = 0' ]);
+            whereLoc.push([ 'location_id IN ('+locsIds.join(',')+') AND archived = 0' ]);
 
             try{
                 locations = <any> await locationModel.getWhere( whereLoc );
@@ -357,13 +358,13 @@ export class ReportsRoute extends BaseRoute {
           config['searchKey'] = req.body.searchKey;
         }
 
-        config['account_id'] = req.user.account_id;
+        config['account_id'] = accountId;
 
         if (location_id == 0 || getAll) {
 
             let accountModel = new Account();
 
-            users = <any> await accountModel.getAllEMRolesOnThisAccount(req.user.account_id, {
+            users = <any> await accountModel.getAllEMRolesOnThisAccount(accountId, {
                 search : (config['searchKey']) ? config['searchKey'] : ''
             });
 
@@ -409,6 +410,8 @@ export class ReportsRoute extends BaseRoute {
             certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, false, courseMethod, compliant, training_id ),
             certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, true, courseMethod, compliant, training_id );
 
+        response['certificates'] = certificates;
+
         for(let cert of certificates){
             for(let user of users){
                 if(user.user_id == cert.user_id){
@@ -421,15 +424,15 @@ export class ReportsRoute extends BaseRoute {
             if(cert['certification_date'] != null){
                 cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
             }else{
-                cert['certification_date_formatted'] = 'n/a';
+                cert['certification_date_formatted'] = '';
             }
 
             if(cert['training_requirement_name'] == null){
-                cert['training_requirement_name'] = '--';
+                cert['training_requirement_name'] = '';
             }
         }
 
-        response.pagination.total = certificatesCount[0]['count'];
+        response.pagination.total = (certificatesCount[0]) ? certificatesCount[0]['count'] : 0;
 
         let finalResult = [];
         for(let cert of certificates){
@@ -609,7 +612,7 @@ export class ReportsRoute extends BaseRoute {
                 locsIds.push(ids[i]);
             }
 
-            whereLoc.push([ 'location_id IN ('+locsIds+') AND archived = 0' ]);
+            whereLoc.push([ 'location_id IN ('+locsIds.join(',')+') AND archived = 0' ]);
 
             try{
                 locations = <any> await locationModel.getWhere(whereLoc, offset+','+limit);
@@ -715,7 +718,7 @@ export class ReportsRoute extends BaseRoute {
                 locsIds.push(ids[i]);
             }
 
-            whereLoc.push([ 'location_id IN ('+locsIds+') AND archived = 0' ]);
+            whereLoc.push([ 'location_id IN ('+locsIds.join(',')+') AND archived = 0' ]);
 
             try{
                 locations = <any> await locationModel.getWhere( whereLoc );
@@ -758,7 +761,7 @@ export class ReportsRoute extends BaseRoute {
         location_id = req.body.location_id,
         limit = req.body.limit,
         offset = req.body.offset,
-        accountId = req.user.account_id,
+        accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
         userId = req.user.user_id,
         response = {
             status : false, data : [],
@@ -790,7 +793,7 @@ export class ReportsRoute extends BaseRoute {
                 locsIds.push(ids[i]);
             }
 
-            whereLoc.push([ 'location_id IN ('+locsIds+') AND archived = 0' ]);
+            whereLoc.push([ 'location_id IN ('+locsIds.join(',')+') AND archived = 0' ]);
 
             try{
                 locations = <any> await locationModel.getWhere( whereLoc );

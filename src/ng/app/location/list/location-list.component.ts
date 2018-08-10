@@ -178,15 +178,24 @@ export class LocationListComponent implements OnInit, OnDestroy {
             for(let loc of this.locations){
                 loc['fetchingCompliance'] = true;
                 loc['compliance_percentage'] = 0;
+                loc['building_based'] = false;
                 this.complianceService.getLocationsLatestCompliance(loc.location_id, (compRes) => {
                     loc['fetchingCompliance'] = false;
                     loc['compliance_percentage'] = compRes.percent ;
+                    if(compRes['building_based']){
+                        loc['building_based'] = compRes['building_based'];
+                    }
+                    setTimeout(() => {
+                        $('select.select-from-row option').prop('disabled', false);
+                        $('select.select-from-row').material_select();
+                    }, 200);
                 });
             }
 
     		if (this.locations.length > 0) {
     			for (let i = 0; i < this.locations.length; i++) {
-    				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
+                    this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
+    				this.locations[i]['parent_id'] = this.encryptDecrypt.encrypt(this.locations[i].parent_id);
     			}
     		}
     		this.locationsBackup = JSON.parse(JSON.stringify(this.locations));

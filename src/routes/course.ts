@@ -268,7 +268,7 @@ export class CourseRoute extends BaseRoute {
             let sublocations = [];
             filter['responsibility'] = role;
             const locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
-
+            console.log('locationListing', locationListing)
             for (const l of locationListing) {
               locationIdsOnAccnt.push(l['location_id']);
             }
@@ -478,7 +478,7 @@ export class CourseRoute extends BaseRoute {
             redirectUrlWarden = 'https://'+req.get('host') + '/trainings/my-training-profile/'+userIdEnc,
             redirectUrlFRP = 'https://'+req.get('host') + '/teams/view-user/'+userIdEnc,
             redirectURL = (hasFrpTrpRole) ? redirectUrlFRP : redirectUrlWarden;
-
+            stringUserData = stringUserData.replace(/\'/gi, '');
 
 
             let script = `

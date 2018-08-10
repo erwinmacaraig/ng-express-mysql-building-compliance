@@ -434,7 +434,7 @@ export class User extends BaseClass {
         WHERE
           certifications.user_id = ? ${filterStr}`;
 
-      
+
       const connection = db.createConnection(dbconfig);
       connection.query(sql_certifications, [uid], (error, results, fields) => {
         if (error) {
@@ -517,7 +517,6 @@ export class User extends BaseClass {
     }
 
     public query(queries){
-
         return new Promise((resolve, reject) => {
             let selectQuery = 'users.*';
             if(queries.select){
@@ -606,6 +605,29 @@ export class User extends BaseClass {
         });
     }
 
+    public getAllActive(accountId?, count?){
+        return new Promise((resolve, reject) => {
+            let accntWhere = (accountId) ? ' AND users.account_id = '+accountId : '';
+            let sql_load =  ` 
+                SELECT users.*, accounts.account_name FROM users INNER JOIN accounts ON users.account_id = accounts.account_id 
+                WHERE users.archived = 0 ${accntWhere} `;
+            if(count){
+                sql_load =  ` SELECT COUNT(users.user_id) as count FROM users INNER JOIN accounts ON users.account_id = accounts.account_id 
+                WHERE users.archived = 0 ${accntWhere} `;
+            }
+            const param = [ ];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
+                if (error) {
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
     public getSpliceUsers(accountId: number = 0, filter = {}): Promise<Array<number>> {
       return new Promise((resolve, reject) => {
         let page = 0;
@@ -621,6 +643,9 @@ export class User extends BaseClass {
           OR email like '%${filter['query']}%'
           LIMIT 10`;
         }
+        if ('query' in filter && filter['query'] == 'all') {
+          sql = `SELECT user_id FROM users WHERE account_id = ? AND archived = 0`;
+        }
         const connection = db.createConnection(dbconfig);
         connection.query(sql, [accountId], (error, results) => {
           if (error) {
@@ -634,6 +659,81 @@ export class User extends BaseClass {
         });
         connection.end();
       });
+    }
+
+    public getIsFrpTrp(accountId?, count?, limit?, locationIds?){
+        return new Promise((resolve, reject) => {
+            let select = `
+                users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
+                users.last_login, users.mobile_number, users.phone_number, 
+                DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
+            `;
+            if(count){
+                select = ' COUNT(users.user_id) as count '
+            }
+            
+            let where = '';
+            if(accountId){
+                where += ` AND users.account_id IN (${accountId}) `;
+            }
+
+            where += ' AND users.user_id IN (SELECT user_id FROM user_role_relation ) ';
+
+            if(locationIds){
+                where += ` AND users.user_id IN (SELECT user_id FROM location_account_user WHERE location_id IN (${locationIds}) ) `;
+            }
+
+            let offsetLimit = (limit) ? ' LIMIT '+limit : '';
+
+            let sql_load = `SELECT ${select} FROM users INNER JOIN accounts ON users.account_id = accounts.account_id WHERE users.archived = 0 ${where} ${offsetLimit} `;
+            
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    console.log('sql_load', sql_load);
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
+    public getIsEm(accountId?, count?, limit?, locationIds?){
+        return new Promise((resolve, reject) => {
+            let select = `
+                users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
+                users.last_login, users.mobile_number, users.phone_number, 
+                DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
+            `;
+            if(count){
+                select = ' COUNT(users.user_id) as count '
+            }
+            
+            let where = '';
+            if(accountId){
+                where += ` AND users.account_id IN (${accountId})  `;
+            }
+
+            let whereLocations = (locationIds) ? ` WHERE location_id IN (${locationIds}) ` : '';
+            where += ` AND users.user_id IN (SELECT user_id FROM user_em_roles_relation ${whereLocations} )  `;
+
+            let offsetLimit = (limit) ? ' LIMIT '+limit : '';
+
+            let sql_load = `SELECT ${select} FROM users INNER JOIN accounts ON users.account_id = accounts.account_id WHERE users.archived = 0 ${where} ${offsetLimit} `;
+
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, (error, results, fields) => {
+                if (error) {
+                    console.log('sql_load', sql_load);
+                    return console.log(error);
+                }
+                this.dbData = results;
+                resolve(this.dbData);
+            });
+            connection.end();
+        });
     }
 
 }

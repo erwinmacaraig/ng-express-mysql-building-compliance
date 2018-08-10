@@ -1,7 +1,8 @@
 <app-admin-account-info [accountId]="accountId"></app-admin-account-info>
 <div class="row">
   <div class="col s12 top-title-button">
-    <h4 class="title left">Add New User</h4>
+    <h4 class="title left">Add New User</h4> 
+    <app-import-csv-button class="right"></app-import-csv-button>
   </div>
 </div>
 
@@ -72,7 +73,7 @@
                     Please select user role.
                   </span>
                 </td>
-              <td *ngIf="selectedRole[i] == 1; else leveldropdown">
+              <td *ngIf="selectedRole[i] == 1 || selectedRole[i] == 11 || selectedRole[i] == 15 || selectedRole[i] == 16 || selectedRole[i] == 18; else leveldropdown">
                   <select formControlName="location" style="display: block;">
                     <option disabled selected value="0">Select Building Location</option>
                     <option *ngFor="let building of buildings" [value]="building.location_id">{{building.name}}</option>
@@ -98,35 +99,7 @@
               <td>
                 <input formControlName="contact" type="text" placeholder="Mobile number" name="mobile_">
               </td>
-
           </tr>
-          <!--
-          <tr>
-            <td>
-              <input type="text" placeholder="First Name" class="first-name" name="first_name_" required>
-            </td>
-            <td>
-              <input type="text" placeholder="Last Name" name="last_name_" required>
-            </td>
-            <td>
-                <input type="text" placeholder="Password" name="password_" required>
-            </td>
-            <td>
-              <input type="text" placeholder="Email" name="email_" required>
-            </td>
-            <td>
-                <select #roleListing name="role_listing_">
-                  <option value="0">Roles</option>
-                </select>
-              </td>
-            <td>
-                <a href="javascript:void(0)" class="blue-text"> Select Location </a>
-                <input type="hidden" name="">
-            </td>
-            <td>
-              <input type="text" placeholder="Mobile number" name="mobile_">
-            </td>
-          </tr> -->
         </tbody>
         <tfoot>
             <tr>

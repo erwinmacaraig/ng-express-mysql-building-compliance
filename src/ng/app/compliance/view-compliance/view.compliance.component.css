@@ -138,20 +138,17 @@
     border-radius: 5px;
     position: absolute;
     top: 19px;
-    left: 7px;
-    width: 98%;
+    left: 42px;
+    width: 89%;
 }
 
 .row-table-content .progress-loading-container .loading{
-    background-color: #dc4453;
+    background-color: #75beff;
     height: 20px;
-    border-radius: 5px;
+    border-radius: 0px;
     position: absolute;
     min-width: 0.5%;
-    top: 19px;
-    left: 43px;
-    max-width: 85%;
-    border: 1px solid;
+    left: 1px;
 }
 
 .row-table-content .progress-loading-container .loading .tip-percentage{
@@ -180,23 +177,6 @@
     position: absolute;
     bottom: -13px;
     left: 10px;
-}
-
-
-.training-icon{
-	background: url(/assets/images/compliance/training_icon.png) no-repeat;
-}
-
-.meeting-icon{
-	background: url(/assets/images/compliance/meeting_icon.png) no-repeat;
-}
-
-.evacuation-icon{
-	background: url(/assets/images/compliance/evacuation_icon.png) no-repeat;
-}
-
-.diagram-icon{
-	background: url(/assets/images/compliance/diagram_icon.png) no-repeat;
 }
 
 table tbody{
@@ -287,7 +267,7 @@ table tbody tr td.with-bar.red-theme .progress-container p{
 
 table tbody tr td.with-bar.green-theme .text,
 table tbody tr td.with-bar.green-theme .progress-container p{
-    color: #26a69a !important;
+    color: #67c100 !important;
 }
 
 table tbody tr td.with-bar.orange-theme .text,
@@ -347,7 +327,7 @@ table tbody tr td.with-bar.red-theme .progress .determinate{
 }
 
 table tbody tr td.with-bar.green-theme .progress .determinate{
-    background-color: #26a69a;
+    background-color: #67c100;
 }
 
 table tbody tr td.with-bar.orange-theme .progress .determinate{
@@ -434,7 +414,48 @@ table th:first-child{
 }
 
 .epm-icon{
-    background-image: url(/assets/images/compliance/epm_icon.png);
+    background-image: url(/assets/images/compliance/icons/epm.png);
+    background-size: 63% !important;
+}
+
+.epc-icon{
+    background-image: url(/assets/images/compliance/icons/epc_meeting.png);
+    background-size: 63% !important;
+}
+
+.evacuation-icon{
+    background-image: url(/assets/images/compliance/icons/evacuation_exercise.png);
+    background-size: 63% !important;
+}
+
+.diagram-icon{
+    background-image: url(/assets/images/compliance/icons/evacuation_diagram.png);
+    background-size: 63% !important;
+}
+
+.chief-icon{
+    background-image: url(/assets/images/compliance/icons/chiefwarden_training.png);
+    background-size: 63% !important;
+}
+
+.warden-icon{
+    background-image: url(/assets/images/compliance/icons/warden_training.png);
+    background-size: 63% !important;
+}
+
+.fsa-icon{
+    background-image: url(/assets/images/compliance/icons/fire_advisor.png);
+    background-size: 63% !important;
+}
+
+.gen-occ-icon{
+    background-image: url(/assets/images/compliance/icons/occupant_training.png);
+    background-size: 63% !important;
+}
+
+.sundry-icon{
+    background-image: url(/assets/images/compliance/icons/sundry_compliance.png);
+    background-size: 63% !important;
 }
 
 .compliance-title-container .check{
@@ -514,6 +535,7 @@ table th:first-child{
 .documents-container .document .text-container .file-name{
     margin-top: 0px;
     max-width: 270px;
+    word-wrap: break-word;
 }
 
 .documents-container .document .text-container .dates{
