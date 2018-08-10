@@ -90,6 +90,9 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
       online_access: toggleOnlineAccess
     }).subscribe((response) => {
         console.log(response);
+        this.msgSrv.sendMessage({
+          'update_account_training_listing': true
+        });
     });
 
   }
