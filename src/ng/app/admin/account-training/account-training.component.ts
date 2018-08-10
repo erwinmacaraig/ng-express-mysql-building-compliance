@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Rx';
 import { AdminService } from './../../services/admin.service';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { MessageService } from '../../services/messaging.service';
 
 @Component({
   selector: 'app-admin-account-training',
@@ -15,6 +16,7 @@ export class AccountTrainingComponent implements OnInit, OnDestroy, AfterViewIni
 
   accountId = 0;
   sub: Subscription;
+  messagingSub: Subscription;
   trainingData: Array<object>  = [];
   trainingFormGroup: FormGroup;
   scormCourseField: FormControl;
@@ -23,7 +25,7 @@ export class AccountTrainingComponent implements OnInit, OnDestroy, AfterViewIni
   trqmts: Array<object> = [];
   courses: Array<object> = [];
   em_roles: Array<object> = [];
-  constructor(private adminService: AdminService, private route: ActivatedRoute) {}
+  constructor(private adminService: AdminService, private route: ActivatedRoute, private messageService: MessageService) {}
 
   ngOnInit() {
     this.sub = this.route.params.subscribe((params) => {
@@ -45,9 +47,18 @@ export class AccountTrainingComponent implements OnInit, OnDestroy, AfterViewIni
     });
   }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    this.sub.unsubscribe();
+    this.messagingSub.unsubscribe();
+  }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+    this.messagingSub = this.messageService.getMessage().subscribe((message) => {
+      if (message.update_account_training_listing) {
+        this.ngOnInit();
+      }
+    });
+  }
 
   public assignTrainingToRole(training) {
      this.adminService.setTrainingToAccountRoles(this.accountId,
