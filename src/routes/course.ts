@@ -478,7 +478,7 @@ export class CourseRoute extends BaseRoute {
             redirectUrlWarden = 'https://'+req.get('host') + '/trainings/my-training-profile/'+userIdEnc,
             redirectUrlFRP = 'https://'+req.get('host') + '/teams/view-user/'+userIdEnc,
             redirectURL = (hasFrpTrpRole) ? redirectUrlFRP : redirectUrlWarden;
-
+            stringUserData = stringUserData.replace(/\'/gi, '');
 
 
             let script = `
