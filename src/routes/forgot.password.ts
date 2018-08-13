@@ -335,7 +335,8 @@ const md5 = require('md5');
 										response.message = 'This request was already verified';
 										res.send(response);
 									}else{
-										tokenModel.set('verified', 1);
+                                        tokenModel.set('verified', 1);
+										tokenModel.set('action', 'verify');
 										tokenModel.dbUpdate().then(
 											() => {
 												user.set('password', md5('Ideation'+newPass+'Max'));
