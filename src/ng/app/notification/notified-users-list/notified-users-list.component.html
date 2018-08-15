@@ -1,0 +1,85 @@
+<div class="row">
+  <div class="col l10 m9 s12">
+    <h5 class="title">Notified Users List</h5>
+  </div>
+  <div class="col l2 m3 s12 ">
+		<button class="btn orange waves-effect waves-light add-peep pull right" [routerLink]="['/dashboard', 'notification-config']">
+			<span class="image"></span>
+			Send New Email
+		</button>
+	</div>
+</div>
+<div class="row filter-container to-hide-in-show-profile-update">
+  <div class="col l6 m6 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search Location" id="searchLocation">
+			<span class="material-icons">search</span>
+		</div>
+  </div>
+  <div class="col l2 m4 s6">
+    <select class="filter-by">
+      <option value="0" selected>Filter By (All)</option>
+      <option value=""></option>
+    </select>
+  </div>
+  <div class="col l2 m6 s6">
+    <select class="sort-by">
+      <option value="0" selected>Sort By</option>
+      <option value="user-name-desc">User Name Descending</option>
+      <option value="user-name-asc">User Name Ascending</option>
+    </select>
+  </div>
+  <div class="col l2 m6 s12">
+    <select class="bulk-manage">
+      <option value="0" selected disabled>Select Action</option>
+      <option value="archive">Archive selected</option>
+    </select>
+  </div>
+</div>
+<div class="row" class="to-hide-in-show-profile-update">
+  <div class="col  s12">
+    <table class="table striped table-peep">
+      <thead>
+        <tr>
+          <th><p class="checkbox">
+            <input id="allLocations" class="filled-in" type="checkbox">
+            <label for="allLocations">Name</label>
+          </p></th>
+          <th>Email</th>
+          <th>Mobile</th>
+          <th>Role</th>
+          <th>Account</th>
+          <th>Location</th>
+          <th>Last Activity</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of notifiedUsers">
+          <td>
+            <p class="checkbox">
+                <input id="allUsers" class="filled-in" type="checkbox">
+                <label for="allUsers"></label>
+                {{ user['first_name'] }} {{user['last_name']}}
+              </p>
+          </td>
+          <td> {{user['email']}} </td>
+          <td> {{user['mobile_number']}} </td>
+          <td> {{user['role_text']}} </td>
+          <td> {{user['account_name']}} </td>
+          <td> {{user['name']}} </td>
+          <td> {{user['last_login'] | date : 'dd/MM/yyyy'}}</td>
+          <td> {{user['strStatus']}} </td>
+          <td>
+            <select>
+                <option value="0"  selected disabled>Select action</option>
+            </select>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+</div>
+<div preloader></div>

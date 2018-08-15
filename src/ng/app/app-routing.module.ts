@@ -92,7 +92,7 @@ import { AssignCoursesComponent } from './assign-courses/assign.courses.componen
 // NOTIFICATION
 import { NotificationListComponent } from './notification/list/notification-list.component';
 import { NotificationConfigurationComponent } from './notification/configuration/notification-config.component';
-
+import { NotifiedUsersListComponent } from './notification/notified-users-list/notified-users-list.component';
 
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
@@ -136,8 +136,9 @@ const appRoutes: Routes = [
       { path: 'send-invite', component : SendInviteComponent },
       { path: 'notification-list', component: NotificationListComponent },
       { path: 'notification-config', component: NotificationConfigurationComponent },
-      { path : 'send-invite', component : SendInviteComponent },
-      { path : 'security-privacy', component : SecurityPrivacyComponent }
+      { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
+      { path: 'send-invite', component : SendInviteComponent },
+      { path: 'security-privacy', component : SecurityPrivacyComponent }
 
     ]
   },

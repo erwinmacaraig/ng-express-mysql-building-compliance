@@ -110,4 +110,10 @@ export class AccountsDataProviderService {
     return this.http.get(`${this.baseUrl}/accounts/list-notification-config/`, this.options);
   }
 
+  generateNotifiedUsersList(configId = '') {
+     const httpParams = new HttpParams().set('config_id', configId);
+     this.options['params'] = httpParams;
+     return this.http.get(`${this.baseUrl}/accounts/list-notified-users/`, this.options);
+  }
+
 }

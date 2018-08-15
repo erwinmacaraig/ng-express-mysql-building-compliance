@@ -333,7 +333,7 @@ export class UserEmRoleRelation extends BaseClass {
               configFilter += ` AND l.location_id IN (${locationIds}) `;
           }
 
-          let 
+          let
           limitQuery = ('limit' in config) ? ' LIMIT '+config['limit'] : '',
           selectQuery = ('count' in config) ? ' COUNT(u.user_id) as count ' : `
                     u.*, em.em_role_id,
@@ -630,5 +630,61 @@ export class UserEmRoleRelation extends BaseClass {
             });
             connection.end();
         });
+    }
+
+
+    public emUsersForNotification(locations = []): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        if (!locations.length) {
+          resolve([]);
+          return;
+        }
+        const locationStr = locations.join(',');
+        const sql = `SELECT
+                        users.user_id,
+                        users.first_name,
+                        users.last_name,
+                        users.email,
+                        user_em_roles_relation.location_id,
+                        em_roles.role_name,
+                        accounts.account_name,
+                        parent_location.name as parent_location,
+                        locations.name
+                      FROM
+                        users
+                      INNER JOIN
+                        user_em_roles_relation
+                      ON
+                        users.user_id = user_em_roles_relation.user_id
+                      INNER JOIN
+                        em_roles
+                       ON
+                        em_roles.em_roles_id = user_em_roles_relation.em_role_id
+                      INNER JOIN
+                        accounts
+                      ON
+                        accounts.account_id = users.account_id
+                      INNER JOIN
+                        locations
+                      ON
+                        locations.location_id = user_em_roles_relation.location_id
+                      LEFT JOIN
+                        locations as parent_location
+                      ON
+                        locations.parent_id = parent_location.location_id
+                      WHERE
+                        user_em_roles_relation.location_id IN (${locationStr})
+                      GROUP BY users.user_id`;
+
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [], (error, results) => {
+          if (error) {
+            console.log('Cannot retrieve a record - emUsersForNotification');
+            throw Error(error);
+          }
+          resolve(results);
+        });
+        connection.end();
+      });
     }
 }

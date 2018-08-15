@@ -681,7 +681,7 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public TRPUsersForNotification(account_id = 0, locations = []): Promise<Array<object>> {
+    public TRPUsersForNotification(locations = []): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         if (!locations.length) {
           resolve([]);
@@ -689,33 +689,44 @@ export class LocationAccountUser extends BaseClass {
         }
         const locationStr = locations.join(',');
         const sql = `SELECT
-                      users.user_id,
-                      users.first_name,
-                      users.last_name,
-                      users.email,
-                      location_account_user.location_id,
-                      'TRP' as role_name
-                    FROM
-                      users
-                    INNER JOIN
-                      location_account_user
-                    ON
-                      users.user_id = location_account_user.user_id
-                    INNER JOIN
-                      user_role_relation
-                    ON
-                      users.user_id = user_role_relation.user_id
-                    WHERE
-                      users.account_id = ?
+                        users.user_id,
+                        users.first_name,
+                        users.last_name,
+                        users.email,
+                        location_account_user.location_id,
+                        'TRP' as role_name,
+                        accounts.account_name,
+                        parent_location.name as parent_location,
+                        locations.name
+                      FROM
+                        users
+                      INNER JOIN
+                        location_account_user
+                      ON
+                        users.user_id = location_account_user.user_id
+                      INNER JOIN
+                        user_role_relation
+                      ON
+                        users.user_id = user_role_relation.user_id
+                      INNER JOIN
+                          accounts
+                      ON
+                        accounts.account_id = users.account_id
+                      INNER JOIN
+                        locations
+                      ON
+                        locations.location_id = location_account_user.location_id
+                      LEFT JOIN
+                        locations as parent_location
+                      ON
+                        locations.parent_id = parent_location.location_id
+                      WHERE
+                        location_account_user.location_id IN (${locationStr})
                     AND
-                      location_account_user.location_id IN (${locationStr})
-                    AND
-                      user_role_relation.role_id = 2
-                    GROUP BY
-                      users.user_id`;
+                      user_role_relation.role_id = 2`;
 
         const connection = db.createConnection(dbconfig);
-        connection.query(sql, [account_id], (error, results) => {
+        connection.query(sql, [], (error, results) => {
           if (error) {
             console.log('Cannot retrieve a record - TRPUsersForNotification');
             throw Error(error);

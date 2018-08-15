@@ -6,6 +6,7 @@ const dbconfig = require('../config/db');
 import * as Promise from 'promise';
 
 
+
 export class NotificationToken extends BaseClass {
   constructor(id?: number) {
     super();
@@ -31,16 +32,22 @@ export class NotificationToken extends BaseClass {
         strToken,
         user_id,
         notification_config_id,
+        location_id,
+        role_text,
         dtExpiration,
+        strStatus,
         responded,
         dtResponded,
         completed,
         dtCompleted,
         strResponse
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
         strToken = ?,
+        location_id = ?,
+        role_text = ?,
         dtExpiration = ?,
+        strStatus = ?,
         responded = ?,
         dtResponded = ?,
         completed = ?,
@@ -51,14 +58,20 @@ export class NotificationToken extends BaseClass {
         ('strToken' in this.dbData) ? this.dbData['strToken'] : '',
         ('user_id' in this.dbData) ? this.dbData['user_id'] : '0',
         ('notification_config_id' in this.dbData) ? this.dbData['notification_config_id'] : 0,
+        ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
+        ('role_text' in this.dbData) ? this.dbData['role_text'] : '',
         ('dtExpiration' in this.dbData) ? this.dbData['dtExpiration'] : '0000-00-00',
+        ('strStatus' in this.dbData) ? this.dbData['strStatus'] : 'Pending',
         ('responded' in this.dbData) ? this.dbData['responded'] : 0,
         ('dtResponded' in this.dbData) ? this.dbData['dtResponded'] : '0000-00-00',
         ('completed' in this.dbData) ? this.dbData['completed'] : 0,
         ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : '0000-00-00',
         ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',
         ('strToken' in this.dbData) ? this.dbData['strToken'] : '',
+        ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
+        ('role_text' in this.dbData) ? this.dbData['role_text'] : '',
         ('dtExpiration' in this.dbData) ? this.dbData['dtExpiration'] : '0000-00-00',
+        ('strStatus' in this.dbData) ? this.dbData['strStatus'] : 'Pending',
         ('responded' in this.dbData) ? this.dbData['responded'] : 0,
         ('dtResponded' in this.dbData) ? this.dbData['dtResponded'] : '0000-00-00',
         ('completed' in this.dbData) ? this.dbData['completed'] : 0,
@@ -68,7 +81,7 @@ export class NotificationToken extends BaseClass {
       const connection = db.createConnection(dbconfig);
       connection.query(sql_insert, param, (err, results) => {
         if (err) {
-          console.log('Cannot create record NotificationToken', err, sql_insert);
+          console.log('Cannot create record NotificationToken', err, sql_insert, param);
           throw new Error(err);
         }
         this.id = results.insertId;
@@ -86,7 +99,10 @@ export class NotificationToken extends BaseClass {
           strToken = ?,
           user_id = ?,
           notification_config_id = ?,
+          location_id = ?,
+          role_text = ?,
           dtExpiration = ?,
+          strStatus = ?,
           responded = ?,
           dtResponded = ?,
           completed = ?,
@@ -98,7 +114,10 @@ export class NotificationToken extends BaseClass {
         ('strToken' in this.dbData) ? this.dbData['strToken'] : '',
         ('user_id' in this.dbData) ? this.dbData['user_id'] : '0',
         ('notification_config_id' in this.dbData) ? this.dbData['notification_config_id'] : 0,
+        ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
+        ('role_text' in this.dbData) ? this.dbData['role_text'] : '',
         ('dtExpiration' in this.dbData) ? this.dbData['dtExpiration'] : '0000-00-00',
+        ('strStatus' in this.dbData) ? this.dbData['strStatus'] : 'Pending',
         ('responded' in this.dbData) ? this.dbData['responded'] : 0,
         ('dtResponded' in this.dbData) ? this.dbData['dtResponded'] : '0000-00-00',
         ('completed' in this.dbData) ? this.dbData['completed'] : 0,
@@ -172,6 +191,51 @@ export class NotificationToken extends BaseClass {
       });
       connection.end();
 
+    });
+  }
+
+  public generateNotifiedUsers(config = 0): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT
+                  users.user_id,
+                  users.first_name,
+                  users.last_name,
+                  users.email,
+                  users.mobile_number,
+                  accounts.account_name,
+                  notification_token.role_text,
+                  users.last_login, parent_loctions.name as parent, locations.name, notification_token.strStatus
+               FROM
+                 users
+               INNER JOIN
+                 notification_token
+               ON
+                 users.user_id = notification_token.user_id
+               INNER JOIN
+				         accounts
+			         ON
+                 accounts.account_id = users.account_id
+               INNER JOIN
+                 notification_config
+               ON
+                 notification_token.notification_config_id = notification_config.notification_config_id
+               INNER JOIN
+                 locations ON locations.location_id = notification_token.location_id
+               LEFT JOIN
+                 locations as parent_loctions ON locations.parent_id = parent_loctions.location_id
+               WHERE
+                 notification_token.notification_config_id = ?
+               ORDER BY accounts.account_name, users.user_id`;
+
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql, [config], (error, results) => {
+       if (error) {
+         console.log('NotificationToken.generateNotifiedUsers', sql, error, config);
+         throw Error(error);
+       }
+       resolve(results);
+      });
+      connection.end();
     });
   }
 

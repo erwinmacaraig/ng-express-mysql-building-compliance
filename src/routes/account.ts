@@ -17,6 +17,9 @@ import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 const validator = require('validator');
 const cryptoJs = require('crypto-js');
 import * as moment from 'moment';
+import { UserEmRoleRelation } from '../models/user.em.role.relation';
+const RateLimiter = require('limiter').RateLimiter;
+
 /**
  * / route
  *
@@ -86,6 +89,11 @@ import * as moment from 'moment';
       (req: AuthRequest, res: Response, next: NextFunction) => {
         new AccountRoute().listNotificationConfig(req, res);
       });
+
+      router.get('/accounts/list-notified-users/', new MiddlewareAuth().authenticate,
+      (req: AuthRequest, res: Response, next: NextFunction) => {
+        new AccountRoute().listNotifiedUsers(req, res);
+      });
    	}
 
 	/**
@@ -96,6 +104,17 @@ import * as moment from 'moment';
 	*/
 	constructor() {
 		super();
+  }
+
+  public async listNotifiedUsers(req: AuthRequest, res: Response) {
+    const notification_config_id = req.query.config_id;
+	const tokenObj = new NotificationToken();
+  const notificationList: Array<object> = await tokenObj.generateNotifiedUsers(req.query.config_id);
+
+    return res.status(200).send({
+	    message: 'Success',
+		  data: notificationList
+	});
   }
 
   public async listNotificationConfig(req: AuthRequest, res: Response) {
@@ -114,6 +133,10 @@ import * as moment from 'moment';
     const configurator = new NotificationConfiguration();
     const sublevels = [];
     let userType = '';
+    // Allow 2 requests per second . Also understands
+    // 'hour', 'minute', 'day', or a number of milliseconds
+    // https://github.com/jhurliman/node-rate-limiter
+    const limiter = new RateLimiter(2, 'second');
 
     const sublevelsObj = await location.getChildren(config['building_id']);
     for(const s of sublevelsObj) {
@@ -126,26 +149,29 @@ import * as moment from 'moment';
     let allUsers = [];
     const allUserIds = [];
     let allUserIdStr = '';
+    let location_ids = [];
     const lauObj = new LocationAccountUser();
-    const urr = new UserRoleRelation();
+    const uemr = new UserEmRoleRelation();
 
     // filter these sublevels that belongs to the account
     if (config['trp_user']) {
       userType = 'trp';
-      allUsers = await lauObj.TRPUsersForNotification(req.user.account_id, sublevels);
+      allUsers = await lauObj.TRPUsersForNotification(sublevels);
     } else if (config['eco_user']) {
       userType = 'eco';
-      allUsers = await urr.emUsersForNotification(req.user.account_id, sublevels);
+      allUsers = await uemr.emUsersForNotification(sublevels);
     } else if (config['all_users']) {
       userType = 'all';
-      trp = await lauObj.TRPUsersForNotification(req.user.account_id, sublevels);
-      eco = await urr.emUsersForNotification(req.user.account_id, sublevels);
+      trp = await lauObj.TRPUsersForNotification(sublevels);
+      eco = await uemr.emUsersForNotification(sublevels);
       allUsers = trp.concat(eco);
-
     }
+    let count = 0;
     for (const u of allUsers) {
+
       if (allUserIds.indexOf(u['user_id']) == -1) {
         allUserIds.push(u['user_id']);
+        location_ids.push(u['location_id']);
       }
     }
     if (allUserIds.length > 0) {
@@ -165,18 +191,55 @@ import * as moment from 'moment';
     });
 
     // create token
-    for (const uid of allUserIds) {
-      let strToken = cryptoJs.AES.encrypt(`${uid}_${userType}_${configurator.ID()}`, process.env.KEY).toString();
+    // for (let uid = 0; uid < allUserIds.length; uid++) {
+    count = 0
+    for (const u of allUsers) {
+      count++;
+      let strToken = cryptoJs.AES.encrypt(`${count}_${u['user_id']}_${userType}_${u['location_id']}_${configurator.ID()}`, process.env.KEY).toString();
       let notificationToken = new NotificationToken();
       await notificationToken.create({
         strToken: strToken,
-        user_id: uid,
+        user_id: u['user_id'],
+        location_id: u['location_id'],
+		    role_text: u['role_name'],
         notification_config_id: configurator.ID(),
         dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD')
       });
       notificationToken = null;
-    }
 
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : ['jmanoharan@evacgroup.com.au'],
+        cc: ['emacaraig@evacgroup.com.au'],
+        body : '',
+        attachments: [],
+        subject : 'EvacConnect Email Notification'
+      };
+      const email = new EmailSender(opts);
+      const link = req.protocol + '://' + req.get('host') + '/verify-notification/' + strToken;
+      let emailBody = email.getEmailHTMLHeader();
+
+      emailBody += `<h3 style="text-transform:capitalize;">Hi ${u['first_name']} ${u['last_name']} - ${u['email']},</h3>
+      <h5>${config['message']}</h5>
+	  <h4>Are you still ${u['role_name']} for ${u['account_name']} Tenancy on ${u['parent_location']} ${u['name']}</h4>
+	  <a href="${link}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a>
+      <br>`;
+
+      emailBody += email.getEmailHTMLFooter();
+      email.assignOptions({
+        body : emailBody
+      });
+      limiter.removeTokens(1, (err, remainingRequests) => {
+        email.send(
+          (data) => console.log(data),
+          (err) => console.log(err)
+        );
+      });
+
+
+    }
+    /*
     // send email
     const configToken = new NotificationToken();
     const sendOutToken = await configToken.getTokensByConfigId(configurator.ID());
@@ -185,7 +248,7 @@ import * as moment from 'moment';
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : ['jmanoharan@evacgroup.com.au', 'rsantos@evacgroup.com.au', 'allantaw2@gmail.com'],
+        to : ['rsantos@evacgroup.com.au', 'allantaw2@gmail.com'],
         cc: ['emacaraig@evacgroup.com.au'],
         body : '',
         attachments: [],
@@ -210,7 +273,7 @@ import * as moment from 'moment';
         (err) => console.log(err)
       );
     }
-
+    */
     return res.status(200).send({
       configId: configurator.ID()
     });
