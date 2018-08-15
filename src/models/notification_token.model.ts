@@ -155,7 +155,7 @@ export class NotificationToken extends BaseClass {
   }
 
 
-  public loadByContraintKeys(userId = 0, configId = 0) {
+  public loadByContraintKeys(userId = 0, configId = 0): Promise<object> {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT * FROM notification_token
         WHERE user_id = ? AND notification_config_id = ?`;

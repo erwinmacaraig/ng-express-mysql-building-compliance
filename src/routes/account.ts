@@ -94,6 +94,10 @@ const RateLimiter = require('limiter').RateLimiter;
       (req: AuthRequest, res: Response, next: NextFunction) => {
         new AccountRoute().listNotifiedUsers(req, res);
       });
+
+      router.get('/accounts/verify-notified-user/', (req: Request, res: Response, next: NextFunction) => {
+        new AccountRoute().verifyNotifiedUser(req, res);
+      });
    	}
 
 	/**
@@ -106,10 +110,41 @@ const RateLimiter = require('limiter').RateLimiter;
 		super();
   }
 
+  public async verifyNotifiedUser(req: Request, res: Response) {
+    const strToken = decodeURIComponent(req.query.token);
+    const tokenObj = new NotificationToken();
+    const  bytes = cryptoJs.AES.decrypt(strToken, process.env.KEY);
+    const strTokenDecoded = bytes.toString(cryptoJs.enc.Utf8);
+    const parts = strTokenDecoded.split('_');
+    const uid = parts[1];
+    const configId = parts[3];
+    console.log(parts);
+    const tokenDbData = await tokenObj.loadByContraintKeys(uid, configId);
+    console.log(tokenDbData);
+
+    if ( !(Object.keys(tokenDbData)).length) {
+      return res.status(400).send({
+        message: 'Invalid token'
+      });
+    }
+    if (tokenDbData['completed']) {
+      return res.status(400).send({
+        message: 'Token already used'
+      });
+    }
+    // token expired
+
+    return res.status(200).send({
+      message: 'Test',
+      data: tokenDbData
+    });
+
+  }
+
   public async listNotifiedUsers(req: AuthRequest, res: Response) {
     const notification_config_id = req.query.config_id;
-	const tokenObj = new NotificationToken();
-  const notificationList: Array<object> = await tokenObj.generateNotifiedUsers(req.query.config_id);
+	  const tokenObj = new NotificationToken();
+    const notificationList: Array<object> = await tokenObj.generateNotifiedUsers(req.query.config_id);
 
     return res.status(200).send({
 	    message: 'Success',
@@ -166,7 +201,7 @@ const RateLimiter = require('limiter').RateLimiter;
       eco = await uemr.emUsersForNotification(sublevels);
       allUsers = trp.concat(eco);
     }
-    let count = 0;
+
     for (const u of allUsers) {
 
       if (allUserIds.indexOf(u['user_id']) == -1) {
@@ -192,10 +227,9 @@ const RateLimiter = require('limiter').RateLimiter;
 
     // create token
     // for (let uid = 0; uid < allUserIds.length; uid++) {
-    count = 0
+
     for (const u of allUsers) {
-      count++;
-      let strToken = cryptoJs.AES.encrypt(`${count}_${u['user_id']}_${userType}_${u['location_id']}_${configurator.ID()}`, process.env.KEY).toString();
+      let strToken = cryptoJs.AES.encrypt(`${Date.now()}_${u['user_id']}_${u['location_id']}_${configurator.ID()}`, process.env.KEY).toString();
       let notificationToken = new NotificationToken();
       await notificationToken.create({
         strToken: strToken,
@@ -210,20 +244,22 @@ const RateLimiter = require('limiter').RateLimiter;
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : ['jmanoharan@evacgroup.com.au'],
+        to : ['rsantos@evacgroup.com.au'],
         cc: ['emacaraig@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
       };
+
       const email = new EmailSender(opts);
       const link = req.protocol + '://' + req.get('host') + '/verify-notification/' + strToken;
+      const yesLink = req.protocol + '://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 
       emailBody += `<h3 style="text-transform:capitalize;">Hi ${u['first_name']} ${u['last_name']} - ${u['email']},</h3>
       <h5>${config['message']}</h5>
 	  <h4>Are you still ${u['role_name']} for ${u['account_name']} Tenancy on ${u['parent_location']} ${u['name']}</h4>
-	  <a href="${link}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a>
+	  <a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a>
       <br>`;
 
       emailBody += email.getEmailHTMLFooter();
