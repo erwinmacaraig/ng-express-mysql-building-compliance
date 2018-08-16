@@ -157,7 +157,7 @@ export class NotificationToken extends BaseClass {
 
   public loadByContraintKeys(userId = 0, configId = 0): Promise<object> {
     return new Promise((resolve, reject) => {
-      const sql_load = `SELECT * FROM notification_token
+      const sql_load = `SELECT *, IF(dtExpiration < NOW(), 'expired', 'active') as expiration_status FROM notification_token
         WHERE user_id = ? AND notification_config_id = ?`;
 
       const connection = db.createConnection(dbconfig);
@@ -166,9 +166,13 @@ export class NotificationToken extends BaseClass {
           console.log('NotificationToken.loadByContraintKeys', error, sql_load);
           throw Error(error);
         }
-        this.dbData = results[0];
-        this.setID(results[0]['notification_token_id']);
-        resolve(this.dbData);
+        if (results.length) {
+          this.dbData = results[0];
+          this.setID(results[0]['notification_token_id']);
+          resolve(this.dbData);
+        } else {
+          resolve({});
+        }
       });
       connection.end();
 

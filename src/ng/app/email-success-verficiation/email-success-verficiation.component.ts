@@ -38,6 +38,18 @@ export class EmailSuccessVerficiationComponent implements OnInit {
       }
     }
 
+    if (this.route.snapshot.queryParams['verify-notified-user']) {
+      const verification = this.route.snapshot.queryParams['verify-notified-user'];
+      this.isUserVerification = true;
+      if (verification == 1) {
+        this.message = 'You successfully validated your tenancy.';
+      } else {
+        this.showCheckIcon = false;
+        this.message = 'Invalid token used.';
+        this.showClose = true;
+      }
+    }
+
   }
 
   closeWindow(){
