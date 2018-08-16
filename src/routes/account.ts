@@ -111,33 +111,53 @@ const RateLimiter = require('limiter').RateLimiter;
   }
 
   public async verifyNotifiedUser(req: Request, res: Response) {
-    const strToken = decodeURIComponent(req.query.token);
+    let strToken = decodeURIComponent(req.query.token);
     const tokenObj = new NotificationToken();
-    const  bytes = cryptoJs.AES.decrypt(strToken, process.env.KEY);
+    const  bytes = cryptoJs.AES.decrypt(''+strToken, process.env.KEY);
     const strTokenDecoded = bytes.toString(cryptoJs.enc.Utf8);
+
     const parts = strTokenDecoded.split('_');
     const uid = parts[1];
     const configId = parts[3];
-    console.log(parts);
+
     const tokenDbData = await tokenObj.loadByContraintKeys(uid, configId);
-    console.log(tokenDbData);
+    // console.log(tokenDbData);
+    const configurator = new NotificationConfiguration(configId);
+    const configDBData = await configurator.load();
 
     if ( !(Object.keys(tokenDbData)).length) {
-      return res.status(400).send({
-        message: 'Invalid token'
-      });
+      return res.redirect('/success-valiadation?verify-notified-user=0');
     }
     if (tokenDbData['completed']) {
-      return res.status(400).send({
-        message: 'Token already used'
-      });
+      return res.redirect('/success-valiadation?verify-notified-user=0');
     }
-    // token expired
+    // todo token expired
+    if (tokenDbData['expiration_status'] == 'expired') {
+      return res.redirect('/success-valiadation?verify-notified-user=0');
+    }
 
-    return res.status(200).send({
-      message: 'Test',
-      data: tokenDbData
+    // update record
+    await tokenObj.create({
+      strToken: '',
+      strStatus: 'Validated',
+      responded: 1,
+      dtResponded: moment().format('YYYY-MM-DD'),
+      completed: 1,
+      dtCompleted: moment().format('YYYY-MM-DD')
     });
+
+    const userResponded: Array<number> = configDBData['user_responded'].split(',');
+    if (userResponded.indexOf(uid) == -1) {
+      userResponded.push(uid);
+      configDBData['responders'] = configDBData['responders'] + 1;
+      configDBData['user_responded'] = userResponded.join(',');
+      await configurator.create(configDBData);
+    }
+
+
+    return res.redirect('/success-valiadation?verify-notified-user=1');
+
+
 
   }
 
@@ -244,8 +264,8 @@ const RateLimiter = require('limiter').RateLimiter;
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : ['rsantos@evacgroup.com.au'],
-        cc: ['emacaraig@evacgroup.com.au'],
+        to : ['emacaraig@evacgroup.com.au'],
+        cc: [],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
@@ -258,8 +278,8 @@ const RateLimiter = require('limiter').RateLimiter;
 
       emailBody += `<h3 style="text-transform:capitalize;">Hi ${u['first_name']} ${u['last_name']} - ${u['email']},</h3>
       <h5>${config['message']}</h5>
-	  <h4>Are you still ${u['role_name']} for ${u['account_name']} Tenancy on ${u['parent_location']} ${u['name']}</h4>
-	  <a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a>
+	    <h4>Are you still ${u['role_name']} for ${u['account_name']} Tenancy on ${u['parent_location']} ${u['name']}</h4>
+	    <a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a>
       <br>`;
 
       emailBody += email.getEmailHTMLFooter();
