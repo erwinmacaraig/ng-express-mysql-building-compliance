@@ -1303,6 +1303,19 @@ const defs = require('../config/defs.json');
             };
         }
 
+        let 
+            roles = [],
+            isPortfolio = false;
+
+        try {
+          roles = await userRoleRel.getByUserId(req.user.user_id);
+          for(let role of roles){
+              if(role['is_portfolio'] == 1){
+                  isPortfolio = true;
+              }
+          }
+        } catch(e) { }
+
         try {
           r = await userRoleRel.getByUserId(req.user.user_id, true);
         } catch(e) {
@@ -1310,6 +1323,8 @@ const defs = require('../config/defs.json');
           r = 0;
         }
         filter['responsibility'] = r;
+        filter['isPortfolio'] = isPortfolio;
+        filter['userId'] = req.user.user_id;
 
         if('search' in queries){
             filter['name'] = queries.search;
@@ -1454,109 +1469,63 @@ const defs = require('../config/defs.json');
 	}
 
     public async getLocationsHierarchyByAccount(req: AuthRequest, res: Response){
-        const accountId = req.user.account_id,
-            account = new Account(accountId);
-
-        let locationsOnAccount = [],
-            locations = <any> [],
-            roles = <any> [],
-            response = {
-                locations : <any> [],
-                deepLocations : <any> []
-            },
-            isFrp = false,
-            isTrp = false;
-
-        try{
-            let userRoleModel = new UserRoleRelation();
-
-            roles = await userRoleModel.getByUserId(req.user.user_id);
-
-            for(let i in roles){
-                if(roles[i]['role_id'] == 1){
-                    isFrp = true;
-                }
-                if(roles[i]['role_id'] == 2){
-                    isTrp = true;
-                }
-            }
-
-        }catch(e){}
+        let 
+        accountId = req.user.account_id,
+        account = new Account(accountId),
+        locationsOnAccount = [],
+        locations = <any> [],
+        roles = <any> [],
+        response = {
+            locations : <any> [],
+            deepLocations : <any> []
+        },
+        isFrp = false,
+        isTrp = false,
+        isPortfolio = false,
+        userRoleRel = new UserRoleRelation(),
+        filter = {},
+        r = 0;
 
         try {
-            locationsOnAccount = await account.getLocationsOnAccount(req.user.user_id, 1);
-            for (let loc of locationsOnAccount) {
-                locations.push(loc);
-            }
-
-        } catch (e) { }
-
-        try{
-            let userEmRole = new UserEmRoleRelation(),
-            emRoles = <any> await userEmRole.getEmRolesByUserId(req.user.user_id);
-            for (let em of emRoles) {
-                locations.push(em);
-                for(let i in defs['em_roles']){
-                    roles.push({
-                        role_id : em.em_role_id,
-                        role_name : em.role_name
-                    });
-                }
-            }
-        }catch(e){  }
-
-        response['locations_db'] = locations;
-        response['roles'] = roles;
-
-        let responseLocations = [];
-        for (let loc of locations) {
-            let allSubLocationIds = [0],
-                deepLocModel = new Location(),
-                deepLocations = <any> [];
-
-            if(loc.parent_id > -1){
-                let ancLocModel = new Location(),
-                    ancestores = <any> await ancLocModel.getAncestries(loc.location_id);
-                for(let anc of ancestores){
-                    if(anc.parent_id == -1){
-                        deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(anc.location_id);
-                        deepLocations.push(anc);
-                    }
-                }
-            }else{
-                deepLocations = <any> await deepLocModel.getDeepLocationsByParentId(loc.location_id);
-                deepLocations.push(loc);
-            }
-
-            for(let deep of deepLocations){
-                deep['sublocations'] = [];
-            }
-
-            let locMerged = this.addChildrenLocationToParent(deepLocations),
-                respLoc = (locMerged[0]) ? locMerged[0] : false;
-
-            if(respLoc){
-                for(let sub of deepLocations){
-                    if(sub.parent_id > -1){
-                        allSubLocationIds.push(sub.location_id);
-                    }
-                }
-
-                let alreadyHave = false;
-                for(let resloc of responseLocations){
-                    if(resloc.location_id == respLoc.location_id){
-                        alreadyHave = true;
-                    }
-                }
-
-                if(!alreadyHave){
-                    responseLocations.push(respLoc);
-                }
-            }
-
+          r = await userRoleRel.getByUserId(req.user.user_id, true);
+        } catch(e) {
+          r = 0;
         }
 
-        response.locations = responseLocations;
+        try {
+          roles = await userRoleRel.getByUserId(req.user.user_id);
+          for(let role of roles){
+              if(role['is_portfolio'] == 1){
+                  isPortfolio = true;
+              }
+          }
+        } catch(e) { }
+
+        let
+        allLocModel = new Location(), 
+        allLocations = <any> await allLocModel.getAllLocations();
+
+        filter['responsibility'] = 'Manager';
+        filter['isPortfolio'] = isPortfolio;
+        filter['userId'] = req.user.user_id;
+
+        let locAccntRelObj = new LocationAccountRelation();
+
+        try{
+            response.locations = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+        }catch(e){
+            response.locations = [];
+        }
+
+        for(let loc of response.locations){
+            if(!loc['sublocations']){ loc['sublocations'] = []; }
+
+            for(let sub of allLocations){
+                if(loc['location_id'] == sub['parent_id']){
+                    loc['sublocations'].push(sub);
+                }
+            }
+        }
 
         res.send(response);
     }
@@ -1622,7 +1591,6 @@ const defs = require('../config/defs.json');
 				res.send(response);
 			}
 		);
-
 	}
 
 	public checkUserVerifiedInLocation(req: AuthRequest, res: Response){

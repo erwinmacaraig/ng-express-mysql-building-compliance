@@ -72,6 +72,22 @@ export class ReportsRoute extends BaseRoute {
                     }
                 }
 
+                let 
+                    roles = [],
+                    isPortfolio = false;
+
+                try {
+                  roles = await userRoleRel.getByUserId(req.user.user_id);
+                  for(let role of roles){
+                      if(role['is_portfolio'] == 1){
+                          isPortfolio = true;
+                      }
+                  }
+                } catch(e) { }
+
+                filter['isPortfolio'] = isPortfolio;
+                filter['userId'] = req.user.user_id;
+
 
                 filter['responsibility'] = r;
                 if (r === defs['Tenant']) {
@@ -274,6 +290,22 @@ export class ReportsRoute extends BaseRoute {
           console.log('location route get-parent-locations-by-account-d',e);
           r = 0;
         }
+
+        let 
+            roles = [],
+            isPortfolio = false;
+
+        try {
+          roles = await userRoleRel.getByUserId(req.user.user_id);
+          for(let role of roles){
+              if(role['is_portfolio'] == 1){
+                  isPortfolio = true;
+              }
+          }
+        } catch(e) { }
+
+        filter['isPortfolio'] = isPortfolio;
+        filter['userId'] = req.user.user_id;
 
         if('responsibility' in filters){
             filter['responsibility'] = filters['responsibility'];

@@ -134,6 +134,11 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
         this.dashboardPreloaderService.show();
 
+        this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response:any) => {
+            this.locations = JSON.parse( JSON.stringify( response.locations ) );
+            this.locationsCopy = JSON.parse( JSON.stringify( response.locations ) );
+        });
+
         this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {
             this.buildings = response.data.buildings;
             this.levels = response.data.levels;
@@ -198,7 +203,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
             resp = JSON.parse( JSON.stringify( this.levels ) );
         }*/
 
-        for(let loc of this.buildings){
+        /*for(let loc of this.buildings){
             loc['sublocations'] = [];
             for(let level of this.levels){
                 if(loc.location_id == level.parent_location_id){
@@ -212,7 +217,9 @@ export class AddUserComponent implements OnInit, OnDestroy {
         }
 
         this.locationsCopy = JSON.parse( JSON.stringify( resp ) );
-        return resp;
+
+        */
+        return JSON.parse( JSON.stringify( this.locations ) );
     }
 
     buildLocationsListInModal(){
@@ -348,7 +355,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 for (const loc of this.locationsCopy) {
                     if ('sublocations' in loc) {
                         for (const sublocs of loc['sublocations']) {
-                            if (sublocs['id'] == selectedLocationId) {
+                            if (sublocs['location_id'] == selectedLocationId) {
                                 this.selectedUser['location_name'] = `${loc['name']}, ${sublocs['name']}`;
                                 if (/^[_-\s]$/.test(loc['name'])) {
                                     this.selectedUser['location_name'] = `${sublocs['name']}`;

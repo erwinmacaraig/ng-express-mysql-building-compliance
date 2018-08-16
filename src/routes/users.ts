@@ -3230,6 +3230,7 @@ export class UsersRoute extends BaseRoute {
         userId = req.body.user_id,
         assignments = JSON.parse(req.body.assignments),
         userModel = new User(userId),
+        locAccRelationModel = new LocationAccountRelation(),
         locAccModel = new LocationAccountUser(),
         userEmModel = new UserEmRoleRelation(),
         userRoleModel = new UserRoleRelation(),
@@ -3247,6 +3248,20 @@ export class UsersRoute extends BaseRoute {
             }
         },
         createFrpTrp = async (assign) => {
+            try{
+                await locAccRelationModel.getLocationAccountRelation({
+                    'location_id' : assign.location_id,
+                    'account_id' : assign.account_id,
+                    'responsibility' : (assign.role_id == 1) ? 'Manager' : 'Tenant'
+                });
+            }catch(e){
+                await locAccRelationModel.create({
+                    'location_id' : assign.location_id,
+                    'account_id' : assign.account_id,
+                    'responsibility' : (assign.role_id == 1) ? 'Manager' : 'Tenant'
+                });
+            }
+
             try{
                 await locAccModel.getByLocationIdAndUserId(assign.location_id, userId);
             }catch(errLoc){

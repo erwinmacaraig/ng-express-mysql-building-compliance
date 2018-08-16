@@ -1283,6 +1283,22 @@ import * as S3Zipper from 'aws-s3-zipper';
         accountModel = new Account(accountId),
         account = await accountModel.load();
 
+        let 
+            roles = [],
+            isPortfolio = false;
+
+        try {
+          roles = await userRoleRel.getByUserId(req.user.user_id, true);
+          for(let role of roles){
+              if(role['is_portfolio'] == 1){
+                  isPortfolio = true;
+              }
+          }
+        } catch(e) { }
+
+        filter['isPortfolio'] = isPortfolio;
+        filter['userId'] = userId;
+
         try {
             r = await userRoleRel.getByUserId(userId, true);
         } catch(e) {
@@ -1355,6 +1371,19 @@ import * as S3Zipper from 'aws-s3-zipper';
         Object.keys(kpis).forEach((key) => {
             kpisIds.push(kpis[key]['compliance_kpis_id']);
         });
+
+        let 
+            roles = [],
+            isPortfolio = false;
+
+        try {
+          roles = await userRoleRel.getByUserId(req.user.user_id, true);
+          for(let role of roles){
+              if(role['is_portfolio'] == 1){
+                  isPortfolio = true;
+              }
+          }
+        } catch(e) { }
 
         try {
             r = await userRoleRel.getByUserId(userId, true);

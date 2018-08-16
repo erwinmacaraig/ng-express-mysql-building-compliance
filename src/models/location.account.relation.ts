@@ -296,6 +296,19 @@ export class LocationAccountRelation extends BaseClass {
 
         let selectParentName = ('no_parent_name' in filter) ? 'l.name,' : `IF (p1.name IS NULL, l.name, IF (CHAR_LENGTH(p1.name) = 0,  l.name, CONCAT(p1.name, ', ', l.name))) as name,`;
 
+        let isPortfolio = (filter['isPortfolio']) ? filter['isPortfolio'] : false;
+
+        let sqlJoinLAU = '';
+        if(!isPortfolio && filter['userId']){
+            sqlJoinLAU = ' INNER JOIN location_account_user lau ON lau.location_id = l.location_id ';
+            filterStr = ' AND lau.user_id = '+filter['userId'];
+            if ('responsibility' in filter) {
+                if(filter['responsibility'] == 1){
+                    filterStr += ` AND true = (l.is_building = 1  OR l.parent_id = -1)`;
+                }
+            }
+        }
+
         let sql_get_locations = `
             SELECT
             l.location_id,
@@ -346,6 +359,8 @@ export class LocationAccountRelation extends BaseClass {
             OR p3.location_id = lar.location_id
             OR p4.location_id = lar.location_id
 
+            ${sqlJoinLAU}
+
             WHERE
             lar.account_id = ?
             ${filterStr}
@@ -374,6 +389,8 @@ export class LocationAccountRelation extends BaseClass {
                     OR p3.location_id = lar.location_id
                     OR p4.location_id = lar.location_id
 
+                    ${sqlJoinLAU}
+
                     WHERE
                     lar.account_id = ?
                     ${filterStr}
@@ -399,6 +416,8 @@ export class LocationAccountRelation extends BaseClass {
                 OR p2.location_id = lar.location_id
                 OR p3.location_id = lar.location_id
                 OR p4.location_id = lar.location_id
+
+                ${sqlJoinLAU}
 
                 WHERE
                 lar.account_id = ?
