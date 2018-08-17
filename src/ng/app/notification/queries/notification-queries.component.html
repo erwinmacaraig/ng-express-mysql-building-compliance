@@ -1,0 +1,37 @@
+<div *ngIf="state == 0" class="grey lighten-4 box-questionnaire-container">
+  <h2 class="text">
+      Please select the answer below.
+  </h2>
+  <ul>
+      <li>
+          <input [formControl]="primaryQuestionField" value="Tenancy changed" id="isTenant" type="radio" class="filled-in" />
+          <label for="isTenant"> Is Tenancy Changed </label>
+      </li>
+      <li>
+          <input [formControl]="primaryQuestionField" value="New Person Appointed" id="newPerson" type="radio" class="filled-in" />
+          <label for="newPerson"> New Person Appointed </label>
+      </li>
+      <li>
+          <input [formControl]="primaryQuestionField" value="No longer available for the role" id="youAreAvail" type="radio" class="filled-in" />
+          <label for="youAreAvail"> You are no longer available for the role </label>
+      </li>
+      <li>
+        <input [formControl]="primaryQuestionField" value="I want to resign" id="resign" type="radio" class="filled-in" />
+        <label for="resign"> I want to resign </label>
+      </li>
+      <li>
+        <input [formControl]="primaryQuestionField" value="My location has changed" id="locationChanged" type="radio" class="filled-in" />
+        <label for="locationChanged"> My location has changed </label>
+      </li>
+      <li>
+          <input [formControl]="primaryQuestionField" value="Other" id="other" type="radio" class="filled-in" />
+          <label for="other"> Other </label>
+      </li>
+
+  </ul>
+
+  <div class="margin-bottom-30"></div>
+
+  <button (click)="confirmPrimaryQuestion()" [disabled]="!primaryQuestionField.valid" type="button" class="btn orange waves-effect waves-light center-block">Confirm</button>
+
+</div>

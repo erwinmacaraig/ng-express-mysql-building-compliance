@@ -1,3 +1,4 @@
+
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
@@ -17,6 +18,7 @@ import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 const validator = require('validator');
 const cryptoJs = require('crypto-js');
 import * as moment from 'moment';
+import { AuthenticateLoginRoute } from './authenticate_login';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 const RateLimiter = require('limiter').RateLimiter;
 
@@ -98,6 +100,15 @@ const RateLimiter = require('limiter').RateLimiter;
       router.get('/accounts/verify-notified-user/', (req: Request, res: Response, next: NextFunction) => {
         new AccountRoute().verifyNotifiedUser(req, res);
       });
+
+      router.get('/accounts/query-notified-user/', (req: Request, res: Response, next: NextFunction) => {
+        new AccountRoute().queryNotifiedUser(req, res);
+	  });
+
+	  router.post('/accounts/process-query-notified-user-responses/',
+	    new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+			new AccountRoute().processQueryResponses(req, res);
+	  });
    	}
 
 	/**
@@ -110,6 +121,114 @@ const RateLimiter = require('limiter').RateLimiter;
 		super();
   }
 
+  public async processQueryResponses(req, res) {
+	const theAnswers = req.body.query_responses;
+	const notification_token_id = req.body.notification_token_id;
+	const completed = req.body.completed;
+	const status = req.body.strStatus;
+	const tokenObj = new NotificationToken(notification_token_id);
+	const tokenDbData = await tokenObj.load();
+	tokenDBData['strResponse'] = theAnswers;
+	tokenDBData['completed'] = completed;
+	tokenDBData['strStatus'] = status;
+
+	if (completed) {
+	    tokenDBData['dtCompleted'] = moment().format('YYYY-MM-DD');
+	}
+	try {
+		await tokenObj.create(tokenDBData);
+		return res.status(200).send({
+			message: 'Success',
+			data: tokenDBData
+		});
+	} catch(e) {
+	  console.log('accounts route processQueryResponses()', e , tokenDBData);
+	  return res.status(400).send({
+		message: 'Fail',
+		data: tokenDBData
+	  });
+	}
+  }
+
+  public async queryNotifiedUser(req: Request, res: Response) {
+    let strToken = decodeURIComponent(req.query.token);
+    const tokenObj = new NotificationToken();
+    const bytes = cryptoJs.AES.decrypt(strToken, process.env.KEY);
+    const strTokenDecoded = bytes.toString(cryptoJs.enc.Utf8);
+
+    const parts = strTokenDecoded.split('_');
+    const uid = parts[1];
+    const configId = parts[3];
+
+    const tokenDbData = await tokenObj.loadByContraintKeys(uid, configId);
+
+    const configurator = new NotificationConfiguration(configId);
+    const configDBData = await configurator.load();
+
+    const user = new User(uid);
+    const userDbData = await user.load();
+    const authRoute = new AuthenticateLoginRoute();
+    const userRole = new UserRoleRelation()
+    let hasFrpTrpRole = false;
+
+
+    if ( !(Object.keys(tokenDbData)).length) {
+      return res.redirect('/success-valiadation?verify-notified-user=0');
+    }
+    if (tokenDbData['completed']) {
+      return res.redirect('/success-valiadation?verify-notified-user=0');
+    }
+    // todo token expired
+    if (tokenDbData['expiration_status'] == 'expired') {
+      return res.redirect('/success-valiadation?verify-notified-user=0');
+    }
+
+    if (!(Object.keys(userDbData)).length) {
+      return res.redirect('/success-valiadation?query-notified-user=0');
+    }
+    try{
+      await userRole.getByUserId(userDbData['user_id']);
+      hasFrpTrpRole = true;
+    } catch (e){
+      hasFrpTrpRole = false;
+    }
+    const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
+    let stringUserData = JSON.stringify(loginResponse.data);
+    stringUserData = stringUserData.replace(/\'/gi, '');
+    const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}`, 'NifLed').toString();
+
+    // update record
+    await tokenObj.create({
+      responded: 1,
+      strStatus: 'In Progress',
+      dtResponded: moment().format('YYYY-MM-DD')
+    });
+
+    const userResponded: Array<number> = configDBData['user_responded'].split(',');
+    if (userResponded.indexOf(uid) == -1) {
+      userResponded.push(uid);
+      configDBData['responders'] = configDBData['responders'] + 1;
+      configDBData['user_responded'] = userResponded.join(',');
+      await configurator.create(configDBData);
+    }
+
+    const redirectUrl = req.protocol + '://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+    const script = `
+                <h4>Redirecting...</h4>
+                <script>
+                    localStorage.setItem('currentUser', '${loginResponse.token}');
+                    localStorage.setItem('userData', '${stringUserData}');
+
+                    setTimeout(function(){
+                        window.location.replace("${redirectUrl}")
+                    }, 1000);
+                </script>
+            `;
+
+    res.status(200).send(script);
+
+
+  }
   public async verifyNotifiedUser(req: Request, res: Response) {
     let strToken = decodeURIComponent(req.query.token);
     const tokenObj = new NotificationToken();
@@ -153,8 +272,6 @@ const RateLimiter = require('limiter').RateLimiter;
       configDBData['user_responded'] = userResponded.join(',');
       await configurator.create(configDBData);
     }
-
-
     return res.redirect('/success-valiadation?verify-notified-user=1');
 
 
@@ -272,7 +389,7 @@ const RateLimiter = require('limiter').RateLimiter;
       };
 
       const email = new EmailSender(opts);
-      const link = req.protocol + '://' + req.get('host') + '/verify-notification/' + strToken;
+      const link = req.protocol + '://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
       const yesLink = req.protocol + '://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 
