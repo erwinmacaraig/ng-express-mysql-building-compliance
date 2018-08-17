@@ -829,10 +829,12 @@ const defs = require('../config/defs.json');
 				let child = data[c];
                 if('is_here' in child){
                   if(child.parent_id == parent.location_id && child.is_here === true){
+                    child['location_name'] = (parent.name.trim().length > 0) ? parent.name.trim() +', '+child.name : child.name;
                     parent.sublocations.push(child);
                   }
                 }else{
       				if(child.parent_id == parent.location_id){
+                        child['location_name'] = (parent.name.trim().length > 0) ? parent.name.trim() +', '+child.name : child.name; 
       					parent.sublocations.push(child);
       				}
                 }
@@ -842,6 +844,7 @@ const defs = require('../config/defs.json');
 		let finalData = [];
 		for(let i in data){
 			if(data[i]['parent_id'] == -1){
+                data[i]['location_name'] = data[i]['name'];
 				finalData.push(data[i]);
 			}
 		}
@@ -1517,15 +1520,17 @@ const defs = require('../config/defs.json');
             response.locations = [];
         }
 
-        for(let loc of response.locations){
-            if(!loc['sublocations']){ loc['sublocations'] = []; }
+        let merged = this.mergeToParent(allLocations);
 
-            for(let sub of allLocations){
-                if(loc['location_id'] == sub['parent_id']){
-                    loc['sublocations'].push(sub);
+        for(let all of allLocations){
+            for(let i in response.locations){
+                if(response.locations[i]['location_id'] == all['location_id']){
+                    response.locations[i] = all;
                 }
             }
         }
+
+        
 
         res.send(response);
     }
