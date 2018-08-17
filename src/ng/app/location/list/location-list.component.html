@@ -155,7 +155,16 @@
 							</div>
 						</a>
 
-                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0" [routerLink]="['/location/compliance/view/', location.parent_id]">
+                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0 && encryptDecrypt.decrypt(location.parent_id) != -1" [routerLink]="['/location/compliance/view/', location.parent_id]">
+                            <div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
+                            <div class="progress-container" >
+                                <div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
+                                    <div class="determinate" [ngStyle]="{ 'width' : location.compliance_percentage+'%' }"></div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0 && encryptDecrypt.decrypt(location.parent_id) == -1" [routerLink]="['/location/compliance/view/', location.location_id]">
                             <div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
                             <div class="progress-container" >
                                 <div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">

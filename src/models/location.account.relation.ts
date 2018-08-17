@@ -261,9 +261,6 @@ export class LocationAccountRelation extends BaseClass {
         if ('is_building' in filter) {
           filterStr += ` AND l.is_building = ${filter['is_building']}`;
         }
-        if('archived' in filter){
-            filterStr += ` AND l.archived = ${filter['archived']}`;
-        }
 
         if('location_id' in filter){
             filterStr += ` AND l.location_id = ${filter['location_id']}`;
@@ -307,6 +304,10 @@ export class LocationAccountRelation extends BaseClass {
                     filterStr += ` AND true = (l.is_building = 1  OR l.parent_id = -1)`;
                 }
             }
+        }
+
+        if('archived' in filter){
+            filterStr += ` AND l.archived = ${filter['archived']}`;
         }
 
         let sql_get_locations = `
