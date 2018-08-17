@@ -114,6 +114,15 @@ export class AccountsDataProviderService {
      const httpParams = new HttpParams().set('config_id', configId);
      this.options['params'] = httpParams;
      return this.http.get(`${this.baseUrl}/accounts/list-notified-users/`, this.options);
-  }
+	}
+	
+	submitQueryResponses(responses='', notification_token_id = 0, completed=0, status='In Progress') {
+       return this.http.post(this.baseUrl + '/accounts/process-query-notified-user-responses/', {
+			      query_responses: responses,
+				    notification_token_id: notification_token_id,
+						completed: completed,
+						strStatus: status 	
+			 });
+	}
 
 }

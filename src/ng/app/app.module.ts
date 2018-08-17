@@ -118,6 +118,7 @@ import { EpcMinutesMeetingComponent } from './compliance/epc-minutes-meeting/epc
 import { NotificationListComponent } from './notification/list/notification-list.component';
 import { NotificationConfigurationComponent } from './notification/configuration/notification-config.component';
 import { NotifiedUsersListComponent } from './notification/notified-users-list/notified-users-list.component';
+import { NotificationQueryComponent } from './notification/queries/notification-queries.component';
 
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
@@ -231,6 +232,7 @@ import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attenda
     NotificationListComponent,
     NotificationConfigurationComponent,
     NotifiedUsersListComponent,
+    NotificationQueryComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,

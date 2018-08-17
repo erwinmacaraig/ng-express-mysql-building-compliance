@@ -50,6 +50,16 @@ export class EmailSuccessVerficiationComponent implements OnInit {
       }
     }
 
+    if (this.route.snapshot.queryParams['query-notified-user']) {
+      const queryCode = this.route.snapshot.queryParams['query-notified-user'];
+      this.isUserVerification = true;
+      if (queryCode == 0) {
+        this.showCheckIcon = false;
+        this.message = 'Invalid user';
+        this.showClose = true;
+      }
+    }
+
   }
 
   closeWindow(){
