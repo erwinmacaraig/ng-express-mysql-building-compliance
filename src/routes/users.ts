@@ -2146,7 +2146,8 @@ export class UsersRoute extends BaseRoute {
     				userEmRole = new UserEmRoleRelation(),
     				isEmailValid = this.isEmailValid(users[i]['email']),
     				isBlackListedEmail = false,
-    				hasError = false;
+    				hasError = false,
+                    selectedRoles = (users[i]["selected_roles"]) ? users[i]["selected_roles"] : [];
 
     			users[i]['errors'] = {};
 

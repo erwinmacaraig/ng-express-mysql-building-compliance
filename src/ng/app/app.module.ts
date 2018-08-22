@@ -138,6 +138,8 @@ import { AdminReportsComponent } from './admin/reports/reports.component';
 import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
 import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
 
+import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
+
 @NgModule({
   declarations: [
     SafeHtmlPipe,
@@ -260,6 +262,7 @@ import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attenda
       // apiKey : 'AIzaSyDmkSaP4MEhSdZxmndpExIbDEaJ3_kZpTk',
       libraries: ['places']
     }),
+    NgMultiSelectDropDownModule.forRoot(),
     // todo: move to location module
     ReactiveFormsModule,
     NgDatepickerModule,

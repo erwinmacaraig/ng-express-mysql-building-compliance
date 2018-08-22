@@ -38,8 +38,15 @@ export class AddUserComponent implements OnInit, OnDestroy {
         location_name : 'Select Location',
         location_id : 0,
         mobile_number : '',
-        errors : {
-        }
+        selected_roles : [],
+        new_account : {
+            valid : false,
+            name : '',
+            trp : {
+                firstname : '', lastname : '', email : ''
+            }
+        },
+        errors : {}
     };
     private userRole;
     public accountRoles;
@@ -64,6 +71,18 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
     searchModalLocationSubs;
     formLocValid = false;
+
+    selectRolesDropdown = [];
+    dropdownSettings = {
+        singleSelection: false,
+        idField: 'role_id',
+        textField: 'role_name',
+        selectAllText: 'Select All',
+        unSelectAllText: 'UnSelect All',
+        itemsShowLimit: 1,
+        allowSearchFilter: false,
+        enableCheckAll: false
+    };
 
     constructor(
         private authService: AuthService,
@@ -91,12 +110,15 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
     ngOnInit(){
         this.accountRoles = [
-        {
-            role_id: 2,
-            role_name: 'Tenancy Responsible Personnel',
-            selected : (this.paramRole == 'tenant') ? true : false
-        }
+            {
+                role_id: 2,
+                role_name: 'Tenancy Responsible Personnel',
+                selected : (this.paramRole == 'tenant') ? true : false
+            }
         ];
+        this.selectRolesDropdown.push({
+            role_id : 2, role_name : 'Add Tenant'
+        });
 
         this.userRole = this.authService.getHighestRankRole();
         if (this.userRole == 1) {
@@ -105,16 +127,26 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 role_name: 'Building Manager',
                 selected : (this.paramRole == 'building manager') ? true : false
             });
+
+            this.selectRolesDropdown.push({
+                role_id : 1, role_name : 'Building Manager'
+            });
         }
 
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
             this.ecoRoles = roles;
             for(let i in roles){
-                this.accountRoles.push({
-                    role_id : roles[i]['em_roles_id'],
-                    role_name : roles[i]['role_name']
-                });
+                if(roles[i]['em_roles_id'] != 12){
+                    this.accountRoles.push({
+                        role_id : roles[i]['em_roles_id'],
+                        role_name : roles[i]['role_name']
+                    });
+
+                    this.selectRolesDropdown.push({
+                        role_id : roles[i]['em_roles_id'], role_name : roles[i]['role_name']
+                    });
+                }
             }
 
             if(this.paramRole.length > 0){
@@ -155,6 +187,47 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
         this.onKeyUpSearchModalLocationEvent();
         this.messageService.sendMessage({ 'csv-upload' : {  'title' : 'Add Users by CSV Upload'  } });
+
+        $('#modalAddNewTenant').off('click.sametrp').on('click.sametrp', '#inputSameAs', (e) => {
+            let target = $(e.target),
+                checked = target.prop('checked'),
+                trpFirstName = $('#trpFirstName'),
+                trpLastName = $('#trpLastName'),
+                trpEmail = $('#trpEmail');
+
+            if(checked){
+                trpFirstName.val(this.selectedUser["first_name"]).prop("disabled", true);
+                trpLastName.val(this.selectedUser["last_name"]).prop("disabled", true);
+                trpEmail.val(this.selectedUser["email"]).prop("disabled", true);
+            }else{
+                trpFirstName.val("").prop("disabled", false);
+                trpLastName.val("").prop("disabled", false);
+                trpEmail.val("").prop("disabled", false);
+            }
+            window['Materialize'].updateTextFields();
+        });
+    }
+
+    onSelectRole($event, iterator, elem){
+
+        this.selectedUser = this.addedUsers[iterator];
+
+        if($event.role_id == 2){
+            let newSelected = [];
+            for(let i in this.addedUsers[iterator]['selected_roles']){
+                if(this.addedUsers[iterator]['selected_roles'][i]['role_id'] != 2){
+                    newSelected.push(this.addedUsers[iterator]['selected_roles'][i]);
+                }
+            }
+
+            this.addedUsers[iterator]['selected_roles'] = newSelected;
+
+            elem.closeDropdown();
+            $('#modalAddNewTenant').modal('open');
+            $('#inputSameAs').prop('checked', false).trigger('click');
+        }
+
+        console.log(this.selectedUser);
     }
 
     addMoreRow(){
@@ -174,6 +247,15 @@ export class AddUserComponent implements OnInit, OnDestroy {
         setTimeout(() => {
             $("form table tbody tr:last-child").find('input.first-name').focus();
         },300);
+
+        setTimeout(() => {
+            $('.multiselect-item-checkbox').each(function(){
+                let divText = $(this).find('div').text();
+                if(divText.toLowerCase() == 'add tenant'){
+                    $(this).children('div').replaceWith('<p>+Add New Tenant</p>');
+                }
+            });
+        }, 700);
     }
 
     onChangeDropDown(event){
