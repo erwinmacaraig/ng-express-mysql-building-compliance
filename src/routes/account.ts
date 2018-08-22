@@ -1,4 +1,3 @@
-
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
@@ -103,13 +102,20 @@ const RateLimiter = require('limiter').RateLimiter;
 
       router.get('/accounts/query-notified-user/', (req: Request, res: Response, next: NextFunction) => {
         new AccountRoute().queryNotifiedUser(req, res);
-	  });
+      });
 
-	  router.post('/accounts/process-query-notified-user-responses/',
-	    new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-			new AccountRoute().processQueryResponses(req, res);
-	  });
-   	}
+    router.post('/accounts/process-query-notified-user-responses/',
+      new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+      new AccountRoute().processQueryResponses(req, res);
+    });
+
+    router.get('/accounts/notification-all-wardens/',
+      new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+        new AccountRoute().listWardensOnNotificationScreen(req, res);
+      }
+    );
+
+  }
 
 	/**
 	* Constructor
@@ -119,6 +125,24 @@ const RateLimiter = require('limiter').RateLimiter;
 	*/
 	constructor() {
 		super();
+  }
+
+  public async listWardensOnNotificationScreen(req, res) {
+    const buildingId = req.query.building;
+    let locations = [];
+
+    const locationObj = new Location();
+    locations = await locationObj.getParentsChildren(buildingId, 0);
+    locations.push(buildingId);
+    const EMRoleObj = new UserEmRoleRelation();
+    const wardens = await EMRoleObj.getWardensInLocationIds(locations.join(','), 0, req.user.account_id);
+
+    return res.status(200).send({
+      message: 'Success',
+      data: wardens
+    });
+
+
   }
 
   public async processQueryResponses(req, res) {

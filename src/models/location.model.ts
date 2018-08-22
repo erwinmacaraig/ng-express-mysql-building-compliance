@@ -888,7 +888,7 @@ export class Location extends BaseClass {
           connection.end();
         });
     }
-    
+
     public getTenantAccounts(location = 0): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         let locId = this.ID();

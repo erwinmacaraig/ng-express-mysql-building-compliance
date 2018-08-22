@@ -1,0 +1,42 @@
+<div class="container">
+    <div class="row">
+        <div class="col l12 m12 s12">
+
+            <div class="steps-text">
+                <div class="circle"></div>
+                <div class="text blue-text">Step 1</div>
+                <div class="dash"></div>
+                <div class="circle"></div>
+                <div class="text">Step 2</div>
+            </div>
+
+            <p style="font-size: 20px;">Check current warden list</p>
+
+            <table class="table striped">
+                <thead>
+                    <tr>
+                        <th>Sublocations</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let warden of wardens">
+                        <td>{{warden['name']}}</td>
+                        <td>{{warden['first_name']}} {{warden['last_name']}}</td>
+                        <td>{{warden['email']}}</td>
+                        <td>{{warden['mobile_number']}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="right-align">
+                <button class="btn blue waves-effect waves-light">Update Warden List</button>
+                <button class="btn orange waves-effect waves-light">Next</button>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -119,6 +119,7 @@ import { NotificationListComponent } from './notification/list/notification-list
 import { NotificationConfigurationComponent } from './notification/configuration/notification-config.component';
 import { NotifiedUsersListComponent } from './notification/notified-users-list/notified-users-list.component';
 import { NotificationQueryComponent } from './notification/queries/notification-queries.component';
+import { NotificationWardenListComponent } from './notification/warden-list/warden-list.component';
 
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
@@ -233,6 +234,7 @@ import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attenda
     NotificationConfigurationComponent,
     NotifiedUsersListComponent,
     NotificationQueryComponent,
+    NotificationWardenListComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,

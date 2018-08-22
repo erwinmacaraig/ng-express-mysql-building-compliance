@@ -123,6 +123,12 @@ export class AccountsDataProviderService {
 						completed: completed,
 						strStatus: status
 			 });
-	}
+  }
+
+  listWardensOnNotificationFinalScreen(buildingId = '0') {
+    const httpParams = new HttpParams().set('building', buildingId);
+    this.options['params'] = httpParams;
+    return this.http.get(`${this.baseUrl}/accounts/notification-all-wardens/`, this.options);
+  }
 
 }

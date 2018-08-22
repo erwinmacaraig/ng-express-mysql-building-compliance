@@ -20,7 +20,6 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
   private notification_token_id = 0;
   public state = 0;
   public responses = [];
-  private isCompleted = 0;
   private building_id = 0;
   public sublocations = [];
   private sub: Subscription;
