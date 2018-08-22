@@ -3,35 +3,82 @@
       Please select the answer below.
   </h2>
   <ul>
-      <li>
-          <input [formControl]="primaryQuestionField" value="Tenancy changed" id="isTenant" type="radio" class="filled-in" />
-          <label for="isTenant"> Is Tenancy Changed </label>
-      </li>
-      <li>
-          <input [formControl]="primaryQuestionField" value="New Person Appointed" id="newPerson" type="radio" class="filled-in" />
-          <label for="newPerson"> New Person Appointed </label>
-      </li>
-      <li>
-          <input [formControl]="primaryQuestionField" value="No longer available for the role" id="youAreAvail" type="radio" class="filled-in" />
-          <label for="youAreAvail"> You are no longer available for the role </label>
-      </li>
-      <li>
-        <input [formControl]="primaryQuestionField" value="I want to resign" id="resign" type="radio" class="filled-in" />
-        <label for="resign"> I want to resign </label>
-      </li>
-      <li>
+    <li>
+        <input [formControl]="primaryQuestionField" value="Tenancy changed" id="isTenant" type="radio" class="filled-in" />
+        <label for="isTenant"> Our organisation has moved out of the building </label>
+    </li>
+    <li>
+        <input [formControl]="primaryQuestionField" value="New Person Appointed" id="newPerson" type="radio" class="filled-in" />
+        <label for="newPerson"> I would like to nominate someone else from my Tenancy at this building </label>
+    </li>
+    <li>
         <input [formControl]="primaryQuestionField" value="My location has changed" id="locationChanged" type="radio" class="filled-in" />
-        <label for="locationChanged"> My location has changed </label>
-      </li>
-      <li>
-          <input [formControl]="primaryQuestionField" value="Other" id="other" type="radio" class="filled-in" />
-          <label for="other"> Other </label>
-      </li>
-
+        <label for="locationChanged"> My location has changed with this building </label>
+    </li>
+    <li>
+      <input [formControl]="primaryQuestionField" value="I want to resign" id="resign" type="radio" class="filled-in" />
+      <label for="resign"> I want to resign and I do not have a replacement </label>
+    </li>
+    <li>
+        <input [formControl]="primaryQuestionField" value="Other" id="other" type="radio" class="filled-in" />
+        <label for="other"> Other Reason (You will be required to provide more details) </label>
+    </li>
   </ul>
 
   <div class="margin-bottom-30"></div>
-
   <button (click)="confirmPrimaryQuestion()" [disabled]="!primaryQuestionField.valid" type="button" class="btn orange waves-effect waves-light center-block">Confirm</button>
+</div>
+
+<!-- New Person Appointed -->
+<div *ngIf="state == 5" class="grey lighten-4 box-questionnaire-container">
+  <h2 class="text">Nominate new tenant contact</h2>
+  <div class="input-field">
+    <input type="text" id="appointedName" [formControl]="newPersonAppointedName">
+    <label for="appointedName" class="active">Name of the new tenant contact</label>
+  </div>
+
+  <div class="input-field">
+    <input type="text" id="appointedEmailAdd" [formControl]="newPersonAppointedEmail">
+    <label for="appointedEmailAdd" class="active">Email of the new tenant contact</label>
+  </div>
+
+  <div class="margin-bottom-30"></div>
+  <button (click)="submitNominatedPerson()" [disabled]="!newPersonAppointedName.valid || !newPersonAppointedEmail.valid" type="button" class="btn orange waves-effect waves-light center-block">Submit</button>
+</div>
+
+<!-- Location Change -->
+<div *ngIf="state == 6" class="">
+    <h2 class="text">Please choose new location at this building</h2>
+    <ul>
+      <li *ngFor="let sublocation of sublocations; let i = index;">
+        <input [formControl]="newSublocationField" value="{{i}}" id="{{sublocation['location_id']}}" type="radio" class="filled-in" />
+        <label for="{{sublocation['location_id']}}">{{sublocation['name']}}</label>
+      </li>
+    </ul>
+    <div class="margin-bottom-30"></div>
+    <button (click)="submitNewLocation()" [disabled]="!newSublocationField.valid" type="button" class="btn orange waves-effect waves-light center-block">Submit</button>
+</div>
+
+<!-- For other information -->
+<div *ngIf="state == 7" class="grey lighten-4 box-questionnaire-container">
+  <h2 class="text">Thank you!</h2>
+  <h5 class="text">Please fill up below information</h5>
+  <div input-field>
+    <textarea [formControl]="otherInfoField" class="materialize-textarea"></textarea>
+  </div>
+
+  <div class="margin-bottom-30"></div>
+  <button (click)="submitOtherInfo()" [disabled]="!otherInfoField.valid" type="button" class="btn orange waves-effect waves-light center-block">Submit</button>
+</div>
+
+<div *ngIf="state == -1" class="grey lighten-4 box-questionnaire-container">
+  <h2 class="text">
+    Thank you for letting us know, we will be archiving the details of all user's from your tenancy for this location.
+  </h2>
+  <h3 class="text">
+     Note: All emergency planning activity notifications will be stopped from our end.
+  </h3>
+  <div class="margin-bottom-30"></div>
+  <button [routerLink]="['/signout']"  type="button" class="btn orange waves-effect waves-light center-block">Close</button>
 
 </div>

@@ -122,32 +122,33 @@ const RateLimiter = require('limiter').RateLimiter;
   }
 
   public async processQueryResponses(req, res) {
-	const theAnswers = req.body.query_responses;
-	const notification_token_id = req.body.notification_token_id;
-	const completed = req.body.completed;
-	const status = req.body.strStatus;
-	const tokenObj = new NotificationToken(notification_token_id);
-	const tokenDbData = await tokenObj.load();
-	tokenDBData['strResponse'] = theAnswers;
-	tokenDBData['completed'] = completed;
-	tokenDBData['strStatus'] = status;
+    const theAnswers = req.body.query_responses;
+    const notification_token_id = req.body.notification_token_id;
+    const completed = parseInt(req.body.completed, 10);
+    const status = req.body.strStatus;
+    const tokenObj = new NotificationToken(notification_token_id);
+    const tokenDBData = await tokenObj.load();
+    tokenDBData['strResponse'] = theAnswers;
+    tokenDBData['completed'] = completed;
+    tokenDBData['strStatus'] = status;
 
-	if (completed) {
-	    tokenDBData['dtCompleted'] = moment().format('YYYY-MM-DD');
-	}
-	try {
-		await tokenObj.create(tokenDBData);
-		return res.status(200).send({
-			message: 'Success',
-			data: tokenDBData
-		});
-	} catch(e) {
-	  console.log('accounts route processQueryResponses()', e , tokenDBData);
-	  return res.status(400).send({
-		message: 'Fail',
-		data: tokenDBData
-	  });
-	}
+    if (completed) {
+      tokenDBData['dtCompleted'] = moment().format('YYYY-MM-DD');
+      tokenDBData['strToken'] = '';
+    }
+    try {
+      await tokenObj.create(tokenDBData);
+      return res.status(200).send({
+        message: 'Success',
+        data: tokenDBData
+      });
+    } catch(e) {
+      console.log('accounts route processQueryResponses()', e , tokenDBData);
+      return res.status(400).send({
+      message: 'Fail',
+      data: tokenDBData
+      });
+    }
   }
 
   public async queryNotifiedUser(req: Request, res: Response) {
@@ -195,7 +196,7 @@ const RateLimiter = require('limiter').RateLimiter;
     const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
     let stringUserData = JSON.stringify(loginResponse.data);
     stringUserData = stringUserData.replace(/\'/gi, '');
-    const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}`, 'NifLed').toString();
+    const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
 
     // update record
     await tokenObj.create({
@@ -372,7 +373,7 @@ const RateLimiter = require('limiter').RateLimiter;
         strToken: strToken,
         user_id: u['user_id'],
         location_id: u['location_id'],
-		    role_text: u['role_name'],
+        role_text: u['role_name'],
         notification_config_id: configurator.ID(),
         dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD')
       });
