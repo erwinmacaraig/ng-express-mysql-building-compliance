@@ -19,18 +19,20 @@
                         <th>Name</th>
                         <th>Email</th>
                         <th>Mobile</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
 
                 <tbody>
                    <tr *ngIf="wardens.length == 0">
-                     <td colspan="4">No records found</td>
+                     <td colspan="5">No records found</td>
                    </tr>
                     <tr *ngFor="let warden of wardens">
                         <td>{{warden['name']}}</td>
                         <td>{{warden['first_name']}} {{warden['last_name']}}</td>
                         <td>{{warden['email']}}</td>
                         <td>{{warden['mobile_number']}}</td>
+                        <td><button [routerLink]="['/teams', 'view-user', warden['encrypted_user_id']]" class="btn blue waves-effect waves-light action" type="button">Edit</button></td>
                     </tr>
                 </tbody>
             </table>
