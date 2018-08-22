@@ -1,5 +1,5 @@
 <div *ngIf="state == 0" class="grey lighten-4 box-questionnaire-container">
-  <h2 class="text">
+  <h2 class="text margin-top-5">
       Please select the answer below.
   </h2>
   <ul>
@@ -31,7 +31,7 @@
 
 <!-- New Person Appointed -->
 <div *ngIf="state == 5" class="grey lighten-4 box-questionnaire-container">
-  <h2 class="text">Nominate new tenant contact</h2>
+  <h2 class="text margin-top-5">Nominate new tenant contact</h2>
   <div class="input-field">
     <input type="text" id="appointedName" [formControl]="newPersonAppointedName">
     <label for="appointedName" class="active">Name of the new tenant contact</label>
@@ -43,35 +43,37 @@
   </div>
 
   <div class="margin-bottom-30"></div>
-  <button (click)="submitNominatedPerson()" [disabled]="!newPersonAppointedName.valid || !newPersonAppointedEmail.valid" type="button" class="btn orange waves-effect waves-light center-block">Submit</button>
+  <button (click)="submitNominatedPerson()" [disabled]="!newPersonAppointedName.valid || !newPersonAppointedEmail.valid" type="button" class="btn orange waves-effect waves-light right">Submit</button>
 </div>
 
 <!-- Location Change -->
-<div *ngIf="state == 6" class="">
-    <h2 class="text">Please choose new location at this building</h2>
-    <ul>
-      <li *ngFor="let sublocation of sublocations; let i = index;">
-        <input [formControl]="newSublocationField" value="{{i}}" id="{{sublocation['location_id']}}" type="radio" class="filled-in" />
-        <label for="{{sublocation['location_id']}}">{{sublocation['name']}}</label>
-      </li>
-    </ul>
-    <div class="margin-bottom-30"></div>
-    <button (click)="submitNewLocation()" [disabled]="!newSublocationField.valid" type="button" class="btn orange waves-effect waves-light center-block">Submit</button>
+<div *ngIf="state == 6" class="grey lighten-4 box-questionnaire-container">
+    <h2 class="text margin-top-5">Please choose new location at this building</h2>
+    <div class="div-list-container"> 
+        <ul class="list-container">
+          <li *ngFor="let sublocation of sublocations; let i = index;" class="list-location">
+            <input [formControl]="newSublocationField" value="{{i}}" id="{{sublocation['location_id']}}" type="radio" class="filled-in" />
+            <label for="{{sublocation['location_id']}}">{{sublocation['name']}}</label>
+          </li>
+        </ul>
+    </div>
+    <div class="margin-bottom-70"></div>
+    <button (click)="submitNewLocation()" [disabled]="!newSublocationField.valid" type="button" class="btn orange waves-effect waves-light right">Submit</button>
 </div>
 
 <!-- For other information -->
 <div *ngIf="state == 7" class="grey lighten-4 box-questionnaire-container">
-  <h2 class="text">Thank you!</h2>
-  <h5 class="text">Please fill up below information</h5>
+  <h2 class="title1">Thank you!</h2>
+  <h5 class="title2 margin-bottom-30">Please fill up below information</h5>
   <div input-field>
-    <textarea [formControl]="otherInfoField" class="materialize-textarea"></textarea>
+    <textarea [formControl]="otherInfoField" placeholder="Type here the information..." class="materialize-textarea textarea-info"></textarea>
   </div>
 
   <div class="margin-bottom-30"></div>
   <button (click)="submitOtherInfo()" [disabled]="!otherInfoField.valid" type="button" class="btn orange waves-effect waves-light center-block">Submit</button>
 </div>
 
-<div *ngIf="state == -1" class="grey lighten-4 box-questionnaire-container">
+<div *ngIf="state == -1" class="grey lighten-4 box-questionnaire-container final-container">
   <h2 class="text">
     Thank you for letting us know, we will be archiving the details of all user's from your tenancy for this location.
   </h2>
