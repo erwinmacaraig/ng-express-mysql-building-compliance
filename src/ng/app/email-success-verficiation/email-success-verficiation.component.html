@@ -8,6 +8,7 @@
 	</div>
 	<div class="modal-footer">
 		<a  *ngIf="!isUserVerification" [routerLink]="['/login']" class="modal-action modal-close waves-effect waves-green btn-flat">CLOSE</a>
-		<a  *ngIf="isUserVerification" (click)="closeWindow()" class="modal-action modal-close waves-effect waves-green btn-flat">CLOSE</a>
+    <a  *ngIf="isUserVerification && !isAccountRole" (click)="closeWindow()" class="modal-action modal-close waves-effect waves-green btn-flat">CLOSE</a>
+    <a  *ngIf="isUserVerification && isAccountRole" (click)="showNotificationWardenList()" class="modal-action modal-close waves-effect waves-green btn-flat">CONTINUE</a>
 	</div>
 </div>

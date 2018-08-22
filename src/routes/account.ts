@@ -19,6 +19,7 @@ const cryptoJs = require('crypto-js');
 import * as moment from 'moment';
 import { AuthenticateLoginRoute } from './authenticate_login';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
+import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 const RateLimiter = require('limiter').RateLimiter;
 
 /**
@@ -115,6 +116,12 @@ const RateLimiter = require('limiter').RateLimiter;
       }
     );
 
+    router.get('/accounts/notification-all-peep/',
+      new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+        new AccountRoute().listPEEPOnNotificationScreen(req, res);
+      }
+    );
+
   }
 
 	/**
@@ -125,6 +132,45 @@ const RateLimiter = require('limiter').RateLimiter;
 	*/
 	constructor() {
 		super();
+  }
+
+  public async listPEEPOnNotificationScreen(req, res) {
+    const buildingId = req.query.building;
+    let locations = [];
+    const tempIds = [];
+    let finalPeepList = [];
+    let accountPeep = [];
+    let emPeep = [];
+
+
+    const locationObj = new Location();
+    locations = await locationObj.getParentsChildren(buildingId, 0);
+    locations.push(buildingId);
+
+    const peepObj = new MobilityImpairedModel();
+    accountPeep = await peepObj.listAllMobilityImpaired(req.user.account_id, locations, 'account');
+    emPeep = await peepObj.listAllMobilityImpaired(req.user.account_id, locations, 'emergency');
+
+    accountPeep = accountPeep.concat(emPeep);
+
+    for (const peep of accountPeep) {
+      if (tempIds.indexOf(peep['user_id']) == -1) {
+        tempIds.push(peep['user_id']);
+        if (peep['date_created'] == null) {
+          peep['status'] = 'Not validated';
+        } else {
+          peep['status'] = 'Validated';
+        }
+        finalPeepList.push(peep);
+      }
+    }
+
+    return res.status(200).send({
+      message: 'Success',
+      data: finalPeepList
+    });
+
+
   }
 
   public async listWardensOnNotificationScreen(req, res) {
@@ -191,9 +237,10 @@ const RateLimiter = require('limiter').RateLimiter;
     const configDBData = await configurator.load();
 
     const user = new User(uid);
+
     const userDbData = await user.load();
     const authRoute = new AuthenticateLoginRoute();
-    const userRole = new UserRoleRelation()
+    const userRole = new UserRoleRelation();
     let hasFrpTrpRole = false;
 
 
@@ -259,10 +306,16 @@ const RateLimiter = require('limiter').RateLimiter;
     const tokenObj = new NotificationToken();
     const  bytes = cryptoJs.AES.decrypt(''+strToken, process.env.KEY);
     const strTokenDecoded = bytes.toString(cryptoJs.enc.Utf8);
+    const authRoute = new AuthenticateLoginRoute();
 
     const parts = strTokenDecoded.split('_');
     const uid = parts[1];
     const configId = parts[3];
+
+    const user = new User(uid);
+    await user.load();
+    const userRole = new UserRoleRelation();
+    let hasFrpTrpRole = false;
 
     const tokenDbData = await tokenObj.loadByContraintKeys(uid, configId);
     // console.log(tokenDbData);
@@ -280,6 +333,14 @@ const RateLimiter = require('limiter').RateLimiter;
       return res.redirect('/success-valiadation?verify-notified-user=0');
     }
 
+    try{
+      await userRole.getByUserId(uid);
+      hasFrpTrpRole = true;
+    } catch (e){
+      hasFrpTrpRole = false;
+    }
+
+    const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
     // update record
     await tokenObj.create({
       strToken: '',
@@ -297,7 +358,30 @@ const RateLimiter = require('limiter').RateLimiter;
       configDBData['user_responded'] = userResponded.join(',');
       await configurator.create(configDBData);
     }
-    return res.redirect('/success-valiadation?verify-notified-user=1');
+
+    const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
+    let stringUserData = JSON.stringify(loginResponse.data);
+    stringUserData = stringUserData.replace(/\'/gi, '');
+
+    if (hasFrpTrpRole) {
+      const redirectUrl = req.protocol + '://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
+      const script = `
+                  <h4>Redirecting...</h4>
+                  <script>
+                    localStorage.setItem('currentUser', '${loginResponse.token}');
+                    localStorage.setItem('userData', '${stringUserData}');
+
+                    setTimeout(function(){
+                      window.location.replace("${redirectUrl}")
+                    }, 1000);
+                  </script>
+              `;
+      res.status(200).send(script);
+    } else {
+      return res.redirect('/success-valiadation?verify-notified-user=1');
+    }
+
+
 
 
 

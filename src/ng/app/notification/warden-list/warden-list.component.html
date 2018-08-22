@@ -23,6 +23,9 @@
                 </thead>
 
                 <tbody>
+                   <tr *ngIf="wardens.length == 0">
+                     <td colspan="4">No records found</td>
+                   </tr>
                     <tr *ngFor="let warden of wardens">
                         <td>{{warden['name']}}</td>
                         <td>{{warden['first_name']}} {{warden['last_name']}}</td>
@@ -33,10 +36,11 @@
             </table>
 
             <div class="right-align">
-                <button class="btn blue waves-effect waves-light">Update Warden List</button>
-                <button class="btn orange waves-effect waves-light">Next</button>
+                <button [routerLink]="['/teams', 'list-wardens']" class="btn blue waves-effect waves-light" type="button">Update Warden List</button>
+                <button [routerLink]="['/dashboard', 'notification-peep-list', encryptedToken]"class="btn orange waves-effect waves-light">Next</button>
             </div>
 
         </div>
     </div>
 </div>
+<div preloader></div>

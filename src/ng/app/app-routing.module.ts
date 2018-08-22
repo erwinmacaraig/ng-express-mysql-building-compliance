@@ -95,7 +95,7 @@ import { NotificationConfigurationComponent } from './notification/configuration
 import { NotifiedUsersListComponent } from './notification/notified-users-list/notified-users-list.component';
 import { NotificationQueryComponent } from './notification/queries/notification-queries.component';
 import { NotificationWardenListComponent } from './notification/warden-list/warden-list.component';
-
+import { NotificationPEEPListComponent } from './notification/peep-list/peep-list.component';
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -141,6 +141,7 @@ const appRoutes: Routes = [
       { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
       { path: 'process-notification-queries/:token', component: NotificationQueryComponent },
       { path: 'notification-warden-list/:token', component: NotificationWardenListComponent },
+      { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent },
       { path: 'send-invite', component : SendInviteComponent },
       { path: 'security-privacy', component : SecurityPrivacyComponent }
 

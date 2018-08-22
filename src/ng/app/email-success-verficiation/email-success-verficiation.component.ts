@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 declare var $: any;
 
 @Component({
   selector: 'app-email-success-verficiation',
   templateUrl: './email-success-verficiation.component.html',
-  styleUrls: ['./email-success-verficiation.component.css']
+  styleUrls: ['./email-success-verficiation.component.css'],
+  providers: [AuthService]
 })
 export class EmailSuccessVerficiationComponent implements OnInit {
   public showCheckIcon = true;
@@ -14,7 +16,33 @@ export class EmailSuccessVerficiationComponent implements OnInit {
   private modalElem;
   public message;
   public isUserVerification = false;
-  constructor(private router: Router, private route: ActivatedRoute) {
+  public notification_token = '';
+  public isAccountRole = false;
+  constructor(private router: Router, private route: ActivatedRoute, private authService: AuthService) {
+
+
+  }
+
+  closeWindow(){
+    window.close();
+  }
+
+  showNotificationWardenList() {
+    setTimeout(() => {
+      this.router.navigate(['/dashboard', 'notification-warden-list', this.notification_token]);
+    }, 1500);
+
+  }
+
+  ngOnInit() {
+    this.modalElem = $('#modalMsg');
+		// init modal
+		this.modalElem.modal({
+			dismissible: false
+		});
+
+    this.modalElem.modal('open');
+    //
     this.message = 'You have successfully verified your account.';
 
     if (this.route.snapshot.queryParams['account-validation']) {
@@ -27,11 +55,11 @@ export class EmailSuccessVerficiationComponent implements OnInit {
       this.showCheckIcon = false;
     }
 
-    if( this.route.snapshot.queryParams['user-location-verification'] ){
+    if (this.route.snapshot.queryParams['user-location-verification'] ){
       this.isUserVerification = true;
-      if( this.route.snapshot.queryParams['user-location-verification'] == 'true' ){
+      if (this.route.snapshot.queryParams['user-location-verification'] == 'true' ){
         this.message = 'You have successfully validated the user.';
-      }else{
+      } else {
         this.showCheckIcon = false;
         this.message = 'This may already verified or this request is invalid';
         this.showClose = true;
@@ -43,6 +71,16 @@ export class EmailSuccessVerficiationComponent implements OnInit {
       this.isUserVerification = true;
       if (verification == 1) {
         this.message = 'You successfully validated your tenancy.';
+
+        if (this.route.snapshot.queryParams['token']) {
+          this.notification_token = this.route.snapshot.queryParams['token'];
+
+          const role = this.authService.getHighestRankRole();
+          if (role <= 2) {
+            this.isAccountRole = true;
+          }
+        }
+
       } else {
         this.showCheckIcon = false;
         this.message = 'Invalid token used.';
@@ -59,21 +97,11 @@ export class EmailSuccessVerficiationComponent implements OnInit {
         this.showClose = true;
       }
     }
+    //
 
-  }
 
-  closeWindow(){
-    window.close();
-  }
 
-  ngOnInit() {
-    this.modalElem = $('#modalMsg');
-		// init modal
-		this.modalElem.modal({
-			dismissible: false
-		});
 
-    this.modalElem.modal('open');
 
   }
 

@@ -131,4 +131,11 @@ export class AccountsDataProviderService {
     return this.http.get(`${this.baseUrl}/accounts/notification-all-wardens/`, this.options);
   }
 
+  listPeepOnNotificationFinalScreen(buildingId = '0') {
+    const httpParams = new HttpParams().set('building', buildingId);
+    this.options['params'] = httpParams;
+    return this.http.get(`${this.baseUrl}/accounts/notification-all-peep/`, this.options);
+  }
+
+
 }

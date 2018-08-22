@@ -4,16 +4,18 @@ import { ActivatedRoute } from '@angular/router';
 import { FormControl, Validators } from '@angular/forms';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { LocationsService } from '../../services/locations';
+import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs/Subscription';
 @Component({
   selector: 'app-notification-query',
   templateUrl: './notification-queries.component.html',
   styleUrls: ['./notification-queries.component.css'],
-  providers: [EncryptDecryptService, AccountsDataProviderService, LocationsService]
+  providers: [EncryptDecryptService, AccountsDataProviderService, LocationsService, AuthService]
 })
 export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private token = '';
+  public encryptedToken = '';
   private userId = 0;
   private location_id = 0;
   private configId = 0;
@@ -23,6 +25,7 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
   private building_id = 0;
   public sublocations = [];
   private sub: Subscription;
+  public isAccountRole = false;
 
   public primaryQuestionField: FormControl;
   public otherInfoField: FormControl;
@@ -33,7 +36,8 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
 
   constructor(private route: ActivatedRoute, private cryptor: EncryptDecryptService,
               private accountService: AccountsDataProviderService,
-              private locationService: LocationsService) {}
+              private locationService: LocationsService,
+              private authService: AuthService) {}
 
   ngOnInit() {
     this.primaryQuestionField = new FormControl(null, Validators.required);
@@ -45,6 +49,7 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
 
     this.route.params.subscribe((params) => {
       this.token = this.cryptor.decryptUrlParam(params['token']);
+      this.encryptedToken = params['token'];
       // split string
       const parts: Array<string> = this.token.split('_');
       console.log(parts);
@@ -61,6 +66,12 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
       });
 
     });
+
+    const role = this.authService.getHighestRankRole();
+    if (role <= 2) {
+      this.isAccountRole = true;
+    }
+
   }
 
   ngAfterViewInit() {}
