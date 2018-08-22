@@ -98,6 +98,10 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
       this.state = -1;
     }
 
+    setTimeout(() => {
+        window['Materialize'].updateTextFields();
+    },300);
+
   }
 
 
