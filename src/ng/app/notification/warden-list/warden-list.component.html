@@ -17,40 +17,289 @@
                </div>
             </div>
 
-            <div class="table-container">
-                <table class="table striped">
-                    <thead>
-                        <tr>
-                            <th>Sublocations</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Mobile</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
+            <p style="font-size: 20px;">Check current warden list</p>
+            
+            <table class="table striped">
+                <thead>
+                    <tr>
+                        <th>Sublocations</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                        <th style="width: 210px;">Action</th>
+                    </tr>
+                </thead>
 
-                    <tbody>
-                       <tr *ngIf="wardens.length == 0">
-                         <td colspan="5" class="center">No records found</td>
-                       </tr>
-                        <tr *ngFor="let warden of wardens">
-                            <td>{{warden['name']}}</td>
-                            <td>{{warden['first_name']}} {{warden['last_name']}}</td>
-                            <td>{{warden['email']}}</td>
-                            <td>{{warden['mobile_number']}}</td>
-                            <td><button [routerLink]="['/teams', 'view-user', warden['encrypted_user_id']]" class="btn blue waves-effect waves-light action" type="button">Edit</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                <tbody>
+                   <tr *ngIf="wardens.length == 0">
+                     <td colspan="5" class="center">No records found</td>
+                   </tr>
+                    <tr *ngFor="let warden of wardens; let i = index">
+                        <td>{{warden['name']}}</td>
+                        <td>{{warden['first_name']}} {{warden['last_name']}}</td>
+                        <td>{{warden['email']}}</td>
+                        <td>{{warden['mobile_number']}}</td>
+                        <td style="padding: 0px 10px;">
+                            <div class="select-action-table">
+                                <select class="to-materialize select-action" [attr.index]="i">
+                                    <option value="0" disabled selected>Select Action</option>
+                                    <option value="profile">Update Profile</option>
+                                    <option value="credential">Update Credential</option>
+                                    <option value="location">Assign Location & Role</option>
+                                </select>
+                            </div>
+                            <button class="btn red waves-effect waves-light archive-button" type="button" (click)="archiveClick(warden)">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
             <div class="right-align">
-                <button [routerLink]="['/teams', 'list-wardens']" class="btn btn-proceed blue waves-effect waves-light" type="button">Update Warden List</button>
-                <button [routerLink]="['/dashboard', 'notification-peep-list', encryptedToken]" class="btn btn-proceed orange waves-effect waves-light">Next</button>
+                <button [routerLink]="['/dashboard', 'notification-peep-list', encryptedToken]"class="btn btn-proceed orange waves-effect waves-light">Next</button>
             </div>
 
         </div>
     </div>
+</div>
+<div preloader></div>
+
+
+<div id="modalUpdateProfile" class="modal">
+
+    <div class="modal-content center" [hidden]="!showModalProdfileLoader">
+        <div class="preloader-wrapper active">
+            <div class="spinner-layer spinner-red-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form #formProfile="ngForm" (submit)="submitUpdateProfile(formProfile)" [hidden]="showModalProdfileLoader">
+
+        <div class="modal-content">
+            <h5>Update {{selectedUser.first_name+' '+selectedUser.last_name}}'s Profile</h5>
+            <div class="row">
+                <div class="col s12">
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" name="first_name" ngModel  required>
+                </div>
+                <div class="col s12">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" name="last_name" ngModel  required>
+                </div>
+                <div class="col s12">
+                    <label for="contactInformation">Contact Information</label>
+                    <input type="text" id="contactInformation" ngModel name="mobile_number" >
+                </div>
+
+                <input type="text" name="user_id" ngModel required style="visibility: hidden;">
+                <!-- <div class="col s12">
+                    <label for="userEmail">Email</label>
+                    <input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
+                </div> -->
+            </div>
+
+            <div class="row button-container">
+                <div class="col s12 m12 l12 right-align">
+                    <a  class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+                    <button type="submit" class="btn orange waves-light waves-effect" [disabled]="formProfile.invalid">Submit</button>
+                </div>
+            </div>
+        </div>
+
+
+    </form>
+</div>
+
+<div id="modalCredentials" class="modal">
+
+    <div class="modal-content center" [hidden]="!showModalCredentialsLoader">
+        <div class="preloader-wrapper active">
+            <div class="spinner-layer spinner-red-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form #formCredential="ngForm" (submit)="submitCredential(formCredential)" [hidden]="showModalCredentialsLoader">
+
+        <div class="modal-content">
+            <h5>Update {{selectedUser.first_name+' '+selectedUser.last_name}}'s Credential</h5>
+            <div class="row">
+                <div class="col s12">
+                    <label for="userEmail">Email</label>
+                    <input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
+                </div>
+
+                <div class="col s12">
+
+                    <label for="inpPassword">Password
+                        <small *ngIf=" inputPassword.value != inputConfirmPassword.value "> *Mismatched </small>
+                    </label>
+
+                    <input id="inpPassword" type="password" name="password" ngModel #inputPassword="ngModel"
+                    [ngClass]="{
+                        'invalid' : !inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+                    }"
+                    required minlength="6" maxlength="150"  >
+
+                </div>
+
+                <div class="col s12">
+
+                    <label for="confirmPassword"> Confirm password</label>
+
+                    <input id="confirmPassword" type="password" ngModel name="confirm_password"
+                        ngModel #inputConfirmPassword="ngModel"
+                        [ngClass]="{
+                            'invalid' : !inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+                        }"
+                        required minlength="6" maxlength="150" >
+
+                </div>
+
+                <input type="text" name="user_id" ngModel required style="visibility: hidden;">
+
+            </div>
+
+            <div class="row button-container">
+                <div class="col s12 m12 l12 right-align">
+                    <a  class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+                    <button type="submit" class="btn orange waves-light waves-effect"
+                    [disabled]="
+                    formCredential.invalid ||
+                    (!inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)) ||
+                    (!inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value))">Submit</button>
+                </div>
+            </div>
+        </div>
+
+
+    </form>
+</div>
+
+<div id="modalAssignLocations" class="modal modal-sublocations">
+    
+    <div [hidden]="!showLocationLoading">
+        <div class="modal-content center" >
+            <h5>Loading....</h5>
+        </div>
+    </div>
+
+    <div [hidden]="showLocationLoading">
+        
+        <div [hidden]="showSelectLocation">
+            <div class="modal-content"  >
+                <h5>Assign {{ selectedUser.first_name + ' ' + selectedUser.last_name}} To Locations
+                    <a  class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
+                </h5>
+
+
+                <form #formAssignLocation>
+
+                <table class="table striped">
+                    <thead>
+                        <tr>
+                            <th>Location</th>
+                            <th style="width: 30%;">Role</th>
+                            <th style="width: 9%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let loc of toEditLocations; let i = index;">
+                            <td *ngIf="!loc.deleted">
+                                <a  class="blue-text change-location" (click)="clickSelectLocation(loc)" *ngIf="loc.location_id > 0">{{loc.name}} </a>
+
+                                <a  class="blue-text change-location" (click)="clickSelectLocation(loc)" *ngIf="loc.location_id == 0"> Select Location </a>
+
+                                <input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
+                            </td>
+                            <td *ngIf="!loc.deleted">
+                                <select name="role_id[{{i}}]" style="display: block;" (change)="onChangeSelectRole(loc, $event.currentTarget.value)" >
+                                    <option value="0" [selected]="loc.role_id == 0" disabled>Select Role</option>
+                                    <option value="1" [selected]="loc.role_id == 1">Building Manager</option>
+                                    <option value="2" [selected]="loc.role_id == 2">Tenancy Responsible Personnel</option>
+                                    <option value="{{eco.em_roles_id}}" *ngFor="let eco of ecoRoles" [selected]="loc.role_id == eco.em_roles_id ">
+                                        {{eco.role_name}}
+                                    </option>
+                                </select>
+                            </td>
+                            <td *ngIf="!loc.deleted">
+                                <a  class="red-text delete" (click)="removeAssigned(i)">Delete</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="button-container right-align">
+                    <a class="btn grey lighten-1 waves-effect waves-light modal-close"> Cancel </a>
+                    <button type="submit" class="btn orange waves-effect waves-light"  (click)="saveLocationAssignments($event)" > Save </button>
+                </div>
+
+                </form>
+            </div>
+        </div>
+
+        <div [hidden]="!showSelectLocation">
+            <div class="modal-content">
+                <h5>Select Location for {{selectedUser.first_name+' '+selectedUser.last_name}}</h5>
+                <div class="search-container" >
+                    <div class="input-container">
+                        <input type="text" placeholder="Search Location" #modalSearchLocation  >
+                    </div>
+                    <div class="icon-container">
+                        <img src="assets/images/locations/search_icon.png" alt="">
+                    </div>
+                </div>
+
+                <form #formLoc (submit)="submitSelectLocationModal(formLoc, $event)">
+
+                <div class="list-region" style="overflow-y: auto; height: 340px;">
+                    <p *ngIf="locations.length == 0">No location found</p>
+                    <ul class="locations">
+                    </ul>
+                </div>
+
+                <div class="button-container">
+                    <a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
+                    <button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLocValid" *ngIf="locations.length > 0"> Submit </button>
+                </div>
+
+                </form>
+            </div>
+        </div>
+        
+    </div>
+
+</div>
+
+
+<div id="modalArchive" class="modal">
+
+    <div class="modal-content">
+        <h5>Please confirm archive action to</h5>
+        <h5>{{selectedUser.first_name+' '+selectedUser.last_name}}</h5>
+        <div style="height: 40px;"></div>
+        <div class="button-container right-align">
+            <a  class="btn grey lighten-1 waves-light waves-effect modal-close">Cancel</a>
+            <button class="btn orange waves-effect waves-light" (click)="confirmArchive()">Confirm Action</button>
+        </div>
+    </div>
+
 </div>
 
 <div id="modalAddUser" class="modal">
