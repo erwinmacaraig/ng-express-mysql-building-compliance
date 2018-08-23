@@ -4,12 +4,14 @@
         <h5>
             {{ message }}
         </h5>
+        <br /><br />
+        <a *ngIf="showLogin" [routerLink]="['/login']">Login</a>
 </ng-template>
 
 <ng-template #stepsContent>
     <div class="center-align">
         <p class="welcome-text">Welcome to EvacConnect's tenant confirmation process</p>
-        <p class="tag-text">You will be taken through below steps to validate the user data in EvacConnect</p>
+        <!-- <p class="tag-text">You will be taken through below steps to validate the user data in EvacConnect</p> -->
 
         <h4 class="blue-text font-28">Step 1 </h4>
         <h5 class="font-18"> Check and confirm the warden for your tenancy</h5>
@@ -24,10 +26,10 @@
 <div id="modalMsg" class="modal">
 	<div class="modal-content center-align">
 		<div *ngIf="content == 'main'">
-            <ng-container *ngTemplateOutlet="mainContent"></ng-container>      
+            <ng-container *ngTemplateOutlet="mainContent"></ng-container>
         </div>
         <div *ngIf="content == 'steps'">
-            <ng-container *ngTemplateOutlet="stepsContent"></ng-container>      
+            <ng-container *ngTemplateOutlet="stepsContent"></ng-container>
         </div>
 	</div>
 	<div class="modal-footer">

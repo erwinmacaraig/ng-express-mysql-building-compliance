@@ -12,13 +12,10 @@
             </div>
             <div class="row">
                <div class="col l12 m12 s12">
-                <span style="font-size: 20px;">Check current warden list</span>
+                <span style="font-size: 20px;">Review your current warden list</span>
                 <button type="button" class="btn btn-proceed orange waves-effect waves-light pull right" (click)="showAddUserForm()">Add User</button>
                </div>
             </div>
-
-            <p style="font-size: 20px;">Check current warden list</p>
-
             <table class="table striped">
                 <thead>
                     <tr>
@@ -344,7 +341,7 @@
               <option [value]="null" [disabled]="true == true">Select Location</option>
               <option *ngFor="let sublocation of sublocations" [value]="sublocation['location_id']">{{sublocation['name']}}</option>
             </select>
-            <br />
+            <br
           </div>
 
           <div class="col s12">

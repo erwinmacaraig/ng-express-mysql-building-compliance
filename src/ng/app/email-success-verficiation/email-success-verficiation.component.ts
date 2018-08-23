@@ -19,6 +19,7 @@ export class EmailSuccessVerficiationComponent implements OnInit {
   public notification_token = '';
   public isAccountRole = false;
   public content = 'main';
+  public showLogin = false;
   constructor(private router: Router, private route: ActivatedRoute, private authService: AuthService) {
 
 
@@ -88,8 +89,14 @@ export class EmailSuccessVerficiationComponent implements OnInit {
 
       } else {
         this.showCheckIcon = false;
-        this.message = 'Invalid token used.';
+        this.message = `Your token has expired.
+
+        For security reasons, tokens only remain valid for 1 use or 24 hours.
+
+        Don't worry though, you can still manage your compliance by logging in to EvacConnect
+        `;
         this.showClose = true;
+        this.showLogin = true;
       }
     }
 
