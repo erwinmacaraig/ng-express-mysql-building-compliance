@@ -491,7 +491,7 @@ const RateLimiter = require('limiter').RateLimiter;
         from : '',
         fromName : 'EvacConnect',
         to : ['emacaraig@evacgroup.com.au'],
-        cc: [],
+        cc: ['jmanoharan@evacgroup.com.au', 'adelfin@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
