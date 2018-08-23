@@ -232,6 +232,7 @@ export class MobilityImpairedModel extends BaseClass {
         AND
           users.mobility_impaired = 1
           ${whereClause}
+        AND users.archived = 0
         GROUP BY users.user_id
       `;
       } else if (type === 'emergency') {
@@ -264,6 +265,7 @@ export class MobilityImpairedModel extends BaseClass {
             users.account_id = ?
           AND
             users.mobility_impaired = 1 ${whereClause}
+          AND users.archived = 0
           GROUP BY users.user_id
         `;
       }
