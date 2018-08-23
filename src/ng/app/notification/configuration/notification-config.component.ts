@@ -23,7 +23,23 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
   public frequency_field: FormControl;
   public eco_user: FormControl;
   private sub: Subscription;
-  public defaultMessage = 'Test Message';
+  public defaultMessage = `
+
+Thank you again for your active participation and commitment to promote proactive safety within your building.
+
+Sincerely,
+The EvacConnect Engagement team
+Email: systems@evacgroup.com.au
+Phone: 1300 922 437
+
+Would you like more information on EvacConnect or Emergency Planning?
+The importance of planning for emergencies
+
+EvacConnect for Tenant Responsible Persons - an instructional video
+
+Provide feedback on your experience using EvacConnect
+
+`;
   public buildingArray = [];
   constructor(private accountService: AccountsDataProviderService, private router: Router) {}
 
@@ -37,9 +53,15 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
     });
     this.searchBldgField = new FormControl();
     this.sub = this.buildingSearches();
+    setTimeout(() => {
+      $('.materialize-textarea').trigger('autoresize');
+    }, 600);
+
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+
+  }
 
   ngOnDestroy() {
     this.sub.unsubscribe();

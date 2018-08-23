@@ -502,11 +502,15 @@ const RateLimiter = require('limiter').RateLimiter;
       const yesLink = req.protocol + '://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 
-      emailBody += `<h3 style="text-transform:capitalize;">Hi ${u['first_name']} ${u['last_name']} - ${u['email']},</h3>
-      <h5>${config['message']}</h5>
-	    <h4>Are you still ${u['role_name']} for ${u['account_name']} Tenancy on ${u['parent_location']} ${u['name']}</h4>
-	    <a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a>
-      <br>`;
+      emailBody += `<h3 style="text-transform:capitalize;">Hi ${u['first_name']} ${u['last_name']},</h3>
+	    Please confirm you are still the ${u['role_name']} for ${u['account_name']} at ${u['parent_location']}, ${u['name']}
+      <br /><br />
+      <a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a>
+      <br />
+      <pre>${config['message']}</pre>
+      `;
+
+
 
       emailBody += email.getEmailHTMLFooter();
       email.assignOptions({

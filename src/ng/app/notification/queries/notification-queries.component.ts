@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, Validators } from '@angular/forms';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { LocationsService } from '../../services/locations';
@@ -37,7 +37,8 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
   constructor(private route: ActivatedRoute, private cryptor: EncryptDecryptService,
               private accountService: AccountsDataProviderService,
               private locationService: LocationsService,
-              private authService: AuthService) {}
+              private authService: AuthService,
+              private router: Router) {}
 
   ngOnInit() {
     this.primaryQuestionField = new FormControl(null, Validators.required);
@@ -77,7 +78,7 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
   ngAfterViewInit() {}
 
   ngOnDestroy() {
-
+    this.sub.unsubscribe();
   }
   confirmPrimaryQuestion() {
     this.state = 1;
@@ -110,7 +111,7 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
 
     setTimeout(() => {
         window['Materialize'].updateTextFields();
-    },300);
+    }, 300);
 
   }
 
@@ -146,8 +147,14 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
       question: 'What is the location name of the new location provided',
       ans: this.sublocations[this.newSublocationField.value]['name']
     });
-    this.sub = this.sendResponseToNotifcation(1, 'Resigned');
-    this.state = -1;
+    this.sub = this.sendResponseToNotifcation(1, 'Validated');
+    if (this.isAccountRole) {
+      this.router.navigate(['/dashboard', 'notification-warden-list', this.encryptedToken]);
+    } else {
+      this.state = -1;
+    }
+
+
   }
 
   private sendResponseToNotifcation(completed = 0, status = 'In Progress'): Subscription {
