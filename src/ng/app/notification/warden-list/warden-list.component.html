@@ -18,7 +18,7 @@
             </div>
 
             <p style="font-size: 20px;">Check current warden list</p>
-            
+
             <table class="table striped">
                 <thead>
                     <tr>
@@ -193,7 +193,7 @@
 </div>
 
 <div id="modalAssignLocations" class="modal modal-sublocations">
-    
+
     <div [hidden]="!showLocationLoading">
         <div class="modal-content center" >
             <h5>Loading....</h5>
@@ -201,7 +201,7 @@
     </div>
 
     <div [hidden]="showLocationLoading">
-        
+
         <div [hidden]="showSelectLocation">
             <div class="modal-content"  >
                 <h5>Assign {{ selectedUser.first_name + ' ' + selectedUser.last_name}} To Locations
@@ -282,7 +282,7 @@
                 </form>
             </div>
         </div>
-        
+
     </div>
 
 </div>
@@ -305,54 +305,60 @@
 <div id="modalAddUser" class="modal">
   <div class="modal-content">
     <form novalidate [formGroup]="addUserForm">
-        <div class="input-field col m12">
-            <input formControlName="first_name_field" type="text" id="first_name_field" name="first_name_field">
-            <label for="first_name_field" class="active">First Name</label>
-          </div>
+      <div class="row">
+        <div class="col s12">
+          <label for="first_name_field">First Name</label>
+          <input formControlName="first_name_field" type="text" id="first_name_field" name="first_name_field" autocomplete="off">
+        </div>
 
-          <div class="input-field col m12">
-            <input formControlName="last_name_field" type="text" id="last_name_field" name="last_name_field">
-            <label for="last_name_field" class="active">Last Name</label>
-          </div>
-
-          <div class="input-field col m12">
-            <input formControlName="email_field" type="text" id="email_field" name="email_field">
-            <label for="email_field" class="active">Email
-              <span *ngIf="addUserForm.controls['email_field'].touched && !addUserForm.controls['email_field'].valid">
-                Please provide a valid email.
-              </span>
-              <span *ngIf="addUserForm.controls['email_field'].errors && addUserForm.controls['email_field'].errors['emailIsForbidden']">
-                Email already taken.
-              </span>
-
-            </label>
+          <div class="col s12">
+            <label for="last_name_field">Last Name</label>
+            <input formControlName="last_name_field" type="text" id="last_name_field" name="last_name_field" autocomplete="off">
 
           </div>
 
-          <div class="col m12">
+          <div class="col s12">
+              <label for="email_field">Email
+                  <span *ngIf="addUserForm.controls['email_field'].touched && !addUserForm.controls['email_field'].valid">
+                    Please provide a valid email.
+                  </span>
+                  <span *ngIf="addUserForm.controls['email_field'].errors && addUserForm.controls['email_field'].errors['emailIsForbidden']">
+                    Email already taken.
+                  </span>
+                </label>
+            <input formControlName="email_field" type="text" id="email_field" name="email_field" autocomplete="off">
+
+          </div>
+
+          <div class="col s12">
             <select formControlName="role_field" id="role_field" style="display: block;">
                 <option [value]="null" [disabled]="true == true">Select Role</option>
               <option value="9"> Warden </option>
               <option value="10"> Floor / Area Warden </option>
             </select>
+            <br />
           </div>
 
-          <div class="col m12">
+          <div class="col s12">
             <select formControlName="location_field" style="display: block;" id="location_field">
               <option [value]="null" [disabled]="true == true">Select Location</option>
               <option *ngFor="let sublocation of sublocations" [value]="sublocation['location_id']">{{sublocation['name']}}</option>
             </select>
+            <br />
           </div>
 
-          <div class="input-field col m12">
-            <input formControlName="mobile_contact_field" type="text" id="mobile_contact_field">
-            <label for="mobile_contact_field" class="active">Contact Information</label>
+          <div class="col s12">
+              <label for="mobile_contact_field" class="active">Contact Information</label>
+            <input formControlName="mobile_contact_field" type="text" id="mobile_contact_field" autocomplete="off">
+
           </div>
 
-          <div class="button-container pull right">
-            <a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelAddUserModal()"> Cancel </a>
-            <button type="submit" [disabled]="!addUserForm.valid" class="btn orange waves-effect waves-light" (click)="createUser()"> Add </button>
-          </div>
+      </div>
+
+      <div class="button-container right-align">
+        <a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelAddUserModal()"> Cancel </a>
+        <button type="submit" [disabled]="!addUserForm.valid" class="btn orange waves-effect waves-light" (click)="createUser()"> Add </button>
+      </div>
     </form>
   </div>
 </div>
