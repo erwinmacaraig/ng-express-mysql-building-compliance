@@ -537,7 +537,7 @@ export class Location extends BaseClass {
             let archiveStr = (archived) ? archived : '0';
             let locationIds = [];
             let sql = `SELECT *
-            FROM (SELECT * FROM locations WHERE archived = ${archiveStr} ORDER BY parent_id, location_id) sublocations,
+            FROM (SELECT l.*, p.name as parent_name FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id WHERE l.archived = ${archiveStr} ORDER BY l.parent_id, l.location_id) sublocations,
             (SELECT @pi := ('${parentId}')) initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
             const connection = db.createConnection(dbconfig);
             connection.query(sql, (err, results, fields) => {

@@ -53,12 +53,12 @@ table{
   margin-right: -16px;
 }
 
-button.action {
-  font-size: 12px !important;
-  height: 35px !important;
-  padding: 0px 25px;
-  line-height: 13px;
-  text-transform: uppercase !important;
+.action {
+    font-size: 12px !important;
+    height: 35px !important;
+    padding: 0px 25px;
+    line-height: 35px;
+    text-transform: uppercase !important;
 }
 
 .btn-proceed{
@@ -68,4 +68,58 @@ button.action {
 
 .table-container{
     overflow: auto;
+}
+
+.archive-button{
+    display: inline-block;
+    height: 30px !important;
+    padding: 0px 5px;
+    line-height: 30px;
+}
+
+.archive-button .material-icons{
+    font-size: 19px;
+}
+
+.modal .btn{
+    font-size: 15px !important;
+    line-height: 45px;
+}
+
+.modal.modal-sublocations .search-container{
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 10px;
+    width: 100% !important;
+}
+
+.modal.modal-sublocations .search-container .input-container{
+    display: inline-block;
+    vertical-align: middle;
+    width: 94%;
+}
+
+.modal.modal-sublocations .search-container .input-container input{
+    margin-bottom: 0px;
+    border-bottom: 0px !important;
+}
+
+.modal.modal-sublocations .search-container .input-container input:focus{
+    border-bottom: 0px !important;
+    box-shadow: none !important;
+}
+
+.modal.modal-sublocations .search-container .icon-container{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#modalArchive{
+    width: 90%;
+}
+
+@media only screen and (min-width: 1024px) {
+    #modalArchive{
+        width: 30%;
+    }
 }
