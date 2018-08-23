@@ -68,3 +68,11 @@ table{
   vertical-align: middle;
   margin-right: -16px;
 }
+
+button.action {
+  font-size: 12px !important;
+  height: 35px !important;
+  padding: 0px 25px;
+  line-height: 13px;
+  text-transform: uppercase !important;
+}

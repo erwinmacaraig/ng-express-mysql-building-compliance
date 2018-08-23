@@ -39,6 +39,9 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         this.preloader.show();
         this.accountService.listWardensOnNotificationFinalScreen(this.building_id.toString()).subscribe((response) => {
           this.wardens = response['data'];
+          for (const warden of this.wardens) {
+            warden['encrypted_user_id'] = this.cryptor.encrypt(warden['user_id']);
+          }
           this.preloader.hide();
         }, (error) => {
           console.log(error);

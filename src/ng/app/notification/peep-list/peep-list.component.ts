@@ -37,6 +37,9 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
         this.preloader.show();
         this.accountService.listPeepOnNotificationFinalScreen(this.building_id.toString()).subscribe((response) => {
           this.peep = response['data'];
+          for (const p of this.peep) {
+            p['encrypted_user_id'] = this.cryptor.encrypt(p['user_id']);
+          }
           this.preloader.hide();
         }, (error) => {
           this.preloader.hide();

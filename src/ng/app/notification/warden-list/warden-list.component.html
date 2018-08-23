@@ -28,6 +28,7 @@
                         <th>Name</th>
                         <th>Email</th>
                         <th>Mobile</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
 
@@ -40,6 +41,7 @@
                         <td>{{warden['first_name']}} {{warden['last_name']}}</td>
                         <td>{{warden['email']}}</td>
                         <td>{{warden['mobile_number']}}</td>
+                        <td><button [routerLink]="['/teams', 'view-user', warden['encrypted_user_id']]" class="btn blue waves-effect waves-light action" type="button">Edit</button></td>
                     </tr>
                 </tbody>
             </table>
