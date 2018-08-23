@@ -2,14 +2,6 @@
     
     <div class="row">
         <div class="col l12 m12 s12">
-            <h1 class="welcome-text">
-                WELCOME TO EVACCONECT'S TENANT CONFIRMATION PROCESS
-            </h1>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col l12 m12 s12">
 
             <div class="steps-text">
                 <div class="circle"></div>
@@ -50,7 +42,7 @@
 
             <div class="right-align">
                 <button [routerLink]="['/teams', 'list-wardens']" class="btn btn-proceed blue waves-effect waves-light" type="button">Update Warden List</button>
-                <button [routerLink]="['/notification-peep-list', encryptedToken]"class="btn btn-proceed orange waves-effect waves-light">Next</button>
+                <button [routerLink]="['/dashboard', 'notification-peep-list', encryptedToken]"class="btn btn-proceed orange waves-effect waves-light">Next</button>
             </div>
 
         </div>

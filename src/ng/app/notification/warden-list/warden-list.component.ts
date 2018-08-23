@@ -51,13 +51,9 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
   }
 
   ngAfterViewInit() {
-      $('.modal-overlay').remove();
-      $('body').css({ 'overflow' : '' });
-      $('html').css('background-color', '#ddd');
   }
 
   ngOnDestroy() {
-      $('html').css('background-color', '');
   }
 
 

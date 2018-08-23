@@ -141,13 +141,12 @@ const appRoutes: Routes = [
       { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
       { path: 'process-notification-queries/:token', component: NotificationQueryComponent },
       { path: 'send-invite', component : SendInviteComponent },
-      { path: 'security-privacy', component : SecurityPrivacyComponent }
-
+      { path: 'security-privacy', component : SecurityPrivacyComponent },
+      { path: 'notification-warden-list/:token', component: NotificationWardenListComponent },
+      { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent }
     ]
   },
-  { path: 'notification-warden-list/:token', component: NotificationWardenListComponent },
-  { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent },
-  //
+  
   { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },
   { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },

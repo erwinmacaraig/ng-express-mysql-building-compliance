@@ -50,18 +50,14 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     });
   }
 
-  startConfirmation(){
+  nextAction(){
       this.container = 'thankyou';
-      $('.container').css('width', '700px');
   }
 
   ngAfterViewInit() {
-      $('html').css('background-color', '#ddd');
-      $('.container').css('width', '100%');
   }
 
   ngOnDestroy() {
-      $('html').css('background-color', '');
   }
 
 

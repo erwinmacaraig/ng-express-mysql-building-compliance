@@ -18,6 +18,7 @@ export class EmailSuccessVerficiationComponent implements OnInit {
   public isUserVerification = false;
   public notification_token = '';
   public isAccountRole = false;
+  public content = 'main';
   constructor(private router: Router, private route: ActivatedRoute, private authService: AuthService) {
 
 
@@ -81,7 +82,7 @@ export class EmailSuccessVerficiationComponent implements OnInit {
           }
 
           if(this.isUserVerification && this.isAccountRole){
-              this.router.navigate(['/notification-warden-list', this.notification_token]);
+             this.content = 'steps';
           }
         }
 

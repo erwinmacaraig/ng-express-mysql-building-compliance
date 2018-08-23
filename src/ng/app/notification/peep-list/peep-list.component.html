@@ -1,14 +1,6 @@
 <ng-template #mainContent>
     <div class="row">
         <div class="col l12 m12 s12">
-            <h1 class="welcome-text">
-                WELCOME TO EVACCONECT'S TENANT CONFIRMATION PROCESS
-            </h1>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col l12 m12 s12">
 
             <div class="steps-text">
                 <div class="circle"></div>
@@ -51,7 +43,7 @@
 
             <div class="right-align">
                 <button [routerLink]="['/teams', 'mobility-impaired']" class="btn btn-proceed blue waves-effect waves-light" type="button">Update PEEP List</button>
-                <button (click)="startConfirmation()" class="btn btn-proceed orange waves-effect waves-light">Start Confirmation</button>
+                <button (click)="nextAction()" class="btn btn-proceed orange waves-effect waves-light">Next</button>
             </div>
 
         </div>
@@ -60,11 +52,11 @@
 
 <ng-template #thanksContent>
     <div class="row">
-        <div class="col l12 m12 s12 center-align">
-            <p class="fs25">Thank you for validating records for your tenancy and helping us in planning for Emergency</p>
+        <div class="col l12 m12 s12 center-align" style="margin: 40px 0px;">
+            <p class="fs25" style="margin-bottom: 50px;">Thank you for validating records for your tenancy and helping us in planning for Emergency</p>
 
-            <button [routerLink]="['/dashboard']"  class="btn blue waves-effect waves-light">EXPLORE EvacConnect</button>
-            <button [routerLink]="['/signout']" class="btn orange waves-effect waves-light">LOGOUT</button>
+            <button [routerLink]="['/teams']"  class="btn btn-same-size blue waves-effect waves-light">EXPLORE EvacConnect</button>
+            <button [routerLink]="['/signout']" class="btn btn-same-size orange waves-effect waves-light">LOGOUT</button>
         </div>
     </div>
 </ng-template>
