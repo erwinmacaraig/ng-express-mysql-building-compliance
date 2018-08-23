@@ -532,7 +532,7 @@ const RateLimiter = require('limiter').RateLimiter;
         from : '',
         fromName : 'EvacConnect',
         to : ['emacaraig@evacgroup.com.au'],
-        cc: [],
+        cc: ['jmanoharan@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
@@ -544,7 +544,7 @@ const RateLimiter = require('limiter').RateLimiter;
       let emailBody = email.getEmailHTMLHeader();
 
       emailBody += `<h3 style="text-transform:capitalize;">Hi ${u['first_name']} ${u['last_name']},</h3>
-	    Please confirm you are still the ${u['role_name']} for ${u['account_name']} at ${u['parent_location']}, ${u['name']}
+	    Please confirm you are still the Tenant Responsible Person (TRP)* for ${u['account_name']} at ${u['parent_location']}, ${u['name']}
       <br /><br />
       <a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a>
       <br />
@@ -566,41 +566,7 @@ const RateLimiter = require('limiter').RateLimiter;
 
 
     }
-    /*
-    // send email
-    const configToken = new NotificationToken();
-    const sendOutToken = await configToken.getTokensByConfigId(configurator.ID());
 
-    for (const s of sendOutToken) {
-      const opts = {
-        from : '',
-        fromName : 'EvacConnect',
-        to : ['rsantos@evacgroup.com.au', 'allantaw2@gmail.com'],
-        cc: ['emacaraig@evacgroup.com.au'],
-        body : '',
-        attachments: [],
-        subject : 'EvacConnect Email Notification'
-      };
-      const email = new EmailSender(opts);
-      const link = req.protocol + '://' + req.get('host') + '/verify-notification/' + s['strToken'];
-      let emailBody = email.getEmailHTMLHeader();
-
-      emailBody += `<h3 style="text-transform:capitalize;">Hi ${s['first_name']} ${s['last_name']} - ${s['email']},</h3> <br/>
-      <h4>${config['message']}</h4>
-			<h5>Click on the link below for corresponding response </h5> <br/>
-			<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a>
-      <br>`;
-
-      emailBody += email.getEmailHTMLFooter();
-      email.assignOptions({
-        body : emailBody
-      });
-      email.send(
-        (data) => console.log(data),
-        (err) => console.log(err)
-      );
-    }
-    */
     return res.status(200).send({
       configId: configurator.ID()
     });
