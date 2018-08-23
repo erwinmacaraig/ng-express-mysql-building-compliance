@@ -25,6 +25,8 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
   private accountService: AccountsDataProviderService,
   private preloader: DashboardPreloaderService) {}
 
+  container = 'main';
+
   ngOnInit() {
     this.route.params.subscribe((params) => {
         const token = this.cryptor.decryptUrlParam(params['token']);
@@ -48,9 +50,19 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     });
   }
 
-  ngAfterViewInit() {}
+  startConfirmation(){
+      this.container = 'thankyou';
+      $('.container').css('width', '700px');
+  }
 
-  ngOnDestroy() {}
+  ngAfterViewInit() {
+      $('html').css('background-color', '#ddd');
+      $('.container').css('width', '100%');
+  }
+
+  ngOnDestroy() {
+      $('html').css('background-color', '');
+  }
 
 
 }

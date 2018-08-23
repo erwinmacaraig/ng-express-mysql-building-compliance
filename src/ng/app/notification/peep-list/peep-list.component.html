@@ -1,50 +1,81 @@
-<div class="container">
-  <div class="row">
-      <div class="col l12 m12 s12">
-
-        <div class="steps-text">
-          <div class="circle"></div>
-          <div class="text">Step 1</div>
-          <div class="dash"></div>
-          <div class="circle"></div>
-          <div class="text blue-text">Step 2</div>
+<ng-template #mainContent>
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <h1 class="welcome-text">
+                WELCOME TO EVACCONECT'S TENANT CONFIRMATION PROCESS
+            </h1>
         </div>
+    </div>
 
-          <p style="font-size: 20px;">Check current mobility impaired list</p>
+    <div class="row">
+        <div class="col l12 m12 s12">
 
-          <table class="table striped">
-              <thead>
-                  <tr>
-                      <th>Sublocations</th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Mobile</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                  </tr>
-              </thead>
+            <div class="steps-text">
+                <div class="circle"></div>
+                <div class="text">Step 1</div>
+                <div class="dash"></div>
+                <div class="circle"></div>
+                <div class="text blue-text">Step 2</div>
+            </div>
 
-              <tbody>
-                  <tr *ngIf="peep.length == 0">
-                    <td colspan="6">No records found</td>
-                  </tr>
-                  <tr *ngFor="let p of peep">
-                      <td>{{p['name']}}</td>
-                      <td>{{p['first_name']}} {{p['last_name']}}</td>
-                      <td>{{p['email']}}</td>
-                      <td>{{p['mobile_number']}}</td>
-                      <td>{{p['status']}}</td>
-                      <td> <button [routerLink]="['/teams', 'view-user', p['encrypted_user_id']]" class="btn blue waves-effect waves-light action" type="button"> Edit </button> </td>
-                  </tr>
-              </tbody>
-          </table>
+            <p style="font-size: 20px;">Check current mobility impaired list</p>
 
-          <div class="right-align">
-              <button [routerLink]="['/teams', 'mobility-impaired']" class="btn blue waves-effect waves-light" type="button">Update PEEP List</button>
-              <button [routerLink]="['/location', 'list']" class="btn orange waves-effect waves-light">Next</button>
-          </div>
+            <div class="table-container">
+                <table class="table striped">
+                    <thead>
+                        <tr>
+                            <th>Sublocations</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Mobile</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
 
-      </div>
-  </div>
+                    <tbody>
+                        <tr *ngIf="peep.length == 0">
+                            <td colspan="6" class="center">No records found</td>
+                        </tr>
+                        <tr *ngFor="let p of peep">
+                            <td>{{p['name']}}</td>
+                            <td>{{p['first_name']}} {{p['last_name']}}</td>
+                            <td>{{p['email']}}</td>
+                            <td>{{p['mobile_number']}}</td>
+                            <td>{{p['status']}}</td>
+                            <td> <button [routerLink]="['/teams', 'view-user', p['encrypted_user_id']]" class="btn blue waves-effect waves-light action" type="button"> Edit </button> </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="right-align">
+                <button [routerLink]="['/teams', 'mobility-impaired']" class="btn btn-proceed blue waves-effect waves-light" type="button">Update PEEP List</button>
+                <button (click)="startConfirmation()" class="btn btn-proceed orange waves-effect waves-light">Start Confirmation</button>
+            </div>
+
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #thanksContent>
+    <div class="row">
+        <div class="col l12 m12 s12 center-align">
+            <p class="fs25">Thank you for validating records for your tenancy and helping us in planning for Emergency</p>
+
+            <button [routerLink]="['/dashboard']"  class="btn blue waves-effect waves-light">EXPLORE EvacConnect</button>
+            <button [routerLink]="['/signout']" class="btn orange waves-effect waves-light">LOGOUT</button>
+        </div>
+    </div>
+</ng-template>
+
+
+<div class="container">
+    <div *ngIf="container == 'main'">
+        <ng-container *ngTemplateOutlet="mainContent"></ng-container>
+    </div>
+    <div *ngIf="container == 'thankyou'">
+        <ng-container *ngTemplateOutlet="thanksContent"></ng-container>
+    </div>
 </div>
 <div preloader></div>

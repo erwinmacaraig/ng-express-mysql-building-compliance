@@ -81,7 +81,7 @@ export class EmailSuccessVerficiationComponent implements OnInit {
           }
 
           if(this.isUserVerification && this.isAccountRole){
-              this.router.navigate(['/dashboard', 'notification-warden-list', this.notification_token]);
+              this.router.navigate(['/notification-warden-list', this.notification_token]);
           }
         }
 
