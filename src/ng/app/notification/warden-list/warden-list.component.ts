@@ -1,3 +1,4 @@
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { ActivatedRoute } from '@angular/router';
@@ -5,6 +6,9 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+
+
+declare var $: any;
 @Component({
   selector: 'app-notification-warden-list',
   templateUrl: './warden-list.component.html',
@@ -20,6 +24,14 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
   private building_id = 0;
   public wardens = [];
   public encryptedToken = '';
+
+  addUserForm: FormGroup;
+  first_name_field: FormControl;
+  last_name_field: FormControl;
+  email_field: FormControl;
+  role_field: FormControl;
+  location_field: FormControl;
+  mobile_contact_field: FormControl;
 
   constructor(private route: ActivatedRoute, private cryptor: EncryptDecryptService,
   private accountService: AccountsDataProviderService,
@@ -48,12 +60,31 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
           this.preloader.hide();
         });
     });
+
+    this.addUserForm = new FormGroup({
+      first_name_field: new FormControl(null, Validators.required),
+      last_name_field: new FormControl(null, Validators.required),
+      email_field: new FormControl(null, Validators.required),
+      role_field: new FormControl(null, Validators.required),
+      location_field: new FormControl(null, Validators.required),
+      mobile_contact_field: new FormControl()
+    });
   }
 
   ngAfterViewInit() {
+    $('.modal').modal({
+      dismissible: false
+    });
   }
 
   ngOnDestroy() {
+  }
+
+  showAddUserForm() {
+    $('#modalAddUser').modal('open');
+  }
+  cancelAddUserModal() {
+    $('#modalAddUser').modal('close');
   }
 
 

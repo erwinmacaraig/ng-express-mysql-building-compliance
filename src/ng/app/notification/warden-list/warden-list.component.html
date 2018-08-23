@@ -1,5 +1,5 @@
 <div class="container">
-    
+
     <div class="row">
         <div class="col l12 m12 s12">
 
@@ -10,9 +10,13 @@
                 <div class="circle"></div>
                 <div class="text">Step 2</div>
             </div>
+            <div class="row">
+               <div class="col l12 m12 s12">
+                <span style="font-size: 20px;">Check current warden list</span>
+                <button type="button" class="btn btn-proceed orange waves-effect waves-light pull right" (click)="showAddUserForm()">Add User</button>
+               </div>
+            </div>
 
-            <p style="font-size: 20px;">Check current warden list</p>
-            
             <div class="table-container">
                 <table class="table striped">
                     <thead>
@@ -42,10 +46,57 @@
 
             <div class="right-align">
                 <button [routerLink]="['/teams', 'list-wardens']" class="btn btn-proceed blue waves-effect waves-light" type="button">Update Warden List</button>
-                <button [routerLink]="['/dashboard', 'notification-peep-list', encryptedToken]"class="btn btn-proceed orange waves-effect waves-light">Next</button>
+                <button [routerLink]="['/dashboard', 'notification-peep-list', encryptedToken]" class="btn btn-proceed orange waves-effect waves-light">Next</button>
             </div>
 
         </div>
     </div>
 </div>
+
+<div id="modalAddUser" class="modal">
+  <div class="modal-content">
+    <form novalidate [formGroup]="addUserForm">
+        <div class="input-field col m12">
+            <input formControlName="first_name_field" type="text" id="first_name_field" name="first_name_field">
+            <label for="first_name_field" class="active">First Name</label>
+          </div>
+
+          <div class="input-field col m12">
+            <input formControlName="last_name_field" type="text" id="last_name_field" name="last_name_field">
+            <label for="last_name_field" class="active">Last Name</label>
+          </div>
+
+          <div class="input-field col m12">
+            <input formControlName="email_field" type="text" id="email_field" name="email_field">
+            <label for="email_field" class="active">Email</label>
+          </div>
+
+          <div class="col m12">
+            <select formControlName="role_field" id="role_field" style="display: block;">
+              <option disabled="" selected="" value="0">Select Role</option>
+              <option value="9"> Warden </option>
+              <option value="10"> Floor / Area Warden </option>
+            </select>
+          </div>
+
+          <div class="col m12">
+            <select formControlName="location_field" style="display: block;" id="location_field">
+              <option disabled="" selected="" value="0">Select Location</option>
+            </select>
+          </div>
+
+          <div class="input-field col m12">
+            <input formControlName="mobile_contact_field" type="text" id="mobile_contact_field">
+            <label for="mobile_contact_field" class="active">Contact Information</label>
+          </div>
+
+          <div class="button-container pull right">
+            <a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelAddUserModal()"> Cancel </a>
+            <button type="submit" class="btn orange waves-effect waves-light"> Add </button>
+          </div>
+    </form>
+  </div>
+</div>
+
+
 <div preloader></div>

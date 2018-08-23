@@ -483,7 +483,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
               };
             }
             */
-           
+
             findRelatedName = (data, mainParent?) => {
                 for ( let i = 0; i < data.length; i++) {
                     if (data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
