@@ -60,3 +60,12 @@ button.action {
   line-height: 13px;
   text-transform: uppercase !important;
 }
+
+.btn-proceed{
+    font-size: 14px !important;
+    margin: 5px 0px;
+}
+
+.table-container{
+    overflow: auto;
+}

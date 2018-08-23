@@ -18,6 +18,7 @@ export class EmailSuccessVerficiationComponent implements OnInit {
   public isUserVerification = false;
   public notification_token = '';
   public isAccountRole = false;
+  public content = 'main';
   constructor(private router: Router, private route: ActivatedRoute, private authService: AuthService) {
 
 
@@ -78,6 +79,10 @@ export class EmailSuccessVerficiationComponent implements OnInit {
           const role = this.authService.getHighestRankRole();
           if (role <= 2) {
             this.isAccountRole = true;
+          }
+
+          if(this.isUserVerification && this.isAccountRole){
+             this.content = 'steps';
           }
         }
 

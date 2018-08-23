@@ -1,4 +1,5 @@
 <div class="container">
+    
     <div class="row">
         <div class="col l12 m12 s12">
 
@@ -11,35 +12,37 @@
             </div>
 
             <p style="font-size: 20px;">Check current warden list</p>
+            
+            <div class="table-container">
+                <table class="table striped">
+                    <thead>
+                        <tr>
+                            <th>Sublocations</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Mobile</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
 
-            <table class="table striped">
-                <thead>
-                    <tr>
-                        <th>Sublocations</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Mobile</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                   <tr *ngIf="wardens.length == 0">
-                     <td colspan="5">No records found</td>
-                   </tr>
-                    <tr *ngFor="let warden of wardens">
-                        <td>{{warden['name']}}</td>
-                        <td>{{warden['first_name']}} {{warden['last_name']}}</td>
-                        <td>{{warden['email']}}</td>
-                        <td>{{warden['mobile_number']}}</td>
-                        <td><button [routerLink]="['/teams', 'view-user', warden['encrypted_user_id']]" class="btn blue waves-effect waves-light action" type="button">Edit</button></td>
-                    </tr>
-                </tbody>
-            </table>
+                    <tbody>
+                       <tr *ngIf="wardens.length == 0">
+                         <td colspan="5" class="center">No records found</td>
+                       </tr>
+                        <tr *ngFor="let warden of wardens">
+                            <td>{{warden['name']}}</td>
+                            <td>{{warden['first_name']}} {{warden['last_name']}}</td>
+                            <td>{{warden['email']}}</td>
+                            <td>{{warden['mobile_number']}}</td>
+                            <td><button [routerLink]="['/teams', 'view-user', warden['encrypted_user_id']]" class="btn blue waves-effect waves-light action" type="button">Edit</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <div class="right-align">
-                <button [routerLink]="['/teams', 'list-wardens']" class="btn blue waves-effect waves-light" type="button">Update Warden List</button>
-                <button [routerLink]="['/dashboard', 'notification-peep-list', encryptedToken]"class="btn orange waves-effect waves-light">Next</button>
+                <button [routerLink]="['/teams', 'list-wardens']" class="btn btn-proceed blue waves-effect waves-light" type="button">Update Warden List</button>
+                <button [routerLink]="['/dashboard', 'notification-peep-list', encryptedToken]"class="btn btn-proceed orange waves-effect waves-light">Next</button>
             </div>
 
         </div>

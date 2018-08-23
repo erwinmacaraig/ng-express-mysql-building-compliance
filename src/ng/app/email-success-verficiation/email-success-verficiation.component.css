@@ -51,11 +51,6 @@ p {
 }
 
 
-
-
-
-
-
 #modalMsg{
     width: 30%;
     top: calc(100% - 85%) !important;
@@ -80,4 +75,27 @@ and (max-width: 1024px){
     #modalMsg{
         width: 50% !important;
     }
+}
+
+.welcome-text{
+    line-height: 31px;
+    font-size: 30px;
+    margin: 0px 0px 24px 0px;
+    text-transform: capitalize;
+}
+
+.tag-text{
+    font-size: 20px;
+    line-height: 25px;
+    color: #757575;
+    margin: 5px 0px 25px 0px;
+    padding: 10px;
+}
+
+.font-18{
+    font-size: 18px;
+}
+
+.font-28{
+    font-size: 28px;
 }

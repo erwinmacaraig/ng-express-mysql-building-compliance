@@ -60,3 +60,24 @@ button.action {
   line-height: 13px;
   text-transform: uppercase !important;
 }
+
+.btn-proceed{
+    font-size: 14px !important;
+    margin: 5px 0px;
+}
+
+.fs25{
+    font-size: 2em !important;
+    line-height: 1.3em;
+    color: #444;
+}
+
+.table-container{
+    overflow: auto;
+}
+
+.btn-same-size {
+    min-width: 245px;
+    margin: 5px;
+    display: inline-block;
+}
