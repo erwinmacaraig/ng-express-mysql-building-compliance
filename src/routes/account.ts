@@ -193,7 +193,10 @@ const RateLimiter = require('limiter').RateLimiter;
 
   public async processQueryResponses(req, res) {
     const theAnswers = req.body.query_responses;
+    const responsesToQueryArr = JSON.parse(req.body.query_responses);
     const notification_token_id = req.body.notification_token_id;
+    let nominatedUserName = '';
+    let nominatedUserEmail = '';
     const completed = parseInt(req.body.completed, 10);
     const status = req.body.strStatus;
     const tokenObj = new NotificationToken(notification_token_id);
@@ -208,6 +211,44 @@ const RateLimiter = require('limiter').RateLimiter;
     }
     try {
       await tokenObj.create(tokenDBData);
+
+      // email
+      for (const item of responsesToQueryArr) {
+        if (item['question'] == 'New person appointed name') {
+          nominatedUserName = item['ans'];
+        }
+        if (item['question'] == 'New person appointed email') {
+          nominatedUserEmail = item['ans'];
+        }
+      }
+
+      if (nominatedUserName.length > 0 && nominatedUserEmail.length > 0) {
+        const opts = {
+          from : '',
+          fromName : 'EvacConnect',
+          to : [nominatedUserEmail],
+          cc: ['emacaraig@evacgroup.com.au'],
+          body : '',
+          attachments: [],
+          subject : 'EvacConnect Email Notification'
+        };
+
+        const email = new EmailSender(opts);
+        let emailBody = email.getEmailHTMLHeader();
+        emailBody += `<h3 style="text-transform:capitalize;">Hi ${nominatedUserName},</h3>
+        You are being nominated as ${tokenDBData['role_text']}.
+        `;
+        emailBody += email.getEmailHTMLFooter();
+        email.assignOptions({
+          body : emailBody
+        });
+        email.send(
+          (data) => console.log(data),
+          (err) => console.log(err)
+        );
+
+      }
+
       return res.status(200).send({
         message: 'Success',
         data: tokenDBData

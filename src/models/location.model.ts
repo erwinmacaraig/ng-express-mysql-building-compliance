@@ -6,7 +6,7 @@ const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
 
 import * as Promise from 'promise';
-import { resolve } from 'dns';
+
 export class Location extends BaseClass {
 
     constructor(id?: number){

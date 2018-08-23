@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { ActivatedRoute } from '@angular/router';
-import { NgForm } from '@angular/forms';
+import { NgForm, FormGroup, FormControl, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs/Subscription';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
@@ -55,6 +55,15 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
     buildings = <any>[];
     levels = <any>[];
 
+    public sublocations = [];
+    addUserForm: FormGroup;
+    first_name_field: FormControl;
+    last_name_field: FormControl;
+    email_field: FormControl;
+    role_field: FormControl;
+    location_field: FormControl;
+    mobile_contact_field: FormControl;
+
     constructor(
         private route: ActivatedRoute, 
         private cryptor: EncryptDecryptService,
@@ -106,6 +115,22 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
                 console.log(error);
                 this.preloader.hide();
             });
+
+            this.locationsService.getSublocationsOfParent(this.building_id).subscribe((response) => {
+                this.sublocations.push(response['building']);
+                this.sublocations =  this.sublocations.concat(response['data']);
+            }, (error) => {
+                console.log(error);
+            });
+        });
+
+        this.addUserForm = new FormGroup({
+            first_name_field: new FormControl(null, Validators.required),
+            last_name_field: new FormControl(null, Validators.required),
+            email_field: new FormControl(null, Validators.required),
+            role_field: new FormControl(null, Validators.required),
+            location_field: new FormControl(null, Validators.required),
+            mobile_contact_field: new FormControl()
         });
 
         this.mutationOversable = new MutationObserver((mutationsList) => {
@@ -390,8 +415,22 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         });
     }
 
-    ngOnDestroy() {
+    showAddUserForm() {
+        $('#modalAddUser').modal('open');
+    }
+    cancelAddUserModal() {
+        this.addUserForm.reset();
+        $('#modalAddUser').modal('close');
     }
 
+    createUser() {
+        console.log('Attempt');
+        console.log(this.addUserForm.value);
+        this.addUserForm.reset();
+        $('#modalAddUser').modal('close');
+    }
+
+    ngOnDestroy() {
+    }
 
 }
