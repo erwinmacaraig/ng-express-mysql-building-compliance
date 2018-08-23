@@ -2,13 +2,15 @@ import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } fr
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { ActivatedRoute } from '@angular/router';
 import { NgForm, FormGroup, FormControl, Validators } from '@angular/forms';
-import { Subscription } from 'rxjs/Subscription';
+import { PersonDataProviderService } from '../../services/person-data-provider.service';
+import { AdminService } from '../../services/admin.service';
+import { Subscription, Observable } from 'rxjs/Rx';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
-import { PersonDataProviderService } from '../../services/person-data-provider.service';
 import { LocationsService } from '../../services/locations';
-import { AdminService } from '../../services/admin.service';
+import { HttpParams, HttpClient } from '@angular/common/http';
+import { PlatformLocation } from '@angular/common';
 
 declare var $: any;
 declare var Materialize: any;
@@ -17,7 +19,7 @@ declare var moment: any;
     selector: 'app-notification-warden-list',
     templateUrl: './warden-list.component.html',
     styleUrls: ['./warden-list.component.css'],
-    providers: [EncryptDecryptService, AccountsDataProviderService, DashboardPreloaderService, UserService, AdminService]
+    providers: [EncryptDecryptService, AccountsDataProviderService, DashboardPreloaderService, UserService, AdminService, LocationsService]
 })
 export class NotificationWardenListComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -56,6 +58,7 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
     levels = <any>[];
 
     public sublocations = [];
+    private baseUrl: String;
     addUserForm: FormGroup;
     first_name_field: FormControl;
     last_name_field: FormControl;
@@ -73,13 +76,16 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         private preloader: DashboardPreloaderService,
         private personDataService: PersonDataProviderService,
         private locationsService: LocationsService,
-        private adminService: AdminService
+        private adminService: AdminService,
+        private platformLocation: PlatformLocation,
+        public http: HttpClient,
+        private locationService: LocationsService
         ) {
 
         this.personDataService.buildECORole().subscribe((ecoroles) => {
             this.ecoRoles = ecoroles;
         });
-
+        this.baseUrl = (platformLocation as any).location.origin;
     }
 
     generateRandomChars(length){
@@ -105,16 +111,7 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
             this.notification_token_id = +parts[3];
             this.building_id = +parts[4];
             this.preloader.show();
-            this.accountService.listWardensOnNotificationFinalScreen(this.building_id.toString()).subscribe((response) => {
-                this.wardens = response['data'];
-                for (const warden of this.wardens) {
-                    warden['encrypted_user_id'] = this.cryptor.encrypt(warden['user_id']);
-                }
-                this.preloader.hide();
-            }, (error) => {
-                console.log(error);
-                this.preloader.hide();
-            });
+            this.generateWardenList();
 
             this.locationsService.getSublocationsOfParent(this.building_id).subscribe((response) => {
                 this.sublocations.push(response['building']);
@@ -127,7 +124,7 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         this.addUserForm = new FormGroup({
             first_name_field: new FormControl(null, Validators.required),
             last_name_field: new FormControl(null, Validators.required),
-            email_field: new FormControl(null, Validators.required),
+            email_field: new FormControl(null, [Validators.required, Validators.email], this.forbiddenEmails.bind(this)),
             role_field: new FormControl(null, Validators.required),
             location_field: new FormControl(null, Validators.required),
             mobile_contact_field: new FormControl()
@@ -147,6 +144,20 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         });
 
         this.mutationOversable.observe(this.elemRef.nativeElement, { childList: true, subtree: true });
+    }
+
+    private generateWardenList() {
+        this.preloader.show();
+        this.accountService.listWardensOnNotificationFinalScreen(this.building_id.toString()).subscribe((response) => {
+            this.wardens = response['data'];
+            for (const warden of this.wardens) {
+                warden['encrypted_user_id'] = this.cryptor.encrypt(warden['user_id']);
+            }
+            this.preloader.hide();
+        }, (error) => {
+            console.log(error);
+            this.preloader.hide();
+        });
     }
 
     ngAfterViewInit() {
@@ -214,6 +225,21 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         setTimeout(() => {
             $('#modalAssignLocations').scrollTop( $('#modalAssignLocations .button-container').position().top );
         }, 200);
+    }
+
+    forbiddenEmails(control: FormControl): Promise<any> | Observable<any> {
+        const httpParams = new HttpParams().set('user_email', control.value);
+        return new Promise((resolve, reject) => {
+            this.http.get(this.baseUrl + '/admin/check-user-email/', {'params': httpParams}).subscribe((response) => {
+                if (response['forbidden']) {
+                    resolve({
+                        emailIsForbidden: true
+                    });
+                } else {
+                    resolve(null);
+                }
+            });
+        });
     }
 
     showUpdateUserInfo(){
@@ -426,8 +452,20 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
     createUser() {
         console.log('Attempt');
         console.log(this.addUserForm.value);
-        this.addUserForm.reset();
-        $('#modalAddUser').modal('close');
+        const values = [];
+        values.push({
+            'first_name': this.addUserForm.get('first_name_field').value,
+            'last_name': this.addUserForm.get('last_name_field').value,
+            'email': this.addUserForm.get('email_field').value,
+            'eco_role_id': this.addUserForm.get('role_field').value,
+            'mobile_number': this.addUserForm.get('mobile_contact_field').value,
+            'account_location_id': this.addUserForm.get('location_field').value
+        });
+        this.userService.createBulkUsers(values, (response) => {
+            this.generateWardenList();
+            this.addUserForm.reset();
+            $('#modalAddUser').modal('close');
+        });
     }
 
     ngOnDestroy() {
