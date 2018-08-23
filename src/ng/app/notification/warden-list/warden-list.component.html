@@ -68,7 +68,16 @@
 
           <div class="input-field col m12">
             <input formControlName="email_field" type="text" id="email_field" name="email_field">
-            <label for="email_field" class="active">Email</label>
+            <label for="email_field" class="active">Email
+              <span *ngIf="addUserForm.controls['email_field'].touched && !addUserForm.controls['email_field'].valid">
+                Please provide a valid email.
+              </span>
+              <span *ngIf="addUserForm.controls['email_field'].errors && addUserForm.controls['email_field'].errors['emailIsForbidden']">
+                Email already taken.
+              </span>
+
+            </label>
+
           </div>
 
           <div class="col m12">
