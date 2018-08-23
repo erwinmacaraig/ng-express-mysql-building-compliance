@@ -1,4 +1,13 @@
 <div class="container">
+    
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <h1 class="welcome-text">
+                WELCOME TO EVACCONECT'S TENANT CONFIRMATION PROCESS
+            </h1>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col l12 m12 s12">
 
@@ -24,7 +33,7 @@
 
                 <tbody>
                    <tr *ngIf="wardens.length == 0">
-                     <td colspan="4">No records found</td>
+                     <td colspan="5">No records found</td>
                    </tr>
                     <tr *ngFor="let warden of wardens">
                         <td>{{warden['name']}}</td>

@@ -47,9 +47,13 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
     });
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+      $('html').css('background-color', '#ddd');
+  }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+      $('html').css('background-color', '');
+  }
 
 
 }

@@ -79,6 +79,10 @@ export class EmailSuccessVerficiationComponent implements OnInit {
           if (role <= 2) {
             this.isAccountRole = true;
           }
+
+          if(this.isUserVerification && this.isAccountRole){
+              this.router.navigate(['/dashboard', 'notification-warden-list', this.notification_token]);
+          }
         }
 
       } else {
