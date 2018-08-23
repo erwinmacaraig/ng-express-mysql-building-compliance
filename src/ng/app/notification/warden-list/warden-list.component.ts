@@ -6,14 +6,14 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
-
+import { LocationsService } from '../../services/locations';
 
 declare var $: any;
 @Component({
   selector: 'app-notification-warden-list',
   templateUrl: './warden-list.component.html',
   styleUrls: ['./warden-list.component.css'],
-  providers: [EncryptDecryptService, AccountsDataProviderService, DashboardPreloaderService]
+  providers: [EncryptDecryptService, AccountsDataProviderService, DashboardPreloaderService, LocationsService]
 })
 export class NotificationWardenListComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -24,6 +24,7 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
   private building_id = 0;
   public wardens = [];
   public encryptedToken = '';
+  public sublocations = [];
 
   addUserForm: FormGroup;
   first_name_field: FormControl;
@@ -35,7 +36,8 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
 
   constructor(private route: ActivatedRoute, private cryptor: EncryptDecryptService,
   private accountService: AccountsDataProviderService,
-  private preloader: DashboardPreloaderService
+  private preloader: DashboardPreloaderService,
+  private locationService: LocationsService
   ) {}
 
   ngOnInit() {
@@ -58,6 +60,12 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         }, (error) => {
           console.log(error);
           this.preloader.hide();
+        });
+        this.locationService.getSublocationsOfParent(this.building_id).subscribe((response) => {
+          this.sublocations.push(response['building']);
+          this.sublocations =  this.sublocations.concat(response['data']);
+        }, (error) => {
+          console.log(error);
         });
     });
 
@@ -84,6 +92,14 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
     $('#modalAddUser').modal('open');
   }
   cancelAddUserModal() {
+    this.addUserForm.reset();
+    $('#modalAddUser').modal('close');
+  }
+
+  createUser() {
+    console.log('Attempt');
+    console.log(this.addUserForm.value);
+    this.addUserForm.reset();
     $('#modalAddUser').modal('close');
   }
 

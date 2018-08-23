@@ -73,7 +73,7 @@
 
           <div class="col m12">
             <select formControlName="role_field" id="role_field" style="display: block;">
-              <option disabled="" selected="" value="0">Select Role</option>
+                <option [value]="null" [disabled]="true == true">Select Role</option>
               <option value="9"> Warden </option>
               <option value="10"> Floor / Area Warden </option>
             </select>
@@ -81,7 +81,8 @@
 
           <div class="col m12">
             <select formControlName="location_field" style="display: block;" id="location_field">
-              <option disabled="" selected="" value="0">Select Location</option>
+              <option [value]="null" [disabled]="true == true">Select Location</option>
+              <option *ngFor="let sublocation of sublocations" [value]="sublocation['location_id']">{{sublocation['name']}}</option>
             </select>
           </div>
 
@@ -92,7 +93,7 @@
 
           <div class="button-container pull right">
             <a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelAddUserModal()"> Cancel </a>
-            <button type="submit" class="btn orange waves-effect waves-light"> Add </button>
+            <button type="submit" [disabled]="!addUserForm.valid" class="btn orange waves-effect waves-light" (click)="createUser()"> Add </button>
           </div>
     </form>
   </div>
