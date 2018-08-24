@@ -3,7 +3,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs/Subscription';
 import { Router } from '@angular/router';
-
+import { AuthService } from '../../services/auth.service';
 
 declare var $: any;
 @Component({
@@ -13,7 +13,7 @@ declare var $: any;
   providers: [ AccountsDataProviderService ]
 })
 export class NotificationConfigurationComponent implements OnInit, AfterViewInit, OnDestroy {
-
+  public hasAccountRole = false;
   public notConfigFormGrp: FormGroup;
   public buildingId = 0;
   public searchBldgField: FormControl;
@@ -41,9 +41,18 @@ Provide feedback on your experience using EvacConnect
 
 `;
   public buildingArray = [];
-  constructor(private accountService: AccountsDataProviderService, private router: Router) {}
+  constructor(private accountService: AccountsDataProviderService,
+              private auth: AuthService,
+              private router: Router) {}
 
   ngOnInit() {
+    const role = this.auth.getHighestRankRole();
+    if (role <= 2) {
+      this.hasAccountRole = true;
+    } else {
+      this.router.navigate(['']);
+    }
+
     this.notConfigFormGrp = new FormGroup({
       all_users: new FormControl(false, null),
       eco_user: new FormControl(false, null),

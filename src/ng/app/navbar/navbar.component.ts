@@ -47,20 +47,24 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 
 	showSendInviteLink = false;
 	elems = {};
-
+  public hasAccountRole = false;
 	showShopLink = false;
 
 	locationLinkForFrp = false;
 
-	constructor(
-		private auth: AuthService,
-    	private userService: UserService,
+  constructor(
+    private auth: AuthService,
+      private userService: UserService,
       private messageService: MessageService,
       private encryptDecrypt: EncryptDecryptService
-	) {
-	    this.userData = this.auth.getUserData();
-	    this.usersImageURL = 'assets/images/camera_upload_hover.png';
-	}
+  ) {
+      this.userData = this.auth.getUserData();
+      this.usersImageURL = 'assets/images/camera_upload_hover.png';
+      const role = this.auth.getHighestRankRole();
+      if (role <= 2) {
+        this.hasAccountRole = true;
+      }
+  }
 
 	public getInitials(fullName){
 		if(fullName){

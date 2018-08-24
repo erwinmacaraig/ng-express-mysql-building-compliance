@@ -7,8 +7,8 @@ declare var $: any;
 @Component({
   selector: 'app-email-success-verficiation',
   templateUrl: './email-success-verficiation.component.html',
-  styleUrls: ['./email-success-verficiation.component.css'],
-  providers: [AuthService]
+  styleUrls: ['./email-success-verficiation.component.css']
+
 })
 export class EmailSuccessVerficiationComponent implements OnInit {
   public showCheckIcon = true;
