@@ -88,10 +88,11 @@ export class MyTrainingsComponent implements OnInit, OnDestroy {
   ngAfterViewInit () {
     $('.trainings-navigation .active').removeClass('active');
     $('.trainings-navigation .my-training').addClass('active');
+    $('.workspace.container').css('padding', '0%');
   }
 
 	ngOnDestroy() {
-
+      $('.workspace.container').css('padding', '');
   }
 
   public loadTrainingCourse(course: object = {}) {

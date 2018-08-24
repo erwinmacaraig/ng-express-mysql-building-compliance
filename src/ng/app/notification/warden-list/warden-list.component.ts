@@ -70,7 +70,6 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
 
     constructor(
         private route: ActivatedRoute,
-        private router: Router,
         private authService: AuthService,
         private cryptor: EncryptDecryptService,
         private accountService: AccountsDataProviderService,
