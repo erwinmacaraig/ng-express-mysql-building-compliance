@@ -1,8 +1,10 @@
 import {Component, OnInit, AfterViewInit,  OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { AuthService } from '../../services/auth.service';
+
 declare var $: any;
 
 @Component({
@@ -14,7 +16,10 @@ declare var $: any;
 export class NotifiedUsersListComponent implements OnInit, AfterViewInit,  OnDestroy {
     public configId;
     public notifiedUsers: Array<object> = [];
+    public hasAccountRole = false;
     constructor(private route: ActivatedRoute,
+                private auth: AuthService,
+                private router: Router,
                 private cryptor: EncryptDecryptService,
                 private accountService: AccountsDataProviderService,
                 public dashboard: DashboardPreloaderService
@@ -22,6 +27,12 @@ export class NotifiedUsersListComponent implements OnInit, AfterViewInit,  OnDes
 
     ngOnInit() {
       this.dashboard.show();
+      const role = this.auth.getHighestRankRole();
+      if (role <= 2) {
+        this.hasAccountRole = true;
+      } else {
+        this.router.navigate(['']);
+      }
       this.route.params.subscribe((params) => {
         this.configId = this.cryptor.decrypt(params['config']);
         this.accountService.generateNotifiedUsersList(this.configId).subscribe((response) => {

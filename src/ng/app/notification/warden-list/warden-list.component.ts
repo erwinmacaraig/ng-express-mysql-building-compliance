@@ -8,6 +8,7 @@ import { Subscription, Observable } from 'rxjs/Rx';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
+import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { HttpParams, HttpClient } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
@@ -68,7 +69,9 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
     mobile_contact_field: FormControl;
 
     constructor(
-        private route: ActivatedRoute, 
+        private route: ActivatedRoute,
+        private router: Router,
+        private authService: AuthService,
         private cryptor: EncryptDecryptService,
         private accountService: AccountsDataProviderService,
         private elemRef : ElementRef,
@@ -111,7 +114,20 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
             this.configId = +parts[2];
             this.notification_token_id = +parts[3];
             this.building_id = +parts[4];
-            this.preloader.show();
+
+            const userId = +this.authService.userDataItem('userId');
+            if (isNaN(this.building_id) ||
+                isNaN(this.userId) ||
+                isNaN(this.location_id) ||
+                isNaN(this.notification_token_id) ||
+                isNaN(this.configId) ||
+                userId != this.userId
+              ) {
+
+              this.authService.removeToken();
+              this.router.navigate(['/success-valiadation'],
+                { queryParams: { 'verify-notified-user': 0}});
+            }
             this.generateWardenList();
 
             this.locationsService.getSublocationsOfParent(this.building_id).subscribe((response) => {
@@ -123,12 +139,12 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         });
 
         this.addUserForm = new FormGroup({
-            first_name_field: new FormControl(null, Validators.required),
-            last_name_field: new FormControl(null, Validators.required),
-            email_field: new FormControl(null, [Validators.required, Validators.email], this.forbiddenEmails.bind(this)),
-            role_field: new FormControl(null, Validators.required),
-            location_field: new FormControl(null, Validators.required),
-            mobile_contact_field: new FormControl()
+          first_name_field: new FormControl(null, Validators.required),
+          last_name_field: new FormControl(null, Validators.required),
+          email_field: new FormControl(null, [Validators.required, Validators.email], this.forbiddenEmails.bind(this)),
+          role_field: new FormControl(null, Validators.required),
+          location_field: new FormControl(null, Validators.required),
+          mobile_contact_field: new FormControl()
         });
 
         this.mutationOversable = new MutationObserver((mutationsList) => {
@@ -171,7 +187,7 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
     selectActionEvent(){
         var __this = this;
         $('body').off('change.select-action').on('change.select-action', '.select-action', function(){
-            let 
+            let
             selectElem = $(this),
             val = selectElem.val(),
             index = selectElem.attr('index'),
@@ -405,7 +421,7 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
 
         if(error == 0){
             this.showLocationLoading = true;
-             
+
             this.userService.userLocationRoleAssignments({
                 user_id : this.selectedUser.user_id, assignments : JSON.stringify(this.toEditLocations)
             }, (response) => {
@@ -419,11 +435,11 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
                 }, (error) => {
                     $('#modalAssignLocations').modal('close');
                 });
-                
+
             });
         }
     }
-    
+
     archiveClick(warden){
         $('#modalArchive').modal('open');
         this.selectedUser = warden;
@@ -449,7 +465,7 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
     }
 
     showAddUserForm() {
-        $('#modalAddUser').modal('open');
+      $('#modalAddUser').modal('open');
     }
     cancelAddUserModal() {
         this.addUserForm.reset();
@@ -457,8 +473,6 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
     }
 
     createUser() {
-        console.log('Attempt');
-        console.log(this.addUserForm.value);
         const values = [];
         values.push({
             'first_name': this.addUserForm.get('first_name_field').value,
