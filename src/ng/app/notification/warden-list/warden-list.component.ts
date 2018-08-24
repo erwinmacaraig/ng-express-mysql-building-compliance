@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgForm, FormGroup, FormControl, Validators } from '@angular/forms';
 import { PersonDataProviderService } from '../../services/person-data-provider.service';
 import { AdminService } from '../../services/admin.service';
@@ -8,6 +8,7 @@ import { Subscription, Observable } from 'rxjs/Rx';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
+import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { HttpParams, HttpClient } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
@@ -69,6 +70,8 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
 
     constructor(
         private route: ActivatedRoute,
+        private router: Router,
+        private authService: AuthService,
         private cryptor: EncryptDecryptService,
         private accountService: AccountsDataProviderService,
         private elemRef : ElementRef,
@@ -110,6 +113,20 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
             this.configId = +parts[2];
             this.notification_token_id = +parts[3];
             this.building_id = +parts[4];
+
+            const userId = +this.authService.userDataItem('userId');
+            if (isNaN(this.building_id) ||
+                isNaN(this.userId) ||
+                isNaN(this.location_id) ||
+                isNaN(this.notification_token_id) ||
+                isNaN(this.configId) ||
+                userId != this.userId
+              ) {
+
+              this.authService.removeToken();
+              this.router.navigate(['/success-valiadation'],
+                { queryParams: { 'verify-notified-user': 0}});
+            }
             this.generateWardenList();
 
             this.locationsService.getSublocationsOfParent(this.building_id).subscribe((response) => {
