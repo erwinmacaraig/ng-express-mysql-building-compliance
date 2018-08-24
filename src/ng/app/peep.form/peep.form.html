@@ -118,12 +118,12 @@
  -->
 
 
- <div class="container">
-    <div style="margin-top: 40px;"></div>
+ <div [ngClass]="{ 'modal-content' : forModalDisplay, 'container' : !forModalDisplay }">
+    <div style="margin-top: 40px;" *ngIf="!forModalDisplay"></div>
     <div class="row">
-        <div class="col l2 m12 s12"></div>
-        <div class="col l8 m12 s12">
-            <form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)">
+        <div class="col l2 m12 s12" [hidden]="forModalDisplay"></div>
+        <div class="col  m12 s12" [ngClass]="{ 'l12' : forModalDisplay, 'l8' : !forModalDisplay }">
+            <form #formMobility="ngForm" id="formMobility" (submit)="modalPeepFormSubmit(formMobility, $event)">
                 
                 <div [hidden]="!showModalLoader">
                     <div class="center">
@@ -192,7 +192,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col l12 m12 s12">
+                        <div class="col l12 m12 s12" [ngClass]="{ 'right-align' : forModalDisplay  }">
                             <button  class="waves-effect waves-light btn grey" (click)="cancelForm()">Cancel</button>
                             <button type="submit" class="waves-effect waves-light btn orange" [disabled]="formMobility.invalid">Submit</button>
                         </div>
@@ -201,7 +201,7 @@
             
             </form>
         </div>
-        <div class="col l2 m12 s12"></div>
+        <div class="col l2 m12 s12" [hidden]="forModalDisplay"></div>
     </div>
 
 </div>
