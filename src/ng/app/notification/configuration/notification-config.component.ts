@@ -32,13 +32,9 @@ The EvacConnect Engagement team
 Email: systems@evacgroup.com.au
 Phone: 1300 922 437
 
-Would you like more information on EvacConnect or Emergency Planning?
-The importance of planning for emergencies
-
-EvacConnect for Tenant Responsible Persons - an instructional video
-
-Provide feedback on your experience using EvacConnect
-
+* The TRP for a tenancy is the person responsible for ensuring that emergency planning is
+being managed in your tenancy. You receive these confirmation emails every 3 months to
+help us ensure that tenant and warden lists remain up to date.
 `;
   public buildingArray = [];
   constructor(private accountService: AccountsDataProviderService,
