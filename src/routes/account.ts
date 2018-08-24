@@ -531,8 +531,8 @@ const RateLimiter = require('limiter').RateLimiter;
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : ['emacaraig@evacgroup.com.au'],
-        cc: ['jmanoharan@evacgroup.com.au'],
+        to : ['rsantos@evacgroup.com.au'],
+        cc: ['jmanoharan@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
@@ -543,12 +543,22 @@ const RateLimiter = require('limiter').RateLimiter;
       const yesLink = req.protocol + '://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 
-      emailBody += `<h3 style="text-transform:capitalize;">Hi ${u['first_name']} ${u['last_name']},</h3>
+      emailBody += `
+      <pre>Hi ${u['first_name']} ${u['last_name']},
+
 	    Please confirm you are still the Tenant Responsible Person (TRP)* for ${u['account_name']} at ${u['parent_location']}, ${u['name']}
-      <br /><br />
-      <a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a>
+      </pre>
       <br />
-      <pre>${config['message']}</pre>
+      <a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a>
+      <br /><br />
+      <pre>${config['message']}
+
+      Would you like more information on EvacConnect or Emergency Planning?
+      </pre>
+
+      <p style="margin-top: 30px;"><a href="https://www.evacservices.com.au/emergency-planning-101-why-plan-for-emergencies/" target="_blank" style="text-decoration:none; color: black; font-weight: bold; border:2px solid #ff9800; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 212px 10px 50px;">The importance of planning for emergencies</a></p>
+      <p style="margin-top: 35px;"><a href="https://www.evacservices.com.au/updating-and-managing-warden-lists-is-now-easier-with-evacconnect/" target="_blank" style="text-decoration:none; color: black; font-weight: bold; border:2px solid #2196F3; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 45px 10px 50px;">EvacConnect for Tenant Responsible Persons - an instructional video</a></p>
+      <p style="margin-top: 35px;"><a href="http://evachub.com/limesurvey/index.php/662295?newtest=Y&lang=en" target="_blank" style="text-decoration:none; color: black; font-weight: bold; border:2px solid black; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 128px 10px 50px;">Provide feedback on your experience using EvacConnect</a></p>
       `;
 
 
