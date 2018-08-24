@@ -1,6 +1,5 @@
-<app-admin-account-info [accountId]="accountId"></app-admin-account-info>
-<hr>
-<div class="row filter-container">
+<app-admin-account-info [accountId]="accountId" class="to-hide-in-show-profile-update"></app-admin-account-info>
+<div class="row filter-container to-hide-in-show-profile-update">
   <div class="col l4 m5 s12">
 		<div class="search-field">
 			<input type="text" placeholder="Search User" id="searchUsers" (keyup)="searchByUserAndEmail($event)">
@@ -23,17 +22,17 @@
   <div class="col l2 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Select Action</option>
-			<option value="archive" >Archive selected</option>
+			<option value="archive">Archive selected</option>
 		</select>
   </div>
   <div class="col l2 m3 s12 ">
-		<button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/teams/add-user']">
+		<button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/admin', 'add-account-user', accountId]">
 			<span class="image"></span>
 			Add New User
 		</button>
 	</div>
 </div>
-<div class="row">
+<div class="row" class="to-hide-in-show-profile-update">
   <div class="col  s12">
     <table class="table striped table-peep">
       <thead>
@@ -49,7 +48,7 @@
           <th>Location Name</th>
           <th>Account Role</th>
           <th>ECO Role</th>
-          <th>Action</th>
+          <th style="width: 10%;">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -93,13 +92,22 @@
             </div>
           </td>
 
-          <td>Actions</td>
+          <td>
+              <select (change)="selectActionChangeEvent(user, $event)">
+                <option value="0" disabled selected>Select Action</option>
+                <option value="profile">Update Profile</option>
+                <option value="credential">Update Credential</option>
+                <option value="invite">Send Invitation</option>
+                <!-- <option value="assign">Assign Trainings</option> -->
+                <option value="location-role">Assign Location & Role</option>
+              </select>
+          </td>
         </tr>
       </tbody>
     </table>
   </div>
 </div>
-<div class="row">
+<div class="row" class="to-hide-in-show-profile-update">
   <div class="col l12 m12 s12 center pagination">
     <div class="inline-block">
       <button class="btn blue" (click)="prevPage()"> Prev </button>
@@ -115,4 +123,343 @@
       <button class="btn blue" (click)="nextPage()"> Next </button>
     </div>
   </div>
+</div>
+<div preloader></div>
+
+<div class="update-profile-container" hidden >
+    <div class="row">
+        <div class="col l5 m12 s12">
+            <form #formProfile="ngForm" (submit)="submitUpdateProfile(formProfile)" >
+
+                <h5>Update {{updateProfileData.user.first_name}} {{updateProfileData.user.last_name}} Profile</h5>
+                <div class="row">
+                    <div class="col s12 input-field">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="first_name" ngModel [ngModel]="updateProfileData.user.first_name" required>
+                    </div>
+                    <div class="col s12 input-field">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="last_name" ngModel [ngModel]="updateProfileData.user.last_name" required>
+                    </div>
+                    <div class="col s12 input-field">
+                        <label for="contactInformation">Contact Information</label>
+                        <input type="text" id="contactInformation" ngModel [ngModel]="updateProfileData.user.mobile_number" name="mobile_number" >
+                    </div>
+
+                    <input type="text" name="user_id" ngModel [ngModel]="updateProfileData.user.user_id" required style="visibility: hidden;">
+                    <!-- <div class="col s12">
+                        <label for="userEmail">Email</label>
+                        <input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
+                    </div> -->
+                </div>
+
+                <div class="row button-container">
+                    <div class="col s12 m12 l12 right-align">
+                        <a  class="btn grey lighten-1 waves-light waves-effect modal-close" (click)="updateProfileData.hideForm()">Cancel</a>
+                        <button type="submit" class="btn orange waves-light waves-effect" [disabled]="formProfile.invalid">Submit</button>
+                    </div>
+                </div>
+
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="credentials-container" hidden>
+    <div class="row">
+        <div class="col l5 m12 s12">
+
+            <form #formCredential="ngForm" (submit)="submitCredential(formCredential)">
+                <h5>Update {{updateCredentialsData.user.first_name}} {{updateCredentialsData.user.last_name}} Credential</h5>
+                <div class="row">
+                    <div class="col s12 input-field">
+                        <label for="userEmail">Email</label>
+                        <input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" [ngModel]="updateCredentialsData.user.email" required>
+                    </div>
+                    <div class="col s12 input-field">
+                        <label for="inpPassword">Password
+                            <small *ngIf=" inputPassword.value != inputConfirmPassword.value "> *Mismatched </small>
+                        </label>
+
+                        <input id="inpPassword" type="password" name="password" ngModel #inputPassword="ngModel"
+                        [ngClass]="{
+                            'invalid' : !inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+                        }"
+                        required minlength="6" maxlength="150"  >
+                    </div>
+                    <div class="col s12 input-field">
+                        <label for="confirmPassword"> Confirm password</label>
+
+                        <input id="confirmPassword" type="password" ngModel name="confirm_password"
+                            ngModel #inputConfirmPassword="ngModel"
+                            [ngClass]="{
+                                'invalid' : !inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+                            }"
+                            required minlength="6" maxlength="150" >
+                    </div>
+
+                    <input type="text" name="user_id" ngModel [ngModel]="updateCredentialsData.user.user_id" required style="visibility: hidden;">
+                    <!-- <div class="col s12">
+                        <label for="userEmail">Email</label>
+                        <input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
+                    </div> -->
+                </div>
+
+                <div class="row button-container">
+                    <div class="col s12 m12 l12 right-align">
+                        <a  class="btn grey lighten-1 waves-light waves-effect modal-close" (click)="updateCredentialsData.hideForm()">Cancel</a>
+                        <button type="submit" class="btn orange waves-light waves-effect" [disabled]="formCredential.invalid">Submit</button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<div class="invitations-container" hidden>
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <h5>
+                Send Training Invitation To {{sendInvitationData.user.first_name}} {{sendInvitationData.user.last_name}}
+            </h5>
+
+            <table class="table striped highlight">
+                <thead>
+                    <tr>
+                        <th>Course ID</th>
+                        <th>Course</th>
+                        <th>Training ID</th>
+                        <th>Training</th>
+                        <th>Role</th>
+                        <th style="width: 10%">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="sendInvitationData.trainings.length == 0">
+                        <td colspan="6" class="center">
+                            <h6 *ngIf="sendInvitationData.trainings.length == 0 && sendInvitationData.fetching === true">
+                                Fetching data...
+                            </h6>
+
+                            <h6 *ngIf="sendInvitationData.trainings.length == 0 && sendInvitationData.fetching === false">
+                                No record found!
+                            </h6>
+
+                        </td>
+                    </tr>
+                    <tr *ngFor="let training of sendInvitationData.trainings">
+                        <td>{{training.course_id}}</td>
+                        <td>{{training.course_name}}</td>
+                        <td>{{training.training_requirement_id}}</td>
+                        <td>{{training.training_requirement_name}}</td>
+                        <td>{{training.role_name}}</td>
+                        <td>
+                          <p><button class="btn grey waves-effect waves-light btn-small btn-send" (click)="sendInvitationClickEvent(training, $event)" >SEND</button></p>
+                          <p><button class="btn grey waves-effect waves-light btn-small btn-send" (click)="assignTraining(training, $event)" >ASSIGN</button></p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 right-align">
+            <button  class="btn cancel red red-text white-text" (click)="sendInvitationData.hideForm()">Cancel</button>
+        </div>
+    </div>
+
+</div>
+
+<div class="assign-trainings-container" hidden>
+
+    <div class="row">
+        <div class="col l6 m12 s12">
+            <h5>Courses & Trainings From Account ({{sendInvitationData.account.account_name}})</h5>
+            <table class="table striped highlight">
+                <thead>
+                    <th>Course</th>
+                    <th>Training</th>
+                    <th>Date Time</th>
+                </thead>
+                <tbody>
+                    <tr *ngIf="sendInvitationData.trainings.length == 0">
+                        <td colspan="3" class="center">
+                            <h6 *ngIf="sendInvitationData.trainings.length == 0 && sendInvitationData.fetching === true">
+                                Fetching data...
+                            </h6>
+
+                            <h6 *ngIf="sendInvitationData.trainings.length == 0 && sendInvitationData.fetching === false">
+                                No record found!
+                            </h6>
+
+                        </td>
+                    </tr>
+                    <tr *ngFor="let training of sendInvitationData.trainings">
+                        <td>{{training.course_name}}</td>
+                        <td>{{training.training_requirement_name}}</td>
+                        <td>{{training.datetime_added}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col l6 m12 s12">
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <h5>
+                Existing Trainings Of {{assignTrainingsData.user.first_name}} {{assignTrainingsData.user.last_name}}
+            </h5>
+
+            <table class="table striped highlight">
+                <thead>
+                    <tr>
+                        <th>Training ID</th>
+                        <th>Training</th>
+                        <th>Course ID</th>
+                        <th>Course</th>
+                        <th style="width: 10%">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="assignTrainingsData.trainings.length == 0">
+                        <td colspan="6" class="center">
+                            <h6 *ngIf="assignTrainingsData.exisisting.data.length == 0 && assignTrainingsData.exisisting.fetching === true">
+                                Fetching data...
+                            </h6>
+
+                            <h6 *ngIf="assignTrainingsData.exisisting.data.length == 0 && assignTrainingsData.exisisting.fetching === false">
+                                No record found!
+                            </h6>
+                        </td>
+                    </tr>
+                    <tr *ngFor="let training of assignTrainingsData.exisisting.data">
+
+
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+
+</div>
+
+
+<div class="location-role-container" hidden>
+    <div class="row">
+        <div class="col l6 m12 s12">
+            <h5>
+                Assign {{assignLocationRoleData.user.first_name}} {{assignLocationRoleData.user.last_name}} To Locations
+                <a class="blue-text right" (click)="assignLocationRoleData.assignNewClickEvent.bind(this)()" style="font-size: 20px;" >+Assign New</a>
+            </h5>
+            <table class="table striped highlight">
+                <thead>
+                    <tr>
+                        <th>Location</th>
+                        <th style="width: 30%;">Role</th>
+                        <th style="width: 9%;">Action</th>
+                    </tr>
+                </thead>
+                <tbody *ngIf="assignLocationRoleData.fetching == true">
+                    <tr>
+                        <td colspan="3" class="center">
+                            Fetching record...
+                        </td>
+                    </tr>
+                </tbody>
+
+                <tbody *ngIf="assignLocationRoleData.fetching == false && assignLocationRoleData.toEditLocations.length == 0">
+                    <tr>
+                        <td colspan="3" class="center">
+                            Click assign new link
+                        </td>
+                    </tr>
+                </tbody>
+
+                <tbody *ngIf="assignLocationRoleData.fetching == false && assignLocationRoleData.toEditLocations.length > 0">
+
+                    <tr *ngFor="let loc of assignLocationRoleData.toEditLocations; let i = index;">
+                        <td *ngIf="!loc.deleted">
+                            <p *ngIf="loc.role_id == 0">Select role first</p>
+
+                            <a  class="blue-text change-location" #selectLoc1 (click)="assignLocationRoleData.clickSelectLocation.bind(this)(loc, selectLoc1)" *ngIf="loc.location_id > 0 && loc.role_id > 0">{{loc.name}} </a>
+
+                            <a  class="blue-text change-location" #selectLoc2 (click)="assignLocationRoleData.clickSelectLocation.bind(this)(loc, selectLoc2)" *ngIf="loc.location_id == 0 && loc.role_id > 0"> Select Location </a>
+
+                            <input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
+                        </td>
+                        <td *ngIf="!loc.deleted">
+                            <select name="role_id[{{i}}]" style="display: block;" (change)="assignLocationRoleData.onChangeSelectRole.bind(this)(loc, $event.currentTarget.value)" >
+                                <option value="0" [selected]="loc.role_id == 0" disabled>Select Role</option>
+                                <option value="1" [selected]="loc.role_id == 1">Building Manager</option>
+                                <option value="2" [selected]="loc.role_id == 2">Tenancy Responsible Personnel</option>
+                                <option value="{{eco.em_roles_id}}" *ngFor="let eco of assignLocationRoleData.eco_roles" [selected]="loc.role_id == eco.em_roles_id ">
+                                    {{eco.role_name}}
+                                </option>
+                            </select>
+                        </td>
+                        <td *ngIf="!loc.deleted">
+                            <a  class="red-text delete" (click)="assignLocationRoleData.removeAssigned.bind(this)(i)">Delete</a>
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+
+            <div class="button-container">
+                <a class="btn grey lighten-1 waves-effect waves-light" (click)="assignLocationRoleData.hideForm()"> Cancel </a>
+                <button type="submit" class="btn orange waves-effect waves-light"  (click)="assignLocationRoleData.saveLocationAssignments.bind(this)($event)" > Save </button>
+            </div>
+        </div>
+
+        <div class="col l6 m12 s12 right-panel">
+
+            <div [hidden]="!assignLocationRoleData.locationsListShow" class="location-list">
+                <h5>Select Location for {{assignLocationRoleData.user.first_name+' '+assignLocationRoleData.user.last_name}}</h5>
+                <div class="search-container" >
+                    <div class="input-container">
+                        <input type="text" placeholder="Search Location" #inpSearchLocation id="inpSearchLocation" >
+                    </div>
+                    <div class="icon-container">
+                        <img src="assets/images/locations/search_icon.png" alt="">
+                    </div>
+                </div>
+
+                <form #formLoc (submit)="assignLocationRoleData.submitSelectLocationModal.bind(this)(formLoc, $event)">
+
+                    <div class="list-region" style="overflow-y: auto; height: 340px;">
+                        <p *ngIf="assignLocationRoleData.locations.length == 0">No location found</p>
+                        <ul class="locations">
+                        </ul>
+                    </div>
+
+                    <div class="button-container right-align">
+                        <button type="submit" class="btn orange waves-effect waves-light" [disabled]="!assignLocationRoleData.formLocValid"  > Submit </button>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="center-message" [hidden]="assignLocationRoleData.locationsListShow">
+                Click a location from left table
+            </div>
+        </div>
+    </div>
+
+
+    <div class="sending-container">
+        <div class="center-message">
+            Assigning Location and Role....
+        </div>
+    </div>
+
 </div>

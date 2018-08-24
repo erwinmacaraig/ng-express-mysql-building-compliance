@@ -1,4 +1,3 @@
-
 <div class="row filter-container">
   <div class="col l4 m5 s12">
 		<div class="search-field">
@@ -19,6 +18,12 @@
 			<option value="archive" >Archive selected</option>
 		</select>
   </div>
+  <div class="col l4 m6 s12 ">
+		<button type="button" class="btn orange waves-effect waves-light add-peep pull right" [routerLink]="['/admin', 'new-account']">
+			<span class="image"></span>
+			Add New Account
+		</button>
+	</div>
 </div>
 <div class="row">
   <div class="col l12 m12 s12">
@@ -47,21 +52,21 @@
               <p class="checkbox" >
                 <input id="location-{{i}}"  class="filled-in" type="checkbox">
                 <label for="location-{{i}}">
-                  <span>{{item['account_name']}}</span>
+                  <a [routerLink]="['/admin', 'users-in-accounts', item['account_id']]"><span>{{item['account_name']}}</span></a>
                 </label>
               </p>
             </td>
             <td>
               <div class="text">
-                <a href="">{{item['locations'].length}}</a>
+                <a [routerLink]="['/admin', 'locations-in-account', item['account_id']]">{{item['locations'].length}}</a>
               </div>
             </td>
             <td>{{item['billing_address']}}</td>
             <td>
-              <select #selectedAction (change)="addressSelectedAction()">
+              <select id="account-{{item['account_id']}}" (change)="addressSelectedAction(item['account_id'])">
                 <option value="0" class="blue-text" selected disabled>Select action</option>
-                <option value="view-{{item['account_id']}}" class="blue-text">View</option>
-                <option value="archive-{{item['account_id']}}" class="blue-text">Archive</option>
+                <option value="view" class="blue-text">View</option>
+                <option value="archive" class="blue-text">Archive</option>
               </select>
             </td>
           </tr>

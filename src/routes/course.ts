@@ -268,7 +268,7 @@ export class CourseRoute extends BaseRoute {
             let sublocations = [];
             filter['responsibility'] = role;
             const locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
-
+            console.log('locationListing', locationListing)
             for (const l of locationListing) {
               locationIdsOnAccnt.push(l['location_id']);
             }
@@ -341,29 +341,30 @@ export class CourseRoute extends BaseRoute {
             account = await accountModel.load();
             accountModel = new Account();
 
-            if(all){
+            if(all) {
                 users = <any> await accountModel.getAllEMRolesOnThisAccount(req.user.account_id);
-            }else if(ids.length > 0){
+            } else if(ids.length > 0) {
                 users = <any> await accountModel.getAllEMRolesOnThisAccount(req.user.account_id, { user_ids : ids.join(',') });
-            }else if(non_compliant){
+            } else if(non_compliant) {
                 users = <any> await accountModel.getAllEMRolesOnThisAccountNotCompliant(req.user.account_id);
             }
 
-            for(let user of users){
+            for(let user of users) {
                 user['trainings'] = [];
                 user['account'] = account;
-                if( this.isEmailValid(user.email) ){
+                if( this.isEmailValid(user.email) ) {
                     for(let tr of trainings){
-                        if(tr.em_role_id == user.em_role_id){
+                        if(tr.em_role_id == user.em_role_id) {
                             user['trainings'].push( tr );
                         }
                     }
 
+                    console.log('sendEmailTrainingInvitation');
                     await this.sendEmailTrainingInvitation(user, req, res);
                 }
             }
 
-        }catch(e){}
+        } catch(e) { }
 
         response.data = users;
 
@@ -371,7 +372,7 @@ export class CourseRoute extends BaseRoute {
     }
 
     public async sendEmailTrainingInvitation(user, req, res){
-        let 
+        let
         emailModel = new EmailSender(),
         emailBody = emailModel.getEmailHTMLHeader(),
         fullname = this.capitalizeFirstLetter(user.first_name)+' '+this.capitalizeFirstLetter(user.last_name),
@@ -400,16 +401,18 @@ export class CourseRoute extends BaseRoute {
             tokenTrainModel = new Token(),
             multiTokenModel = new Token();
 
-        let tokens = await multiTokenModel.getAllByUserId(user.user_id);
-        for(let t in tokens){
-            if(tokens[t]['action'] == 'forgot-password'){
-                let tokenDelete = new Token(tokens[t]['token_id']);
-                await tokenDelete.delete();
+        try{
+            let tokens = await multiTokenModel.getAllByUserId(user.user_id);
+            for(let t in tokens){
+                if(tokens[t]['action'] == 'forgot-password'){
+                    let tokenDelete = new Token(tokens[t]['token_id']);
+                    await tokenDelete.delete();
+                }
             }
-        }
+        }catch(e){}
 
-        let forgotPassLink = req.protocol + '://' + req.get('host') +'/token/'+saveData['token'],
-            trainingLink = req.protocol + '://'+req.get('host') + '/token/'+tokenTraining;
+        let forgotPassLink = 'https://' + req.get('host') +'/token/'+saveData['token'],
+            trainingLink = 'https://'+req.get('host') + '/token/'+tokenTraining;
         await tokenModel.create(saveData);
 
         saveData['token'] = tokenTraining;
@@ -417,14 +420,26 @@ export class CourseRoute extends BaseRoute {
         await tokenTrainModel.create(saveData);
 
         emailBody += `
-            <h3 style="text-transform:capitalize;">Hi ${fullname},</h3> 
-            <br/> <br/>
-            Please do ${trainingsTxt} for ${user.location_name} of ${account.account_name} <br/>
-            
-            <br/><br/><br/>
-            
-            <h5>If you have logged in before <a href="${trainingLink}" style="color:#2980b9;">Click here</a></h5>
-            <h5>If you forgotten your password or have not yet set a password, <a href="${forgotPassLink}" style="color:#c0392b;">Click here</a></h5>
+            <div style="font-size:16px;">
+                <h3 style="text-transform:capitalize;">Hi ${fullname},</h3>
+
+                You are invited to complete the following online training on EvacConnect: <br/>
+                ${trainingsTxt} <br/><br/>
+
+                Follow this link to start the training: <br/>
+                <a href="${trainingLink}" style="color:#2980b9;">${trainingLink}</a> <br/><br/>
+
+                As warden and/or general occupant of our site, please note that it is mandatory for you to complete this training<br/>
+                as required in all facilities in Australia under Australian Standard AS3745. <br/><br/>
+
+                We hope that you will benefit from the convenience of taking this training online. Thank you for your active <br/>
+                participation and commitment to proactive safety within our tenancy. <br/><br/>
+
+                Sincerely, <br/>
+                EvacConnect <br/><br/><br/>
+
+                If you forgotten your password or have not yet set a password, <a href="${forgotPassLink}" style="color:#c0392b;">Click here</a>
+            </div>
         `;
 
         emailBody += emailModel.getEmailHTMLFooter();
@@ -432,7 +447,7 @@ export class CourseRoute extends BaseRoute {
         emailModel.assignOptions({
             body : emailBody,
             to: [user.email],
-            subject : 'EvacConnect Training Invitation'
+            subject : `You're invited to take an online training on ${trainingsTxt}`
         });
 
         await emailModel.send(() => {}, () => {});
@@ -450,7 +465,7 @@ export class CourseRoute extends BaseRoute {
         try{
             await tokenModel.load();
 
-            let 
+            let
             user = <any> await userModel.load(),
             loginResponse = <any> await authRoute.successValidation(req, res, userModel, 7200, true);
 
@@ -462,12 +477,10 @@ export class CourseRoute extends BaseRoute {
             let
             stringUserData = JSON.stringify(loginResponse.data),
             userIdEnc = CryptoJS.AES.encrypt(''  + user.user_id + '', 'NifLed').toString().split('/').join('___'),
-            redirectUrlWarden = req.protocol + '://'+req.get('host') + '/trainings/my-training-profile/'+userIdEnc,
-            redirectUrlFRP = req.protocol + '://'+req.get('host') + '/teams/view-user/'+userIdEnc,
+            redirectUrlWarden = 'https://'+req.get('host') + '/trainings/my-training-profile/'+userIdEnc,
+            redirectUrlFRP = 'https://'+req.get('host') + '/teams/view-user/'+userIdEnc,
             redirectURL = (hasFrpTrpRole) ? redirectUrlFRP : redirectUrlWarden;
-
-
-
+            stringUserData = stringUserData.replace(/\'/gi, '');
             let script = `
                 <h4>Redirecting...</h4>
                 <script>

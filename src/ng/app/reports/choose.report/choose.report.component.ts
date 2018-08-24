@@ -244,7 +244,7 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
 
             thisClass.subsSearches[ indexSelected ] = 
                 Observable.fromEvent(elem, 'keyup').debounceTime(800).subscribe((event:KeyboardEvent) => {
-                    let elem = $(event.srcElement),
+                    let elem = $(event.target),
                         searchContainer = elem.parents('.box-wrapper').find('.search-result'),
                         val = elem.val(),
                         code = elem.attr('code'),

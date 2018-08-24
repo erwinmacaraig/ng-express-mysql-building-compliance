@@ -35,7 +35,8 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 	public usersInitial: String = 'AA';
 
 	public mySubscription: Subscription;
-	public username: string;
+  public username: string;
+  public evac_role: string;
 	public showLinks = {
 		locations : false,
 		training : false,
@@ -46,20 +47,24 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 
 	showSendInviteLink = false;
 	elems = {};
-
+  public hasAccountRole = false;
 	showShopLink = false;
 
 	locationLinkForFrp = false;
 
-	constructor(
-		private auth: AuthService,
-    	private userService: UserService,
+  constructor(
+    private auth: AuthService,
+      private userService: UserService,
       private messageService: MessageService,
       private encryptDecrypt: EncryptDecryptService
-	) {
-	    this.userData = this.auth.getUserData();
-	    this.usersImageURL = 'assets/images/camera_upload_hover.png';
-	}
+  ) {
+      this.userData = this.auth.getUserData();
+      this.usersImageURL = 'assets/images/camera_upload_hover.png';
+      const role = this.auth.getHighestRankRole();
+      if (role <= 2) {
+        this.hasAccountRole = true;
+      }
+  }
 
 	public getInitials(fullName){
 		if(fullName){
@@ -74,6 +79,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
     this.username = this.userData['name'];
 		this.usersInitial = this.getInitials(this.username);
     this.userRoles = this.userData['roles'];
+    this.evac_role = this.userData['evac_role'];
     this.encryptedUserId = this.encryptDecrypt.encrypt(this.userData['userId']);
 		this.showEvent();
 		this.closeEvent();

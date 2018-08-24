@@ -1,0 +1,105 @@
+<div class="row">
+  <div class="col s8">
+    <h3>{{location_details['name']}}</h3>
+  </div>
+</div>
+<div class="row">
+  <div class="col s12">
+    <h6>Location Details</h6>
+    <div id="traversal">
+      <ul id="nodeList">
+        <li *ngIf="traversal['p5_name']"><a [routerLink]="['/admin', 'view-location', traversal['p5_location_id']]">{{traversal['p5_name']}}</a></li>
+        <li *ngIf="traversal['p4_name']"><a [routerLink]="['/admin', 'view-location', traversal['p4_location_id']]">{{traversal['p4_name']}}</a></li>
+        <li *ngIf="traversal['p3_name']"><a [routerLink]="['/admin', 'view-location', traversal['p3_location_id']]">{{traversal['p3_name']}}</a></li>
+        <li *ngIf="traversal['p2_name']"><a [routerLink]="['/admin', 'view-location', traversal['p2_location_id']]">{{traversal['p2_name']}}</a></li>
+        <li *ngIf="traversal['p1_name']"><a [routerLink]="['/admin', 'view-location', traversal['p1_location_id']]">{{traversal['p1_name']}}</a></li>
+        <li>{{location_details['name']}}</li>
+      </ul>
+    </div>
+    <p><strong>Location Id:</strong> <span>{{location_details['location_id']}}</span></p>
+    <p><strong>Address</strong> <span>{{location_details['formatted_address']}}</span></p>
+    <br>
+    <div>Settings</div>
+    <div class="checkbox">
+      <input id="ola" type="checkbox" [(ngModel)]="location_details.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col s12">
+    <ul class="tabs">
+      <li class="tab col s3"><a class="active" href="#sublocations">Sublocations</a></li>
+      <li class="tab col s3"><a href="#people">People</a></li>
+      <li class="tab col s3"><a href="#accounts">Accounts</a></li>
+      <li class="tab col s3 disabled"><a href="#reporting">Reporting</a></li>
+    </ul>
+  </div>
+  <div id="sublocations" class="col s12">
+    <table class="table striped table-peep">
+      <thead>
+        <tr>
+          <th>Archived</th>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Sublocations</th>
+          <th>Compliance</th>
+        </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sub of sublocations">
+            <td></td>
+            <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]">{{sub['name']}}</a></td>
+            <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]">{{sub['formatted_address']}}</a></td>
+            <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]">{{sub['sublocations_count']}}</a></td>
+          </tr>
+        </tbody>
+      </table>
+  </div>
+  <div id="people" class="col s12">
+    <table class="table striped table-peep">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Account</th>
+          <th>Account Roles</th>
+          <th>Emergency Roles</th>
+        </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let person of people">
+            <td>{{person['name']}}</td>
+            <td>{{person['account_name']}}</td>
+            <td><span *ngFor="let accntRole of person['account_role']" style="display: block;">
+                {{accntRole}}
+            </span></td>
+            <td>
+              <span *ngFor="let emRole of person['em_role']"  style="display: block;">
+                {{emRole}}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+  </div>
+  <div id="accounts" class="col s12">
+    <table class="table striped table-peep">
+      <thead>
+        <tr>
+          <th>Account</th>
+          <th>Relationship</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let account of accounts">
+            <td><a [routerLink]="['/admin', 'users-in-accounts', account['account_id']]">{{account['account_name']}}</a></td>
+            <td><a [routerLink]="['/admin', 'users-in-accounts', account['account_id']]">{{account['responsibility']}}</a></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+  </div>
+  <div id="reporting" class="col s12">Reporting</div>
+</div>
+<div preloader></div>

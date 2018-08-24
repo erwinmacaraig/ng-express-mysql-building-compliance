@@ -34,7 +34,7 @@ export class TrainingRequirements extends BaseClass {
         });
     }
 
-    public getWhere(arrWhere): Promise<object> {
+    public getWhere(arrWhere): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             let sql = `SELECT * FROM training_requirement `,
                 count = 0;
@@ -55,7 +55,7 @@ export class TrainingRequirements extends BaseClass {
                     throw new Error('Error loading training requirements.');
                 } else {
                     this.dbData = results;
-                    resolve(this.dbData);
+                    resolve(results);
                 }
             });
             connection.end();
@@ -184,6 +184,8 @@ export class TrainingRequirements extends BaseClass {
             connection.end();
         });
     }
+
+
 
 
 }

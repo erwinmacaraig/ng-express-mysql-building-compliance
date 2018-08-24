@@ -6,7 +6,7 @@
     background-color: transparent !important;
     font-size: 14px !important;
     width: 220px;
-    height: inherit !important;
+    height: 65px !important;
     text-align: left;
     border-radius: 10px !important;
     border: 1px solid #ed5463;
@@ -30,10 +30,6 @@
 
 .top-title-button .btn .csv-wardens{
     background-position: 79.5% 35%;
-}
-
-.modal .header-container .csv-wardens{
-    background-position: 95.5% 12%;
 }
 
 .modal .header-container .invite-wardens{
@@ -224,27 +220,9 @@ td.with-remove a.remove:hover{
     font-size: 14px !important;
 }
 
-#modaCsvUpload,
 #modalInvite{
     width: 22%;
     max-height: 100%;
-}
-
-#modaCsvUpload .modal-header{
-    margin: 20px 0px;
-}
-
-#modaCsvUpload a.btn{
-    line-height: 42px;
-}
-
-.modal-content .csv-icon{
-    display: inline-block;
-    width: 35px;
-    height: 26px;
-    background: url(/assets/images/team_icons.png) no-repeat;
-    background-position: 82% 70%;
-    vertical-align: middle;
 }
 
 .modal-content .upload-container{
@@ -389,29 +367,52 @@ a.disabled{
 
 ul li {margin-left: 0; padding-left: 2.5em;}
 
+#modalLocations{
+    top: 2%;
+    height: 100vh;
+}
+
+#modalLocations .modal-content{
+    max-height: 100%;
+    overflow-y: auto;
+}
+
 @media only screen
   and (max-width: 1440px) {
-    #modaCsvUpload,
-    #modalInvite{
+    #modalInvite,
+    #modalLocations{
         width: 35% !important;
     }
 }
 
 @media only screen
-  and (max-width: 1024px) {
-    #modaCsvUpload,
-    #modalInvite,
-    #modalLocations{
+  and (min-width: 1025px)
+  and (max-width: 1439px) {
+    #modalInvite{
         width: 40% !important;
+    }
+
+    #modalLocations{
+        width: 50% !important;
+    }
+}
+
+@media only screen
+  and (max-width: 1024px) {
+    #modalInvite{
+        width: 40% !important;
+    }
+
+    #modalLocations{
+        width: 60% !important;
     }
 }
 
 @media only screen
   and (max-width: 768px) {
-    #modaCsvUpload,
     #modalInvite,
     #modalLocations{
-        width: 60% !important;
+        width: 90% !important;
     }
 
     .top-title-button h4{
@@ -431,7 +432,7 @@ ul li {margin-left: 0; padding-left: 2.5em;}
 
 @media only screen
   and (max-width: 500px) {
-    #modaCsvUpload,
+
     #modalInvite,
     #modalLocations{
         width: 90% !important;

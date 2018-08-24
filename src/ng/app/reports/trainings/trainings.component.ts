@@ -10,11 +10,11 @@ import { CourseService } from '../../services/course';
 import { ExportToCSV } from '../../services/export.to.csv';
 import { Observable } from 'rxjs/Rx';
 import html2canvas from 'html2canvas';
-import * as jsPDF from 'jspdf';
+// import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
 
 declare var $: any;
-declare var jsPDF: any;
+// declare var jsPDF: any;
 
 @Component({
 	selector : 'app-trainings-compliance-component',
@@ -31,6 +31,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	backupResults = [];
 	routeSubs;
     locationId = 0;
+    accountId = 0;
 	arrLocationIds = [];
 
     pagination = {
@@ -40,6 +41,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         limit : 25,
         offset : 0,
         location_id: null,
+        account_id: null,
         course_method : 'none',
         training_id : 0,
         searchKey: '',
@@ -76,6 +78,12 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
 		this.routeSubs = this.activatedRoute.params.subscribe((params) => {
             this.locationId = this.encryptDecrypt.decrypt( params.locationId );
+
+            if(params.accountId){
+                this.accountId = this.encryptDecrypt.decrypt( params.accountId );
+                this.queries.account_id = this.accountId;
+            }
+
             this.arrLocationIds = this.locationId.toString().split('-');
 
         	this.getLocationReport((response) => {
@@ -88,7 +96,13 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             });
         });
 
-        this.reportService.getParentLocationsForReporting().subscribe((response) => {
+        let qParams = undefined;
+        if(this.userData['evac_role'] == 'admin'){
+            qParams = {
+                'account_id' : this.accountId
+            };
+        }
+        this.reportService.getParentLocationsForReporting(qParams).subscribe((response) => {
             this.rootLocationsFromDb = response['data'];
 
             setTimeout(() => {
@@ -107,8 +121,6 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                         urlparam = '';
 
                     urlparam = values.join('-');
-
-
                 });
             },100);
         });
@@ -125,7 +137,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         });
 	}
 
-	ngOnInit() {   
+	ngOnInit() {
 	}
 
 	ngAfterViewInit(){
@@ -178,7 +190,12 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 this.queries.offset = 0;
                 this.loadingTable = true;
                 this.dashboardPreloader.show();
-                this.router.navigate(['/reports/trainings/' + this.encryptDecrypt.encrypt(urlparam)]);
+
+                if(this.userData['evac_role'] == 'admin'){
+                    this.router.navigate(['/admin/trainings-report/' + this.encryptDecrypt.encrypt(urlparam) + "/" + this.encryptDecrypt.encrypt(this.accountId) ]);
+                }else{
+                    this.router.navigate(['/reports/trainings/' + this.encryptDecrypt.encrypt(urlparam) ]);
+                }
             }
 
         });
@@ -279,7 +296,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 for (let i = 1; i<=this.pagination.pages; i++){
                     this.pagination.selection.push({ 'number' : i });
                 }
-                
+
                 this.loadingTable = false;
             }
             callBack(response);
@@ -287,6 +304,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
 	printResult(){
+    /*
 		let headerHtml = `<h5> Training Report </h5>`;
 
 		$('#printContainer').printThis({
@@ -294,11 +312,13 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 			importStyle: true,
 			loadCSS: [ "/assets/css/materialize.css" ],
 			header : headerHtml
-		});
+    });
+    */
 	}
 
     pdfExport(aPdf, printContainer){
-        let 
+      /*
+        let
         pdf = new jsPDF("p", "pt"),
         columns = [
             {
@@ -351,6 +371,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         }
 
         pdf.save('training-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
+        */
     }
 
     csvExport(){
@@ -379,7 +400,13 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 if(re.status == 'valid' && re.pass == 1){
                     d.push( 'Compliant' );
                 }else{
-                    d.push( 'Not Compliant' );
+                    let desc = '(Not Taken)';
+                    if(re.pass == 0){
+                        desc = '(Failed)';
+                    }else if(re.status == 'expired'){
+                        desc = '(Expired)';
+                    }
+                    d.push( 'Not Compliant '+desc );
                 }
                 csvData[ getLength() ] = d;
             }

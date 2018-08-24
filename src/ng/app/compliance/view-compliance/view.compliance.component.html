@@ -16,8 +16,6 @@
 	</div>
 </ng-template>
 
-
-
 <ng-template #complianceTitleTemplate2>
 	<div class="compliance-title-container ">
 		<ng-container *ngTemplateOutlet="complianceTitleTemplateInner ? complianceTitleTemplateInner : noneTemplate"></ng-container>
@@ -38,8 +36,6 @@
 </ng-template>
 
 <ng-template #epmTemplate> <!-- Emergency Procedure Manual -->
-
-
 	<div class="documents-container"  >
 		<div class="document"  >
 
@@ -79,18 +75,19 @@
 				</div>
 
 				<div class="buttons">
-          <button
-          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
-          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0" >Download</button>
-					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
+                    <button
+                    (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+                    class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0"   >Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']" >Shop</button>
+                    <!-- <button class="btn btn-block orange waves-effect waves-light" *ngIf="isFRP == false && isTRP == true" (click)="showModalUploadDocs('epm')" style="display: block;width: 95%;">Manage</button> -->
 				</div>
 			</div>
 
 
-			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
+			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
 				<p class="give-access-text">Give access to TRP</p>
 				<div class="switch" >
-          <input type="checkbox"
+                <input type="checkbox"
                  (change)="assignAccessToTRP($event, selectedCompliance)"
                  [checked]="selectedCompliance.compliance.docs[0].viewable_by_trp">
 					<div class="yes">Yes</div>
@@ -136,18 +133,17 @@
 				</div>
 
 				<div class="buttons">
-          <button
-          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
-          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
-					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
+                    <button
+                    (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
+                    class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0" style="width:46%;">Download</button>
+					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']" style="width:45%;">Shop</button>
+                    <!-- <button class="btn btn-block orange waves-effect waves-light" (click)="showEPCformEvent()" style="display: block;width: 95%;">Manage</button> -->
 				</div>
 			</div>
-			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
-        <p class="give-access-text">Give access to TRP</p>
-        <div class="switch" >
-        <input type="checkbox"
-                 (change)="assignAccessToTRP($event, selectedCompliance)"
-                 [checked]="selectedCompliance.compliance.docs[0].viewable_by_trp">
+			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
+                <p class="give-access-text">Give access to TRP</p>
+                <div class="switch" >
+                    <input type="checkbox" (change)="assignAccessToTRP($event, selectedCompliance)" [checked]="selectedCompliance.compliance.docs[0].viewable_by_trp">
 					<div class="yes">Yes</div>
 					<div class="no">No</div>
 					<div class="highlight"></div>
@@ -155,7 +151,7 @@
 				</div>
 			</div>
 		</div>
-  </div>
+    </div>
 </ng-template>
 
 <ng-template #evacution_exerciseTemplate> <!-- Evacuation Exercise -->
@@ -199,16 +195,30 @@
 				<div class="buttons">
 					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
+
+                    <div class="switch-container" *ngIf="isFRP == false && isTRP == true" >
+                        <p class="give-access-text">Completed the Evacuation Exercise?</p>
+                        <div class="switch" >
+                            <input type="checkbox"
+                            (change)="completedEvacExerEvent($event)"
+                            [checked]="(selectedCompliance.compliance.valid == 1) ? 'checked' : false">
+                            <div class="yes">Yes</div>
+                            <div class="no">No</div>
+                            <div class="highlight"></div>
+                            <div class="background"></div>
+                        </div>
+                    </div>
+
 				</div>
 			</div>
 
-			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
+			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
 				<p class="give-access-text">Give access to TRP</p>
 				<div class="switch" >
-          <input type="checkbox"
-          (change)="assignAccessToTRP($event, selectedCompliance)"
-          [checked]="selectedCompliance.compliance.docs[0].viewable_by_trp">
-					<div class="yes">Yes</div>
+                    <input type="checkbox"
+                    (change)="assignAccessToTRP($event, selectedCompliance)"
+                    [checked]="selectedCompliance.compliance.docs[0].viewable_by_trp">
+        			<div class="yes">Yes</div>
 					<div class="no">No</div>
 					<div class="highlight"></div>
 					<div class="background"></div>
@@ -259,7 +269,7 @@
 				</div>
 			</div>
 
-			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
+			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
 				<p class="give-access-text">Give access to TRP</p>
 				<div class="switch" >
 					<input type="checkbox"
@@ -311,12 +321,12 @@
           <button
           (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
           class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
-					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/teams/add-wardens']" [queryParams]="{ 'location_id' : encryptedID }">Manage</button>
+					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/teams/add-wardens']" [queryParams]="{ 'location_id' : encryptedID }">Manage</button> -->
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
 				</div>
 			</div>
 
-			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
+			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
 				<p class="give-access-text">Give access to TRP</p>
 				<div class="switch" >
 					<input type="checkbox"
@@ -365,12 +375,12 @@
 
 				<div class="buttons">
 					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
-					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
+					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button> -->
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
 				</div>
 			</div>
 
-			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
+			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
 				<p class="give-access-text">Give access to TRP</p>
 				<div class="switch" >
 					<input type="checkbox"
@@ -424,10 +434,22 @@
 				<div class="buttons">
                     <button (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
+                    <!-- <div class="switch-container"  >
+                        <p class="give-access-text">Completed the Fire Safety Advisory?</p>
+                        <div class="switch" >
+                            <input type="checkbox"
+                            (change)="completedFASEvent($event)"
+                            [checked]="(selectedCompliance.compliance.valid == 1) ? 'checked' : false">
+                            <div class="yes">Yes</div>
+                            <div class="no">No</div>
+                            <div class="highlight"></div>
+                            <div class="background"></div>
+                        </div>
+                    </div> -->
 				</div>
 			</div>
 
-			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
+			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
 				<p class="give-access-text">Give access to TRP</p>
 				<div class="switch" >
 					<input type="checkbox"
@@ -474,12 +496,12 @@
 
 				<div class="buttons">
                     <button (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
-					<button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button>
+					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button> -->
 					<button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button>
 				</div>
 			</div>
 
-			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
+			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
 				<p class="give-access-text">Give access to TRP</p>
 				<div class="switch" >
 					<input type="checkbox"
@@ -660,7 +682,7 @@
 						{{doc.file_name}}
 					</td>
 					<td>
-						
+
 					</td>
 					<td style="padding: 2px;">
 						<a  class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
@@ -720,7 +742,7 @@
 						{{doc.file_name}}
 					</td>
 					<td>
-						
+
 					</td>
 					<td style="padding: 2px;">
 						<a  class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
@@ -789,7 +811,7 @@
                         </a>
                     </td>
                 </tr>
-                <!--  
+                <!--
 				<tr>
 					<td class="with-icon">
 						<div class="image check"></div>
@@ -978,9 +1000,6 @@
         </tbody>
       </table>
     </div>
-
-
-
 	</div>
 </ng-template>
 
@@ -1025,8 +1044,20 @@
 				</tr>
 			</thead>
 			<tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 6">
-          <tr *ngFor="let sub of complianceSublocations">
-              <td>{{sub.name}}</td>
+            <tr *ngFor="let sub of complianceSublocations">
+              <td class="with-icon">
+                <ng-template #noStatus>
+                    <div class="image expired"></div>
+                </ng-template>
+                <span *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noStatus">
+                    <div class="image"  [ngClass]="{
+                        'expired' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].total_passed == 0,
+                        'alarm' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training']['percentage'] != '100%' && selectedCompliance['compliance']['location_details'][sub['location_id']]['training']['percentage'] != '0%',
+                        'check' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training']['percentage'] == '100%'
+                    }"></div>
+                </span>
+                <div class="text">{{sub.name}}</div>
+              </td>
               <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
                 {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_estimated_wardens}}
               </td>
@@ -1101,7 +1132,7 @@
 						{{doc.file_name}}
 					</td>
 					<td>
-						
+
 					</td>
 					<td style="padding: 2px;">
 						<a  class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
@@ -1240,7 +1271,7 @@
 
 <div class="top-gray">
 	<h6 class="title">
-		<span *ngIf="locationData.parentData.name">{{locationData.parentData.name}},</span> {{locationData.name}}
+		{{nameDisplay}}
 	</h6>
 
 	<div class="upload-buttons">
@@ -1261,7 +1292,7 @@
 	</a> -->
 </div>
 
-<div class="main">
+<div class="main" [hidden]="showEPCform">
 
 	<div class="row row-table-content" style="left: 0%;">
 		<div class="col l5 m12 s12">
@@ -1273,13 +1304,15 @@
 					<div class="image"></div>
 				</div>
 
-				<div class="background"></div>
-				<div class="loading" [ngStyle]="{'width': totalPercentage}">
-					<div class="tip-percentage">
-						<div class="percentage">{{ totalPercentage }}</div>
-						<div class="arrow-down"></div>
-					</div>
-				</div>
+				<div class="background">
+                    <div class="loading" [ngStyle]="{'width': totalPercentage + '%' }">
+                        <div class="tip-percentage">
+                            <div class="percentage">{{totalPercentage}}% </div>
+                            <div class="arrow-down"></div>
+                        </div>
+                    </div>
+                </div>
+
 
 			</div>
 
@@ -1294,50 +1327,43 @@
 
 					<tr *ngFor="let k of KPIS;" (click)="clickSelectComplianceFromList(k)" [attr.compliance]="k.short_code">
 						<td class="with-image">
-							<div class="image {{k.icon_class}}"></div>
+							<div class="image {{k.icon_class}}" [ngStyle]="{'background-color': k.background_color}"  ></div>
 							<span>{{k.name}}</span>
 						</td>
-						<td class="with-icon" *ngIf="k.type == 'date'">
-							<div *ngIf="k.compliance.validity_status == 'none-exist'" class="image expired"></div>
-							<div *ngIf="k.compliance.validity_status == 'invalid'" class="image alarm"></div>
-							<div *ngIf="k.compliance.validity_status == 'valid'" class="image check"></div>
 
-							<div class="text"  *ngIf="k.compliance.validity_status != 'none-exist'">
-								<p>Valid Till:</p>
-								<div *ngIf="k.compliance.validity_status == 'invalid'">
-									<span>{{k.compliance.docs[0].valid_till}}</span>
-								</div>
-								<div *ngIf="k.compliance.validity_status == 'valid'" class="image check" class="green-text">
-									<span>{{k.compliance.docs[0].valid_till}}</span>
-								</div>
-							</div>
+                        <td class="with-icon" *ngIf="!k.compliance">
+                            <div class="image expired"></div>
+                        </td>
+                        
+                        <td class="with-icon" *ngIf="k.compliance">
+                            <div *ngIf="k.compliance.validity_status == 'none-exist' && k.compliance_kpis_id != 13" class="image expired"></div>
+                            <div *ngIf="k.compliance.validity_status == 'invalid' && k.compliance_kpis_id != 13" class="image alarm"></div>
+                            <div *ngIf="k.compliance.validity_status == 'valid' && k.compliance_kpis_id != 13" class="image check"></div>
 
-							<div class="arrow"></div>
-						</td>
-						<td class="with-bar red-theme" 
-                            [ngClass]="{ 'green-theme' : k.compliance.percentage_number >= 100 }" 
-                            *ngIf="k.type == 'percent' && k.compliance_kpis_id != 5 && k.compliance_kpis_id != 13">
-							<div class="text">{{k.compliance.percentage}}</div>
-							<div class="progress-container">
-								<div class="progress">
-							    	<div class="determinate" [ngStyle]="{'width': k.compliance.percentage}"></div>
-								</div>
-								<p> {{k.compliance.total_personnel_trained.total_passed}} / {{k.compliance.total_personnel}} </p>
-							</div>
-							<div class="arrow"></div>
-						</td>
-                        <td class="with-bar red-theme" [ngClass]="{ 'green-theme' : k.compliance.percentage_number >= 100 }" *ngIf="k.compliance_kpis_id == 5 && k.compliance_kpis_id != 13">
-                            <div class="text">{{k.compliance.percentage}}</div>
-                            <div class="progress-container">
-                                <div class="progress">
-                                    <div class="determinate" [ngStyle]="{'width': k.compliance.percentage}"></div>
+                            <div class="text" *ngIf="k.type == 'date' && k.compliance.validity_status != 'none-exist' && k.compliance_kpis_id != 3">
+                                <p *ngIf="k.compliance.validity_status == 'valid'">Valid Till:</p>
+                                <div *ngIf="k.compliance.validity_status == 'invalid'">
+                                    <span *ngIf="k.compliance.docs[0]">{{k.compliance.docs[0].valid_till}}</span>
                                 </div>
-                                <p> {{k.compliance.total_valid_diagrams}} / {{k.compliance.total_diagrams}} </p>
+                                <div *ngIf="k.compliance.validity_status == 'valid'"  >
+                                    <span *ngIf="k.compliance.docs[0] && k.compliance.valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
+                                    <span *ngIf="!k.compliance.docs[0] && k.compliance.valid_till != null">{{k.compliance['valid_till']}}</span>
+                                </div>
                             </div>
+
+                            <div class="text"  *ngIf="k.type == 'percent'">
+                                <a *ngIf="k.compliance_kpis_id == 5 || k.compliance_kpis_id == 6 || k.compliance_kpis_id == 8 || k.compliance_kpis_id == 9 || k.compliance_kpis_id == 12" (click)="showDiagramDetails()">
+                                    View Details
+                                </a>
+                                <!-- <span *ngIf="k.compliance_kpis_id != 5 && k.compliance_kpis_id != 13">{{k.compliance.total_personnel_trained.total_passed}} / {{k.compliance.total_personnel}}</span>
+                                                                <span *ngIf="k.compliance_kpis_id == 5 && k.compliance_kpis_id != 13"> {{k.compliance.total_valid_diagrams}} / {{k.compliance.total_diagrams}} </span> -->
+                            </div>
+
                             <div class="arrow"></div>
                         </td>
-                        <td *ngIf="k.compliance_kpis_id == 13">
-                        </td>
+                        
+                        <ng-container  *ngTemplateOutlet="validValidityStatus"></ng-container>
+                        
 					</tr>
 
 				</tbody>
@@ -1363,6 +1389,12 @@
 	</div>
 
 </div>
+
+
+<div class="main epc-form" [hidden]="!showEPCform" style="margin-top: 90px;">
+    <epc-minutes-meeting></epc-minutes-meeting>
+</div>
+
 
 <div id="modalWardenList" class="modal">
   <div class="modal-content">
@@ -1413,5 +1445,89 @@
   </div>
 
 </div>
+
+
+<div class="modal" id="modalManageUpload" style="overflow: visible;"  >
+
+    <div class="modal-content" *ngIf="showModalUploadDocsLoader">
+        <div class="center" >
+            <div class="preloader-wrapper active" >
+                <div class="spinner-layer spinner-red-only">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="gap-patch">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <form #form="ngForm" [hidden]="showModalUploadDocsLoader">
+
+    <div class="modal-content">
+        <h5>Upload document for {{this.selectedKPIS.name}}</h5>
+
+        <div class="row" style="margin-top: 35px;">
+
+            <div class="col m12 l6">
+                <div class="input-field">
+                    <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+                    <input id="dateOfActivity" autocomplete="off" type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="date_of_activity" (click)="showDatePicker()" required >
+                    <label for="dateOfActivity" class="active" >Date of Activity</label>
+                </div>
+            </div>
+
+            <div class="col m12 l6">
+                <div class="input-field">
+                    <input id="validTill" type="text" name="valid_till_date" [ngModel]="validTillDate" readonly required >
+                    <label for="validTill" class="active">Valid Till</label>
+                </div>
+            </div>
+
+            <div class="col l12">
+                <div class="input-field">
+                    <textarea id="textDescription" ngModel name="description" class="materialize-textarea" ></textarea>
+                    <label for="textDescription" class="">Description</label>
+                </div>
+            </div>
+
+            <div class="col l12">
+                <button class="btn orange waves-light waves-effect" (click)="selectFile(inpFileUploadDocs)" style="margin: 2% 0%; font-size: 14px !important;">Select File</button>
+                <div class="file-name" style="display: inline;padding: 0% 2%;font-size: 14px;" *ngIf="inpFileUploadDocs.files[0]">{{inpFileUploadDocs.files[0].name }}</div>
+                <div style="display: inline;padding: 0% 2%;font-size: 14px;" *ngIf="docsFileSizeIsMax"> File is too large. File must be less than 20Mb </div>
+                <input type="file" ngModel name="file" required class="file" hidden #inpFileUploadDocs (change)="onFileSelected($event, form)" />
+            </div>
+
+            <div class="col l12">
+                <div class="switch-container"  >
+                    <p class="give-access-text">Give access to TRP</p>
+                    <div class="switch" >
+                    <input type="checkbox" ngModel name="viewable_by_trp"  >
+                        <div class="yes">Yes</div>
+                        <div class="no">No</div>
+                        <div class="highlight"></div>
+                        <div class="background"></div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+    </div>
+    <div class="modal-footer">
+        <a class="modal-action modal-close waves-effect waves-red btn-flat" (click)="cancelUploadDocs(form)">Cancel</a>
+        <button class="waves-effect waves-blue btn-flat" type="submit" [disabled]="!form.valid" (click)="submitUploadDocs(form)">Submit</button>
+    </div>
+
+    </form>
+</div>
+
 
 <div preloader></div>

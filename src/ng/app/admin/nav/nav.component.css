@@ -1,0 +1,50 @@
+ul{
+    margin:0px;
+}
+
+ul li{
+    display: block;
+    color: #fff;
+    padding: 10px;
+}
+
+ul li:hover {
+    background-color: #2196f3;
+}
+
+ul li .logo,
+ul li .text{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+ul li .logo{
+    background: url(/assets/images/admin_icon.png);
+    background-repeat: no-repeat;
+    background-size: 670%;
+    width: 30px;
+    height: 30px;
+}
+
+ul li .text{
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 14px;
+    letter-spacing: 0.2px;
+}
+
+.logo.account{
+    background-position: 4% 39% !important;
+}
+
+.logo.training{
+    background-position: 29% 39% !important;
+}
+
+.logo.reports{
+    background-position: 89% 63% !important;
+}
+
+.logo.upload{
+    background-position: 89% 39% !important;
+}

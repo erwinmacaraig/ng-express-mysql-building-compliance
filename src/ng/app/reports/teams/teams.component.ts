@@ -7,7 +7,7 @@ import { ReportService } from '../../services/report.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { ExportToCSV } from '../../services/export.to.csv';
 import html2canvas from 'html2canvas';
-import * as jsPDF from 'jspdf';
+// import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
 
 
@@ -35,13 +35,16 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     queries =  {
         limit : 10,
         offset : 0,
-        location_id : 0
+        location_id : 0,
+        account_id : 0
     };
 
     pdfLoader = false;
     csvLoader = false;
     exportData = [];
     exportFetchMarker = {};
+
+    accountId = 0;
 
     constructor (
         private router: Router,
@@ -84,8 +87,14 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.sub = this.route.params.subscribe(params => {
+            this.dashboardPreloader.show();
             this.locationIdDecrypted = this.encryptDecrypt.decrypt(params['location']);
             console.log(`Decrypted location id ${this.locationIdDecrypted}`);
+
+            if(params['accountId']){
+                this.accountId = this.encryptDecrypt.decrypt( params.accountId );
+                this.queries.account_id = this.accountId;
+            }
 
             this.reportData = [];
             this.getTeamReport((response:any) => {
@@ -111,16 +120,16 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
         this.pdfLoader = true;
         this.csvLoader = true;
-        
 
-        let 
+
+        let
         divider = 50,
         divRes = this.pagination.total / divider,
         divResString = divRes.toString(),
         remainderSplit = divResString.split('.'),
         remainder = (remainderSplit[1]) ? parseInt(remainderSplit[1]) : 0;
 
-        divRes = (remainder > 0) ? divRes + 1 : divRes; 
+        divRes = (remainder > 0) ? divRes + 1 : divRes;
 
         for(let i = 1; i<=divRes; i++){
             let offset = (i * divider) - divider;
@@ -138,7 +147,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
                         allLoaded = false;
                     }
                 }
-                
+
                 if(allLoaded){
 
                     for(let x in this.exportFetchMarker){
@@ -158,7 +167,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     }
 
     ngAfterViewInit(){
-        this.dashboardPreloader.show();
+        // this.dashboardPreloader.show();
         /*$('select').material_select();
         $('#selectLocation').val(this.locationIdDecrypted).material_select('update');
         $('#selectLocation').off('change.selectlocation').on('change.selectlocation', () => {
@@ -187,7 +196,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
                     changeDone = true;
                 }
                 break;
-            
+
             default:
                 if(this.pagination.prevPage != parseInt(type)){
                     this.pagination.currentPage = parseInt(type);
@@ -208,6 +217,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     }
 
     printResult(printContainer){
+      /*
         let headerHtml = `<h5> Team Report </h5>`;
 
         $(printContainer).printThis({
@@ -216,9 +226,11 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
             loadCSS: [ "/assets/css/materialize.css" ],
             header : headerHtml
         });
+        */
     }
 
     pdfExport(printContainer){
+      /*
         let
         pdf = new jsPDF("p", "pt"),
         columns = [
@@ -233,7 +245,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         count = 0;
 
         for(let report of this.exportData){
-            let 
+            let
             rows = [],
             locName = (report.location.parent.name.length > 0) ? report.location.parent.name+', '+report.location.name : report.location.name;
             locName += '\nCurrent Team Information';
@@ -327,6 +339,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         }
 
         pdf.save('teams-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
+        */
     }
 
     csvExport(){

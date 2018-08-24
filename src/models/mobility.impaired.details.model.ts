@@ -136,10 +136,19 @@ export class MobilityImpairedModel extends BaseClass {
             archived = 0;
         }
         return new Promise((resolve, reject) => {
-          if (locationIds.length == 0) {
-            resolve([]);
-            return;
-          }
+
+            let locSql = '';
+            if(locationIds){
+                locSql = ` WHERE location_id IN (${locationIds}) `;
+            }
+
+            if (locationIds.length == 0) {
+                resolve([]);
+                return;
+            }
+
+            let accntSql = (accountId) ? ` AND account_id = ${accountId} ` : '';
+
             let sql = `
                 SELECT
                     user_id,
@@ -148,14 +157,13 @@ export class MobilityImpairedModel extends BaseClass {
                     email
                 FROM users
                 WHERE
-                    archived = ${archived} AND account_id = ${accountId} AND mobility_impaired = 1 AND
-                    user_id IN (SELECT user_id FROM location_account_user WHERE location_id IN (${locationIds}))
+                    archived = ${archived} ${accntSql} AND mobility_impaired = 1 AND
+                    user_id IN (SELECT user_id FROM location_account_user ${locSql})
                 OR
-                    archived = ${archived} AND account_id = ${accountId} AND mobility_impaired = 1 AND
-                    user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id IN (${locationIds}))
+                    archived = ${archived} ${accntSql} AND mobility_impaired = 1 AND
+                    user_id IN (SELECT user_id FROM user_em_roles_relation ${locSql})
 
                 GROUP BY users.user_id
-
             `;
 
             const connection = db.createConnection(dbconfig);
@@ -183,15 +191,15 @@ export class MobilityImpairedModel extends BaseClass {
    * if account - queries the location_account_user
    * if emergency - queries the user_em_roles_relation
    */
-  public listAllMobilityImpaired(account_id = 0, location = 0, type = 'account'): Promise<Array<object>> {
+  public listAllMobilityImpaired(account_id = 0, location = [], type = 'account'): Promise<Array<object>> {
 
     return new Promise((resolve, reject) => {
       let whereClause = '';
 
       const queryResultSet = [];
       let sql_peep_users = '';
-      if (location) {
-        whereClause += ` AND location_id = ${location}`;
+      if (location.length > 0) {
+        whereClause += ` AND locations.location_id IN (${location.join(',')})`;
       }
       if (type === 'account') {
         sql_peep_users = `
@@ -200,18 +208,31 @@ export class MobilityImpairedModel extends BaseClass {
           users.first_name,
           users.last_name,
           users.mobility_impaired,
-          location_account_user.location_id
+          users.mobile_number,
+          users.email,
+          location_account_user.location_id,
+          locations.name,
+          mobility_impaired_details.date_created
         FROM
           users
         INNER JOIN
           location_account_user
         ON
           users.user_id = location_account_user.user_id
+        INNER JOIN
+          locations
+        ON
+          locations.location_id = location_account_user.location_id
+        LEFT JOIN
+          mobility_impaired_details
+        ON
+          mobility_impaired_details.user_id = users.user_id
         WHERE
           users.account_id = ?
         AND
           users.mobility_impaired = 1
           ${whereClause}
+        AND users.archived = 0
         GROUP BY users.user_id
       `;
       } else if (type === 'emergency') {
@@ -221,17 +242,30 @@ export class MobilityImpairedModel extends BaseClass {
             users.first_name,
             users.last_name,
             users.mobility_impaired,
-            user_em_roles_relation.location_id
+            users.mobile_number,
+            users.email,
+            user_em_roles_relation.location_id,
+            locations.name,
+            mobility_impaired_details.date_created
           FROM
             users
           INNER JOIN
             user_em_roles_relation
           ON
             users.user_id = user_em_roles_relation.user_id
+          INNER JOIN
+            locations
+          ON
+            locations.location_id = user_em_roles_relation.location_id
+          LEFT JOIN
+            mobility_impaired_details
+          ON
+            mobility_impaired_details.user_id = users.user_id
           WHERE
             users.account_id = ?
           AND
             users.mobility_impaired = 1 ${whereClause}
+          AND users.archived = 0
           GROUP BY users.user_id
         `;
       }

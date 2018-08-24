@@ -1,0 +1,327 @@
+<div class="container-fluid">
+    
+    <ng-template #loader>
+        <div class="preloader-wrapper small active">
+            <div class="spinner-layer">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+
+    <div class="row" [hidden]="hideFormField">
+        <ng-container *ngTemplateOutlet="formField"></ng-container>
+    </div>
+
+    <div class="row" [hidden]="hideTrainingReport">
+        <ng-container *ngTemplateOutlet="trainingReportContainer"></ng-container>
+    </div>
+
+    <div class="row" [hidden]="hideLocationReport">
+        <ng-container *ngTemplateOutlet="locationReportContainer"></ng-container>
+    </div>
+
+    <div class="row" [hidden]="hideAccountReport">
+        <ng-container *ngTemplateOutlet="accountReportContainer"></ng-container>
+    </div>
+
+    <div class="row" [hidden]="hideFaceToFaceReport">
+        <ng-container *ngTemplateOutlet="faceToFaceReportContainer"></ng-container>
+    </div>
+
+    <div class="row" [hidden]="hidePagination">
+        <ng-container *ngTemplateOutlet="paginationContainer"></ng-container>
+    </div>
+
+</div>
+
+<ng-template #formField>
+    <div class="col l4 m12 s12">
+        <h5 class="blue-text"> Report </h5>
+        <p class="instruction">
+            To generate a report, either fill in the buildign name and location or search for your account below, then choose a report type.
+        </p>
+    </div>
+
+    <div class="clearfix"></div>
+    
+    <div class="col l3 m8 s12">
+        <div class="input-top-labels">
+            <div class="icon location"></div>
+            <div class="text">Location</div>
+        </div>
+
+        <div class="round-input-container search-location-container" #searchLocationContainer>
+            <input type="text" class="round-input location" placeholder="Enter Building Name, Location Name"  >
+            <div class="search-result">
+                <ul *ngIf="searchedLocations.length > 0">
+                    <li class="search-result-layer" (click)="clickSelectFromSearch('location', location, $event)" *ngFor="let location of searchedLocations">{{location.name}}
+                        <span *ngIf="location.sublocations.length > 0" class="right-arrow"> > </span>
+                        <ul *ngIf="location.sublocations.length > 0">
+                            <li *ngFor="let sub of location.sublocations" (click)="clickSelectFromSearch('location', sub, $event, location)"> {{sub.name}} </li>
+                        </ul>
+                    </li>
+                </ul>
+                <p class="message" *ngIf="searchedLocations.length == 0">No Location Found</p>
+            </div>
+            <div class="loading">
+                <ng-container *ngTemplateOutlet="loader"></ng-container>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="col or-container hide-on-med-and-down">
+        <div class="or">
+            - or -
+        </div>
+    </div>
+
+    <div class="col m12 s12 show-on-medium-and-down hide-on-large-only">
+        <div class="or">
+            - or -
+        </div>
+    </div>
+
+    <div class="col l3 m8 s12">
+        <div class="input-top-labels">
+            <div class="icon account"></div>
+            <div class="text">Account</div>
+        </div>
+    
+        <div class="round-input-container search-account-container" #searchAccountContainer>
+            <input type="text" class="round-input account" placeholder="Enter Account Name"  >
+            <div class="search-result">
+                <ul *ngIf="searchedAccounts.length > 0">
+                    <li class="search-result-layer" (click)="clickSelectFromSearch('account', account, $event)" *ngFor="let account of searchedAccounts">{{account.account_name}}</li>
+                </ul>
+                <p class="message" *ngIf="searchedAccounts.length == 0">No Account Found</p>
+            </div>
+            <div class="loading">
+                <ng-container *ngTemplateOutlet="loader"></ng-container>
+            </div>
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="col l3 m8 s12">
+        
+        <!-- <div class="margin-top-bottom-20">
+            <input id="inpAllLocs" #inpAllLocs class="filled-in" checked="checked" type="checkbox">
+            <label for="inpAllLocs"> All Locations </label>
+        </div> -->
+
+        <div class="input-top-labels">
+            <div class="icon report"></div>
+            <div class="text">Report</div>
+        </div>
+
+        <div class="margin-top-bottom-20">
+            <select #selectReportType>
+                <option value="0" disabled selected>Select Report Type</option>
+                <option value="training">Training</option>
+                <option value="location">Location</option>
+                <option value="account">Account</option>
+                <option value="face">Face to Face</option>
+            </select>
+        </div>
+
+        <div class="margin-top-bottom-20">
+            <button class="btn btn-block orange waves-effect waves-light" (click)="generateReport()" >Generate Report</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #trainingReportContainer>
+    <div class="col l12 m12 s12 relative">
+        <h4 class="blue-text left"> Training Report </h4>
+        <div class="right right-buttons">
+            <ng-container *ngTemplateOutlet="rightButtons"></ng-container>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th>Location</th>
+                    <th>Account</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Training Status</th>
+                    <th>Emergency Role</th>
+                    <th>Expiration Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="trainingReportData.length == 0">
+                    <td colspan="7" class="center-align">No Record Found</td>
+                </tr>
+                <tr *ngFor="let training of trainingReportData">
+                    <td>{{ (training.locations.length > 1) ? 'Multiple' : training.locations.join('') }}</td>
+                    <td>{{training.account_name}}</td>
+                    <td>{{training.full_name}}</td>
+                    <td>{{training.email}}</td>
+                    <td>{{training.status}}</td>
+                    <td>{{ training.roles.join(', ') }}</td>
+                    <td>{{training.expiry_date_formatted}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</ng-template>
+
+<ng-template #locationReportContainer>
+    <div class="col l12 m12 s12 relative">
+        <h4 class="blue-text left"> Location Report </h4>
+        <div class="right right-buttons">
+            <ng-container *ngTemplateOutlet="rightButtons"></ng-container>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th>Location</th>
+                    <th>Account</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone/Mobile</th>
+                    <th>Emergency Role</th>
+                    <th>Mobility Impaired</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="locationReportData.length == 0">
+                    <td colspan="7" class="center-align">No Record Found</td>
+                </tr>
+                <tr *ngFor="let report of locationReportData">
+                    <td>{{ (report.locations.length > 1) ? 'Multiple' : report.locations.join('') }}</td>
+                    <td>{{ report.account_name }}</td>
+                    <td>{{ report.full_name }}</td>
+                    <td>{{ report.email }}</td>
+                    <td>
+                        {{ report.phone_number }}
+                        <span *ngIf="report.phone_number.trim().length > 0 && report.mobile_number.trim().length > 0"> /</span>
+                        {{ report.mobile_number }}
+                    </td>
+                    <td>{{ report.roles.join(', ') }}</td>
+                    <td>
+                        <span *ngIf="report.mobility_impaired == 1">Yes</span>
+                        <span *ngIf="report.mobility_impaired == 0">No</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</ng-template>
+
+<ng-template #accountReportContainer>
+    <div class="col l12 m12 s12 relative">
+        <h4 class="blue-text left"> Account Report </h4>
+        <div class="right right-buttons">
+            <ng-container *ngTemplateOutlet="rightButtons"></ng-container>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th width="35%">Location</th>
+                    <th>Account</th>
+                    <th>Name</th>
+                    <th>Account Role</th>
+                    <th width="10%">Email</th>
+                    <th>Last Logged In</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="accountReportData.length == 0">
+                    <td colspan="6" class="center-align">No Record Found</td>
+                </tr>
+                <tr *ngFor="let report of accountReportData">
+                    <td>{{ (report.locations.length > 1) ? 'Multiple' : report.locations.join('') }}</td>
+                    <td>{{ report.account_name }}</td>
+                    <td>{{ report.first_name }} {{ report.last_name }}</td>
+                    <td>{{ report.roles.join(', ') }}</td>
+                    <td>{{ report.email }}</td>
+                    <td>{{ report.last_login_formatted }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</ng-template>
+
+<ng-template #faceToFaceReportContainer>
+    <div class="col l12 m12 s12 relative">
+        <h4 class="blue-text left"> Face To Face Notifications Report </h4>
+        <div class="right right-buttons">
+            <ng-container *ngTemplateOutlet="rightButtons"></ng-container>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th>Account</th>
+                    <th>Name</th>
+                    <th width="10%">Email</th>
+                    <th>Email CC</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="faceToFaceReportData.length == 0">
+                    <td colspan="4" class="center-align">No Record Found</td>
+                </tr>
+                <tr *ngFor="let report of faceToFaceReportData">
+                    <td>{{ report.account_name }}</td>
+                    <td>{{ report.full_name }}</td>
+                    <td>{{ report.email }}</td>
+                    <td>{{ report.cc_emails }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</ng-template>
+
+<ng-template #paginationContainer>
+    <div class="col l12 m12 s12 center pagination" [hidden]="pagination.total <= pagination.limit">
+        <div class="inline-block">
+            <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
+        </div>
+
+        <div class="inline-block select">
+            <select #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+                <option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+            </select>
+        </div>
+
+        <div class="inline-block">
+            <button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #rightButtons>
+    <div style="width: 35px;" *ngIf="csvLoader">
+        <div class="progress" style="margin: 2px auto;">
+            <div class="indeterminate"></div>
+        </div>
+    </div>
+    <a (click)="csvExport()" *ngIf="!csvLoader">
+        <div class="image excel"></div>
+    </a>
+
+    <button class="btn red button-right-cancel darken-2" (click)="goBackClickEvent()">Go Back</button>
+</ng-template>
+
+<div preloader></div>

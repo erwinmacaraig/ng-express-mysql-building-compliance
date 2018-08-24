@@ -13,13 +13,15 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { ExportToCSV } from '../../services/export.to.csv';
+import { MessageService } from '../../services/messaging.service';
 
 declare var $: any;
 @Component({
   selector: 'app-add-mobility-impaired',
   templateUrl: './add.mobility.impaired.component.html',
   styleUrls: ['./add.mobility.impaired.component.css'],
-  providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService]
+  providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService, ExportToCSV, MessageService]
 })
 export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 	@ViewChild('addMobilityImpairedForm') addMobilityImpairedForm: NgForm;
@@ -59,6 +61,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     searchModalLocationSubs;
     formLocValid = false;
 
+    modalCSVMessage = '';
+
     constructor(
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
@@ -68,7 +72,9 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         private router : Router,
         private actRoute : ActivatedRoute,
         private encdecrypt : EncryptDecryptService,
-        private adminService : AdminService
+        private adminService : AdminService,
+        private exportToCSV : ExportToCSV,
+        private messageService: MessageService
         ) {
 
         this.userData = this.authService.getUserData();
@@ -119,9 +125,9 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 		});
 
 		$('select').material_select();
-
-        this.dragDropFileEvent();
         this.onKeyUpSearchModalLocationEvent();
+
+        this.messageService.sendMessage({ 'csv-upload' : {  'title' : 'Add Mobility Impaired by CSV Upload', mobility_impaired : true  } });
 	}
 
 	addMoreRow(){
@@ -184,10 +190,23 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     filterLocationsToDisplayByUserRole(user, data){
         let resp = [],
             copy = JSON.parse(JSON.stringify(data));
-        if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
+        /*if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
             resp = JSON.parse( JSON.stringify( this.buildings ) );
         }else{
             resp = JSON.parse( JSON.stringify( this.levels ) );
+        }*/
+
+        for(let loc of this.buildings){
+            loc['sublocations'] = [];
+            for(let level of this.levels){
+                if(loc.location_id == level.parent_location_id){
+                    for(let sub of level.sublocations){
+                        sub['location_id'] = sub.id;
+                    }
+                    loc['sublocations'] = level.sublocations;
+                }
+            }
+            resp.push(loc);
         }
 
         this.locationsCopy = JSON.parse( JSON.stringify( resp ) );
@@ -206,53 +225,87 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         });
 
         let maxDisplay = 25,
-            count = 1;
-            if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
+        count = 1;
+        
+        /*if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
             parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
             parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
             parseInt(this.selectedUser['account_role_id'], 10) === 16 ||
             parseInt(this.selectedUser['account_role_id'], 10) === 18
-           ) {
-          for (let loc of this.locations) {
-            if (count <= maxDisplay) {
-                let $li = $(`
-                    <li class="list-division" id="${loc.location_id}">
+            ) {
+            for (let loc of this.locations) {
+                if (count <= maxDisplay) {
+                    let $li = $(`
+                        <li class="list-division" id="${loc.location_id}">
                         <div class="name-radio-plus">
-                            <div class="input">
-                                <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
-                                <label for="check-${loc.location_id}">${loc.name}</label>
-                            </div>
+                        <div class="input">
+                        <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
+                        <label for="check-${loc.location_id}">${loc.name}</label>
                         </div>
-                    </li>`);
+                        </div>
+                        </li>`);
+
+                    ulModal.append($li);
+                    count++;
+                }
+            }
+        } else {
+            for (const loc of this.locations) {
+                if (count <= maxDisplay) {
+                    const $lh = $(`<lh><h6>${loc['parent_location_name']}</h6></lh>`);
+                    ulModal.append($lh);
+                    if ('sublocations' in loc) {
+                        for (const subloc of loc.sublocations) {
+                            const $li = $(`
+                                <li class="list-division" id="${subloc.id}">
+                                <div class="name-radio-plus">
+                                <div class="input">
+                                <input required type="radio"
+                                name="selectLocation"
+                                value="${subloc.id}" id="check-${subloc.id}">
+                                <label for="check-${subloc.id}">${subloc.name}</label>
+                                </div>
+                                </div>
+                                </li>`);
+                            ulModal.append($li);
+                        }
+                    }
+                    count++;
+                }
+            }
+        }*/
+
+        for (const loc of this.locations) {
+            if (count <= maxDisplay) {
+                let ul = ``;
+                if(loc.sublocations.length > 0){
+                    ul += '<ul style="padding-left: 20px; max-height: 153px; overflow: auto;">';
+                        for(let sub of loc.sublocations){
+                            ul += `<li class="list-division" id="${sub.location_id}">
+                                    <div class="name-radio-plus">
+                                        <div class="input">
+                                            <input required type="radio" name="selectLocation" value="${sub.location_id}" id="check-${sub.location_id}">
+                                            <label for="check-${sub.location_id}">${sub.name}</label>
+                                        </div>
+                                    </div>
+                                </li>`;
+                        }
+                    ul += '</ul>';
+                }
+                let $li = $(`
+                <li class="list-division" id="${loc.location_id}">
+                    <div class="name-radio-plus">
+                        <div class="input">
+                            <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
+                            <label for="check-${loc.location_id}">${loc.name}</label>
+                        </div>
+                    </div>
+                    ${ul}
+                </li>`);
 
                 ulModal.append($li);
                 count++;
             }
-          }
-        } else {
-          for (const loc of this.locations) {
-            if (count <= maxDisplay) {
-              const $lh = $(`<lh><h6>${loc['parent_location_name']}</h6></lh>`);
-              ulModal.append($lh);
-              if ('sublocations' in loc) {
-                for (const subloc of loc.sublocations) {
-                  const $li = $(`
-                      <li class="list-division" id="${subloc.id}">
-                          <div class="name-radio-plus">
-                              <div class="input">
-                                  <input required type="radio"
-                                  name="selectLocation"
-                                  value="${subloc.id}" id="check-${subloc.id}">
-                                  <label for="check-${subloc.id}">${subloc.name}</label>
-                              </div>
-                          </div>
-                      </li>`);
-                  ulModal.append($li);
-                }
-              }
-              count++;
-            }
-          }
         }
     }
 
@@ -298,8 +351,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
               if ('sublocations' in loc) {
                 for (const sublocs of loc['sublocations']) {
                   if (sublocs['id'] == selectedLocationId) {
-                    this.selectedUser['location_name'] = `${loc['parent_location_name']}, ${sublocs['name']}`;
-                    if (/^[_-\s]$/.test(loc['parent_location_name'])) {
+                    this.selectedUser['location_name'] = `${loc['name']}, ${sublocs['name']}`;
+                    if (/^[_-\s]$/.test(loc['name'])) {
                       this.selectedUser['location_name'] = `${sublocs['name']}`;
                     }
                     locationFound = true;
@@ -327,7 +380,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     }
 
     public submitPEEP(f) {
-      let allInputValid = false;
+      let allInputValid = true;
       if (f.valid) {
         for(let i in this.addedUsers){
           this.addedUsers[i]['role_id'] = (this.addedUsers[i]['account_role_id'] == 1 ||
@@ -367,17 +420,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         });*/
     }
 
-    showModalCSV(){
-        $('#modaCsvUpload').modal('open');
-    }
-
     showModalInvite(){
         $('#modalInvite').modal('open');
-    }
-
-    selectCSVButtonClick(inputFileCSV){
-        console.log(inputFileCSV);
-        inputFileCSV.click();
     }
 
     sendInviteOnClick() {
@@ -400,68 +444,79 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         this.emailInviteForm.controls.inviteTxtArea.reset();
     }
 
-    public fileChangeEvent(fileInput: any, btnSelectCSV) {
-        this.CSVFileToUpload = <Array<File>> fileInput.target.files;
-        console.log(this.CSVFileToUpload);
-        btnSelectCSV.innerHTML = this.CSVFileToUpload[0]['name'];
-    };
-
-    public onUploadCSVAction() {
-        let override = $('#override')[0].checked;
-        console.log(override);
-        let formData: any = new FormData();
-
-        formData.append('file', this.CSVFileToUpload[0], this.CSVFileToUpload[0].name);
-        formData.append('override',  override);
-        this.dataProvider.uploadCSVWardenList(formData).subscribe((data) => {
-          console.log(data);
-        }, (e) => {
-          console.log(e);
-        });
-    }
-
-    isAdvancedUpload() {
-      var div = document.createElement('div');
-      return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
-    };
-
-    dragDropFileEvent(){
-        let modal = $('#modaCsvUpload'),
-            uploadContainer = modal.find('.upload-container'),
-            inputFile = uploadContainer.find('input[name="file"]');
-
-        if(this.isAdvancedUpload()){
-            uploadContainer.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            })
-            .on('dragover dragenter', () =>  {
-                uploadContainer.css({ 'border' : '2px dotted #fc4148' });
-            })
-            .on('dragleave dragend drop', () => {
-                uploadContainer.css({ 'border' : '' });
-            })
-            .on('drop', (e) => {
-                uploadContainer.find('input[type="file"]')[0].files = e.originalEvent.dataTransfer.files;
-            });
-        }
-    }
-
     onKeyUpSearchModalLocationEvent(){
         this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
-            .debounceTime(500)
-            .subscribe((event) => {
+        .debounceTime(500)
+        .subscribe((event) => {
             this.formLocValid = false;
             let value = event['target'].value,
-                result = [];
+            result = [];
+            let seenSubLocIndex = [];
+            const seenIndex = [];
+            let findRelatedName;
 
-            let findRelatedName = (data, mainParent?) => {
-                for(let i in data){
-                    if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+            if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 16 ||
+                parseInt(this.selectedUser['account_role_id'], 10) === 18
+                ) {
+                findRelatedName = (data, mainParent?) => {
+                    for(let i in data) {
+                        if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+                            result.push(data[i]);
+                        }
+                    }
+                    return result;
+                };
+            } else {
+
+                findRelatedName = (data, mainParent?) => {
+                    for ( let i = 0; i < data.length; i++) {
+                        if (data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                            result.push(data[i]);
+                        }
+                    }
+                    for ( let i = 0; i < data.length; i++) {
+                        seenSubLocIndex = [];
+                        for (let s = 0; s < data[i]['sublocations'].length; s++) {
+                            if (data[i]['sublocations'][s]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                                if (seenIndex.indexOf(i)) {
+                                    seenIndex.push(i);
+                                }
+                                seenSubLocIndex.push(data[i]['sublocations'][s]);
+                                data[i]['sublocations'] = seenSubLocIndex;
+                            }
+                        }
+                    }
+                    for (let si = 0; si < seenIndex.length; si++) {
+                        result.push(data[seenIndex[si]]);
+                    }
+                    return result;
+                };
+            }
+
+            findRelatedName = (data, mainParent?) => {
+                for ( let i = 0; i < data.length; i++) {
+                    if (data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
                         result.push(data[i]);
                     }
                 }
-
+                for ( let i = 0; i < data.length; i++) {
+                    seenSubLocIndex = [];
+                    for (let s = 0; s < data[i]['sublocations'].length; s++) {
+                        if (data[i]['sublocations'][s]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                            if (seenIndex.indexOf(i)) {
+                                seenIndex.push(i);
+                            }
+                            seenSubLocIndex.push(data[i]['sublocations'][s]);
+                            data[i]['sublocations'] = seenSubLocIndex;
+                        }
+                    }
+                }
+                for (let si = 0; si < seenIndex.length; si++) {
+                    result.push(data[seenIndex[si]]);
+                }
                 return result;
             };
 

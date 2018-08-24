@@ -1,22 +1,19 @@
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
-import { NgForm, NgModel } from '@angular/forms';
+import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
-import { PersonDataProviderService } from './../../services/person-data-provider.service';
-import { LocationsService } from './../../services/locations';
-import { AuthService } from '../../services/auth.service';
-import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { UserService } from '../../services/users';
+import { AuthService } from '../../services/auth.service';
 import { AccountsDataProviderService  } from '../../services/accounts';
-import { CourseService } from '../../services/course';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
-import { DatepickerOptions } from 'ng2-datepicker';
-import * as enLocale from 'date-fns/locale/en';
-import * as moment from 'moment';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { CourseService } from '../../services/course';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import * as moment from 'moment';
+import { DatepickerOptions } from 'ng2-datepicker';
 
 declare var $: any;
 @Component({
@@ -26,17 +23,54 @@ declare var $: any;
     providers : [EncryptDecryptService, UserService, DashboardPreloaderService, AccountsDataProviderService, CourseService]
 })
 export class MobilityImpairedComponent implements OnInit, OnDestroy {
-    public peepList = <any>[];
-    @ViewChild("durationDate") durationDate: ElementRef;
-    @ViewChild("formMobility") formMobility: NgForm;
-
-    copyOfList = [];
-    userData = {};
-    showModalLoader = false;
+    @ViewChild('formMobility') formMobility : NgForm;
+    @ViewChild('durationDate') durationDate : ElementRef;
+    userData = <any> {};
+    listData = [];
     selectedToArchive = {
-        first_name : '', last_name : '', parent_data : {}, locations : [], parent_name: '', name: ''
+        first_name : '', last_name : '', parent_data : {}, locations : []
     };
+    showModalLoader = false;
+    copyOfList = [];
     selectedFromList = [];
+
+    filters = [
+        { value : 2, name : 'Tenant Responsible' },
+        { value : 8, name : 'General Occupant' },
+        { value : 9, name : 'Warden' },
+        { value : 10, name : 'Floor / Area Warden' },
+        { value : 11, name : 'Chief Warden' },
+        { value : 12, name : 'Fire Safety Advisor' },
+        { value : 13, name : 'Emergency Planning Committee Member' },
+        { value : 14, name : 'First Aid Officer' },
+        { value : 15, name : 'Deputy Chief Warden' },
+        { value : 16, name : 'Building Warden' },
+        { value : 18, name : 'Deputy Building Warden' }
+    ];
+
+    loadingTable = false;
+
+    pagination = {
+        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+    };
+
+    queries = {
+        roles : 'frp,trp,users,no_roles',
+        impaired : 1,
+        type : 'client',
+        offset :  0,
+        limit : 10,
+        archived : 0,
+        pagination : true,
+        user_training : true,
+        users_locations : true,
+        search : '',
+        online_trainings : true
+    };
+
+    multipleLocations = [];
+
+    searchMemberInput;
 
     options: DatepickerOptions = {
         displayFormat: 'MMM D[,] YYYY',
@@ -50,29 +84,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         first_name : '', last_name : ''
     };
 
-    loadingTable = false;
-
-    pagination = {
-        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-    };
-
-    queries = {
-        roles : 'trp,frp,users',
-        impaired : 1,
-        type : 'client',
-        offset :  0,
-        limit : 10,
-        archived : 0,
-        pagination : true,
-        user_training : true,
-        users_locations : true,
-        search : ''
-    };
-
-    searchMemberInput;
-
-    multipleLocations = [];
-
     selectedToInvite = [];
 
     emTrainings = [];
@@ -84,16 +95,24 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     isOnlineTrainingAvailable = false;
 
     constructor(
-        private authService : AuthService,
-        private router : Router,
         private userService : UserService,
-        private encDecrService : EncryptDecryptService,
-        private dataProvider: PersonDataProviderService,
+        private authService : AuthService,
         private dashboardService : DashboardPreloaderService,
-        private locationService: LocationsService,
+        private encDecrService : EncryptDecryptService,
+        private router : Router,
         private courseService : CourseService,
         private accountService : AccountsDataProviderService
-        ) {
+        ){
+        this.userData = this.authService.getUserData();
+
+        for(let role of this.userData.roles){
+            if(role.role_id == 1){
+                this.filters.unshift({
+                    value : 1, name : 'Building Manager'
+                })
+            }
+        }
+
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 
@@ -107,49 +126,61 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         this.userService.queryUsers(this.queries, (response) => {
             this.pagination.total = response.data.pagination.total;
             this.pagination.pages = response.data.pagination.pages;
-            this.peepList = response.data.users;
+            this.listData = response.data.users;
 
             let tempRoles = {};
-            for(let i in this.peepList){
-                this.peepList[i]['bg_class'] = this.generateRandomBGClass();
-                this.peepList[i]['id_encrypted'] = this.encDecrService.encrypt(this.peepList[i]['user_id']);
+            
+            for(let i in this.listData){
+                this.listData[i]['bg_class'] = this.generateRandomBGClass();
+                this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
 
-                for(let l in this.peepList[i]['locations']){
-                    this.peepList[i]['locations'][l]['enc_location_id'] = this.encDecrService.encrypt(this.peepList[i]['locations'][l]['location_id']);
+                for(let l in this.listData[i]['locations']){
+                    if(this.listData[i]['locations'][l]['parent_name'] == null){
+                        this.listData[i]['locations'][l]['parent_name'] = '';
+                    }
 
-                    if(this.peepList[i]['locations'][l]['parent_name'] == null){
-                        this.peepList[i]['locations'][l]['parent_name'] = '';
+                    this.listData[i]['locations'][l]['enc_location_id'] = this.encDecrService.encrypt( this.listData[i]['locations'][l]['location_id'] );
+                }
+
+                for(let r in this.listData[i]['roles']){
+                    if( this.listData[i]['roles'][r]['role_name'] ){
+                        if( !tempRoles[ this.listData[i]['roles'][r]['role_name'] ] ){
+                            tempRoles[ this.listData[i]['roles'][r]['role_name'] ] = this.listData[i]['roles'][r]['role_name'];
+                        }
                     }
                 }
 
-                this.peepList[i]['sendinvitation'] = false;
+                this.listData[i]['sendinvitation'] = false;
                 let hasEcoRole = false;
-                for(let r in this.peepList[i]['roles']){
-                    if( this.peepList[i]['roles'][r]['role_id'] != 1 && this.peepList[i]['roles'][r]['role_id'] != 2 ){
+                for(let r in this.listData[i]['roles']){
+                    if( this.listData[i]['roles'][r]['role_id'] != 1 && this.listData[i]['roles'][r]['role_id'] != 2 ){
                         hasEcoRole = true;
                     }
                 }
 
                 if(hasEcoRole){
-                    this.peepList[i]['sendinvitation'] = true;
+                    this.listData[i]['sendinvitation'] = true;
                 }
 
                 let isSelected = false;
-                this.peepList[i]['isselected'] = false;
+                this.listData[i]['isselected'] = false;
                 for(let sel of this.selectedFromList){
-                    if(sel.user_id == this.peepList[i]['user_id']){
-                        this.peepList[i]['isselected'] = true;
+                    if(sel.user_id == this.listData[i]['user_id']){
+                        this.listData[i]['isselected'] = true;
                         isSelected = true;
                     }
                 }
 
                 if(!isSelected && this.allAreSelected){
-                    this.peepList[i]['isselected'] = true;
-                    this.selectedFromList.push(this.peepList[i]);
+                    this.listData[i]['isselected'] = true;
+                    this.selectedFromList.push(this.listData[i]);
                 }
+
             }
 
-            this.copyOfList = JSON.parse( JSON.stringify(this.peepList) );
+            setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
+
+            this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
 
             if(callBack){
                 callBack();
@@ -159,7 +190,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     ngOnInit(){
         this.dashboardService.show();
-        this.getListData(() => {
+        this.getListData(() => { 
             if(this.pagination.pages > 0){
                 this.pagination.currentPage = 1;
                 this.pagination.prevPage = 1;
@@ -168,10 +199,8 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             for(let i = 1; i<=this.pagination.pages; i++){
                 this.pagination.selection.push({ 'number' : i });
             }
-            setTimeout(() => {
-                this.dashboardService.hide();
-                $('.row.filter-container select').material_select();
-            }, 100);
+
+            this.dashboardService.hide();
         });
     }
 
@@ -188,13 +217,10 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 $('.row.filter-container select').material_select();
             }, 100);
         });
-        this.filterByEvent();
-        this.sortByEvent();
-        this.bulkManageActionEvent();
-        this.clickViewPeepEvent();
-        this.searchMemberEvent();
 
-        $('#modalMobility select[name="is_permanent"]').on('change', () => {
+        $('#modalMobility select').material_select();
+
+        $('#modalMobility select[name="is_permanent"]').off('change').on('change', () => {
             if($('#modalMobility select[name="is_permanent"]').val() == '1'){
                 this.isShowDatepicker = false;
                 $('#durationDate').prop('disabled', true);
@@ -208,83 +234,66 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 $('#durationDate').prop('disabled', false);
             }
 
-            $('#modalMobility select[name="is_permanent"]').material_select('update');
+            $('#modalMobility select[name="is_permanent"]').material_select();
         });
-    }
 
-    generateRandomBGClass(){
-        let colors = ["red", "blue", "yellow", "orange", "green", "purple", "pink"];
-        return colors[ Math.floor( Math.random() * colors.length) ];
+        this.filterByEvent();
+        this.sortByEvent();
+        this.bulkManageActionEvent();
+        this.searchMemberEvent();
+        this.clickViewPeepEvent();
     }
 
     filterByEvent(){
-
-        $('select.filter-by').on('change', () => {
+        let __this = this;
+        $('select.filter-by').on('change', function(e){
+            e.preventDefault();
+            e.stopPropagation();
             let selected = $('select.filter-by').val();
-            let temp = [];
-
-            $('table tbody tr').show();
-
-            if(selected == 'incomplete'){
-                $('table tbody tr').each((i, elem) => {
-
-                    if( $(elem).find('.peep-completion a').length == 0 ){
-                        $(elem).hide();
-                    }
-
-                });
-            }else if(selected == 'completed'){
-                $('table tbody tr').each((i, elem) => {
-
-                    if( $(elem).find('.peep-completion span').text().toLowerCase().trim() != 'completed' ){
-                        $(elem).hide();
-                    }
-
-                });
-            }else if(selected == 'user-validation-needed'){
-                $('table tbody tr').each((i, elem) => {
-
-                    if( $(elem).find('.peep-completion span').text().toLowerCase().trim() != 'waiting for user validation' ){
-                        $(elem).hide();
-                    }
-
-                });
+            __this.dashboardService.show();
+            if(parseInt(selected) != 0){
+                __this.queries.roles = selected;
             }else{
-                this.peepList = this.copyOfList;
+                __this.queries.roles = 'frp,trp,users,no_roles';
             }
-        });
+
+            __this.pagination = {
+                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+            };
+
+            __this.getListData(() => { 
+                if(__this.pagination.pages > 0){
+                    __this.pagination.currentPage = 1;
+                    __this.pagination.prevPage = 1;
+                }
+
+                for(let i = 1; i<=__this.pagination.pages; i++){
+                    __this.pagination.selection.push({ 'number' : i });
+                }
+
+                __this.dashboardService.hide();
+            });
+        }); 
     }
 
     sortByEvent(){
         $('select.sort-by').on('change', () => {
             let selected = $('select.sort-by').val();
-
-            if(selected == 'loc-name-asc'){
-                this.peepList.sort((a, b) => {
-                    if(a.name < b.name) return -1;
-                    if(a.name > b.name) return 1;
-                    return 0;
-                });
-            }else if(selected == 'loc-name-desc'){
-                this.peepList.sort((a, b) => {
-                    if(a.name > b.name) return -1;
-                    if(a.name < b.name) return 1;
-                    return 0;
-                });
-            }else if(selected == 'user-name-asc'){
-                this.peepList.sort((a, b) => {
+            
+            if(selected == 'user-name-asc'){
+                this.listData.sort((a, b) => {
                     if(a.first_name < b.first_name) return -1;
                     if(a.first_name > b.first_name) return 1;
                     return 0;
                 });
             }else if(selected == 'user-name-desc'){
-                this.peepList.sort((a, b) => {
+                this.listData.sort((a, b) => {
                     if(a.first_name > b.first_name) return -1;
                     if(a.first_name < b.first_name) return 1;
                     return 0;
                 });
             }else{
-                this.peepList = this.copyOfList;
+                this.listData = this.copyOfList;
             }
         });
     }
@@ -298,7 +307,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 this.queries.offset = 0;
                 this.loadingTable = true;
                 this.pagination.selection = [];
-                this.getListData(() => {
+                this.getListData(() => { 
                     for(let i = 1; i<=this.pagination.pages; i++){
                         this.pagination.selection.push({ 'number' : i });
                     }
@@ -309,46 +318,50 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             });
     }
 
-    onSelectFromTable(event, peep){
+    ngOnDestroy(){}
+
+    generateRandomBGClass(){
+        let colors = ["red", "blue", "yellow", "orange", "green", "purple", "pink"];
+        return colors[ Math.floor( Math.random() * colors.length) ];
+    }
+
+    onSelectFromTable(event, list){
         let selected = event.target.value;
         if(selected == 'view'){
-            this.router.navigate(["/teams/view-user/", peep.id_encrypted]);
-        }else if(selected == 'healthy'){
-            this.selectedPeep = peep;
-            $('#modalMobilityHealty').modal('open');
-        }else if(selected == 'invite'){
-            this.selectedToInvite = [];
-            this.selectedToInvite.push(peep);
-            event.target.value = 0;
-            $('#modalSendInvitation').modal('open');
+            this.router.navigate(["/teams/view-user/", list.id_encrypted]);
         }else if(selected == 'archive'){
             event.target.value = "0";
             this.showModalLoader = false;
-            this.selectedToArchive = peep;
+            this.selectedToArchive = list;
+            event.target.value = 0;
             $('#modalArchive').modal('open');
+        }else if(selected == 'peep'){
+            this.selectedPeep = list;
+            event.target.value = 0;
+            $('#modalMobility').modal('open');
+        }else if(selected == 'healthy'){
+            this.selectedPeep = list;
+            event.target.value = 0;
+            $('#modalMobilityHealty').modal('open');
+        }else if(selected == 'invite'){
+            this.selectedToInvite = [];
+            this.selectedToInvite.push(list);
+            event.target.value = 0;
+            $('#modalSendInvitation').modal('open');
         }
-
-        event.target.value = 0;
     }
 
     archiveClick(){
         this.showModalLoader = true;
-
-        let cb = (response) => {
+        this.userService.archiveUsers([ this.selectedToArchive['user_id'] ], (response) => {
             this.showModalLoader = false;
             $('#modalArchive').modal('close');
             this.dashboardService.show();
-            this.ngOnInit();
-        },
-        id = 0;
-
-        if('user_id' in this.selectedToArchive){
-            id = this.selectedToArchive['user_id'];
-            this.userService.archiveUsers([id], cb);
-        }else if('user_invitations_id' in this.selectedToArchive){
-            id = this.selectedToArchive['user_invitations_id'];
-            this.userService.archiveInvitedUsers([id], cb);
-        }
+            this.selectedToArchive = {
+                first_name : '', last_name : '', parent_data : {}, locations : []
+            };
+            this.getListData(() => { this.dashboardService.hide(); });
+        });
     }
 
     selectAllCheckboxEvent(event){
@@ -359,14 +372,15 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         }else{
             checkboxes.prop('checked', false);
             this.allAreSelected = false;
+            this.selectedFromList = [];
         }
 
         checkboxes.each((indx, elem) => {
             let id = $(elem).attr('id'),
-            index = id.replace('location-', '');
-            for(let i in this.peepList){
+                index = id.replace('location-', '');
+            for(let i in this.listData){
                 if(i == index){
-                    this.singleCheckboxChangeEvent(this.peepList[i], { target : { checked : elem.checked } } );
+                    this.singleCheckboxChangeEvent(this.listData[i], { target : { checked : elem.checked } } );
                 }
             }
         });
@@ -376,29 +390,19 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         let copy = JSON.parse(JSON.stringify(this.selectedFromList));
         if(event.target.checked){
             list.isselected = true;
-            if(list.user_id){
-                this.selectedFromList.push(list);
-            }
-
-            if(list.user_invitations_id){
-                this.selectedFromList.push(list);
-            }
+            this.selectedFromList.push(list);
         }else{
             let temp = [];
             for(let i in this.selectedFromList){
                 if(this.selectedFromList[i]['user_id'] != list['user_id']){
                     temp.push( this.selectedFromList[i] );
                 }
-
-                if(this.selectedFromList[i]['user_invitations_id'] != list['user_invitations_id']){
-                    temp.push( this.selectedFromList[i] );
-                }
             }
             this.selectedFromList = temp;
         }
 
-        let checkboxes = $('table tbody input[type="checkbox"]'),
-            countChecked = 0;
+        /*let checkboxes = $('table tbody input[type="checkbox"]'),
+        countChecked = 0;
         checkboxes.each((indx, elem) => {
             if($(elem).prop('checked')){
                 countChecked++;
@@ -406,17 +410,17 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         });
 
         $('#allLocations').prop('checked', false);
+        this.allAreSelected = false;
         if(countChecked == checkboxes.length){
             $('#allLocations').prop('checked', true);
-        }
+            this.allAreSelected = true;
+        }*/
     }
 
     bulkManageActionEvent(){
         $('select.bulk-manage').on('change', () => {
             let sel = $('select.bulk-manage').val();
-
             if(sel == 'archive'){
-                $('select.bulk-manage').val("0").material_select();
                 if(this.selectedFromList.length > 0){
                     $('#modalArchiveBulk').modal('open');
                 }
@@ -444,35 +448,85 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 $('#modalSendInvitation').modal('open');
             }
 
+            $('select.bulk-manage').val("0").material_select();
+
         });
     }
 
     bulkArchiveClick(){
         this.showModalLoader = true;
-        let arrIds = [],
-            arrInviteesIds = [];
+        let arrIds = [];
 
         for(let i in this.selectedFromList){
-            if('user_id' in this.selectedFromList[i]){
-                arrIds.push(this.selectedFromList[i]['user_id']);
-            }
-
-            if('user_invitations_id' in this.selectedFromList[i]){
-                arrInviteesIds.push(this.selectedFromList[i]['user_invitations_id']);
-            }
+            arrIds.push(this.selectedFromList[i]['user_id']);
         }
 
-        let cb = (response) => {
+        this.userService.archiveUsers(arrIds, (response) => {
             $('#allLocations').prop('checked', false);
             this.showModalLoader = false;
             $('#modalArchiveBulk').modal('close');
             this.dashboardService.show();
-            this.ngOnInit();
+            this.selectedFromList = [];
+            this.getListData(() => { this.dashboardService.hide(); });
+        });
+    }
+
+    pageChange(type){
+
+        let changeDone = false;
+        switch (type) {
+            case "prev":
+                if(this.pagination.currentPage > 1){
+                    this.pagination.currentPage = this.pagination.currentPage - 1;
+                    changeDone = true;
+                }
+                break;
+
+            case "next":
+                if(this.pagination.currentPage < this.pagination.pages){
+                    this.pagination.currentPage = this.pagination.currentPage + 1;
+                    changeDone = true;
+                }
+                break;
+            
+            default:
+                if(this.pagination.prevPage != parseInt(type)){
+                    this.pagination.currentPage = parseInt(type);
+                    changeDone = true;
+                }
+                break;
         }
 
-        this.userService.archiveUsers(arrIds, (response) => {
-            this.userService.archiveInvitedUsers(arrInviteesIds, cb);
-        });
+        if(changeDone){
+            this.pagination.prevPage = parseInt(type);
+            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
+            this.queries.offset = offset;
+            this.loadingTable = true;
+            this.getListData(() => { 
+                this.loadingTable = false;
+            });
+        }
+    }
+
+    clickMultipleLocation(locations){
+        this.multipleLocations = locations;
+        $('#modalSelectMultipleLocations').modal('open');
+    }
+
+    submitSelectFromMultipleLocations(form){
+        if(form.valid){
+
+            $('#modalSelectMultipleLocations').modal('close');
+            for(let loc of this.multipleLocations){
+                if(loc.location_id == form.value.location_id){
+                    if(loc.sublocations_count > 0){
+                        this.router.navigate(['/location/view/',  this.encDecrService.encrypt(loc.location_id) ]);
+                    }else{
+                        this.router.navigate(['/location/view-sublocation/',  this.encDecrService.encrypt(loc.location_id) ]);
+                    }
+                }
+            }
+        }
     }
 
     clickViewPeepEvent(){
@@ -548,11 +602,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         if(f.valid){
             let paramData = JSON.parse(JSON.stringify(f.value));
             paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
-            if('user_id' in this.selectedPeep){
-                paramData['user_id'] = this.selectedPeep['user_id'];
-            }else if('user_invitations_id' in this.selectedPeep){
-                paramData['user_invitations_id'] = this.selectedPeep['user_invitations_id'];
-            }
+            paramData['user_id'] = this.selectedPeep['user_id'];
 
             if(this.selectedPeep['mobility_impaired_details'].length > 0){
                 paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
@@ -561,11 +611,16 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val();
 
             this.showModalLoader = true;
-            this.dashboardService.show();
 
             this.userService.sendMobilityImpaireInformation(paramData, (response) => {
 
-                this.ngOnInit();
+                for(let user of this.listData){
+                    if(user['user_id'] == this.selectedPeep['user_id']){
+                        user['mobility_impaired'] = 1;
+                        user['mobility_impaired_details'] = response.data;
+                    }
+                }
+
                 f.reset();
                 $('#modalMobility').modal('close');
                 this.showModalLoader = false;
@@ -583,77 +638,18 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         };
         this.userService.markAsHealthy(paramData, (response) => {
 
-            let newList = [];
-            for(let user of this.peepList){
-                if(user['user_id'] != this.selectedPeep['user_id']){
-                    newList.push(user);
+            let newLists = [];
+            for(let user of this.listData){
+                if(user.user_id != this.selectedPeep['user_id']){
+                    newLists.push(user);
                 }
             }
-
-            this.peepList = newList;
+            this.listData = newLists;
   
             $('#modalMobilityHealty').modal('close');
             this.showModalLoader = false;
 
         });
-    }
-
-    pageChange(type){
-
-        let changeDone = false;
-        switch (type) {
-            case "prev":
-                if(this.pagination.currentPage > 1){
-                    this.pagination.currentPage = this.pagination.currentPage - 1;
-                    changeDone = true;
-                }
-                break;
-
-            case "next":
-                if(this.pagination.currentPage < this.pagination.pages){
-                    this.pagination.currentPage = this.pagination.currentPage + 1;
-                    changeDone = true;
-                }
-                break;
-
-            default:
-                if(this.pagination.prevPage != parseInt(type)){
-                    this.pagination.currentPage = parseInt(type);
-                    changeDone = true;
-                }
-                break;
-        }
-
-        if(changeDone){
-            this.pagination.prevPage = parseInt(type);
-            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset;
-            this.loadingTable = true;
-            this.getListData(() => {
-                this.loadingTable = false;
-            });
-        }
-    }
-
-    clickMultipleLocation(locations){
-        this.multipleLocations = locations;
-        $('#modalSelectMultipleLocations').modal('open');
-    }
-
-    submitSelectFromMultipleLocations(form){
-        if(form.valid){
-
-            $('#modalSelectMultipleLocations').modal('close');
-            for(let loc of this.multipleLocations){
-                if(loc.location_id == form.value.location_id){
-                    if(loc.sublocations_count > 0){
-                        this.router.navigate(['/location/view/',  this.encDecrService.encrypt(loc.location_id) ]);
-                    }else{
-                        this.router.navigate(['/location/view-sublocation/',  this.encDecrService.encrypt(loc.location_id) ]);
-                    }
-                }
-            }
-        }
     }
 
     clickCancelSendInvitation(){
@@ -682,5 +678,4 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         });
     }
 
-    ngOnDestroy(){}
 }

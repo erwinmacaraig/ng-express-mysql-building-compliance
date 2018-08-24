@@ -1,0 +1,97 @@
+
+.filter-container .search-field{
+	background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 5px;
+    height: 50px;
+    vertical-align: bottom;
+    position: relative;
+}
+
+.filter-container .search-field input{
+	margin: 3px 14px 0px 0px !important;
+    padding: 0px;
+    display: inline-block;
+    width: 90%;
+    border-bottom: 0px;
+}
+
+.filter-container .search-field input:focus{
+	border-bottom: 0px;
+    box-shadow: none;
+}
+
+.filter-container .search-field .material-icons{
+	width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    position: absolute;
+    top: 29%;
+    right: 4%;
+}
+
+.archived .image{
+	background: url(/assets/images/team_icons.png) no-repeat;
+    width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.filter-container > .col{
+	height: 50px !important;
+}
+
+.filter-container .add-peep .image{
+	background: url(/assets/images/team_icons.png) no-repeat;
+    width: 35px;
+    height: 35px;
+    background-position: 18% 36%;
+    vertical-align: middle;
+    display: inline-block;
+    margin-right: 5px;
+}
+thead th{
+  border-radius: 0px;
+  font-weight: normal;
+  background-color: #3d3d3d !important;
+  padding: 10px;
+  font-size: 14px;
+  color: #fff;
+}
+table select{
+  display: block;
+  background-color: inherit;
+  font-size: 14px;
+}
+
+table select:focus{
+  outline: 0px;
+}
+.title{
+  color:#64b5f6;
+  font-size: 1.5rem;
+  margin: 20px 0px;
+}
+table tr td .checkbox{
+	margin: 0px 10px;
+}
+
+table tr td .checkbox [type="checkbox"]+label{
+	padding-left: 30px;
+    height: 15px;
+    line-height: 20px;
+    color: #333;
+}
+
+table tr td .checkbox [type="checkbox"].filled-in:not(:checked)+label:after{
+	background-color: #fff;
+    border: 1px solid #aaaaaa;
+}
+table tr td .text{
+    display: inline-block;
+}
+select option:disabled{
+  color: gray !important;
+}

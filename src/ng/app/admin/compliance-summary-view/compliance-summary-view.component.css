@@ -1,0 +1,744 @@
+.top-gray{
+	background-color: #f6f6f6;
+	padding: 20px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+}
+
+.top-gray .upload-buttons{
+    position: absolute;
+    right: 15px;
+    top: 12px;
+}
+
+.top-gray .upload-buttons .btn{
+    font-size: 14px !important;
+}
+
+.top-gray .upload-buttons a.btn{
+    line-height: 42px;
+}
+
+.top-gray .upload-buttons .btn img{
+    vertical-align: middle;
+}
+
+.main{
+    position: relative;
+}
+
+.row-diagram-details{
+    position: absolute;
+    top: 0px;
+    margin-top: 5%;
+    transition: all 0.5s;
+    width: 95vw;
+}
+
+.row-diagram-details .click-view-previous{
+    display: none;
+}
+
+.documents-container .document .text-containe{
+    width: 70%;
+}
+
+.row-diagram-details .documents-container .document .text-container{
+    width: 60%;
+}
+
+.row-table-content{
+    transition: all 0.5s;
+}
+
+.row-table-content table{
+    margin-top: 3%;
+}
+
+.top-gray .title{
+	font-size: 19px;
+}
+
+.top-gray .archived {
+    font-size: 14px;
+    position: absolute;
+    right: 30px;
+    top: 26px;
+    color: #4f4f4f;
+}
+
+.top-gray .archived .image{
+    background: url(/assets/images/team_icons.png) no-repeat;
+    width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+table tbody{
+	font-size: 14px;
+}
+
+table.table-list thead tr th {
+    background-color: #fff;
+    color: #42A5F5 !important;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: 1px solid #eee;
+    border-radius: 0px;
+}
+
+table:not(.table-list) thead tr th {
+    background-color: #3a3a3a;
+    color: #ffffff !important;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+}
+
+table tr td .image {
+    overflow: hidden;
+}
+
+table tr td.with-image .image {
+    display: inline-block;
+    width: 45px;
+    height: 45px;
+    border-radius: 30px;
+    vertical-align: middle;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-right: 5px;
+    background-size: 50%;
+}
+
+table tbody td a {
+    font-size: 14px;
+}
+
+table tbody tr td.with-icon .image{
+	display: inline-block;
+    width: 25px;
+    height: 25px;
+    vertical-align: middle;
+    background-position: center;
+    background-size: contain;
+}
+
+.check{
+	background: url(/assets/images/check_icon.png) no-repeat;
+}
+
+.alarm{
+	background: url(/assets/images/alarm_icon.png) no-repeat;
+}
+
+.expired{
+	background: url(/assets/images/expired_icon.png) no-repeat;
+}
+
+table tbody tr td.with-icon .text{
+	display: inline-block;
+    vertical-align: middle;
+    padding-left: 15px;
+    font-size: 13px;
+}
+
+table tbody tr td.with-bar .text{
+    margin-right: 12px;
+    vertical-align: super;
+    color: #F44336;
+}
+
+table tbody tr td.with-icon .text p{
+	margin: 0px;
+    color: #333;
+}
+
+table tbody tr td.with-bar.red-theme .text,
+table tbody tr td.with-bar.red-theme .progress-container p{
+    color: #F44336 !important;
+}
+
+table tbody tr td.with-bar.green-theme .text,
+table tbody tr td.with-bar.green-theme .progress-container p{
+    color: #67c100 !important;
+}
+
+table tbody tr td.with-bar.orange-theme .text,
+table tbody tr td.with-bar.orange-theme .progress-container p{
+    color: #ff7e0b !important;
+}
+
+table tbody tr td.with-bar .text,
+table tbody tr td.with-bar .progress-container{
+	display: inline-block;
+}
+
+table tbody tr td.with-bar .progress-container{
+	width: 60%;
+}
+
+table tbody tr td .progress-container p{
+	margin: -1px 0px;
+	font-size: 12px;
+    color: #333;
+}
+
+table tbody tr td.with-bar .progress{
+	position: relative;
+    height: 10px;
+    display: block;
+    width: 100%;
+    border-radius: 2px;
+    margin: 0px;
+    overflow: hidden;
+    background-color: rgba(244, 67, 54, 0.17);
+}
+
+table tbody tr td.with-bar.red-theme .progress{
+    background-color: rgba(244, 67, 54, 0.17);
+}
+
+table tbody tr td.with-bar.green-theme .progress{
+    background-color: rgba(38, 166, 154, 0.21);
+}
+
+table tbody tr td.with-bar.orange-theme .progress{
+    background-color: rgba(255, 126, 11, 0.17);
+}
+
+table tbody tr td.with-bar .progress .determinate{
+	position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transition: width .3s linear;
+    background-color: #cb0d20;
+}
+
+table tbody tr td.with-bar.red-theme .progress .determinate{
+    background-color: #cb0d20;
+}
+
+table tbody tr td.with-bar.green-theme .progress .determinate{
+    background-color: #67c100;
+}
+
+table tbody tr td.with-bar.orange-theme .progress .determinate{
+    background-color: #ff7e0b;
+}
+
+
+table.table-list:not(.striped) tbody tr{
+    background-color: #eee;
+    transition: all .4s;
+}
+
+table.table-list:not(.striped) tbody tr:hover,
+table.table-list:not(.striped) tbody tr.active{
+    background-color: #75beff;
+}
+
+table.table-list:not(.striped) tbody tr:hover *,
+table.table-list:not(.striped) tbody tr.active *{
+    color: #fff !important;
+}
+
+table:not(.striped) tbody tr:hover{
+    cursor: pointer;
+}
+
+table tbody tr td:first-child{
+    padding-left: 15px;
+}
+
+table tbody tr td:last-child{
+    position: relative;
+}
+
+table tbody tr .arrow{
+    display: none;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 13px 8px;
+    border-color: transparent #2e2e2e transparent transparent;
+    line-height: 0px;
+    position: absolute;
+    top: 50%;
+    right: 6%;
+    margin-right: 0%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(0%, -50%);
+}
+
+table:not(.striped) tbody tr:hover .arrow,
+table:not(.striped) tbody tr.active .arrow{
+   border-color: transparent #fff transparent transparent !important;
+}
+
+
+table tbody tr.active .arrow{
+    display: block;
+}
+
+table, th, td {
+    border-radius: 0px !important;
+}
+
+table th:first-child{
+    padding-left: 12px;
+}
+
+.compliance-title-container{
+    position: relative;
+    min-height: 100px;
+}
+
+.compliance-title-container .image{
+    width: 65px;
+    position: absolute;
+    background-repeat: no-repeat;
+    height: 65px;
+    background-position: center;
+    border-radius: 40px;
+    top: 0px;
+    left: 0px;
+    background-size: 50%;
+}
+
+.epm-icon{
+    background-image: url(/assets/images/compliance/epm_icon.png);
+}
+
+.compliance-title-container .check{
+    position: absolute;
+    top: 40px;
+    left: 46px;
+    width: 30px;
+    height: 30px;
+    background-image: url(/assets/images/check_icon.png);
+    background-color: white;
+    border-radius: 40px;
+    border: 3px solid #fff;
+}
+
+.compliance-title-container .close{
+    position: absolute;
+    top: 40px;
+    left: 46px;
+    width: 30px;
+    height: 30px;
+    background-image: url(/assets/images/expired_icon.png);
+    background-color: white;
+    border-radius: 40px;
+    border: 3px solid #fff;
+}
+
+.compliance-title-container .text{
+    position: absolute;
+    left: 90px;
+    top: 10px;
+}
+
+.compliance-title-container .text .title,
+.compliance-title-container .text .description{
+    margin: 0px;
+    font-size: 14px;
+}
+
+.compliance-title-container .text .title{
+    font-size: 20px;
+}
+
+.notes-container{
+    width: 50%;
+}
+
+.notes-container h5{
+    font-size: 18px;
+}
+
+.notes-container p{
+    font-size: 14px;
+}
+
+.documents-container{
+    margin-top: 5%;
+}
+
+.documents-container .document,
+.margin-bootom-10{
+    margin-bottom: 10px;
+}
+
+.documents-container .document .preview-container{
+    display: inline-block;
+    width: 160px;
+    height: 205px;
+    background-color: #dbdbdb;
+    margin-right: 40px;
+}
+
+.documents-container .document .text-container{
+    display: inline-block;
+    vertical-align: top;
+}
+
+.documents-container .document .text-container .file-name{
+    margin-top: 0px;
+    max-width: 270px;
+}
+
+.documents-container .document .text-container .dates{
+    margin: 20px 0px;
+}
+
+.documents-container .document .text-container .dates > div{
+    display: inline-block;
+    margin-right: 30px;
+}
+
+.documents-container .document .text-container .dates > div p{
+    margin: 0px;
+}
+
+.documents-container .document .text-container .buttons .btn{
+    width: 140px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.documents-container .document .btn{
+    font-size: 14px !important;
+}
+
+.documents-container .document a.btn{
+    line-height: 42px;
+}
+
+.switch-container{
+    margin: 20px 0px;
+}
+
+.switch-container p{
+    font-size: 14px;
+}
+
+
+.switch{
+    width: 110px;
+    position: relative;
+    height: 36px;
+}
+
+.switch input[type="checkbox"]{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    pointer-events: visible;
+    z-index: 4;
+    cursor: pointer;
+}
+
+.switch .background{
+    background-color: #505050;
+    border-radius: 5px;
+    padding: 5px;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+.switch .yes,
+.switch .no{
+    font-size: 14px;
+    color: #fff;
+    z-index: 3;
+    position: absolute;
+}
+
+.switch .yes{
+    top: 18%;
+    left: 16%;
+}
+
+.switch .no{
+    top: 16%;
+    right: 16%;
+}
+
+.switch .highlight{
+    position: absolute;
+    top: 14%;
+    padding: 5px;
+    border-radius: 3px;
+    background-color: #39a1ff;
+    z-index: 2;
+    height: 72%;
+    width: 35%;
+    transition: all 0.4s;
+}
+
+.switch input[type="checkbox"]:not(:checked) + .yes + .no + .highlight{
+    right: 8%;
+}
+
+.switch input[type="checkbox"]:checked + .yes + .no + .highlight{
+    right: 56%;
+}
+
+.diagram-top-of-table{
+    margin-bottom: 20px;
+}
+
+.diagram-top-of-table .title{
+    font-size: 1.4rem !important;
+}
+
+.diagram-top-of-table .give-access-text{
+    font-size: 0.9rem !important;
+    margin: 0px;
+    margin-right: 5px;
+}
+
+.hide-diagram{
+    font-size: 0.9rem !important;
+}
+
+.hide-diagram img{
+    vertical-align: middle;
+    width: 20px;
+}
+
+.click-view-previous{
+    margin: 20px 0px;
+}
+
+.click-view-previous a{
+    font-size: 14px !important;
+}
+
+[target-preview]{
+    display: none;
+}
+
+.filter-container .search-field{
+    background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 5px;
+    height: 50px;
+    vertical-align: bottom;
+    position: relative;
+}
+
+.filter-container .search-field input{
+    margin: 3px 14px 0px 0px !important;
+    padding: 0px;
+    display: inline-block;
+    width: 90%;
+    border-bottom: 0px;
+}
+
+.filter-container .search-field input{
+    border-bottom: 0px;
+    box-shadow: none;
+}
+
+.filter-container .search-field .material-icons{
+    width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    position: absolute;
+    top: 29%;
+    right: 4%;
+}
+
+.filter-container .select-wrapper .dropdown-content {
+    width: 100% !important;
+    left: 0px !important;
+}
+
+.btn-manage{
+    font-size: 12px !important;
+    height: 30px !important;
+    line-height: 30px;
+    width: 85px;
+    text-align: center;
+    padding: 0px;
+}
+
+a:hover{
+    cursor: pointer;
+}
+
+[type="radio"]:not(:checked)+label,
+[type="radio"]:checked+label{
+    padding-left: 25px !important;
+    margin-right: 15px !important;
+}
+
+#modalEvacExer{
+    width: 35%;
+}
+
+@media only screen and (max-width: 1024px) {
+    #modalEvacExer{
+        width: 60%;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    #modalEvacExer{
+        width: 95%;
+    }
+}
+
+.row-table-content .progress-loading-container{
+    width: 100%;
+    color: #fff;
+    position: relative;
+    height: 60px;
+    margin-bottom: 5%;
+}
+
+.row-table-content .progress-loading-container .left-icon,
+.row-table-content .progress-loading-container .right-icon{
+    position: absolute;
+    top: 10%;
+    width: 45px;
+    height: 45px;
+    background-color: #e7e7e7;
+    border-radius: 60px;
+    z-index: 2;
+}
+
+.row-table-content .progress-loading-container .left-icon{
+    left: 0%;
+}
+
+.row-table-content .progress-loading-container .right-icon{
+    right: 0%;
+}
+
+.row-table-content .progress-loading-container .left-icon .image,
+.row-table-content .progress-loading-container .right-icon .image{
+    width: 30px;
+    height: 30px;
+    background-color: white;
+    border-radius: 40px;
+    border: 3px solid #fff;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+}
+
+.row-table-content .progress-loading-container .left-icon .image{
+    background-image: url(/assets/images/building_icon.png);
+}
+
+.row-table-content .progress-loading-container .right-icon .image{
+    background-image: url(/assets/images/check_icon.png);
+}
+
+.row-table-content .progress-loading-container .background{
+    background-color: #e7e7e7;
+    height: 20px;
+    border-radius: 5px;
+    position: absolute;
+    top: 19px;
+    left: 42px;
+    width: 89%;
+}
+
+.row-table-content .progress-loading-container .loading{
+    background-color: #75beff;
+    height: 20px;
+    border-radius: 0px;
+    position: absolute;
+    min-width: 0.5%;
+    left: 1px;
+}
+
+.row-table-content .progress-loading-container .loading .tip-percentage{
+    position: absolute;
+    top: -43px;
+    right: -20px;
+}
+
+.row-table-content .progress-loading-container .loading .percentage{
+    width: 40px;
+    height: 30px;
+    line-height: 30px;
+    background-color: #525151;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #fff;
+    text-align: center;
+}
+
+.row-table-content .progress-loading-container .loading .arrow-down{
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 15px 7.5px 0 7.5px;
+    border-color: #525151 transparent transparent transparent;
+    position: absolute;
+    bottom: -13px;
+    left: 10px;
+}
+
+.epm-icon{
+    background-image: url(/assets/images/compliance/icons/epm.png);
+    background-size: 63% !important;
+}
+
+.epc-icon{
+    background-image: url(/assets/images/compliance/icons/epc_meeting.png);
+    background-size: 63% !important;
+}
+
+.evacuation-icon{
+    background-image: url(/assets/images/compliance/icons/evacuation_exercise.png);
+    background-size: 63% !important;
+}
+
+.diagram-icon{
+    background-image: url(/assets/images/compliance/icons/evacuation_diagram.png);
+    background-size: 63% !important;
+}
+
+.chief-icon{
+    background-image: url(/assets/images/compliance/icons/chiefwarden_training.png);
+    background-size: 63% !important;
+}
+
+.warden-icon{
+    background-image: url(/assets/images/compliance/icons/warden_training.png);
+    background-size: 63% !important;
+}
+
+.fsa-icon{
+    background-image: url(/assets/images/compliance/icons/fire_advisor.png);
+    background-size: 63% !important;
+}
+
+.gen-occ-icon{
+    background-image: url(/assets/images/compliance/icons/occupant_training.png);
+    background-size: 63% !important;
+}
+
+.sundry-icon{
+    background-image: url(/assets/images/compliance/icons/sundry_compliance.png);
+    background-size: 63% !important;
+}

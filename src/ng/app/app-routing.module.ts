@@ -10,6 +10,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
 import { UserDashboardComponent  } from './dashboard/user/user.component';
+import { SecurityPrivacyComponent } from './dashboard/security-privacy/security.privacy';
 
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
@@ -22,6 +23,7 @@ import { WardenInvitationFormComponent } from './signup/warden-invite/warden-inv
 import { ProfileCompletionComponent } from './signup/profile-completion/profile-completion.component';
 import { TenantInvitationFormComponent } from './signup/trp-invite/tenant-invite.component';
 import { NoemailComponent } from './noemail/noemail.component';
+import { LocationSignupComponent } from './signup/location.signup/location.signup';
 
 import { AuthGuard } from './services/auth-guard.service';
 import { PersonInfoResolver} from './services/person-info.resolver';
@@ -87,13 +89,29 @@ import { ReportsTrainingsComponent  } from './reports/trainings/trainings.compon
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
-
+// NOTIFICATION
+import { NotificationListComponent } from './notification/list/notification-list.component';
+import { NotificationConfigurationComponent } from './notification/configuration/notification-config.component';
+import { NotifiedUsersListComponent } from './notification/notified-users-list/notified-users-list.component';
+import { NotificationQueryComponent } from './notification/queries/notification-queries.component';
+import { NotificationWardenListComponent } from './notification/warden-list/warden-list.component';
+import { NotificationPEEPListComponent } from './notification/peep-list/peep-list.component';
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
-import { AccountInfoComponent } from './admin/account-info/account-info.component';
+// import { AccountInfoComponent } from './admin/account-info/account-info.component';
 import { AccountUsersListComponent } from './admin/account-users/account-users.component';
 import { AddAccountUserComponent } from './admin/add-user/add-user.component';
+import { LocationsInAccountComponent } from './admin/locations-in-accounts/locations-in-account.component';
+import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upload-compliance-docs.component';
+import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/compliance-summary-view.component';
+import { AdminViewLocationComponent } from './admin/view-location/view-location.component';
+import { TrainingValidationComponent } from './admin/training-validation/training-validation.component';
+import { AccountTrainingComponent } from './admin/account-training/account-training.component';
+import { AdminReportsComponent } from './admin/reports/reports.component';
+import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
+import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
+import {  PeepFormComponent } from './peep.form/peep.form';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -104,7 +122,8 @@ const appRoutes: Routes = [
         { path: 'warden-signup', component: WardenSignupComponent },
         { path: 'warden-profile-completion/:token', component: WardenInvitationFormComponent },
         { path: 'profile-completion/:token', component: ProfileCompletionComponent },
-        { path: 'tenant-profile-completion/:token', component: TenantInvitationFormComponent }
+        { path: 'tenant-profile-completion/:token', component: TenantInvitationFormComponent },
+        { path: 'select-location', component : LocationSignupComponent }
       ]
   },
   { path: 'no-email', component: NoemailComponent },
@@ -112,15 +131,24 @@ const appRoutes: Routes = [
   { path: 'forgot-password', component: ForgotpasswordComponent},
   { path: 'change-user-password/:token', component: ChangepasswordComponent},
   { path: '', canActivate: [AuthGuard], component: DashboardComponent },
-  { path: 'dashboard', component: DashboardComponent, children: [
+  { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent, children: [
       { path: 'main', component : FrpTrpDashboardComponent },
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
       { path: 'company-information', component: CompanyInformationComponent },
-      { path : 'send-invite', component : SendInviteComponent }
+      { path: 'send-invite', component : SendInviteComponent },
+      { path: 'notification-list', component: NotificationListComponent },
+      { path: 'notification-config', component: NotificationConfigurationComponent },
+      { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
+      { path: 'process-notification-queries/:token', component: NotificationQueryComponent },
+      { path: 'send-invite', component : SendInviteComponent },
+      { path: 'security-privacy', component : SecurityPrivacyComponent },
+      { path: 'notification-warden-list/:token', component: NotificationWardenListComponent },
+      { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent },
+      { path: 'peep-form', component: PeepFormComponent }
     ]
   },
-  //
+  
   { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },
   { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
@@ -128,7 +156,8 @@ const appRoutes: Routes = [
   /*{ path: '**', redirectTo: '/dashboard'},*/
   { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
-    { path: 'archived/list', component: ArchivedLocationListComponent },
+    { path: 'list?archived=true', component: LocationListComponent },
+    // { path: 'archived/list', component: ArchivedLocationListComponent },
     { path: 'search', component: SearchLocationComponent },
     { path: 'view/:encrypted', component: ViewSingleLocation },
     { path: 'view-sublocation/:encrypted', component: SublocationComponent },
@@ -141,7 +170,7 @@ const appRoutes: Routes = [
     { path : 'warden', component : WardenLocationComponent }
   ]},
   {
-    path : 'view-location/:encrypted', canActivate: [ AuthGuard ], component : ViewSingleLocation
+    path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation
   },
   {
     path : 'teams', canActivate: [AuthGuard], component : TeamsComponent,
@@ -203,14 +232,26 @@ const appRoutes: Routes = [
     path : 'assign-courses', canActivate: [AuthGuard], component : AssignCoursesComponent
   },
   {
-    path: 'admin', canActivate: [AuthGuard], component: AdminComponent,
+    path: 'admin', component: AdminComponent,
     children: [
       { path: 'accounts', component: ListAccountsComponent },
+      { path: 'training-validation', component: TrainingValidationComponent },
+      { path: 'paper-attendance-upload', component: PaperAttendanceComponent },
+      { path: 'account-trainings/:accntId', component: AccountTrainingComponent },
+      { path: 'view-location/:locationId', component: AdminViewLocationComponent },
       { path: 'users-in-accounts/:accntId', component: AccountUsersListComponent },
-      { path: 'add-account-user/:accntId', component: AddAccountUserComponent }
-
+      { path: 'add-account-user/:accntId', component: AddAccountUserComponent },
+      { path: 'locations-in-account/:accntId', component: LocationsInAccountComponent },
+      { path: 'upload-compliance-docs', component: UploadComplianceDocComponent },
+      { path: 'view-location-compliance/:accntId/:locationId/:kpi', component: ComplianceSummaryViewComponent },
+      { path: 'activity-log-report/:location/:accountId', component : ReportsActivityLogComponent },
+      { path : 'trainings-report/:locationId/:accountId', component : ReportsTrainingsComponent },
+      { path : 'teams-report/:location/:accountId', component : ReportsTeamsComponent },
+      { path : 'reports', component : AdminReportsComponent },
+      { path: 'new-account', component: AdminAddAccountComponent }
     ]
-  }
+  },
+
 ];
 
 @NgModule({

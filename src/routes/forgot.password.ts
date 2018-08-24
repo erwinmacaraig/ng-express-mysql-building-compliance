@@ -28,7 +28,7 @@ const md5 = require('md5');
    	*/
 	public static create(router: Router) {
 	   	// add route
-	   	
+
 	   	router.post('/forgot/password/request', (req: Request, res: Response, next: NextFunction) => {
 	   		new ForgotPasswordRequestRoute().index(req, res, next);
 	   	});
@@ -61,17 +61,17 @@ const md5 = require('md5');
 	* @class RegisterRoute
 	* @constructor
 	*/
-	constructor() {	
+	constructor() {
 		super();
 	}
 
 	/**
 	 * Index
-	 * @param {Request}      req  
-	 * @param {Response}     res  
-	 * @param {NextFunction} next 
+	 * @param {Request}      req
+	 * @param {Response}     res
+	 * @param {NextFunction} next
 	 */
-	public index(req: Request, res: Response, next: NextFunction){
+	public async index(req: Request, res: Response, next: NextFunction){
 
 		let reqBody = req.body,
 			response = {
@@ -101,17 +101,29 @@ const md5 = require('md5');
 							expiration_date : expDateFormat
 						},
 						tokenModel = new Token(),
-						multiTokenModel = new Token();
+						multiTokenModel = new Token(),
+                        tokens = <any> [];
 
-					let tokens = await multiTokenModel.getAllByUserId(userdata['user_id']);
-					for(let t in tokens){
-						if(tokens[t]['action'] == 'forgot-password'){
-							let tokenDelete = new Token(tokens[t]['token_id']);
-							await tokenDelete.delete();
-						}
-					}
+                    try{
+                        tokens = await multiTokenModel.getAllByUserId(userdata['user_id']);
+                        for(let t in tokens){
+                            if(tokens[t]['action'] == 'forgot-password'){
+                                let tokenDelete = new Token(tokens[t]['token_id']);
+                                await tokenDelete.delete();
+                            }
+                        }
+                    }catch(e){ }
 
-					userdata['token'] = saveData['token'];
+                    if(userdata['token'] == null){
+                        let userModelToken = new User(userdata['user_id']);
+                        userdata['token'] = saveData['token'];
+                        for(let i in userdata){
+                            userModelToken.set(i, userdata[i]);
+                        }
+                        await userModelToken.dbUpdate();
+                    }else{
+                        userdata['token'] = saveData['token'];
+                    }
 
 					tokenModel.create(saveData).then(
 						() => {
@@ -128,8 +140,6 @@ const md5 = require('md5');
 									res.send(response);
 								}
 							);
-
-							
 						},
 						() => {
 							response.message = "Unsuccessful token saving";
@@ -146,8 +156,8 @@ const md5 = require('md5');
 	}
 
 	public sendEmailChangePassword(req, userData, success, error){
-		let opts = { 
-	        from : 'allantaw2@gmail.com',
+		let opts = {
+	        from : 'admin@evacconnect.com',
 	        fromName : 'EvacConnect',
 	        to : [],
 	        body : '',
@@ -157,7 +167,7 @@ const md5 = require('md5');
 
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
-			link = req.protocol + '://' + req.get('host') +'/token/'+userData.token;
+			link = 'https://' + req.get('host') +'/token/'+userData.token;
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(userData.first_name)+' '+this.capitalizeFirstLetter(userData.last_name)+'</h3> <br/>';
 		emailBody += '<h4> Please click the link below to create new password. </h4> <br/>';
@@ -301,7 +311,7 @@ const md5 = require('md5');
 		res.statusCode = 400;
 
 		let validateData = this.validateChangeUserPassword(reqBody);
- 
+
 		if(validateData.status){
 			let userId = reqBody.user_id,
 				token = reqBody.token,
@@ -325,7 +335,8 @@ const md5 = require('md5');
 										response.message = 'This request was already verified';
 										res.send(response);
 									}else{
-										tokenModel.set('verified', 1);
+                                        tokenModel.set('verified', 1);
+										tokenModel.set('action', 'verify');
 										tokenModel.dbUpdate().then(
 											() => {
 												user.set('password', md5('Ideation'+newPass+'Max'));
@@ -475,7 +486,7 @@ const md5 = require('md5');
 							}
 						);
 
-						
+
 					}else{
 						response.message = 'Wrong answer';
 						res.send(response);
@@ -496,4 +507,3 @@ const md5 = require('md5');
 
 }
 
-  

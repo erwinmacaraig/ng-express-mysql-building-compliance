@@ -79,16 +79,16 @@
 				<tr *ngFor="let list of listData; let i = index;">
 					<td>
 						<p class="checkbox" >
-							<input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)" [checked]="list.isselected"  >
+							<input id="location-{{i}}"  class="filled-in" [disabled]="allAreSelected" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)" [checked]="list.isselected"  >
 							<label for="location-{{i}}" ></label>
                             <a  (click)="clickMultipleLocation(list.locations)" *ngIf="list.locations.length > 1">Multiple locations</a>
                             <span *ngIf="list.locations.length == 1">
                                 <a [routerLink]="['/location/view/', list.locations[0]['enc_location_id']]" *ngIf="list.locations[0]['sublocations_count'] > 0">
-                                    <span *ngIf="list.locations[0].parent_name">{{ list.locations[0].parent_name }}, </span> {{list.locations[0].name}}
+                                    {{list.locations[0].name}}
                                 </a>
 
                                 <a [routerLink]="['/location/view-sublocation/', list.locations[0]['enc_location_id']]" *ngIf="list.locations[0]['sublocations_count'] == 0">
-                                    <span *ngIf="list.locations[0].parent_name">{{ list.locations[0].parent_name }}, </span> {{list.locations[0].name}}
+                                    {{list.locations[0].name}}
                                 </a>
                             </span>
 						</p>
@@ -125,14 +125,14 @@
 						</span>
 						-->
 					</td>
-					<td>
-            <!-- <span [ngClass]="{'red-text': list.assigned_courses == 0 && list.trainings == 0, 'green-text': list.assigned_courses > 0 || list.trainings > 0}">{{list.assigned_courses}}/{{list.trainings}}</span> -->
-            <span *ngIf="list.trainings == 0" class="red-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
-            <span *ngIf="list.trainings > 0 && list.trainings < (list.trids.length + list.misc_trainings.length)" class="orange-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
-            <span *ngIf="list.trainings == (list.trids.length + list.misc_trainings.length)" class="green-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
-
-
+					<td *ngIf="list.em_roles.length > 0">
+                        <!-- <span [ngClass]="{'red-text': list.assigned_courses == 0 && list.trainings == 0, 'green-text': list.assigned_courses > 0 || list.trainings > 0}">{{list.assigned_courses}}/{{list.trainings}}</span> -->
+                        <span *ngIf="list.trainings == 0" class="red-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
+                        <span *ngIf="list.trainings > 0 && list.trainings < (list.trids.length + list.misc_trainings.length)" class="orange-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
+                        <span *ngIf="list.trainings == (list.trids.length + list.misc_trainings.length)" class="green-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
 					</td>
+                    <td *ngIf="list.em_roles.length == 0">
+                    </td>
 					<td>
 						<select (change)="onSelectFromTable($event, list)">
 							<option value="0" class="blue-text" selected disabled>Select action</option>
@@ -249,7 +249,7 @@
                 <li *ngFor="let loc of multipleLocations;">
                     <input type="radio" ngModel name="location_id" id="rad-{{loc.location_id}}" value="{{loc.location_id}}" />
                     <label for="rad-{{loc.location_id}}">
-                        <span *ngIf="loc.parent_name.length > 0">{{loc.parent_name}}, </span>{{loc.name}}
+                        {{loc.name}}
                     </label>
                 </li>
             </ul>
@@ -391,6 +391,7 @@
         </div>
         <div *ngIf="sendInviteToAll && !sendInviteToAllNonCompliant">
             <h6>Send training invitation to all?</h6>
+            <h6>Please Note - This action will send training invite to all the users from your account.</h6>
         </div>
         <div *ngIf="sendInviteToAllNonCompliant && !sendInviteToAll">
             <h6>Send training invitation to all non-compliant?</h6>

@@ -224,9 +224,13 @@ td.with-remove a.remove:hover{
     font-size: 14px !important;
 }
 
-#modaCsvUpload,
 #modalInvite{
     width: 22%;
+    max-height: 100%;
+}
+
+#modaCsvUpload{
+    width: 28%;
     max-height: 100%;
 }
 
@@ -391,27 +395,36 @@ ul li {margin-left: 0; padding-left: 2.5em;}
 
 @media only screen
   and (max-width: 1440px) {
-    #modaCsvUpload,
     #modalInvite{
         width: 35% !important;
+    }
+
+    #modaCsvUpload{
+        width: 42% !important;
     }
 }
 
 @media only screen
   and (max-width: 1024px) {
-    #modaCsvUpload,
     #modalInvite,
     #modalLocations{
         width: 40% !important;
+    }
+
+    #modaCsvUpload{
+        width: 50% !important;
     }
 }
 
 @media only screen
   and (max-width: 768px) {
-    #modaCsvUpload,
     #modalInvite,
     #modalLocations{
         width: 60% !important;
+    }
+
+    #modaCsvUpload{
+        width: 70% !important;
     }
 
     .top-title-button h4{
@@ -431,8 +444,76 @@ ul li {margin-left: 0; padding-left: 2.5em;}
 
 @media only screen
   and (max-width: 500px) {
-    #modaCsvUpload,
+
     #modalInvite,
+    #modalLocations{
+        width: 90% !important;
+    }
+
+    #modaCsvUpload{
+        width: 95% !important;
+    }
+}
+
+.btn.download{
+    width: 385px;
+    height: 54px !important;
+    line-height: 54px !important;
+}
+
+.checkbox{
+    pointer-events: all;
+    z-index: 999999;
+    margin: 20px 0px 10px 0px;
+}
+
+.checkbox input[type="checkbox"]{
+    line-height: 19px !important;
+    padding-left: 25px;
+}
+
+#modalLocations{
+    top: 2%;
+    height: 100vh;
+}
+
+#modalLocations .modal-content{
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+@media only screen
+  and (max-width: 1440px) {
+    #modalInvite,
+    #modalLocations{
+        width: 35% !important;
+    }
+}
+
+@media only screen
+  and (min-width: 1025px)
+  and (max-width: 1439px) {
+    #modalLocations{
+        width: 50% !important;
+    }
+}
+
+@media only screen
+  and (max-width: 1024px) {
+    #modalLocations{
+        width: 60% !important;
+    }
+}
+
+@media only screen
+  and (max-width: 768px) {
+    #modalLocations{
+        width: 90% !important;
+    }
+}
+
+@media only screen
+  and (max-width: 500px) {
     #modalLocations{
         width: 90% !important;
     }

@@ -1,15 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 
 @Component({
   selector: 'app-signup-select-role',
   templateUrl: './select.role.component.html',
   styleUrls: ['./select.role.component.css']
 })
-export class SignupSelectRoleComponent implements OnInit {
+export class SignupSelectRoleComponent implements OnInit, AfterViewInit {
 
   constructor() { }
 
   ngOnInit() {
+  }
+
+  ngAfterViewInit(){
+      $('.modal-overlay').remove();
   }
 
 }

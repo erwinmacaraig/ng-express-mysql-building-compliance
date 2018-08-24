@@ -1,6 +1,7 @@
 <div class="row">
 	<div class="col m12">
-		<h5 class="text left">Location List</h5>
+        <h5 class="text left" *ngIf="!paramArchived">Location List</h5>
+		<h5 class="text left" *ngIf="paramArchived">Location Archived List</h5>
 
 		<div class="right table-align">
 			<!-- <h5 class="medium-text">Show only not compliant</h5>
@@ -12,10 +13,14 @@
 				<div class="background"></div>
 			</div>-->
 
-			<a href="#" class="archived" [routerLink]="['/location/archived/list']">
+			<a href="#" class="archived" *ngIf="!paramArchived" [routerLink]="['/location/list']" [queryParams]="{ archived : true }">
 				<span class="image"></span>
 				View Archive
 			</a>
+            <a href="#" class="archived" *ngIf="paramArchived" [routerLink]="['/location/list']">
+                <span class="image"></span>
+                View Active
+            </a>
 		</div>
 
 		<div style="clear: both;"></div>
@@ -49,7 +54,8 @@
 	<div class="col l3 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Manage Action</option>
-			<option value="archive" >Archive selected</option>
+			<option value="archive" *ngIf="!paramArchived">Archive selected</option>
+            <option value="archive" *ngIf="paramArchived">Restore selected</option>
 		</select>
 	</div>
 
@@ -68,7 +74,7 @@
 						</p>
 					</th>
 					<th *ngIf="isFRP == true">Sub-location floor</th>
-					<th>No. of Tenants</th>
+					<th *ngIf="isFRP == true">No. of Tenants</th>
 					<th>No. of Wardens</th>
 					<th>Mobility Impaired</th>
 					<th>Compliance</th>
@@ -120,7 +126,7 @@
 					<td *ngIf="isFRP == true">
 						{{location.sublocation_count}}
 					</td>
-					<td>
+					<td *ngIf="isFRP == true">
 						<span style="margin-right:10px;">{{location.num_tenants}}</span>
 						<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-user/tenant/', location.location_id]" > Add tenants </a> -->
 					</td>
@@ -139,7 +145,8 @@
                         </div>
 
 						<span *ngIf="location.admin_verified == 0 && !location.fetchingCompliance" class="red-text">For verification</span>
-						<a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance" [routerLink]="['/location/compliance/view/', location.location_id]">
+						
+                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 1" [routerLink]="['/location/compliance/view/', location.location_id]">
 							<div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
 							<div class="progress-container" >
 								<div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
@@ -147,15 +154,26 @@
 								</div>
 							</div>
 						</a>
+
+                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0" [routerLink]="['/location/compliance/view/', location.parent_id]">
+                            <div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
+                            <div class="progress-container" >
+                                <div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
+                                    <div class="determinate" [ngStyle]="{ 'width' : location.compliance_percentage+'%' }"></div>
+                                </div>
+                            </div>
+                        </a>
 					</td>
 					<td class="select-blue">
-						<select class="select-from-row">
+						<select class="select-from-row" [attr.select-action]="location.location_id">
 							<option value="0">Manage</option>
 							<option value="addtenants-{{location.location_id}}">Add Tenants</option>
 							<option value="addwardens-{{location.location_id}}">Add Wardens</option>
 							<option value="view-{{location.location_id}}">View Location</option>
-							<option value="compliance-{{location.location_id}}">View Compliance</option>
-							<option value="archive-{{location.location_id}}">Archive</option>
+                            <option *ngIf="location.is_building == 1" value="compliance-{{location.location_id}}" >View Compliance</option>
+							<option *ngIf="location.is_building == 0" value="compliance-{{location.parent_id}}" >View Compliance</option>
+                            <option *ngIf="!paramArchived" value="archive-{{location.location_id}}">Archive</option>
+							<option *ngIf="paramArchived" value="archive-{{location.location_id}}">Restore</option>
 							<!-- <option value="benchmark-{{location.location_id}}">Benchmark</option> -->
 						</select>
 					</td>
@@ -212,14 +230,20 @@
 
 		<h5 *ngIf="selectedArchive.length == 0">No location selected</h5>
 		<div *ngIf="selectedArchive.length > 0">
-			<p style="font-size: 16px;">
+			<p style="font-size: 16px;" *ngIf="!paramArchived">
 				Are you sure you want archive location : {{selectedArchive.name}}?
 			</p>
+            <p style="font-size: 16px;" *ngIf="paramArchived">
+                Are you sure you want restore location : {{selectedArchive.name}}?
+            </p>
 		</div>
 	</div>
 	<div class="modal-footer" [hidden]="modalArchive.loader">
 		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a  *ngIf="selectedArchive.length  > 0" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a  *ngIf="selectedArchive.length  > 0" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">
+            <span *ngIf="!paramArchived">Archive</span>
+            <span *ngIf="paramArchived">Restore</span>
+        </a>
 	</div>
 </div>
 
@@ -243,9 +267,12 @@
 
 		<h5 *ngIf="arraySelectedLocs.length == 0">No location selected</h5>
 		<div *ngIf="arraySelectedLocs.length > 0">
-			<p style="font-size: 16px;">
+			<p style="font-size: 16px;" *ngIf="!paramArchived">
 				Are you sure you want archive the following location?
 			</p>
+            <p style="font-size: 16px;" *ngIf="paramArchived">
+                Are you sure you want restore the following location?
+            </p>
 			<ul>
 				<li *ngFor="let loc of arraySelectedLocs;">
 					<span>{{loc.name}}</span>
@@ -255,7 +282,10 @@
 	</div>
 	<div class="modal-footer" [hidden]="modalArchiveBulk.loader">
 		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a  *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+        <a  *ngIf="arraySelectedLocs.length > 0" class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">
+            <span *ngIf="!paramArchived">Archive</span>
+            <span *ngIf="paramArchived">Restore</span>
+        </a>
 	</div>
 </div>
 
@@ -288,16 +318,18 @@
 		<h5>Add New Tenant </h5>
 		<h6><span *ngIf="selectedLocation.name.length > 0">{{selectedLocation.name}}</span>  <span *ngIf="selectedLocation.name.length == 0">{{selectedLocation.formatted_address}}</span> </h6>
 
-		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)">
+        <h6 [hidden]="!showLoadingSublocations">Fetching locations...</h6>
+
+		<form #formAddTenant="ngForm" (submit)="submitNewTenant(formAddTenant)" [hidden]="showLoadingSublocations">
 
 			<div class="row">
 				<div class="col l12 m12 s12">
 					<div class="select-field"  >
-						<select ngModel  name="location_id" class="location-id" required>
-							<option value="null" disabled>Select Sub Location</option>
+						<select ngModel name="location_id" class="location-id"  required>
+							<option value="0" disabled>Select Location</option>
 							<option *ngFor="let sub of selectedLocation.sublocations;" [value]="sub.location_id" >{{sub.name}}</option>
 						</select>
-						<label class="select-label">Select Sub Location</label>
+						<!-- <label class="select-label">Select Sub Location</label> -->
 					</div>
 					<div class="input-field">
 	          			<input id="company_name" type="text" name="account_name" ngModel required>
@@ -323,7 +355,7 @@
 						</label>
 					</div>
 
-<!--
+                <!--
 
 					<div class="input-field">
 	                  	<input id="company_name" type="text" name="account_name" ngModel required>
@@ -378,7 +410,7 @@
 						<input id="domain" type="text" name="account_domain" ngModel required pattern="^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$">
 						<label for="domain">Account Domain name</label>
 					</div>
-					-->
+                -->
 				</div>
 			</div>
 

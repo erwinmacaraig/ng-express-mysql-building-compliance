@@ -17,7 +17,6 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import { DatepickerOptions } from 'ng2-datepicker';
 
-
 declare var $: any;
 @Component({
     selector: 'app-teams-list-warden',
@@ -36,7 +35,17 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     };
     selectedFromList = [];
 
-    filters = [];
+    filters = [
+        { value : 9, name : 'Warden' },
+        { value : 10, name : 'Floor / Area Warden' },
+        { value : 11, name : 'Chief Warden' },
+        { value : 12, name : 'Fire Safety Advisor' },
+        { value : 13, name : 'Emergency Planning Committee Member' },
+        { value : 14, name : 'First Aid Officer' },
+        { value : 15, name : 'Deputy Chief Warden' },
+        { value : 16, name : 'Building Warden' },
+        { value : 18, name : 'Deputy Building Warden' }
+    ];
 
     loadingTable = false;
 
@@ -45,7 +54,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     };
 
     queries = {
-        roles : 'users',
+        roles : 'users,no_gen_occ',
         impaired : -1,
         type : 'client',
         offset :  0,
@@ -113,7 +122,6 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             this.wardenArr = response.data.users;
 
             let tempRoles = {};
-            this.filters = [];
             for(let i in this.wardenArr){
                 this.wardenArr[i]['bg_class'] = this.generateRandomBGClass();
                 this.wardenArr[i]['id_encrypted'] = this.encDecrService.encrypt(this.wardenArr[i]['user_id']);
@@ -129,10 +137,6 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                     if( this.wardenArr[i]['roles'][r]['role_name'] ){
                         if( !tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] ){
                             tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] = this.wardenArr[i]['roles'][r]['role_name'];
-                            this.filters.push({
-                                value : this.wardenArr[i]['roles'][r]['role_id'],
-                                name : this.wardenArr[i]['roles'][r]['role_name']
-                            });
                         }
                     }
                 }
@@ -228,6 +232,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         }else{
             checkboxes.prop('checked', false);
             this.allAreSelected = false;
+            this.selectedFromList = [];
         }
 
         checkboxes.each((indx, elem) => {
@@ -242,30 +247,35 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     }
 
     filterByEvent(){
-
-        $('select.filter-by').on('change', () => {
+        let __this = this;
+        $('select.filter-by').on('change', function(e){
+            e.preventDefault();
+            e.stopPropagation();
             let selected = $('select.filter-by').val();
+            __this.dashboardService.show();
             if(parseInt(selected) != 0){
-                let temp = [],
-                addedIds = {};
-                for(let list of this.copyOfList){
-                    let add = false;
-                    for(let role of list.roles){
-                        if( role.role_id == selected ){
-                            add = true;
-                        }
-                    }
-
-                    if(add){
-                        temp.push(list);
-                    }
-                }
-                this.wardenArr = temp;
+                __this.queries.roles = selected;
             }else{
-                this.wardenArr = this.copyOfList;
+                __this.queries.roles = 'frp,trp,users,no_roles';
             }
-        });
 
+            __this.pagination = {
+                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+            };
+
+            __this.getListData(() => { 
+                if(__this.pagination.pages > 0){
+                    __this.pagination.currentPage = 1;
+                    __this.pagination.prevPage = 1;
+                }
+
+                for(let i = 1; i<=__this.pagination.pages; i++){
+                    __this.pagination.selection.push({ 'number' : i });
+                }
+
+                __this.dashboardService.hide();
+            });
+        });    
     }
 
     sortByEvent(){
@@ -363,7 +373,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             this.selectedFromList = temp;
         }
 
-        let checkboxes = $('table tbody input[type="checkbox"]'),
+        /*let checkboxes = $('table tbody input[type="checkbox"]'),
         countChecked = 0;
         checkboxes.each((indx, elem) => {
             if($(elem).prop('checked')){
@@ -372,9 +382,11 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         });
 
         $('#allLocations').prop('checked', false);
+        this.allAreSelected = false;
         if(countChecked == checkboxes.length){
             $('#allLocations').prop('checked', true);
-        }
+            this.allAreSelected = true;
+        }*/
     }
 
     bulkManageActionEvent(){
@@ -382,7 +394,6 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             let sel = $('select.bulk-manage').val();
 
             if(sel == 'archive'){
-                $('select.bulk-manage').val("0").material_select();
                 if(this.selectedFromList.length > 0){
                     $('#modalArchiveBulk').modal('open');
                 }
@@ -409,6 +420,8 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 this.sendInviteToAll = true;
                 $('#modalSendInvitation').modal('open');
             }
+
+            $('select.bulk-manage').val("0").material_select();
 
         });
     }

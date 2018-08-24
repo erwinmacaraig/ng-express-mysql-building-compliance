@@ -51,6 +51,20 @@ export class ComplianceService {
 		this.behaviorSubject.next(data);
 	}
 
+    public getColors(){
+        return {
+            2 : '#835cb7',
+            3 : '#f0932b',
+            4 : '#eb4d4b',
+            5 : '#6ab04c',
+            6 : '#30336b',
+            8 : '#22a6b3',
+            9 : '#be2edd',
+            12 : '#95afc0',
+            13 : '#3d3d3d'
+        }
+    }
+
 	public getKPIS(callBack){
 		this.http.get(this.baseUrl + '/compliance/kpis', this.options)
 			.subscribe(res => {
@@ -60,8 +74,12 @@ export class ComplianceService {
 			});
 	}
 
-	public getLocationsLatestCompliance(locationID, callBack){
-		this.http.post(this.baseUrl + '/compliance/locations-latest-compliance', { location_id : locationID })
+	public getLocationsLatestCompliance(locationIDorForm, callBack){
+        let param = { location_id : locationIDorForm };
+        if(typeof locationIDorForm == 'object'){
+            param = locationIDorForm;
+        }
+		this.http.post(this.baseUrl + '/compliance/locations-latest-compliance', param)
 			.subscribe(res => {
 				callBack(res);
 			}, err => {
@@ -69,8 +87,8 @@ export class ComplianceService {
 			});
     }
 
-    public getSublocationsEvacDiagrams(locationID, callBack){
-        this.http.post(this.baseUrl + '/compliance/get-sublocations-evac-diagrams', { location_id : locationID })
+    public getSublocationsEvacDiagrams(form, callBack){
+        this.http.post(this.baseUrl + '/compliance/get-sublocations-evac-diagrams', form)
             .subscribe(res => {
                 callBack(res);
             }, err => {
@@ -78,45 +96,70 @@ export class ComplianceService {
             });
     }
 
-  public downloadAllComplianceDocumentPack(location) {
-    const headers = new HttpHeaders(
-      { 'Content-type' : 'application/json',
-        'Accept': 'application/zip'
-      });
+    public saveEpcMinutesMeeting(formData, callBack){
+        this.http.post(this.baseUrl + '/compliance/save-epc-minutes-of-meeting', formData)
+            .subscribe(res => {
+                callBack(res);
+            }, err => {
+                callBack( JSON.parse(err.error) );
+            });
+    }
 
-    const requestOptions = {
-      'params': new HttpParams().set('location_id', location.toString()),
-      'headers': headers,
-      'responseType': ResponseContentType.Blob
-    };
+    public downloadAllComplianceDocumentPack(location) {
+        const headers = new HttpHeaders(
+            { 'Content-type' : 'application/json',
+            'Accept': 'application/zip'
+        });
 
-     return this.http.get(this.baseUrl + '/compliance/download-compliance-documents-pack/', {headers: headers,
-      responseType: 'arraybuffer', observe: 'response', params: new HttpParams().set('location_id', location.toString())} );
-  }
+        const requestOptions = {
+            'params': new HttpParams().set('location_id', location.toString()),
+            'headers': headers,
+            'responseType': ResponseContentType.Blob
+        };
 
-  public downloadComplianceFile(path: string = '', filename: string = '') {
-    return this.http.get(this.baseUrl +
-      '/compliance/download-compliance-file/',
-      {params: new HttpParams().set('keyname', path).set('fname', filename),
-      observe: 'response',
-      responseType: 'arraybuffer'});
-  }
+        return this.http.get(this.baseUrl + '/compliance/download-compliance-documents-pack/', {headers: headers,
+            responseType: 'arraybuffer', observe: 'response', params: new HttpParams().set('location_id', location.toString())} );
+    }
 
-  public toggleTRPViewAccess(compliance_documents_id: number = 0, access: boolean = false) {
-    return this.http.post<any>(this.baseUrl + '/compliance/toggleTPRViewAccess/', {
-      'compliance_documents_id': compliance_documents_id,
-      'viewable_by_trp': access
-    });
-  }
+    public downloadComplianceFile(path: string = '', filename: string = '') {
+        return this.http.get(this.baseUrl +
+            '/compliance/download-compliance-file/',
+            {params: new HttpParams().set('keyname', path).set('fname', filename),
+            observe: 'response',
+            responseType: 'arraybuffer'});
+    }
 
-  public getAllRegisteredCourses() {
-    return this.http.get<Array<object>>(this.baseUrl + '/lms/getAllCourses/', this.options);
-  }
+    public toggleTRPViewAccess(compliance_documents_id: number = 0, access: boolean = false) {
+        return this.http.post<any>(this.baseUrl + '/compliance/toggleTPRViewAccess/', {
+            'compliance_documents_id': compliance_documents_id,
+            'viewable_by_trp': access
+        });
+    }
 
-  public initializeLRS(relation: number = 0) {
-    return this.http.post<any>(this.baseUrl + '/lms/initLRS/', {
-      'relation': relation
-    });
-  }
+    public getAllRegisteredCourses() {
+        return this.http.get<Array<object>>(this.baseUrl + '/lms/getAllCourses/', this.options);
+    }
+
+    public initializeLRS(relation: number = 0) {
+        return this.http.post<any>(this.baseUrl + '/lms/initLRS/', {
+            'relation': relation
+        });
+    }
+
+    public evacExerciseCompleted(formData){
+        return this.http.post(this.baseUrl + '/compliance/evac-exercise-completed', formData);
+    }
+
+    public fsaCompleted(formData){
+        return this.http.post(this.baseUrl + '/compliance/fire-safety-completed', formData);
+    }
+
+    public totalComplianceRatingByLocationIds(locationIds){
+        return this.http.post(this.baseUrl + '/compliance/total-compliance-rating-by-location', { ids : locationIds });
+    }
+
+    public paginateAllLocationIds(){
+        return this.http.get(this.baseUrl + '/compliance/paginate-all-locationids');
+    }
 
 }

@@ -17,5 +17,11 @@ export class EncryptDecryptService {
     return decrypted.toString(CryptoJS.enc.Utf8);
   }
 
+  public decryptUrlParam(uriComponent) {
+    const ecrypted = decodeURIComponent(uriComponent);
+    const decrypted = CryptoJS.AES.decrypt(ecrypted, this.password);
+    return decrypted.toString(CryptoJS.enc.Utf8);
+  }
+
 
 }

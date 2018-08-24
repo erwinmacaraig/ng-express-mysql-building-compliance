@@ -1,0 +1,69 @@
+<app-admin-account-info [accountId]="accountId"></app-admin-account-info>
+<div class="row filter-container">
+  <div class="col l4 m5 s12">
+		<div class="search-field">
+			<input type="text" placeholder="Search" id="searchLocations"> <!-- (keyup)=""-->
+			<span class="material-icons">search</span>
+		</div>
+  </div>
+  <div class="col l2 m4 s6">
+    <select class="filter-by">
+      <option value="0" selected>Filter By (All)</option>
+      <option value=""></option>
+    </select>
+</div>
+  <div class="col l2 m6 s6">
+		<select class="sort-by">
+			<option value="0" selected>Sort By</option>
+			<option value="user-name-desc">User Name Descending</option>
+			<option value="user-name-asc">User Name Ascending</option>
+		</select>
+  </div>
+  <div class="col l2 m6 s12">
+		<select class="bulk-manage">
+			<option value="0" selected disabled>Select Action</option>
+			<option value="archive" >Archive selected</option>
+		</select>
+  </div>
+  <div class="col l2 m3 s12 ">
+		<button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/admin', 'add-account-user', accountId]">
+			<span class="image"></span>
+			Add New Location
+		</button>
+	</div>
+</div>
+<div class="row">
+  <div class="col s12">
+    <table class="table striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Location</th>
+          <th>Address</th>
+          <th>Type</th>
+          <th>Compliance</th>
+          <th style="width: 10%;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let location of locations">
+          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['location_id']}}</a></td>
+          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['display_name']}}</a></td>
+          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['formatted_address']}}</a></td>
+          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['responsibility']}}</a></td>
+          <td><a [routerLink]="['/admin', 'view-location-compliance', accountId, location['location_id'], '2']">View Compliance</a></td>
+          <td>
+              <select #selectAction (change)="selectActionEvent(selectAction, location)">
+                    <option value="0" disabled>Select action</option>
+                    <option value="activity-log">Activity Log Report</option>
+                    <option value="team">Team Report</option>
+                    <option value="training">Training Report</option>
+              </select>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+<div preloader></div>

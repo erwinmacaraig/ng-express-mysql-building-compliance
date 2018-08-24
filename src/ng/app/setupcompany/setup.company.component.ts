@@ -108,7 +108,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 			.map(event => event.target.value)
 			.subscribe((value) => {
 				if(!this.newCompany) {
-					
+
 				}
 			});*/
 
@@ -128,7 +128,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 			if(response.status === false && response.message == 'not verified'){
 				localStorage.setItem('showemailverification', 'true');
 			}else{
-				// this.showCreateButton = true;
+				this.showCreateButton = true;
 			}
 		});
 	}

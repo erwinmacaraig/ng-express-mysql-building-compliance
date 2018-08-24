@@ -1,4 +1,6 @@
 import {Location} from './location.model';
+import { Account } from './account.model';
+import { ComplianceKpisModel } from './comliance.kpis.model';
 
 /**
  * @class
@@ -48,4 +50,27 @@ export class UtilsSync {
     }
     return records;
   }
+
+  public async getAccountUploadDir(
+    account_id: number = 0,
+    building_id: number = 0,
+    compliance_item: number = 0,
+    document_type: string = 'Primary'
+  ): Promise<string> {
+    let location_dir = '';
+    const account_dbData =  await new Account(account_id).load();
+
+    const locationData = await new Location(building_id).load();
+    if (locationData['is_building'] == 1) {
+      location_dir = locationData['location_directory_name'];
+    } else {
+      // get immediate parent
+      const building_dbData = await new Location(locationData['parent_id']).load();
+      location_dir = `${building_dbData['location_directory_name']}/${locationData['location_directory_name']}`;
+    }
+    const kpis_dbData = await new ComplianceKpisModel(compliance_item).load();
+    console.log(`${account_dbData['account_directory_name']}/${location_dir}/${kpis_dbData['directory_name']}/${document_type}/`);
+    return `${account_dbData['account_directory_name']}/${location_dir}/${kpis_dbData['directory_name']}/${document_type}/`;
+  }
+
 }

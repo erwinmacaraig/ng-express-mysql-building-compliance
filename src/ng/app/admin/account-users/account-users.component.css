@@ -274,3 +274,160 @@ select option:disabled{
         width: 90%;
     }
 }
+
+.update-profile-container a.btn,
+.credentials-container a.btn,
+.location-role-container a.btn{
+    line-height: 45px;
+}
+
+.invitations-container .cancel{
+    font-size: 18px;
+    line-height: 37px;
+}
+
+.invitations-container table tbody .btn-send{
+    font-size: 14px !important;
+    line-height: 0px;
+    padding: 15px;
+    height: 30px !important;
+}
+
+.location-role-container{
+    position: relative;
+}
+
+.location-role-container .sending-container{
+    position: absolute;
+    left: 0%;
+    top: 0%;
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    display: none;
+    background-color: #f0f0f0;
+    z-index: 999;
+}
+
+.location-role-container .search-container{
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 10px;
+    width: 100% !important;
+}
+
+.location-role-container .search-container .input-container{
+    display: inline-block;
+    vertical-align: middle;
+    width: 94%;
+}
+
+.location-role-container .search-container .input-container input{
+    margin-bottom: 0px;
+    border-bottom: 0px !important;
+}
+
+.location-role-container .search-container .input-container input:focus{
+    border-bottom: 0px !important;
+    box-shadow: none !important;
+}
+
+.location-role-container .search-container .icon-container{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.location-role-container .list-region ul li{
+    font-size: 16px;
+}
+
+.location-role-container .list-region ul:not(:first-child){
+    padding-left: 25px;
+}
+
+.location-role-container .list-region ul li:not(.show-drop-down) > ul{
+    display: none;
+}
+
+.location-role-container .list-region ul li.show-drop-down > ul{
+    display: block;
+}
+
+.location-role-container .name-radio-plus .input,
+.location-role-container .name-radio-plus .plus-minus,
+.location-role-container .name-radio-plus .name{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.location-role-container .name-radio-plus .plus-minus{
+    vertical-align: super;
+    position: relative;
+    text-align: center;
+}
+
+.location-role-container .name-radio-plus .minus{
+    display: none;
+}
+
+.location-role-container .name-radio-plus input[type="radio"]{
+    position: static;
+    pointer-events: all;
+}
+
+.location-role-container .name-radio-plus .plus-minus input[type="checkbox"]{
+    pointer-events: all;
+    width: 100%;
+    position: absolute;
+    top: 7px;
+    opacity: 0;
+}
+
+.location-role-container .name-radio-plus .plus-minus input[type="checkbox"]+.sign:after{
+    content: '+';
+    font-size: 18px;
+}
+
+.location-role-container .name-radio-plus .plus-minus input[type="checkbox"]:checked+.sign:after{
+    content: '-';
+    font-size: 18px;
+}
+
+.location-role-container [type="checkbox"]+label{
+    height: 22px;
+    padding-left: 20px;
+}
+
+.location-role-container .name-radio-plus .plus-minus input[type="checkbox"]+.sign{
+    padding: 0px 5px;
+}
+
+.location-role-container .right-panel{
+    position: relative;
+    min-height: 530px;
+}
+
+.location-role-container .right-panel .location-list{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    background-color: #fbfbfb;
+    top: 0px;
+    padding: 0px 25px;
+}
+
+.location-role-container .center-message{
+    font-size: 20px;
+    position: absolute;
+    left: 50%;
+    top: 35%;
+    width: 190px;
+    text-align: center;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+}
+
+.location-role-container .button-container{
+    margin: 20px 0px;
+}

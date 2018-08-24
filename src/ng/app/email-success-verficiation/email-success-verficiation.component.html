@@ -1,13 +1,40 @@
+<ng-template #mainContent>
+    <i class="material-icons large green-text" [hidden]="!showCheckIcon">check</i>
+        <i class="material-icons large red-text" [hidden]="!showClose">close</i>
+        <h5>
+            {{ message }}
+        </h5>
+        <br /><br />
+        <a *ngIf="showLogin" [routerLink]="['/login']">Login</a>
+</ng-template>
+
+<ng-template #stepsContent>
+    <div class="center-align">
+        <p class="welcome-text">Welcome to EvacConnect's tenant confirmation process</p>
+        <!-- <p class="tag-text">You will be taken through below steps to validate the user data in EvacConnect</p> -->
+
+        <h4 class="blue-text font-28">Step 1 </h4>
+        <h5 class="font-18"> Check and confirm the warden for your tenancy</h5>
+        <h5>
+            <i class="material-icons" style="font-size: 32px;">arrow_downward</i>
+        </h5>
+        <h4 class="blue-text font-28">Step 2 </h4>
+        <h5 class="font-18">Review your P.E.E.P list</h5>
+    </div>
+</ng-template>
+
 <div id="modalMsg" class="modal">
 	<div class="modal-content center-align">
-		<i class="material-icons large green-text" [hidden]="!showCheckIcon">check</i>
-		<i class="material-icons large red-text" [hidden]="!showClose">close</i>
-		<h5>
-			{{ message }}
-		</h5>
+		<div *ngIf="content == 'main'">
+            <ng-container *ngTemplateOutlet="mainContent"></ng-container>
+        </div>
+        <div *ngIf="content == 'steps'">
+            <ng-container *ngTemplateOutlet="stepsContent"></ng-container>
+        </div>
 	</div>
 	<div class="modal-footer">
 		<a  *ngIf="!isUserVerification" [routerLink]="['/login']" class="modal-action modal-close waves-effect waves-green btn-flat">CLOSE</a>
-		<a  *ngIf="isUserVerification" (click)="closeWindow()" class="modal-action modal-close waves-effect waves-green btn-flat">CLOSE</a>
+    <a  *ngIf="isUserVerification && !isAccountRole" (click)="closeWindow()" class="modal-action modal-close waves-effect waves-green btn-flat">CLOSE</a>
+    <a  *ngIf="isUserVerification && isAccountRole" (click)="showNotificationWardenList()" class="modal-action modal-close waves-effect waves-green btn-flat">CONTINUE</a>
 	</div>
 </div>

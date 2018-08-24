@@ -143,12 +143,13 @@ export class Token extends BaseClass {
             ('token' in this.dbData) ? this.dbData['token'] : 0,
             ('action' in this.dbData) ? this.dbData['action'] : "",
             ('verified' in this.dbData) ? this.dbData['verified'] : 0,
-            ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : '0000-00-00',
+            ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : '0000-00-00 00-00-00',
             this.ID() ? this.ID() : 0
           ];
           const connection = db.createConnection(dbconfig);
           connection.query(sql_update, token, (err, results, fields) => {
             if (err) {
+              console.log('token.model dbUpdate', sql_update, token);
               throw new Error(err);
             }
             resolve(true);

@@ -51,6 +51,7 @@ export class LMSRoute extends BaseRoute {
       const scorm = new Scorm();
       scorm.setDataModelVal(req.body.relation, req.body.param, req.body.value).then((data) => {
         // Scorm 1.1 and Scorm 1.2
+        // console.log(req.body);
         if (req.body.param == 'cmi.core.lesson_status' && (req.body.value == 'completed' || req.body.value == 'passed')) {
           const courseUserRelObj = new CourseUserRelation(req.body.relation);
           courseUserRelObj.updateUserTrainingCourseCertificate().then((result) => {

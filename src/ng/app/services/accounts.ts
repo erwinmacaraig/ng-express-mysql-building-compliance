@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -93,5 +93,49 @@ export class AccountsDataProviderService {
             callBack( JSON.parse(err.error) );
           });
     }
+
+  searchForBuildings(buildingName = '') {
+    const httpParams = new HttpParams().set('bldgName', buildingName);
+    this.options['params'] = httpParams;
+    return this.http.get(this.baseUrl + '/accounts/search-building/', this.options);
+  }
+
+  createConfig(configStr = '') {
+    return this.http.post(this.baseUrl + '/accounts/create-notification-config/', {
+      config: configStr
+    });
+  }
+
+  listNotificationConfig() {
+    return this.http.get(`${this.baseUrl}/accounts/list-notification-config/`, this.options);
+  }
+
+  generateNotifiedUsersList(configId = '') {
+     const httpParams = new HttpParams().set('config_id', configId);
+     this.options['params'] = httpParams;
+     return this.http.get(`${this.baseUrl}/accounts/list-notified-users/`, this.options);
+	}
+
+	submitQueryResponses(responses='', notification_token_id = 0, completed=0, status='In Progress') {
+       return this.http.post(this.baseUrl + '/accounts/process-query-notified-user-responses/', {
+			      query_responses: responses,
+				    notification_token_id: notification_token_id,
+						completed: completed,
+						strStatus: status
+			 });
+  }
+
+  listWardensOnNotificationFinalScreen(buildingId = '0') {
+    const httpParams = new HttpParams().set('building', buildingId);
+    this.options['params'] = httpParams;
+    return this.http.get(`${this.baseUrl}/accounts/notification-all-wardens/`, this.options);
+  }
+
+  listPeepOnNotificationFinalScreen(buildingId = '0') {
+    const httpParams = new HttpParams().set('building', buildingId);
+    this.options['params'] = httpParams;
+    return this.http.get(`${this.baseUrl}/accounts/notification-all-peep/`, this.options);
+  }
+
 
 }

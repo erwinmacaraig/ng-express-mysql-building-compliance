@@ -1,3 +1,4 @@
+import { AccountTrainingsModel } from './../models/account.trainings';
 import { TrainingRequirements } from './../models/training.requirements';
 import { TrainingCertification } from './../models/training.certification.model';
 import { NextFunction, Request, Response, Router } from 'express';
@@ -60,6 +61,10 @@ export class UsersRoute extends BaseRoute {
 		router.post('/users/update', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().updateUser(req, res, next);
 	    });
+
+        router.post('/users/change-password', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+            new  UsersRoute().changePassword(req, res);
+        });
 
 		router.post('/users/upload-profile-picture', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().uploadProfilePicture(req, res, next);
@@ -575,6 +580,53 @@ export class UsersRoute extends BaseRoute {
         }
     }
 
+    public async changePassword(req: Request , res: Response){
+        let
+        response = {
+            status : false,
+            data : {},
+            message : ''
+        },
+        oldPassword = req.body.old_password,
+        newPassword = req.body.new_password,
+        confirmPassword = req.body.confirm_password,
+        errorLength = 0;
+
+        if( newPassword.length < 6 || confirmPassword.length < 6){
+            errorLength++;
+        }
+
+        if(errorLength == 0){
+            if(confirmPassword == newPassword){
+                try{
+                    let
+                    userModel = new User(req.body.user_id),
+                    userData = await userModel.load(),
+                    hasPass = false;
+
+                    if( md5('Ideation'+oldPassword+'Max') == userData['password']){
+                        userModel.set('password', md5('Ideation'+newPassword+'Max'));
+                        userModel.setID(req.body.user_id);
+
+                        await userModel.dbUpdate();
+                        response.data = userData;
+                        response.status = true;
+                    }else{
+                        response.message = 'Invalid old password';
+                    }
+                }catch(e){
+                    response.message = 'No user found';
+                }
+            }else{
+                response.message = 'Password mismatch';
+            }
+        }else{
+            response.message = 'All fields must be greater than 6 characters';
+        }
+
+        res.send(response);
+    }
+
 	public async updateUser(req: Request , res: Response, next: NextFunction){
 		let
 		response = {
@@ -779,10 +831,24 @@ export class UsersRoute extends BaseRoute {
             group : false
         },
         archived : 0,
-        queryRoles = [],
-        userIds = [0],
+        queryRoles = query.roles.split(','),
+        userIds = [],
         userIdObj = [],
-        emRolesDef = defs.em_roles;
+        noGeneralOcc = (queryRoles.indexOf('no_gen_occ') > -1) ? true : false,
+        emRolesDef = defs.em_roles,
+        getFRP = ( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1 ) ? true : false,
+        getTRP = ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ? true : false,
+        emRoleIds = [8,9,10,11,12,13,14,15,16,18],
+        emRoleIdSelected = [],
+        getUSERS = ( queryRoles.indexOf('users') > -1 || queryRoles.indexOf() > -1 ) ? true : false,
+        getUsersByEmRoleId = false;
+
+        for(let id of emRoleIds){
+            if(queryRoles.indexOf(''+id) > -1){
+                getUsersByEmRoleId = true;
+                emRoleIdSelected.push(id);
+            }
+        }
 
         const training_requirements = await new TrainingCertification().getRequiredTrainings();
 
@@ -818,15 +884,33 @@ export class UsersRoute extends BaseRoute {
         modelQueries.joins.push(' LEFT JOIN file_user ON users.user_id = file_user.user_id LEFT JOIN files ON files.file_id = file_user.file_id ');
 
         if(query.roles){
-            queryRoles = query.roles.split(',');
-            if( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1){
-                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_role_relation) ');
+
+            let emRoleIdInQuery = '';
+            if(getUsersByEmRoleId){
+                emRoleIdInQuery = ' AND em_role_id IN ('+emRoleIdSelected.join(',')+') ';
+            }
+
+            if( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ){
+                let roleIdsQ = ' WHERE role_id IN (1,2) ';
+                if(getFRP || !getTRP){
+                    roleIdsQ = ' WHERE role_id IN (1) '
+                }
+                if(!getFRP || getTRP){
+                    roleIdsQ = ' WHERE role_id IN (2) '
+                }
+                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_role_relation '+roleIdsQ+' ) ');
                 if(query.search){
                     modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
                 }
             }
-            if( queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1) == true ){
-                modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1) ');
+
+            if( (queryRoles.indexOf('users') > -1 || getUsersByEmRoleId) && ( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ) == true ){
+                if(noGeneralOcc){
+                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+' ) ');
+                }else{
+                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 '+emRoleIdInQuery+' ) ');
+                }
+
                 modelQueries.orWhere.push(' AND users.archived = '+archived);
                 modelQueries.orWhere.push(' AND users.account_id = '+accountId);
                 if(query.impaired){
@@ -841,28 +925,50 @@ export class UsersRoute extends BaseRoute {
                 if(query.search){
                     modelQueries.orWhere.push(' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
                 }
-            }else if(queryRoles.indexOf('users') > -1 && (queryRoles.indexOf('frp') == -1 && queryRoles.indexOf('trp') == -1) == true){
-                modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 ) ');
+            }else if( queryRoles.indexOf('users') > -1 || getUsersByEmRoleId && ( (queryRoles.indexOf('frp') == -1 || queryRoles.indexOf('1') == -1) && ( queryRoles.indexOf('trp') == -1 || queryRoles.indexOf('2') == -1 ) ) == true){
+                if(noGeneralOcc){
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+') ');
+                }else{
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 '+emRoleIdInQuery+') ');
+                }
                 if(query.search){
                     modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
                 }
             }
+
+            if( queryRoles.indexOf('no_roles') > -1 ){
+                let isImpairedQuery = '';
+                if(query.impaired){
+                    if(query.impaired > -1){
+                        if(query.impaired == 1){
+                            isImpairedQuery = ' AND users.mobility_impaired = 1 ';
+                        }else if(query.impaired == 0){
+                            isImpairedQuery = ' AND users.mobility_impaired = 0 ';
+                        }
+                    }
+                }
+
+                let noEmrole = ' OR users.user_id NOT IN (SELECT user_id FROM user_em_roles_relation) AND users.archived = '+archived+' AND users.account_id = '+accountId;
+                if(query.search){
+                    noEmrole += ' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ';
+                }
+                noEmrole += isImpairedQuery;
+
+                let noRole = ' OR users.user_id NOT IN (SELECT user_id FROM user_role_relation) AND users.archived = '+archived+' AND users.account_id = '+accountId;
+                if(query.search){
+                    noRole += ' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ';
+                }
+                noRole += isImpairedQuery;
+
+                modelQueries.orWhere.push(noEmrole);
+                modelQueries.orWhere.push(noRole);
+            }
+
         }else{
             if(query.search){
                 modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
             }
         }
-
-        /*if(query.search){
-            if(query.search.trim().length > 0){
-                modelQueries.where.push( ' CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" ' );
-                if(modelQueries.orWhere.length == 0){
-                    modelQueries.orWhere.push( ' OR users.email LIKE "%'+query.search+'%" ' );
-                }else{
-                    modelQueries.orWhere.push( ' AND users.email LIKE "%'+query.search+'%" ' );
-                }
-            }
-        }*/
 
         modelQueries.select['custom'] = [" IF(files.url IS NULL, '', files.url) as profile_pic "];
 
@@ -911,15 +1017,23 @@ export class UsersRoute extends BaseRoute {
             }
         }
 
-        if(query.roles && query.users_locations){
+        if(query.roles && query.users_locations && userIds.length > 0){
+            let frptrpIds = [];
+            if(getFRP){ frptrpIds.push(1); }
+            if(getTRP){ frptrpIds.push(2); }
+
             let accountModel = new Account(),
                 locAccUserModel = new LocationAccountUser(),
                 emRolesModel = new UserEmRoleRelation(),
                 locationsDB = <any> [],
                 locations = <any> [],
                 locationIds = [],
-                locationsEmRoles = <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')),
-                locationFRPTRP = <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','));
+                locationsEmRoles = (getUSERS && !noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : (getUSERS && noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(','), '8') : [],
+                locationFRPTRP =  (getFRP || getTRP) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','), false,  (frptrpIds.length > 0) ? frptrpIds.join(',') : false  ) : [];
+
+            if(!getUSERS && !noGeneralOcc && getUsersByEmRoleId){
+                locationsEmRoles = <any> await emRolesModel.getLocationsByUserIdsAndRoleIds(userIds.join(','), emRoleIdSelected.join(','));
+            }
 
             for(let loc of locationsEmRoles){
                 if(!locationIds[ loc.location_id ]){
@@ -927,7 +1041,6 @@ export class UsersRoute extends BaseRoute {
                     locationIds.push(loc.location_id);
                 }
             }
-
 
             for(let loc of locationFRPTRP){
                 if(!locationIds[ loc.location_id ]){
@@ -940,6 +1053,7 @@ export class UsersRoute extends BaseRoute {
 
             let locationsData = [],
                 parents = {};
+
             for (let loc of locations) {
                 let locParentModel = new Location(loc.parent_id),
                     parent = <any> {};
@@ -967,15 +1081,19 @@ export class UsersRoute extends BaseRoute {
 
             for(let user of response.data['users']){
                 if('locations' in user == false){ user['locations'] = []; }
+                if('locs' in user == false){ user['locs'] = []; }
                 for(let loc of locationsData){
-                    if(loc.user_id == user.user_id){
+
+                    if( loc.user_id == user.user_id ){
+
                         let userLocData = {
                             user_id : user.user_id,
                             location_id : loc.location_id,
                             name : loc.name,
                             parent_id : -1,
                             parent_name : '',
-                            sublocations_count : 0
+                            sublocations_count : 0,
+                            role_id : (loc['role_id']) ? loc['role_id'] : 0
                         };
 
                         userLocData.location_id = loc.location_id;
@@ -1001,17 +1119,30 @@ export class UsersRoute extends BaseRoute {
                         userLocData.sublocations_count =  <any> await locSubModel.countSubLocations(loc.location_id)
 
                         if(!exst){ user.locations.push(userLocData); }
+
+
+                        user['locs'].push(loc);
+
                     }
+
                 }
             }
 
             let userRoleModel = new UserRoleRelation(),
-                usersRolesRelation = <any> await userRoleModel.getManyByUserIds(userIds.join(',')),
+                usersRolesRelation = <any> await userRoleModel.getManyByUserIds(userIds.join(','), (frptrpIds.length > 0) ? frptrpIds.join(',') : false ),
                 userEmRoleModel = new UserEmRoleRelation(),
-                usersEmRoles = <any> await userEmRoleModel.getManyByUserIds(userIds.join(','));
+                usersEmRoles = (noGeneralOcc && !getUsersByEmRoleId) ? <any> await userEmRoleModel.getManyByUserIds(userIds.join(','), '8') : (!getUsersByEmRoleId) ? <any> await userEmRoleModel.getManyByUserIds(userIds.join(',')) : [];
+
+            if(getUsersByEmRoleId){
+                usersEmRoles = <any> await userEmRoleModel.getManyByUserIds(userIds.join(','), false, emRoleIdSelected.join(','));
+            }
+
+            response['usersEmRoles'] = usersEmRoles;
 
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
+                if('account_roles' in user == false){ user['account_roles'] = []; }
+                if('em_roles' in user == false){ user['em_roles'] = []; }
                 if('trids' in user == false){ user['trids'] = []; }
                 if('locations' in user == false){ user['locations'] = []; }
 
@@ -1019,18 +1150,19 @@ export class UsersRoute extends BaseRoute {
 
                 for(let rol of usersRolesRelation){
                     let role = { role_name : '', role_id : 0 };
-                    if(rol.user_id == user.user_id && ( queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('trp') > -1 ) && usersRolesIds.indexOf(rol.role_id) == -1 ){
+                    if(rol.user_id == user.user_id && ( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || (queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1) ) && usersRolesIds.indexOf(rol.role_id) == -1 ){
                         role.role_name = (rol.role_id == 1) ? 'FRP' : 'TRP';
                         role.role_id = (rol.role_id == 1) ? 1 : 2;
                         user['roles'].push(role);
                         usersRolesIds.push(rol.role_id);
+                        user['account_roles'].push(role);
                     }
                 }
 
                 for(let em of usersEmRoles){
                     let role = { role_name : '', role_id : 0 , trids: []};
 
-                    if(queryRoles.indexOf('users') > -1 && em.user_id == user.user_id && usersRolesIds.indexOf(em.em_role_id) == -1){
+                    if((queryRoles.indexOf('users') > -1 || getUsersByEmRoleId)  && em.user_id == user.user_id && usersRolesIds.indexOf(em.em_role_id) == -1){
                         role.role_name = em.role_name;
                         role.role_id = em.em_role_id;
                         user['roles'].push(role);
@@ -1039,6 +1171,7 @@ export class UsersRoute extends BaseRoute {
                           role.trids = role.trids.concat(training_requirements[em.em_role_id]['training_requirement_id']);
                           user['trids'] = user['trids'].concat(training_requirements[em.em_role_id]['training_requirement_id']);
                         }
+                        user['em_roles'].push(role);
                     }
                 }
 
@@ -1441,6 +1574,7 @@ export class UsersRoute extends BaseRoute {
             if( Object.keys(user).length > 0 ) {
                 user['mobility_impaired_details'] = [];
                 user['last_login'] = (user['last_login'] == null) ? '' : user['last_login'];
+                user['password'] = null;
 
                 locations = await userModel.getAllMyEMLocations();
 
@@ -1476,9 +1610,11 @@ export class UsersRoute extends BaseRoute {
                     const temp = await course_user_rel.getRelationDetails({'user': userId, 'training_requirement': t['training_requirement_id']});
                     t['course_user_relation_id'] = temp['course_user_relation_id'];
                     t['course_launcher'] = temp['course_launcher'];
+                    t['disabled'] = temp['disabled'];
                   } catch (e) {
                     t['course_user_relation_id'] = 0;
                     t['course_launcher'] = '';
+                    t['disable'] = 1;
                   }
                 }
                 if( user['mobility_impaired'] == 1 ){
@@ -1486,13 +1622,14 @@ export class UsersRoute extends BaseRoute {
                     arrWhere = [];
 
                     arrWhere.push( ["user_id = " + userId] );
-                    arrWhere.push( "duration_date > NOW()" );
+                    arrWhere.push( " (duration_date > NOW() OR duration_date IS NULL) " );
+
                     try {
                         let mobilityDetails = <any> await mobilityModel.getMany( arrWhere );
 
                         for(let mob of mobilityDetails){
                             mob['date_created_formatted'] = moment(mob['date_created']).format('MMM. DD, YYYY');
-                            mob['duration_date_formatted'] = moment(mob['duration_date']).format('MMM. DD, YYYY');
+                            mob['duration_date_formatted'] = (moment(mob['duration_date']).isValid()) ? moment(mob['duration_date']).format('MMM. DD, YYYY') : '';
                         }
 
                         user['mobility_impaired_details'] = mobilityDetails;
@@ -1558,7 +1695,18 @@ export class UsersRoute extends BaseRoute {
                 }catch(e){}
             }
 
-            response.data.locations = locations;
+            let filteredLocs = [];
+
+            for(let loc of locations){
+                if(loc['role_id']){
+                    filteredLocs.push(loc);
+                }
+            }
+
+            response.data.locations = filteredLocs;
+
+
+
 			response.data.user = <any> user;
 			response.status = true;
 		}catch(e){
@@ -1789,8 +1937,7 @@ export class UsersRoute extends BaseRoute {
            let tokenData = <any> await tokenModel.getByToken(token),
                today = moment(),
                expirationDate = moment(tokenData.expiration_date);
-
-            if(tokenData.action == 'setup-password'){
+            if(tokenData.action == 'setup-password') {
 
                 let userId = tokenData.id,
                     userModel = new User(userId);
@@ -1811,6 +1958,7 @@ export class UsersRoute extends BaseRoute {
                     await userModel.dbUpdate();
 
                     tokenModel.set('action', 'verify');
+                    tokenModel.set('expiration_date', today.format('YYYY-MM-DD HH-mm-ss'));
                     tokenModel.set('verified', 1);
 
                     await tokenModel.dbUpdate();
@@ -1977,181 +2125,300 @@ export class UsersRoute extends BaseRoute {
         accountId = req.user.account_id,
         accountModel = new Account(accountId),
 		returnUsers = [],
-        account = {},
+        account = <any> {
+            account_name : ''
+        },
         isAccountEmailExempt = false,
-        hasOnlineTraining = false;
+        hasOnlineTraining = false,
+        userModel = new User(req.user.user_id),
+        accountTrainings = [];
 
         try{
             let account = <any> await accountModel.load();
             isAccountEmailExempt = (account.email_add_user_exemption == 1) ? true : false;
             hasOnlineTraining = (account.online_training == 1) ? true : false;
-        }catch(e){
 
-        }
+            let
+            user = await userModel.load(),
+            emRoles = <any> await new UserEmRoleRelation().getEmRoles();
 
-		for(let i in users){
-			let userModel = new User(),
-				userRoleRelation = new UserRoleRelation(),
-				userEmRole = new UserEmRoleRelation(),
-				emRoles = await new UserEmRoleRelation().getEmRoles(),
-				isEmailValid = this.isEmailValid(users[i]['email']),
-				isBlackListedEmail = false,
-				hasError = false;
+    		for (let i in users) {
+    			let userModel = new User(),
+    				userRoleRelation = new UserRoleRelation(),
+    				userEmRole = new UserEmRoleRelation(),
+    				isEmailValid = this.isEmailValid(users[i]['email']),
+    				isBlackListedEmail = false,
+    				hasError = false;
 
-			users[i]['errors'] = {};
+    			users[i]['errors'] = {};
 
-			if(isEmailValid){
-				// isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
-				// if(!isBlackListedEmail){
+    			if(isEmailValid) {
+    				// isBlackListedEmail = new BlacklistedEmails().isEmailBlacklisted(users[i]['email']);
+    				// if(!isBlackListedEmail){
 
-				await userModel.getByEmail(users[i]['email']).then(
-					() => {
-						console.log(userModel.getDBData());
-						hasError = true;
-						users[i]['errors']['email_taken'] = true;
-					},
-					() => {}
-				);
-
-
-				// }else{
-				// 	users[i]['errors']['blacklisted'] = true;
-				// 	hasError = true;
-				// }
-			}else{
-				users[i]['errors']['invalid'] = true;
-				hasError = true;
-			}
-
-			if(!hasError){
-				let
-				token = this.generateRandomChars(30),
-				inviSaveData = {
-					'first_name' : users[i]['first_name'],
-					'last_name' : users[i]['last_name'],
-					'email' : users[i]['email'],
-					'contact_number' : users[i]['mobile_number'],
-					'location_id' : users[i]['account_location_id'],
-					'account_id' : req['user']['account_id'],
-					'role_id' : (users[i]['account_role_id'] == 1 || users[i]['account_role_id'] == 2) ? users[i]['account_role_id'] : 0,
-					'eco_role_id' : (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
-					'invited_by_user' : req['user']['user_id'],
-                    'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0,
-                    'was_used' : (isAccountEmailExempt) ? 1 : 0
-				},
-                user  = new User(),
-                encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max'),
-                userSaveData = {
-                    'first_name': users[i]['first_name'],
-                    'last_name': users[i]['last_name'],
-                    'password': '',
-                    'email': users[i]['email'],
-                    'token': token,
-                    'account_id': accountId,
-                    'invited_by_user': req['user']['user_id'],
-                    'can_login': 0,
-                    'mobile_number': users[i]['mobile_number'],
-                    'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0
-                },
-                tokenSaveData = {
-                    'token' : token,
-                    'action' : 'verify',
-                    'id' : 0,
-                    'id_type' : 'user_id',
-                    'verified' : 0
-                },
-                tokenModel = new Token(),
-                emailLink = req.protocol + '://' + req.get('host');
-
-                if(hasOnlineTraining || isAccountEmailExempt){
-
-                    if(isAccountEmailExempt){
-                        userSaveData.password = encryptedPassword;
-                        userSaveData.can_login = 1;
-                        tokenSaveData.verified = 1;
-                    }else if(hasOnlineTraining){
-                        tokenSaveData.action = 'setup-password';
-
-                        emailLink += '/signup/profile-completion/' + token;
-                    }
-
-                    await user.create(userSaveData);
-                    tokenSaveData.id = user.ID();
-
-                    if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
-                        let locationAcctUser = new LocationAccountUser();
-                        await locationAcctUser.create({
-                            'location_id': users[i]['account_location_id'],
-                            'account_id': accountId,
-                            'user_id': user.ID(),
-                            'role_id': users[i]['account_role_id']
-                        });
-
-                        const userRoleRel = new UserRoleRelation();
-                        await userRoleRel.create({
-                            'user_id': user.ID(),
-                            'role_id': users[i]['account_role_id']
-                        });
-                    }else{
-                        const EMRoleUserRole = new UserEmRoleRelation();
-                        await EMRoleUserRole.create({
-                            'user_id': user.ID(),
-                            'em_role_id': (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
-                            'location_id': users[i]['account_location_id']
-                        });
-                    }
-
-                }else{
-                    let invitation = new UserInvitation();
-                    await invitation.create(inviSaveData);
-
-                    tokenSaveData.id_type = 'user_invitations_id';
-                    tokenSaveData.id = invitation.ID();
-                    emailLink += '/signup/warden-profile-completion/'+token;
-                }
-
-                await tokenModel.create(tokenSaveData);
-
-
-                if(!isAccountEmailExempt){
-
-    				const opts = {
-    					from : 'allantaw2@gmail.com',
-    					fromName : 'EvacConnect',
-    					to : [],
-    					cc: [],
-    					body : '',
-    					attachments: [],
-    					subject : 'EvacConnect Profile Setup'
-    				};
-    				const email = new EmailSender(opts);
-    				const link = emailLink;
-    				let emailBody = email.getEmailHTMLHeader();
-    				emailBody += `<h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3> <br/>
-    				<h4>You were added to EvacConnect Compliance Management System.</h4> <br/>
-    				<h5>Click on the link below to setup your account.</h5> <br/>
-    				<a href="${link}" target="_blank" style="text-decoration:none; color:#0277bd;">${link}</a> <br/>`;
-
-    				emailBody += email.getEmailHTMLFooter();
-
-    				email.assignOptions({
-    					body : emailBody,
-    					to: [inviSaveData['email']],
-    					cc: ['jmanoharan@evacgroup.com.au']
-    				});
-    				email.send(
-    					(data) => console.log(data),
-    					(err) => console.log(err)
+    				await userModel.getByEmail(users[i]['email']).then(
+    					() => {
+    						console.log(userModel.getDBData());
+    						hasError = true;
+    						users[i]['errors']['email_taken'] = true;
+    					},
+    					() => {}
     				);
-                }
 
 
+    				// }else{
+    				// 	users[i]['errors']['blacklisted'] = true;
+    				// 	hasError = true;
+    				// }
+    			}else{
+    				users[i]['errors']['invalid'] = true;
+    				hasError = true;
+    			}
 
-			}else{
-				returnUsers.push( users[i] );
-			}
+    			if(!hasError) {
+                    accountTrainings = [];
+    				let
+    				token = this.generateRandomChars(30),
+    				inviSaveData = {
+    					'first_name' : users[i]['first_name'],
+    					'last_name' : users[i]['last_name'],
+    					'email' : users[i]['email'],
+    					'contact_number' : users[i]['mobile_number'],
+    					'location_id' : users[i]['account_location_id'],
+    					'account_id' : req['user']['account_id'],
+    					'role_id' : (users[i]['account_role_id'] == 1 || users[i]['account_role_id'] == 2) ? users[i]['account_role_id'] : 0,
+    					'eco_role_id' : (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
+    					'invited_by_user' : req['user']['user_id'],
+                        'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0,
+                        'was_used' : (isAccountEmailExempt) ? 1 : 0
+    				},
+                    userSaveModel  = new User(),
+                    encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max'),
+                    userSaveData = {
+                        'first_name': users[i]['first_name'],
+                        'last_name': users[i]['last_name'],
+                        'password': '',
+                        'email': users[i]['email'],
+                        'token': token,
+                        'account_id': accountId,
+                        'invited_by_user': req['user']['user_id'],
+                        'can_login': 0,
+                        'mobile_number': users[i]['mobile_number'],
+                        'mobility_impaired' : (users[i]['mobility_impaired']) ? users[i]['mobility_impaired'] : 0
+                    },
+                    tokenSaveData = {
+                        'token' : token,
+                        'action' : 'verify',
+                        'id' : 0,
+                        'id_type' : 'user_id',
+                        'verified' : 0
+                    },
+                    tokenModel = new Token(),
+                    emailLink = req.protocol + '://' + req.get('host'),
+                    locationModel = new Location(),
+                    acestrieIds = <any> await locationModel.getAncestryIds(users[i]['account_location_id']),
+                    idsLocation = [],
+                    bodyOfEmail = '',
+                    subjectOfEmail = '',
+                    emailRole = `Warden`,
+                    locationFullName = '';
 
-		}
+                    idsLocation.push(users[i]['account_location_id']);
+                    idsLocation = idsLocation.concat(acestrieIds[0]['ids']);
+
+                    let locations = <any> await locationModel.getByInIds(idsLocation.join(','), 0),
+                        building = <any> {},
+                        location = <any> {},
+                        trps = <any> [],
+                        frp = <any> user,
+                        senderTxt = '';
+
+                    for(let loc of locations){
+                        if(loc.is_building == 1){
+                            building = loc;
+                        }else if(loc.parent_id == -1){
+                            building = loc;
+                        }
+
+                        if(users[i]['account_location_id'] == loc.location_id){
+                            location = loc;
+                        }
+                    }
+
+                    if(Object.keys(building).length > 0){
+                        if(building.location_id != location.location_id){
+                            locationFullName = building.name + ', '+location.name;
+                        }else{
+                            locationFullName = building.name;
+                        }
+                    }else{
+                        locationFullName = location.name;
+                    }
+
+                    try{
+
+                        trps = await userRoleRelation.getTRPbyLocationId(users[i]['account_location_id']);
+                        let userIsTrp = false;
+                        for(let trp of trps){
+                            if(trp.user_id == req.user.user_id){
+                                userIsTrp = true;
+                            }
+                        }
+                        if(userIsTrp){
+                            senderTxt = `Tenant Responsible Person (TRP), <span style="text-transform: capitalize;">${frp.first_name} ${frp.last_name}</span>`;
+                        }else{
+                            throw "User is not a TRP";
+                        }
+
+                    }catch(e){
+                        senderTxt = `Building Manager (FRP), <span style="text-transform: capitalize;">${frp.first_name} ${frp.last_name}</span>`;
+                    }
+
+                    if(hasOnlineTraining || isAccountEmailExempt){
+
+                        if(isAccountEmailExempt){
+                            userSaveData.password = encryptedPassword;
+                            userSaveData.can_login = 1;
+                            tokenSaveData.verified = 1;
+                        }else if(hasOnlineTraining){
+                            tokenSaveData.action = 'setup-password';
+                            emailLink += '/signup/profile-completion/' + token;
+                        }
+
+                        await userSaveModel.create(userSaveData);
+                        tokenSaveData.id = userSaveModel.ID();
+
+                        if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                            let locationAcctUser = new LocationAccountUser();
+                            await locationAcctUser.create({
+                                'location_id': users[i]['account_location_id'],
+                                'account_id': accountId,
+                                'user_id': userSaveModel.ID(),
+                                'role_id': users[i]['account_role_id']
+                            });
+
+                            emailRole = (users[i]['account_role_id'] == 1) ? 'Building Manager' : 'Tenant Responsible Person';
+
+                            const userRoleRel = new UserRoleRelation();
+                            await userRoleRel.create({
+                                'user_id': userSaveModel.ID(),
+                                'role_id': users[i]['account_role_id']
+                            });
+                        } else {
+                            // get account trainings
+                            accountTrainings = await new AccountTrainingsModel().getAccountTrainings(accountId, {
+                              role: (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id']
+                            });
+
+                            for (const training of accountTrainings) {
+                              await new AccountTrainingsModel().assignAccountUserTraining(
+                                userSaveModel.ID(),
+                                training['course_id'],
+                                training['training_requirement_id']
+                              );
+                            }
+
+                            const EMRoleUserRole = new UserEmRoleRelation();
+                            await EMRoleUserRole.create({
+                                'user_id': userSaveModel.ID(),
+                                'em_role_id': (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
+                                'location_id': users[i]['account_location_id']
+                            });
+
+                        }
+
+                    }else{
+                        let invitation = new UserInvitation();
+                        await invitation.create(inviSaveData);
+
+                        tokenSaveData.id_type = 'user_invitations_id';
+                        tokenSaveData.id = invitation.ID();
+                        emailLink += '/signup/warden-profile-completion/'+token;
+                    }
+
+                    await tokenModel.create(tokenSaveData);
+
+                    if(!isAccountEmailExempt){
+
+                        if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                            let roleName = 'Building Manager (FRP)';
+                            subjectOfEmail = `You're assigned as Building Manager`;
+                            if(parseInt(users[i]['account_role_id']) == 2){
+                                roleName = 'Tenant Responsible Person (TRP)';
+                                subjectOfEmail = `You're assigned as Tenant Responsible Person`;
+                            }
+                            bodyOfEmail = `
+                            <div style="font-size:16px;">
+                                <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
+
+                                We are glad to inform that you are assigned as the ${roleName} for your location, ${locationFullName}. <br/>
+                                In this role, yout will take charge of managing  emergency planning responsibilities wihin your tenancy. <br/><br/>
+
+                                Please update the profile to set up your account on EvacConnect here : <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
+
+                                Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
+
+                                Sincerely,<br/>
+                                EvacConnect
+                            </div>
+                            `;
+                        }else{
+                            let roleName = '';
+                            for(let em of emRoles){
+                                if(em.em_roles_id == parseInt(users[i]['account_role_id'])){
+                                    subjectOfEmail = `You're nominated as `+em.role_name;
+                                    roleName = em.role_name;
+                                }
+                            }
+
+                            bodyOfEmail = `
+                            <div style="font-size:16px;">
+                                <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
+
+                                We are glad to inform that you are nominated to be a ${roleName} for your tenancy, ${account.account_name}, by your ${senderTxt}.<br/><br/>
+
+                                Follow this link to set up your password on EvacConnect: <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
+
+                                Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
+
+                                Sincerely,<br/>
+                                EvacConnect
+                            </div>
+                            `;
+                        }
+
+        				const opts = {
+        					from : '',
+        					fromName : 'EvacConnect',
+        					to : [],
+        					cc: [],
+        					body : '',
+        					attachments: [],
+        					subject : subjectOfEmail
+        				};
+        				const email = new EmailSender(opts);
+        				let emailBody = email.getEmailHTMLHeader();
+                        emailBody += bodyOfEmail;
+        				emailBody += email.getEmailHTMLFooter();
+
+        				email.assignOptions({
+        					body : emailBody,
+        					to: [inviSaveData['email']],
+        					cc: ['jmanoharan@evacgroup.com.au']
+        				});
+        				email.send(
+        					(data) => console.log(data),
+        					(err) => console.log(err)
+        				);
+                    }
+
+    			}else{
+    				returnUsers.push( users[i] );
+    			}
+    		}
+
+
+        }catch(e){}
 
 		res.statusCode = 200;
 		response.status = true;

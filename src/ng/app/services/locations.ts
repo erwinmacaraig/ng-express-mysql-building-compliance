@@ -37,6 +37,15 @@ export class LocationsService {
       });
   }
 
+  getByIdWithQueries(form, callBack) {
+    this.http.get(this.baseUrl + '/location/get-with-queries', { params : form})
+      .subscribe(res => {
+        callBack(res);
+      }, err => {
+        callBack( JSON.parse(err.error) );
+      });
+  }
+
   getDeepLocationsById(id, callBack) {
     this.http.get(this.baseUrl + '/location/get-deep-by-id/' + id, this.options)
       .subscribe(res => {
@@ -116,7 +125,7 @@ export class LocationsService {
     }
 
   getArchivedParentLocationsForListing(accountid, callBack){
-    this.http.get(this.baseUrl + '/location/get-archived-parent-locations-by-account-id/', this.options)
+    this.http.get(this.baseUrl + '/location/get-archived-parent-locations-by-account-id/', { params : { account_id : accountid } })
         .subscribe(res => {
           callBack(res);
         }, err => {
@@ -125,7 +134,7 @@ export class LocationsService {
   }
 
   getLocationsHierarchyByAccountId(accountid, callBack){
-    this.http.get(this.baseUrl + '/location/get-locations-hierarchy-by-account-id', this.options)
+    this.http.get(this.baseUrl + '/location/get-locations-hierarchy-by-account-id', { params : { account_id : accountid } } )
         .subscribe(res => {
           callBack(res);
         }, err => {
@@ -159,6 +168,10 @@ export class LocationsService {
 
   updateLocation(formData){
     return this.http.post<any>(this.baseUrl + '/location/update', formData, this.options);
+  }
+
+  searchLocationHierarchy(key){
+    return this.http.get<any>(this.baseUrl + '/location/search-locations-hierarchy/'+key, this.options);
   }
 
 

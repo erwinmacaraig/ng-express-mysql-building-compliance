@@ -91,16 +91,16 @@
 					<td>
 
 						<p class="checkbox" >
-                            <input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
+                            <input id="location-{{i}}" [disabled]="allAreSelected" [checked]="warden.isselected" class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
                             <label for="location-{{i}}" ></label>
                             <a  (click)="clickMultipleLocation(warden.locations)" *ngIf="warden.locations.length > 1">Multiple locations</a>
                             <span *ngIf="warden.locations.length == 1">
                                 <a [routerLink]="['/location/view/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] > 0">
-                                    <span *ngIf="warden.locations[0].parent_name">{{ warden.locations[0].parent_name }}, </span> {{warden.locations[0].name}}
+                                    {{warden.locations[0].name}}
                                 </a>
 
                                 <a [routerLink]="['/location/view-sublocation/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] == 0">
-                                    <span *ngIf="warden.locations[0].parent_name">{{ warden.locations[0].parent_name }}, </span> {{warden.locations[0].name}}
+                                    {{warden.locations[0].name}}
                                 </a>
                             </span>
 						</p>
@@ -250,7 +250,7 @@
                 <li *ngFor="let loc of multipleLocations;">
                     <input type="radio" ngModel name="location_id" id="rad-{{loc.location_id}}" value="{{loc.location_id}}" />
                     <label for="rad-{{loc.location_id}}">
-                        <span *ngIf="loc.parent_name.length > 0">{{loc.parent_name}}, </span>{{loc.name}}
+                        {{loc.name}}
                     </label>
                 </li>
             </ul>
@@ -392,6 +392,7 @@
         </div>
         <div *ngIf="sendInviteToAll && !sendInviteToAllNonCompliant">
             <h6>Send training invitation to all?</h6>
+            <h6>Please Note - This action will send training invite to all the users from your account.</h6>
         </div>
         <div *ngIf="sendInviteToAllNonCompliant && !sendInviteToAll">
             <h6>Send training invitation to all non-compliant?</h6>

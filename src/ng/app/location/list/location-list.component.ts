@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Output, EventEmitt
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute, NavigationStart, NavigationEnd } from '@angular/router';
 import { LocationsService } from '../../services/locations';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
@@ -82,12 +82,18 @@ export class LocationListComponent implements OnInit, OnDestroy {
         offset :  0,
         limit : 10,
         search : '',
-        sort : ''
+        sort : '',
+        archived : 0
     };
 
     searchSubs;
 
-  constructor (
+    paramArchived = <any> false;
+    routerSubs;
+
+    showLoadingSublocations = false;
+
+    constructor (
       private platformLocation: PlatformLocation,
       private http: HttpClient,
       private auth: AuthService,
@@ -97,13 +103,14 @@ export class LocationListComponent implements OnInit, OnDestroy {
       private encryptDecrypt: EncryptDecryptService,
       private complianceService : ComplianceService,
       private router: Router,
+      private actRouter: ActivatedRoute,
       private elemRef : ElementRef,
       private userService : UserService
-  ) {
-      this.baseUrl = (platformLocation as any).location.origin;
-      this.options = { headers : this.headers };
-      this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-      this.userData = this.auth.getUserData();
+    ) {
+        this.baseUrl = (platformLocation as any).location.origin;
+        this.options = { headers : this.headers };
+        this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
+        this.userData = this.auth.getUserData();
 
     	this.accntService.getById(this.userData['accountId'], (response) => {
 	      	this.accountData = response.data;
@@ -133,6 +140,23 @@ export class LocationListComponent implements OnInit, OnDestroy {
             }
         }
 
+        this.routerSubs = router.events.subscribe(event => {
+            if(event instanceof NavigationEnd){
+
+                this.queries.offset = 0;
+                if(event.url.indexOf('archived=true') > -1){
+                    this.paramArchived = true;
+                    this.queries.archived = 1;
+                }else{
+                    this.paramArchived = false;
+                    this.queries.archived = 0;
+                }
+
+                this.ngAfterViewInit();
+
+            }
+        });
+
   	}
 
 	ngOnInit(){
@@ -154,15 +178,24 @@ export class LocationListComponent implements OnInit, OnDestroy {
             for(let loc of this.locations){
                 loc['fetchingCompliance'] = true;
                 loc['compliance_percentage'] = 0;
+                loc['building_based'] = false;
                 this.complianceService.getLocationsLatestCompliance(loc.location_id, (compRes) => {
                     loc['fetchingCompliance'] = false;
                     loc['compliance_percentage'] = compRes.percent ;
+                    if(compRes['building_based']){
+                        loc['building_based'] = compRes['building_based'];
+                    }
+                    setTimeout(() => {
+                        $('select.select-from-row option').prop('disabled', false);
+                        $('select.select-from-row').material_select();
+                    }, 200);
                 });
             }
 
     		if (this.locations.length > 0) {
     			for (let i = 0; i < this.locations.length; i++) {
-    				this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
+                    this.locations[i]['location_id'] = this.encryptDecrypt.encrypt(this.locations[i].location_id);
+    				this.locations[i]['parent_id'] = this.encryptDecrypt.encrypt(this.locations[i].parent_id);
     			}
     		}
     		this.locationsBackup = JSON.parse(JSON.stringify(this.locations));
@@ -173,19 +206,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 	ngAfterViewInit(){
 		this.preloaderService.show();
-		this.getLocationsForListing((response) => {
-
-            if(this.pagination.pages > 0){
-                this.pagination.currentPage = 1;
-                this.pagination.prevPage = 1;
-            }
-
-    		this.preloaderService.hide();
-
-	        if (localStorage.getItem('showemailverification') !== null) {
-	          this.router.navigate(['/location', 'search']);
-	        }
-    	});
+		
 		$('.nav-list-locations').addClass('active');
 		$('.location-navigation .active').removeClass('active');
 		$('.location-navigation .view-location').addClass('active');
@@ -193,6 +214,22 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		$('.modal').modal({
 			dismissible: false
 		});
+
+        this.getLocationsForListing((response) => {
+
+            if(this.pagination.pages > 0){
+                this.pagination.currentPage = 1;
+                this.pagination.prevPage = 1;
+            }
+
+            this.preloaderService.hide();
+
+            $('.filter-container select').material_select();
+
+            if (localStorage.getItem('showemailverification') !== null) {
+              this.router.navigate(['/location', 'search']);
+            }
+        });
 
 
 		this.selectRowEvent();
@@ -263,7 +300,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				val = target.val();
 
 			if(val == 'archive'){
-				$('select.bulk-manage').val("0").material_select("update");
+				$('select.bulk-manage').val("0").material_select();
 				if(this.arraySelectedLocs.length > 0){
 					$('#modalArchiveBulk').modal('open');
 				}
@@ -279,13 +316,13 @@ export class LocationListComponent implements OnInit, OnDestroy {
 			for(let i in this.arraySelectedLocs){
 				locs.push({
 					location_id : this.encryptDecrypt.decrypt(this.arraySelectedLocs[i]['location_id']),
-					archived : 1
+					archived : (!this.paramArchived) ? 1 : 0
 				});
 			}
 
 			this.arraySelectedLocs = [];
 
-			$('select.bulk-manage').val("0").material_select("update");
+			$('select.bulk-manage').val("0").material_select();
 			$('#allSelect').prop('checked', false);
 
 			this.locationService.archiveMultipleLocation({
@@ -306,7 +343,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 			locs.push({
 				location_id : this.encryptDecrypt.decrypt(this.selectedArchive['location_id']),
-				archived : 1
+				archived : (!this.paramArchived) ? 1 : 0
 			});
 
 			this.locationService.archiveMultipleLocation({
@@ -339,6 +376,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
             console.log(formAddTenant.value);
             console.log(formAddTenant.value.location_id);
             */
+           formAddTenant.controls.location_id.setValue( $('#modalAddNewTenant select.location-id').val() );
             this.userService.sendTRPInvitation(formAddTenant.value).subscribe(() => {
               this.getLocationsForListing(() => {
                 this.showModalNewTenantLoader = false;
@@ -380,6 +418,18 @@ export class LocationListComponent implements OnInit, OnDestroy {
             	for(let i in this.locationsBackup){
 					if(this.locationsBackup[i]['location_id'] == locIdEnc){
 						this.selectedLocation = this.locationsBackup[i];
+                        this.showLoadingSublocations = true;
+                        this.locationService.getSublocationsOfParent(this.encryptDecrypt.decrypt(locIdEnc)).subscribe((subResponse) => {
+                            this.selectedLocation['sublocations'] = [];
+                            this.selectedLocation['sublocations'].push(this.selectedLocation);
+                            if(subResponse.data.length > 0){
+                                this.selectedLocation['sublocations'] = this.selectedLocation['sublocations'].concat(subResponse.data);
+                            }
+                            this.showLoadingSublocations = false;
+                            setTimeout(() => {
+                                $('#modalAddNewTenant select.location-id').material_select();
+                            }, 300);
+                        });
 					}
 				}
 				this.showNewTenant();
@@ -415,6 +465,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				}
 
             }
+
+            target.val(0).material_select();
 
 		});
 	}
@@ -460,7 +512,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
         .debounceTime(800).subscribe((event:KeyboardEvent) => {
             thisClass.queries.limit = 10;
             thisClass.queries.offset = 0;
-            thisClass.queries.search = event.srcElement['value'];
+            thisClass.queries.search = this.inputSearch.nativeElement['value'];
             thisClass.queries.sort = $('.sort-by select').val();
             thisClass.loadingTable = true;
             thisClass.getLocationsForListing((response) => {
@@ -523,6 +575,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	ngOnDestroy(){
 		this.mutationOversable.disconnect();
         this.searchSubs.unsubscribe();
+        this.routerSubs.unsubscribe();
 	}
 
 	getInitial(name:String){

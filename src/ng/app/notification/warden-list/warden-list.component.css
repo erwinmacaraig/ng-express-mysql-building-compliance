@@ -1,0 +1,125 @@
+thead th{
+  border-radius: 0px;
+  font-weight: normal;
+  background-color: #3d3d3d !important;
+  padding: 20px;
+  font-size: 14px;
+  color: #fff;
+}
+
+table>thead>tr,
+table>tbody>tr {
+  border-bottom: 1px solid #d3d3d3;
+}
+
+table tr td{
+  padding: 20px;
+  font-size: 14px;
+  line-height: 27px;
+}
+
+table tr td a:hover{
+  text-decoration: underline;
+}
+
+table{
+  margin-bottom: 30px;
+}
+
+.steps-text{
+  font-size: 24px;
+  color: #949494;
+}
+
+.steps-text .text{
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.steps-text .circle{
+  display: inline-block;
+  height: 13px;
+  width: 13px;
+  background-color: #9e9e9e;
+  border-radius: 25px;
+}
+
+.steps-text .dash{
+  display: inline-block;
+  height: 2px;
+  width: 30px;
+  background-color: #9e9e9e;
+  vertical-align: middle;
+  margin-right: -16px;
+}
+
+.action {
+    font-size: 12px !important;
+    height: 35px !important;
+    padding: 0px 25px;
+    line-height: 35px;
+    text-transform: uppercase !important;
+}
+
+.btn-proceed{
+    font-size: 14px !important;
+    margin: 5px 0px;
+}
+
+.table-container{
+    overflow: auto;
+}
+
+.archive-button{
+    display: inline-block;
+    height: 30px !important;
+    padding: 0px 5px;
+    line-height: 30px;
+}
+
+.archive-button .material-icons{
+    font-size: 19px;
+}
+
+.modal .btn{
+    font-size: 15px !important;
+    line-height: 45px;
+}
+
+.modal.modal-sublocations .search-container{
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 10px;
+    width: 100% !important;
+}
+
+.modal.modal-sublocations .search-container .input-container{
+    display: inline-block;
+    vertical-align: middle;
+    width: 94%;
+}
+
+.modal.modal-sublocations .search-container .input-container input{
+    margin-bottom: 0px;
+    border-bottom: 0px !important;
+}
+
+.modal.modal-sublocations .search-container .input-container input:focus{
+    border-bottom: 0px !important;
+    box-shadow: none !important;
+}
+
+.modal.modal-sublocations .search-container .icon-container{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#modalArchive{
+    width: 90%;
+}
+
+@media only screen and (min-width: 1024px) {
+    #modalArchive{
+        width: 30%;
+    }
+}
