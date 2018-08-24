@@ -90,7 +90,7 @@
                             </div>
                         </div>
                         <div class="text">
-                            <a *ngIf="peep.user_id" [routerLink]="['/teams/View-user/', peep.id_encrypted]">
+                            <a *ngIf="peep.user_id" [routerLink]="['/teams/view-user/', peep.id_encrypted]">
                                 {{peep.first_name}} {{peep.last_name}}
                             </a>
                             <span *ngIf="!peep.user_id">{{peep['first_name']}} {{peep['last_name']}}</span>

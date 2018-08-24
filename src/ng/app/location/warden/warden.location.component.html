@@ -24,7 +24,7 @@
 					<div class="text">Re assign to other location</div>
 				</button>
 
-				<button class="btn red accent-2 waves-effect waves-light peep">
+				<button class="btn red accent-2 waves-effect waves-light peep" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/location/warden' }">
 					<div class="image"></div>
 					<div class="text">Personal Emergency Evacuation Plan</div>
 				</button>

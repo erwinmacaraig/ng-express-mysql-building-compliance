@@ -20,7 +20,7 @@ declare var $: any;
 })
 export class WardenLocationComponent implements OnInit, OnDestroy {
 
-  userData = {
+  userData = <any> {
     profilePic: '',
     name: ''
   };
@@ -39,6 +39,7 @@ export class WardenLocationComponent implements OnInit, OnDestroy {
   };
 
   choseRoleId;
+  userIdEnc = '';
 
 	constructor(
 		private auth: AuthService,
@@ -50,6 +51,7 @@ export class WardenLocationComponent implements OnInit, OnDestroy {
 		private userService : UserService
 		){
 		this.userData = this.auth.getUserData();
+        this.userIdEnc = this.encryptDecrypt.encrypt(this.userData.userId);
 
 		this.userInitials = this.getInitials( this.userData['name'] );
 

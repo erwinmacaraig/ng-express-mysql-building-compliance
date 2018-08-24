@@ -8,6 +8,7 @@ import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { PersonDataProviderService } from '../../services/person-data-provider.service';
 import { AuthService } from '../../services/auth.service';
 import { ViewChild } from '@angular/core';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 
 declare var $: any;
 declare var Materialize: any;
@@ -18,7 +19,7 @@ declare var $: any;
   selector: 'app-view-warden-component',
   templateUrl: './view.warden.component.html',
   styleUrls: ['./view.warden.component.css'],
-  providers : [UserService, DashboardPreloaderService, PersonDataProviderService, AuthService]
+  providers : [UserService, DashboardPreloaderService, PersonDataProviderService, AuthService, EncryptDecryptService]
 })
 export class ViewWardenComponent implements OnInit, OnDestroy {
 
@@ -36,7 +37,7 @@ export class ViewWardenComponent implements OnInit, OnDestroy {
 	showModalRequestWardenLoader = false;
 	approvers = [];
 	showModalRequestWardenSuccess = false;
-	userData = {};
+	userData = <any> {};
 	customMessageModal = {
 		status : false,
 		message : ''
@@ -48,16 +49,17 @@ export class ViewWardenComponent implements OnInit, OnDestroy {
 	public bulkEmailInvite;
 
 	showModalResignLoader = false;
-
+    userIdEnc = '';
 	constructor(
 		private auth: AuthService,
 		private userService: UserService,
 		private preloaderService: DashboardPreloaderService,
 		private personService : PersonDataProviderService,
+        private encryptDecrypt : EncryptDecryptService,
 		private router : Router
 		){
 		this.userData = this.auth.getUserData();
-
+        this.userIdEnc = this.encryptDecrypt.encrypt(this.userData.userId);
 		let roleId = 0;
 		for(let i in this.userData['roles']){
 			if(this.userData['roles'][i]['is_warden_role']){
