@@ -358,6 +358,8 @@ export class CourseRoute extends BaseRoute {
                             user['trainings'].push( tr );
                         }
                     }
+
+                    console.log('sendEmailTrainingInvitation');
                     await this.sendEmailTrainingInvitation(user, req, res);
                 }
             }
@@ -479,8 +481,6 @@ export class CourseRoute extends BaseRoute {
             redirectUrlFRP = 'https://'+req.get('host') + '/teams/view-user/'+userIdEnc,
             redirectURL = (hasFrpTrpRole) ? redirectUrlFRP : redirectUrlWarden;
             stringUserData = stringUserData.replace(/\'/gi, '');
-
-
             let script = `
                 <h4>Redirecting...</h4>
                 <script>

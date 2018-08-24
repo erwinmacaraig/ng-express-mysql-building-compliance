@@ -1574,6 +1574,7 @@ export class UsersRoute extends BaseRoute {
             if( Object.keys(user).length > 0 ) {
                 user['mobility_impaired_details'] = [];
                 user['last_login'] = (user['last_login'] == null) ? '' : user['last_login'];
+                user['password'] = null;
 
                 locations = await userModel.getAllMyEMLocations();
 
@@ -1621,13 +1622,14 @@ export class UsersRoute extends BaseRoute {
                     arrWhere = [];
 
                     arrWhere.push( ["user_id = " + userId] );
-                    arrWhere.push( "duration_date > NOW()" );
+                    arrWhere.push( " (duration_date > NOW() OR duration_date IS NULL) " );
+
                     try {
                         let mobilityDetails = <any> await mobilityModel.getMany( arrWhere );
 
                         for(let mob of mobilityDetails){
                             mob['date_created_formatted'] = moment(mob['date_created']).format('MMM. DD, YYYY');
-                            mob['duration_date_formatted'] = moment(mob['duration_date']).format('MMM. DD, YYYY');
+                            mob['duration_date_formatted'] = (moment(mob['duration_date']).isValid()) ? moment(mob['duration_date']).format('MMM. DD, YYYY') : '';
                         }
 
                         user['mobility_impaired_details'] = mobilityDetails;
@@ -1935,8 +1937,7 @@ export class UsersRoute extends BaseRoute {
            let tokenData = <any> await tokenModel.getByToken(token),
                today = moment(),
                expirationDate = moment(tokenData.expiration_date);
-
-            if(tokenData.action == 'setup-password'){
+            if(tokenData.action == 'setup-password') {
 
                 let userId = tokenData.id,
                     userModel = new User(userId);
@@ -1957,6 +1958,7 @@ export class UsersRoute extends BaseRoute {
                     await userModel.dbUpdate();
 
                     tokenModel.set('action', 'verify');
+                    tokenModel.set('expiration_date', today.format('YYYY-MM-DD HH-mm-ss'));
                     tokenModel.set('verified', 1);
 
                     await tokenModel.dbUpdate();
@@ -2174,7 +2176,7 @@ export class UsersRoute extends BaseRoute {
     			}
 
     			if(!hasError) {
-            accountTrainings = [];
+                    accountTrainings = [];
     				let
     				token = this.generateRandomChars(30),
     				inviSaveData = {

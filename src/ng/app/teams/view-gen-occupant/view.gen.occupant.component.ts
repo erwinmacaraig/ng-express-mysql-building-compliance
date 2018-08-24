@@ -7,6 +7,7 @@ import { UserService } from '../../services/users';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { PersonDataProviderService } from '../../services/person-data-provider.service';
 import { AuthService } from '../../services/auth.service';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 
 declare var $: any;
 declare var Materialize: any;
@@ -15,7 +16,7 @@ declare var moment: any;
   selector: 'app-view-gen-occupant-component',
   templateUrl: './view.gen.occupant.component.html',
   styleUrls: ['./view.gen.occupant.component.css'],
-  providers : [UserService, DashboardPreloaderService, PersonDataProviderService, AuthService]
+  providers : [UserService, DashboardPreloaderService, PersonDataProviderService, AuthService, EncryptDecryptService]
 })
 export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 
@@ -33,22 +34,23 @@ export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 	showModalRequestWardenLoader = false;
 	approvers = [];
 	showModalRequestWardenSuccess = false;
-	userData = {};
+	userData = <any> {};
 	customMessageModal = {
 		status : false,
 		message : ''
 	};
 	hasRequest = false;
-
+    userIdEnc = '';
 	constructor(
 		private auth: AuthService,
 		private userService: UserService,
 		private preloaderService: DashboardPreloaderService,
+        private encryptDecrypt : EncryptDecryptService,
 		private personService : PersonDataProviderService
 		){
 
 		this.userData = this.auth.getUserData();
-
+        this.userIdEnc = this.encryptDecrypt.encrypt(this.userData.userId);
 		this.userService.getWardenRequest(this.userData['userId'], (response) => {
 			if(response.data.length > 0){
 				this.hasRequest = true;

@@ -1,0 +1,8 @@
+select option:disabled{
+    color: gray !important;
+}
+
+.btn{
+    font-size: 15px !important;
+    line-height: 43px;
+}

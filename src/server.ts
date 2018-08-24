@@ -81,7 +81,7 @@ export class Server {
    * @method config
    */
 
-  public config() {    
+  public config() {
 
 
       // add static paths
@@ -190,14 +190,6 @@ export class Server {
 
       // use router middleware
       this.app.use(router);
-
-      this.app.use(function(req, res, next) {
-        if ((!req.secure) && (req.get('X-Forwarded-Proto') !== 'https')) {
-          return res.redirect('https://' + req.get('Host') + req.url);
-        }
-        return next();
-      });
-
 
       // catch 404 and forward to error handler
       this.app.use(function(req: express.Request, res: express.Response, next: express.NextFunction) {

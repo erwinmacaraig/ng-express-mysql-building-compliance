@@ -82,7 +82,7 @@ export class LocationAccountUser extends BaseClass {
         return new Promise((resolve, reject) => {
             let whereLoc = (locId) ? ` AND lau.location_id = ${locId} ` : '';
             let whereRoles = (locId && locId.length > 0) ? ` AND urr.role_id IN ${roleIds} ` : '';
-            
+
 
             const sql_load = `SELECT
                     lau.location_account_user_id,
@@ -679,6 +679,62 @@ export class LocationAccountUser extends BaseClass {
           });
           connection.end();
         });
+    }
+
+    public TRPUsersForNotification(locations = []): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        if (!locations.length) {
+          resolve([]);
+          return;
+        }
+        const locationStr = locations.join(',');
+        const sql = `SELECT
+                        users.user_id,
+                        users.first_name,
+                        users.last_name,
+                        users.email,
+                        location_account_user.location_id,
+                        'TRP' as role_name,
+                        accounts.account_name,
+                        parent_location.name as parent_location,
+                        locations.name
+                      FROM
+                        users
+                      INNER JOIN
+                        location_account_user
+                      ON
+                        users.user_id = location_account_user.user_id
+                      INNER JOIN
+                        user_role_relation
+                      ON
+                        users.user_id = user_role_relation.user_id
+                      INNER JOIN
+                          accounts
+                      ON
+                        accounts.account_id = users.account_id
+                      INNER JOIN
+                        locations
+                      ON
+                        locations.location_id = location_account_user.location_id
+                      LEFT JOIN
+                        locations as parent_location
+                      ON
+                        locations.parent_id = parent_location.location_id
+                      WHERE
+                        location_account_user.location_id IN (${locationStr})
+                    AND
+                      user_role_relation.role_id = 2`;
+
+        const connection = db.createConnection(dbconfig);
+        connection.query(sql, [], (error, results) => {
+          if (error) {
+            console.log('Cannot retrieve a record - TRPUsersForNotification');
+            throw Error(error);
+          }
+          resolve(results);
+        });
+        connection.end();
+      });
     }
 
 

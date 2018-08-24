@@ -1,6 +1,6 @@
 import * as db from 'mysql2';
 import * as Promise from 'promise';
-import { resolve } from 'path';
+
 const dbconfig = require('../config/db');
 const aws_credential = require('../config/aws-access-credentials.json');
 
@@ -13,6 +13,12 @@ export class List {
         if ('exclusion_ids' in filter && filter['exclusion_ids'].length > 0) {
           const ids = filter['exclusion_ids'].join(',');
           clause += `AND locations.location_id NOT IN (${ids})`;
+        }
+        if ('is_building' in filter) {
+          clause += ` AND locations.is_building = ${filter['is_building']}`;
+        }
+        if ('name' in filter) {
+          clause += ` AND locations.name LIKE '%${filter['name']}%'`;
         }
 
         const sql = `SELECT
@@ -63,7 +69,10 @@ export class List {
           whereClause += ` AND locations.location_id IN (${inClause})`;
         }
         if ('is_building' in filter) {
-          whereClause += ` AND locations.is_building = ${filter['is_buidling']}`;
+          whereClause += ` AND locations.is_building = ${filter['is_building']}`;
+        }
+        if ('name' in filter) {
+          whereClause += ` AND locations.name LIKE '%${filter['name']}%'`;
         }
         const sql = `SELECT
           locations.parent_id,

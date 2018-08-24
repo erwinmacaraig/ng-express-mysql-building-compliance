@@ -16,6 +16,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
 import { DonutService } from '../../services/donut';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 
 declare var $: any;
 
@@ -23,13 +24,13 @@ declare var $: any;
 	selector: 'app-user-dashboard',
 	templateUrl: './user.component.html',
 	styleUrls: ['./user.component.css'],
-	providers: [AccountsDataProviderService, AuthService, LocationsService, DashboardPreloaderService, DonutService]
+	providers: [AccountsDataProviderService, AuthService, LocationsService, DashboardPreloaderService, DonutService, EncryptDecryptService]
 })
 
 export class UserDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('durationDate') durationDate: ElementRef;
   @ViewChild('formMobility') formMobility: NgForm;
-	userData = {};
+	userData = <any> {};
   training_percentage = 0;
   assignedCourses = [];
   trainings = [];
@@ -45,14 +46,19 @@ isShowDatepicker = false;
 datepickerModelFormatted = '';
 peep = {};
 locationStr = '';
+
+    userIdEnc = '';
 	constructor(
 		private authService: AuthService,
-    private donut: DonutService,
-    private dashboardService: DashboardPreloaderService,
-    private userService: UserService
+        private donut: DonutService,
+        private dashboardService: DashboardPreloaderService,
+        private userService: UserService,
+        private encryptDecryptService: EncryptDecryptService
 		){
 
     this.userData = this.authService.getUserData();
+
+    this.userIdEnc = this.encryptDecryptService.encrypt(this.userData.userId);
 
     this.datepickerModel = new Date();
     this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');

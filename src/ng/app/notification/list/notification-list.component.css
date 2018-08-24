@@ -74,3 +74,24 @@ table select:focus{
   font-size: 1.5rem;
   margin: 20px 0px;
 }
+table tr td .checkbox{
+	margin: 0px 10px;
+}
+
+table tr td .checkbox [type="checkbox"]+label{
+	padding-left: 30px;
+    height: 15px;
+    line-height: 20px;
+    color: #333;
+}
+
+table tr td .checkbox [type="checkbox"].filled-in:not(:checked)+label:after{
+	background-color: #fff;
+    border: 1px solid #aaaaaa;
+}
+table tr td .text{
+    display: inline-block;
+}
+select option:disabled{
+  color: gray !important;
+}

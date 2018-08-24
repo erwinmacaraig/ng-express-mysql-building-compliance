@@ -90,8 +90,12 @@ import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
 // NOTIFICATION
-import { NotificationListComponent } from './notification/notification-list.component';
-
+import { NotificationListComponent } from './notification/list/notification-list.component';
+import { NotificationConfigurationComponent } from './notification/configuration/notification-config.component';
+import { NotifiedUsersListComponent } from './notification/notified-users-list/notified-users-list.component';
+import { NotificationQueryComponent } from './notification/queries/notification-queries.component';
+import { NotificationWardenListComponent } from './notification/warden-list/warden-list.component';
+import { NotificationPEEPListComponent } from './notification/peep-list/peep-list.component';
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -106,6 +110,8 @@ import { TrainingValidationComponent } from './admin/training-validation/trainin
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
 import { AdminReportsComponent } from './admin/reports/reports.component';
 import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
+import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
+import {  PeepFormComponent } from './peep.form/peep.form';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -132,11 +138,17 @@ const appRoutes: Routes = [
       { path: 'company-information', component: CompanyInformationComponent },
       { path: 'send-invite', component : SendInviteComponent },
       { path: 'notification-list', component: NotificationListComponent },
-      { path : 'send-invite', component : SendInviteComponent },
-      { path : 'security-privacy', component : SecurityPrivacyComponent }
+      { path: 'notification-config', component: NotificationConfigurationComponent },
+      { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
+      { path: 'process-notification-queries/:token', component: NotificationQueryComponent },
+      { path: 'send-invite', component : SendInviteComponent },
+      { path: 'security-privacy', component : SecurityPrivacyComponent },
+      { path: 'notification-warden-list/:token', component: NotificationWardenListComponent },
+      { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent },
+      { path: 'peep-form', component: PeepFormComponent }
     ]
   },
-  //
+  
   { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },
   { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
@@ -220,10 +232,11 @@ const appRoutes: Routes = [
     path : 'assign-courses', canActivate: [AuthGuard], component : AssignCoursesComponent
   },
   {
-    path: 'admin', canActivate: [AuthGuard], component: AdminComponent,
+    path: 'admin', component: AdminComponent,
     children: [
       { path: 'accounts', component: ListAccountsComponent },
       { path: 'training-validation', component: TrainingValidationComponent },
+      { path: 'paper-attendance-upload', component: PaperAttendanceComponent },
       { path: 'account-trainings/:accntId', component: AccountTrainingComponent },
       { path: 'view-location/:locationId', component: AdminViewLocationComponent },
       { path: 'users-in-accounts/:accntId', component: AccountUsersListComponent },

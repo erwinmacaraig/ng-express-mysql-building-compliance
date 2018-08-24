@@ -1070,7 +1070,7 @@ const defs = require('../config/defs.json');
         let sublocationIdsArray = [0];
 
         if(getRelatedOnly == true){
-            let responsibility = (r == 1) ? 'Manager' : 'Tenant'; 
+            let responsibility = (r == 1) ? 'Manager' : 'Tenant';
             sublocations = await location.getChildrenTenantRelated(locData.location_id, accountId, responsibility);
         }else{
             if(locData.parent_id == -1){
@@ -1673,16 +1673,27 @@ const defs = require('../config/defs.json');
         response = {
           status : false,
           message : '',
-          data : <any>[]
+          data : <any>[],
+          building: <any>[]
         },
-        locationSublocations = new Location();
-        res.statusCode = 200;
+        locationSublocations = new Location(req.params.parent_id);
+        locationSublocations.load().then((buildingDbData) => {
+          response.building = buildingDbData;
+          return locationSublocations.getParentsChildren(parentId);
+          // res.statusCode = 200;
+        }).then((results) => {
+          res.statusCode = 200;
+          response.data = results;
+          return res.send(response);
+        });
 
 
+       /*
         locationSublocations.getParentsChildren(parentId).then((results) => {
           response.data = results;
           res.send(response);
         });
+        */
 
     }
 

@@ -1,0 +1,86 @@
+<div *ngIf="state == 0" class="grey lighten-4 box-questionnaire-container">
+  <h2 class="text margin-top-5">
+      Please select the answer below.
+  </h2>
+  <ul>
+    <li>
+        <input [formControl]="primaryQuestionField" value="Tenancy changed" id="isTenant" type="radio" class="filled-in" />
+        <label for="isTenant"> Our organisation has moved out of the building </label>
+    </li>
+    <li>
+        <input [formControl]="primaryQuestionField" value="New Person Appointed" id="newPerson" type="radio" class="filled-in" />
+        <label for="newPerson"> I would like to nominate someone else from my Tenancy at this building </label>
+    </li>
+    <li>
+        <input [formControl]="primaryQuestionField" value="My location has changed" id="locationChanged" type="radio" class="filled-in" />
+        <label for="locationChanged"> My location has changed within this building </label>
+    </li>
+    <li>
+      <input [formControl]="primaryQuestionField" value="I want to resign" id="resign" type="radio" class="filled-in" />
+      <label for="resign"> I want to resign and I do not have a replacement </label>
+    </li>
+    <li>
+        <input [formControl]="primaryQuestionField" value="Other" id="other" type="radio" class="filled-in" />
+        <label for="other"> Other Reason (You will be required to provide more details) </label>
+    </li>
+  </ul>
+
+  <div class="margin-bottom-30"></div>
+  <button (click)="confirmPrimaryQuestion()" [disabled]="!primaryQuestionField.valid" type="button" class="btn orange waves-effect waves-light center-block">Confirm</button>
+</div>
+
+<!-- New Person Appointed -->
+<div *ngIf="state == 5" class="grey lighten-4 box-questionnaire-container">
+  <h2 class="text margin-top-5">Nominate new tenant contact</h2>
+  <div class="input-field">
+    <input type="text" id="appointedName" [formControl]="newPersonAppointedName">
+    <label for="appointedName" class="active">Name of the new tenant contact</label>
+  </div>
+
+  <div class="input-field">
+    <input type="text" id="appointedEmailAdd" [formControl]="newPersonAppointedEmail">
+    <label for="appointedEmailAdd" class="active">Email of the new tenant contact</label>
+  </div>
+
+  <div class="margin-bottom-30"></div>
+  <button (click)="submitNominatedPerson()" [disabled]="!newPersonAppointedName.valid || !newPersonAppointedEmail.valid" type="button" class="btn orange waves-effect waves-light right">Submit</button>
+</div>
+
+<!-- Location Change -->
+<div *ngIf="state == 6" class="grey lighten-4 box-questionnaire-container">
+    <h2 class="text margin-top-5">Please choose new location at this building</h2>
+    <div class="div-list-container">
+        <ul class="list-container">
+          <li *ngFor="let sublocation of sublocations; let i = index;" class="list-location">
+            <input [formControl]="newSublocationField" value="{{i}}" id="{{sublocation['location_id']}}" type="radio" class="filled-in" />
+            <label for="{{sublocation['location_id']}}">{{sublocation['name']}}</label>
+          </li>
+        </ul>
+    </div>
+    <div class="margin-bottom-70"></div>
+    <button (click)="submitNewLocation()" [disabled]="!newSublocationField.valid" type="button" class="btn orange waves-effect waves-light right">Submit</button>
+</div>
+
+<!-- For other information -->
+<div *ngIf="state == 7" class="grey lighten-4 box-questionnaire-container">
+  <h2 class="title1">Thank you!</h2>
+  <h5 class="title2 margin-bottom-30">Please fill up below information</h5>
+  <div input-field>
+    <textarea [formControl]="otherInfoField" placeholder="Type here the information..." class="materialize-textarea textarea-info"></textarea>
+  </div>
+
+  <div class="margin-bottom-30"></div>
+  <button (click)="submitOtherInfo()" [disabled]="!otherInfoField.valid" type="button" class="btn orange waves-effect waves-light center-block">Submit</button>
+</div>
+
+<div *ngIf="state == -1" class="grey lighten-4 box-questionnaire-container final-container">
+  <h2 class="text">
+    Thank you for letting us know.
+  </h2>
+  <div class="margin-bottom-30"></div>
+
+  <!-- <button *ngIf="isAccountRole" [routerLink]="['/dashboard', 'notification-warden-list', encryptedToken]"  type="button" class="btn orange waves-effect waves-light center-block">Close</button> -->
+  <!-- <button *ngIf="!isAccountRole" [routerLink]="['/signout']"  type="button" class="btn orange waves-effect waves-light center-block">Close</button> -->
+  <button [routerLink]="['/signout']"  type="button" class="btn orange waves-effect waves-light center-block">Close</button>
+
+</div>

@@ -18,8 +18,13 @@ export class ReportService {
         this.baseUrl = (platformLocation as any).location.origin;
     }
 
-    public getParentLocationsForReporting() {
-        return this.http.get(this.baseUrl + '/reports/list-locations/', this.options);
+    public getParentLocationsForReporting(qParams?) {
+        let params = Object.create(this.options);
+        if(qParams){
+            params['params'] = qParams;
+        }
+
+        return this.http.get(this.baseUrl + '/reports/list-locations', params);
     }
 
     public getLocationTrainingReport(formData){

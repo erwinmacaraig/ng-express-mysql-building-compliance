@@ -400,3 +400,18 @@ app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
     width: 25px;
     height: 25px;
 }
+
+.select-action-table{
+    display: inline-block;
+    margin-right: 14px;
+}
+
+.select-action-table .select-wrapper .select-dropdown{
+    font-size: 12px;
+    margin-bottom: 0px;
+}
+
+.select-action-table .select-dropdown li span{
+    font-size: 13px !important;
+    padding: 10px 12px;
+}
