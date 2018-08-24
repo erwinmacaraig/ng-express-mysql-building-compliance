@@ -227,7 +227,7 @@ const RateLimiter = require('limiter').RateLimiter;
           from : '',
           fromName : 'EvacConnect',
           to : [nominatedUserEmail],
-          cc: ['emacaraig@evacgroup.com.au'],
+          cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
           body : '',
           attachments: [],
           subject : 'EvacConnect Email Notification'
@@ -531,8 +531,8 @@ const RateLimiter = require('limiter').RateLimiter;
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : ['jmanoharan@evacgroup.com.au', 'rsantos@evacgroup.com.au'],
-        cc: ['emacaraig@evacgroup.com.au'],
+        to : [u['email']],
+        cc: ['emacaraig@evacgroup.com.au','jmanoharan@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
@@ -1103,7 +1103,7 @@ const RateLimiter = require('limiter').RateLimiter;
 
 	public sendUserInvitationEmail(req, inviData, creatorData, success, error){
 		let opts = {
-	        from : 'allantaw2@gmail.com',
+	        from : '',
 	        fromName : 'EvacConnect',
 	        to : [],
 	        body : '',
