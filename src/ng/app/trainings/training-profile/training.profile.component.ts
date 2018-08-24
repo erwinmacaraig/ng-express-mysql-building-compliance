@@ -206,10 +206,12 @@ export class TrainingProfile implements OnInit, OnDestroy {
 			$('#selectLocation').trigger('change');
 		}, 1000);
 
-    this.selectActionEvent();
+        this.selectActionEvent();
 
-    $('.trainings-navigation .active').removeClass('active');
-    $('.trainings-navigation .team-training').addClass('active');
+        $('.trainings-navigation .active').removeClass('active');
+        $('.trainings-navigation .team-training').addClass('active');
+
+        $('.workspace.container').css('padding', '0%');
 
 	}
 
@@ -462,7 +464,7 @@ export class TrainingProfile implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(){
-
+        $('.workspace.container').css('padding', '');
     }
 
     emailThisCertificate(userId=0, certId=0) {

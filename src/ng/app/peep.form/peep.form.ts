@@ -157,6 +157,9 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
             this.showModalLoader = true;
             this.userService.sendMobilityImpaireInformation(paramData, (response) => { 
                 this.showModalLoader = false;
+                if(this.paramDest.length > 0){
+                    this.router.navigate([this.paramDest]);
+                }
             });
         }
     }
