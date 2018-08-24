@@ -138,6 +138,7 @@ import { AccountTrainingComponent } from './admin/account-training/account-train
 import { AdminReportsComponent } from './admin/reports/reports.component';
 import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
 import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
+import {  PeepFormComponent } from './peep.form/peep.form';
 
 @NgModule({
   declarations: [
@@ -251,7 +252,8 @@ import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attenda
     AccountTrainingComponent,
     AdminReportsComponent,
     AdminAddAccountComponent,
-    PaperAttendanceComponent
+    PaperAttendanceComponent,
+    PeepFormComponent
   ],
   imports: [
     BrowserModule,

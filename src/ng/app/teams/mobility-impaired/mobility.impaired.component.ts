@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -24,6 +24,7 @@ declare var $: any;
 })
 export class MobilityImpairedComponent implements OnInit, OnDestroy {
     @ViewChild('formMobility') formMobility : NgForm;
+    @ViewChild('durationDate') durationDate : ElementRef;
     userData = <any> {};
     listData = [];
     selectedToArchive = {
@@ -218,6 +219,23 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         });
 
         $('#modalMobility select').material_select();
+
+        $('#modalMobility select[name="is_permanent"]').off('change').on('change', () => {
+            if($('#modalMobility select[name="is_permanent"]').val() == '1'){
+                this.isShowDatepicker = false;
+                $('#durationDate').prop('disabled', true);
+                this.durationDate.nativeElement.value = "no date available";
+                this.formMobility.controls.duration_date.disable();
+            }else{
+                this.durationDate.nativeElement.value = "";
+                this.formMobility.controls.duration_date.markAsPristine();
+                this.formMobility.controls.duration_date.enable();
+
+                $('#durationDate').prop('disabled', false);
+            }
+
+            $('#modalMobility select[name="is_permanent"]').material_select();
+        });
 
         this.filterByEvent();
         this.sortByEvent();

@@ -70,7 +70,6 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
 
     constructor(
         private route: ActivatedRoute,
-        private router: Router,
         private authService: AuthService,
         private cryptor: EncryptDecryptService,
         private accountService: AccountsDataProviderService,
@@ -82,7 +81,8 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         private adminService: AdminService,
         private platformLocation: PlatformLocation,
         public http: HttpClient,
-        private locationService: LocationsService
+        private locationService: LocationsService,
+        private router: Router
         ) {
 
         this.personDataService.buildECORole().subscribe((ecoroles) => {
@@ -220,6 +220,12 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
                     });
 
                     $('#modalAssignLocations').modal('open');
+                }else if(val == 'markaspeep'){
+                    __this.router.navigate(
+                        ['/dashboard/notification-warden-list/', __this.encryptedToken ], 
+                        { queryParams: { id: __this.cryptor.encrypt(''+warden.user_id), formodal : 'true' } 
+                    });
+                    $('#modalPeep').modal('open');
                 }
 
                 selectElem.val('0').material_select();
