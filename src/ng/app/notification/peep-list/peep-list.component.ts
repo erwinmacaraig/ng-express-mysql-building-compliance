@@ -1,14 +1,16 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { ActivatedRoute } from '@angular/router';
-import { NgForm } from '@angular/forms';
-import { Subscription } from 'rxjs/Subscription';
+import { NgForm, FormGroup, FormControl, Validators } from '@angular/forms';
+import { Subscription, Observable } from 'rxjs/Rx';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
 import { PersonDataProviderService } from '../../services/person-data-provider.service';
 import { LocationsService } from '../../services/locations';
 import { AdminService } from '../../services/admin.service';
+import { HttpParams, HttpClient } from '@angular/common/http';
+import { PlatformLocation } from '@angular/common';
 
 declare var $: any;
 declare var Materialize: any;
@@ -17,7 +19,7 @@ declare var moment: any;
     selector: 'app-notification-warden-list',
     templateUrl: './peep-list.component.html',
     styleUrls: ['./peep-list.component.css'],
-    providers: [EncryptDecryptService, AccountsDataProviderService, DashboardPreloaderService, UserService, AdminService]
+    providers: [EncryptDecryptService, AccountsDataProviderService, DashboardPreloaderService, UserService, AdminService, LocationsService]
 })
 export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -54,21 +56,34 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     buildings = <any>[];
     levels = <any>[];
 
+    public sublocations = [];
+    private baseUrl: String;
+    addPeepForm: FormGroup;
+    first_name_field: FormControl;
+    last_name_field: FormControl;
+    email_field: FormControl;
+    role_field: FormControl;
+    location_field: FormControl;
+    mobile_contact_field: FormControl;
+
     constructor(
-        private route: ActivatedRoute, 
+        private route: ActivatedRoute,
         private cryptor: EncryptDecryptService,
         private accountService: AccountsDataProviderService,
-        private elemRef : ElementRef,
+        private elemRef: ElementRef,
         private userService: UserService,
         private preloader: DashboardPreloaderService,
         private personDataService: PersonDataProviderService,
         private locationsService: LocationsService,
+        private platformLocation: PlatformLocation,
+        public http: HttpClient,
         private adminService: AdminService
         ) {
 
         this.personDataService.buildECORole().subscribe((ecoroles) => {
             this.ecoRoles = ecoroles;
         });
+        this.baseUrl = (platformLocation as any).location.origin;
 
     }
 
@@ -87,26 +102,32 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     }
 
     ngOnInit() {
-        this.route.params.subscribe((params) => {
-            const token = this.cryptor.decryptUrlParam(params['token']);
-            const parts: Array<string> = token.split('_');
-            this.userId = +parts[0];
-            this.location_id = +parts[1];
-            this.configId = +parts[2];
-            this.notification_token_id = +parts[3];
-            this.building_id = +parts[4];
-            this.preloader.show();
-            this.accountService.listPeepOnNotificationFinalScreen(this.building_id.toString()).subscribe((response) => {
-                this.peep = response['data'];
-                for (const p of this.peep) {
-                    p['encrypted_user_id'] = this.cryptor.encrypt(p['user_id']);
-                }
-                this.preloader.hide();
-            }, (error) => {
-                this.preloader.hide();
-                console.log(error);
-            });
+      this.route.params.subscribe((params) => {
+          const token = this.cryptor.decryptUrlParam(params['token']);
+          const parts: Array<string> = token.split('_');
+          this.userId = +parts[0];
+          this.location_id = +parts[1];
+          this.configId = +parts[2];
+          this.notification_token_id = +parts[3];
+          this.building_id = +parts[4];
+          this.generatePeepList();
+
+          this.locationsService.getSublocationsOfParent(this.building_id).subscribe((response) => {
+            this.sublocations.push(response['building']);
+            this.sublocations =  this.sublocations.concat(response['data']);
+          }, (error) => {
+              console.log(error);
+          });
         });
+
+      this.addPeepForm = new FormGroup({
+        first_name_field: new FormControl(null, Validators.required),
+        last_name_field: new FormControl(null, Validators.required),
+        email_field: new FormControl(null, [Validators.required, Validators.email], this.forbiddenEmails.bind(this)),
+        role_field: new FormControl(null, Validators.required),
+        location_field: new FormControl(null, Validators.required),
+        mobile_contact_field: new FormControl()
+      });
 
         this.mutationOversable = new MutationObserver((mutationsList) => {
             mutationsList.forEach((mutation) => {
@@ -138,7 +159,7 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     selectActionEvent(){
         var __this = this;
         $('body').off('change.select-action').on('change.select-action', '.select-action', function(){
-            let 
+            let
             selectElem = $(this),
             val = selectElem.val(),
             index = selectElem.attr('index'),
@@ -351,7 +372,7 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
 
         if(error == 0){
             this.showLocationLoading = true;
-             
+
             this.userService.userLocationRoleAssignments({
                 user_id : this.selectedUser.user_id, assignments : JSON.stringify(this.toEditLocations)
             }, (response) => {
@@ -365,11 +386,11 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
                 }, (error) => {
                     $('#modalAssignLocations').modal('close');
                 });
-                
+
             });
         }
     }
-    
+
     archiveClick(warden){
         $('#modalArchive').modal('open');
         this.selectedUser = warden;
@@ -397,5 +418,60 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     ngOnDestroy() {
     }
 
+  generatePeepList() {
+    this.preloader.show();
+    this.accountService.listPeepOnNotificationFinalScreen(this.building_id.toString()).subscribe((response) => {
+      this.peep = response['data'];
+      for (const p of this.peep) {
+          p['encrypted_user_id'] = this.cryptor.encrypt(p['user_id']);
+      }
+      this.preloader.hide();
+      }, (error) => {
+      this.preloader.hide();
+      console.log(error);
+    });
+  }
+
+  showAddPeepForm() {
+    $('#modalAddPeep').modal('open');
+  }
+
+  cancelAddPeepModal() {
+    this.addPeepForm.reset();
+    $('#modalAddPeep').modal('close');
+  }
+
+  createPeep() {
+    const values = [];
+    values.push({
+      'first_name': this.addPeepForm.get('first_name_field').value,
+      'last_name': this.addPeepForm.get('last_name_field').value,
+      'email': this.addPeepForm.get('email_field').value,
+      'eco_role_id': this.addPeepForm.get('role_field').value,
+      'mobile_number': this.addPeepForm.get('mobile_contact_field').value,
+      'account_location_id': this.addPeepForm.get('location_field').value,
+      'mobility_impaired': 1
+    });
+    this.userService.createBulkUsers(values, (response) => {
+      this.generatePeepList();
+      this.addPeepForm.reset();
+      $('#modalAddPeep').modal('close');
+    });
+  }
+
+  forbiddenEmails(control: FormControl): Promise<any> | Observable<any> {
+    const httpParams = new HttpParams().set('user_email', control.value);
+    return new Promise((resolve, reject) => {
+        this.http.get(this.baseUrl + '/admin/check-user-email/', {'params': httpParams}).subscribe((response) => {
+            if (response['forbidden']) {
+                resolve({
+                    emailIsForbidden: true
+                });
+            } else {
+                resolve(null);
+            }
+        });
+    });
+  }
 
 }

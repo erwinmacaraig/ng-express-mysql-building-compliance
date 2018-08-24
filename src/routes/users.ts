@@ -1935,8 +1935,7 @@ export class UsersRoute extends BaseRoute {
            let tokenData = <any> await tokenModel.getByToken(token),
                today = moment(),
                expirationDate = moment(tokenData.expiration_date);
-
-            if(tokenData.action == 'setup-password'){
+            if(tokenData.action == 'setup-password') {
 
                 let userId = tokenData.id,
                     userModel = new User(userId);
@@ -1957,6 +1956,7 @@ export class UsersRoute extends BaseRoute {
                     await userModel.dbUpdate();
 
                     tokenModel.set('action', 'verify');
+                    tokenModel.set('expiration_date', today.format('YYYY-MM-DD HH-mm-ss'));
                     tokenModel.set('verified', 1);
 
                     await tokenModel.dbUpdate();
