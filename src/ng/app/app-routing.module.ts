@@ -111,6 +111,7 @@ import { AccountTrainingComponent } from './admin/account-training/account-train
 import { AdminReportsComponent } from './admin/reports/reports.component';
 import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
 import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
+import {  PeepFormComponent } from './peep.form/peep.form';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -143,7 +144,8 @@ const appRoutes: Routes = [
       { path: 'send-invite', component : SendInviteComponent },
       { path: 'security-privacy', component : SecurityPrivacyComponent },
       { path: 'notification-warden-list/:token', component: NotificationWardenListComponent },
-      { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent }
+      { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent },
+      { path: 'peep-form', component: PeepFormComponent }
     ]
   },
   

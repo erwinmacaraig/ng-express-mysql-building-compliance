@@ -1574,6 +1574,7 @@ export class UsersRoute extends BaseRoute {
             if( Object.keys(user).length > 0 ) {
                 user['mobility_impaired_details'] = [];
                 user['last_login'] = (user['last_login'] == null) ? '' : user['last_login'];
+                user['password'] = null;
 
                 locations = await userModel.getAllMyEMLocations();
 
@@ -1621,13 +1622,14 @@ export class UsersRoute extends BaseRoute {
                     arrWhere = [];
 
                     arrWhere.push( ["user_id = " + userId] );
-                    arrWhere.push( "duration_date > NOW()" );
+                    arrWhere.push( " (duration_date > NOW() OR duration_date IS NULL) " );
+
                     try {
                         let mobilityDetails = <any> await mobilityModel.getMany( arrWhere );
 
                         for(let mob of mobilityDetails){
                             mob['date_created_formatted'] = moment(mob['date_created']).format('MMM. DD, YYYY');
-                            mob['duration_date_formatted'] = moment(mob['duration_date']).format('MMM. DD, YYYY');
+                            mob['duration_date_formatted'] = (moment(mob['duration_date']).isValid()) ? moment(mob['duration_date']).format('MMM. DD, YYYY') : '';
                         }
 
                         user['mobility_impaired_details'] = mobilityDetails;

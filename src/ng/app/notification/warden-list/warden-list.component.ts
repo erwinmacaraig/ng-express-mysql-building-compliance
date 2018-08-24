@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgForm, FormGroup, FormControl, Validators } from '@angular/forms';
 import { PersonDataProviderService } from '../../services/person-data-provider.service';
 import { AdminService } from '../../services/admin.service';
@@ -79,7 +79,8 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         private adminService: AdminService,
         private platformLocation: PlatformLocation,
         public http: HttpClient,
-        private locationService: LocationsService
+        private locationService: LocationsService,
+        private router: Router
         ) {
 
         this.personDataService.buildECORole().subscribe((ecoroles) => {
@@ -204,6 +205,12 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
                     });
 
                     $('#modalAssignLocations').modal('open');
+                }else if(val == 'markaspeep'){
+                    __this.router.navigate(
+                        ['/dashboard/notification-warden-list/', __this.encryptedToken ], 
+                        { queryParams: { id: __this.cryptor.encrypt(''+warden.user_id), formodal : 'true' } 
+                    });
+                    $('#modalPeep').modal('open');
                 }
 
                 selectElem.val('0').material_select();
