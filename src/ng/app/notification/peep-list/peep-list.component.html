@@ -9,8 +9,12 @@
                 <div class="circle"></div>
                 <div class="text blue-text">Step 2</div>
             </div>
-
-            <p style="font-size: 20px;">Review your current mobility impaired list</p>
+            <div class="row">
+              <div class="col l12 m12 s12">
+               <span style="font-size: 20px;">Review your current mobility impaired list</span>
+               <button type="button" class="btn btn-proceed orange waves-effect waves-light pull right" (click)="showAddPeepForm()">Add Mobility Impaired</button>
+              </div>
+            </div>
 
             <table class="table striped">
                 <thead>
@@ -20,7 +24,7 @@
                         <th>Email</th>
                         <th>Mobile</th>
                         <th>Status</th>
-                        <th>Action</th>
+                        <th style="width: 210px;">Action</th>
                     </tr>
                 </thead>
 
@@ -314,5 +318,66 @@
             <button class="btn orange waves-effect waves-light" (click)="confirmArchive()">Confirm Action</button>
         </div>
     </div>
+</div>
 
+
+<div id="modalAddPeep" class="modal">
+  <div class="modal-content">
+    <form novalidate [formGroup]="addPeepForm">
+      <div class="row">
+        <div class="col s12">
+          <label for="first_name_field">First Name</label>
+          <input formControlName="first_name_field" type="text" id="first_name_field" name="first_name_field" autocomplete="off">
+        </div>
+
+          <div class="col s12">
+            <label for="last_name_field">Last Name</label>
+            <input formControlName="last_name_field" type="text" id="last_name_field" name="last_name_field" autocomplete="off">
+
+          </div>
+
+          <div class="col s12">
+              <label for="email_field">Email
+                  <span *ngIf="addPeepForm.controls['email_field'].touched && !addPeepForm.controls['email_field'].valid">
+                    Please provide a valid email.
+                  </span>
+                  <span *ngIf="addPeepForm.controls['email_field'].errors && addPeepForm.controls['email_field'].errors['emailIsForbidden']">
+                    Email already taken.
+                  </span>
+                </label>
+            <input formControlName="email_field" type="text" id="email_field" name="email_field" autocomplete="off">
+
+          </div>
+
+          <div class="col s12">
+            <select formControlName="role_field" id="role_field" style="display: block;">
+                <option [value]="null" [disabled]="true == true">Select Role</option>
+              <option value="9"> Warden </option>
+              <option value="10"> Floor / Area Warden </option>
+            </select>
+            <br />
+          </div>
+
+          <div class="col s12">
+            <select formControlName="location_field" style="display: block;" id="location_field">
+              <option [value]="null" [disabled]="true == true">Select Location</option>
+              <option *ngFor="let sublocation of sublocations" [value]="sublocation['location_id']">{{sublocation['name']}}</option>
+            </select>
+            <br />
+          </div>
+
+          <div class="col s12">
+              <label for="mobile_contact_field" class="active">Contact Information</label>
+            <input formControlName="mobile_contact_field" type="text" id="mobile_contact_field" autocomplete="off">
+
+          </div>
+
+      </div>
+
+      <div class="button-container right-align">
+        <a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelAddPeepModal()"> Cancel </a>
+        <button type="submit" [disabled]="!addPeepForm.valid" class="btn orange waves-effect waves-light" (click)="createPeep()"> Add </button>
+      </div>
+    </form>
+  </div>
 </div>

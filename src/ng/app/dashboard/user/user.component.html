@@ -94,7 +94,7 @@
 
 			<div class="row">
 
-				<div class="col l4 m12 s12 activity-container" style="cursor: pointer" (click)="showPeepForm()">
+				<div class="col l4 m12 s12 activity-container" style="cursor: pointer"  [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/dashboard' }">
 					<div class="display-table width100">
 						<div class="cell grey lighten-5 image-container">
 							<img src="/assets/images/dash01.png" alt="">

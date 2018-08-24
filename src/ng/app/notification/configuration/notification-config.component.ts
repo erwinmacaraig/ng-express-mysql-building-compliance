@@ -3,7 +3,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs/Subscription';
 import { Router } from '@angular/router';
-
+import { AuthService } from '../../services/auth.service';
 
 declare var $: any;
 @Component({
@@ -13,7 +13,7 @@ declare var $: any;
   providers: [ AccountsDataProviderService ]
 })
 export class NotificationConfigurationComponent implements OnInit, AfterViewInit, OnDestroy {
-
+  public hasAccountRole = false;
   public notConfigFormGrp: FormGroup;
   public buildingId = 0;
   public searchBldgField: FormControl;
@@ -32,18 +32,23 @@ The EvacConnect Engagement team
 Email: systems@evacgroup.com.au
 Phone: 1300 922 437
 
-Would you like more information on EvacConnect or Emergency Planning?
-The importance of planning for emergencies
-
-EvacConnect for Tenant Responsible Persons - an instructional video
-
-Provide feedback on your experience using EvacConnect
-
+* The TRP for a tenancy is the person responsible for ensuring that emergency planning is
+being managed in your tenancy. You receive these confirmation emails every 3 months to
+help us ensure that tenant and warden lists remain up to date.
 `;
   public buildingArray = [];
-  constructor(private accountService: AccountsDataProviderService, private router: Router) {}
+  constructor(private accountService: AccountsDataProviderService,
+              private auth: AuthService,
+              private router: Router) {}
 
   ngOnInit() {
+    const role = this.auth.getHighestRankRole();
+    if (role <= 2) {
+      this.hasAccountRole = true;
+    } else {
+      this.router.navigate(['']);
+    }
+
     this.notConfigFormGrp = new FormGroup({
       all_users: new FormControl(false, null),
       eco_user: new FormControl(false, null),
