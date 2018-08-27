@@ -325,7 +325,7 @@ const RateLimiter = require('limiter').RateLimiter;
       await configurator.create(configDBData);
     }
 
-    const redirectUrl = req.protocol + '://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+    const redirectUrl = 'https://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
     const script = `
                 <h4>Redirecting...</h4>
                 <script>
@@ -405,7 +405,7 @@ const RateLimiter = require('limiter').RateLimiter;
     stringUserData = stringUserData.replace(/\'/gi, '');
 
     if (hasFrpTrpRole) {
-      const redirectUrl = req.protocol + '://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
+      const redirectUrl = 'https://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
       const script = `
                   <h4>Redirecting...</h4>
                   <script>
@@ -539,8 +539,8 @@ const RateLimiter = require('limiter').RateLimiter;
       };
 
       const email = new EmailSender(opts);
-      const link = req.protocol + '://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
-      const yesLink = req.protocol + '://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
+      const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
+      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 
       emailBody += `<pre>Hi ${u['first_name']} ${u['last_name']},</pre>`;
