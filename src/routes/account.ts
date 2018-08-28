@@ -578,9 +578,13 @@ const RateLimiter = require('limiter').RateLimiter;
 
 
   public async searchForBuildings(req: AuthRequest, res: Response) {
-    const accountId = req.user.account_id;
+    let accountId = <any> req.user.account_id;
     const queryBldgName = req.query.bldgName;
     const larIds = [];
+
+    if(req.user.evac_role == 'admin'){
+        accountId = 'admin';
+    }
 
     const list = new List();
     const lar = await list.listTaggedLocationsOnAccount(accountId, {
