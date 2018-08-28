@@ -45,6 +45,8 @@
                                     <option value="profile">Update Profile</option>
                                     <option value="credential">Update Credential</option>
                                     <option value="location">Assign Location & Role</option>
+                                    <option value="markaspeep" *ngIf="p.mobility_impaired == 1">Update Info</option>
+                                    <option value="markashealthy" *ngIf="p.mobility_impaired == 1">Mark As Healthy</option>
                                 </select>
                             </div>
                             <button class="btn red waves-effect waves-light archive-button" type="button" (click)="archiveClick(p)">
@@ -380,4 +382,37 @@
       </div>
     </form>
   </div>
+</div>
+
+<div id="modalPeep" class="modal">
+    <app-peep-form></app-peep-form>
+</div>
+
+<div id="modalMobilityHealty" class="modal">
+
+    <div class="modal-content center" [hidden]="!showModalLoader">
+        <div class="preloader-wrapper active">
+            <div class="spinner-layer spinner-red-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-content">
+        <h5>Confirm action</h5>
+
+        <h6>Mark {{selectedUser.first_name}} {{selectedUser.last_name}} as Healthy</h6>
+
+    </div>
+
+    <div class="modal-footer" [hidden]="showModalLoader">
+        <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+        <button type="submit" class="waves-effect waves-blue btn-flat" (click)="markUserAsHealthy()">Confirm</button>
+    </div>
 </div>

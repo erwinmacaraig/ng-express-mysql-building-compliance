@@ -68,6 +68,8 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
     location_field: FormControl;
     mobile_contact_field: FormControl;
 
+    showModalLoader = false;
+
     constructor(
         private route: ActivatedRoute,
         private authService: AuthService,
@@ -223,9 +225,19 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
                 }else if(val == 'markaspeep'){
                     __this.router.navigate(
                         ['/dashboard/notification-warden-list/', __this.encryptedToken ], 
-                        { queryParams: { id: __this.cryptor.encrypt(''+warden.user_id), formodal : 'true' } 
+                        { queryParams: { id: __this.cryptor.encrypt(''+warden.user_id), formodal : 'true', modalclose : 'true' } 
                     });
                     $('#modalPeep').modal('open');
+
+                    $('body').off('click.submitpeep').on('click.submitpeep', '#formMobility button[type="submit"]', function(){
+                        __this.wardens[__this.selectedIndex]["mobility_impaired"] = 1;
+                        setTimeout(function(){
+                            selectElem.val('0').material_select();
+                        }, 300);
+                    });
+
+                }else if(val == 'markashealthy'){
+                    $('#modalMobilityHealty').modal('open');
                 }
 
                 selectElem.val('0').material_select();
@@ -463,9 +475,28 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         });
     }
 
+    markUserAsHealthy(){
+        this.showModalLoader = true;
+
+        let paramData = {
+            user_id :  this.selectedUser.user_id,
+            mobility_impaired : 0
+        };
+        this.userService.markAsHealthy(paramData, (response) => {
+            this.wardens[this.selectedIndex]["mobility_impaired"] = 0;
+            setTimeout(function(){
+                $('select.select-action').val('0').material_select();
+            }, 300);
+            $('#modalMobilityHealty').modal('close');
+            this.showModalLoader = false;
+
+        });
+    }
+
     showAddUserForm() {
       $('#modalAddUser').modal('open');
     }
+
     cancelAddUserModal() {
         this.addUserForm.reset();
         $('#modalAddUser').modal('close');
