@@ -76,8 +76,10 @@
           <td> {{user['last_login'] | date : 'dd/MM/yyyy'}}</td>
           <td> {{user['strStatus']}} </td>
           <td>
-            <select>
+            <select id="token_{{user['notification_token_id']}}" (change)="performNotificationAction(user['notification_token_id'])">
                 <option value="0"  selected disabled>Select action</option>
+                <option value="resend">Resend</option>
+                <option value="validate">Validate</option>
             </select>
           </td>
         </tr>

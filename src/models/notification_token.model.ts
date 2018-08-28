@@ -217,7 +217,9 @@ export class NotificationToken extends BaseClass {
                   users.email,
                   users.mobile_number,
                   accounts.account_name,
+                  notification_token.notification_token_id,                  
                   notification_token.role_text,
+                  notification_token.dtLastSent,
                   users.last_login, parent_loctions.name as parent, locations.name, notification_token.strStatus
                FROM
                  users

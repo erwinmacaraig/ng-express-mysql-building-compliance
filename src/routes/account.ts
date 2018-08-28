@@ -169,15 +169,15 @@ const RateLimiter = require('limiter').RateLimiter;
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : ['adelfin@evacgroup.com.au'],
+        to : ['jmanoharan@evacgroup.com.au'],
         cc: ['emacaraig@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
 			};
 			const email = new EmailSender(opts);
-			const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
-      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
+			const link = 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
+      const yesLink = 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 			
 			emailBody += `<pre>Hi ${userDbData['first_name']} ${userDbData['last_name']},</pre>`;
@@ -428,7 +428,7 @@ const RateLimiter = require('limiter').RateLimiter;
       await configurator.create(configDBData);
     }
 
-    const redirectUrl = 'https://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+    const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
     const script = `
                 <h4>Redirecting...</h4>
                 <script>
@@ -508,7 +508,7 @@ const RateLimiter = require('limiter').RateLimiter;
     stringUserData = stringUserData.replace(/\'/gi, '');
 
     if (hasFrpTrpRole) {
-      const redirectUrl = 'https://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
+      const redirectUrl = 'http://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
       const script = `
                   <h4>Redirecting...</h4>
                   <script>
@@ -639,8 +639,8 @@ const RateLimiter = require('limiter').RateLimiter;
       };
 
       const email = new EmailSender(opts);
-      const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
-      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
+      const link = 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
+      const yesLink = 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 
       emailBody += `<pre>Hi ${u['first_name']} ${u['last_name']},</pre>`;

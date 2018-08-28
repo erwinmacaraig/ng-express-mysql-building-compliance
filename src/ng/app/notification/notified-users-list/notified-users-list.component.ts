@@ -28,8 +28,7 @@ export class NotifiedUsersListComponent implements OnInit, AfterViewInit,  OnDes
         ) {
     }
 
-    ngOnInit() {
-        this.dashboard.show();
+    ngOnInit() {        
         const role = this.auth.getHighestRankRole();
         this.userData = this.auth.getUserData();
         if(this.userData.evac_role == 'admin'){
@@ -41,12 +40,7 @@ export class NotifiedUsersListComponent implements OnInit, AfterViewInit,  OnDes
         }
         this.route.params.subscribe((params) => {
             this.configId = this.cryptor.decrypt(params['config']);
-            this.accountService.generateNotifiedUsersList(this.configId).subscribe((response) => {
-                this.notifiedUsers = response['data'];
-                this.dashboard.hide();
-            }, (error) => {
-                this.dashboard.hide();
-            });
+            this.generateList();
         });
     }
 
@@ -54,5 +48,30 @@ export class NotifiedUsersListComponent implements OnInit, AfterViewInit,  OnDes
         $('select').material_select();
     }
 
+    performNotificationAction(token) {
+        console.log(`token_${token}`);
+        console.log($(`#token_${token}`).val());
+
+        const action = $(`#token_${token}`).val();
+        this.accountService.execNotificationAction(action, token).subscribe((response) => {
+            console.log(response);
+            this.generateList();
+        });
+
+
+
+    }
+
+
     ngOnDestroy() {}
+
+    private generateList() {
+        this.dashboard.show();
+        this.accountService.generateNotifiedUsersList(this.configId).subscribe((response) => {
+            this.notifiedUsers = response['data'];
+            this.dashboard.hide();
+        }, (error) => {
+            this.dashboard.hide();
+        });
+    }
 }
