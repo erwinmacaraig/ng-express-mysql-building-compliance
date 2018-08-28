@@ -15,38 +15,63 @@ declare var $: any;
 })
 export class NotifiedUsersListComponent implements OnInit, AfterViewInit,  OnDestroy {
     public configId;
+    userData = <any> {};
     public notifiedUsers: Array<object> = [];
     public hasAccountRole = false;
+    isAdmin = false;
     constructor(private route: ActivatedRoute,
-                private auth: AuthService,
-                private router: Router,
-                private cryptor: EncryptDecryptService,
-                private accountService: AccountsDataProviderService,
-                public dashboard: DashboardPreloaderService
-              ) {}
+        private auth: AuthService,
+        private router: Router,
+        private cryptor: EncryptDecryptService,
+        private accountService: AccountsDataProviderService,
+        public dashboard: DashboardPreloaderService
+        ) {
+    }
 
-    ngOnInit() {
-      this.dashboard.show();
-      const role = this.auth.getHighestRankRole();
-      if (role <= 2) {
-        this.hasAccountRole = true;
-      } else {
-        this.router.navigate(['']);
-      }
-      this.route.params.subscribe((params) => {
-        this.configId = this.cryptor.decrypt(params['config']);
-        this.accountService.generateNotifiedUsersList(this.configId).subscribe((response) => {
-          this.notifiedUsers = response['data'];
-          this.dashboard.hide();
-        }, (error) => {
-          this.dashboard.hide();
+    ngOnInit() {        
+        const role = this.auth.getHighestRankRole();
+        this.userData = this.auth.getUserData();
+        if(this.userData.evac_role == 'admin'){
+            this.isAdmin = true;
+        }else if (role <= 2) {
+            this.hasAccountRole = true;
+        } else {
+            this.router.navigate(['']);
+        }
+        this.route.params.subscribe((params) => {
+            this.configId = this.cryptor.decrypt(params['config']);
+            this.generateList();
         });
-      });
     }
 
     ngAfterViewInit() {
         $('select').material_select();
     }
 
+    performNotificationAction(token) {
+        console.log(`token_${token}`);
+        console.log($(`#token_${token}`).val());
+
+        const action = $(`#token_${token}`).val();
+        this.accountService.execNotificationAction(action, token).subscribe((response) => {
+            console.log(response);
+            this.generateList();
+        });
+
+
+
+    }
+
+
     ngOnDestroy() {}
+
+    private generateList() {
+        this.dashboard.show();
+        this.accountService.generateNotifiedUsersList(this.configId).subscribe((response) => {
+            this.notifiedUsers = response['data'];
+            this.dashboard.hide();
+        }, (error) => {
+            this.dashboard.hide();
+        });
+    }
 }

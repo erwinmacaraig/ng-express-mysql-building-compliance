@@ -135,7 +135,14 @@ export class AccountsDataProviderService {
     const httpParams = new HttpParams().set('building', buildingId);
     this.options['params'] = httpParams;
     return this.http.get(`${this.baseUrl}/accounts/notification-all-peep/`, this.options);
-  }
+	}
+	
+	execNotificationAction(action='', token_id = 0) {
+		return this.http.post(`${this.baseUrl}/accounts/notification-actions/`, {
+			action: action,
+			notification_token_id: token_id.toString()
+		});
+	}
 
 
 }

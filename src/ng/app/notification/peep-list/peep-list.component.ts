@@ -30,6 +30,7 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     private notification_token_id = 0;
     private building_id = 0;
     public peep = [];
+    public encryptedToken = '';
 
     mutationOversable = <any>{};
     selectedUser = <any> {};
@@ -66,6 +67,8 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     role_field: FormControl;
     location_field: FormControl;
     mobile_contact_field: FormControl;
+
+    showModalLoader = false;
 
     constructor(
         private route: ActivatedRoute,
@@ -107,6 +110,7 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     ngOnInit() {
       this.route.params.subscribe((params) => {
           const token = this.cryptor.decryptUrlParam(params['token']);
+          this.encryptedToken = params['token'];
           const parts: Array<string> = token.split('_');
           this.userId = +parts[0];
           this.location_id = +parts[1];
@@ -210,6 +214,22 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
                     });
 
                     $('#modalAssignLocations').modal('open');
+                }else if(val == 'markaspeep'){
+                    __this.router.navigate(
+                        ['/dashboard/notification-peep-list/', __this.encryptedToken ], 
+                        { queryParams: { id: __this.cryptor.encrypt(''+warden.user_id), formodal : 'true', modalclose : 'true' } 
+                    });
+                    $('#modalPeep').modal('open');
+
+                    $('body').off('click.submitpeep').on('click.submitpeep', '#formMobility button[type="submit"]', function(){
+                        __this.peep[__this.selectedIndex]["mobility_impaired"] = 1;
+                        setTimeout(function(){
+                            selectElem.val('0').material_select();
+                        }, 300);
+                    });
+
+                }else if(val == 'markashealthy'){
+                    $('#modalMobilityHealty').modal('open');
                 }
 
                 selectElem.val('0').material_select();
@@ -428,6 +448,33 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
             }, (error) => {
                 $('#modalArchive').modal('close');
             });
+
+        });
+    }
+
+    markUserAsHealthy(){
+        this.showModalLoader = true;
+
+        let paramData = {
+            user_id :  this.selectedUser.user_id,
+            mobility_impaired : 0
+        };
+        this.userService.markAsHealthy(paramData, (response) => {
+            this.peep[this.selectedIndex]["mobility_impaired"] = 0;
+
+            let newList = [];
+            for(let p of this.peep){
+                if( p.user_id != this.peep[this.selectedIndex]['user_id'] ){
+                    newList.push(p);
+                }
+            }
+            this.peep = newList;
+            
+            setTimeout(function(){
+                $('select.select-action').val('0').material_select();
+            }, 300);
+            $('#modalMobilityHealty').modal('close');
+            this.showModalLoader = false;
 
         });
     }
