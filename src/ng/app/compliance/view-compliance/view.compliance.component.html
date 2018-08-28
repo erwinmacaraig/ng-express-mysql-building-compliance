@@ -939,68 +939,68 @@
 			</div>
 		</div>
   -->
-    <div class="col l12 m12 s12">
-      <div class="diagram-top-of-table">
-        <h5 class="blue-text title">Chief Warden</h5>
-      </div>
-      <div class="filter-container row">
-        <div class="col l6 m12 s12">
-          <div class="search-field">
-            <input placeholder="Search here" type="text">
-            <span class="material-icons">search</span>
-          </div>
+      <div class="col l12 m12 s12">
+        <div class="diagram-top-of-table">
+            <h5 class="blue-text title">Chief Warden</h5>
         </div>
-        <div class="col l3 m12 s12">
-          <select class="filter-by">
-            <option value="0" selected disabled >Filter By</option>
-          </select>
+        <div class="filter-container row">
+            <div class="col l6 m12 s12">
+                <div class="search-field">
+                    <input placeholder="Search here" type="text">
+                    <span class="material-icons">search</span>
+                </div>
+            </div>
+            <div class="col l3 m12 s12">
+                <select class="filter-by">
+                    <option value="0" selected disabled >Filter By</option>
+                </select>
+            </div>
+            <div class="col l3 m12 s12">
+                <select class="sort-by">
+                    <option value="0" selected disabled >Sort By</option>
+                </select>
+            </div>
         </div>
-        <div class="col l3 m12 s12">
-          <select class="sort-by">
-            <option value="0" selected disabled >Sort By</option>
-          </select>
-        </div>
-      </div>
-      <table class="striped table">
-        <thead>
-          <tr>
-            <th>Sub Locations</th>
-            <th>Benchmark</th>
-            <th>Nominated</th>
-            <th>Trained</th>
-            <th>Training Compliance</th>
-            <th style="width: 13%;">Action</th>
-          </tr>
-        </thead>
-        <tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 12">
-            <tr *ngFor="let sub of complianceSublocations">
-                <td>{{sub.name}}</td>
-                <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
-                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_estimated_wardens}}
-                </td>
-                <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
-                    {{selectedCompliance['compliance']['location_details'][sub['location_id']].users.length}}
-                </td>
-                <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
-                    {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_passed}}
-                </td>
-                <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
-                    {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
-                </td>
-                <td>
-                    <a  (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
-                </td>
-                <ng-template #noChiefWarden>
-                  <td>0</td>
-                </ng-template>
-                <ng-template #noChiefWardenPercentage>
-                  <td>0%</td>
-                </ng-template>
-              </tr>
-        </tbody>
-      </table>
+        <table class="striped table">
+            <thead>
+                <tr>
+                    <th>Sub Locations</th>
+                    <th>Benchmark</th>
+                    <th>Nominated</th>
+                    <th>Trained</th>
+                    <th>Training Compliance</th>
+                    <th style="width: 13%;">Action</th>
+                </tr>
+            </thead>
+            <tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 12">
+                <tr *ngFor="let sub of complianceSublocations">
+                    <td>{{sub.name}}</td>
+                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_estimated_wardens}}
+                    </td>
+                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].users.length}}
+                    </td>
+                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_passed}}
+                    </td>
+                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
+                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
+                    </td>
+                    <td>
+                        <a  (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
+                    </td>
+                    <ng-template #noChiefWarden>
+                        <td>0</td>
+                    </ng-template>
+                    <ng-template #noChiefWardenPercentage>
+                        <td>0%</td>
+                    </ng-template>
+                </tr>
+            </tbody>
+        </table>
     </div>
-	</div>
+</div>
 </ng-template>
 
 <ng-template #warden_trainingTableTemplate>
