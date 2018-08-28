@@ -114,15 +114,24 @@
 						{{location.mobility_impaired}}
 					</td>
 					<td class="with-bar">
-						<span *ngIf="location.admin_verified == 0" class="red-text">For verification</span>
-						<a *ngIf="location.admin_verified == 1" [routerLink]="['/location/compliance/view/', location.location_id]">
-							<div class="text">0%</div>
-							<div class="progress-container">
-								<div class="progress">
-							    	<div class="determinate" style="width: 0%;"></div>
-								</div>
-							</div>
-						</a>
+						<!-- <span *ngIf="location.admin_verified == 0" class="red-text">For verification</span> -->
+						<a *ngIf="!location.fetchingCompliance && location.is_building == 1" [routerLink]="['/location/compliance/view/', location.location_id]">
+                            <div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
+                            <div class="progress-container" >
+                                <div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
+                                    <div class="determinate" [ngStyle]="{ 'width' : location.compliance_percentage+'%' }"></div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a *ngIf="!location.fetchingCompliance && location.is_building == 0" [routerLink]="['/location/compliance/view/', location.parent_id]">
+                            <div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
+                            <div class="progress-container" >
+                                <div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
+                                    <div class="determinate" [ngStyle]="{ 'width' : location.compliance_percentage+'%' }"></div>
+                                </div>
+                            </div>
+                        </a>
 					</td>
 					<td class="select-blue">
 						<select class="select-from-row">

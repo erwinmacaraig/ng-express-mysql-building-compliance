@@ -27,14 +27,16 @@
 
 .main{
     position: relative;
+    min-height: 100vh;
+
 }
 
 .row-diagram-details{
     position: absolute;
     top: 0px;
-    margin-top: 5%;
+    margin-top: 0%;
     transition: all 0.5s;
-    width: 95vw;
+    width: 100%;
 }
 
 .row-diagram-details .click-view-previous{
@@ -50,6 +52,9 @@
 }
 
 .row-table-content{
+    margin-top: 0%;
+    position: relative;
+    top: 0px;
     transition: all 0.5s;
 }
 
