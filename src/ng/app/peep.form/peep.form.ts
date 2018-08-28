@@ -27,7 +27,7 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild('durationDate') durationDate: ElementRef;
     options: DatepickerOptions = {
         displayFormat: 'MMM D[,] YYYY',
-        minDate: moment().toDate()
+        minDate: moment().add(1, 'days').toDate()
     };
 
     datepickerModel : Date;
@@ -41,6 +41,8 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
     forModalDisplay = false;
     showModalLoader = false;
     paramDest = '';
+    modalclose = 'false';
+    dateSet = null;
 
     constructor(
         private encryptDecrypt: EncryptDecryptService,
@@ -59,8 +61,6 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit(){
 
-        console.log( this.encryptDecrypt.encrypt("21517") );
-
         this.sub = this.route.queryParams.subscribe(params => {
             if(params['formodal']=='true'){
                 this.forModalDisplay = true;
@@ -68,6 +68,10 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
 
             if(params['dest']){
                 this.paramDest = params['dest'];
+            }
+
+            if(params['modalclose']){
+                this.modalclose = params['modalclose'];
             }
 
             if(params["id"]){
@@ -79,7 +83,6 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
                     
                     if(this.user.mobility_impaired_details){
                         if(this.user.mobility_impaired_details.length > 0){
-
                             if(Object.keys(this.formMobility.controls).length > 0){
                                 this.formMobility.controls.is_permanent.setValue(this.user.mobility_impaired_details[0]['is_permanent']);
                                 this.formMobility.controls.assistant_type.setValue(this.user.mobility_impaired_details[0]['assistant_type']);
@@ -87,15 +90,16 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
                                 this.formMobility.controls.evacuation_procedure.setValue(this.user.mobility_impaired_details[0]['evacuation_procedure']);
 
                                 if(this.user.mobility_impaired_details[0]['is_permanent']==0){
+                                    this.dateSet = moment(this.user.mobility_impaired_details[0]['duration_date']).toDate();
                                     this.datepickerModel = moment(this.user.mobility_impaired_details[0]['duration_date']).toDate();
                                     this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
                                 }
 
-                                $('select[name="is_permanent"]').trigger('change');
                             }
-
                         }
                     }
+
+                    $('select[name="is_permanent"]').trigger('change');
                 })
             }
         });
@@ -109,13 +113,19 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         $('select[name="is_permanent"]').off('change').on('change', () => {
+            let val = $('select[name="is_permanent"]').val();
+            if(val == null){
+                val = '0';
+                this.datepickerModel = moment().add(1, 'days').toDate();
+                this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+            }
             if($('select[name="is_permanent"]').val() == '1'){
                 this.isShowDatepicker = false;
                 $('#durationDate').prop('disabled', true);
                 this.durationDate.nativeElement.value = "no date available";
                 this.formMobility.controls.duration_date.disable();
             }else{
-                this.durationDate.nativeElement.value = "";
+                this.durationDate.nativeElement.value = this.datepickerModelFormatted;
                 this.formMobility.controls.duration_date.markAsPristine();
                 this.formMobility.controls.duration_date.enable();
 
@@ -132,7 +142,7 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
 
     onChangeDatePicker(event){
         if(!moment(this.datepickerModel).isValid()){
-            this.datepickerModel = new Date();
+            this.datepickerModel = moment().add(1, 'days').toDate();
             this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
         }else{
             this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
@@ -160,6 +170,10 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
                 if(this.paramDest.length > 0){
                     this.router.navigate([this.paramDest]);
                 }
+                if(this.modalclose == 'true'){
+                    this.formMobility.reset();
+                    $('#formMobility').parents('.modal').modal('close');
+                }
             });
         }
     }
@@ -167,6 +181,10 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
     cancelForm(){
         if(this.paramDest.length > 0){
             this.router.navigate([this.paramDest]);
+        }
+        if(this.modalclose == 'true'){
+            this.formMobility.reset();
+            $('#formMobility').parents('.modal').modal('close');
         }
     }
 

@@ -7,9 +7,15 @@ const aws_credential = require('../config/aws-access-credentials.json');
 export class List {
     constructor() {}
 
-    public listTaggedLocationsOnAccountFromLAU(account: number = 0, filter: object = {}): Promise<Array<object>> {
+    public listTaggedLocationsOnAccountFromLAU(account = '0', filter: object = {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
-        let clause = '';
+        let clause = ' account_id = ? ';
+        let paramWhere = [];
+        if(account == 'admin'){
+            clause = ' account_id > 0 ';
+        }else{
+            paramWhere.push(account);
+        }
         if ('exclusion_ids' in filter && filter['exclusion_ids'].length > 0) {
           const ids = filter['exclusion_ids'].join(',');
           clause += `AND locations.location_id NOT IN (${ids})`;
@@ -49,9 +55,9 @@ export class List {
           LEFT JOIN locations as p3 ON p3.location_id = p2.parent_id
           LEFT JOIN locations as p4 ON p4.location_id = p3.parent_id
           LEFT JOIN locations as p5 ON p5.location_id = p4.parent_id
-        WHERE account_id = ? ${clause} GROUP BY location_account_user.location_id;`;
+        WHERE  ${clause} GROUP BY location_account_user.location_id;`;
         const connection = db.createConnection(dbconfig);
-        connection.query(sql, [account], (error, results) => {
+        connection.query(sql, paramWhere, (error, results) => {
           if (error) {
             console.log(`list.model.listTaggedLocationsOnAccount`, error, sql);
             throw Error('Cannot generate list for the account');
@@ -61,9 +67,15 @@ export class List {
       });
     }
 
-    public listTaggedLocationsOnAccount(account: number = 0, filter: object = {}): Promise<Array<object>> {
+    public listTaggedLocationsOnAccount(account = '0', filter: object = {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
-        let whereClause = '';
+        let whereClause = ' location_account_relation.account_id = ? ';
+        let paramWhere = [];
+        if(account == 'admin'){
+            whereClause = ' location_account_relation.account_id > 0 ';
+        }else{
+            paramWhere.push(account);
+        }
         if ('location' in filter && filter['location'].length > 0) {
           const inClause = filter['location'].join(',');
           whereClause += ` AND locations.location_id IN (${inClause})`;
@@ -103,9 +115,9 @@ export class List {
         LEFT JOIN locations as p3 ON p3.location_id = p2.parent_id
         LEFT JOIN locations as p4 ON p4.location_id = p3.parent_id
         LEFT JOIN locations as p5 ON p5.location_id = p4.parent_id
-        WHERE location_account_relation.account_id = ? ${whereClause} ORDER BY locations.location_id`;
+        WHERE ${whereClause} ORDER BY locations.location_id`;
         const connection = db.createConnection(dbconfig);
-        connection.query(sql, [account], (error, results) => {
+        connection.query(sql, paramWhere, (error, results) => {
           if (error) {
             console.log(`list.model.listTaggedLocationsOnAccount`, error, sql);
             throw Error('Cannot generate list for the account');

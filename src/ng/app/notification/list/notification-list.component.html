@@ -3,10 +3,14 @@
     <h5 class="title">Email Notification List</h5>
   </div>
   <div class="col l2 m3 s12 ">
-		<button class="btn orange waves-effect waves-light add-peep pull right" [routerLink]="['/dashboard', 'notification-config']">
+		<button class="btn orange waves-effect waves-light add-peep pull right" *ngIf="!isAdmin" [routerLink]="['/dashboard', 'notification-config']">
 			<span class="image"></span>
 			Send New Email
 		</button>
+        <button class="btn orange waves-effect waves-light add-peep pull right" *ngIf="isAdmin" [routerLink]="['/admin', 'notification-config']">
+            <span class="image"></span>
+            Send New Email
+        </button>
 	</div>
 </div>
 <div class="row filter-container to-hide-in-show-profile-update">
@@ -56,7 +60,7 @@
           <th>Action</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody *ngIf="!isAdmin">
         <tr *ngFor="let config of configList">
           <td>
             <p class="checkbox">
@@ -82,6 +86,42 @@
           </td>
           <td>
             <a [routerLink]="['/dashboard', 'notified-users-list', config['notification_config_id']]">{{ config['first_name'] }} {{ config['last_name'] }}</a>
+          </td>
+          <td>
+              <select>
+                  <option value="0"  selected disabled>Select action</option>
+              </select>
+          </td>
+        </tr>
+
+      </tbody>
+
+       <tbody *ngIf="isAdmin">
+        <tr *ngFor="let config of configList">
+          <td>
+            <p class="checkbox">
+                <input id="allLocations1" class="filled-in" type="checkbox">
+                <label for="allLocations1"></label>
+                <a [routerLink]="['/admin', 'notified-users-list', config['notification_config_id']]">{{ config['name'] }}</a>
+              </p>
+          </td>
+          <td>
+            <a [routerLink]="['/admin', 'notified-users-list', config['notification_config_id']]">{{ config['user_type'] | uppercase }}</a>
+          </td>
+          <td>
+            <a [routerLink]="['/admin', 'notified-users-list', config['notification_config_id']]">{{ config['dtLastSent'] | date : 'dd/MM/yyyy' }} </a>
+          </td>
+          <td>
+            <a [routerLink]="['/admin', 'notified-users-list', config['notification_config_id']]">{{ config['recipients'] }}</a>
+          </td>
+          <td>
+            <a [routerLink]="['/admin', 'notified-users-list', config['notification_config_id']]">{{ config['responders'] }}</a>
+          </td>
+          <td>
+            <a [routerLink]="['/admin', 'notified-users-list', config['notification_config_id']]">{{ config['frequency'] }} (in days)</a>
+          </td>
+          <td>
+            <a [routerLink]="['/admin', 'notified-users-list', config['notification_config_id']]">{{ config['first_name'] }} {{ config['last_name'] }}</a>
           </td>
           <td>
               <select>
