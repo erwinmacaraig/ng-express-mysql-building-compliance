@@ -25,16 +25,16 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
     private sub: Subscription;
     public defaultMessage = `
 
-        Thank you again for your active participation and commitment to promote proactive safety within your building.
+Thank you again for your active participation and commitment to promote proactive safety within your building.
 
-        Sincerely,
-        The EvacConnect Engagement team
-        Email: systems@evacgroup.com.au
-        Phone: 1300 922 437
+Sincerely,
+The EvacConnect Engagement team
+Email: systems@evacgroup.com.au
+Phone: 1300 922 437
 
-        * The TRP for a tenancy is the person responsible for ensuring that emergency planning is
-        being managed in your tenancy. You receive these confirmation emails every 3 months to
-        help us ensure that tenant and warden lists remain up to date.
+* The TRP for a tenancy is the person responsible for ensuring that emergency planning is
+being managed in your tenancy. You receive these confirmation emails every 3 months to
+help us ensure that tenant and warden lists remain up to date.
     `;
     public buildingArray = [];
     isAdmin = false;
@@ -47,6 +47,7 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
     ngOnInit() {
         const role = this.auth.getHighestRankRole();
         this.userData = this.auth.getUserData();
+        /*
         if(this.userData.evac_role == 'admin'){
             this.isAdmin = true;
         }else if (role <= 2) {
@@ -54,6 +55,12 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
         } else {
             this.router.navigate(['']);
         }
+        */
+       if (role <= 2) {
+        this.hasAccountRole = true;
+       } else {
+        this.router.navigate(['/']);
+       }
 
         this.notConfigFormGrp = new FormGroup({
             all_users: new FormControl(false, null),

@@ -249,7 +249,6 @@ const appRoutes: Routes = [
       { path : 'teams-report/:location/:accountId', component : ReportsTeamsComponent },
       { path : 'reports', component : AdminReportsComponent },
       { path: 'new-account', component: AdminAddAccountComponent },
-      { path: 'notification-list', component: NotificationListComponent },
       { path: 'notification-config', component: NotificationConfigurationComponent },
       { path: 'notified-users-list/:config', component: NotifiedUsersListComponent}
     ]

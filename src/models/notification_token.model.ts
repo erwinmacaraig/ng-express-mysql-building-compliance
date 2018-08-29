@@ -53,7 +53,7 @@ export class NotificationToken extends BaseClass {
         completed = ?,
         dtCompleted = ?,
         strResponse = ?,
-        dtLastSent = ?,s
+        dtLastSent = ?,
         manually_validated_by = ?
       `;
       const param = [
