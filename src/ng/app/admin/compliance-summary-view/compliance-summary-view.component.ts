@@ -292,6 +292,27 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     }
   }
 
+  showDiagramDetails(){
 
+    let tableLeft = $('.row-table-content').position().left,
+      tableW = $('.row-table-content').width(),
+      diagramLeft = $('.row-diagram-details').position().left;
+
+    $('.row-table-content').css('left', '-'+( tableW + 200 )+'px' );
+    $('.row-diagram-details').css('left', '0px' );
+    setTimeout(() => { $('.row-diagram-details').show(); $('.hide-diagram').show(); }, 200);
+    
+  }
+
+  hideDiagramDetails(){
+    let tableLeft = $('.row-table-content').position().left,
+      tableW = $('.row-table-content').width(),
+      diagramLeft = $('.row-diagram-details').position().left;
+
+    $('.row-table-content').css('left', '0px' );
+    $('.row-diagram-details').css('left', (tableW + diagramLeft) + 'px' );
+    setTimeout(() => { $('.row-diagram-details').hide(); $('.hide-diagram').hide(); }, 400);
+    
+  }
 
 }
