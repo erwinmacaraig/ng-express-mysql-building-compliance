@@ -141,8 +141,7 @@ const RateLimiter = require('limiter').RateLimiter;
 	}
 	
 	public async performNotificationAction(req, res) {
-		// action
-		console.log(req.body);
+		// console.log(req.body);
 		const action = req.body.action;
 		const notification_token_id = parseInt(req.body.notification_token_id, 10);
 		const notificationTokenObj = new NotificationToken(notification_token_id);
@@ -153,7 +152,7 @@ const RateLimiter = require('limiter').RateLimiter;
 				message: 'No such token exists'
 			});
 		}
-
+    
 		const notificationConfigObj = new NotificationConfiguration(notificationTokenDbData['notification_config_id']);
 		const notificationConfigDbData = await notificationConfigObj.load();
 		const user = new User(notificationTokenDbData['user_id']);
@@ -162,26 +161,27 @@ const RateLimiter = require('limiter').RateLimiter;
 		const buildingDbData = await buildingObj.load();		
 		const sublocationObj = new Location(notificationTokenDbData['location_id']);
 		const sublocationDbData = await sublocationObj.load();
-
+		const account = new Account(userDbData['account_id']);
+		const accountDbData = await account.load();
 		switch(action) {
 			case 'resend':
 			let strToken = cryptoJs.AES.encrypt(`${Date.now()}_${notificationTokenDbData['user_id']}_${notificationTokenDbData['location_id']}_${notificationTokenDbData['notification_config_id']}`, process.env.KEY).toString();
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : ['jmanoharan@evacgroup.com.au'],
-        cc: ['emacaraig@evacgroup.com.au'],
+        to : [userDbData['email']],
+        cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
 			};
 			const email = new EmailSender(opts);
-			const link = 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
-      const yesLink = 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
+			const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
+      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 			
 			emailBody += `<pre>Hi ${userDbData['first_name']} ${userDbData['last_name']},</pre>`;
-      emailBody += `<pre>Please confirm you are still the Tenant Responsible Person (TRP)* for ${userDbData['account_name']} at ${buildingDbData['name']}, ${sublocationDbData['name']}</pre><br />`;
+      emailBody += `<pre>Please confirm you are still the Tenant Responsible Person (TRP)* for ${accountDbData['account_name']} at ${buildingDbData['name']}, ${sublocationDbData['name']}</pre><br />`;
       emailBody += `<a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a><br />
       <pre>${notificationConfigDbData['message']}</pre><br />`;
       emailBody += `<pre>Would you like more information on EvacConnect or Emergency Planning?</pre>
@@ -428,7 +428,7 @@ const RateLimiter = require('limiter').RateLimiter;
       await configurator.create(configDBData);
     }
 
-    const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+    const redirectUrl = 'https://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
     const script = `
                 <h4>Redirecting...</h4>
                 <script>
@@ -508,7 +508,7 @@ const RateLimiter = require('limiter').RateLimiter;
     stringUserData = stringUserData.replace(/\'/gi, '');
 
     if (hasFrpTrpRole) {
-      const redirectUrl = 'http://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
+      const redirectUrl = 'https://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
       const script = `
                   <h4>Redirecting...</h4>
                   <script>
@@ -631,16 +631,16 @@ const RateLimiter = require('limiter').RateLimiter;
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : ['jmanoharan@evacgroup.com.au', 'rsantos@evacgroup.com.au'],
-        cc: ['emacaraig@evacgroup.com.au'],
+        to : [u['email']],
+        cc: ['jmanoharan@evacgroup.com.au','emacaraig@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
       };
 
       const email = new EmailSender(opts);
-      const link = 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
-      const yesLink = 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
+      const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
+      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 
       emailBody += `<pre>Hi ${u['first_name']} ${u['last_name']},</pre>`;
