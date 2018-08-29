@@ -31,12 +31,10 @@ export class NotifiedUsersListComponent implements OnInit, AfterViewInit,  OnDes
     ngOnInit() {        
         const role = this.auth.getHighestRankRole();
         this.userData = this.auth.getUserData();
-        if(this.userData.evac_role == 'admin'){
-            this.isAdmin = true;
-        }else if (role <= 2) {
+        if (role <= 2) {
             this.hasAccountRole = true;
         } else {
-            this.router.navigate(['']);
+            this.router.navigate(['/']);
         }
         this.route.params.subscribe((params) => {
             this.configId = this.cryptor.decrypt(params['config']);

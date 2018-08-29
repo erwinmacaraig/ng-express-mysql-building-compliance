@@ -4,13 +4,14 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs/Subscription';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
 declare var $: any;
 @Component({
     selector: 'app-notification-config',
     templateUrl: './notification-config.component.html',
     styleUrls: ['./notification-config.component.css'],
-    providers: [ AccountsDataProviderService ]
+    providers: [ AccountsDataProviderService, DashboardPreloaderService ]
 })
 export class NotificationConfigurationComponent implements OnInit, AfterViewInit, OnDestroy {
     public hasAccountRole = false;
@@ -42,7 +43,8 @@ help us ensure that tenant and warden lists remain up to date.
 
     constructor(private accountService: AccountsDataProviderService,
         private auth: AuthService,
-        private router: Router) {}
+        private router: Router,
+        public dashboard: DashboardPreloaderService) {}
 
     ngOnInit() {
         const role = this.auth.getHighestRankRole();
@@ -105,6 +107,7 @@ help us ensure that tenant and warden lists remain up to date.
     }
 
     public createNewConfig() {
+        this.dashboard.show();
         let values = {};
         values = {
             frequency: this.notConfigFormGrp.get('frequency_field').value,
@@ -117,7 +120,10 @@ help us ensure that tenant and warden lists remain up to date.
 
         // console.log(JSON.stringify(values));
         this.accountService.createConfig(JSON.stringify(values)).subscribe((response) => {
+            this.dashboard.hide();
             this.router.navigate(['/dashboard', 'notification-list']);
+        }, (error) => {
+            this.dashboard.hide();
         });
     }
 
