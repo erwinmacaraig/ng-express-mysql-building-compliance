@@ -169,7 +169,7 @@ const RateLimiter = require('limiter').RateLimiter;
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : [userDbData['email']],
+				to: [userDbData['email']],
         cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
         body : '',
         attachments: [],
@@ -631,8 +631,8 @@ const RateLimiter = require('limiter').RateLimiter;
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : [u['email']],
-        cc: ['jmanoharan@evacgroup.com.au','emacaraig@evacgroup.com.au'],
+				to : [u['email']],
+        cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'

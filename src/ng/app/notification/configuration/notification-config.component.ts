@@ -4,13 +4,14 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs/Subscription';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
 declare var $: any;
 @Component({
     selector: 'app-notification-config',
     templateUrl: './notification-config.component.html',
     styleUrls: ['./notification-config.component.css'],
-    providers: [ AccountsDataProviderService ]
+    providers: [ AccountsDataProviderService, DashboardPreloaderService ]
 })
 export class NotificationConfigurationComponent implements OnInit, AfterViewInit, OnDestroy {
     public hasAccountRole = false;
@@ -25,16 +26,16 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
     private sub: Subscription;
     public defaultMessage = `
 
-        Thank you again for your active participation and commitment to promote proactive safety within your building.
+Thank you again for your active participation and commitment to promote proactive safety within your building.
 
-        Sincerely,
-        The EvacConnect Engagement team
-        Email: systems@evacgroup.com.au
-        Phone: 1300 922 437
+Sincerely,
+The EvacConnect Engagement team
+Email: systems@evacgroup.com.au
+Phone: 1300 922 437
 
-        * The TRP for a tenancy is the person responsible for ensuring that emergency planning is
-        being managed in your tenancy. You receive these confirmation emails every 3 months to
-        help us ensure that tenant and warden lists remain up to date.
+* The TRP for a tenancy is the person responsible for ensuring that emergency planning is
+being managed in your tenancy. You receive these confirmation emails every 3 months to
+help us ensure that tenant and warden lists remain up to date.
     `;
     public buildingArray = [];
     isAdmin = false;
@@ -42,7 +43,8 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
 
     constructor(private accountService: AccountsDataProviderService,
         private auth: AuthService,
-        private router: Router) {}
+        private router: Router,
+        public dashboard: DashboardPreloaderService) {}
 
     ngOnInit() {
         const role = this.auth.getHighestRankRole();
@@ -105,6 +107,7 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
     }
 
     public createNewConfig() {
+        this.dashboard.show();
         let values = {};
         values = {
             frequency: this.notConfigFormGrp.get('frequency_field').value,
@@ -117,7 +120,10 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
 
         // console.log(JSON.stringify(values));
         this.accountService.createConfig(JSON.stringify(values)).subscribe((response) => {
+            this.dashboard.hide();
             this.router.navigate(['/dashboard', 'notification-list']);
+        }, (error) => {
+            this.dashboard.hide();
         });
     }
 
