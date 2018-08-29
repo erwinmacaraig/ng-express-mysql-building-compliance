@@ -114,12 +114,14 @@ table{
     vertical-align: middle;
 }
 
+#modalMobilityHealty,
 #modalArchive{
     width: 90%;
 }
 
 @media only screen and (min-width: 1024px) {
+    #modalMobilityHealty,
     #modalArchive{
-        width: 30%;
+        width: 35%;
     }
 }

@@ -52,7 +52,9 @@ export class NotificationToken extends BaseClass {
         dtResponded = ?,
         completed = ?,
         dtCompleted = ?,
-        strResponse = ?
+        strResponse = ?,
+        dtLastSent = ?,s
+        manually_validated_by = ?
       `;
       const param = [
         ('strToken' in this.dbData) ? this.dbData['strToken'] : '',
@@ -66,7 +68,7 @@ export class NotificationToken extends BaseClass {
         ('dtResponded' in this.dbData) ? this.dbData['dtResponded'] : '0000-00-00',
         ('completed' in this.dbData) ? this.dbData['completed'] : 0,
         ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : '0000-00-00',
-        ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',
+        ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',        
         ('strToken' in this.dbData) ? this.dbData['strToken'] : '',
         ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
         ('role_text' in this.dbData) ? this.dbData['role_text'] : '',
@@ -77,6 +79,8 @@ export class NotificationToken extends BaseClass {
         ('completed' in this.dbData) ? this.dbData['completed'] : 0,
         ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : '0000-00-00',
         ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',
+        ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00',
+        ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0
       ];
       const connection = db.createConnection(dbconfig);
       connection.query(sql_insert, param, (err, results) => {
@@ -107,7 +111,9 @@ export class NotificationToken extends BaseClass {
           dtResponded = ?,
           completed = ?,
           dtCompleted = ?,
-          strResponse = ?
+          strResponse = ?,
+          dtLastSent = ?,
+          manually_validated_by = ?
         WHERE notification_token_id = ?
       `;
       const param = [
@@ -123,6 +129,8 @@ export class NotificationToken extends BaseClass {
         ('completed' in this.dbData) ? this.dbData['completed'] : 0,
         ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : '0000-00-00',
         ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',
+        ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00',
+        ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0,
         this.ID() ? this.ID() : 0
       ];
       const connection = db.createConnection(dbconfig);
@@ -145,9 +153,11 @@ export class NotificationToken extends BaseClass {
         if (error) {
           console.log('Cannot load record NotificationToken', sql_load);
           throw Error(error);
-        }
-        this.dbData = results[0];
-        this.setID(results[0]['notification_token_id']);
+        }        
+        if (results.length > 0) {
+          this.dbData = results[0];
+          this.setID(results[0]['notification_token_id']);          
+        }        
         resolve(this.dbData);
       });
       connection.end();
@@ -207,7 +217,9 @@ export class NotificationToken extends BaseClass {
                   users.email,
                   users.mobile_number,
                   accounts.account_name,
+                  notification_token.notification_token_id,                  
                   notification_token.role_text,
+                  notification_token.dtLastSent,
                   users.last_login, parent_loctions.name as parent, locations.name, notification_token.strStatus
                FROM
                  users

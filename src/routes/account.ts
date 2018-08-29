@@ -120,7 +120,13 @@ const RateLimiter = require('limiter').RateLimiter;
       new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
         new AccountRoute().listPEEPOnNotificationScreen(req, res);
       }
-    );
+		);
+		
+		router.post('/accounts/notification-actions/',
+		    new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
+				new AccountRoute().performNotificationAction(req, res);
+			}			
+	  );
 
   }
 
@@ -132,7 +138,104 @@ const RateLimiter = require('limiter').RateLimiter;
 	*/
 	constructor() {
 		super();
-  }
+	}
+	
+	public async performNotificationAction(req, res) {
+		// console.log(req.body);
+		const action = req.body.action;
+		const notification_token_id = parseInt(req.body.notification_token_id, 10);
+		const notificationTokenObj = new NotificationToken(notification_token_id);
+		const notificationTokenDbData = await notificationTokenObj.load();
+		
+		if (Object.keys(notificationTokenDbData).length == 0) {
+			return res.status(400).send({
+				message: 'No such token exists'
+			});
+		}
+    
+		const notificationConfigObj = new NotificationConfiguration(notificationTokenDbData['notification_config_id']);
+		const notificationConfigDbData = await notificationConfigObj.load();
+		const user = new User(notificationTokenDbData['user_id']);
+		const userDbData = await user.load();
+		const buildingObj = new Location(notificationConfigDbData['building_id']);
+		const buildingDbData = await buildingObj.load();		
+		const sublocationObj = new Location(notificationTokenDbData['location_id']);
+		const sublocationDbData = await sublocationObj.load();
+		const account = new Account(userDbData['account_id']);
+		const accountDbData = await account.load();
+		switch(action) {
+			case 'resend':
+			let strToken = cryptoJs.AES.encrypt(`${Date.now()}_${notificationTokenDbData['user_id']}_${notificationTokenDbData['location_id']}_${notificationTokenDbData['notification_config_id']}`, process.env.KEY).toString();
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : [userDbData['email']],
+        cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
+        body : '',
+        attachments: [],
+        subject : 'EvacConnect Email Notification'
+			};
+			const email = new EmailSender(opts);
+			const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
+      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
+      let emailBody = email.getEmailHTMLHeader();
+			
+			emailBody += `<pre>Hi ${userDbData['first_name']} ${userDbData['last_name']},</pre>`;
+      emailBody += `<pre>Please confirm you are still the Tenant Responsible Person (TRP)* for ${accountDbData['account_name']} at ${buildingDbData['name']}, ${sublocationDbData['name']}</pre><br />`;
+      emailBody += `<a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a><br />
+      <pre>${notificationConfigDbData['message']}</pre><br />`;
+      emailBody += `<pre>Would you like more information on EvacConnect or Emergency Planning?</pre>
+
+      <p style="margin-top: 30px;"><a href="https://www.evacservices.com.au/emergency-planning-101-why-plan-for-emergencies/" target="_blank" style="text-decoration:none; color: black; border:2px solid #ff9800; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 203px 10px 20px;">The importance of planning for emergencies</a></p>
+      <p style="margin-top: 35px;"><a href="https://www.evacservices.com.au/updating-and-managing-warden-lists-is-now-easier-with-evacconnect/" target="_blank" style="text-decoration:none; color: black; border:2px solid #2196F3; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 45px 10px 20px;">EvacConnect for Tenant Responsible Persons - an instructional video</a></p>
+      <p style="margin-top: 35px;"><a href="http://evachub.com/limesurvey/index.php/662295?newtest=Y&lang=en" target="_blank" style="text-decoration:none; color: black; border:2px solid black; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 120px 10px 20px;">Provide feedback on your experience using EvacConnect</a></p>
+      `;
+
+			emailBody += email.getEmailHTMLFooter();
+      email.assignOptions({
+        body : emailBody
+			});
+			
+			email.send(
+				(data) => {
+					console.log(data)					
+				},
+				(err) => console.log(err)
+			);
+
+			await notificationTokenObj.create({
+        strToken: strToken,
+				dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD'),
+				strStatus: 'Pending',
+				responded: 0,
+				dtResponded: '0000-00-00',
+				completed: 0,
+				dtCompleted: '0000-00-00',
+				strResponse: '',
+				dtLastSent: moment().format('YYYY-MM-DD'),
+				manually_validated_by: 0
+      });
+
+			return res.status(200).send({
+				message: `Email sent to ${userDbData['first_name']} ${userDbData['last_name']} at ${userDbData['email']}`
+			});
+		
+		case 'validate': 
+			await notificationTokenObj.create({
+				strToken: '',
+				strStatus: 'Validated',
+				responded: 1,
+				dtResponded: moment().format('YYYY-MM-DD'),
+				completed: 1,
+				dtCompleted: moment().format('YYYY-MM-DD'),
+				manually_validated_by: req.user.user_id
+			});
+		  return res.status(200).send({
+         message: `${userDbData['first_name']} ${userDbData['last_name']} has been validated.`
+			});
+		}
+
+	}
 
   public async listPEEPOnNotificationScreen(req, res) {
     const buildingId = req.query.building;
@@ -325,7 +428,7 @@ const RateLimiter = require('limiter').RateLimiter;
       await configurator.create(configDBData);
     }
 
-    const redirectUrl = req.protocol + '://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+    const redirectUrl = 'https://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
     const script = `
                 <h4>Redirecting...</h4>
                 <script>
@@ -405,7 +508,7 @@ const RateLimiter = require('limiter').RateLimiter;
     stringUserData = stringUserData.replace(/\'/gi, '');
 
     if (hasFrpTrpRole) {
-      const redirectUrl = req.protocol + '://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
+      const redirectUrl = 'https://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
       const script = `
                   <h4>Redirecting...</h4>
                   <script>
@@ -421,13 +524,10 @@ const RateLimiter = require('limiter').RateLimiter;
     } else {
       return res.redirect('/success-valiadation?verify-notified-user=1');
     }
-
-
-
-
-
   }
 
+
+	
   public async listNotifiedUsers(req: AuthRequest, res: Response) {
     const notification_config_id = req.query.config_id;
 	  const tokenObj = new NotificationToken();
@@ -532,15 +632,15 @@ const RateLimiter = require('limiter').RateLimiter;
         from : '',
         fromName : 'EvacConnect',
         to : [u['email']],
-        cc: ['emacaraig@evacgroup.com.au','jmanoharan@evacgroup.com.au'],
+        cc: ['jmanoharan@evacgroup.com.au','emacaraig@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
       };
 
       const email = new EmailSender(opts);
-      const link = req.protocol + '://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
-      const yesLink = req.protocol + '://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
+      const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
+      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 
       emailBody += `<pre>Hi ${u['first_name']} ${u['last_name']},</pre>`;
@@ -578,9 +678,13 @@ const RateLimiter = require('limiter').RateLimiter;
 
 
   public async searchForBuildings(req: AuthRequest, res: Response) {
-    const accountId = req.user.account_id;
+    let accountId = <any> req.user.account_id;
     const queryBldgName = req.query.bldgName;
     const larIds = [];
+
+    if(req.user.evac_role == 'admin'){
+        accountId = 'admin';
+    }
 
     const list = new List();
     const lar = await list.listTaggedLocationsOnAccount(accountId, {
