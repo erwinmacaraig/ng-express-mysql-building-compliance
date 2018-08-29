@@ -25,16 +25,16 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
     private sub: Subscription;
     public defaultMessage = `
 
-        Thank you again for your active participation and commitment to promote proactive safety within your building.
+Thank you again for your active participation and commitment to promote proactive safety within your building.
 
-        Sincerely,
-        The EvacConnect Engagement team
-        Email: systems@evacgroup.com.au
-        Phone: 1300 922 437
+Sincerely,
+The EvacConnect Engagement team
+Email: systems@evacgroup.com.au
+Phone: 1300 922 437
 
-        * The TRP for a tenancy is the person responsible for ensuring that emergency planning is
-        being managed in your tenancy. You receive these confirmation emails every 3 months to
-        help us ensure that tenant and warden lists remain up to date.
+* The TRP for a tenancy is the person responsible for ensuring that emergency planning is
+being managed in your tenancy. You receive these confirmation emails every 3 months to
+help us ensure that tenant and warden lists remain up to date.
     `;
     public buildingArray = [];
     isAdmin = false;
