@@ -47,6 +47,7 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
     ngOnInit() {
         const role = this.auth.getHighestRankRole();
         this.userData = this.auth.getUserData();
+        /*
         if(this.userData.evac_role == 'admin'){
             this.isAdmin = true;
         }else if (role <= 2) {
@@ -54,6 +55,12 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
         } else {
             this.router.navigate(['']);
         }
+        */
+       if (role <= 2) {
+        this.hasAccountRole = true;
+       } else {
+        this.router.navigate(['/']);
+       }
 
         this.notConfigFormGrp = new FormGroup({
             all_users: new FormControl(false, null),
