@@ -3,14 +3,16 @@
     <h5 class="title">Email Notification List</h5>
   </div>
   <div class="col l2 m3 s12 ">
-		<button class="btn orange waves-effect waves-light add-peep pull right" *ngIf="!isAdmin" [routerLink]="['/dashboard', 'notification-config']">
+		<button class="btn orange waves-effect waves-light add-peep pull right" [routerLink]="['/dashboard', 'notification-config']">
 			<span class="image"></span>
 			Send New Email
-		</button>
+    </button>
+    <!--
         <button class="btn orange waves-effect waves-light add-peep pull right" *ngIf="isAdmin" [routerLink]="['/admin', 'notification-config']">
             <span class="image"></span>
             Send New Email
         </button>
+    -->
 	</div>
 </div>
 <div class="row filter-container to-hide-in-show-profile-update">
