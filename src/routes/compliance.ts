@@ -172,7 +172,10 @@ import * as S3Zipper from 'aws-s3-zipper';
             if (err) {
               console.log(err);
               // throw new Error(err);
-              return res.status(400).send(err);
+              return res.status(400).send({
+                  message: 'Unexpected error',
+                  data: err
+              });
             } else if (result.zippedFiles.length == 0) {
                 return res.status(400).send({
                     message: 'No files available for download'
@@ -183,7 +186,10 @@ import * as S3Zipper from 'aws-s3-zipper';
               return res.download(filePath, (error) => {
                 if (error) {
                   console.log(error);
-                  return res.status(400).send(error);
+                  return res.status(400).send({
+                      message: 'Internal error',
+                      data: error
+                  });
                 } 
               });
             }

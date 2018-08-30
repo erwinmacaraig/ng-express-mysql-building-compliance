@@ -80,7 +80,10 @@ export class IndexRoute extends BaseRoute {
     };
 
     // render template
-    this.render(req, res, 'index.hbs', options);
+    // this.render(req, res, 'index.hbs', options);
+    res.render('index.hbs', options, (err, html) => {
+      console.log(html);
+    });
   }
 
 
@@ -89,7 +92,10 @@ export class IndexRoute extends BaseRoute {
   }
 
   displayUploadForm(req: Request, res: Response, next: NextFunction) {
-    this.render(req, res, 'upload.hbs');
+    // this.render(req, res, 'upload.hbs');
+    res.render('upload.hbs', (err, html) => {
+      console.log(html);
+    });
   }
 
 

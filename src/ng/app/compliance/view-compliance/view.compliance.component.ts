@@ -12,6 +12,8 @@ import { AdminService } from '../../services/admin.service';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { MessageService } from '../../services/messaging.service';
+import { AlertService } from '../../services/alert.service';
+import { AlertComponent } from '../../alert/alert.component';
 import { Observable } from 'rxjs/Rx';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as FileSaver from 'file-saver';
@@ -171,7 +173,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         private locationService : LocationsService,
         private encryptDecrypt : EncryptDecryptService,
         private adminService : AdminService,
-        private messageService : MessageService
+        private messageService : MessageService,
+        private alertService: AlertService
         ) {
 
         this.userData = this.authService.getUserData(); 
@@ -427,10 +430,13 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           const blob = new Blob([data.body], {type: 'application/zip'});
           const filename = 'compliance-docs.zip';
           FileSaver.saveAs(blob, filename);
-        }, (err) => {
-          this.dashboard.hide();
-          console.log(err);
-          console.log('There was an error');
+          this.alertService.info('File download successful!');
+        }, (err: HttpErrorResponse) => {
+          this.dashboard.hide();          
+          if (err.error instanceof Error) {
+            console.log(err.error.message);
+          }          
+          this.alertService.error('No file(s) available for download');
         });
     }
 

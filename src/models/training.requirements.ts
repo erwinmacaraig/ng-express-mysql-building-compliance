@@ -144,6 +144,7 @@ export class TrainingRequirements extends BaseClass {
           resolve(results);
 
         });
+        connection.end();
       });
     }
 

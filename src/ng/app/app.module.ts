@@ -15,6 +15,8 @@ import { AuthGuard } from './services/auth-guard.service';
 import { SignupService } from './services/signup.service';
 import { MessageService } from './services/messaging.service';
 import { LocationsService } from './services/locations';
+import { AlertService } from './services/alert.service';
+
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
@@ -23,6 +25,7 @@ import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.compone
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { NavbarComponent } from './navbar/navbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { AlertComponent } from './alert/alert.component';
 
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
 import { UserDashboardComponent  } from './dashboard/user/user.component';
@@ -253,7 +256,8 @@ import {  PeepFormComponent } from './peep.form/peep.form';
     AdminReportsComponent,
     AdminAddAccountComponent,
     PaperAttendanceComponent,
-    PeepFormComponent
+    PeepFormComponent,
+    AlertComponent
   ],
   imports: [
     BrowserModule,
@@ -277,6 +281,7 @@ import {  PeepFormComponent } from './peep.form/peep.form';
     LocationsService,
     MessageService,
     SignupService,
+    AlertService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: TokenInterceptor,
