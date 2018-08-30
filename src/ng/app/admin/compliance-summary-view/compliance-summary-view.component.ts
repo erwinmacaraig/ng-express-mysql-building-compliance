@@ -13,6 +13,7 @@ import { ComplianceService } from '../../services/compliance.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DatepickerOptions } from 'ng2-datepicker';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { LocationsService  } from '../../services/locations';
 declare var $: any;
 declare var moment: any;
 
@@ -20,7 +21,7 @@ declare var moment: any;
   selector: 'app-admin-compliance-summary',
   templateUrl: './compliance-summary-view.component.html',
   styleUrls: ['./compliance-summary-view.component.css'],
-  providers: [ AdminService, ComplianceService, EncryptDecryptService, DashboardPreloaderService ]
+  providers: [ AdminService, ComplianceService, EncryptDecryptService, DashboardPreloaderService, LocationsService ]
 })
 
 export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -56,6 +57,8 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   genericSub: Subscription;
 
   totalPercentage = 0;
+  complianceSublocations = [];
+  selectedCompliance = <any> {};
 
   @ViewChild('inpFileUploadDocs') inpFileUploadDocs: ElementRef;
   constructor(
@@ -64,7 +67,8 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     public http: HttpClient,
     private route: ActivatedRoute,
     platformLocation: PlatformLocation,
-    public dashboard: DashboardPreloaderService) {
+    public dashboard: DashboardPreloaderService,
+    private locationService: LocationsService) {
 
       this.baseUrl = (platformLocation as any).location.origin;
     }
@@ -105,6 +109,19 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         this.adminService.FSA_EvacExer_Status(this.accountId.toString(), this.locationId.toString(), '3').subscribe((response) => {
           console.log(response);
           this.FSAStatus = (response['data']['compliance_status'] == 1) ? true : false;
+    });
+
+    this.locationService.getByIdWithQueries({
+      location_id : this.locationId,
+      account_id : this.accountId,
+      get_related_only : false
+    }, (response) => {
+      console.log(response);
+      if (response.sublocations.length > 0) {
+      this.complianceSublocations = response.sublocations;
+      } else {
+      this.complianceSublocations.push(response.location);
+      }
     });
 
   }
@@ -195,6 +212,14 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       this.documentFiles = response['data'];
       this.locationName = response['displayName'].join(' >> ');
     });
+
+    for(let k of this.KPIS){
+      if(k['compliance_kpis_id'] == this.selectedKPI){
+        this.selectedCompliance = k;
+      }
+    }
+
+    console.log('this.selectedCompliance', this.selectedCompliance);
   }
 
   showModalUploadDocs() {
