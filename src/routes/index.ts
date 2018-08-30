@@ -6,6 +6,7 @@ import { AuthRequest } from '../interfaces/auth.interface';
 import * as fs from 'fs';
 import * as path from 'path';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
+import { EmailSender } from '../models/email.sender';
 
 import { FileUploader } from '../models/upload-file';
 
@@ -47,6 +48,37 @@ export class IndexRoute extends BaseRoute {
 
     router.get('/health/', (req: AuthRequest, res: Response) => {
       return res.status(200).send('OK');
+    });
+
+    router.get('/emails/nominate-warden', (req: AuthRequest, res: Response) => {
+        let options = {
+            users_fullname : 'Allan Delfin',
+            nominators_fullname : 'Rudolf Rednose',
+            nominators_account_name : 'StaClause',
+            account_name : 'Emapta',
+            location_name : 'Jaka Building, Level 7',
+            frequency : '3 months',
+            setup_link : 'https://google.com'
+        };
+
+        res.render('nominate-warden.hbs', options, (err, data) => {
+            let email = new EmailSender({
+                from : 'allantaw2@gmail.com',
+                fromName : 'Allan Delfin',
+                to : ['emacaraig@evacgroup.com.au'],
+                cc: [],
+                body : data,
+                attachments: [],
+                subject : 'Test HTML Email'
+            });
+
+            email.send(() => {
+                res.send('ok');
+            },
+            () => {
+                res.send('not ok');
+            });
+        });
     });
   }
 
