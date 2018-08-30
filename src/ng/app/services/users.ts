@@ -261,7 +261,7 @@ export class UserService {
 		.subscribe(res => {
 			callBack(res);
 		}, err => {
-			callBack( JSON.parse(err.error) );
+			callBack( false );
 		});
     }
 

@@ -309,19 +309,18 @@
 
             <div class="text-container">
                 <h5 class="file-name">
-                    <!-- <span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span> -->
+                    <span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
                 </h5>
 
                 <div class="dates">
                     <div class="created">
                         <p>Last warden training session held on</p>
-                        <p>00/00/0000</p>
-                        <!-- <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
+                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
                             {{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}
                         </p>
                         <p *ngIf="selectedCompliance.compliance.docs.length == 0" >
                             00/00/0000
-                        </p> -->
+                        </p>
                     </div>
                 </div>
 
@@ -330,7 +329,7 @@
                 </div>
 
                 <div class="buttons">
-                    <button class="btn btn-block orange waves-effect waves-light"  >Download</button>
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
                 </div>
             </div>
 
@@ -404,10 +403,10 @@
                       <a  (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
                   </td>
                   <ng-template #noChiefWarden>
-                    <td>0</td>
+                    <td >0</td>
                   </ng-template>
                   <ng-template #noChiefWardenPercentage>
-                    <td>0%</td>
+                    <td >0%</td>
                   </ng-template>
                 </tr>
             </tbody>
@@ -426,17 +425,16 @@
 
             <div class="text-container">
                 <h5 class="file-name">
-                    <!-- <span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span> -->
+                    <span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
                 </h5>
 
                 <div class="dates">
                     <div class="created">
                         <p>Last General Occupant training held on:</p>
-                        <!-- <p *ngIf="selectedCompliance.compliance.docs.length > 0" > -->
-                            <!-- {{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}} -->
-                        <!-- </p> -->
-                        <!-- <p *ngIf="selectedCompliance.compliance.docs.length == 0" >00/00/0000</p> -->
-                        <p>00/00/0000</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
+                            {{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}
+                        </p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" >00/00/0000</p>
                     </div>
                 </div>
 
@@ -445,8 +443,8 @@
                 </div>
 
                 <div class="buttons">
-                    <button  class="btn btn-block orange waves-effect waves-light" >Download</button>
-                   <!--  <button (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button> -->
+
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
                     <!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button> -->
                     <!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
                 </div>
@@ -519,10 +517,10 @@
                 <a  class="blue-text"> View Warden List </a>
               </td>
               <ng-template #noChiefWarden>
-                <td>0</td>
+                <td >0</td>
               </ng-template>
               <ng-template #noChiefWardenPercentage>
-                <td>0%</td>
+                <td >0%</td>
               </ng-template>
             </tr>
 
@@ -578,19 +576,18 @@
 
             <div class="text-container">
                 <h5 class="file-name">
-                    <!-- <span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span> -->
+                    <span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
                 </h5>
 
                 <div class="dates">
                     <div class="created">
                         <p>Last Chief warden training held on:</p>
-                        <!-- <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
+                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
                             {{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}
                         </p>
                         <p *ngIf="selectedCompliance.compliance.docs.length == 0" >
                             00/00/0000
-                        </p> -->
-                        <p>00/00/0000</p>
+                        </p>
                     </div>
 
                 </div>
@@ -600,10 +597,7 @@
                 </div>
 
                 <div class="buttons">
-                    <button class="btn btn-block orange waves-effect waves-light" >Download</button>
-                    <!-- <button
-                    (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
-                    class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button> -->
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
                     <!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/teams/add-wardens']" [queryParams]="{ 'location_id' : encryptedID }">Manage</button> -->
                     <!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
                 </div>
@@ -664,6 +658,7 @@
             <tbody  >
                 <tr *ngFor="let sub of complianceSublocations">
                     <td>{{sub.name}}</td>
+
                     <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
                         {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_estimated_wardens}}
                     </td>
@@ -680,10 +675,10 @@
                         <a  (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
                     </td>
                     <ng-template #noChiefWarden>
-                        <td>0</td>
+                        <td >0</td>
                     </ng-template>
                     <ng-template #noChiefWardenPercentage>
-                        <td>0%</td>
+                        <td >0%</td>
                     </ng-template>
                 </tr>
             </tbody>
@@ -797,6 +792,60 @@
             <button class="waves-effect waves-blue btn-flat" type="submit" [disabled]="!form.valid" (click)="submitUploadDocs(form)">Submit</button>
         </div>
     </form>
+</div>
+
+<div id="modalWardenList" class="modal">
+  <div class="modal-content">
+    <table class="striped table">
+            <thead>
+                <tr>
+                    <!-- <th>Date</th> -->
+                    <th>Account</th>
+                    <th>TRP Name</th>
+                    <th>No of wardens</th>
+                    <th>Wardens</th>
+                    <!--
+                    <th style="width: 10%;">No of new wardens added</th>
+                    <th style="width: 10%;">Action</th>
+                    -->
+                </tr>
+            </thead>
+            <tbody *ngIf="fetchingWardenList">
+                <tr>
+                    <td colspan="4" class="center">Loading...</td>
+                </tr>
+            </tbody>
+            <tbody *ngIf="!fetchingWardenList">
+                <tr *ngFor="let tenant of tenants">
+                    <!-- <td>n/a</td> -->
+                    <td>
+                        <span class="blue-text">{{tenant.account_name}}</span>
+                    </td>
+                    <td>
+                      <span *ngFor="let t of tenant.trp">{{t}}<br /></span>
+                    </td>
+                    <td>
+                        {{tenant.wardens.length}}
+                    </td>
+                    <td>
+                    <span *ngFor="let warden of tenant.wardens">{{warden.first_name}} {{warden.last_name}}<br /></span>
+                    </td>
+                    <!--
+                    <td style="padding: 2px;">
+                        <a  class=" ">
+                        <img src="/assets/images/download_ico_blue.png"  >
+                        </a>
+                    </td>
+                    -->
+                </tr>
+            </tbody>
+    </table>
+    <br />
+    <div class="button-container right-align" >
+        <a  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Close</a>
+    </div>
+  </div>
+
 </div>
 
 <div preloader></div>

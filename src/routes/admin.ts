@@ -1348,7 +1348,7 @@ export class AdminRoute extends BaseRoute {
       let children = [];
       const sublocations = [];
       sublocations.push(req.query.location);
-      if (req.query.kpi == 5) {
+      if (req.query.kpi == 5 || req.query.kpi == 9) {
         children = await location.getChildren(req.query.location);
         for (const c of children) {
           sublocations.push(c['location_id']);
@@ -1381,7 +1381,8 @@ export class AdminRoute extends BaseRoute {
         data: documents,
         location: location_data,
         displayName: tempNameParts,
-        detailsObj: hie_locations
+        detailsObj: hie_locations,
+        children: children
       });
     });
 

@@ -75,9 +75,7 @@
 				</div>
 
 				<div class="buttons">
-                    <button
-                    (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
-                    class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0"   >Download</button>
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']" >Shop</button> -->
                     <!-- <button class="btn btn-block orange waves-effect waves-light" *ngIf="isFRP == false && isTRP == true" (click)="showModalUploadDocs('epm')" style="display: block;width: 95%;">Manage</button> -->
 				</div>
@@ -133,9 +131,7 @@
 				</div>
 
 				<div class="buttons">
-                    <button
-                    (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
-                    class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0" style="width:46%;">Download</button>
+                   <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']" style="width:45%;">Shop</button> -->
                     <!-- <button class="btn btn-block orange waves-effect waves-light" (click)="showEPCformEvent()" style="display: block;width: 95%;">Manage</button> -->
 				</div>
@@ -193,7 +189,7 @@
 				</div>
 
 				<div class="buttons">
-					<button class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+					<a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
 
                     <div class="switch-container" *ngIf="isFRP == false && isTRP == true" >
@@ -264,7 +260,7 @@
 				</div>
 
 				<div class="buttons">
-          			<button (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+          			<a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
 				</div>
 			</div>
@@ -318,9 +314,7 @@
 				</div>
 
 				<div class="buttons">
-          <button
-          (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)"
-          class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/teams/add-wardens']" [queryParams]="{ 'location_id' : encryptedID }">Manage</button> -->
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
 				</div>
@@ -431,7 +425,7 @@
 				</div>
 
 				<div class="buttons">
-                    <button (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
                     <!-- <div class="switch-container"  >
                         <p class="give-access-text">Completed the Fire Safety Advisory?</p>
@@ -494,7 +488,7 @@
 				</div>
 
 				<div class="buttons">
-                    <button (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button> -->
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
 				</div>
@@ -549,7 +543,7 @@
 				</div>
 
 				<div class="buttons">
-                    <button  (click) = "downloadKPIFile(selectedCompliance.compliance.docs[0].filePaths[0],selectedCompliance.compliance.docs[0].file_name)" class="btn btn-block orange waves-effect waves-light" [disabled]="selectedCompliance.compliance.docs.length == 0">Download</button>
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button> -->
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
 				</div>
@@ -624,7 +618,7 @@
 						--
 					</td>
 					<td style="padding: 2px;">
-						<a  class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
+						<a  class=" "  href="{{doc['urlPath']}}" target="_blank">
 							<img src="/assets/images/download_ico_blue.png"  >
 						</a>
 					</td>
@@ -990,10 +984,10 @@
                         <a  (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
                     </td>
                     <ng-template #noChiefWarden>
-                        <td>0</td>
+                        <td >0</td>
                     </ng-template>
                     <ng-template #noChiefWardenPercentage>
-                        <td>0%</td>
+                        <td >0%</td>
                     </ng-template>
                 </tr>
             </tbody>
@@ -1073,10 +1067,10 @@
                   <a  (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
               </td>
               <ng-template #noChiefWarden>
-                <td>0</td>
+                <td >0</td>
               </ng-template>
               <ng-template #noChiefWardenPercentage>
-                <td>0%</td>
+                <td >0%</td>
               </ng-template>
             </tr>
 			</tbody>
@@ -1200,10 +1194,10 @@
                 <a  class="blue-text"> View Warden List </a>
               </td>
               <ng-template #noChiefWarden>
-                <td>0</td>
+                <td >0</td>
               </ng-template>
               <ng-template #noChiefWardenPercentage>
-                <td>0%</td>
+                <td >0%</td>
               </ng-template>
             </tr>
 

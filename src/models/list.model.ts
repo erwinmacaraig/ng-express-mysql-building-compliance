@@ -536,13 +536,13 @@ export class List {
                   INNER JOIN locations ON locations.location_id = compliance_documents.building_id
                   INNER JOIN compliance_kpis ON compliance_kpis.compliance_kpis_id = compliance_documents.compliance_kpis_id
                   LEFT JOIN locations as parentLocation ON parentLocation.location_id = locations.parent_id
-                  WHERE compliance_documents.account_id = ?
-                  AND compliance_documents.building_id IN (${locationStr})
+                  WHERE  
+                   compliance_documents.building_id IN (${locationStr})
                   AND compliance_documents.compliance_kpis_id = ?
                   ORDER BY compliance_documents.compliance_documents_id DESC`;
 
         const connection = db.createConnection(dbconfig);
-        connection.query(sql_get, [account, kpi], (error, results) => {
+        connection.query(sql_get, [kpi], (error, results) => {
           if (error) {
             console.log('list.model.generateComplianceDocumentList', error, sql_get);
             throw Error('There was an error generating the list of documents');

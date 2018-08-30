@@ -32,10 +32,10 @@
 }
 
 .row-diagram-details{
-    position: absolute;
+    position: relative;
     top: 0px;
     margin-top: 0%;
-    transition: all 0.5s;
+    transition: all 0.2s;
     width: 100%;
 }
 
