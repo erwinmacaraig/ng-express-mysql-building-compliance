@@ -19,6 +19,7 @@ import { FileUploader } from '../models/upload-file';
 import { TrainingCertification } from './../models/training.certification.model';
 import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_calculator.model';
 import { EpcMinutesMeeting } from './../models/epc.meeting.minutes';
+import { UtilsSync } from '../models/util.sync';
 import * as moment from 'moment';
 
 const AWSCredential = require('../config/aws-access-credentials.json');
@@ -150,7 +151,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         });
     }
 
-    public downloadDocumentCompliancePack(req: AuthRequest, res: Response, next: NextFunction) {
+    public async downloadDocumentCompliancePack(req: AuthRequest, res: Response, next: NextFunction) {
 
         const utils = new Utils();
         const config = {
@@ -161,6 +162,33 @@ import * as S3Zipper from 'aws-s3-zipper';
         };
         const zipper = new S3Zipper(config);
         const dirPath = __dirname + '/../public/temp';
+        const urlPath = await new UtilsSync().getAccountUploadDir(req.user.account_id, req.query.location_id, 0, '' ,true);
+        zipper.zipToFile({
+            's3FolderName': urlPath,
+            'startKey': null,
+            'zipFileName': `${dirPath}/${defs['COMPLIANCE-DOCS-PACK']}`,
+            'recursive': true
+          }, (err, result) => {
+            if (err) {
+              console.log(err);
+              // throw new Error(err);
+              return res.status(400).send(err);
+            } else if (result.zippedFiles.length == 0) {
+                return res.status(400).send({
+                    message: 'No files available for download'
+                });
+            } else {                
+              const lastFile = result.zippedFiles[result.zippedFiles.length-1];
+              const filePath = `${dirPath}/${defs['COMPLIANCE-DOCS-PACK']}`;
+              return res.download(filePath, (error) => {
+                if (error) {
+                  console.log(error);
+                  return res.status(400).send(error);
+                } 
+              });
+            }
+          });
+        /*
         utils.s3DownloadCompliancePackPathGen(req.user.account_id, req.query.location_id).then((urlPath) => {
           zipper.zipToFile({
             's3FolderName': urlPath,
@@ -184,12 +212,17 @@ import * as S3Zipper from 'aws-s3-zipper';
                   fs.unlink(filePath, function(e){
                     console.log('Cannot delete file.', e);
                   });
-                  */
+                  
                 }
               });
             }
           });
-        });
+        }).catch((e) => {
+            console.log('Error at compliance.downloadDocumentCompliancePack()', e);
+            return res.status(400).send({
+                message: 'Cannot download compliance pack'
+            });
+        }); */
         //
     }
 
