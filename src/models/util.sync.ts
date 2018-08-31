@@ -69,8 +69,7 @@ export class UtilsSync {
       const building_dbData = await new Location(locationData['parent_id']).load();
       location_dir = `${building_dbData['location_directory_name']}/${locationData['location_directory_name']}`;
     }
-    if (downloadAsPack) {
-      
+    if (downloadAsPack) {      
       return `${account_dbData['account_directory_name']}/${location_dir}`;
       
     } else {

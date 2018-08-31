@@ -423,10 +423,10 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     }
 
     downloadAllPack() {
-        this.dashboard.show();
+        // this.dashboard.show();
         //
         this.complianceService.downloadAllComplianceDocumentPack(this.locationID).subscribe((data) => {
-          this.dashboard.hide();
+          // this.dashboard.hide();
           const blob = new Blob([data.body], {type: 'application/zip'});
           const filename = 'compliance-docs.zip';
           FileSaver.saveAs(blob, filename);
@@ -441,14 +441,15 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     }
 
     downloadKPIFile(kpi_file, filename) {
-        console.log(kpi_file);
-        console.log(filename);
+        // console.log(kpi_file);
+        // console.log(filename);
         this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
           const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
           FileSaver.saveAs(blob, filename);
-          console.log(data);
+          // console.log(data);
         },
         (error) => {
+          this.alertService.error('No file(s) available for download');
           console.log('There was an error', error);
         });
     }

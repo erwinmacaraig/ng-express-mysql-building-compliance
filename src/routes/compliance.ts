@@ -21,6 +21,8 @@ import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_ca
 import { EpcMinutesMeeting } from './../models/epc.meeting.minutes';
 import { UtilsSync } from '../models/util.sync';
 import * as moment from 'moment';
+import * as AWS from 'aws-sdk';
+import * as fs from 'fs';
 
 const AWSCredential = require('../config/aws-access-credentials.json');
 const defs = require('../config/defs.json');
@@ -154,6 +156,80 @@ import * as S3Zipper from 'aws-s3-zipper';
     public async downloadDocumentCompliancePack(req: AuthRequest, res: Response, next: NextFunction) {
 
         const utils = new Utils();
+        let locationNameForDirName = '';
+        
+        let location_id = req.query.location_id;
+        const locationData = await new Location(req.query.location_id).load();
+        locationNameForDirName = locationData['location_directory_name'];
+        if (locationData['is_building'] != 1) {
+            // get immediate parent
+            location_id = locationData['parent_id'];
+            const building_dbData = await new Location(locationData['parent_id']).load();
+            locationNameForDirName = building_dbData['location_directory_name'];
+        }         
+        
+        try {
+            fs.mkdirSync(__dirname + `/../public/temp/${locationNameForDirName}`);
+        } catch(e) {
+            console.log(e);
+            console.log(`${locationNameForDirName} already exists`);
+        }
+        const complianceDocsModel = new ComplianceDocumentsModel();
+        
+        const whereDocs = [];
+        let docs = <any>[];       
+
+        whereDocs.push([`compliance_documents.building_id = ${location_id}` ]);
+        whereDocs.push([`compliance_documents.document_type = 'Primary' `]);
+        docs = await complianceDocsModel.getWhere(whereDocs);
+        let totalDocs = 0;
+       
+        for(let d of docs) {
+            let p = await new UtilsSync().getAccountUploadDir(
+                d['account_id'],
+                d['building_id'],
+                d['compliance_kpis_id']
+            );
+            p = p + d['file_name'];  
+                     
+            const dirPath = __dirname + `/../public/temp/${locationNameForDirName}/${d['file_name']}`;
+            try {
+                await utils.getMultipleFilesFromS3(dirPath, p);
+                totalDocs++;
+            } catch (e) {
+                console.log(e);
+                console.log(`Key: ${p}`);
+            }
+            
+        }
+        return res.status(200).send({
+            message: `Total download files: ${totalDocs}`
+        });
+                
+         
+            
+
+        
+        
+        
+        /*
+        for (let p in paths) {
+            console.log(paths[p]);
+            const parts = paths[p].split('/');
+            const dirPath = __dirname + `/../public/temp/${locationNameForDirName}/${parts[parts.length - 1]}`;
+            const params = {
+                Bucket:  AWSCredential.AWS_Bucket,
+                Key: paths[p]
+              };
+            const file_stream = fs.createWriteStream(dirPath);
+            file_stream.on('finish', () => {
+                console.log(`${parts[parts.length - 1]} has been written to disk`);
+            });
+        }
+        */
+        
+
+        /*
         const config = {
           'accessKeyId': AWSCredential.AWSAccessKeyId,
           'secretAccessKey': AWSCredential.AWSSecretKey,
@@ -194,7 +270,7 @@ import * as S3Zipper from 'aws-s3-zipper';
               });
             }
           });
-        /*
+        
         utils.s3DownloadCompliancePackPathGen(req.user.account_id, req.query.location_id).then((urlPath) => {
           zipper.zipToFile({
             's3FolderName': urlPath,
@@ -414,13 +490,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         utils = new Utils(),
         training = new TrainingCertification(),
         locationModel = new Location(locationID),
-        wardenCalc = new WardenBenchmarkingCalculator();
-
-        try {
-            paths = await utils.s3DownloadFilePathGen(accountID, locationID);
-        } catch (e) {
-            paths = [];
-        }
+        wardenCalc = new WardenBenchmarkingCalculator();       
 
         let
         sublocsids = [],
@@ -696,7 +766,6 @@ import * as S3Zipper from 'aws-s3-zipper';
         whereDocs.push(['compliance_documents.building_id IN (' + docsLocIds.join(',') + ')' ]);
         whereDocs.push(['compliance_documents.document_type = "Primary" ']);
         docs = await complianceDocsModel.getWhere(whereDocs);
-
         docs = docs.sort((a, b) => {
             let d1 = moment(a.date_of_activity),
                 d2 = moment(b.date_of_activity);
@@ -711,6 +780,11 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         for(let d of docs){
             d.timestamp_formatted = (moment(d.timestamp_formatted).isValid()) ? moment(d.timestamp_formatted).format('DD/MM/YYYY') : '00/00/0000';
+            try {
+                paths = await utils.s3DownloadFilePathGen(d['account_id'], d['building_id']);
+            } catch (e) {
+                paths = [];
+            }
         }
 
         for (let c in compliances) {
@@ -725,7 +799,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
             for(let d in docs){
                 if(docs[d]['compliance_kpis_id'] == compliances[c]['compliance_kpis_id']){
-                    docs[d]['filePaths'] = (paths[ compliances[c]['compliance_kpis_id'] ]) ? paths[ compliances[c]['compliance_kpis_id'] ] : [] ;
+                    docs[d]['filePaths'] = (paths[ compliances[c]['compliance_kpis_id'] ]) ? paths[ compliances[c]['compliance_kpis_id'] ] : [] ;                    
                     if( docs[d]['compliance_kpis_id'] == epmId ){
                         if( docs[d]['building_id'] != theBuilding.location_id && role != 2 ){
                             compliances[c]['docs'].push(docs[d]);

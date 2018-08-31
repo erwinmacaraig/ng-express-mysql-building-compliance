@@ -55,7 +55,7 @@ export class ComplianceDocumentsModel extends BaseClass {
                 sql += arrWhere[i];
             }
             sql += ` ORDER BY timestamp DESC `;
-            const connection = db.createConnection(dbconfig);
+            const connection = db.createConnection(dbconfig);            
             connection.query(sql, (error, results, fields) => {
                 if (error) {
                     console.log(error);
@@ -67,12 +67,7 @@ export class ComplianceDocumentsModel extends BaseClass {
 
         });
     }
-
-    private filterCleanDocs() {
-      return new Promise((resolve, reject) => {
-
-      });
-    }
+    
     public dbUpdate() {
         return new Promise((resolve, reject) => {
             const sql_update = `UPDATE compliance_documents SET

@@ -5,6 +5,8 @@ import * as fs from 'fs';
 import { Location } from './location.model';
 import { Account } from './account.model';
 import { ComplianceKpisModel } from './comliance.kpis.model';
+import * as AWS from 'aws-sdk';
+const AWSCredential = require('../config/aws-access-credentials.json');
 
 const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
@@ -423,4 +425,33 @@ export class Utils {
         connection.end();
       });
     }
+
+  getMultipleFilesFromS3(dirPath, key) {
+    return new Promise((resolve, reject) => {
+      AWS.config.accessKeyId = AWSCredential.AWSAccessKeyId;
+      AWS.config.secretAccessKey = AWSCredential.AWSSecretKey;
+      AWS.config.region = AWSCredential.AWS_REGION;
+      const aws_s3 = new AWS.S3();
+
+      const params = {
+        Bucket:  AWSCredential.AWS_Bucket,
+        Key: key
+      };
+
+      const file_stream = fs.createWriteStream(dirPath);
+      aws_s3.getObject(params, (error, data) => {
+        if (error) {
+          console.log(error);
+          reject(error);
+        }
+      }).createReadStream().on('error', (error) => {
+        console.log(key);
+        reject(error);
+      }).pipe(file_stream);
+      file_stream.on('finish', () => {
+        console.log(`The file has been written to disk`);
+        resolve(true);
+       });
+    });
+  }
 }
