@@ -383,38 +383,30 @@ const md5 = require('md5');
 	 	}
 	}
 
-	private sendEmailForRegistration(userData, req, success, error, bodyEmail?, tokenParam?){
-		let opts = {
-	        from : '',
-	        fromName : 'EvacConnect',
-	        to : [],
-	        body : '',
-	        attachments: [],
-	        subject : 'EvacConnect Signup Verification'
-	    };
+	private sendEmailForRegistration(userData, req, res, success, error, bodyEmail?, tokenParam?){
+        let opts = {
+            from : 'admin@evacconnect.com',
+            fromName : 'EvacConnect',
+            to : [],
+            body : '',
+            attachments: [],
+            subject : 'EvacConnect Signup Verification'
+        };
 
-		let email = new EmailSender(opts),
-			emailBody = email.getEmailHTMLHeader(),
-			tokenModel = new Token(),
-			token = (tokenParam) ? tokenParam : userData['user_id']+''+tokenModel.generateRandomChars(50),
-			link = req.protocol + '://' + req.get('host') +'/token/'+token;
+        let email = new EmailSender(opts),
+            tokenModel = new Token(),
+            token = (tokenParam) ? tokenParam : userData['user_id']+''+tokenModel.generateRandomChars(50),
+            link = req.protocol + '://' + req.get('host') +'/token/'+token;
 
-		if(!bodyEmail){
-			emailBody += '<h3 style="text-transform:capitalize;">Hi '+userData.first_name+' '+userData.last_name+'</h3> <br/>';
-			emailBody += '<h4>Thank you for using EvacConnect Compliance Management System</h4> <br/>';
-			emailBody += '<h5>Please verify your account by clicking the link below</h5> <br/>';
-			emailBody += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
-		}else{
-			emailBody += bodyEmail;
-		}
+        let emailData = <any> {
+            users_fullname : this.toTitleCase(userData.first_name+' '+userData.last_name),
+            setup_link : link
+        };
 
-
-		emailBody += email.getEmailHTMLFooter();
-
-		email.assignOptions({
-			body : emailBody,
-			to: [userData.email]
-		});
+        email.assignOptions({
+            to: [userData.email],
+            cc: []
+        });
 
 		let expDate = moment(),
 			expDateFormat = '';
@@ -430,10 +422,10 @@ const md5 = require('md5');
 			'expiration_date' : expDateFormat
 		}).then(
 			() => {
-				email.send(
-					(data) => { success(data); },
-					(err) => { error(err); }
-				);
+                email.sendFormattedEmail('signup', emailData, res, 
+                    (data) => { success(data); },
+                    (err) => { error(err); }
+                );
 			},
 			() => {
 				error('Unable to save token');
@@ -474,6 +466,7 @@ const md5 = require('md5');
 			this.sendEmailForRegistration(
 				emailUserdata,
 				req,
+                res,
 				(successData)=>{
 					callBack();
 				},
@@ -918,7 +911,7 @@ const md5 = require('md5');
 			bodyEmail += '<h5>Please verify your account by clicking the link below</h5> <br/>';
 			bodyEmail += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> <br/>';
 
-			this.sendEmailForRegistration(userData, req,
+			this.sendEmailForRegistration(userData, req, res,
 				() => {
 					response.message = 'Success! email resent.';
 					response.status = true;
