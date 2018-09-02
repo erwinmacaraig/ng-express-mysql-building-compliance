@@ -566,6 +566,16 @@ const RateLimiter = require('limiter').RateLimiter;
     }
     sublevels.push(config['building_id']);
 
+    let 
+    locModel = new Location(config['building_id']),
+    locData = <any> {
+      location_name : ''
+    };
+    try{
+      locData = await locModel.load();
+      locData.location_name = locData['name'];
+    }catch(e){}
+
     let trp = [];
     let eco = [];
     let allUsers = [];
@@ -574,6 +584,14 @@ const RateLimiter = require('limiter').RateLimiter;
     let location_ids = [];
     const lauObj = new LocationAccountUser();
     const uemr = new UserEmRoleRelation();
+    let accountModel = new Account(req.user.account_id);
+    let account = <any> {
+      account_name : ''
+    };
+    try{
+      account = await accountModel.load();
+    }catch(e){}
+
 
     // filter these sublevels that belongs to the account
     if (config['trp_user']) {
@@ -627,46 +645,38 @@ const RateLimiter = require('limiter').RateLimiter;
         dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD')
       });
       notificationToken = null;
-
+      let 
+      emailData = {
+        message : config['message'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
+        users_fullname : this.toTitleCase(u['first_name']+' '+u['last_name']),
+        account_name : account.account_name,
+        location_name : locData.location_name,
+        yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+        no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)
+      },
+      emailType = 'warden-confirmation';
+      if(u['role_name']){
+        if(u['role_name'] == 'TRP'){
+          emailType = 'trp-confirmation';
+        }
+      }
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-				to : [u['email']],
+        to : [u['email']],
         cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
       };
-
       const email = new EmailSender(opts);
-      const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
-      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
-      let emailBody = email.getEmailHTMLHeader();
 
-      emailBody += `<pre>Hi ${u['first_name']} ${u['last_name']},</pre>`;
-      emailBody += `<pre>Please confirm you are still the Tenant Responsible Person (TRP)* for ${u['account_name']} at ${u['parent_location']}, ${u['name']}</pre><br />`;
-      emailBody += `<a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a><br />
-      <pre>${config['message']}</pre><br />`;
-      emailBody += `<pre>Would you like more information on EvacConnect or Emergency Planning?</pre>
-
-      <p style="margin-top: 30px;"><a href="https://www.evacservices.com.au/emergency-planning-101-why-plan-for-emergencies/" target="_blank" style="text-decoration:none; color: black; border:2px solid #ff9800; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 203px 10px 20px;">The importance of planning for emergencies</a></p>
-      <p style="margin-top: 35px;"><a href="https://www.evacservices.com.au/updating-and-managing-warden-lists-is-now-easier-with-evacconnect/" target="_blank" style="text-decoration:none; color: black; border:2px solid #2196F3; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 45px 10px 20px;">EvacConnect for Tenant Responsible Persons - an instructional video</a></p>
-      <p style="margin-top: 35px;"><a href="http://evachub.com/limesurvey/index.php/662295?newtest=Y&lang=en" target="_blank" style="text-decoration:none; color: black; border:2px solid black; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 120px 10px 20px;">Provide feedback on your experience using EvacConnect</a></p>
-      `;
-
-
-
-      emailBody += email.getEmailHTMLFooter();
-      email.assignOptions({
-        body : emailBody
-      });
       limiter.removeTokens(1, (err, remainingRequests) => {
-        email.send(
+        email.sendFormattedEmail(emailType, emailData, res, 
           (data) => console.log(data),
           (err) => console.log(err)
         );
       });
-
 
     }
 
