@@ -392,6 +392,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     		this.selectedComplianceDescription = compliance.description;
     		this.selectedComplianceClasses = compliance.icon_class;
 
+            $('.compliance-title-container .image').css('background-color', this.selectedCompliance['background_color']);
+
 	}
 
 	showDiagramDetails(){
