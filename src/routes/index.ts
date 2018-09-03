@@ -111,7 +111,7 @@ export class IndexRoute extends BaseRoute {
                 break;
         }
 
-        fs.readFile(dir+'\\footer-email.hbs', 'utf8', (err, data) => {
+        fs.readFile(dir+'/footer-email.hbs', 'utf8', (err, data) => {
             options.footer = data;
 
             res.render(filename+'.hbs', options, (err, data) => {
