@@ -7,6 +7,7 @@ import { Account } from './account.model';
 import { ComplianceKpisModel } from './comliance.kpis.model';
 import * as AWS from 'aws-sdk';
 const AWSCredential = require('../config/aws-access-credentials.json');
+const archiver = require('archiver');
 
 const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
@@ -454,4 +455,23 @@ export class Utils {
        });
     });
   }
+
+
+  public zipDirectory(source, out) {
+    const archive = archiver('zip', { zlib: { level: 9 }});
+    const lambdaStream = fs.createWriteStream(out);
+  
+    return new Promise((resolve, reject) => {
+      archive
+        .directory(source, false)
+        .on('error', err => reject(err))
+        .pipe(lambdaStream)
+      ;
+  
+      lambdaStream.on('close', () => resolve());
+      archive.finalize();
+    });
+  }
+
+
 }

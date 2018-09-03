@@ -21,8 +21,10 @@ import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_ca
 import { EpcMinutesMeeting } from './../models/epc.meeting.minutes';
 import { UtilsSync } from '../models/util.sync';
 import * as moment from 'moment';
-import * as AWS from 'aws-sdk';
+// import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
+const archiver = require('archiver');
+
 
 const AWSCredential = require('../config/aws-access-credentials.json');
 const defs = require('../config/defs.json');
@@ -213,9 +215,21 @@ import * as S3Zipper from 'aws-s3-zipper';
             }
             
         }
-        return res.status(200).send({
-            message: `Total download files: ${totalDocs}`
-        });
+        try {
+            await utils.zipDirectory(__dirname + `/../public/temp/${locationNameForDirName}`, __dirname + `/../public/temp/${locationNameForDirName}.zip`);
+            return res.download(__dirname + `/../public/temp/${locationNameForDirName}.zip`, (error) => {
+                if (error) {
+                  console.log(error);
+                  return res.status(400).send({
+                      message: 'Internal error',
+                      data: error
+                  });
+                } 
+              });
+        } catch(e) {
+            console.log(e);
+        }
+        
                 
          
             
