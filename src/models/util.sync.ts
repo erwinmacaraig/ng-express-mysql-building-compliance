@@ -55,22 +55,28 @@ export class UtilsSync {
     account_id: number = 0,
     building_id: number = 0,
     compliance_item: number = 0,
-    document_type: string = 'Primary'
+    document_type: string = 'Primary',
+    downloadAsPack: boolean = false
   ): Promise<string> {
     let location_dir = '';
-    const account_dbData =  await new Account(account_id).load();
-
+    const account_dbData =  await new Account(account_id).load(); 
     const locationData = await new Location(building_id).load();
-    if (locationData['is_building'] == 1) {
+
+    if (compliance_item == 5 && locationData['is_building'] != 1) {
+      // get immediate parent
+      const bldgObjData = await new Location(locationData['parent_id']).load();
+      location_dir = `${bldgObjData['location_directory_name']}/${locationData['location_directory_name']}`;
+    } else if (locationData['is_building'] == 1) {
       location_dir = locationData['location_directory_name'];
     } else {
       // get immediate parent
       const building_dbData = await new Location(locationData['parent_id']).load();
       location_dir = `${building_dbData['location_directory_name']}/${locationData['location_directory_name']}`;
     }
+
     const kpis_dbData = await new ComplianceKpisModel(compliance_item).load();
     console.log(`${account_dbData['account_directory_name']}/${location_dir}/${kpis_dbData['directory_name']}/${document_type}/`);
-    return `${account_dbData['account_directory_name']}/${location_dir}/${kpis_dbData['directory_name']}/${document_type}/`;
+    return `${account_dbData['account_directory_name']}/${location_dir}/${kpis_dbData['directory_name']}/${document_type}/`;    
   }
 
 }

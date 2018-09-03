@@ -523,6 +523,7 @@ export class List {
         const sql_get = `SELECT
                       accounts.account_directory_name,
                       parentLocation.location_directory_name as parent_location_directory_name,
+                      parentLocation.is_building as parent_is_building,
                       locations.location_directory_name,
                       locations.is_building,
                       locations.name,
@@ -536,13 +537,13 @@ export class List {
                   INNER JOIN locations ON locations.location_id = compliance_documents.building_id
                   INNER JOIN compliance_kpis ON compliance_kpis.compliance_kpis_id = compliance_documents.compliance_kpis_id
                   LEFT JOIN locations as parentLocation ON parentLocation.location_id = locations.parent_id
-                  WHERE compliance_documents.account_id = ?
-                  AND compliance_documents.building_id IN (${locationStr})
+                  WHERE  
+                   compliance_documents.building_id IN (${locationStr})
                   AND compliance_documents.compliance_kpis_id = ?
                   ORDER BY compliance_documents.compliance_documents_id DESC`;
 
         const connection = db.createConnection(dbconfig);
-        connection.query(sql_get, [account, kpi], (error, results) => {
+        connection.query(sql_get, [kpi], (error, results) => {
           if (error) {
             console.log('list.model.generateComplianceDocumentList', error, sql_get);
             throw Error('There was an error generating the list of documents');
@@ -552,7 +553,9 @@ export class List {
             let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
             urlPath += r['account_directory_name'];
             if (r['parent_location_directory_name'] != null && r['parent_location_directory_name'].trim().length > 0) {
-              urlPath +=  `/${r['parent_location_directory_name']}`;
+              if(r['parent_is_building'] == 1){
+                urlPath +=  `/${r['parent_location_directory_name']}`;
+              }
             }
             urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/${r['file_name']}`;
             r['urlPath'] = urlPath;

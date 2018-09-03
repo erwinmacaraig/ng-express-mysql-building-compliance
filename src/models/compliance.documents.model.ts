@@ -3,6 +3,7 @@ import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
+const aws_credential = require('../config/aws-access-credentials.json');
 export class ComplianceDocumentsModel extends BaseClass {
 
     constructor(id?: number) {
@@ -36,8 +37,15 @@ export class ComplianceDocumentsModel extends BaseClass {
     public getWhere(arrWhere){
         return new Promise((resolve) => {
 
-            let sql = `SELECT compliance_kpis.name,
+            let sql = `SELECT 
+                  accounts.account_directory_name,
+                  parentLocation.location_directory_name as parent_location_directory_name,
+                  parentLocation.is_building as parent_is_building,
+                  locations.location_directory_name,
+                  compliance_kpis.name,
                   compliance_documents.*,
+                  compliance_kpis.directory_name,
+                  compliance_kpis.validity_in_months,
                   DATE_FORMAT(compliance_documents.date_of_activity, "%e/%c/%Y") as date_of_activity_formatted,
                   compliance_kpis.validity_in_months,
                   IF (date_of_activity = '0000-00-00', NULL,
@@ -45,7 +53,14 @@ export class ComplianceDocumentsModel extends BaseClass {
                   FROM
                     compliance_documents
                   INNER JOIN
-                    compliance_kpis ON compliance_documents.compliance_kpis_id =  compliance_kpis.compliance_kpis_id`;
+                    compliance_kpis ON compliance_documents.compliance_kpis_id =  compliance_kpis.compliance_kpis_id
+                  INNER JOIN
+                    accounts ON accounts.account_id = compliance_documents.account_id
+                  INNER JOIN 
+                    locations ON locations.location_id = compliance_documents.building_id
+                  LEFT JOIN locations as parentLocation 
+                    ON parentLocation.location_id = locations.parent_id
+                    `;
             for(let i in arrWhere){
                 if(parseInt(i) == 0){
                     sql += ` WHERE `;
@@ -55,10 +70,21 @@ export class ComplianceDocumentsModel extends BaseClass {
                 sql += arrWhere[i];
             }
             sql += ` ORDER BY timestamp DESC `;
-            const connection = db.createConnection(dbconfig);
+            const connection = db.createConnection(dbconfig);            
             connection.query(sql, (error, results, fields) => {
                 if (error) {
-                    console.log(error);
+                    console.log(error, sql);
+                }
+                for (const r of results) {
+                    let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
+                    urlPath += r['account_directory_name'];
+                    if (r['parent_location_directory_name'] != null && r['parent_location_directory_name'].trim().length > 0) {
+                        if(r['parent_is_building'] == 1){
+                            urlPath +=  `/${r['parent_location_directory_name']}`;
+                        }
+                    }
+                    urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/${r['file_name']}`;
+                    r['urlPath'] = urlPath;
                 }
                 this.dbData = results;
                 resolve(results);
@@ -67,12 +93,7 @@ export class ComplianceDocumentsModel extends BaseClass {
 
         });
     }
-
-    private filterCleanDocs() {
-      return new Promise((resolve, reject) => {
-
-      });
-    }
+    
     public dbUpdate() {
         return new Promise((resolve, reject) => {
             const sql_update = `UPDATE compliance_documents SET

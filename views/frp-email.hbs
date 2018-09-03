@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head></head>
+    <body style="margin:0; padding: 0; text-align: center;">
+        <div style="width: 800px; display: block; margin:0 auto;">
+            <div style="position: relative; width: 800px; max-width:800px; border:solid 1px #eee; padding: 0; margin: 0">
+                <style>
+                    @media print and (-webkit-min-device-pixel-ratio:0) {
+                        table tbody tr td{
+                            color: #fff;s
+                            -webkit-print-color-adjust: exact;
+                        }
+                        table{
+                            -webkit-print-color-adjust: exact;
+                        }
+                    }
+                </style>
+                <table style="margin:0 auto; border-collapse: collapse; padding: 0; margin: 0; border:none; width: 800px;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:0; background-color: #fff; width: 800px;"  valign="top">
+                                <table style="border-collapse: collapse; padding: 0; margin: 0; border:none; width: 800px;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding:15px 20px; font-family: arial; color:#333; font-size: 0; text-align: center;">
+                                                <img src="http://ec2-13-55-82-238.ap-southeast-2.compute.amazonaws.com/assets/images/emails/EvacConnect-Logo-Partial-blue.png"  />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:15px 20px; background-color: #fff; font-family: arial; color:#333; font-size: 0;">
+                                                <h1 style="font-size: 20px; color: #555; text-align: left;">
+                                                    "We invite you to set up your FRP account on EvacConnect"
+                                                </h1>
+                                                <p style="font-size: 15px; color: #333; line-height: 1.5; text-align: left;">
+                                                    Hi {{users_fullname}}, <br><br>
+
+                                                    {{nominators_fullname}} from {{nominators_account_name}} has nomindated you as a Facility Responsibe Person (FRP) for {{location_name}}.<br><br> 
+
+                                                   The FRP is the person responsible for ensuring that emergency planning is being managed in the building.<br>
+                                                   This building uses EvacConnect to assist tenants in managing emergency compliance and warden lists. <br><br>
+
+                                                    We invite you to set up your account on EvacConnect. Follow this link to get started: <a href="{{setup_link}}" style="color:#3498db;">{{setup_link}}</a> <br><br>
+
+                                                    Thank you for your active participation and commitment to promote proactive safety within your building.<br><br>
+
+                                                    Sincerely,<br>
+                                                    The EvacConnect Engagement team<br>
+                                                    Email: systems@evacgroup.com.au<br>
+                                                    Phone: 1300 922 437<br><br>
+
+                                                    Would you like more information on EvacConnect or Emergency Planning?<br>
+                                                    The importance of planning for emergencies<br><br>
+
+                                                    EvacConnect for Facility Responsible Persons - an instructional video<br><br>
+
+                                                    Provide feedback on your experience using EvacConnect<br><br>
+
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                {{{footer}}}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>  
+    </body>
+</html>

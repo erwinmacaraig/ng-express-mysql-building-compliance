@@ -1,5 +1,35 @@
+.inline-block{
+    display: inline-block;
+}
+
 .details-container .image{
   overflow: hidden;
+}
+.va-top{
+    vertical-align: top;
+}
+
+.image-wrapper{
+    margin-right: 25px;
+}
+
+.image-container {
+    width: 140px;
+    height: 140px;
+    background-color: #c9c9c9;
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.image-container .image {
+    overflow: hidden;
+    margin-bottom: -5px;
+}
+
+.image-container .image img {
+    max-width: 140px;
+    max-height: 140px;
 }
 
 nav {
