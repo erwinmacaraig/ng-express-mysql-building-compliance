@@ -61,7 +61,12 @@ export class UtilsSync {
     let location_dir = '';
     const account_dbData =  await new Account(account_id).load(); 
     const locationData = await new Location(building_id).load();
-    if (locationData['is_building'] == 1) {
+
+    if (compliance_item == 5 && locationData['is_building'] != 1) {
+      // get immediate parent
+      const bldgObjData = await new Location(locationData['parent_id']).load();
+      location_dir = `${bldgObjData['location_directory_name']}/${locationData['location_directory_name']}`;
+    } else if (locationData['is_building'] == 1) {
       location_dir = locationData['location_directory_name'];
     } else {
       // get immediate parent
@@ -74,5 +79,4 @@ export class UtilsSync {
     return `${account_dbData['account_directory_name']}/${location_dir}/${kpis_dbData['directory_name']}/${document_type}/`;    
   }
 
-  
 }

@@ -465,6 +465,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
             this.downloadAllPackControler = false;
           }          
           this.alertService.error('There was a problem in your download.');
+          this.downloadAllPackControler = false;
         });
     }
 

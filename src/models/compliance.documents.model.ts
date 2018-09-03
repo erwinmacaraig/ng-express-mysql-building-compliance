@@ -73,7 +73,7 @@ export class ComplianceDocumentsModel extends BaseClass {
             const connection = db.createConnection(dbconfig);            
             connection.query(sql, (error, results, fields) => {
                 if (error) {
-                    console.log(error);
+                    console.log(error, sql);
                 }
                 for (const r of results) {
                     let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
