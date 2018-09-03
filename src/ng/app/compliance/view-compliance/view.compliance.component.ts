@@ -12,6 +12,8 @@ import { AdminService } from '../../services/admin.service';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { MessageService } from '../../services/messaging.service';
+import { AlertService } from '../../services/alert.service';
+import { AlertComponent } from '../../alert/alert.component';
 import { Observable } from 'rxjs/Rx';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as FileSaver from 'file-saver';
@@ -159,7 +161,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     msgSubs;
 
     evacExerciseComplianceId = 0;
-
+    downloadAllPackLabel = '';
+    downloadAllPackControler = false;
     constructor(
         private router : Router,
         private route: ActivatedRoute,
@@ -171,7 +174,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         private locationService : LocationsService,
         private encryptDecrypt : EncryptDecryptService,
         private adminService : AdminService,
-        private messageService : MessageService
+        private messageService : MessageService,
+        private alertService: AlertService
         ) {
 
         this.userData = this.authService.getUserData(); 
@@ -277,6 +281,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	ngOnInit(cb?) {
+        this.downloadAllPackLabel = 'Download all Pack';
+        
         this.locationService.getByIdWithQueries({
             location_id : this.locationID,
             account_id : this.userData.accountId,
@@ -323,6 +329,10 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                         if(comp.compliance_kpis_id == 9){
                             this.evacExerciseComplianceId = comp.compliance_id;
                         }
+                        if (comp.docs.length > 0) {
+                            this.downloadAllPackControler = false;
+
+                        }
                     }
 
                     if(cb){
@@ -347,6 +357,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     }
 
 	ngAfterViewInit(){
+        
 		$('.workspace.container').css('position', 'relative');
         this.dashboard.show();
 
@@ -422,29 +433,33 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     }
 
     downloadAllPack() {
-        this.dashboard.show();
         //
+        this.downloadAllPackLabel = 'Downloading files as zip';
+        this.downloadAllPackControler = true;
         this.complianceService.downloadAllComplianceDocumentPack(this.locationID).subscribe((data) => {
-          this.dashboard.hide();
           const blob = new Blob([data.body], {type: 'application/zip'});
           const filename = 'compliance-docs.zip';
           FileSaver.saveAs(blob, filename);
-        }, (err) => {
-          this.dashboard.hide();
-          console.log(err);
-          console.log('There was an error');
+          this.alertService.info('File download successful!');
+          this.downloadAllPackLabel = 'Download all Pack';
+          this.downloadAllPackControler = false;
+        }, (err: HttpErrorResponse) => {
+          this.dashboard.hide();          
+          if (err.error instanceof Error) {
+            console.log(err.error.message);
+            this.downloadAllPackControler = false;
+          }          
+          this.alertService.error('There was a problem in your download.');
         });
     }
 
     downloadKPIFile(kpi_file, filename) {
-        console.log(kpi_file);
-        console.log(filename);
         this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
           const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
           FileSaver.saveAs(blob, filename);
-          console.log(data);
         },
         (error) => {
+          this.alertService.error('No file(s) available for download');
           console.log('There was an error', error);
         });
     }
