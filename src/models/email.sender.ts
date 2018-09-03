@@ -202,7 +202,7 @@ export class EmailSender {
                 break;
         }
 
-        fs.readFile(dir+'\\footer-email.hbs', 'utf8', (err, footer) => {
+        fs.readFile(dir+'/footer-email.hbs', 'utf8', (err, footer) => {
             emailData['footer'] = footer;
 
             res.render(filename+'.hbs', emailData, (err, htmlBody) => {

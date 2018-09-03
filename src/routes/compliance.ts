@@ -159,7 +159,17 @@ import * as S3Zipper from 'aws-s3-zipper';
         let locationNameForDirName = '';
         
         let location_id = req.query.location_id;
-        const locationData = await new Location(req.query.location_id).load();
+        const locationObj = new Location(req.query.location_id);
+        const locationData = await locationObj.load();
+        const sublocations = await locationObj.getChildren(locationObj.ID());
+        
+        const sublocationsArray = [];
+        sublocationsArray.push(locationObj.ID());
+     
+        for (const sublocation of sublocations) {
+            sublocationsArray.push(sublocation['location_id']);
+        }
+        
         locationNameForDirName = locationData['location_directory_name'];
         if (locationData['is_building'] != 1) {
             // get immediate parent
@@ -179,7 +189,8 @@ import * as S3Zipper from 'aws-s3-zipper';
         const whereDocs = [];
         let docs = <any>[];       
 
-        whereDocs.push([`compliance_documents.building_id = ${location_id}` ]);
+        const locationIds = sublocationsArray.join(',');
+        whereDocs.push([`compliance_documents.building_id IN (${locationIds})`]);
         whereDocs.push([`compliance_documents.document_type = 'Primary' `]);
         docs = await complianceDocsModel.getWhere(whereDocs);
         let totalDocs = 0;
@@ -190,8 +201,8 @@ import * as S3Zipper from 'aws-s3-zipper';
                 d['building_id'],
                 d['compliance_kpis_id']
             );
-            p = p + d['file_name'];  
-                     
+            p = p + d['file_name'];
+                                 
             const dirPath = __dirname + `/../public/temp/${locationNameForDirName}/${d['file_name']}`;
             try {
                 await utils.getMultipleFilesFromS3(dirPath, p);
