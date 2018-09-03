@@ -40,6 +40,7 @@ export class ComplianceDocumentsModel extends BaseClass {
             let sql = `SELECT 
                   accounts.account_directory_name,
                   parentLocation.location_directory_name as parent_location_directory_name,
+                  parentLocation.is_building as parent_is_building,
                   locations.location_directory_name,
                   compliance_kpis.name,
                   compliance_documents.*,
@@ -78,7 +79,9 @@ export class ComplianceDocumentsModel extends BaseClass {
                     let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
                     urlPath += r['account_directory_name'];
                     if (r['parent_location_directory_name'] != null && r['parent_location_directory_name'].trim().length > 0) {
-                        urlPath +=  `/${r['parent_location_directory_name']}`;
+                        if(r['parent_is_building'] == 1){
+                            urlPath +=  `/${r['parent_location_directory_name']}`;
+                        }
                     }
                     urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/${r['file_name']}`;
                     r['urlPath'] = urlPath;

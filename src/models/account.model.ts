@@ -2,6 +2,7 @@ import * as db from 'mysql2';
 import { BaseClass } from './base.model';
 import { Location } from './location.model';
 const dbconfig = require('../config/db');
+const aws_credential = require('../config/aws-access-credentials.json');
 
 import * as Promise from 'promise';
 export class Account extends BaseClass {
@@ -433,6 +434,10 @@ export class Account extends BaseClass {
             let accountId = this.ID();
             let sql = `
                 SELECT
+                    accounts.account_directory_name,
+                    parentLocation.location_directory_name as parent_location_directory_name,
+                    parentLocation.is_building as parent_is_building,
+                    locations.location_directory_name,
                     compliance_documents.compliance_documents_id,
                     compliance_documents.account_id,
                     compliance_documents.building_id,
@@ -451,6 +456,13 @@ export class Account extends BaseClass {
                 FROM compliance_kpis
                 INNER JOIN compliance_documents
                 ON compliance_kpis.compliance_kpis_id = compliance_documents.compliance_kpis_id
+                INNER JOIN accounts 
+                ON accounts.account_id = compliance_documents.account_id
+                INNER JOIN locations 
+                ON locations.location_id = compliance_documents.building_id
+                LEFT JOIN locations as parentLocation 
+                ON parentLocation.location_id = locations.parent_id
+
                 WHERE compliance_documents.account_id = ${accountId} ${locationSql}
                 ORDER BY compliance_documents.timestamp DESC
                 LIMIT ${offsetLimit}
@@ -462,6 +474,13 @@ export class Account extends BaseClass {
                     compliance_kpis
                     INNER JOIN compliance_documents
                     ON compliance_kpis.compliance_kpis_id = compliance_documents.compliance_kpis_id
+                    INNER JOIN accounts 
+                    ON accounts.account_id = compliance_documents.account_id
+                    INNER JOIN locations 
+                    ON locations.location_id = compliance_documents.building_id
+                    LEFT JOIN locations as parentLocation 
+                    ON parentLocation.location_id = locations.parent_id
+
                     WHERE compliance_documents.account_id = ${accountId} ${locationSql}
                     ORDER BY compliance_documents.timestamp DESC
                 `;
@@ -474,6 +493,21 @@ export class Account extends BaseClass {
                     console.log(err);
                     throw new Error('Internal problem. There was a problem processing your query');
                 }
+
+                if(!count){
+                    for (const r of results) {
+                        let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
+                        urlPath += r['account_directory_name'];
+                        if (r['parent_location_directory_name'] != null && r['parent_location_directory_name'].trim().length > 0) {
+                            if(r['parent_is_building'] == 1){
+                                urlPath +=  `/${r['parent_location_directory_name']}`;
+                            }
+                        }
+                        urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/${r['file_name']}`;
+                        r['urlPath'] = urlPath;
+                    }
+                }
+
                 this.dbData = results;
                 resolve(results);
             });
