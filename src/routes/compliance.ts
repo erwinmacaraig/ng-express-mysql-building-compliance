@@ -190,8 +190,8 @@ import * as S3Zipper from 'aws-s3-zipper';
                 d['building_id'],
                 d['compliance_kpis_id']
             );
-            p = p + d['file_name'];  
-                     
+            p = p + d['file_name'];
+                                 
             const dirPath = __dirname + `/../public/temp/${locationNameForDirName}/${d['file_name']}`;
             try {
                 await utils.getMultipleFilesFromS3(dirPath, p);
