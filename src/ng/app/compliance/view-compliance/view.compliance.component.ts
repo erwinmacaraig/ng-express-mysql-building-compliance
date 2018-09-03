@@ -163,6 +163,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     evacExerciseComplianceId = 0;
     downloadAllPackLabel = '';
     downloadAllPackControler = false;
+   downloadPackName = '';
     constructor(
         private router : Router,
         private route: ActivatedRoute,
@@ -325,6 +326,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                     }else{
                         this.nameDisplay = (this.locationData.parentData.name) ? this.locationData.parentData.name+', '+this.locationData.name : this.locationData.name; 
                     }
+		    this.downloadPackName = this.locationData['location_directory_name'];
+	
                     this.setKPISdataForDisplay();
 
                     this.totalPercentage = responseCompl.percent;
@@ -453,7 +456,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         this.downloadAllPackControler = true;
         this.complianceService.downloadAllComplianceDocumentPack(this.locationID).subscribe((data) => {
           const blob = new Blob([data.body], {type: 'application/zip'});
-          const filename = 'compliance-docs.zip';
+          const filename = `${this.downloadPackName}.zip`;
           FileSaver.saveAs(blob, filename);
           this.alertService.info('File download successful!');
           this.downloadAllPackLabel = 'Download all Pack';
