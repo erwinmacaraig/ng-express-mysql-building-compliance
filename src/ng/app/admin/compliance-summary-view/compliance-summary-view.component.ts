@@ -13,14 +13,17 @@ import { ComplianceService } from '../../services/compliance.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DatepickerOptions } from 'ng2-datepicker';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { LocationsService  } from '../../services/locations';
+import {  UserService } from '../../services/users';
 declare var $: any;
 declare var moment: any;
+import * as FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-admin-compliance-summary',
   templateUrl: './compliance-summary-view.component.html',
   styleUrls: ['./compliance-summary-view.component.css'],
-  providers: [ AdminService, ComplianceService, EncryptDecryptService, DashboardPreloaderService ]
+  providers: [ AdminService, ComplianceService, EncryptDecryptService, DashboardPreloaderService, LocationsService, UserService ]
 })
 
 export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -56,6 +59,10 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   genericSub: Subscription;
 
   totalPercentage = 0;
+  complianceSublocations = [];
+  selectedCompliance = <any> {};
+  tenants = <any> [];
+  fetchingWardenList = true;
 
   @ViewChild('inpFileUploadDocs') inpFileUploadDocs: ElementRef;
   constructor(
@@ -64,7 +71,9 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     public http: HttpClient,
     private route: ActivatedRoute,
     platformLocation: PlatformLocation,
-    public dashboard: DashboardPreloaderService) {
+    public dashboard: DashboardPreloaderService,
+    private userService: UserService,
+    private locationService: LocationsService) {
 
       this.baseUrl = (platformLocation as any).location.origin;
     }
@@ -105,6 +114,19 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         this.adminService.FSA_EvacExer_Status(this.accountId.toString(), this.locationId.toString(), '3').subscribe((response) => {
           console.log(response);
           this.FSAStatus = (response['data']['compliance_status'] == 1) ? true : false;
+    });
+
+    this.locationService.getByIdWithQueries({
+      location_id : this.locationId,
+      account_id : this.accountId,
+      get_related_only : false
+    }, (response) => {
+      console.log(response);
+      if (response.sublocations.length > 0) {
+      this.complianceSublocations = response.sublocations;
+      } else {
+      this.complianceSublocations.push(response.location);
+      }
     });
 
   }
@@ -195,6 +217,14 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       this.documentFiles = response['data'];
       this.locationName = response['displayName'].join(' >> ');
     });
+
+    for(let k of this.KPIS){
+      if(k['compliance_kpis_id'] == this.selectedKPI){
+        this.selectedCompliance = k;
+      }
+    }
+
+    console.log('this.selectedCompliance', this.selectedCompliance);
   }
 
   showModalUploadDocs() {
@@ -292,6 +322,76 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     }
   }
 
+  showDiagramDetails(){
 
+    let tableLeft = $('.row-table-content').position().left,
+      tableW = $('.row-table-content').width(),
+      diagramLeft = $('.row-diagram-details').position().left;
+
+    $('.row-table-content').css({
+      'left' : '-'+( tableW + 200 )+'px',
+      'position' : 'absolute'
+    });
+    $('.row-diagram-details').css({
+      'opacity' : '',
+      'left' : '0px',
+      'position' : 'relative'
+    });
+    
+    setTimeout(() => { 
+      $('.row-diagram-details').show(); 
+      $('.row-diagram-details .hide-diagram').show();
+      $('.row-table-content').hide();
+    }, 200);
+    
+  }
+
+  hideDiagramDetails(){
+    let tableLeft = $('.row-table-content').position().left,
+      tableW = $('.row-table-content').width(),
+      diagramLeft = $('.row-diagram-details').position().left;
+
+    $('.row-table-content').css({
+      'left' : '0px',
+      'position' : 'relative'
+    });
+    $('.row-diagram-details').css({
+      'opacity' : '0.3',
+      'left' : (tableW + diagramLeft) + 'px',
+      'position' : 'absolute'
+    });
+    $('.row-table-content').show();
+    setTimeout(() => { 
+      $('.row-diagram-details').hide(); 
+    }, 400);
+    
+  }
+
+  public viewWardenList(location_id:number = 0) {
+    this.fetchingWardenList = true;
+    $('#modalWardenList').modal('open');
+    this.tenants = [];
+      this.userService.getTenantsInLocation(location_id, (tenantsResponse) => {
+        if(tenantsResponse){
+          this.tenants = tenantsResponse.data;
+          // this.showModalNewTenantLoader = false;
+          console.log(this.tenants);
+        }
+        this.fetchingWardenList = false;
+      });
+  }
+
+  downloadKPIFile(kpi_file, filename) {
+      console.log(kpi_file);
+      console.log(filename);
+      this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
+        const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
+        FileSaver.saveAs(blob, filename);
+        console.log(data);
+      },
+      (error) => {
+        console.log('There was an error', error);
+      });
+  }
 
 }

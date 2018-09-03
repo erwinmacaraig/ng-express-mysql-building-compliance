@@ -5,6 +5,8 @@ import * as fs from 'fs';
 import { Location } from './location.model';
 import { Account } from './account.model';
 import { ComplianceKpisModel } from './comliance.kpis.model';
+import * as AWS from 'aws-sdk';
+const AWSCredential = require('../config/aws-access-credentials.json');
 
 const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
@@ -260,71 +262,7 @@ export class Utils {
         connection.end();
       });
     }
-/*
-    public deployQuestions(account_id: number,
-          location_id: number,
-          user_id: number,
-          role_id: number,
-          ctrl: number = 1) {
-
-      return new Promise((resolve, reject) => {
-        const questionData = [];
-        const placeHolder = {};
-        let connection;
-        switch (ctrl) {
-          case 1:
-            // How many TRP does this account have? (1)
-            let sql_get = `SELECT
-                  COUNT(responsibility) as total
-                FROM
-                  location_account_relation
-                WHERE
-                  responsibility = 'Tenant'
-                AND
-                  account_id = ?`;
-            connection = db.createConnection(dbconfig);
-            connection.query(sql_get, [account_id],
-            (error, results, fields) => {
-              if (error) {
-                console.log('Error ', error);
-                reject(error);
-              }
-              console.log(results[0]);
-              console.log(results[0]['total']);
-              resolve(results[0]['total']);
-            });
-
-            const sql = `INSERT INTO question_validation_relation (
-                  question_pool_id,
-                  user_id,
-                  account_id,
-                  ans
-                ) VALUES (?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE question_pool_id = ?, ans = ?`;
-
-            connection.end();
-            break;
-          case 2:
-            sql_get = `SELECT
-                          user_id
-                      FROM
-                        users
-                      WHERE
-                        users.user_id
-                      NOT IN
-                        (SELECT DISTINCT user_id FROM user_role_relation)
-                      AND
-                        account_id <> 0
-                      AND
-                        account_id = ?`;
-            connection = db.createConnection(dbconfig);
-            connection.query();
-            break;
-
-        }
-      });
-    }
-*/
+    
     public processCSVUpload(filename: string, config?) {
       return new Promise((resolve, reject) => {
 
@@ -487,4 +425,33 @@ export class Utils {
         connection.end();
       });
     }
+
+  getMultipleFilesFromS3(dirPath, key) {
+    return new Promise((resolve, reject) => {
+      AWS.config.accessKeyId = AWSCredential.AWSAccessKeyId;
+      AWS.config.secretAccessKey = AWSCredential.AWSSecretKey;
+      AWS.config.region = AWSCredential.AWS_REGION;
+      const aws_s3 = new AWS.S3();
+
+      const params = {
+        Bucket:  AWSCredential.AWS_Bucket,
+        Key: key
+      };
+
+      const file_stream = fs.createWriteStream(dirPath);
+      aws_s3.getObject(params, (error, data) => {
+        if (error) {
+          console.log(error);
+          reject(error);
+        }
+      }).createReadStream().on('error', (error) => {
+        console.log(key);
+        reject(error);
+      }).pipe(file_stream);
+      file_stream.on('finish', () => {
+        console.log(`The file has been written to disk`);
+        resolve(true);
+       });
+    });
+  }
 }

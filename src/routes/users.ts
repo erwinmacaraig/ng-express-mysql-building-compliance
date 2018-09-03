@@ -2139,7 +2139,8 @@ export class UsersRoute extends BaseRoute {
             hasOnlineTraining = (account.online_training == 1) ? true : false;
 
             let
-            user = await userModel.load(),
+            user = <any> await userModel.load(),
+            userFullname = this.toTitleCase(user.first_name+' '+user.last_name),
             emRoles = <any> await new UserEmRoleRelation().getEmRoles();
 
     		for (let i in users) {
@@ -2180,8 +2181,8 @@ export class UsersRoute extends BaseRoute {
     				let
     				token = this.generateRandomChars(30),
     				inviSaveData = {
-    					'first_name' : users[i]['first_name'],
-    					'last_name' : users[i]['last_name'],
+    					'first_name' : this.toTitleCase(users[i]['first_name']),
+    					'last_name' : this.toTitleCase(users[i]['last_name']),
     					'email' : users[i]['email'],
     					'contact_number' : users[i]['mobile_number'],
     					'location_id' : users[i]['account_location_id'],
@@ -2195,8 +2196,8 @@ export class UsersRoute extends BaseRoute {
                     userSaveModel  = new User(),
                     encryptedPassword = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max'),
                     userSaveData = {
-                        'first_name': users[i]['first_name'],
-                        'last_name': users[i]['last_name'],
+                        'first_name' : this.toTitleCase(users[i]['first_name']),
+                        'last_name' : this.toTitleCase(users[i]['last_name']),
                         'password': '',
                         'email': users[i]['email'],
                         'token': token,
@@ -2231,7 +2232,18 @@ export class UsersRoute extends BaseRoute {
                         location = <any> {},
                         trps = <any> [],
                         frp = <any> user,
-                        senderTxt = '';
+                        emailData = <any> {
+                            users_fullname : this.toTitleCase(inviSaveData['first_name']+' '+inviSaveData['last_name']),
+                            nominators_fullname : userFullname,
+                            nominators_account_name : account.account_name,
+                            account_name : account.account_name,
+                            location_name : '',
+                            frequency : '3 months',
+                            setup_link : '',
+                            footer : '',
+                            role : ''
+                        },
+                        emailType = '';
 
                     for(let loc of locations){
                         if(loc.is_building == 1){
@@ -2255,24 +2267,7 @@ export class UsersRoute extends BaseRoute {
                         locationFullName = location.name;
                     }
 
-                    try{
-
-                        trps = await userRoleRelation.getTRPbyLocationId(users[i]['account_location_id']);
-                        let userIsTrp = false;
-                        for(let trp of trps){
-                            if(trp.user_id == req.user.user_id){
-                                userIsTrp = true;
-                            }
-                        }
-                        if(userIsTrp){
-                            senderTxt = `Tenant Responsible Person (TRP), <span style="text-transform: capitalize;">${frp.first_name} ${frp.last_name}</span>`;
-                        }else{
-                            throw "User is not a TRP";
-                        }
-
-                    }catch(e){
-                        senderTxt = `Building Manager (FRP), <span style="text-transform: capitalize;">${frp.first_name} ${frp.last_name}</span>`;
-                    }
+                    emailData.location_name = locationFullName;
 
                     if(hasOnlineTraining || isAccountEmailExempt){
 
@@ -2326,7 +2321,6 @@ export class UsersRoute extends BaseRoute {
                             });
 
                         }
-
                     }else{
                         let invitation = new UserInvitation();
                         await invitation.create(inviSaveData);
@@ -2336,55 +2330,24 @@ export class UsersRoute extends BaseRoute {
                         emailLink += '/signup/warden-profile-completion/'+token;
                     }
 
+                    emailData.setup_link = emailLink;
+
                     await tokenModel.create(tokenSaveData);
 
                     if(!isAccountEmailExempt){
 
                         if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
-                            let roleName = 'Building Manager (FRP)';
-                            subjectOfEmail = `You're assigned as Building Manager`;
+                            emailType = 'frp';
                             if(parseInt(users[i]['account_role_id']) == 2){
-                                roleName = 'Tenant Responsible Person (TRP)';
-                                subjectOfEmail = `You're assigned as Tenant Responsible Person`;
+                                emailType = 'trp';
                             }
-                            bodyOfEmail = `
-                            <div style="font-size:16px;">
-                                <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
-
-                                We are glad to inform that you are assigned as the ${roleName} for your location, ${locationFullName}. <br/>
-                                In this role, yout will take charge of managing  emergency planning responsibilities wihin your tenancy. <br/><br/>
-
-                                Please update the profile to set up your account on EvacConnect here : <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
-
-                                Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
-
-                                Sincerely,<br/>
-                                EvacConnect
-                            </div>
-                            `;
                         }else{
-                            let roleName = '';
+                            emailType = 'warden';
                             for(let em of emRoles){
                                 if(em.em_roles_id == parseInt(users[i]['account_role_id'])){
-                                    subjectOfEmail = `You're nominated as `+em.role_name;
-                                    roleName = em.role_name;
+                                    emailData.role = em.role_name;
                                 }
                             }
-
-                            bodyOfEmail = `
-                            <div style="font-size:16px;">
-                                <h3 style="text-transform:capitalize;">Hi ${inviSaveData['first_name']} ${inviSaveData['last_name']},</h3>
-
-                                We are glad to inform that you are nominated to be a ${roleName} for your tenancy, ${account.account_name}, by your ${senderTxt}.<br/><br/>
-
-                                Follow this link to set up your password on EvacConnect: <a href="${emailLink}" target="_blank" style="text-decoration:none; color:#0277bd;">${emailLink}</a> <br/><br/>
-
-                                Thank you for helping us ensure the safety of all occupants within your tenancy. <br/><br/>
-
-                                Sincerely,<br/>
-                                EvacConnect
-                            </div>
-                            `;
                         }
 
         				const opts = {
@@ -2394,22 +2357,18 @@ export class UsersRoute extends BaseRoute {
         					cc: [],
         					body : '',
         					attachments: [],
-        					subject : subjectOfEmail
+        					subject : ''
         				};
         				const email = new EmailSender(opts);
-        				let emailBody = email.getEmailHTMLHeader();
-                        emailBody += bodyOfEmail;
-        				emailBody += email.getEmailHTMLFooter();
 
-        				email.assignOptions({
-        					body : emailBody,
-        					to: [inviSaveData['email']],
-        					cc: ['jmanoharan@evacgroup.com.au']
-        				});
-        				email.send(
-        					(data) => console.log(data),
-        					(err) => console.log(err)
-        				);
+                        email.assignOptions({
+                            to: [inviSaveData['email']],
+                            cc: ['jmanoharan@evacgroup.com.au']
+                        });
+        				email.sendFormattedEmail(emailType, emailData, res, 
+                            (data) => console.log(data),
+                            (err) => console.log(err)
+                        );
                     }
 
     			}else{

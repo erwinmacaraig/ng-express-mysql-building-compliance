@@ -130,8 +130,6 @@ export class User extends BaseClass {
                               LEFT JOIN token ON users.user_id = token.id `
                               + whereClause + ` AND password = ?`;
             // const sql_user = `SELECT * FROM users `+ whereClause + ` AND password = ? `;
-
-            console.log('sql_user', sql_user);
             const newPasswd = md5('Ideation' + passwd + 'Max');
             const credential = [username, newPasswd];
             const connection = db.createConnection(dbconfig);

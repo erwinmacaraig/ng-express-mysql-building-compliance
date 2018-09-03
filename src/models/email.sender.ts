@@ -3,6 +3,7 @@ const AWSCredential = require('../config/aws-access-credentials.json');
 const path = require('path');
 const mime = require('mime-types');
 const defs = require('../config/defs.json');
+import * as fs from 'fs';
 
 export class EmailSender {
 
@@ -89,9 +90,9 @@ export class EmailSender {
         params = {
             // RawMessage: { Data: new Buffer(email) },
             Destination: {
-              ToAddresses: this.options['to'],
-              // ToAddresses : ['adelfin@evacgroup.com.au'],
-              CcAddresses: this.options['cc']
+              // ToAddresses: this.options['to'],
+              ToAddresses : ['jmanoharan@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
+              // CcAddresses: this.options['cc']
             }, 
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
             Message: {
@@ -154,6 +155,65 @@ export class EmailSender {
           return data;
         }
       });
+    }
+
+    public sendFormattedEmail(type, emailData, res, success, error){
+        let 
+        dir = __dirname.replace('models', 'views'),
+        filename = '',
+        subj = '';
+
+        switch (type) {
+            case "warden":
+                subj = "You are nominated as "+emailData['role'];
+                filename = "warden-email";
+                break;
+            case "trp":
+                subj = "You are assigned as Tenant Responsible Person";
+                filename = "trp-email";
+                break;
+            case "frp":
+                subj = "We invite you to set up your FRP account on EvacConnect";
+                filename = "frp-email";
+                break;
+            case "forgot-password":
+                subj = "EvacConnect Change Password";
+                filename = "forgot-password-email";
+                break;
+            case "online-training":
+                subj = "You are invited to take an online training on "+emailData['training_name'];
+                filename = "online-training-email";
+                break;
+            case "frp-confirmation":
+                subj = "Please confirm you are the nominated Facility Responsible Person";
+                filename = "frp-confirmation-email";
+                break;
+            case "trp-confirmation":
+                subj = "Please confirm you are the nominated Tenant Responsible Person";
+                filename = "trp-confirmation-email";
+                break;
+            case "warden-confirmation":
+                subj = "Please confirm you are a nominated "+emailData['role'];
+                filename = "warden-confirmation-email";
+                break;
+            case "signup":
+                subj = "Your EvacConnect Account: Please verify your email address";
+                filename = "signup-email";
+                break;
+        }
+
+        fs.readFile(dir+'\\footer-email.hbs', 'utf8', (err, footer) => {
+            emailData['footer'] = footer;
+
+            res.render(filename+'.hbs', emailData, (err, htmlBody) => {
+
+                this.options['subject'] = subj;
+                this.options['body'] = htmlBody;
+
+                this.send(success,error);
+            });
+
+        });
     }
 
 

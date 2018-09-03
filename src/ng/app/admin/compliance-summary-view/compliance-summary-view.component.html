@@ -6,105 +6,133 @@
     </div>
 </div>
 
-<div class="row row-table-content" style="left:0%;">
-    <div class="col l4 m12 s12">
-        <div class="progress-loading-container">
-            <div class="left-icon">
-                <div class="image"></div>
-            </div>
-            <div class="right-icon">
-                <div class="image"></div>
-            </div>
+<div class="main">
+    <div class="row row-table-content" style="left:0%;">
+        <div class="col l4 m12 s12">
+            <div class="progress-loading-container">
+                <div class="left-icon">
+                    <div class="image"></div>
+                </div>
+                <div class="right-icon">
+                    <div class="image"></div>
+                </div>
 
-            <div class="background">
-                <div class="loading" [ngStyle]="{'width': totalPercentage + '%' }">
-                    <div class="tip-percentage">
-                        <div class="percentage">{{totalPercentage}}% </div>
-                        <div class="arrow-down"></div>
+                <div class="background">
+                    <div class="loading" [ngStyle]="{'width': totalPercentage + '%' }">
+                        <div class="tip-percentage">
+                            <div class="percentage">{{totalPercentage}}% </div>
+                            <div class="arrow-down"></div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <table class="table table-list">
+                <thead>
+                    <tr>
+                        <th>Compliance Item</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let k of KPIS;" (click)="getUploadedDocumentsFromSelectedKPI(k)">
+                        <td class="with-image">
+                            <div class="image {{k.icon_class}}" [ngStyle]="{'background-color': k.background_color}"  ></div>
+                            <span>{{k.name}}</span>
+                        </td>
+                        <td class="with-icon" *ngIf="!k.compliance">
+                            <div class="image expired"></div>
+                        </td>
+                        <td class="with-icon" *ngIf="k.compliance">
+                            <div *ngIf="k.compliance.validity_status == 'none-exist' && k.compliance_kpis_id != 13" class="image expired"></div>
+                            <div *ngIf="k.compliance.validity_status == 'invalid' && k.compliance_kpis_id != 13" class="image alarm"></div>
+                            <div *ngIf="k.compliance.validity_status == 'valid' && k.compliance_kpis_id != 13" class="image check"></div>
+
+                            <div class="text" *ngIf="k.type == 'date' && k.compliance.validity_status != 'none-exist' && k.compliance_kpis_id != 3">
+                                <p *ngIf="k.compliance.validity_status == 'valid'">Valid Till:</p>
+                                <div *ngIf="k.compliance.validity_status == 'invalid'">
+                                    <span *ngIf="k.compliance.docs[0]">{{k.compliance.docs[0].valid_till}}</span>
+                                </div>
+                                <div *ngIf="k.compliance.validity_status == 'valid'"  >
+                                    <span *ngIf="k.compliance.docs[0] && k.compliance.valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
+                                    <span *ngIf="!k.compliance.docs[0] && k.compliance.valid_till != null">{{k.compliance['valid_till']}}</span>
+                                </div>
+                            </div>
+
+                            <div class="text"  *ngIf="k.type == 'percent'">
+                                <a *ngIf="k.compliance_kpis_id == 5 || k.compliance_kpis_id == 6 || k.compliance_kpis_id == 8 || k.compliance_kpis_id == 9 || k.compliance_kpis_id == 12" (click)="showDiagramDetails()">
+                                    View Details
+                                </a>
+                                <!-- <span *ngIf="k.compliance_kpis_id != 5 && k.compliance_kpis_id != 13">{{k.compliance.total_personnel_trained.total_passed}} / {{k.compliance.total_personnel}}</span>
+                                                                <span *ngIf="k.compliance_kpis_id == 5 && k.compliance_kpis_id != 13"> {{k.compliance.total_valid_diagrams}} / {{k.compliance.total_diagrams}} </span> -->
+                            </div>
+
+                            <div class="arrow"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
-        <table class="table table-list">
-            <thead>
-                <tr>
-                    <th>Compliance Item</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let k of KPIS;" (click)="getUploadedDocumentsFromSelectedKPI(k)">
-                    <td class="with-image">
-                        <div class="image {{k.icon_class}}" [ngStyle]="{'background-color': k.background_color}"  ></div>
-                        <span>{{k.name}}</span>
-                    </td>
-                    <td class="with-icon" *ngIf="!k.compliance">
-                        <div class="image expired"></div>
-                    </td>
-                    <td class="with-icon" *ngIf="k.compliance">
-                        <div *ngIf="k.compliance.validity_status == 'none-exist' && k.compliance_kpis_id != 13" class="image expired"></div>
-                        <div *ngIf="k.compliance.validity_status == 'invalid' && k.compliance_kpis_id != 13" class="image alarm"></div>
-                        <div *ngIf="k.compliance.validity_status == 'valid' && k.compliance_kpis_id != 13" class="image check"></div>
+        <div class="col l8 m12 s12" *ngIf="selectedKPI == 2">
+            <ng-container *ngTemplateOutlet="templateKpis2"></ng-container>
+        </div>
 
-                        <div class="text" *ngIf="k.type == 'date' && k.compliance.validity_status != 'none-exist' && k.compliance_kpis_id != 3">
-                            <p *ngIf="k.compliance.validity_status == 'valid'">Valid Till:</p>
-                            <div *ngIf="k.compliance.validity_status == 'invalid'">
-                                <span *ngIf="k.compliance.docs[0]">{{k.compliance.docs[0].valid_till}}</span>
-                            </div>
-                            <div *ngIf="k.compliance.validity_status == 'valid'"  >
-                                <span *ngIf="k.compliance.docs[0] && k.compliance.valid_till !== null">{{k.compliance.docs[0].valid_till}}</span>
-                                <span *ngIf="!k.compliance.docs[0] && k.compliance.valid_till != null">{{k.compliance['valid_till']}}</span>
-                            </div>
-                        </div>
+        <div class="col l8 m12 s12" *ngIf="selectedKPI == 3">
+            <ng-container *ngTemplateOutlet="templateKpis3"></ng-container>
+        </div>
 
-                        <div class="text"  *ngIf="k.type == 'percent'">
-                            <a *ngIf="k.compliance_kpis_id == 5 || k.compliance_kpis_id == 6 || k.compliance_kpis_id == 8 || k.compliance_kpis_id == 9 || k.compliance_kpis_id == 12" (click)="showDiagramDetails()">
-                                View Details
-                            </a>
-                            <!-- <span *ngIf="k.compliance_kpis_id != 5 && k.compliance_kpis_id != 13">{{k.compliance.total_personnel_trained.total_passed}} / {{k.compliance.total_personnel}}</span>
-                                                            <span *ngIf="k.compliance_kpis_id == 5 && k.compliance_kpis_id != 13"> {{k.compliance.total_valid_diagrams}} / {{k.compliance.total_diagrams}} </span> -->
-                        </div>
+        <div class="col l8 m12 s12" *ngIf="selectedKPI == 4">
+            <ng-container *ngTemplateOutlet="templateKpis4"></ng-container>
+        </div>
 
-                        <div class="arrow"></div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="col l8 m12 s12" *ngIf="selectedKPI == 5">
+            <ng-container *ngTemplateOutlet="templateKpis5"></ng-container>
+        </div>
+
+        <div class="col l8 m12 s12" *ngIf="selectedKPI == 6">
+            <ng-container *ngTemplateOutlet="templateKpis6"></ng-container>
+        </div>
+
+        <div class="col l8 m12 s12" *ngIf="selectedKPI == 8">
+            <ng-container *ngTemplateOutlet="templateKpis8"></ng-container>
+        </div>
+
+        <div class="col l8 m12 s12" *ngIf="selectedKPI == 9">
+            <ng-container *ngTemplateOutlet="templateKpis9"></ng-container>
+        </div>
+
+        <div class="col l8 m12 s12" *ngIf="selectedKPI == 12">
+            <ng-container *ngTemplateOutlet="templateKpis12"></ng-container>
+        </div>
+
+        <div class="col l8 m12 s12" *ngIf="selectedKPI == 13">
+            <ng-container *ngTemplateOutlet="templateKpis13"></ng-container>
+        </div>
     </div>
 
-    <div class="col l8 m12 s12" *ngIf="selectedKPI == 2">
-        <ng-container *ngTemplateOutlet="templateKpis2"></ng-container>
-    </div>
-
-    <div class="col l8 m12 s12" *ngIf="selectedKPI == 3">
-        <ng-container *ngTemplateOutlet="templateKpis3"></ng-container>
-    </div>
-
-    <div class="col l8 m12 s12" *ngIf="selectedKPI == 4">
-        <ng-container *ngTemplateOutlet="templateKpis4"></ng-container>
-    </div>
-
-    <div class="col l8 m12 s12" *ngIf="selectedKPI == 5">
-        <ng-container *ngTemplateOutlet="templateKpis5"></ng-container>
-    </div>
-
-    <div class="col l8 m12 s12" *ngIf="selectedKPI == 9">
-        <ng-container *ngTemplateOutlet="templateKpis9"></ng-container>
-    </div>
-
-    <div class="col l8 m12 s12" *ngIf="selectedKPI == 12">
-        <ng-container *ngTemplateOutlet="templateKpis12"></ng-container>
-    </div>
-
-    <div class="col l8 m12 s12" *ngIf="selectedKPI == 13">
-        <ng-container *ngTemplateOutlet="templateKpis13"></ng-container>
+    <div class="row row-diagram-details"  style="display: none;">
+        <div class="col l12 m12 s12">
+            <ng-container *ngTemplateOutlet="displayKPINameAndDescription"></ng-container>
+        </div>
+        <div class="content" *ngIf="selectedKPI == 6">
+            <ng-container  *ngTemplateOutlet="templateTableKpis6"> </ng-container>
+        </div>
+        <div class="content" *ngIf="selectedKPI == 8">
+            <ng-container  *ngTemplateOutlet="templateTableKpis8"> </ng-container>
+        </div>
+        <div class="content" *ngIf="selectedKPI == 12">
+            <ng-container  *ngTemplateOutlet="templateTableKpis12"> </ng-container>
+        </div>
     </div>
 </div>
 
 <ng-template #displayKPINameAndDescription>
     <div class="text">
-        <h4 class="title blue-text">{{displayKPIName}}</h4>
+        <h4 class="title blue-text">
+            {{displayKPIName}}
+            <a  class="right hide-diagram" style="display: none;" (click)="hideDiagramDetails()">Close <img src="/assets/images/expired_icon.png" alt=""></a>
+        </h4>
         <p class="description">
             <!-- The Emergency Planning Committee develops the emergency plan, emergency response procedures and takes an active role in forming the Emergency Control Organisation (ECO). -->
             {{displayKPIDescription}}
@@ -270,6 +298,237 @@
     </table>
 </ng-template>
 
+<ng-template #templateKpis6>
+    <ng-container *ngTemplateOutlet="displayKPINameAndDescription"></ng-container>
+    <div class="documents-container">
+        <div class="document" >
+
+            <div class="preview-container">
+
+            </div>
+
+            <div class="text-container">
+                <h5 class="file-name">
+                    <span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+                </h5>
+
+                <div class="dates">
+                    <div class="created">
+                        <p>Last warden training session held on</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
+                            {{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}
+                        </p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" >
+                            00/00/0000
+                        </p>
+                    </div>
+                </div>
+
+                <div class="click-view-previous">
+                    <a  class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+                </div>
+
+                <div class="buttons">
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</ng-template>
+
+<ng-template #templateTableKpis6>
+    <div class="col l12 m12 s12">
+        <div class="diagram-top-of-table">
+            <h5 class="blue-text title">Warden Benchmarking</h5>
+        </div>
+        <div class="filter-container row">
+            <div class="col l6 m12 s12">
+                <div class="search-field">
+                    <input placeholder="Search here" type="text">
+                    <span class="material-icons">search</span>
+                </div>
+            </div>
+            <div class="col l3 m12 s12">
+                <select class="filter-by">
+                    <option value="0" selected disabled >Filter By</option>
+                </select>
+            </div>
+            <div class="col l3 m12 s12">
+                <select class="sort-by">
+                    <option value="0" selected disabled >Sort By</option>
+                </select>
+            </div>
+        </div>
+        <table class="striped table">
+            <thead>
+                <tr>
+                    <th>Sub Locations</th>
+                    <th>Benchmark</th>
+                    <th>Nominated</th>
+                    <th>Trained</th>
+                    <th>Training Compliance</th>
+                    <th style="width: 13%;">Action</th>
+                </tr>
+            </thead>
+            <tbody >
+                <tr *ngFor="let sub of complianceSublocations">
+                  <td class="with-icon">
+                    <ng-template #noStatus>
+                        <div class="image expired"></div>
+                    </ng-template>
+                    <span *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noStatus">
+                        <div class="image"  [ngClass]="{
+                            'expired' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].total_passed == 0,
+                            'alarm' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training']['percentage'] != '100%' && selectedCompliance['compliance']['location_details'][sub['location_id']]['training']['percentage'] != '0%',
+                            'check' : selectedCompliance['compliance']['location_details'][sub['location_id']]['training']['percentage'] == '100%'
+                        }"></div>
+                    </span>
+                    <div class="text">{{sub.name}}</div>
+                  </td>
+                  <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                    {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_estimated_wardens}}
+                  </td>
+                  <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                      {{selectedCompliance['compliance']['location_details'][sub['location_id']].users.length}}
+                  </td>
+                  <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                      {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_passed}}
+                  </td>
+                  <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
+                      {{selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].percentage}}
+                  </td>
+                  <td>
+                      <a  (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
+                  </td>
+                  <ng-template #noChiefWarden>
+                    <td >0</td>
+                  </ng-template>
+                  <ng-template #noChiefWardenPercentage>
+                    <td >0%</td>
+                  </ng-template>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</ng-template>
+
+<ng-template #templateKpis8>
+    <ng-container *ngTemplateOutlet="displayKPINameAndDescription"></ng-container>
+    <div class="documents-container">
+        <div class="document" >
+
+            <div class="preview-container">
+
+            </div>
+
+            <div class="text-container">
+                <h5 class="file-name">
+                    <span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+                </h5>
+
+                <div class="dates">
+                    <div class="created">
+                        <p>Last General Occupant training held on:</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
+                            {{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}
+                        </p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" >00/00/0000</p>
+                    </div>
+                </div>
+
+                <div class="click-view-previous">
+                    <a  class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+                </div>
+
+                <div class="buttons">
+
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
+                    <!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button> -->
+                    <!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
+                </div>
+            </div>
+
+            <!-- <div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
+                <p class="give-access-text">Give access to TRP</p>
+                <div class="switch" >
+                    <input type="checkbox"
+                 (change)="assignAccessToTRP($event, selectedCompliance)"
+                 [checked]="selectedCompliance.compliance.docs[0].viewable_by_trp">
+                    <div class="yes">Yes</div>
+                    <div class="no">No</div>
+                    <div class="highlight"></div>
+                    <div class="background"></div>
+                </div>
+            </div> -->
+
+        </div>
+
+    </div>
+</ng-template>
+
+<ng-template #templateTableKpis8>
+    <div class="col l12 m12 s12">
+        <div class="diagram-top-of-table">
+            <h5 class="blue-text title">General Occupant Training</h5>
+        </div>
+        <div class="filter-container row">
+            <div class="col l6 m12 s12">
+                <div class="search-field">
+                    <input placeholder="Search here" type="text">
+                    <span class="material-icons">search</span>
+                </div>
+            </div>
+            <div class="col l3 m12 s12">
+                <select class="filter-by">
+                    <option value="0" selected disabled >Filter By</option>
+                </select>
+            </div>
+            <div class="col l3 m12 s12">
+                <select class="sort-by">
+                    <option value="0" selected disabled >Sort By</option>
+                </select>
+            </div>
+        </div>
+        <table class="striped table">
+            <thead>
+                <tr>
+                    <th>Sub Locations</th>
+                    <th>Staff</th>
+                    <th>Trained</th>
+                    <th>Training Compliance</th>
+                    <th style="width: 13%;">Action</th>
+                </tr>
+            </thead>
+            <tbody  ></tbody>
+          <tr *ngFor="let sub of complianceSublocations">
+              <td>{{sub.name}}</td>
+              <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].users.length}}
+              </td>
+              <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_passed}}
+              </td>
+              <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
+                  {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
+              </td>
+              <td>
+                <a  class="blue-text"> View Warden List </a>
+              </td>
+              <ng-template #noChiefWarden>
+                <td >0</td>
+              </ng-template>
+              <ng-template #noChiefWardenPercentage>
+                <td >0%</td>
+              </ng-template>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+</ng-template>
+
 <ng-template #templateKpis9>
     <ng-container *ngTemplateOutlet="displayKPINameAndDescription"></ng-container>
     <div class="diagram-top-of-table">
@@ -308,38 +567,123 @@
 
 <ng-template #templateKpis12>
     <ng-container *ngTemplateOutlet="displayKPINameAndDescription"></ng-container>
-    <div class="diagram-top-of-table">
-        <h5 class="blue-text title">Document List</h5>
-        <div class="buttons">
-            <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs()" style="display: block;">Upload Document</button>
+    <div class="documents-container">
+        <div class="document" >
+
+            <div class="preview-container">
+
+            </div>
+
+            <div class="text-container">
+                <h5 class="file-name">
+                    <span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
+                </h5>
+
+                <div class="dates">
+                    <div class="created">
+                        <p>Last Chief warden training held on:</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >
+                            {{selectedCompliance.compliance.docs[0]['date_of_activity_formatted']}}
+                        </p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" >
+                            00/00/0000
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="click-view-previous">
+                    <a  class="blue-text" (click)="showDiagramDetails()">Click here to view previous versions ></a>
+                </div>
+
+                <div class="buttons">
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
+                    <!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/teams/add-wardens']" [queryParams]="{ 'location_id' : encryptedID }">Manage</button> -->
+                    <!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
+                </div>
+            </div>
+
+            <!-- <div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
+                <p class="give-access-text">Give access to TRP</p>
+                <div class="switch" >
+                    <input type="checkbox"
+                 (change)="assignAccessToTRP($event, selectedCompliance)"
+                 [checked]="selectedCompliance.compliance.docs[0].viewable_by_trp">
+                    <div class="yes">Yes</div>
+                    <div class="no">No</div>
+                    <div class="highlight"></div>
+                    <div class="background"></div>
+                </div>
+            </div> -->
+
         </div>
+
     </div>
-    <table class="striped table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Type</th>
-                <th>Filename</th>
-                <th>Date Of Activity</th>
-                <th>Validity (months)</th>
-                <th>Expiry</th>
-                <th>Timestamp</th>
-                <th style="width: 10%;">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let doc of documentFiles">
-                <td>{{doc['compliance_documents_id']}}</td>
-                <td>{{doc['document_type']}}</td>
-                <td>{{doc['file_name']}}</td>
-                <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
-                <td>{{doc['validity_in_months']}}</td>
-                <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
-                <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
-                <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
-            </tr>
-        </tbody>
-    </table>
+</ng-template>
+
+<ng-template #templateTableKpis12>
+    <div class="col l12 m12 s12">
+        <div class="diagram-top-of-table">
+            <h5 class="blue-text title">Chief Warden</h5>
+        </div>
+        <div class="filter-container row">
+            <div class="col l6 m12 s12">
+                <div class="search-field">
+                    <input placeholder="Search here" type="text">
+                    <span class="material-icons">search</span>
+                </div>
+            </div>
+            <div class="col l3 m12 s12">
+                <select class="filter-by">
+                    <option value="0" selected disabled >Filter By</option>
+                </select>
+            </div>
+            <div class="col l3 m12 s12">
+                <select class="sort-by">
+                    <option value="0" selected disabled >Sort By</option>
+                </select>
+            </div>
+        </div>
+        <table class="striped table">
+            <thead>
+                <tr>
+                    <th>Sub Locations</th>
+                    <th>Benchmark</th>
+                    <th>Nominated</th>
+                    <th>Trained</th>
+                    <th>Training Compliance</th>
+                    <th style="width: 13%;">Action</th>
+                </tr>
+            </thead>
+            <tbody  >
+                <tr *ngFor="let sub of complianceSublocations">
+                    <td>{{sub.name}}</td>
+
+                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_estimated_wardens}}
+                    </td>
+                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].users.length}}
+                    </td>
+                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
+                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_passed}}
+                    </td>
+                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
+                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
+                    </td>
+                    <td>
+                        <a  (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
+                    </td>
+                    <ng-template #noChiefWarden>
+                        <td >0</td>
+                    </ng-template>
+                    <ng-template #noChiefWardenPercentage>
+                        <td >0%</td>
+                    </ng-template>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </ng-template>
 
 <ng-template #templateKpis13>
@@ -448,6 +792,60 @@
             <button class="waves-effect waves-blue btn-flat" type="submit" [disabled]="!form.valid" (click)="submitUploadDocs(form)">Submit</button>
         </div>
     </form>
+</div>
+
+<div id="modalWardenList" class="modal">
+  <div class="modal-content">
+    <table class="striped table">
+            <thead>
+                <tr>
+                    <!-- <th>Date</th> -->
+                    <th>Account</th>
+                    <th>TRP Name</th>
+                    <th>No of wardens</th>
+                    <th>Wardens</th>
+                    <!--
+                    <th style="width: 10%;">No of new wardens added</th>
+                    <th style="width: 10%;">Action</th>
+                    -->
+                </tr>
+            </thead>
+            <tbody *ngIf="fetchingWardenList">
+                <tr>
+                    <td colspan="4" class="center">Loading...</td>
+                </tr>
+            </tbody>
+            <tbody *ngIf="!fetchingWardenList">
+                <tr *ngFor="let tenant of tenants">
+                    <!-- <td>n/a</td> -->
+                    <td>
+                        <span class="blue-text">{{tenant.account_name}}</span>
+                    </td>
+                    <td>
+                      <span *ngFor="let t of tenant.trp">{{t}}<br /></span>
+                    </td>
+                    <td>
+                        {{tenant.wardens.length}}
+                    </td>
+                    <td>
+                    <span *ngFor="let warden of tenant.wardens">{{warden.first_name}} {{warden.last_name}}<br /></span>
+                    </td>
+                    <!--
+                    <td style="padding: 2px;">
+                        <a  class=" ">
+                        <img src="/assets/images/download_ico_blue.png"  >
+                        </a>
+                    </td>
+                    -->
+                </tr>
+            </tbody>
+    </table>
+    <br />
+    <div class="button-container right-align" >
+        <a  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Close</a>
+    </div>
+  </div>
+
 </div>
 
 <div preloader></div>

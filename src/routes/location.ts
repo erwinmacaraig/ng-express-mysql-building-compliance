@@ -1009,7 +1009,7 @@ const defs = require('../config/defs.json');
 
       	// we need to check the role(s)
       	const userRoleRel = new UserRoleRelation();
-      	const roles = await userRoleRel.getByUserId(req.user.user_id);
+      	const roles = (req.user.evac_role != 'admin') ? await userRoleRel.getByUserId(req.user.user_id) : 1;
 
       	let response = {
       		'location' : {},
