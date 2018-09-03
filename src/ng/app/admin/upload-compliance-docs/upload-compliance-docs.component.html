@@ -2,15 +2,15 @@
     <div class="col s12 top-title-button">
         <h4 class="title">Upload Documentation</h4>
         <div *ngIf="documentType.value == 5" style="font-size: 16px; padding: 20px; background-color: #f5f5f5; border-radius: 5px;">
-            <span >Instruction</span>: File name format should be <span class="blue-text">Account_Name Location_Name Level_03 01 DDMMYYYY.(extension name e.g jpg, png etc..) (keep the spaces on each)</span>
+            <span >Instruction</span>: File name format should be <br/>
+                <span class="blue-text">Account_Name<span class="grey-text" style="font-size: 14px; margin: 5px;">SPACE</span>Location_Name<span class="grey-text" style="font-size: 14px; margin: 5px;">SPACE</span>Level_03<span class="grey-text" style="font-size: 14px; margin: 5px;">SPACE</span>01<span class="grey-text" style="font-size: 14px; margin: 5px;">SPACE</span>DDMMYYYY.(extension name e.g jpg, png etc..) </span>
             <br>
-            <span>Legends:</span>
+            <span>For e.g.</span>
             <ul style="margin: 0px 0px 0px 20px; font-size: 14px;">
-                <li>Account_Name: Name of the client's Organisation (e.g. <strong>Investa_Property</strong>) <small>*change space to underscore</small></li>
-                <li>Location_Name: The building's name (e.g. <strong>567_Collins_St_Melbourne or Building_602_-_Conservatorium</strong>) <small>*change space to underscore</small></li>
-                <li>Level: Actual location of Diagram (e.g. <strong>Level_3</strong>) <small>*change space to underscore</small></li>
-                <li>01: No of diagrams to that particular sublocation, they can go from 01 to 99 or so on (e.g. <strong>01 or 02 or 99</strong>)</li>
-                <li>Date: Date on the actual diagram should be reflected here, the format will be uniform (e.g. <strong>01012018</strong>)</li>
+                <li>
+                    If a diagram for for Investa @567 Collins St on level 15 is to be uploaded, than the file name to be
+                </li>
+                <li>Invest_Property_Group 239_George_St Level_04 01 01012013 </li>
             </ul>
         </div>
     </div>
