@@ -899,12 +899,7 @@ export class ReportsRoute extends BaseRoute {
                     log['formatted_address'] = loc.formatted_address;
                 }
             }
-            log['url'] = '';
-
-            try{
-                let paths = await utilsModel.s3DownloadFilePathGen(accountId, log.building_id);
-                log['url'] = url + paths[log.compliance_kpis_id][0];
-            }catch(e){}
+            log['url'] = (log['urlPath']) ? log['urlPath'] : '';
         }
 
         response.data = logs;
