@@ -250,19 +250,19 @@
 				</h5>
 
 				<div class="dates">
-					<div class="created">
-						<p>Diagrams Creation date:</p>
-                        <p *ngIf="selectedCompliance.compliance.docs.length > 0" >{{selectedCompliance.compliance.docs[0].timestamp_formatted}}</p>
-						<p *ngIf="selectedCompliance.compliance.docs.length == 0" >00/00/0000</p>
-					</div>
-
-					<div class="review">
-						<p>Diagram review date:</p>
-						<p>
-							<span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
-							<span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
-						</p>
-					</div>
+					<!-- <div class="created">
+                        <p>Diagrams Creation date:</p>
+                                            <p *ngIf="selectedCompliance.compliance.docs.length > 0" >{{selectedCompliance.compliance.docs[0].timestamp_formatted}}</p>
+                        <p *ngIf="selectedCompliance.compliance.docs.length == 0" >00/00/0000</p>
+                    </div>
+                    
+                    <div class="review">
+                        <p>Diagram review date:</p>
+                        <p>
+                            <span *ngIf="selectedCompliance.compliance.valid_till !== null">{{ selectedCompliance.compliance.valid_till }}</span>
+                            <span *ngIf="selectedCompliance.compliance.valid_till == null"> 00/00/0000 </span>
+                        </p>
+                    </div> -->
 				</div>
 
 				<div class="click-view-previous">
@@ -383,6 +383,7 @@
 				</div>
 
 				<div class="buttons">
+                    <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button> -->
 					<!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
 				</div>
@@ -622,7 +623,7 @@
 					<th>Last Review</th>
 					<th>Filename</th>
 					<th>Trainer</th>
-					<th style="width: 10%;">Action</th>
+					<th style="width: 10%;" class="center">Action</th>
 				</tr>
 			</thead>
 
@@ -638,7 +639,7 @@
 					<td>
 						--
 					</td>
-					<td style="padding: 2px;">
+					<td style="padding: 2px;" class="center">
 						<a  class=" "  href="{{doc['urlPath']}}" target="_blank"><img src="/assets/images/download_ico_blue.png"></a>
 						<!-- <a class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)"> -->
 					</td>
@@ -683,7 +684,7 @@
 					<th>EPC Records</th>
 					<th>Filename</th>
 					<th>Trainer</th>
-					<th style="width: 10%;">Action</th>
+					<th style="width: 10%;" class="center">Action</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -697,8 +698,8 @@
 					<td>
 
 					</td>
-					<td style="padding: 2px;">
-						<a class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
+					<td style="padding: 2px;" class="center">
+						<a href="{{doc.urlPath}}" target="_blank" download >
 							<img src="/assets/images/download_ico_blue.png" />
 						</a>
 					</td>
@@ -743,7 +744,7 @@
 					<th>Evacuation Exercise Meeting</th>
 					<th>Filename</th>
 					<th>Trainer</th>
-					<th style="width: 10%;">Action</th>
+					<th style="width: 10%;" class="center">Action</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -757,8 +758,8 @@
 					<td>
 
 					</td>
-					<td style="padding: 2px;">
-						<a class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
+					<td style="padding: 2px;" class="center">
+						<a href="{{doc.urlPath}}" target="_blank" download >
 							<img src="/assets/images/download_ico_blue.png"  >
 						</a>
 					</td>
@@ -787,7 +788,7 @@
 					<th>Date Uploaded</th>
 					<th>Valid Until</th>
 					<th>Diagram</th>
-					<th style="width: 10%;">Action</th>
+					<th style="width: 10%;" class="center">Action</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -817,103 +818,10 @@
                     <td>
                         --
                     </td>
-					<td style="padding: 2px;">
+					<td style="padding: 2px;" class="center">
 						<a *ngIf="loc.evac_diagrams[0]" class=" "  href="{{loc.evac_diagrams[0]['urlPath']}}" target="_blank"><img src="/assets/images/download_ico_blue.png"></a>
-						<!-- <a class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)"> -->
                     </td>
                 </tr>
-                <!--
-				<tr>
-					<td class="with-icon">
-						<div class="image check"></div>
-						<div class="text">Level 1</div>
-					</td>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						<a  class="blue-text"> View All </a>
-					</td>
-					<td>
-						EvacServices
-					</td>
-					<td style="padding: 2px;">
-						<a  class=" ">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
-				<tr>
-					<td class="with-icon">
-						<div class="image alarm"></div>
-						<div class="text">Level 2</div>
-					</td>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						<a  class="blue-text"> View All </a>
-					</td>
-					<td>
-						EvacServices
-					</td>
-					<td style="padding: 2px;">
-						<a  class=" ">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
-				<tr>
-					<td class="with-icon">
-						<div class="image expired"></div>
-						<div class="text">Level 3</div>
-					</td>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						00/00/0000
-					</td>
-					<td>
-						<a  class="blue-text"> View All </a>
-					</td>
-					<td>
-						EvacServices
-					</td>
-					<td style="padding: 2px;">
-						<a  class=" ">
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					</td>
-				</tr>
-				<tr>
-					<td class="with-icon">
-						<div class="image expired"></div>
-						<div class="text">Level 4</div>
-					</td>
-					<td>
-						--
-					</td>
-					<td>
-						--
-					</td>
-					<td>
-						--
-					</td>
-					<td>
-						--
-					</td>
-					<td>
-						<button class="btn red waves-effect waves-light btn-manage accent-4">Manage</button>
-					</td>
-				</tr>
-                -->
 			</tbody>
 		</table>
 	</div>
@@ -927,32 +835,9 @@
 		<ng-container *ngTemplateOutlet="chief_warden_trainingTemplate"></ng-container>
 	</div>
 	<div class="col l8 m12 s12">
-    <!--
-		<div class="diagram-top-of-table">
-			<h5 class="blue-text title">Attendance Record</h5>
-		</div>
-		<div class="filter-container row">
-			<div class="col l6 m12 s12">
-				<div class="search-field">
-					<input placeholder="Search here" type="text">
-					<span class="material-icons">search</span>
-				</div>
-			</div>
-			<div class="col l3 m12 s12">
-				<select class="filter-by">
-					<option value="0" selected disabled >Filter By</option>
-				</select>
-			</div>
-			<div class="col l3 m12 s12">
-				<select class="sort-by">
-					<option value="0" selected disabled >Sort By</option>
-				</select>
-			</div>
-		</div>
-  -->
       <div class="col l12 m12 s12">
         <div class="diagram-top-of-table">
-            <h5 class="blue-text title">Chief Warden</h5>
+            <h5 class="blue-text title">Training Records</h5>
         </div>
         <div class="filter-container row">
             <div class="col l6 m12 s12">
@@ -975,38 +860,23 @@
         <table class="striped table">
             <thead>
                 <tr>
-                    <th>Sub Locations</th>
-                    <th>Benchmark</th>
-                    <th>Nominated</th>
-                    <th>Trained</th>
-                    <th>Training Compliance</th>
-                    <th style="width: 13%;">Action</th>
+                    <th>Training Records</th>
+                    <th>Filename</th>
+                    <th style="width: 13%;" class="center">Action</th>
                 </tr>
             </thead>
             <tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 12">
-                <tr *ngFor="let sub of complianceSublocations">
-                    <td>{{sub.name}}</td>
-                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
-                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_estimated_wardens}}
+                <tr *ngIf="selectedCompliance.compliance.docs.length == 0">
+                    <td  colspan="3" class="center">No record found</td>
+                </tr>
+                <tr *ngFor="let doc of selectedCompliance.compliance.docs">
+                    <td>{{doc.timestamp_formatted}}</td>
+                    <td>{{doc.file_name}}</td>
+                    <td style="padding: 2px;" class="center">
+                        <a href="{{doc.urlPath}}" target="_blank" download >
+                            <img src="/assets/images/download_ico_blue.png">
+                        </a>
                     </td>
-                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
-                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].users.length}}
-                    </td>
-                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWarden">
-                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.total_passed}}
-                    </td>
-                    <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
-                        {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
-                    </td>
-                    <td>
-                        <a  (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
-                    </td>
-                    <ng-template #noChiefWarden>
-                        <td >0</td>
-                    </ng-template>
-                    <ng-template #noChiefWardenPercentage>
-                        <td >0%</td>
-                    </ng-template>
                 </tr>
             </tbody>
         </table>
@@ -1051,7 +921,7 @@
 					<th>Nominated</th>
 					<th>Trained</th>
 					<th>Training Compliance</th>
-					<th style="width: 13%;">Action</th>
+					<th style="width: 13%;" class="center">Action</th>
 				</tr>
 			</thead>
 			<tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 6">
@@ -1081,7 +951,7 @@
               <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
                   {{selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].percentage}}
               </td>
-              <td>
+              <td class="center">
                   <a  (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
               </td>
               <ng-template #noChiefWarden>
@@ -1131,7 +1001,7 @@
 					<th>Previous Review</th>
 					<th>Filename</th>
 					<th>Trainer</th>
-					<th style="width: 10%;">Action</th>
+					<th style="width: 10%;" class="center">Action</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -1145,8 +1015,8 @@
 					<td>
 
 					</td>
-					<td style="padding: 2px;">
-						<a class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)">
+					<td style="padding: 2px;" class="center">
+						<a href="{{doc.urlPath}}" target="_blank" download >
 							<img src="/assets/images/download_ico_blue.png"  >
 						</a>
 					</td>
@@ -1193,7 +1063,7 @@
 					<th>Staff</th>
 					<th>Trained</th>
 					<th>Training Compliance</th>
-					<th style="width: 13%;">Action</th>
+					<th style="width: 13%;" class="center">Action</th>
 				</tr>
 			</thead>
 			<tbody *ngIf="selectedCompliance['compliance_kpis_id'] == 8"></tbody>
@@ -1208,7 +1078,7 @@
               <td *ngIf="selectedCompliance['compliance']['location_details'] && selectedCompliance['compliance']['location_details'][sub['location_id']]; else noChiefWardenPercentage">
                   {{selectedCompliance['compliance']['location_details'][sub['location_id']].training.percentage}}
               </td>
-              <td>
+              <td class="center">
                 <a  class="blue-text"> View Warden List </a>
               </td>
               <ng-template #noChiefWarden>
@@ -1260,16 +1130,19 @@
 					<!-- <th>Account</th> -->
 					<th>File Name</th>
 					<th style="width: 12%;">No of wardens</th>
-					<th style="width: 10%;">Action</th>
+					<th style="width: 10%;" class="center">Action</th>
 				</tr>
 			</thead>
 			<tbody>
+                <tr *ngIf="selectedCompliance.compliance.docs.length == 0">
+                    <td colspan="4" class="center">No record found</td>
+                </tr>
                 <tr *ngFor="let doc of selectedCompliance.compliance.docs">
                     <td>{{doc.date_of_activity_formatted}}</td>
                     <td>{{doc.file_name}}</td>
                     <td>{{selectedCompliance.compliance.num_wardens}}</td>
-                    <td style="padding: 2px;">
-                        <a  class=" ">
+                    <td style="padding: 2px;" class="center">
+                        <a href="{{doc.urlPath}}" target="_blank" download >
                             <img src="/assets/images/download_ico_blue.png"  >
                         </a>
                     </td>

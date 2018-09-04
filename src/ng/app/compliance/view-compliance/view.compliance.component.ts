@@ -163,7 +163,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     evacExerciseComplianceId = 0;
     downloadAllPackLabel = '';
     downloadAllPackControler = false;
-   downloadPackName = '';
+    downloadPackName = '';
     constructor(
         private router : Router,
         private route: ActivatedRoute,
@@ -312,21 +312,14 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 this.KPIS = response.data;
 
                 this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
-                    for(let comp of responseCompl.data){
-                        if(comp.docs.length > 0) {
-                            for(let doc of comp.docs){
-                                doc['urlPath'] = encodeURI(doc['urlPath']);
-                            }
-                        }
-                    }
-
                     this.latestComplianceData = responseCompl.data;
                     if(responseCompl['building_based']){
                         this.nameDisplay = responseCompl.building.name;
                     }else{
                         this.nameDisplay = (this.locationData.parentData.name) ? this.locationData.parentData.name+', '+this.locationData.name : this.locationData.name; 
                     }
-		    this.downloadPackName = this.locationData['location_directory_name'];
+
+		            this.downloadPackName = this.locationData['location_directory_name'];
 	
                     this.setKPISdataForDisplay();
 
@@ -380,13 +373,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
             'epcFormCallBackSuccess' : () => {
                 this.ngOnInit(() => {
                     this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
-                        for(let comp of responseCompl.data){
-                            if(comp.docs.length > 0) {
-                                for(let doc of comp.docs){
-                                    doc['urlPath'] = encodeURI(doc['urlPath']);
-                                }
-                            }
-                        }
                         this.latestComplianceData = responseCompl.data;
                         this.setKPISdataForDisplay();
 
@@ -579,13 +565,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
         this.adminService.uploadComplianceDocs(formData).subscribe((response) => {
             this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
-                for(let comp of responseCompl.data){
-                    if(comp.docs.length > 0) {
-                        for(let doc of comp.docs){
-                            doc['urlPath'] = encodeURI(doc['urlPath']);
-                        }
-                    }
-                }
                 this.latestComplianceData = responseCompl.data;
                 this.setKPISdataForDisplay();
 
