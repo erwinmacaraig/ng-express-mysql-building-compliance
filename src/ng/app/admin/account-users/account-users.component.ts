@@ -31,6 +31,9 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
     public createRange;
     public currentPage = 0;
     @ViewChild('selectPage') selectedPage: ElementRef;
+    isSearching = false;
+    isTyping = false;
+    typingTimeout:any;
 
     updateProfileData = {
         user : <any> {
@@ -472,18 +475,25 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
     }
 
     searchByUserAndEmail(event: KeyboardEvent) {
+        //isSearching
+        
+        this.isTyping = true;
+        clearTimeout(this.typingTimeout);
+        this.typingTimeout = setTimeout(() => {
+            this.currentPage = parseInt(this.selectedPage.nativeElement.value, 10);
+            const searchKey = (<HTMLInputElement>event.target).value;
+            this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage, searchKey).subscribe((response) => {
+                this.isTyping = false;
+                this.userObjects = response['data']['list'];
+                this.total_pages = response['data']['total_pages'];
+                this.createRange = new Array(this.total_pages);
 
-        this.currentPage = parseInt(this.selectedPage.nativeElement.value, 10);
-        const searchKey = (<HTMLInputElement>event.target).value;
-        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage, searchKey).subscribe((response) => {
-            this.userObjects = response['data']['list'];
-            this.total_pages = response['data']['total_pages'];
-            this.createRange = new Array(this.total_pages);
+            }, (error) => {
 
-        }, (error) => {
+                console.log(error);
+            });
+        }, 600);
 
-            console.log(error);
-        });
     }
 
     selectActionChangeEvent(user, event){
