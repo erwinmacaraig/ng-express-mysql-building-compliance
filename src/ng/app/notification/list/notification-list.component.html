@@ -3,7 +3,7 @@
     <h5 class="title">Email Notification List</h5>
   </div>
   <div class="col l2 m3 s12 ">
-		<button class="btn orange waves-effect waves-light add-peep pull right" [routerLink]="['/dashboard', 'notification-config']">
+		<button class="btn orange waves-effect waves-light add-peep pull right" [routerLink]="['/admin', 'notification-config']">
 			<span class="image"></span>
 			Send New Email
     </button>
@@ -58,10 +58,11 @@
           <th>No of Receiver</th>
           <th>No of Responder</th>
           <th>Email Frequency</th>
-          <th>FRP</th>
+          <!-- <th>FRP</th> -->
           <th>Action</th>
         </tr>
       </thead>
+      <!--
       <tbody *ngIf="!isAdmin">
         <tr *ngFor="let config of configList">
           <td>
@@ -85,7 +86,7 @@
           </td>
           <td>
             <a [routerLink]="['/dashboard', 'notified-users-list', config['notification_config_id']]">{{ config['frequency'] }} (in days)</a>
-          </td>
+          </td>          
           <td>
             <a [routerLink]="['/dashboard', 'notified-users-list', config['notification_config_id']]">{{ config['first_name'] }} {{ config['last_name'] }}</a>
           </td>
@@ -95,10 +96,10 @@
               </select>
           </td>
         </tr>
-
       </tbody>
+      -->
 
-       <tbody *ngIf="isAdmin">
+       <tbody>
         <tr *ngFor="let config of configList">
           <td>
             <p class="checkbox">
@@ -122,9 +123,11 @@
           <td>
             <a [routerLink]="['/admin', 'notified-users-list', config['notification_config_id']]">{{ config['frequency'] }} (in days)</a>
           </td>
+          <!--
           <td>
             <a [routerLink]="['/admin', 'notified-users-list', config['notification_config_id']]">{{ config['first_name'] }} {{ config['last_name'] }}</a>
           </td>
+          -->
           <td>
               <select>
                   <option value="0"  selected disabled>Select action</option>

@@ -49,6 +49,9 @@ help us ensure that tenant and warden lists remain up to date.
     ngOnInit() {
         const role = this.auth.getHighestRankRole();
         this.userData = this.auth.getUserData();
+        if(this.userData.evac_role != 'admin'){
+            this.router.navigate(['/signout']);
+        }
         /*
         if(this.userData.evac_role == 'admin'){
             this.isAdmin = true;
@@ -57,12 +60,13 @@ help us ensure that tenant and warden lists remain up to date.
         } else {
             this.router.navigate(['']);
         }
-        */
+        
        if (role <= 2) {
         this.hasAccountRole = true;
        } else {
         this.router.navigate(['/']);
        }
+       */
 
         this.notConfigFormGrp = new FormGroup({
             all_users: new FormControl(false, null),
@@ -107,7 +111,7 @@ help us ensure that tenant and warden lists remain up to date.
     }
 
     public createNewConfig() {
-        this.dashboard.show();
+       
         let values = {};
         values = {
             frequency: this.notConfigFormGrp.get('frequency_field').value,
@@ -117,14 +121,14 @@ help us ensure that tenant and warden lists remain up to date.
             message: this.notConfigFormGrp.get('messageField').value,
             building_id: this.buildingId
         };
-
+        
         // console.log(JSON.stringify(values));
-        this.accountService.createConfig(JSON.stringify(values)).subscribe((response) => {
-            this.dashboard.hide();
-            this.router.navigate(['/dashboard', 'notification-list']);
+        this.accountService.createConfig(JSON.stringify(values)).subscribe((response) => {            
+            this.router.navigate(['/admin', 'notification-list']);
         }, (error) => {
-            this.dashboard.hide();
+            console.log(error);
         });
+        
     }
 
 }

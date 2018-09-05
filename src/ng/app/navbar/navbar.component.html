@@ -120,19 +120,22 @@
 
 		<div class="col sm12">
 			<ul class="links">
-                <li class="close-on-click"><a [routerLink]="['/dashboard/company-information']">Company Information</a></li>
-                <li class="close-on-click"><a [routerLink]="['/dashboard/person-info']">Personal Information</a></li>
-        		<li class="close-on-click" *ngIf="hasAccountRole"><a [routerLink]="['/dashboard', 'notification-list']">Notification Setup</a></li>		
-        		<!-- <li *ngIf="isAdmin"><a [routerLink]="['/admin', 'notification-list']">Notification Setup</a></li> -->        
+
+                <li><a [routerLink]="['/dashboard/company-information']">Company Information</a></li>
+                <li><a [routerLink]="['/dashboard/person-info']">Personal Information</a></li>
+        		<!--
+        		<li *ngIf="hasAccountRole"><a [routerLink]="['/dashboard', 'notification-list']">Notification Setup</a></li>		
+        		<li *ngIf="isAdmin"><a [routerLink]="['/admin', 'notification-list']">Notification Setup</a></li> -->        
                 <!-- <li *ngIf="showSendInviteLink"><a [routerLink]="['/dashboard/send-invite']">Send Invitation</a></li> -->
                 <!-- <li *ngIf="showShopLink"><a [routerLink]="['/shop/compliance-package']">Shop</a></li> -->
                 <!-- <li><a href="/">Subscription</a></li> -->
-                <li class="close-on-click" *ngIf="evac_role == 'admin'"><a [routerLink]="['/admin', 'accounts']" target="_blank">Administration</a></li>
-                <li class="close-on-click">
+                <li *ngIf="evac_role == 'admin'"><a [routerLink]="['/admin', 'accounts']" target="_blank">Administration</a></li>
+                <li>
                     <a [routerLink]="['/dashboard/security-privacy']">Security & Privacy</a>
                 </li>
 
                 <li><a href="/signout">Sign Out</a></li>
+
 			</ul>
 		</div>
 	</div>
