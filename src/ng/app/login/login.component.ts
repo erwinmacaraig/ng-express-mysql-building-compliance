@@ -94,7 +94,11 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.showSuccess = true;
       this.auth.setToken(data.token);
       this.auth.setUserData(data.data);
-      this.router.navigate(['']);
+      if(data.data.evac_role == 'admin'){
+        this.router.navigate(['/admin/accounts']);
+      }else{
+        this.router.navigate(['']);
+      }
     },
     (err: HttpErrorResponse) => {
       if (err.error instanceof Error) {

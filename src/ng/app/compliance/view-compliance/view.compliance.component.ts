@@ -419,7 +419,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 		$('.row-table-content').css('left', '-'+( tableW + 200 )+'px' );
 		$('.row-diagram-details').css('left', '0px' );
-		setTimeout(() => { $('.row-diagram-details').show(); }, 200);
+		setTimeout(() => { 
+            $('.row-diagram-details').show();
+            $('.hide-diagram').show();
+            $('.recently-uploaded').show();
+        }, 300);
 	}
 
 	hideDiagramDetails(){
@@ -429,7 +433,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 		$('.row-table-content').css('left', '0px' );
 		$('.row-diagram-details').css('left', (tableW + diagramLeft) + 'px' );
-		setTimeout(() => { $('.row-diagram-details').hide(); }, 400);
+        $('.hide-diagram').hide();
+        $('.recently-uploaded').hide();
+		setTimeout(() => { 
+            $('.row-diagram-details').hide();
+        }, 400);
 	}
 
 	ngOnDestroy() {

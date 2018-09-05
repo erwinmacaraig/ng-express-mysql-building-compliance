@@ -20,7 +20,7 @@
 	<div class="compliance-title-container ">
 		<ng-container *ngTemplateOutlet="complianceTitleTemplateInner ? complianceTitleTemplateInner : noneTemplate"></ng-container>
 
-		<a  class="right hide-diagram" (click)="hideDiagramDetails()">Close <img src="/assets/images/expired_icon.png" alt=""></a>
+		<!-- <a  class="right hide-diagram" (click)="hideDiagramDetails()">Close <img src="/assets/images/expired_icon.png" alt=""></a> -->
 	</div>
 </ng-template>
 
@@ -349,7 +349,30 @@
 			</div>
 
 		</div>
+        
+        <div class="recently-uploaded" style="display: none;">
+            <h5 class="blue-text" style="margin: 40px 0px 10px 0px; font-size: 20px;">Recently uploaded files</h5>
 
+            <table class="table striped">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Date uploaded</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="selectedCompliance.compliance.docs.length < 2">
+                        <td colspan="2">No recent file found</td>
+                    </tr>
+                    <tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index;" [hidden]="i == 0">
+                        <td>
+                            <a href="{{doc.urlPath}}" target="_blank" download class="black-text">{{doc.file_name}}</a>
+                        </td>
+                        <td>{{doc.timestamp_formatted}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 	</div>
 </ng-template>
 
@@ -403,6 +426,30 @@
 			</div>
 
 		</div>
+        
+        <div class="recently-uploaded" style="display: none;">
+            <h5 class="blue-text" style="margin: 40px 0px 10px 0px; font-size: 20px;">Recently uploaded files</h5>
+
+            <table class="table striped">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Date uploaded</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="selectedCompliance.compliance.docs.length < 2">
+                        <td colspan="2">No recent file found</td>
+                    </tr>
+                    <tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index;" [hidden]="i == 0">
+                        <td>
+                            <a href="{{doc.urlPath}}" target="_blank" download class="black-text">{{doc.file_name}}</a>
+                        </td>
+                        <td>{{doc.timestamp_formatted}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
 	</div>
 </ng-template>
@@ -527,7 +574,30 @@
 			</div>
 
 		</div>
+        
+        <div class="recently-uploaded" style="display: none;">
+            <h5 class="blue-text" style="margin: 40px 0px 10px 0px; font-size: 20px;">Recently uploaded files</h5>
 
+            <table class="table striped">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Date uploaded</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="selectedCompliance.compliance.docs.length < 2">
+                        <td colspan="2">No recent file found</td>
+                    </tr>
+                    <tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index;" [hidden]="i == 0">
+                        <td>
+                            <a href="{{doc.urlPath}}" target="_blank" download class="black-text">{{doc.file_name}}</a>
+                        </td>
+                        <td>{{doc.timestamp_formatted}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 	</div>
 </ng-template>
 
@@ -1163,6 +1233,11 @@
 			<img src="/assets/images/upload_ico.png" alt="">
 			Upload Documents
 		</button> -->
+        
+        <button class="btn blue waves-effect waves-light hide-diagram" (click)="hideDiagramDetails()" style="font-size: 25px; vertical-align: bottom; display: none;">
+            <i class="material-icons white-text" style="font-size: 25px; vertical-align: bottom;">reply</i>
+            Back to Compliance
+        </button>
 
 		<button class="btn orange waves-effect waves-light" (click)="downloadAllPack()" [disabled]="downloadAllPackControler">
 			<img src="/assets/images/download_ico.png" alt="">
