@@ -350,29 +350,6 @@
 
 		</div>
         
-        <div class="recently-uploaded" style="display: none;">
-            <h5 class="blue-text" style="margin: 40px 0px 10px 0px; font-size: 20px;">Recently uploaded files</h5>
-
-            <table class="table striped">
-                <thead>
-                    <tr>
-                        <th>Filename</th>
-                        <th>Date uploaded</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngIf="selectedCompliance.compliance.docs.length < 2">
-                        <td colspan="2">No recent file found</td>
-                    </tr>
-                    <tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index;" [hidden]="i == 0">
-                        <td>
-                            <a href="{{doc.urlPath}}" target="_blank" download class="black-text">{{doc.file_name}}</a>
-                        </td>
-                        <td>{{doc.timestamp_formatted}}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
 	</div>
 </ng-template>
 
@@ -862,8 +839,8 @@
 				</tr>
 			</thead>
 			<tbody>
-                <tr colspan="5" *ngIf="evacDiagramSublocations.length == 0">
-                    <td class="center"> No sublocations </td>
+                <tr *ngIf="evacDiagramSublocations.length == 0">
+                    <td class="center" colspan="5"> No sublocations </td>
                 </tr>
                 <tr *ngFor="let loc of evacDiagramSublocations">
                     <td class="with-icon">

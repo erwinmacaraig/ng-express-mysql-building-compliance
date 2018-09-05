@@ -416,6 +416,10 @@ export class NavbarComponent implements OnInit, AfterViewInit {
             }
 
         });
+
+        $('body').off('click.closerightnav').on('click.closerightnav', '.links .li-nav', () => {
+            $('#closeRightNav').trigger('click');
+        });
     }
 
 
