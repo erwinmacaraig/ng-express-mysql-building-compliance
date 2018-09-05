@@ -133,7 +133,7 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
 
     clickAllLocation(code, checkbox){
         if(checkbox.checked){
-            this.collection[code].locations = [0];
+            this.collection[code].locations = [];
             this.collection[code].allloc = true;
             this.selectedReport.allloc = true;
         }else{
@@ -276,6 +276,7 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
             if(this.selectedReport.allloc){
                 ids = [0];
             }else{
+                ids = [];
                 for(let i in this.selectedReport.locations){
                     ids.push(this.selectedReport.locations[i]['location_id']);
                 }

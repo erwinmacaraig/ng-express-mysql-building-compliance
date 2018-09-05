@@ -690,12 +690,15 @@ import * as S3Zipper from 'aws-s3-zipper';
 
               // console.log(emrolesOnThisLocation[defs['em_roles']['FLOOR_WARDEN']]);
             }
-            /*
+            
             if (defs['em_roles']['CHIEF_WARDEN'] in emrolesOnThisLocation ||
                 defs['em_roles']['DEPUTY_CHIEF_WARDEN'] in emrolesOnThisLocation) {
 
                 if ('location' in emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]) {
                     let locId;
+                    const calcResults = await wardenCalc.getBulkBenchmarkingResultOnLocations(
+                      emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location']);
+
                     for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'].length; i++) {
                         locId = emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']]['location'][i].toString();
                         if (emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['users'].length > 0) {
@@ -704,9 +707,27 @@ import * as S3Zipper from 'aws-s3-zipper';
                               emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['users']
                             );
                         }
+
+                        if (locId in calcResults) {
+                            emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['training']['total_estimated_wardens'] =
+                            calcResults[locId]['total_estimated_wardens'];
+                        } else {
+                            emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['training']['total_estimated_wardens'] = 0;
+                        }
+
+                        emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['training']['percentage'] =
+                        Math.round(
+                          (emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['training']['total_passed'] /
+                          emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['users'].length) * 100 );
+
+                        emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['training']['percentage'] =
+                        emrolesOnThisLocation[defs['em_roles']['CHIEF_WARDEN']][locId]['training']['percentage'].toString() + '%';
                     }
                 } else if ('location' in emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]) {
                     let locId;
+                    const calcResults = await wardenCalc.getBulkBenchmarkingResultOnLocations(
+                      emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location']);
+                    
                     for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location'].length; i++) {
                         locId = emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']]['location'][i].toString();
                         if (emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['users'].length > 0) {
@@ -716,10 +737,25 @@ import * as S3Zipper from 'aws-s3-zipper';
                             );
                         }
                     }
+
+                    if (locId in calcResults) {
+                        emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['training']['total_estimated_wardens'] =
+                        calcResults[locId]['total_estimated_wardens'];
+                    } else {
+                        emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['training']['total_estimated_wardens'] = 0;
+                    }
+
+                    emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['training']['percentage'] =
+                    Math.round(
+                      (emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['training']['total_passed'] /
+                      emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['users'].length) * 100 );
+
+                    emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['training']['percentage'] =
+                    emrolesOnThisLocation[defs['em_roles']['DEPUTY_CHIEF_WARDEN']][locId]['training']['percentage'].toString() + '%';
                 } else {
                     console.log('There is no chief warden assigned to this location');
                 }
-            } */
+            }
 
             // console.log(emrolesOnThisLocation);
         } catch (e) {
@@ -802,6 +838,8 @@ import * as S3Zipper from 'aws-s3-zipper';
                 return 0;
             }
         });
+
+        this.response['docs'] = docs;
 
         for(let d of docs){
             d.timestamp_formatted = (moment(d.timestamp_formatted).isValid()) ? moment(d.timestamp_formatted).format('DD/MM/YYYY') : '00/00/0000';

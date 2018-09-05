@@ -503,7 +503,7 @@ export class Account extends BaseClass {
                                 urlPath +=  `/${r['parent_location_directory_name']}`;
                             }
                         }
-                        urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/${r['file_name']}`;
+                        urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/`+encodeURIComponent(r['file_name']);
                         r['urlPath'] = urlPath;
                     }
                 }

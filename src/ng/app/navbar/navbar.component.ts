@@ -166,6 +166,9 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 
     closeEvent(){
         $('#closeRightNav').click(function(){ $('.vertical-m').removeClass('fadeInRight animated').addClass('fadeOutRightBig animated'); });
+        $('body').off('click.closeonclick').on('click.closeonclick', '.close-on-click', function(){
+            $('.vertical-m').removeClass('fadeInRight animated').addClass('fadeOutRightBig animated');
+        });
     }
 
     filterUrl(url:String){

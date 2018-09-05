@@ -132,7 +132,7 @@ export class Location extends BaseClass {
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
-                    console.log(error);
+                    console.log(error, sql_load);
                     return false;
                 }
                 for(let i in results){
