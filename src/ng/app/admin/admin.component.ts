@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy} from '@angular/core';
 import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 
 @Component({
@@ -11,9 +12,17 @@ import { Router } from '@angular/router';
 })
 
 export class AdminComponent implements OnInit, OnDestroy {
-  constructor() {}
+  userData = <any> {};
+  constructor(
+    private auth: AuthService,
+    private router: Router) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.userData = this.auth.getUserData();
+    if(this.userData.evac_role != 'admin'){
+        this.router.navigate(['/signout']);
+    }
+  }
 
   ngOnDestroy() {}
 

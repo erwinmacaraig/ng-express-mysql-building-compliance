@@ -152,23 +152,20 @@ export class NotificationConfiguration extends BaseClass {
 
   public generateConfigData(accountId = 0): Promise<Array<object>> {
     return new Promise((resolve, reject) => {
+      let whereAccountClause = '';
+      if (accountId) {
+        whereAccountClause = `WHERE notification_config.account_id = ${accountId}`;
+      }
       const sql = `SELECT
-                    notification_config.*,
-                    locations.name,
-                    users.first_name,
-                    users.last_name
-                  FROM
-                    notification_config
-                  INNER JOIN
-                    locations
-                  ON
-                    notification_config.building_id = locations.location_id
-                  INNER JOIN
-                    users
-                  ON
-                    users.user_id = notification_config.building_manager
-                  WHERE
-                    users.account_id = ?`;
+                      notification_config.*,
+                      locations.name
+                    FROM
+                      notification_config
+                    INNER JOIN
+                      locations
+                    ON
+                      notification_config.building_id = locations.location_id ${whereAccountClause}
+                    ORDER BY notification_config.building_id`;
       const connection = db.createConnection(dbconfig);
       connection.query(sql, [accountId], (error, results) => {
         if (error) {

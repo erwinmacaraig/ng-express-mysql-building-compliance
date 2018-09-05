@@ -27,12 +27,16 @@ export class NotificationListComponent implements OnInit, AfterViewInit, OnDestr
         this.dashboard.show();
         const role = this.auth.getHighestRankRole();
         this.userData = this.auth.getUserData();
-
+        if(this.userData.evac_role != 'admin'){
+            this.router.navigate(['/signout']);
+        }
+        /*
         if (role <= 2) {
             this.hasAccountRole = true;
         } else {
             this.router.navigate(['/']);
         }
+        */
         this.accountService.listNotificationConfig().subscribe((response) => {
             this.configList = response['data'];
             for (const config of this.configList) {
