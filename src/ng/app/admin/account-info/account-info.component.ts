@@ -3,7 +3,8 @@ import { Component, OnInit, OnDestroy, AfterViewInit, Input } from '@angular/cor
 import { Subscription } from 'rxjs/Rx';
 import { AdminService } from './../../services/admin.service';
 import { MessageService } from './../../services/messaging.service';
-
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 declare var $: any;
 
 @Component({
@@ -37,39 +38,45 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   account_billing = '';
 
   msgSrvSub;
+  userData = <any> {};
 
-  constructor(private adminService: AdminService, private msgSrv : MessageService) {}
+  constructor(private adminService: AdminService,
+              private msgSrv : MessageService,
+              private auth: AuthService,
+              private router: Router,) {}
 
   ngOnInit() {
-
-
-      this.sub = this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
-        if (response['message'] === 'Success') {
-          Object.keys(this.accountInfo).forEach((key) => {
-            this.accountInfo[key] = response['data'][key];
-          });
-          if (this.accountInfo['billing_street'].length > 0) {
-            this.account_billing += this.accountInfo['billing_street'];
-          }
-          if (this.accountInfo['billing_city'].length > 0) {
-            this.account_billing += `, ${this.accountInfo['billing_city']}`;
-          }
-          if (this.accountInfo['billing_state'].length > 0) {
-            this.account_billing += `, ${this.accountInfo['billing_state']}`;
-          }
-          if (this.accountInfo['billing_postal_code'].length > 0) {
-            this.account_billing += `, ${this.accountInfo['billing_postal_code']}`;
-          }
-          if (this.accountInfo['billing_country'].length > 0) {
-            this.account_billing += `, ${this.accountInfo['billing_country']}`;
-          }
-          console.log(this.accountInfo);
-
-          this.msgSrv.sendMessage({
-              'accountInfo' : this.accountInfo
-          });
+    this.userData = this.auth.getUserData();
+    if(this.userData.evac_role != 'admin'){
+        this.router.navigate(['/signout']);
+    }
+    this.sub = this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
+      if (response['message'] === 'Success') {
+        Object.keys(this.accountInfo).forEach((key) => {
+          this.accountInfo[key] = response['data'][key];
+        });
+        if (this.accountInfo['billing_street'].length > 0) {
+          this.account_billing += this.accountInfo['billing_street'];
         }
-      });
+        if (this.accountInfo['billing_city'].length > 0) {
+          this.account_billing += `, ${this.accountInfo['billing_city']}`;
+        }
+        if (this.accountInfo['billing_state'].length > 0) {
+          this.account_billing += `, ${this.accountInfo['billing_state']}`;
+        }
+        if (this.accountInfo['billing_postal_code'].length > 0) {
+          this.account_billing += `, ${this.accountInfo['billing_postal_code']}`;
+        }
+        if (this.accountInfo['billing_country'].length > 0) {
+          this.account_billing += `, ${this.accountInfo['billing_country']}`;
+        }
+        console.log(this.accountInfo);
+
+        this.msgSrv.sendMessage({
+            'accountInfo' : this.accountInfo
+        });
+      }
+    });
 
 
   }

@@ -502,7 +502,8 @@ const defs = require('../config/defs.json');
                 dbLocationData['lng'] = req.body.longitude;
                 break;
                 case 'photoUrl':
-                dbLocationData['google_photo_url'] = req.body.photoUrl;
+                // dbLocationData['google_photo_url'] = req.body.photoUrl;
+                dbLocationData['google_photo_url'] = "";
                 break;
                 case 'google_place_id':
                 dbLocationData['google_place_id'] = req.body.google_place_id;

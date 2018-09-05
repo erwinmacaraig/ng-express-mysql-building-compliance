@@ -136,10 +136,10 @@ const appRoutes: Routes = [
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
       { path: 'company-information', component: CompanyInformationComponent },
-      { path: 'send-invite', component : SendInviteComponent },
-      { path: 'notification-list', component: NotificationListComponent },
-      { path: 'notification-config', component: NotificationConfigurationComponent },
-      { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
+      { path: 'send-invite', component : SendInviteComponent },      
+      // { path: 'notification-list', component: NotificationListComponent },
+      // { path: 'notification-config', component: NotificationConfigurationComponent },
+      // { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
       { path: 'process-notification-queries/:token', component: NotificationQueryComponent },
       { path: 'send-invite', component : SendInviteComponent },
       { path: 'security-privacy', component : SecurityPrivacyComponent },
@@ -249,6 +249,7 @@ const appRoutes: Routes = [
       { path : 'teams-report/:location/:accountId', component : ReportsTeamsComponent },
       { path : 'reports', component : AdminReportsComponent },
       { path: 'new-account', component: AdminAddAccountComponent },
+      { path: 'notification-list', component: NotificationListComponent },
       { path: 'notification-config', component: NotificationConfigurationComponent },
       { path: 'notified-users-list/:config', component: NotifiedUsersListComponent}
     ]

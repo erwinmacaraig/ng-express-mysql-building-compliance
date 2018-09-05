@@ -163,6 +163,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     evacExerciseComplianceId = 0;
     downloadAllPackLabel = '';
     downloadAllPackControler = false;
+    downloadPackName = '';
     constructor(
         private router : Router,
         private route: ActivatedRoute,
@@ -311,20 +312,15 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 this.KPIS = response.data;
 
                 this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
-                    for(let comp of responseCompl.data){
-                        if(comp.docs.length > 0) {
-                            for(let doc of comp.docs){
-                                doc['urlPath'] = encodeURI(doc['urlPath']);
-                            }
-                        }
-                    }
-
                     this.latestComplianceData = responseCompl.data;
                     if(responseCompl['building_based']){
                         this.nameDisplay = responseCompl.building.name;
                     }else{
                         this.nameDisplay = (this.locationData.parentData.name) ? this.locationData.parentData.name+', '+this.locationData.name : this.locationData.name; 
                     }
+
+		            this.downloadPackName = this.locationData['location_directory_name'];
+	
                     this.setKPISdataForDisplay();
 
                     this.totalPercentage = responseCompl.percent;
@@ -377,13 +373,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
             'epcFormCallBackSuccess' : () => {
                 this.ngOnInit(() => {
                     this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
-                        for(let comp of responseCompl.data){
-                            if(comp.docs.length > 0) {
-                                for(let doc of comp.docs){
-                                    doc['urlPath'] = encodeURI(doc['urlPath']);
-                                }
-                            }
-                        }
                         this.latestComplianceData = responseCompl.data;
                         this.setKPISdataForDisplay();
 
@@ -430,7 +419,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 		$('.row-table-content').css('left', '-'+( tableW + 200 )+'px' );
 		$('.row-diagram-details').css('left', '0px' );
-		setTimeout(() => { $('.row-diagram-details').show(); }, 200);
+		setTimeout(() => { 
+            $('.row-diagram-details').show();
+            $('.hide-diagram').show();
+            $('.recently-uploaded').show();
+        }, 300);
 	}
 
 	hideDiagramDetails(){
@@ -440,7 +433,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 		$('.row-table-content').css('left', '0px' );
 		$('.row-diagram-details').css('left', (tableW + diagramLeft) + 'px' );
-		setTimeout(() => { $('.row-diagram-details').hide(); }, 400);
+        $('.hide-diagram').hide();
+        $('.recently-uploaded').hide();
+		setTimeout(() => { 
+            $('.row-diagram-details').hide();
+        }, 400);
 	}
 
 	ngOnDestroy() {
@@ -453,7 +450,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         this.downloadAllPackControler = true;
         this.complianceService.downloadAllComplianceDocumentPack(this.locationID).subscribe((data) => {
           const blob = new Blob([data.body], {type: 'application/zip'});
-          const filename = 'compliance-docs.zip';
+          const filename = `${this.downloadPackName}.zip`;
           FileSaver.saveAs(blob, filename);
           this.alertService.info('File download successful!');
           this.downloadAllPackLabel = 'Download all Pack';
@@ -576,13 +573,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
         this.adminService.uploadComplianceDocs(formData).subscribe((response) => {
             this.complianceService.getLocationsLatestCompliance(this.locationID, (responseCompl) => {
-                for(let comp of responseCompl.data){
-                    if(comp.docs.length > 0) {
-                        for(let doc of comp.docs){
-                            doc['urlPath'] = encodeURI(doc['urlPath']);
-                        }
-                    }
-                }
                 this.latestComplianceData = responseCompl.data;
                 this.setKPISdataForDisplay();
 
