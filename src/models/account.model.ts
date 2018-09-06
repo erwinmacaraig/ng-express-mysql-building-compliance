@@ -658,6 +658,9 @@ export class Account extends BaseClass {
       if (accountId) {
         account = accountId;
       }
+
+      users = (users.length == 0) ? [-1] : users;
+
       if (users.length > 0) {
         userStr = ' AND users.user_id IN (' + users.join(',') + ')';
       }
@@ -720,6 +723,7 @@ export class Account extends BaseClass {
       if (accountId) {
         account = accountId;
       }
+      users = (users.length == 0) ? [-1] : users;
       if (users.length > 0) {
         userStr = ' AND users.user_id IN (' + users.join(',') + ')';
       }

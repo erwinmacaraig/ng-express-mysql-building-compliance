@@ -19,6 +19,7 @@
 	<div class="col l2 m4 s6">
 		<select class="filter-by">
 			<option value="0" selected>Filter By (All)</option>
+            <option value="pending" >Pending</option>
 			<option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
 		</select>
 	</div>
@@ -122,7 +123,7 @@
                         <span *ngIf="list.trainings == (list.trids.length + list.misc_trainings.length)" class="green-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
                     </td>
                     <td *ngIf="list.em_roles.length == 0"> </td>
-					<td>
+					<td *ngIf="list.profile_completion == 1">
 						<select (change)="onSelectFromTable($event, list)">
                             <option value="0" class="blue-text" selected disabled>Select action</option>
                             <option value="view" class="blue-text">View</option>
@@ -133,6 +134,9 @@
                             </option>
 						</select>
 					</td>
+                    <td *ngIf="list.profile_completion == 0"> 
+                        <span class="red-text">Pending Profile Completion</span>
+                    </td>
 				</tr>
 			</tbody>
 			<tbody [hidden]="!loadingTable">
