@@ -127,7 +127,7 @@ const md5 = require('md5');
 
 					tokenModel.create(saveData).then(
 						() => {
-							this.sendEmailChangePassword(req, userdata,
+							this.sendEmailChangePassword(req, res, userdata,
 								() => {
 									response.data = saveData;
 									response.message = 'Email was sent to you, please open the email and click the link to confirm reset password request. Thank you!';
@@ -155,32 +155,29 @@ const md5 = require('md5');
 		}
 	}
 
-	public sendEmailChangePassword(req, userData, success, error){
+	public sendEmailChangePassword(req, res, userData, success, error){
 		let opts = {
-	        from : 'admin@evacconnect.com',
-	        fromName : 'EvacConnect',
-	        to : [],
-	        body : '',
-	        attachments: [],
-	        subject : 'EvacConnect Change Password'
-	    };
+            from : 'admin@evacconnect.com',
+            fromName : 'EvacConnect',
+            to : [],
+            body : '',
+            attachments: [],
+            subject : 'EvacConnect Change Password'
+        };
 
-		let email = new EmailSender(opts),
-			emailBody = email.getEmailHTMLHeader(),
-			link = 'https://' + req.get('host') +'/token/'+userData.token;
+        let email = new EmailSender(opts),
+            link = 'https://' + req.get('host') +'/token/'+userData.token;
 
-		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(userData.first_name)+' '+this.capitalizeFirstLetter(userData.last_name)+'</h3> <br/>';
-		emailBody += '<h4> Please click the link below to create new password. </h4> <br/>';
-		emailBody += '<a href="'+link+'" target="_blank" style="text-decoration:none; color:#0277bd;">'+link+'</a> ';
+        let emailData = <any> {
+            users_fullname : this.toTitleCase(userData.first_name+' '+userData.last_name),
+            setup_link : 'https://' + req.get('host') +'/token/'+userData.token
+        };
 
-		emailBody += email.getEmailHTMLFooter();
-
-		email.assignOptions({
-			body : emailBody,
-			to: [userData.email]
-		});
-
-		email.send(success, error);
+        email.assignOptions({
+            to: [userData.email],
+            cc: []
+        });
+        email.sendFormattedEmail('forgot-password', emailData, res, success, error);
 	}
 
 	public changePasswordRequest(req: Request, res: Response, next: NextFunction){
