@@ -745,13 +745,6 @@ export class AdminRoute extends BaseRoute {
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const account = new Account(req.params.accountId);
       const user = new User();
-      const row_count_obj = await user.getByAccountId(req.params.accountId);
-      const row_count = Object.keys(row_count_obj).length;
-      let pages = 0;
-      const item_per_page = 10;
-      if (row_count) {
-        pages = Math.ceil( row_count / item_per_page);
-      }
 
       const user_filter = {
         'page': 0,
@@ -764,8 +757,25 @@ export class AdminRoute extends BaseRoute {
       if (req.query.search_key) {
         user_filter['query'] = req.query.search_key;
       }
-      let selectedUsers = [];
+      let selectedUsers = [],
+        countUsers = <any> [],
+        totalResult = 0;
       selectedUsers = await user.getSpliceUsers(req.params.accountId, user_filter);
+
+      user_filter['count'] = true;
+      countUsers =  await user.getSpliceUsers(req.params.accountId, user_filter);
+      if(countUsers.length > 0){
+        let count = countUsers[0]['count'];
+        totalResult = Math.ceil( count / 10 );
+      }
+
+
+      let pages = 0;
+      const item_per_page = 10;
+      if (selectedUsers.length > 0) {
+        pages = Math.ceil( selectedUsers.length / item_per_page);
+      }
+
       let allUsers = [];
       allUsers = await account.generateAdminAccountUsers(req.params.accountId, selectedUsers);
       allUsers = allUsers.concat(await account.generateAdminEMUsers(req.params.accountId, selectedUsers));
@@ -870,8 +880,9 @@ export class AdminRoute extends BaseRoute {
 
       return res.status(200).send({
         data: {
+          'selectedUsers' : selectedUsers,
           'list': accountUsers,
-          'total_pages': pages,
+          'total_pages': totalResult,
         },
 
       });

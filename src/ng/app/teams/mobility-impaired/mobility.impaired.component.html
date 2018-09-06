@@ -26,6 +26,7 @@
 	<div class="col l2 m4 s6">
         <select class="filter-by">
             <option value="0" selected>Filter By (All)</option>
+            <option value="pending" >Pending</option>
             <option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
         </select>
     </div>
@@ -125,7 +126,7 @@
 						<span *ngIf="!peep.id_encrypted">processing</span>
 						<span *ngIf="peep.id_encrypted">{{peep.last_login}}</span>
 					</td>
-					<td>
+					<td *ngIf="peep.profile_completion == 1">
 						<select (change)="onSelectFromTable($event, peep)" >
 							<option value="0" class="blue-text" selected disabled>Manage</option>
 							<option value="view" class="blue-text" *ngIf="peep.id_encrypted">View</option>
@@ -135,6 +136,9 @@
                             <option value="invite" *ngIf="peep.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
 						</select>
 					</td>
+                    <td *ngIf="peep.profile_completion == 0"> 
+                        <span class="red-text">Pending Profile Completion</span>
+                    </td>
 				</tr>
 			</tbody>
 			<tbody [hidden]="!loadingTable">
