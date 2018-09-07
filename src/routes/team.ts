@@ -1359,8 +1359,8 @@ export class TeamRoute extends BaseRoute {
                 }
             }catch(e){}
 
-            let forgotPassLink = req.protocol + '://' + req.get('host') +'/token/'+saveData['token'],
-                trainingLink = req.protocol + '://'+req.get('host') + '/token/'+tokenTraining;
+            let forgotPassLink = 'https://' + req.get('host') +'/token/'+saveData['token'],
+                trainingLink = 'https://'+req.get('host') + '/token/'+tokenTraining;
             await tokenModel.create(saveData);
 
             saveData['token'] = tokenTraining;
