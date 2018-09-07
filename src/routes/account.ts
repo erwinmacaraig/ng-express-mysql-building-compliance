@@ -176,8 +176,8 @@ const RateLimiter = require('limiter').RateLimiter;
         subject : 'EvacConnect Email Notification'
 			};
 			const email = new EmailSender(opts);
-			const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
-      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
+			const link = 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
+      const yesLink = 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 			
 			emailBody += `<pre>Hi ${userDbData['first_name']} ${userDbData['last_name']},</pre>`;
@@ -418,17 +418,17 @@ const RateLimiter = require('limiter').RateLimiter;
       responded: 1,
       strStatus: 'In Progress',
       dtResponded: moment().format('YYYY-MM-DD')
-    });
+		});
+		
+		const userResponded: Array<number> = configDBData['user_responded'].split(',');
+		if (userResponded.indexOf(uid) == -1) {
+			userResponded.push(uid);
+			configDBData['responders'] = configDBData['responders'] + 1;
+			configDBData['user_responded'] = userResponded.join(',');
+			await configurator.create(configDBData);
+		}
 
-    const userResponded: Array<number> = configDBData['user_responded'].split(',');
-    if (userResponded.indexOf(uid) == -1) {
-      userResponded.push(uid);
-      configDBData['responders'] = configDBData['responders'] + 1;
-      configDBData['user_responded'] = userResponded.join(',');
-      await configurator.create(configDBData);
-    }
-
-    const redirectUrl = 'https://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+    const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
     const script = `
                 <h4>Redirecting...</h4>
                 <script>
@@ -446,15 +446,17 @@ const RateLimiter = require('limiter').RateLimiter;
 
   }
   public async verifyNotifiedUser(req: Request, res: Response) {
-    let strToken = decodeURIComponent(req.query.token);
+		
+		let strToken = decodeURIComponent(req.query.token);		
+		
     const tokenObj = new NotificationToken();
-    const  bytes = cryptoJs.AES.decrypt(''+strToken, process.env.KEY);
-    const strTokenDecoded = bytes.toString(cryptoJs.enc.Utf8);
+    const  bytes = cryptoJs.AES.decrypt(strToken, process.env.KEY);
+    const strTokenDecoded: string = bytes.toString(cryptoJs.enc.Utf8);
     const authRoute = new AuthenticateLoginRoute();
-
+    
     const parts = strTokenDecoded.split('_');
-    const uid = parts[1];
-    const configId = parts[3];
+    const uid = parseInt(parts[1], 10);
+    const configId = parseInt(parts[3], 10);
 
     const user = new User(uid);
     await user.load();
@@ -495,20 +497,21 @@ const RateLimiter = require('limiter').RateLimiter;
       dtCompleted: moment().format('YYYY-MM-DD')
     });
 
-    const userResponded: Array<number> = configDBData['user_responded'].split(',');
-    if (userResponded.indexOf(uid) == -1) {
-      userResponded.push(uid);
-      configDBData['responders'] = configDBData['responders'] + 1;
-      configDBData['user_responded'] = userResponded.join(',');
-      await configurator.create(configDBData);
-    }
-
+		const userResponded: Array<number> = configDBData['user_responded'].split(',');
+		if (userResponded.indexOf(uid) == -1) {
+			userResponded.push(uid);
+			configDBData['responders'] = configDBData['responders'] + 1;
+			configDBData['user_responded'] = userResponded.join(',');
+			await configurator.create(configDBData);
+		}
+    
+    
     const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
     let stringUserData = JSON.stringify(loginResponse.data);
     stringUserData = stringUserData.replace(/\'/gi, '');
 
     if (hasFrpTrpRole) {
-      const redirectUrl = 'https://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
+      const redirectUrl = 'http://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
       const script = `
                   <h4>Redirecting...</h4>
                   <script>
@@ -642,17 +645,21 @@ const RateLimiter = require('limiter').RateLimiter;
         location_id: u['location_id'],
         role_text: u['role_name'],
         notification_config_id: configurator.ID(),
-        dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD')
+				dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD'),
+				dtLastSent: moment().format('YYYY-MM-DD')
       });
-      notificationToken = null;
+			notificationToken = null;
+			if (u['name'].length > 0) {
+				locData.location_name = locData.location_name + ', ' + u['name'];
+			}
       let 
       emailData = {
         message : config['message'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
         users_fullname : this.toTitleCase(u['first_name']+' '+u['last_name']),
-        account_name : account.account_name,
+        account_name : u['account_name'],
         location_name : locData.location_name,
-        yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
-        no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)
+        yes_link : 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+        no_link : 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)
       },
       emailType = 'warden-confirmation';
       if(u['role_name']){
@@ -1227,7 +1234,7 @@ const RateLimiter = require('limiter').RateLimiter;
 
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
-			link = 'https://' + req.get('host') +'/custom-resolver?role_id='+inviData.role_id+'&invitation_code_id='+inviData.invitation_code_id+'&code='+inviData.code;
+			link = 'http://' + req.get('host') +'/custom-resolver?role_id='+inviData.role_id+'&invitation_code_id='+inviData.invitation_code_id+'&code='+inviData.code;
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(inviData.first_name)+' '+this.capitalizeFirstLetter(inviData.last_name)+'</h3> <br/>';
 		emailBody += '<h4> '+this.capitalizeFirstLetter(creatorData.first_name)+' '+this.capitalizeFirstLetter(creatorData.last_name)+' sents you an invitation code. </h4> <br/>';
