@@ -157,16 +157,16 @@ const md5 = require('md5');
 
 	public sendEmailChangePassword(req, res, userData, success, error){
 		let opts = {
-	        from : 'admin@evacconnect.com',
-	        fromName : 'EvacConnect',
-	        to : [],
-	        body : '',
-	        attachments: [],
-	        subject : 'EvacConnect Change Password'
-	    };
+            from : 'admin@evacconnect.com',
+            fromName : 'EvacConnect',
+            to : [],
+            body : '',
+            attachments: [],
+            subject : 'EvacConnect Change Password'
+        };
 
-		let email = new EmailSender(opts),
-			link = 'https://' + req.get('host') +'/token/'+userData.token;
+        let email = new EmailSender(opts),
+            link = 'https://' + req.get('host') +'/token/'+userData.token;
 
         let emailData = <any> {
             users_fullname : this.toTitleCase(userData.first_name+' '+userData.last_name),
