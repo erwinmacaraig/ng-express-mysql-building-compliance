@@ -330,7 +330,7 @@ const RateLimiter = require('limiter').RateLimiter;
           from : '',
           fromName : 'EvacConnect',
           to : [nominatedUserEmail],
-          cc: ['emacaraig@evacgroup.com.au'],
+          cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
           body : '',
           attachments: [],
           subject : 'EvacConnect Email Notification'
@@ -591,7 +591,6 @@ const RateLimiter = require('limiter').RateLimiter;
     try{
       account = await accountModel.load();
     }catch(e){}
-
 
     // filter these sublevels that belongs to the account
     if (config['trp_user']) {
@@ -1217,7 +1216,7 @@ const RateLimiter = require('limiter').RateLimiter;
 
 	public sendUserInvitationEmail(req, inviData, creatorData, success, error){
 		let opts = {
-	        from : 'allantaw2@gmail.com',
+	        from : '',
 	        fromName : 'EvacConnect',
 	        to : [],
 	        body : '',

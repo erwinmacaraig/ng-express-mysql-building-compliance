@@ -2215,7 +2215,7 @@ export class UsersRoute extends BaseRoute {
                         'verified' : 0
                     },
                     tokenModel = new Token(),
-                    emailLink = req.protocol + '://' + req.get('host'),
+                    emailLink = 'https://' + req.get('host'),
                     locationModel = new Location(),
                     acestrieIds = <any> await locationModel.getAncestryIds(users[i]['account_location_id']),
                     idsLocation = [],
@@ -2350,22 +2350,22 @@ export class UsersRoute extends BaseRoute {
                             }
                         }
 
-        				const opts = {
-        					from : '',
-        					fromName : 'EvacConnect',
-        					to : [],
-        					cc: [],
-        					body : '',
-        					attachments: [],
-        					subject : ''
-        				};
-        				const email = new EmailSender(opts);
+                        const opts = {
+                            from : '',
+                            fromName : 'EvacConnect',
+                            to : [],
+                            cc: [],
+                            body : '',
+                            attachments: [],
+                            subject : ''
+                        };
+                        const email = new EmailSender(opts);
 
                         email.assignOptions({
                             to: [inviSaveData['email']],
                             cc: ['jmanoharan@evacgroup.com.au']
                         });
-        				email.sendFormattedEmail(emailType, emailData, res, 
+                        email.sendFormattedEmail(emailType, emailData, res, 
                             (data) => console.log(data),
                             (err) => console.log(err)
                         );
