@@ -334,7 +334,13 @@ export class CourseRoute extends BaseRoute {
         non_compliant = (req.body.non_compliant) ? req.body.non_compliant : false,
         ids = (req.body.ids) ? req.body.ids : false,
         trainings = <any> await trainingRequirementsModel.allEmRolesTrainings(),
-        account = {};
+        account = {},
+        nominatorModel = new User(req.user.user_id),
+        nominator = <any> {};
+
+        try{
+            nominator = await nominatorModel.load();
+        }catch(e){}
 
         try{
 
@@ -359,8 +365,7 @@ export class CourseRoute extends BaseRoute {
                         }
                     }
 
-                    console.log('sendEmailTrainingInvitation');
-                    await this.sendEmailTrainingInvitation(user, req, res);
+                    await this.sendEmailTrainingInvitation(user, req, res, nominator);
                 }
             }
 
@@ -371,7 +376,8 @@ export class CourseRoute extends BaseRoute {
         res.send(response);
     }
 
-    public async sendEmailTrainingInvitation(user, req, res){
+    public async sendEmailTrainingInvitation(user, req, res, nominator){
+
         let
         emailModel = new EmailSender(),
         emailBody = emailModel.getEmailHTMLHeader(),
@@ -419,39 +425,22 @@ export class CourseRoute extends BaseRoute {
         saveData['action'] = 'training-invite';
         await tokenTrainModel.create(saveData);
 
-        emailBody += `
-            <div style="font-size:16px;">
-                <h3 style="text-transform:capitalize;">Hi ${fullname},</h3>
-
-                You are invited to complete the following online training on EvacConnect: <br/>
-                ${trainingsTxt} <br/><br/>
-
-                Follow this link to start the training: <br/>
-                <a href="${trainingLink}" style="color:#2980b9;">${trainingLink}</a> <br/><br/>
-
-                As warden and/or general occupant of our site, please note that it is mandatory for you to complete this training<br/>
-                as required in all facilities in Australia under Australian Standard AS3745. <br/><br/>
-
-                We hope that you will benefit from the convenience of taking this training online. Thank you for your active <br/>
-                participation and commitment to proactive safety within our tenancy. <br/><br/>
-
-                Sincerely, <br/>
-                EvacConnect <br/><br/><br/>
-
-                If you forgotten your password or have not yet set a password, <a href="${forgotPassLink}" style="color:#c0392b;">Click here</a>
-            </div>
-        `;
-
-        emailBody += emailModel.getEmailHTMLFooter();
-
-        emailModel.assignOptions({
-            body : emailBody,
-            to: [user.email],
-            subject : `You're invited to take an online training on ${trainingsTxt}`
-        });
-
-        await emailModel.send(() => {}, () => {});
-
+        let
+        nomFullname = (nominator.evac_role == 'admin') ? 'EvacConnect Engagement Team' : nominator.first_name+' '+nominator.last_name,
+        opts = {
+            from : '',
+            fromName : 'EvacConnect',
+            to : [user.email],
+            cc: ['']
+        },
+        emailData = {
+            users_fullname : this.toTitleCase(fullname),
+            training_name : trainingsTxt,
+            nominators_fullname : this.toTitleCase(nomFullname),
+            setup_link : trainingLink
+        },
+        email = new EmailSender(opts);
+        await email.sendFormattedEmail('online-training', emailData, res, (s) => { console.log(s); }, (e) => { console.log(e); } );
     }
 
     public async trainingInviteEmailAction(req, res, tokenData){
