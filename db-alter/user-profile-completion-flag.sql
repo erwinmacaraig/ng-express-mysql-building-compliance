@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `profile_completion` TINYINT(0) NOT NULL DEFAULT '1' AFTER `user_name`;
