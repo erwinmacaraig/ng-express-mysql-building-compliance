@@ -106,6 +106,7 @@ import { LocationsInAccountComponent } from './admin/locations-in-accounts/locat
 import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upload-compliance-docs.component';
 import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/compliance-summary-view.component';
 import { AdminViewLocationComponent } from './admin/view-location/view-location.component';
+import { AdminViewUserComponent } from './admin/view-user/view.user.component';
 import { TrainingValidationComponent } from './admin/training-validation/training-validation.component';
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
 import { AdminReportsComponent } from './admin/reports/reports.component';
@@ -136,10 +137,10 @@ const appRoutes: Routes = [
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
       { path: 'company-information', component: CompanyInformationComponent },
-      { path: 'send-invite', component : SendInviteComponent },
-      { path: 'notification-list', component: NotificationListComponent },
-      { path: 'notification-config', component: NotificationConfigurationComponent },
-      { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
+      { path: 'send-invite', component : SendInviteComponent },      
+      // { path: 'notification-list', component: NotificationListComponent },
+      // { path: 'notification-config', component: NotificationConfigurationComponent },
+      // { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
       { path: 'process-notification-queries/:token', component: NotificationQueryComponent },
       { path: 'send-invite', component : SendInviteComponent },
       { path: 'security-privacy', component : SecurityPrivacyComponent },
@@ -239,6 +240,7 @@ const appRoutes: Routes = [
       { path: 'paper-attendance-upload', component: PaperAttendanceComponent },
       { path: 'account-trainings/:accntId', component: AccountTrainingComponent },
       { path: 'view-location/:locationId', component: AdminViewLocationComponent },
+      { path: 'view-user/:userId', component: AdminViewUserComponent },
       { path: 'users-in-accounts/:accntId', component: AccountUsersListComponent },
       { path: 'add-account-user/:accntId', component: AddAccountUserComponent },
       { path: 'locations-in-account/:accntId', component: LocationsInAccountComponent },
@@ -249,6 +251,7 @@ const appRoutes: Routes = [
       { path : 'teams-report/:location/:accountId', component : ReportsTeamsComponent },
       { path : 'reports', component : AdminReportsComponent },
       { path: 'new-account', component: AdminAddAccountComponent },
+      { path: 'notification-list', component: NotificationListComponent },
       { path: 'notification-config', component: NotificationConfigurationComponent },
       { path: 'notified-users-list/:config', component: NotifiedUsersListComponent}
     ]

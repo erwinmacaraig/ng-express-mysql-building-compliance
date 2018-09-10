@@ -31,6 +31,8 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
     public createRange;
     public currentPage = 0;
     @ViewChild('selectPage') selectedPage: ElementRef;
+    isTyping = false;
+    typingTimeout:any;
 
     updateProfileData = {
         user : <any> {
@@ -426,7 +428,7 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
         if (this.currentPage < 0) {
             this.currentPage = this.total_pages - 1;
         }
-        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage).subscribe((response) => {
+        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage, $('#searchUsers').val().trim()).subscribe((response) => {
             this.userObjects = response['data']['list'];
             this.total_pages = response['data']['total_pages'];
             this.createRange = new Array(this.total_pages);
@@ -441,7 +443,7 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
     pageChange() {
         this.dashboard.show();
         this.currentPage = parseInt(this.selectedPage.nativeElement.value, 10);
-        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage).subscribe((response) => {
+        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage, $('#searchUsers').val().trim()).subscribe((response) => {
             this.userObjects = response['data']['list'];
             this.total_pages = response['data']['total_pages'];
             this.createRange = new Array(this.total_pages);
@@ -459,7 +461,7 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
         if (this.currentPage > this.total_pages - 1) {
             this.currentPage = 0;
         }
-        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage).subscribe((response) => {
+        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage, $('#searchUsers').val().trim()).subscribe((response) => {
             this.userObjects = response['data']['list'];
             this.total_pages = response['data']['total_pages'];
             this.createRange = new Array(this.total_pages);
@@ -472,18 +474,26 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
     }
 
     searchByUserAndEmail(event: KeyboardEvent) {
+        this.isTyping = true;
+        clearTimeout(this.typingTimeout);
+        this.userObjects = [];
 
-        this.currentPage = parseInt(this.selectedPage.nativeElement.value, 10);
-        const searchKey = (<HTMLInputElement>event.target).value;
-        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage, searchKey).subscribe((response) => {
-            this.userObjects = response['data']['list'];
-            this.total_pages = response['data']['total_pages'];
-            this.createRange = new Array(this.total_pages);
+        this.typingTimeout = setTimeout(() => {
+            this.currentPage = parseInt(this.selectedPage.nativeElement.value, 10);
+            const searchKey = (<HTMLInputElement>event.target).value;
+            this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage, searchKey).subscribe((response) => {
+                this.isTyping = false;
+                this.currentPage = 0;
+                this.userObjects = response['data']['list'];
+                this.total_pages = response['data']['total_pages'];
+                this.createRange = new Array(this.total_pages);
 
-        }, (error) => {
+            }, (error) => {
 
-            console.log(error);
-        });
+                console.log(error);
+            });
+        }, 600);
+
     }
 
     selectActionChangeEvent(user, event){
@@ -505,7 +515,15 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
         }else if(val == 'invite'){
             this.sendInvitationData.user = user;
             this.sendInvitationData.showForm();
-        }else if(val == 'assign'){
+        } else if (val == 'send-notification') {
+            console.log('==============', user, '=============');
+            this.adminService.sendNotificationEmail({
+                user: user['user_id']
+            }).subscribe((response) => {
+                console.log(response);
+            });
+        }
+        else if(val == 'assign'){
             this.assignTrainingsData.user = user;
             this.assignTrainingsData.showForm();
         }else if(val == 'location-role'){

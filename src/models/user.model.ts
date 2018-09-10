@@ -174,8 +174,9 @@ export class User extends BaseClass {
             logged_in,
             archived,
             must_change_password,
-            user_name
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            user_name,
+            profile_completion
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
             const user = [
             ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
@@ -199,7 +200,9 @@ export class User extends BaseClass {
             ('logged_in' in this.dbData) ? this.dbData['logged_in'] : '0',
             ('archived' in this.dbData) ? this.dbData['archived'] : '0',
             ('must_change_password' in this.dbData) ? this.dbData['must_change_password'] : '0',
-            ('user_name' in this.dbData) ? this.dbData['user_name'] : null
+            ('user_name' in this.dbData) ? this.dbData['user_name'] : null,
+            ('profile_completion' in this.dbData) ? this.dbData['profile_completion'] : 1,
+
             ];
             const connection = db.createConnection(dbconfig);
             connection.query(sql_insert, user, (err, results, fields) => {
@@ -239,7 +242,8 @@ export class User extends BaseClass {
             logged_in = ?,
             archived = ?,
             must_change_password = ?,
-            user_name = ?
+            user_name = ?,
+            profile_completion = ?
             WHERE user_id = ?
             `;
             const user = [
@@ -265,6 +269,7 @@ export class User extends BaseClass {
             ('archived' in this.dbData) ? this.dbData['archived'] : '0',
             ('must_change_password' in this.dbData) ? this.dbData['must_change_password'] : '0',
             ('user_name' in this.dbData) ? this.dbData['user_name'] : null,
+            ('profile_completion' in this.dbData) ? this.dbData['profile_completion'] : 1,
             this.ID() ? this.ID() : 0
             ];
             const connection = db.createConnection(dbconfig);
@@ -630,32 +635,46 @@ export class User extends BaseClass {
 
     public getSpliceUsers(accountId: number = 0, filter = {}): Promise<Array<number>> {
       return new Promise((resolve, reject) => {
-        let page = 0;
-        const resultSet = [];
-        let sql;
+        let 
+        page = 0,
+        sql = 'SELECT user_id FROM users WHERE ', 
+        where = '  ',
+        limit = 10,
+        resultSet = [];
+
         if ('page' in filter) {
-          page = Math.abs(parseInt(filter['page'], 10)) * 10;
-          sql = `SELECT user_id FROM users WHERE account_id = ? LIMIT 10 OFFSET ${page}`;
+          page = ( typeof filter['page'] == 'string'  ) ? (isNaN(parseInt(filter['page']))) ? 0 : parseInt(filter['page']) : filter['page']; 
         }
+
         if ('query' in filter && filter['query'].length > 0) {
-          sql = `SELECT user_id FROM users WHERE account_id = ? AND
-          first_name LIKE '%${filter['query']}%' OR last_name LIKE '%${filter['query']}%'
-          OR email like '%${filter['query']}%'
-          LIMIT 10`;
+          where += ` account_id = ${accountId} AND CONCAT(first_name,' ',last_name) LIKE '%${filter['query']}%' AND archived = 0 OR account_id = ${accountId} AND email like '%${filter['query']}%' AND archived = 0 `;
+        }else{
+          where += ` account_id = ${accountId} AND archived = 0 `;
         }
-        if ('query' in filter && filter['query'] == 'all') {
-          sql = `SELECT user_id FROM users WHERE account_id = ? AND archived = 0`;
+
+        if('count' in filter){
+          sql = `SELECT COUNT(user_id) as count FROM users WHERE `+where;
+        }else{
+          sql += where;
+          sql += ` LIMIT ${page}, ${limit} `;
         }
+        
         const connection = db.createConnection(dbconfig);
-        connection.query(sql, [accountId], (error, results) => {
+        connection.query(sql, (error, results) => {
           if (error) {
             console.log('user.model.getSpliceUsers', error, sql);
             throw Error('Internal server error. Cannot get users for the account');
           }
-          for (const r of results) {
-            resultSet.push(r['user_id']);
+
+          if('count' in filter){
+            resolve(results);
+          }else{
+            for (const r of results) {
+              resultSet.push(r['user_id']);
+            }
+            resolve(resultSet);
           }
-          resolve(resultSet);
+          
         });
         connection.end();
       });
@@ -733,6 +752,166 @@ export class User extends BaseClass {
                 resolve(this.dbData);
             });
             connection.end();
+        });
+    }
+
+    public getAccountRoles(): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
+                }
+                const sql = `SELECT
+                                users.user_id,
+                                users.first_name,
+                                users.last_name,
+                                users.email,
+                                accounts.account_name,
+                                user_role_relation.role_id,
+                                locations.name,
+                                locations.location_id,
+                                parent.name as building_name,
+                                parent.location_id as building_id
+                            FROM
+                                users
+                            INNER JOIN
+                                accounts
+                            ON users.account_id = accounts.account_id
+                            INNER JOIN
+                                location_account_user
+                            ON users.user_id = location_account_user.user_id
+                            INNER JOIN
+                                user_role_relation
+                            ON
+                                location_account_user.user_id = user_role_relation.user_id
+                            INNER JOIN
+                                locations
+                            ON locations.location_id = location_account_user.location_id
+                            LEFT JOIN
+                                locations as parent
+                            ON
+                                locations.parent_id = parent.location_id
+                            WHERE users.user_id = ?`;
+                connection.query(sql, [this.ID()], (error, results) => {
+                    if (error) {
+                        console.log('User object - cannot get account roles', sql, error, this.id);
+                        throw Error(error.toString());
+                    }
+                    resolve(JSON.parse(JSON.stringify(results)));
+                });
+                connection.release();
+            });         
+
+        });
+    }
+
+    public searchUserAndLocation(keyword = ''){
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
+                }
+                let sql_load = `
+                (SELECT 
+                users.user_id as id, CONCAT(users.first_name,' ',users.last_name) as name, @type := 'user' as type
+                FROM users
+                WHERE users.archived = 0 AND CONCAT(first_name,' ',last_name) LIKE "%${keyword}%" LIMIT 5)
+
+                UNION   
+
+                (SELECT
+                l.location_id as id, IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name, @type := 'location' as type
+                FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE l.archived = 0 AND IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name  ) LIKE "%${keyword}%" ORDER BY IF(p.name IS NULL, l.name, CONCAT(p.name, ',', l.name)  ) ASC  LIMIT 5)
+                
+                ORDER BY name ASC
+            `;
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        console.log('sql_load', sql_load);
+                        return console.log(error);
+                    }                    
+                    resolve(results);
+                });
+                connection.release();
+            });
+        });
+    }
+
+    public getAllRoles(userId){
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
+                }
+                const sql_load = `
+                SELECT 
+                urr.role_id,
+                IF(urr.role_id = 1, 'FRP', 'TRP') as role
+                FROM user_role_relation urr WHERE urr.user_id = ${userId}
+                UNION
+                SELECT
+                emr.em_role_id as role_id,
+                em.role_name as role
+                FROM user_em_roles_relation emr INNER JOIN em_roles em ON emr.em_role_id = em.em_roles_id
+                WHERE emr.user_id = ${userId}
+                `;
+
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    resolve(results);
+    
+                });
+                connection.release();
+
+            });
+
+        });
+    }
+
+    public getAllLocations(userId){
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
+                }
+                const sql_load = `
+                SELECT
+                lau.location_id,
+                IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name,
+                @temp := 1 as role_id
+                FROM location_account_user lau
+                INNER JOIN locations l ON lau.location_id = l.location_id
+                LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE lau.user_id = ${userId}
+
+                UNION
+
+                SELECT 
+                uer.location_id,
+                IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name,
+                uer.em_role_id as role_id
+                FROM user_em_roles_relation uer
+                INNER JOIN locations l ON uer.location_id = l.location_id
+                LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE uer.user_id = ${userId}
+            `;
+           
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }                
+                    resolve(results);
+
+                });
+                connection.release();
+            });
         });
     }
 

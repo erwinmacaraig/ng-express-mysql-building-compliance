@@ -503,7 +503,7 @@ export class Account extends BaseClass {
                                 urlPath +=  `/${r['parent_location_directory_name']}`;
                             }
                         }
-                        urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/${r['file_name']}`;
+                        urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/`+encodeURIComponent(r['file_name']);
                         r['urlPath'] = urlPath;
                     }
                 }
@@ -658,6 +658,9 @@ export class Account extends BaseClass {
       if (accountId) {
         account = accountId;
       }
+
+      users = (users.length == 0) ? [-1] : users;
+
       if (users.length > 0) {
         userStr = ' AND users.user_id IN (' + users.join(',') + ')';
       }
@@ -720,6 +723,7 @@ export class Account extends BaseClass {
       if (accountId) {
         account = accountId;
       }
+      users = (users.length == 0) ? [-1] : users;
       if (users.length > 0) {
         userStr = ' AND users.user_id IN (' + users.join(',') + ')';
       }

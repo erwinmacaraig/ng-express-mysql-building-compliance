@@ -91,7 +91,7 @@ export class EmailSender {
             // RawMessage: { Data: new Buffer(email) },
             Destination: {
               ToAddresses: this.options['to'],
-              // ToAddresses : ['adelfin@evacgroup.com.au'],
+              // ToAddresses : ['jmanoharan@evacgroup.com.au'],
               CcAddresses: this.options['cc']
             }, 
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
@@ -200,6 +200,9 @@ export class EmailSender {
                 subj = "Your EvacConnect Account: Please verify your email address";
                 filename = "signup-email";
                 break;
+            case "training-invite":
+                subj = "EvacConnect Training Invite";
+                filename = "training-invite";
         }
 
         fs.readFile(dir+'/footer-email.hbs', 'utf8', (err, footer) => {

@@ -166,6 +166,9 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 
     closeEvent(){
         $('#closeRightNav').click(function(){ $('.vertical-m').removeClass('fadeInRight animated').addClass('fadeOutRightBig animated'); });
+        $('body').off('click.closeonclick').on('click.closeonclick', '.close-on-click', function(){
+            $('.vertical-m').removeClass('fadeInRight animated').addClass('fadeOutRightBig animated');
+        });
     }
 
     filterUrl(url:String){
@@ -412,6 +415,10 @@ export class NavbarComponent implements OnInit, AfterViewInit {
                 this.usersInitial = this.getInitials(this.username);
             }
 
+        });
+
+        $('body').off('click.closerightnav').on('click.closerightnav', '.links .li-nav', () => {
+            $('#closeRightNav').trigger('click');
         });
     }
 

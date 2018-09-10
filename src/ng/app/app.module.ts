@@ -135,6 +135,7 @@ import { LocationsInAccountComponent } from './admin/locations-in-accounts/locat
 import { UploadComplianceDocComponent } from './admin/upload-compliance-docs/upload-compliance-docs.component';
 import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/compliance-summary-view.component';
 import { AdminViewLocationComponent } from './admin/view-location/view-location.component';
+import { AdminViewUserComponent } from './admin/view-user/view.user.component';
 import { TrainingValidationComponent } from './admin/training-validation/training-validation.component';
 
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
@@ -251,6 +252,7 @@ import {  PeepFormComponent } from './peep.form/peep.form';
     UploadComplianceDocComponent,
     ComplianceSummaryViewComponent,
     AdminViewLocationComponent,
+    AdminViewUserComponent,
     TrainingValidationComponent,
     AccountTrainingComponent,
     AdminReportsComponent,
@@ -265,8 +267,8 @@ import {  PeepFormComponent } from './peep.form/peep.form';
     HttpClientModule,
     AppRoutingModule,
     AgmCoreModule.forRoot({
-      //apiKey: 'AIzaSyDiE9BDUZGheckC5U_yQqbQlVrEBENs9HA',
-      apiKey : 'AIzaSyDmkSaP4MEhSdZxmndpExIbDEaJ3_kZpTk',
+      // apiKey : 'AIzaSyDmkSaP4MEhSdZxmndpExIbDEaJ3_kZpTk',
+      apiKey : 'AIzaSyCDhryx8ke9B4E3jkVS1TqfJWZ32PVhv-0',
       libraries: ['places']
     }),
     // todo: move to location module

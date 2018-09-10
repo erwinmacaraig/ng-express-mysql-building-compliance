@@ -486,7 +486,7 @@ export class TeamRoute extends BaseRoute {
                 subject : 'EvacConnect Warden Nomination'
             };
             const email = new EmailSender(opts);
-            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+            const link = 'https://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
             let emailBody = email.getEmailHTMLHeader();
             emailBody += `<h3 style="text-transform:capitalize;">Hi${name},</h3> <br/>
             <h4>You are nominated to be a Warden.</h4> <br/>
@@ -661,7 +661,7 @@ export class TeamRoute extends BaseRoute {
                             subject : 'EvacConnect Warden Nomination'
                         };
                         const email = new EmailSender(opts);
-                        const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+                        const link = 'https://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
                         let emailBody = email.getEmailHTMLHeader();
 
                         let roleText = ``;
@@ -810,7 +810,7 @@ export class TeamRoute extends BaseRoute {
                                 subject : 'EvacConnect Warden Nomination'
                             };
                             const email = new EmailSender(opts);
-                            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
+                            const link = 'https://' + req.get('host') + '/signup/warden-profile-completion/' + tokenStr;
                             let emailBody = email.getEmailHTMLHeader();
                             emailBody += `<h3 style="text-transform:capitalize;">Hi ${warden['first_name']} ${warden['last_name']},</h3> <br/>
                             <h4>You are nominated to be a Warden.</h4> <br/>
@@ -1092,7 +1092,7 @@ export class TeamRoute extends BaseRoute {
             const tokenModel = new Token();
             const token = tokenModel.generateRandomChars(8);
 
-            const link = req.protocol + '://' + req.get('host') + '/signup/warden-profile-completion/' + token;
+            const link = 'https://' + req.get('host') + '/signup/warden-profile-completion/' + token;
             const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
             await inviCode.create({
                 'invited_by_user': req.user.user_id,
@@ -1359,50 +1359,44 @@ export class TeamRoute extends BaseRoute {
                 }
             }catch(e){}
 
-            let forgotPassLink = req.protocol + '://' + req.get('host') +'/token/'+saveData['token'],
-                trainingLink = req.protocol + '://'+req.get('host') + '/token/'+tokenTraining;
+            let forgotPassLink = 'https://' + req.get('host') +'/token/'+saveData['token'],
+                trainingLink = 'https://'+req.get('host') + '/token/'+tokenTraining;
+
             await tokenModel.create(saveData);
 
             saveData['token'] = tokenTraining;
             saveData['action'] = 'training-invite';
             await tokenTrainModel.create(saveData);
 
-            let roleText = (req.body.no_role_email) ? '' : `for your role as <strong>${req.body.role_name}</strong>`;
+            let
+            roleText = (req.body.no_role_email) ? '' : `for your role as <strong>${req.body.role_name}</strong>`,
+            emailData = {
+                users_fullname : this.toTitleCase(userDbData['first_name']+' '+userDbData['last_name']),
+                training_name : req.body.training_requirement_name,
+                role_text_html : roleText,
+                loggedin_link : trainingLink,
+                forgotpassword_link : forgotPassLink
+            },
+            email = new EmailSender(opts);
 
-            const email = new EmailSender(opts);
-            let emailBody = email.getEmailHTMLHeader();
-            emailBody += `
-            <p>Hi <strong>${userDbData['first_name']} ${userDbData['last_name']}</strong>,</p>
-
-            <p>
-            You are reminded to take the <strong>${req.body.training_requirement_name} training</strong>
-            ${roleText}.
-                <br />
-            </p>
-
-            <br/>
-            <h5>If you have logged in before <a href="${trainingLink}" style="color:#2980b9;">Click here</a></h5>
-            <h5>If you forgotten your password or have not yet set a password, <a href="${forgotPassLink}" style="color:#c0392b;">Click here</a></h5>
-            <br/>
-            <p>Thank you.</p>
-
-            `;
-            emailBody += email.getEmailHTMLFooter();
             email.assignOptions({
-                body : emailBody,
-                to: [userDbData['email']]
+                to: [userDbData['email']],
+                cc: ['jmanoharan@evacgroup.com.au']
             });
-            await email.send((result) => {
-                console.log('Success', result);
-                return res.status(200).send({
-                    message: 'Success'
-                });
-            }, (err) => {
-                console.log('Failed', err);
-                return res.status(400).send({
-                    message: 'Failed'
-                });
-            });
+            email.sendFormattedEmail('training-invite', emailData, res, 
+                (result) => {
+                    console.log('Success', result);
+                    return res.status(200).send({
+                        message: 'Success'
+                    });
+                }, 
+                (err) => {
+                    console.log('Failed', err);
+                    return res.status(400).send({
+                        message: 'Failed'
+                    });
+                }
+            );
 
         }catch(e){
             return res.status(400).send({

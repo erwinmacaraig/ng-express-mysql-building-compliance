@@ -23,6 +23,7 @@ declare var $: any;
 })
 
 export class ImportCsvButtonComponent implements OnInit, OnDestroy {
+    @ViewChild('inputFileCSV')inputFileCSV : ElementRef;
     private userRole;
     public ecoRoles;
     public locations = [];
@@ -128,6 +129,8 @@ export class ImportCsvButtonComponent implements OnInit, OnDestroy {
                 invalidMsgs.push(data.invalid[i][0]+' '+data.invalid[i][1]);
             }
 
+            this.inputFileCSV.nativeElement.value = "";
+
             if(invalidMsgs.length > 0){
                 if(data.valid.length > 0){
                     this.modalCSVMessage = 'Success, ';
@@ -161,6 +164,9 @@ export class ImportCsvButtonComponent implements OnInit, OnDestroy {
 
     closeModalCSVmessage(){
         this.modalCSVMessage = '';
+        this.CSVFileToUpload = [];
+        $('.btn-select-csv').html('Select CSV File');
+        this.inputFileCSV.nativeElement.value = "";
     }
 
     isAdvancedUpload() {

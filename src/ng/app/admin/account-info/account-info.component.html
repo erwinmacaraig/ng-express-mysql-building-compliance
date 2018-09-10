@@ -1,85 +1,142 @@
 <div class="row">
   <!-- <div class="col s4">{{ accountInfo.account_name }}</div> -->
-  <div class="col l12 m12 s12">
-      <h4>{{ accountInfo.account_name }}</h4>
-      <h5>Edit Information</h5>
-  </div>
+    <div class="col l12 m12 s12">
+        <h4 class="account-name inline-block">{{ accountInfo.account_name }}</h4>
+        <p class="inline-block edit-info-text">
+            <a href="#"  >
+                <img src="/assets/images/locations/editdetails_icon.png">
+                Edit Information
+            </a>
+        </p>
+    </div>
 </div>
 
-<div class="row">
+<div class="row" style="margin-bottom: 10px;">
     <div class="col l12 m12 s12">
-        <div class="inline-block va-top image-wrapper">
-            <div class="image-container">
-                <div class="image">
-                    <img src="/assets/images/locations/default_profile_location.png" alt="">
+        <div class="row">
+            <div class="col l12 m12 s12">
+                <div class="inline-block va-top image-wrapper">
+                    <div class="image-container">
+                        <div class="image">
+                            <img src="/assets/images/locations/default_profile_location.png" alt="">
+                        </div>
+                    </div>
+                </div>
+                <div class="inline-block va-top" style="width: 65%;">
+                    <div class="row">
+                        <div class="col l4 m12 s12">
+                            <div class="label-and-text">
+                                <label>Account Name</label>
+                                <p>{{accountInfo.account_name}}</p>
+                            </div>
+                        </div>
+
+                        <div class="col l4 m12 s12">
+                            <div class="label-and-text">
+                                <label>Key Contact</label>
+                                <p>
+                                    --
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col l4 m12 s12">
+                            <div class="label-and-text">
+                                <label>Email</label>
+                                <p>--</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col l6 m12 s12">
+                            <div class="label-and-text">
+                                <label>Billing Address</label>
+                                <p>{{account_billing}}</p>
+                            </div>
+                        </div>
+
+                        <div class="col l4 m12 s12">
+                            <div class="label-and-text">
+                                <label>Settings</label><br>
+                                <input id="epc" type="checkbox" [(ngModel)]="accountInfo.epc_committee_on_hq"> <label for="epc">EPC Meeting at Head Office</label>
+                                <br>
+                                <input id="ola" type="checkbox" [(ngModel)]="accountInfo.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- <div class="row">
+                        <div class="col l4 m12 s12">
+                            <div class="input-field">
+                                <input id="accountName" type="text" placeholder="Account Name" [ngModel]="accountInfo.account_name" ngModel readonly="readonly">
+                                <label for="accountName" class="active">
+                                  Account Name
+                                </label>
+                            </div>
+                        </div>
+                    
+                        <div class="col l4 m12 s12">
+                            <div class="input-field">
+                                <input id="keyContactName" type="text" placeholder="Key Contact Name" readonly="readonly">
+                                  <label for="keyContactName" class="active">
+                                      Key Contact
+                                  </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col l4 m12 s12">
+                            <div class="input-field">
+                                  <input id="inpEmail" type="text" placeholder="email" readonly="readonly">
+                                  <label for="inpEmail" class="active">
+                                      Email
+                                  </label>
+                            </div>
+                        </div>
+                    
+                        <div class="col l12 m2 s12">
+                            <div class="input-field">
+                                <input id="billingAddress" type="text" placeholder="Billing Address" [ngModel]="account_billing" ngModel readonly="readonly">
+                                <label for="billingAddress" class="active">Billing Address</label>
+                            </div>
+                        </div>
+                    
+                        <div class="col l12 m12 s12">
+                            <div>Settings</div>
+                            <div class="checkbox">
+                                <input id="epc" type="checkbox" [(ngModel)]="accountInfo.epc_committee_on_hq"> <label for="epc">EPC Meeting at Head Office</label>
+                                <br>
+                                <input id="ola" type="checkbox" [(ngModel)]="accountInfo.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
+                            </div>
+                        </div>
+                    
+                    </div> -->
                 </div>
             </div>
         </div>
-        <div class="inline-block va-top">
-            <div class="row">
-                <div class="col l4 m12 s12">
-                    <div class="input-field">
-                        <input id="accountName" type="text" placeholder="Account Name" [ngModel]="accountInfo.account_name" ngModel readonly="readonly">
-                        <label for="accountName" class="active">
-                          Account Name
-                        </label>
-                    </div>
-                </div>
 
-                <div class="col l4 m12 s12">
-                    <div class="input-field">
-                        <input id="keyContactName" type="text" placeholder="Key Contact Name" readonly="readonly">
-                          <label for="keyContactName" class="active">
-                              Key Contact
-                          </label>
-                    </div>
-                </div>
-    
-                <div class="col l4 m12 s12">
-                    <div class="input-field">
-                          <input id="inpEmail" type="text" placeholder="email" readonly="readonly">
-                          <label for="inpEmail" class="active">
-                              Email
-                          </label>
-                    </div>
-                </div>
-
-                <div class="col l12 m2 s12">
-                    <div class="input-field">
-                        <input id="billingAddress" type="text" placeholder="Billing Address" [ngModel]="account_billing" ngModel readonly="readonly">
-                        <label for="billingAddress" class="active">Billing Address</label>
-                    </div>
-                </div>
-
-                <div class="col l12 m12 s12">
-                    <div>Settings</div>
-                    <div class="checkbox">
-                        <input id="epc" type="checkbox" [(ngModel)]="accountInfo.epc_committee_on_hq"> <label for="epc">EPC Meeting at Head Office</label>
-                        <br>
-                        <input id="ola" type="checkbox" [(ngModel)]="accountInfo.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
-                    </div>
-                </div>
-
+        <div class="row" style="margin-bottom: 0px;">
+            <div class="col l12 m12 s12">
+                <textarea placeholder="Account notes..." class="account-notes"></textarea>
             </div>
         </div>
     </div>
 </div>
+
+
  
 <div class="row">
     <div class="col l12 m12 s12">
-        <nav>
-            <div class="nav-wrapper">
-              <ul id="nav-mobile" class="left hide-on-med-and-down">
-                <li><a [routerLink]="['/admin', 'locations-in-account', accountId]">Locations</a></li>
-                <li><a [routerLink]="['/admin', 'users-in-accounts', accountId]">Users</a></li>
-                <li><a>Subscriptions</a></li>
-                <li><a [routerLink]="['/admin', 'account-trainings', accountId]">Trainings</a></li>
-              </ul>
-            </div>
-          </nav>
-          <hr>
+        <div class="mid-nav">
+            <ul>
+                <li [routerLink]="['/admin', 'locations-in-account', accountId]" [ngClass]="{active:activeLink=='locations'}"> Locations </li>
+                <li [routerLink]="['/admin', 'users-in-accounts', accountId]" [ngClass]="{active:activeLink=='users'}"> Users </li>
+                <li>Subscriptions</li>
+                <li [routerLink]="['/admin', 'account-trainings', accountId]" [ngClass]="{active:activeLink=='trainings'}"> Trainings </li>
+            </ul>
+        </div>
     </div>
-  </div>
+</div>
 
 
 <!--

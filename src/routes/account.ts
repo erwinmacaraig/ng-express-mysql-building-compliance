@@ -418,15 +418,15 @@ const RateLimiter = require('limiter').RateLimiter;
       responded: 1,
       strStatus: 'In Progress',
       dtResponded: moment().format('YYYY-MM-DD')
-    });
-
-    const userResponded: Array<number> = configDBData['user_responded'].split(',');
-    if (userResponded.indexOf(uid) == -1) {
-      userResponded.push(uid);
-      configDBData['responders'] = configDBData['responders'] + 1;
-      configDBData['user_responded'] = userResponded.join(',');
-      await configurator.create(configDBData);
-    }
+		});
+		
+		const userResponded: Array<number> = configDBData['user_responded'].split(',');
+		if (userResponded.indexOf(uid) == -1) {
+			userResponded.push(uid);
+			configDBData['responders'] = configDBData['responders'] + 1;
+			configDBData['user_responded'] = userResponded.join(',');
+			await configurator.create(configDBData);
+		}
 
     const redirectUrl = 'https://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
     const script = `
@@ -446,15 +446,17 @@ const RateLimiter = require('limiter').RateLimiter;
 
   }
   public async verifyNotifiedUser(req: Request, res: Response) {
-    let strToken = decodeURIComponent(req.query.token);
+		
+		let strToken = decodeURIComponent(req.query.token);		
+		
     const tokenObj = new NotificationToken();
-    const  bytes = cryptoJs.AES.decrypt(''+strToken, process.env.KEY);
-    const strTokenDecoded = bytes.toString(cryptoJs.enc.Utf8);
+    const  bytes = cryptoJs.AES.decrypt(strToken, process.env.KEY);
+    const strTokenDecoded: string = bytes.toString(cryptoJs.enc.Utf8);
     const authRoute = new AuthenticateLoginRoute();
-
+    
     const parts = strTokenDecoded.split('_');
-    const uid = parts[1];
-    const configId = parts[3];
+    const uid = parseInt(parts[1], 10);
+    const configId = parseInt(parts[3], 10);
 
     const user = new User(uid);
     await user.load();
@@ -495,14 +497,15 @@ const RateLimiter = require('limiter').RateLimiter;
       dtCompleted: moment().format('YYYY-MM-DD')
     });
 
-    const userResponded: Array<number> = configDBData['user_responded'].split(',');
-    if (userResponded.indexOf(uid) == -1) {
-      userResponded.push(uid);
-      configDBData['responders'] = configDBData['responders'] + 1;
-      configDBData['user_responded'] = userResponded.join(',');
-      await configurator.create(configDBData);
-    }
-
+		const userResponded: Array<number> = configDBData['user_responded'].split(',');
+		if (userResponded.indexOf(uid) == -1) {
+			userResponded.push(uid);
+			configDBData['responders'] = configDBData['responders'] + 1;
+			configDBData['user_responded'] = userResponded.join(',');
+			await configurator.create(configDBData);
+		}
+    
+    
     const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
     let stringUserData = JSON.stringify(loginResponse.data);
     stringUserData = stringUserData.replace(/\'/gi, '');
@@ -592,7 +595,6 @@ const RateLimiter = require('limiter').RateLimiter;
       account = await accountModel.load();
     }catch(e){}
 
-
     // filter these sublevels that belongs to the account
     if (config['trp_user']) {
       userType = 'trp';
@@ -642,14 +644,18 @@ const RateLimiter = require('limiter').RateLimiter;
         location_id: u['location_id'],
         role_text: u['role_name'],
         notification_config_id: configurator.ID(),
-        dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD')
+				dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD'),
+				dtLastSent: moment().format('YYYY-MM-DD')
       });
-      notificationToken = null;
+			notificationToken = null;
+			if (u['name'].length > 0) {
+				locData.location_name = locData.location_name + ', ' + u['name'];
+			}
       let 
       emailData = {
         message : config['message'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
         users_fullname : this.toTitleCase(u['first_name']+' '+u['last_name']),
-        account_name : account.account_name,
+        account_name : u['account_name'],
         location_name : locData.location_name,
         yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
         no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)

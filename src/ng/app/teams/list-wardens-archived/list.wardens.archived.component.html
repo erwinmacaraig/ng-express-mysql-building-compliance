@@ -23,7 +23,8 @@
 
 	<div class="col l3 m4 s6">
 		<select class="filter-by">
-			<option value="0" selected>Filter By (All)</option>
+            <option value="0" selected>Filter By (All)</option>
+			<option value="pending" >Pending</option>
 			<option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
 		</select>
 	</div>
@@ -114,13 +115,14 @@
 						</div>
 					</td>
 					<td>
-              <span [ngClass]="{'over red-text': warden.assigned_courses == 0 && warden.trainings == 0, 'over green-text': warden.assigned_courses > 0 || warden.trainings > 0}">
-                        {{warden.assigned_courses}} / {{warden.trainings}} </span>
+                        <span *ngIf="warden.trainings == 0" class="red-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
+                        <span *ngIf="warden.trainings > 0 && warden.trainings < (warden.trids.length + warden.misc_trainings.length)" class="orange-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
+                        <span *ngIf="warden.trainings == (warden.trids.length + warden.misc_trainings.length)" class="green-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
                     </td>
 					<td>
 						{{warden['last_login']}}
 					</td>
-					<td>
+					<td *ngIf="warden.profile_completion == 1">
 						<select (change)="onSelectFromTable($event, warden)">
 							<option value="0" class="blue-text" selected>Manage</option>
 							<option value="view" class="blue-text">View</option>
@@ -131,6 +133,9 @@
                             </option>
 						</select>
 					</td>
+                    <td *ngIf="warden.profile_completion == 0"> 
+                        <span class="red-text">Pending Profile Completion</span>
+                    </td>
 				</tr>
 			</tbody>
 			<tbody [hidden]="!loadingTable">
