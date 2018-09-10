@@ -174,6 +174,10 @@ export class AdminService {
     return this.http.post(`${this.baseUrl}/admin/new/account/`, reqBody);
   }
 
+  sendNotificationEmail(reqBody = {}) {
+    return this.http.post(`${this.baseUrl}/admin/send-notification/`, reqBody);
+  }
+
   searchUserAndLocation(keyword = ''){
     return this.http.get(`${this.baseUrl}/admin/search/user/location/`+keyword, this.options); 
   }

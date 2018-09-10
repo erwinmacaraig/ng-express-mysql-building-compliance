@@ -22,6 +22,7 @@ import { UserRoleRelation } from '../models/user.role.relation.model';
 const md5 = require('md5');
 const defs = require('../config/defs.json');
 const validator = require('validator');
+const cryptoJs = require('crypto-js');
 import * as multer from 'multer';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -32,11 +33,92 @@ import { TrainingCertification } from '../models/training.certification.model';
 import { AccountTrainingsModel } from '../models/account.trainings';
 import { Course } from '../models/course.model';
 import { PaperAttendanceDocumentModel } from '../models/paper.attendance.doc.model';
+import {NotificationToken } from '../models/notification_token.model';
+import { NotificationConfiguration } from '../models/notification_config.model';
+import {EmailSender} from '../models/email.sender';
 const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
+
+    router.post('/admin/send-notification/',
+      new MiddlewareAuth().authenticate,
+      async (req: AuthRequest, res: Response, next: NextFunction) => {
+        // get account roles
+        const user = new User(req.body.user);
+        const dbDataAccountRoles: object[] = await user.getAccountRoles();
+        console.log(dbDataAccountRoles);
+        for (const accountRole of dbDataAccountRoles) {
+          const configurator = new NotificationConfiguration();
+          const dbConfigData = await configurator.loadByBuilding(accountRole['building_id']);
+          const notificationToken = new NotificationToken();
+          if (dbConfigData.length == 0) {
+              // create config
+
+              await configurator.create({
+                building_id:accountRole['building_id'],
+                users: req.body.user,
+                frequency: 30,
+                recipients: 1,
+                dtLastSent: moment().format('YYYY-MM-DD'),
+                message: `Thank you again for your active participation and commitment to promote proactive safety within your building. Sincerely,
+  
+                The EvacConnect Engagement team
+                Email: systems@evacgroup.com.au
+                Phone: 1300 922 437
+                
+                * The TRP for a tenancy is the person responsible for ensuring that emergency planning is
+                being managed in your tenancy. You receive these confirmation emails every 3 months to
+                help us ensure that tenant and warden lists remain up to date.`
+              });
+          }
+          // send email
+          let strToken = cryptoJs.AES.encrypt(`${Date.now()}_${user.ID()}_${accountRole['location_id']}_${configurator.ID()}`, process.env.KEY).toString();
+          await notificationToken.create({
+            strToken: strToken,
+            user_id: user.ID(),
+            location_id: accountRole['location_id'],
+            role_text: defs['notification_role_text'][accountRole['role_id']],
+            notification_config_id: configurator.ID(),
+            dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD')
+          });
+          const emailData = {
+            message : configurator.get('message').toString().replace(/(?:\r\n|\r|\n)/g, '<br>'),
+            users_fullname : accountRole['first_name']+' '+accountRole['last_name'],
+            account_name : accountRole['account_name'],
+            location_name: accountRole['building_name'] + " " + accountRole['name'] ,
+            yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+            no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)
+          };
+          let emailType = 'warden-confirmation';
+          
+          if(defs['notification_role_text'][accountRole['role_id']] == 'TRP'){
+            emailType = 'trp-confirmation';
+          }
+          const opts = {
+            from : '',
+            fromName : 'EvacConnect',
+            to : ['rsantos@evacgroup.com.au'],
+            cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
+            body : '',
+            attachments: [],
+            subject : 'EvacConnect Email Notification'
+          };
+          const email = new EmailSender(opts);
+          email.sendFormattedEmail(emailType, emailData, res, 
+            (data) => console.log(data),
+            (err) => console.log(err)
+          );
+
+        }
+        return res.status(200).send({
+          message: 'test'
+        });
+
+
+
+    });
 
     router.post('/admin/new/account/',
       new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {

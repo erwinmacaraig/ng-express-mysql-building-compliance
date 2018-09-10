@@ -515,7 +515,15 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
         }else if(val == 'invite'){
             this.sendInvitationData.user = user;
             this.sendInvitationData.showForm();
-        }else if(val == 'assign'){
+        } else if (val == 'send-notification') {
+            console.log('==============', user, '=============');
+            this.adminService.sendNotificationEmail({
+                user: user['user_id']
+            }).subscribe((response) => {
+                console.log(response);
+            });
+        }
+        else if(val == 'assign'){
             this.assignTrainingsData.user = user;
             this.assignTrainingsData.showForm();
         }else if(val == 'location-role'){

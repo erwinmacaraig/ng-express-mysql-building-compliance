@@ -1,9 +1,12 @@
 import * as Promise from 'promise';
+import * as db from 'mysql2';
+const dbconfig = require('../config/db.json');
 export abstract class BaseClass {
 
     protected id: number;
     protected dbData = {};
     protected fields: Array<string> = [];
+    protected pool: db.Pool = db.createPool(dbconfig);
 
     constructor(id?: number) {
         if (id) {
