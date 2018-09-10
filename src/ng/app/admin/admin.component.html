@@ -11,7 +11,14 @@
                 <div class="icon"></div>
                 <div class="spacer">|</div>
                 <div class="input-field">
-                    <input type="text" placeholder="Search for..." />
+                    <input type="text" #searchInput placeholder="Search for..." />
+                </div>
+                <div class="results" #searchResults  >
+                    <ul>
+                        <li *ngFor="let result of searchedResult" (click)="searchClickEvent(result)">
+                            <div class="bg-image" [ngClass]="{  'location' : (result.type == 'location'), 'user' : (result.type == 'user') }"> </div> {{result.name}}
+                        </li>
+                    </ul>
                 </div>
             </div>
 
@@ -30,7 +37,7 @@
                 </div>
             </div>
         </div>
-        <div class="workspace container">
+        <div class="workspace container" style="overflow: -webkit-paged-y;">
             <router-outlet></router-outlet>
             <div preloader></div>
         </div>

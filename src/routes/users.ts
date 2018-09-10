@@ -2345,6 +2345,8 @@ export class UsersRoute extends BaseRoute {
 
                     }
 
+                    emailData.setup_link = emailLink;
+
                     /*if(hasOnlineTraining || isAccountEmailExempt){
 
 
@@ -2356,8 +2358,6 @@ export class UsersRoute extends BaseRoute {
                         tokenSaveData.id = invitation.ID();
                         emailLink += '/signup/warden-profile-completion/'+token;
                     }*/
-
-                    emailData.setup_link = emailLink;
 
                     await tokenModel.create(tokenSaveData);
 
