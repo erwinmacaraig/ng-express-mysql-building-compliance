@@ -174,5 +174,13 @@ export class AdminService {
     return this.http.post(`${this.baseUrl}/admin/new/account/`, reqBody);
   }
 
+  searchUserAndLocation(keyword = ''){
+    return this.http.get(`${this.baseUrl}/admin/search/user/location/`+keyword, this.options); 
+  }
+
+  getUserInformation(userid = 0){
+    return this.http.get(`${this.baseUrl}/admin/user-information/`+userid, this.options);
+  }
+
 }
 

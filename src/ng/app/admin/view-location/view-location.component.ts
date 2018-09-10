@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input} from '@angular/core';
-import { ActivatedRoute, Params } from '@angular/router';
+import { ActivatedRoute, Params, Router, NavigationEnd } from '@angular/router';
 
 import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
@@ -45,9 +45,17 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
   sublocations: Object[] = [];
   traversal: Object = {};
 
-  constructor(private route: ActivatedRoute,
+
+  activeLink = '';
+  subRouter;
+
+  constructor(
+    private route: ActivatedRoute,
     public adminService: AdminService,
-    public dashboard: DashboardPreloaderService) {}
+    public dashboard: DashboardPreloaderService,
+    private router: Router
+    ) {
+  }
 
   ngOnInit() {
     this.dashboard.show();
@@ -76,11 +84,20 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
         admin_verified_date: '',
         admin_id: 0,
         online_training: 0
-      };
+      }; 
       this.sublocations = [];
       this.accounts = [];
       this.traversal = {};
       this.people = [];
+
+      this.subRouter = this.route.queryParams.subscribe((observer) => {
+        this.activeLink = (observer['active']) ? observer['active'] : '';
+        if(this.activeLink.length == 0){
+          const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
+          queryParams['active'] = 'locations';
+          this.router.navigate(['/admin/view-location/'+this.locationId], { queryParams: queryParams });
+        }
+      });
 
       this.adminService.getLocationDetails(this.locationId).subscribe((response) => {
         this.location_details = response['data']['details'];
@@ -90,6 +107,13 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
         Object.keys(response['data']['people']).forEach((key) => {
           this.people.push(response['data']['people'][key]);
         });
+
+        if(this.sublocations.length == 0){
+          const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
+          queryParams['active'] = 'people';
+          this.router.navigate(['/admin/view-location/'+this.locationId], { queryParams: queryParams });
+        }
+
         this.dashboard.hide();
         // console.log(this.people);
       }, (error) => {

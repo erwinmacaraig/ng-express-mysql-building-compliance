@@ -90,6 +90,10 @@
     color: #39a1ff !important;
 }
 
+.mid-nav ul li:focus{
+    outline: none;
+}
+
 .mid-nav ul li.active{
     color: #39a1ff !important;
     border-bottom: 1px solid #39a1ff !important;
