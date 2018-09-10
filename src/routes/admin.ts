@@ -55,7 +55,6 @@ export class AdminRoute extends BaseRoute {
           const notificationToken = new NotificationToken();
           if (dbConfigData.length == 0) {
               // create config
-
               await configurator.create({
                 building_id:accountRole['building_id'],
                 users: req.body.user,
@@ -85,7 +84,7 @@ export class AdminRoute extends BaseRoute {
           });
           const emailData = {
             message : configurator.get('message').toString().replace(/(?:\r\n|\r|\n)/g, '<br>'),
-            users_fullname : accountRole['first_name']+' '+accountRole['last_name'],
+            users_fullname : accountRole['first_name'] +' '+accountRole['last_name'],
             account_name : accountRole['account_name'],
             location_name: accountRole['building_name'] + " " + accountRole['name'] ,
             yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
@@ -99,7 +98,7 @@ export class AdminRoute extends BaseRoute {
           const opts = {
             from : '',
             fromName : 'EvacConnect',
-            to : ['rsantos@evacgroup.com.au'],
+            to : [accountRole['email']],
             cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
             body : '',
             attachments: [],
@@ -110,14 +109,10 @@ export class AdminRoute extends BaseRoute {
             (data) => console.log(data),
             (err) => console.log(err)
           );
-
         }
         return res.status(200).send({
-          message: 'test'
+          message: `Notification sent.`
         });
-
-
-
     });
 
     router.post('/admin/new/account/',

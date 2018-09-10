@@ -176,8 +176,8 @@ const RateLimiter = require('limiter').RateLimiter;
         subject : 'EvacConnect Email Notification'
 			};
 			const email = new EmailSender(opts);
-			const link = 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
-      const yesLink = 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
+			const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
+      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
       let emailBody = email.getEmailHTMLHeader();
 			
 			emailBody += `<pre>Hi ${userDbData['first_name']} ${userDbData['last_name']},</pre>`;
@@ -428,7 +428,7 @@ const RateLimiter = require('limiter').RateLimiter;
 			await configurator.create(configDBData);
 		}
 
-    const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+    const redirectUrl = 'https://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
     const script = `
                 <h4>Redirecting...</h4>
                 <script>
@@ -511,7 +511,7 @@ const RateLimiter = require('limiter').RateLimiter;
     stringUserData = stringUserData.replace(/\'/gi, '');
 
     if (hasFrpTrpRole) {
-      const redirectUrl = 'http://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
+      const redirectUrl = 'https://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
       const script = `
                   <h4>Redirecting...</h4>
                   <script>
@@ -657,8 +657,8 @@ const RateLimiter = require('limiter').RateLimiter;
         users_fullname : this.toTitleCase(u['first_name']+' '+u['last_name']),
         account_name : u['account_name'],
         location_name : locData.location_name,
-        yes_link : 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
-        no_link : 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)
+        yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+        no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)
       },
       emailType = 'warden-confirmation';
       if(u['role_name']){
@@ -1233,7 +1233,7 @@ const RateLimiter = require('limiter').RateLimiter;
 
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
-			link = 'http://' + req.get('host') +'/custom-resolver?role_id='+inviData.role_id+'&invitation_code_id='+inviData.invitation_code_id+'&code='+inviData.code;
+			link = 'https://' + req.get('host') +'/custom-resolver?role_id='+inviData.role_id+'&invitation_code_id='+inviData.invitation_code_id+'&code='+inviData.code;
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(inviData.first_name)+' '+this.capitalizeFirstLetter(inviData.last_name)+'</h3> <br/>';
 		emailBody += '<h4> '+this.capitalizeFirstLetter(creatorData.first_name)+' '+this.capitalizeFirstLetter(creatorData.last_name)+' sents you an invitation code. </h4> <br/>';
