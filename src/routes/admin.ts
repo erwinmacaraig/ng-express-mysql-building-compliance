@@ -1731,6 +1731,14 @@ export class AdminRoute extends BaseRoute {
     });
 
 
+    router.get('/admin/search/user/location/:keyword', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().searchUserAndLocation(req, res);
+    });
+
+    router.get('/admin/user-information/:userId', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().getUserInformation(req, res);
+    });
+
   // ===============
   }
 
@@ -2026,4 +2034,48 @@ export class AdminRoute extends BaseRoute {
       }
        
     }
+
+    public async searchUserAndLocation(req: AuthRequest, res: Response){
+        let 
+        keyword = req.params.keyword,
+        userModel = new User(),
+        results = <any> [];
+
+        results = await userModel.searchUserAndLocation(keyword);
+
+        res.send(results);
+    }
+
+    public async getUserInformation(req: AuthRequest, res: Response){
+        let 
+        userId = req.params.userId,
+        userModel = new User(userId),
+        user = <any> {},
+        account = <any> {},
+        response = {
+            status : false, data : <any> {}, message : ''
+        },
+        userRoleModel = new User(),
+        accountModel = new Account();
+
+        try{
+            user = await userModel.load();
+            user['last_login'] = moment(user['last_login']).format('MMM. DD, YYYY hh:mm A');
+
+            response.data['user'] = user;
+            response.data['roles'] = await userRoleModel.getAllRoles(user['user_id']);
+
+            accountModel.setID(user['account_id'])
+            account = await accountModel.load();
+            response.data['account'] = account;
+
+        }catch(e){
+            response.message = 'No user found';
+        }
+
+
+        res.send(response);
+
+    }
+
 }

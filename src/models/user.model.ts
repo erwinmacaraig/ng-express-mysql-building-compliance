@@ -804,7 +804,115 @@ export class User extends BaseClass {
             });         
 
         });
+    }
 
+    public searchUserAndLocation(keyword = ''){
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
+                }
+                let sql_load = `
+                (SELECT 
+                users.user_id as id, CONCAT(users.first_name,' ',users.last_name) as name, @type := 'user' as type
+                FROM users
+                WHERE users.archived = 0 AND CONCAT(first_name,' ',last_name) LIKE "%${keyword}%" LIMIT 5)
+
+                UNION   
+
+                (SELECT
+                l.location_id as id, IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name, @type := 'location' as type
+                FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE l.archived = 0 AND IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name  ) LIKE "%${keyword}%" ORDER BY IF(p.name IS NULL, l.name, CONCAT(p.name, ',', l.name)  ) ASC  LIMIT 5)
+                
+                ORDER BY name ASC
+            `;
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        console.log('sql_load', sql_load);
+                        return console.log(error);
+                    }                    
+                    resolve(results);
+                });
+                connection.release();
+            });
+        });
+    }
+
+    public getAllRoles(userId){
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
+                }
+                const sql_load = `
+                SELECT 
+                urr.role_id,
+                IF(urr.role_id = 1, 'FRP', 'TRP') as role
+                FROM user_role_relation urr WHERE urr.user_id = ${userId}
+                UNION
+                SELECT
+                emr.em_role_id as role_id,
+                em.role_name as role
+                FROM user_em_roles_relation emr INNER JOIN em_roles em ON emr.em_role_id = em.em_roles_id
+                WHERE emr.user_id = ${userId}
+                `;
+
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    resolve(results);
+    
+                });
+                connection.release();
+
+            });
+
+        });
+    }
+
+    public getAllLocations(userId){
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
+                }
+                const sql_load = `
+                SELECT
+                lau.location_id,
+                IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name,
+                @temp := 1 as role_id
+                FROM location_account_user lau
+                INNER JOIN locations l ON lau.location_id = l.location_id
+                LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE lau.user_id = ${userId}
+
+                UNION
+
+                SELECT 
+                uer.location_id,
+                IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name,
+                uer.em_role_id as role_id
+                FROM user_em_roles_relation uer
+                INNER JOIN locations l ON uer.location_id = l.location_id
+                LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE uer.user_id = ${userId}
+            `;
+           
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }                
+                    resolve(results);
+
+                });
+                connection.release();
+            });
+        });
     }
 
 }

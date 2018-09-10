@@ -63,7 +63,9 @@
           </td>
         </tr>
         <tr *ngFor="let user of userObjects">
-          <td>{{user['first_name']}} {{user['last_name']}}</td>
+          <td>
+              <a [routerLink]="['/admin/view-user/', user['user_id']]">{{user['first_name']}} {{user['last_name']}}</a>
+          </td>
           <td>
             {{user['email']}}
           </td>

@@ -1,61 +1,84 @@
 <div class="row">
-  <div class="col s8">
-    <h3>{{location_details['name']}}</h3>
+  <div class="col l12 m12 s12">
+    <div class="bread link" *ngIf="traversal['p5_name']" [routerLink]="['/admin', 'view-location', traversal['p5_location_id']]">
+      <h5 class="text">{{traversal['p5_name']}}</h5>
+    </div>
+    <div class="bread link" *ngIf="traversal['p4_name']" [routerLink]="['/admin', 'view-location', traversal['p4_location_id']]">
+      <h5 class="text">{{traversal['p4_name']}}</h5>
+    </div>
+    <div class="bread link" *ngIf="traversal['p3_name']" [routerLink]="['/admin', 'view-location', traversal['p3_location_id']]">
+      <h5 class="text">{{traversal['p3_name']}}</h5>
+    </div>
+    <div class="bread link" *ngIf="traversal['p2_name']" [routerLink]="['/admin', 'view-location', traversal['p2_location_id']]">
+      <h5 class="text">{{traversal['p2_name']}}</h5>
+    </div>
+    <div class="bread link" *ngIf="traversal['p1_name']" [routerLink]="['/admin', 'view-location', traversal['p1_location_id']]">
+      <h5 class="text">{{traversal['p1_name']}}</h5>
+    </div>
+    <div class="bread">
+      <h5 class="text">{{location_details['name']}}</h5>
+    </div>
+
+  </div>
+
+  <div class="col l12 m12 s12">
+    <div  class="label-and-text">
+        <label >Location Id:</label>
+        <p >{{location_details['location_id']}}</p>
+    </div>
+    <div  class="label-and-text">
+        <label >Address:</label>
+        <p >{{location_details['formatted_address']}}</p>
+    </div>
+    <div  class="label-and-text">
+        <label >Settings:</label>
+        <div class="checkbox">
+          <input id="ola" type="checkbox" [(ngModel)]="location_details.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
+        </div>
+    </div>
   </div>
 </div>
+
 <div class="row">
-  <div class="col s12">
-    <h6>Location Details</h6>
-    <div id="traversal">
-      <ul id="nodeList">
-        <li *ngIf="traversal['p5_name']"><a [routerLink]="['/admin', 'view-location', traversal['p5_location_id']]">{{traversal['p5_name']}}</a></li>
-        <li *ngIf="traversal['p4_name']"><a [routerLink]="['/admin', 'view-location', traversal['p4_location_id']]">{{traversal['p4_name']}}</a></li>
-        <li *ngIf="traversal['p3_name']"><a [routerLink]="['/admin', 'view-location', traversal['p3_location_id']]">{{traversal['p3_name']}}</a></li>
-        <li *ngIf="traversal['p2_name']"><a [routerLink]="['/admin', 'view-location', traversal['p2_location_id']]">{{traversal['p2_name']}}</a></li>
-        <li *ngIf="traversal['p1_name']"><a [routerLink]="['/admin', 'view-location', traversal['p1_location_id']]">{{traversal['p1_name']}}</a></li>
-        <li>{{location_details['name']}}</li>
-      </ul>
+    <div class="col l12 m12 s12">
+        <div class="mid-nav">
+            <ul id="nav-mobile">
+                <li *ngIf="sublocations.length > 0"  [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'locations' }" [ngClass]="{active:activeLink=='locations'}"> SubLocations </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'people' }" [ngClass]="{active:activeLink=='people'}"> People </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'accounts' }" [ngClass]="{active:activeLink=='accounts'}"> Accounts </li>
+                <!-- <li [routerLink]="['/admin', 'view-location', locationId]" [ngClass]="{active:activeLink=='trainings'}"> Trainings </li> -->
+            </ul>
+        </div>
     </div>
-    <p><strong>Location Id:</strong> <span>{{location_details['location_id']}}</span></p>
-    <p><strong>Address</strong> <span>{{location_details['formatted_address']}}</span></p>
-    <br>
-    <div>Settings</div>
-    <div class="checkbox">
-      <input id="ola" type="checkbox" [(ngModel)]="location_details.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
-    </div>
-  </div>
 </div>
-<div class="row">
-  <div class="col s12">
-    <ul class="tabs">
-      <li class="tab col s3"><a class="active" href="#sublocations">Sublocations</a></li>
-      <li class="tab col s3"><a href="#people">People</a></li>
-      <li class="tab col s3"><a href="#accounts">Accounts</a></li>
-      <li class="tab col s3 disabled"><a href="#reporting">Reporting</a></li>
-    </ul>
-  </div>
-  <div id="sublocations" class="col s12">
+
+<div class="row" [hidden]=" (activeLink=='locations') == false ">
+  <div class="col l12 m12 s12">
     <table class="table striped table-peep">
       <thead>
         <tr>
-          <th>Archived</th>
           <th>Name</th>
           <th>Address</th>
           <th>Sublocations</th>
           <th>Compliance</th>
+          <th>Archived</th>
         </tr>
         </thead>
         <tbody>
           <tr *ngFor="let sub of sublocations">
-            <td></td>
             <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]">{{sub['name']}}</a></td>
             <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]">{{sub['formatted_address']}}</a></td>
             <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]">{{sub['sublocations_count']}}</a></td>
+            <td></td>
+            <td></td>
           </tr>
         </tbody>
-      </table>
+    </table>
   </div>
-  <div id="people" class="col s12">
+</div>
+
+<div class="row" [hidden]=" (activeLink=='people') == false ">
+  <div class="col l12 m12 s12">
     <table class="table striped table-peep">
       <thead>
         <tr>
@@ -66,8 +89,15 @@
         </tr>
         </thead>
         <tbody>
+            <tr *ngIf="people.length == 0">
+                <td colspan="4" class="center">
+                    <p>No result found</p>
+                </td>
+            </tr>
           <tr *ngFor="let person of people">
-            <td>{{person['name']}}</td>
+            <td>
+                <a [routerLink]="['/admin/view-user/', person['user_id']]">{{person['name']}}</a>
+            </td>
             <td>{{person['account_name']}}</td>
             <td><span *ngFor="let accntRole of person['account_role']" style="display: block;">
                 {{accntRole}}
@@ -79,10 +109,12 @@
             </td>
           </tr>
         </tbody>
-      </table>
-
+    </table>
   </div>
-  <div id="accounts" class="col s12">
+</div>
+
+<div class="row" [hidden]=" (activeLink=='accounts') == false ">
+  <div class="col l12 m12 s12">
     <table class="table striped table-peep">
       <thead>
         <tr>
@@ -92,14 +124,19 @@
         </tr>
         </thead>
         <tbody>
+            <tr *ngIf="accounts.length == 0">
+                <td colspan="3" class="center">
+                    <p>No result found</p>
+                </td>
+            </tr>
           <tr *ngFor="let account of accounts">
             <td><a [routerLink]="['/admin', 'users-in-accounts', account['account_id']]">{{account['account_name']}}</a></td>
             <td><a [routerLink]="['/admin', 'users-in-accounts', account['account_id']]">{{account['responsibility']}}</a></td>
             <td></td>
           </tr>
         </tbody>
-      </table>
+    </table>
   </div>
-  <div id="reporting" class="col s12">Reporting</div>
 </div>
+
 <div preloader></div>
