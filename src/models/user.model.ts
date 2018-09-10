@@ -755,4 +755,56 @@ export class User extends BaseClass {
         });
     }
 
+    public getAccountRoles(): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
+                }
+                const sql = `SELECT
+                                users.user_id,
+                                users.first_name,
+                                users.last_name,
+                                users.email,
+                                accounts.account_name,
+                                user_role_relation.role_id,
+                                locations.name,
+                                locations.location_id,
+                                parent.name as building_name,
+                                parent.location_id as building_id
+                            FROM
+                                users
+                            INNER JOIN
+                                accounts
+                            ON users.account_id = accounts.account_id
+                            INNER JOIN
+                                location_account_user
+                            ON users.user_id = location_account_user.user_id
+                            INNER JOIN
+                                user_role_relation
+                            ON
+                                location_account_user.user_id = user_role_relation.user_id
+                            INNER JOIN
+                                locations
+                            ON locations.location_id = location_account_user.location_id
+                            LEFT JOIN
+                                locations as parent
+                            ON
+                                locations.parent_id = parent.location_id
+                            WHERE users.user_id = ?`;
+                connection.query(sql, [this.ID()], (error, results) => {
+                    if (error) {
+                        console.log('User object - cannot get account roles', sql, error, this.id);
+                        throw Error(error.toString());
+                    }
+                    resolve(JSON.parse(JSON.stringify(results)));
+                });
+                connection.release();
+            });         
+
+        });
+
+    }
+
 }

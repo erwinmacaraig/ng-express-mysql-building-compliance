@@ -1,7 +1,7 @@
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
-
+import * as moment from 'moment';
 import * as Promise from 'promise';
 
 export class Scorm {
@@ -17,6 +17,7 @@ export class Scorm {
                 } else {
                     const sql_init = `INSERT INTO scorm (course_user_relation_id, parameter_name, parameter_value)
                     VALUES
+                      (${relationId}, 'last_accessed', ${moment().format('YYYY-MM-DD')}),
                       (${relationId}, 'cmi.core._children', ''),
                       (${relationId}, 'cmi.core.student_id', ''),
                       (${relationId}, 'cmi.core.student_name', ''),

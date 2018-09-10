@@ -174,5 +174,9 @@ export class AdminService {
     return this.http.post(`${this.baseUrl}/admin/new/account/`, reqBody);
   }
 
+  sendNotificationEmail(reqBody = {}) {
+    return this.http.post(`${this.baseUrl}/admin/send-notification/`, reqBody);
+  }
+
 }
 
