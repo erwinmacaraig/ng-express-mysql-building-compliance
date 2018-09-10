@@ -63,6 +63,8 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.showResult = false;
       if(result.type == 'location'){
           this.router.navigate(['/admin/view-location/', result.id]);
+      }else if(result.type == 'user'){
+          this.router.navigate(['/admin/view-user/', result.id]);
       }
   }
 
