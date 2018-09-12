@@ -1128,11 +1128,19 @@ export class AdminRoute extends BaseRoute {
     });
 
     router.get('/admin/compliance/kpis/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-      const kpis =  await new ComplianceKpisModel().getAllKPIs(true);
-      return res.status(200).send({
-        message: 'Success',
-        data: kpis
-      });
+      try {
+        const kpis =  await new ComplianceKpisModel().getAllKPIs(true);
+        return res.status(200).send({
+          message: 'Success',
+          data: kpis
+        });
+      } catch (e) {
+        console.log(e);
+        return res.status(400).send({
+          message: 'Fail'          
+        });
+      }
+      
     });
 
     router.post('/admin/upload/paper-attendance/',
@@ -1368,7 +1376,8 @@ export class AdminRoute extends BaseRoute {
 
 
             let marker = 0;
-            async.each(evacDiagramFiles, async (item: object, cb) => {
+            try {
+              async.each(evacDiagramFiles, async (item: object, cb) => {
                 const dataStream = await fs.readFileSync(item['path']);
                 const params = {
                     Bucket: aws_bucket_name,
@@ -1426,7 +1435,10 @@ export class AdminRoute extends BaseRoute {
                         });
                     }
                 });
-            });
+              });
+            } catch (e) {
+               console.log(e, 'Async for in uploading evac diagrams');
+            }
 
             return res.status(200).send({
                 account_id : account_id,
