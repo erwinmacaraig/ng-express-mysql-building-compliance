@@ -250,7 +250,7 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
 
                 console.log(split);
 
-                if(split.length == 5){
+                if(split.length >= 4 && split.length <= 5){
                     validfiles.push(files[i]);
                 }else{
                     invalids.push(files[i]);

@@ -1263,7 +1263,7 @@ export class AdminRoute extends BaseRoute {
                 levelName = '',
                 dateOfActivity = '';
 
-                if (file_parts.length < 5) {
+                if (file_parts.length < 4 && file_parts.length > 5) {
                     rejectedFiles.push(f['filename']);
                     errMsgs.push(`${f['filename']} does not have the correct format`);
                     continue;
@@ -1310,7 +1310,7 @@ export class AdminRoute extends BaseRoute {
                     }
                 }
                 // this is the level part
-                if (file_parts[2] != null) {
+                if (file_parts[2] != null && file_parts.length == 5) {
                     levelName = file_parts[2].replace(/_/g, ' ');
                     console.log('levelName', levelName);
                     temp = await location.getLocationDetailsUsingName(levelName, parentId);
@@ -1330,6 +1330,7 @@ export class AdminRoute extends BaseRoute {
                         continue;
                     }
                 }
+                
                 // this is the date part
                 if (file_parts[4] != null) {
                     dateOfActivity = file_parts[4].replace(/_/g, ' ');
@@ -1342,6 +1343,18 @@ export class AdminRoute extends BaseRoute {
                         rejectedFiles.push(f['filename']);
                         continue;
                     }
+                }
+                if (file_parts.length == 4) {
+                  dateOfActivity = (file_parts[3].split(/\./))[0];
+                  // console.log("DATE OF ACTIVITY: " , dateOfActivity);
+                  if (moment(dateOfActivity, 'DDMMYYYY').isValid()) {
+                    temp = moment(dateOfActivity, 'DDMMYYYY').format('YYYY-MM-DD');
+                    // console.log("FORMATTED DATE (via moment): " + temp);
+                  } else {
+                    errMsgs.push(`Invalid date format -  ${dateOfActivity}`);
+                    rejectedFiles.push(f['filename']);
+                    continue;
+                  }
                 }
                 const filteredName = f['filename'].replace(/\s+/g, '-');
                 f['key'] = `${dirPath}${filteredName}`;
