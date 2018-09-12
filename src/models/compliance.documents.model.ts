@@ -151,6 +151,7 @@ export class ComplianceDocumentsModel extends BaseClass {
             const connection = db.createConnection(dbconfig);
             connection.query(sql_update, param, (err, results, fields) => {
                 if (err) {
+                    console.log(sql_update, param);
                     throw new Error(err);
                 }
                 resolve(true);
