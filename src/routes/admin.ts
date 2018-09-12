@@ -1358,6 +1358,7 @@ export class AdminRoute extends BaseRoute {
                   if (moment(dateOfActivity, 'DDMMYYYY').isValid()) {
                     temp = moment(dateOfActivity, 'DDMMYYYY').format('YYYY-MM-DD');
                     // console.log("FORMATTED DATE (via moment): " + temp);
+                    dirPath += 'EmergencyEvacuationDiagrams/Primary/';
                   } else {
                     errMsgs.push(`Invalid date format -  ${dateOfActivity}`);
                     rejectedFiles.push(f['filename']);
