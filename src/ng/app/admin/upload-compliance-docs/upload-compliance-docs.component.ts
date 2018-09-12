@@ -9,13 +9,14 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 
 import { AdminService } from './../../services/admin.service';
+import { AlertService } from './../../services/alert.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 declare var moment: any;
 @Component({
     selector: 'app-admin-compliance-doc-upload',
     templateUrl: './upload-compliance-docs.component.html',
     styleUrls: ['./upload-compliance-docs.component.css'],
-    providers: [AdminService, EncryptDecryptService, DashboardPreloaderService]
+    providers: [AdminService, EncryptDecryptService, DashboardPreloaderService, AlertService ]
 })
 
 export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
@@ -66,7 +67,8 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         public router: Router,
         platformLocation: PlatformLocation,
         public adminService: AdminService,
-        public dashboard: DashboardPreloaderService)
+        public dashboard: DashboardPreloaderService,
+        private alertService: AlertService)
     {
         this.baseUrl = (platformLocation as any).location.origin;
         this.setDatePickerDefaultDate();
@@ -145,10 +147,9 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         return this.httpEmitter = this.http.request(req).subscribe(
             event => {
                 this.httpEvent = event;
-
+                this.dashboard.hide();
                 if (event instanceof HttpResponse) {
-                    delete this.httpEmitter;
-                    this.dashboard.hide();
+                    delete this.httpEmitter;                    
                     console.log('request done', event);
 
                     if(this.documentType.value == 5){
@@ -162,11 +163,13 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
                         }
 
                         if(body.rejected.length == 0){
-                            this.router.navigate(['/admin', 'view-location-compliance', body.account_id.toString(), body.location_id, 5]);
+                            this.alertService.info('Files successfully uploaded', true); 
+                            this.invalidsFiles = [];                           
                         }
                     }else{
                         this.router.navigate(['/admin', 'view-location-compliance', this.selectedAccount.toString(),
-                        this.locationField.value, this.documentType.value]);
+                                 this.locationField.value, this.documentType.value]);
+                        
                     }
 
 
@@ -250,7 +253,7 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
 
                 console.log(split);
 
-                if(split.length == 5){
+                if(split.length >= 4 && split.length <= 5){
                     validfiles.push(files[i]);
                 }else{
                     invalids.push(files[i]);

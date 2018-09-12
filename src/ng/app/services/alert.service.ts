@@ -55,4 +55,7 @@ export class AlertService {
         // clear alerts
         this.subject.next();
     }
+    setKeepAfterRouteChange(keepIt=false) {
+        this.keepAfterRouteChange = keepIt;
+    }
 }

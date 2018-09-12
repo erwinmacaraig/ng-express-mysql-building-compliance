@@ -42,7 +42,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   showModalUploadDocsLoader = false;
   myKPI: object = {};
   validTillDate = '';
-  FSAStatus: boolean;
+  FSAStatus: boolean =  false;
 
   sublocations: Array<object> = [];
   httpEmitter: Subscription;
@@ -99,7 +99,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         }
       }
 
-        this.getLatestCompliance();
+      this.getLatestCompliance();
 
       this.getUploadedDocumentsFromSelectedKPI(initKPI);
       this.dashboard.hide();
@@ -113,9 +113,12 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     this.genericSub =
         this.adminService.FSA_EvacExer_Status(this.accountId.toString(), this.locationId.toString(), '3').subscribe((response) => {
           console.log(response);
-          this.FSAStatus = (response['data']['compliance_status'] == 1) ? true : false;
+          if (response['data'] && 'compliance_status' in response['data']) {
+            this.FSAStatus = (response['data']['compliance_status'] == 1) ? true : false;
+          }
+          
     });
-
+    
     this.locationService.getByIdWithQueries({
       location_id : this.locationId,
       account_id : this.accountId,
@@ -128,7 +131,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       this.complianceSublocations.push(response.location);
       }
     });
-
+    
   }
 
   ngAfterViewInit() {
@@ -139,6 +142,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
 
   ngOnDestroy() {}
 
+  
   getLatestCompliance(){
       this.complianceService.getLocationsLatestCompliance({
           location_id : this.locationId,
@@ -205,6 +209,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     });
   }
 
+  
   public getUploadedDocumentsFromSelectedKPI(kpi) {
     this.selectedKPI = kpi['compliance_kpis_id'];
     this.documentFiles = [];
@@ -213,10 +218,13 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
 
     this.myKPI = kpi;
     // console.log(this.locationId);
+    
     this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
       this.documentFiles = response['data'];
+      console.log(this.documentFiles);
       this.locationName = response['displayName'].join(' >> ');
     });
+    
 
     for(let k of this.KPIS){
       if(k['compliance_kpis_id'] == this.selectedKPI){
@@ -309,6 +317,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     if (compliance_kpis_id == 3) {
       this.FSAStatus = event.target.checked;
       const dbStat = (event.target.checked == true) ? 1 : 0;
+      
       this.genericSub =
         this.adminService.FSA_EvacExer_Status(this.accountId.toString(),
                                               this.locationId.toString(),
@@ -318,6 +327,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
           .subscribe((response) => {
             this.FSAStatus = (response['data']['compliance_status'] == 1) ? true : false;
       });
+      
 
     }
   }
