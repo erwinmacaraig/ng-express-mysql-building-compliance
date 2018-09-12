@@ -147,11 +147,11 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         return this.httpEmitter = this.http.request(req).subscribe(
             event => {
                 this.httpEvent = event;
-                this.dashboard.hide();
+                
                 if (event instanceof HttpResponse) {
                     delete this.httpEmitter;                    
                     console.log('request done', event);
-
+                    this.dashboard.hide();
                     if(this.documentType.value == 5){
                         let body = <any> event.body;
                         this.files = [];
