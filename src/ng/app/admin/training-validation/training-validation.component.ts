@@ -265,7 +265,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             });
         });
       }
-      if (this.users.length > 0) {
+      // if (this.users.length > 0) {
         this.userForm = this.formBuilder.group({
           levelUsers: this.formBuilder.array([this.createFormItem()]),
           dtTraining: this.dtTrainingField,
@@ -277,7 +277,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.searchAccount();
         this.exceptionCtrl.push(1);
 
-      }
+      // }
     });
 
     this.adminService.getAllLocationsOnAccount(accountId).subscribe((response) => {
@@ -309,7 +309,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         sublocations: response['sublocations']
       });
       this.sublocationOptions = response['sublocations'];
-      if (this.users.length > 0) {
+      // if (this.users.length > 0) {
         this.userForm = this.formBuilder.group({
           levelUsers: this.formBuilder.array([this.createFormItem()]),
           dtTraining: this.dtTrainingField,
@@ -321,7 +321,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.assignSearchEmailAbility();
         this.searchAccount();
         this.exceptionCtrl.push(1);
-      }
+      // }
       // console.log(this.users);
     });
   }
