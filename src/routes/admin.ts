@@ -17,6 +17,7 @@ import { FileUploader } from '../models/upload-file';
 import { ComplianceDocumentsModel } from '../models/compliance.documents.model';
 import { ComplianceModel } from '../models/compliance.model';
 import { ComplianceKpisModel } from '../models/comliance.kpis.model';
+import { CourseUserRelation } from '../models/course-user-relation.model';
 import * as moment from 'moment';
 import { UserRoleRelation } from '../models/user.role.relation.model';
 const md5 = require('md5');
@@ -1760,6 +1761,10 @@ export class AdminRoute extends BaseRoute {
         new AdminRoute().getUserInformation(req, res);
     });
 
+    router.get('/admin/get-tagged-locations-from-account/:accountId', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().getTaggedLocationsFromAccount(req, res);
+    });
+
   // ===============
   }
 
@@ -2077,6 +2082,7 @@ export class AdminRoute extends BaseRoute {
             status : false, data : <any> {}, message : ''
         },
         userRoleModel = new User(),
+        userLocationAndRoles = new User(),
         accountModel = new Account();
 
         try{
@@ -2085,10 +2091,15 @@ export class AdminRoute extends BaseRoute {
 
             response.data['user'] = user;
             response.data['roles'] = await userRoleModel.getAllRoles(user['user_id']);
+            response.data['location_roles'] = await userLocationAndRoles.getAllRolesAndLocations(user['user_id']);
 
             accountModel.setID(user['account_id'])
             account = await accountModel.load();
             response.data['account'] = account;
+
+            
+            let trainingModel = new TrainingCertification();
+            response.data['trainings'] = <any> await trainingModel.getCertificatesByInUsersId([user['user_id']]);
 
         }catch(e){
             response.message = 'No user found';
@@ -2097,6 +2108,16 @@ export class AdminRoute extends BaseRoute {
 
         res.send(response);
 
+    }
+
+    public async getTaggedLocationsFromAccount(req: AuthRequest, res: Response){
+        let 
+        accountId = req.params.accountId,
+        locAccRel = new LocationAccountRelation();
+
+        let data = await locAccRel.getTaggedLocationsOfAccount(accountId);
+
+        res.send(data);
     }
 
 }

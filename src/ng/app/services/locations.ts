@@ -170,8 +170,24 @@ export class LocationsService {
     return this.http.post<any>(this.baseUrl + '/location/update', formData, this.options);
   }
 
-  searchLocationHierarchy(key){
-    return this.http.get<any>(this.baseUrl + '/location/search-locations-hierarchy/'+key, this.options);
+  searchLocationHierarchy(key, isBuilding?){
+      let url = this.baseUrl + '/location/search-locations-hierarchy/'+key;
+      if(isBuilding){
+          url+= '?building=true';
+      }
+    return this.http.get<any>(url, this.options);
+  }
+
+  addAccountToLocation(accountId, locationId){
+    return this.http.post<any>(this.baseUrl + '/location/add-account', { location_id : locationId, account_id : accountId }, this.options);
+  }
+
+  removeAccountFromLocation(accountId, locationId){
+    return this.http.post<any>(this.baseUrl + '/location/remove-account', { location_id : locationId, account_id : accountId }, this.options);
+  }
+
+  createBuildingAddAccount(form){
+      return this.http.post<any>(this.baseUrl + '/location/create-building-add-account', form, this.options);
   }
 
 

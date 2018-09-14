@@ -1082,7 +1082,7 @@ export class Location extends BaseClass {
         });
     }
 
-    public searchLocation(searchCriteria: object = {}, limit?, accountId?): Promise<Array<object>> {
+    public searchLocation(searchCriteria: object = {}, limit?, accountId?, searchBuildings?): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             let joins = '';
             if(accountId){
@@ -1098,6 +1098,12 @@ export class Location extends BaseClass {
             }
             if ('parent_id' in searchCriteria) {
                 sql_search += ` AND l.parent_id = ${searchCriteria['parent_id']}`;
+            }
+
+            console.log(searchBuildings);
+            if(searchBuildings !== undefined){
+                let building = (searchBuildings) ? searchBuildings : 0;
+                sql_search += ` AND l.is_building = `+building;
             }
 
             if(accountId){

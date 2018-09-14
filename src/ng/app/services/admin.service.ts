@@ -186,5 +186,9 @@ export class AdminService {
     return this.http.get(`${this.baseUrl}/admin/user-information/`+userid, this.options);
   }
 
+  getTaggedLocationsFromAccount(accountId){
+     return this.http.get(`${this.baseUrl}/admin/get-tagged-locations-from-account/`+accountId, this.options);
+  }
+
 }
 

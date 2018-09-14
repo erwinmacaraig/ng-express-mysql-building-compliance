@@ -113,6 +113,7 @@ import { AdminReportsComponent } from './admin/reports/reports.component';
 import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
 import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
 import {  PeepFormComponent } from './peep.form/peep.form';
+import { AddLocationToAccountComponent } from './admin/add-location-to-account/add.location.to.account';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -253,7 +254,8 @@ const appRoutes: Routes = [
       { path: 'new-account', component: AdminAddAccountComponent },
       { path: 'notification-list', component: NotificationListComponent },
       { path: 'notification-config', component: NotificationConfigurationComponent },
-      { path: 'notified-users-list/:config', component: NotifiedUsersListComponent}
+      { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
+      { path : 'add-location-to-account/:accountId', component : AddLocationToAccountComponent }
     ]
   },
 

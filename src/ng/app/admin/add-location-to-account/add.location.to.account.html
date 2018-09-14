@@ -1,0 +1,148 @@
+<div class="row">
+    <div class="col l12 m12 s12">
+        <h4 class="account-name">Account : <span class="blue-text">{{account.account_name}}</span></h4>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col l5 m12 s12" style="margin-bottom: 20px;">
+        <h5 style="font-size: 20px;">
+            Search building and select
+        </h5>
+        <div class="row filter-container" style="margin-bottom: 60px;">
+            <div class="col l12 m12 s12">
+                <div class="search-field">
+                    <input id="searchLocations" #searchLocations placeholder="Search the building here..." type="text"> 
+                    <span class="material-icons">search</span>
+                    <div class="search-result" *ngIf="displaySearch">
+                        <h6 class="center" *ngIf="searchedLocations.length == 0">No result found</h6>
+                        <ul *ngIf="searchedLocations.length > 0">
+                            <li *ngFor="let loc of searchedLocations" (click)="selectLocationFromSearch(loc.location_id)">
+                                {{ loc.location_name }}
+                                
+                                <!-- <ul *ngIf="loc.sublocations.length > 0">
+                                    <li *ngFor="let sub of loc.sublocations" (click)="selectLocationFromSearch(loc.location_id)">
+                                        {{ sub.name }}
+                                    </li>
+                                </ul> -->
+
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+        <h5 style="font-size: 20px;">
+            Add New Building Form
+        </h5>
+
+        <form novalidate="novalidate" #form="ngForm" (submit)="submitAddNewBuilding(form)" style="background-color: #f7f7f7; padding: 20px;">
+            
+            <div class="row">
+                <!-- <div class="col l12 m12 s12 input-field">
+                    <select name="isbuilding">
+                        <option value="1">Building</option>
+                        <option value="0">Campus</option>
+                    </select>
+                </div> -->
+                
+                <div class="col l12 m12 s12 input-field">
+                    <input id="locationName" name="name" ngModel [(ngModel)]="buildingNameModel" #inpBuildingName  type="text"  required />
+                    <label for="locationName" class="">Building Name</label>
+                </div>
+
+                <div class="col l12 m12 s12 input-field">
+                    <input id="inpStreet" name="street" ngModel type="text" required />
+                    <label for="inpStreet" class="">Street</label>
+                </div>
+
+                <div class="col l12 m12 s12 input-field">
+                    <input id="inpCity" name="city" ngModel type="text" required />
+                    <label for="inpCity" class="">City</label>
+                </div>
+
+                <div class="col l12 m12 s12 input-field" style="margin-bottom: 20px;">
+                    <input id="inpState" name="state" ngModel type="text" required />
+                    <label for="inpState" class="">State</label>
+                </div>
+                
+                <div class="col l12 m12 s12 input-field" style="background-color: #ececec; margin: 10px; width: calc(100% - 20px);">
+                    <h5 style="font-size: 20px;">Sublocations</h5>
+                    <div class="row">
+                        <div class="col l12 m12 s12 input-field" *ngFor="let sub of sublocations; let i = index;">
+                            <input [(ngModel)]="sub.name" name="sublocation-{{i}}" type="text" required placeholder="Level name here" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col l12">
+                            <a class="btn red" (click)="addSubLoc()" style=" font-size: 14px !important; height: 40px !important; line-height: 39px;">
+                                Add level
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+                
+            </div>
+            <div class="row">
+                <div class="col l12">
+                    <button class="btn orange waves-effect waves-light right" [disabled]="form.invalid">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col l7 m12 s12" style="margin-bottom: 20px;">
+        <h5 style="font-size: 20px;">Tagged Locations</h5>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 13%;">Location Id</th>
+                    <th>Name</th>
+                    <th style="width: 10%;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="locations.length == 0">
+                    <td colspan="3" class="center">
+                        No record found
+                    </td>
+                </tr>
+                <tr *ngFor="let loc of locations">
+                    <td>{{loc.location_id}}</td>
+                    <td>{{loc.location_name}}</td>
+                    <td> 
+                        <a (click)="clickRemoveLocation(loc.location_id)" class="red-text">Remove</a>
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot *ngIf="showAddingLocation">
+                <tr>
+                    <td colspan="3" class="center">
+                        <h6>Adding location...</h6>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+        
+    </div>
+
+    
+</div>
+
+
+<div id="modalRemoveLoc" class="modal">
+    <div class="modal-content center" *ngIf="modalRemoveLoading">
+        <h5 style="font-size: 18px;">Loading...</h5>
+    </div>
+    <div class="modal-content" *ngIf="!modalRemoveLoading">
+        <h5>Confirm Action</h5>
+        <h5 style="font-size: 18px;">Please confirm removing of location</h5>
+    </div>
+    <div class="modal-footer" *ngIf="!modalRemoveLoading">
+        <a class="modal-action modal-close waves-effect waves-green btn-flat">Close</a>
+        <a class="modal-action waves-effect waves-green btn-flat" (click)="clickConfirmRemoveLocation()">Yes, remove</a>
+    </div>
+</div>

@@ -137,6 +137,7 @@ import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/
 import { AdminViewLocationComponent } from './admin/view-location/view-location.component';
 import { AdminViewUserComponent } from './admin/view-user/view.user.component';
 import { TrainingValidationComponent } from './admin/training-validation/training-validation.component';
+import { AddLocationToAccountComponent } from './admin/add-location-to-account/add.location.to.account';
 
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
 import { AdminReportsComponent } from './admin/reports/reports.component';
@@ -259,7 +260,8 @@ import {  PeepFormComponent } from './peep.form/peep.form';
     AdminAddAccountComponent,
     PaperAttendanceComponent,
     PeepFormComponent,
-    AlertComponent
+    AlertComponent,
+    AddLocationToAccountComponent
   ],
   imports: [
     BrowserModule,
@@ -275,7 +277,7 @@ import {  PeepFormComponent } from './peep.form/peep.form';
     ReactiveFormsModule,
     NgDatepickerModule,
     CommonModule,
-    ngfModule
+    ngfModule,
   ],
   providers: [
     AuthService,

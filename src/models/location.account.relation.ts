@@ -232,6 +232,25 @@ export class LocationAccountRelation extends BaseClass {
             resolve(this.write());
         });
     }
+
+    public delete() {
+        return new Promise((resolve, reject) => {
+            const sql_del = `DELETE FROM location_account_relation WHERE location_account_relation_id = ? LIMIT 1`;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_del, [this.ID()], (error, results, fields) => {
+                if (error) {
+                    console.log(error);
+                    reject('Error deleting record');
+
+                } else {
+                    resolve(true);
+                }
+
+            });
+            connection.end();
+        });
+    }
+
     /**
      * @description
      * Retrieve a list of all locations for an account with the necessary filters supplied
@@ -449,6 +468,31 @@ export class LocationAccountRelation extends BaseClass {
             `;
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load,  (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              this.dbData = results;
+              resolve(this.dbData);
+            });
+            connection.end();
+        });
+    }
+
+    public getTaggedLocationsOfAccount(accountId = 0){
+        return new Promise((resolve, reject) => {
+            const sql_load = `
+                SELECT 
+                   l.*, 
+                   IF(p.name IS NOT NULL, CONCAT(p.name,', ',l.name), l.name) as location_name
+                FROM location_account_relation lar
+                INNER JOIN locations l ON lar.location_id = l.location_id
+                LEFT JOIN locations p ON l.parent_id = p.location_id
+
+                WHERE lar.account_id = ? AND l.archived = 0
+            `;
+            const param = [accountId];
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_load, param, (error, results, fields) => {
               if (error) {
                 return console.log(error);
               }

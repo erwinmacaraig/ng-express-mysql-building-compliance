@@ -207,6 +207,18 @@ const defs = require('../config/defs.json');
         new LocationRoute().updateLocation(req, res);
       });
 
+      router.post('/location/add-account', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          new LocationRoute().addAccountToLocation(req, res);
+      });
+
+      router.post('/location/remove-account', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          new LocationRoute().removeAccountFromLocation(req, res);
+      });
+
+      router.post('/location/create-building-add-account', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          new LocationRoute().createBuildingAndAddAccount(req, res);
+      });
+
    	}
 
 
@@ -1566,9 +1578,12 @@ const defs = require('../config/defs.json');
         let
         locModel = new Location(),
         subLocs = new Location(),
-        locations = <any> [];
+        locations = <any> [],
+        searchBuildings = (req.query.building) ? req.query.building : false;
 
-        locations = <any> await locModel.searchLocation({ name : req.params.key }, 7);
+        console.log('req.query.building', req.query.building);
+
+        locations = <any> await locModel.searchLocation({ name : req.params.key }, 7, false, searchBuildings);
         for(let loc of locations){
             let sublocModel = new Location(loc.location_id);
             loc['sublocations'] = <any> await sublocModel.getSublocations();
@@ -1783,6 +1798,128 @@ const defs = require('../config/defs.json');
 
         res.send(response);
 
+    }
+
+    public async addAccountToLocation(req: AuthRequest, res: Response) {
+        let locAccRelModel = new LocationAccountRelation(),
+            locationModel = new Location(req.body.location_id),
+            response = {
+                status : false,
+                data : {},
+                message : ''
+            };
+
+        try{
+            await locationModel.load();
+
+            let responsibility = 'Tenant';
+            if(locationModel.get('is_building') == 1 || locationModel.get('parent_id') == -1){
+                responsibility = 'Manager';
+            }
+
+            let relations = await locAccRelModel.getByAccountIdAndLocationId(req.body.account_id, req.body.location_id);
+            if(relations.length == 0){
+                await locAccRelModel.create({
+                    'location_id' : req.body.location_id,
+                    'account_id' : req.body.account_id,
+                    'responsibility' : responsibility
+                });
+            }
+
+
+            response.status = true;
+        }catch(e){}
+
+        res.send(response);
+    }
+
+    public async removeAccountFromLocation(req: AuthRequest, res: Response){
+        let locAccRelModel = new LocationAccountRelation(),
+            locationModel = new Location(req.body.location_id),
+            response = {
+                status : false,
+                data : {},
+                message : ''
+            };
+
+        try{
+            await locationModel.load();
+
+            let relations = <any> await locAccRelModel.getByAccountIdAndLocationId(req.body.account_id, req.body.location_id);
+            for(let rel of relations){
+                let removeLocAccRel = new LocationAccountRelation(rel.location_account_relation_id);
+                try{
+                    await removeLocAccRel.delete();
+                }catch(e){}
+            }
+
+            response.data = <any> relations;
+            response.status = true;
+        }catch(e){}
+
+        res.send(response);
+    }
+
+    public async createBuildingAndAddAccount(req: AuthRequest, res: Response){
+        let 
+        locModel = new Location(),
+        body = req.body,
+        response = {
+            status : false,
+            data : [],
+            message : ''
+        },
+        locationModel = new Location(),
+        locData = {
+            name : body.name,
+            state : body.state,
+            street : body.street,
+            is_building : 1,
+            admin_verified : 1
+        },
+        accountId = body.account_id,
+        sublocations = body.sublocations,
+        locationAccnt = new LocationAccountRelation(),
+        parentId = 0,
+        locId = 0;
+
+
+        await locationModel.create(locData);
+        parentId = locationModel.ID();
+        locId = locationModel.ID();
+
+        
+        await locationAccnt.create({
+            'location_id': locId,
+            'account_id': accountId,
+            'responsibility': 'Manager'
+        });
+
+        for(let sub of sublocations){
+            let 
+            locSubModel = new Location(),
+            locaAccnt = new LocationAccountRelation(),
+            subData = {
+                parent_id : parentId,
+                name : sub.name,
+                state : body.state,
+                street : body.street,
+                is_building : 0,
+                admin_verified : 1
+            };
+
+            await locSubModel.create(subData);
+
+            await locaAccnt.create({
+                'location_id': locSubModel.ID(),
+                'account_id': accountId,
+                'responsibility': 'Tenant'
+            });
+        }
+
+        response['body'] = body;
+
+        res.send(response);
     }
 
 }
