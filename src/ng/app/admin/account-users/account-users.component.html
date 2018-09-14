@@ -32,7 +32,7 @@
 		</button>
 	</div>
 </div>
-<div class="row" class="to-hide-in-show-profile-update">
+<div class="row to-hide-in-show-profile-update">
   <div class="col  s12">
     <table class="table striped table-peep">
       <thead>
@@ -52,8 +52,20 @@
         </tr>
       </thead>
       <tbody>
+        <tr *ngIf="isTyping">
+          <td colspan="7" class="center" >
+            Searching...
+          </td>
+        </tr>
+        <tr *ngIf="!isTyping && userObjects.length == 0">
+          <td colspan="7" class="center" >
+            No record found
+          </td>
+        </tr>
         <tr *ngFor="let user of userObjects">
-          <td>{{user['first_name']}} {{user['last_name']}}</td>
+          <td>
+              <a [routerLink]="['/admin/view-user/', user['user_id']]">{{user['first_name']}} {{user['last_name']}}</a>
+          </td>
           <td>
             {{user['email']}}
           </td>
@@ -100,6 +112,7 @@
                 <option value="invite">Send Invitation</option>
                 <!-- <option value="assign">Assign Trainings</option> -->
                 <option value="location-role">Assign Location & Role</option>
+                <option value="send-notification">Send Notification Email</option>
               </select>
           </td>
         </tr>
@@ -107,20 +120,20 @@
     </table>
   </div>
 </div>
-<div class="row" class="to-hide-in-show-profile-update">
+<div class="row to-hide-in-show-profile-update">
   <div class="col l12 m12 s12 center pagination">
     <div class="inline-block">
-      <button class="btn blue" (click)="prevPage()"> Prev </button>
+      <button class="btn blue" (click)="prevPage()" [disabled]="isTyping || userObjects.length == 0" > Prev </button>
     </div>
 
     <div class="inline-block select">
-      <select #selectPage ngModel [(ngModel)]="currentPage" (change)="pageChange()">
+      <select #selectPage ngModel [(ngModel)]="currentPage" (change)="pageChange()" [disabled]="isTyping || userObjects.length == 0" >
         <option *ngFor="let p of createRange; let i = index" value="{{i}}">{{i+1}}</option>
       </select>
     </div>
 
     <div class="inline-block">
-      <button class="btn blue" (click)="nextPage()"> Next </button>
+      <button class="btn blue" (click)="nextPage()" [disabled]="isTyping || userObjects.length == 0" > Next </button>
     </div>
   </div>
 </div>

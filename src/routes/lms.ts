@@ -49,6 +49,9 @@ export class LMSRoute extends BaseRoute {
 
     router.post('/lms/setParameterValue/', (req: Request, res: Response, next: NextFunction) => {
       const scorm = new Scorm();
+      scorm.setDataModelVal(req.body.relation, 'last_accessed', moment().format('YYYY-MM-DD HH:mm:ss')).then((data) => {
+        
+      });
       scorm.setDataModelVal(req.body.relation, req.body.param, req.body.value).then((data) => {
         // Scorm 1.1 and Scorm 1.2
         // console.log(req.body);
@@ -83,7 +86,7 @@ export class LMSRoute extends BaseRoute {
       courseUserRelation.getAllCourseForUser(req.user.user_id).then((courses) => {
         return res.status(200).send({
           'courses': courses
-        });
+        });               
       }).catch((e) => {
         return res.status(400).send({'message': 'No course registered for this user - ' + req.user.user_id});
       });

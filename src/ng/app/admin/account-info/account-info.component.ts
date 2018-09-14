@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs/Rx';
 import { AdminService } from './../../services/admin.service';
 import { MessageService } from './../../services/messaging.service';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd  } from '@angular/router';
 declare var $: any;
 
 @Component({
@@ -40,10 +40,26 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   msgSrvSub;
   userData = <any> {};
 
+  routerSubs;
+  activeLink = 'users';
+
   constructor(private adminService: AdminService,
               private msgSrv : MessageService,
               private auth: AuthService,
-              private router: Router,) {}
+              private router: Router) {
+
+    this.routerSubs = this.router.events.subscribe((observer) => {
+      if(observer instanceof NavigationEnd){
+        if(observer.url.indexOf('users-in-accounts') > -1){
+          this.activeLink = 'users';
+        }else if(observer.url.indexOf('locations-in-account') > -1){
+          this.activeLink = 'locations';
+        }else if(observer.url.indexOf('account-trainings') > -1){
+          this.activeLink = 'trainings';
+        }
+      }
+    });
+  }
 
   ngOnInit() {
     this.userData = this.auth.getUserData();
@@ -85,6 +101,7 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.sub.unsubscribe();
+    this.routerSubs.unsubscribe();
   }
 
   public toggleOnlineTrainingAccess(e): void {

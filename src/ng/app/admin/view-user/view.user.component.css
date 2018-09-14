@@ -1,72 +1,11 @@
-.tabs .tab a{
-  color:#00ACC1;
-}
-.tabs .tab a:hover,.tabs .tab a.active {
-background-color: #f1f1f1;
-color:#008B9B;
-}
-.tabs .tab.disabled a,.tabs .tab.disabled a:hover {
-color:rgba(102,147,153,0.7);
-}
-.tabs .indicator {
-background-color:#f1f1f1;
-}
-
-#traversal ul li {
-  display: inline;
-}
-
-#traversal ul li a {
-  text-decoration: none;
-  padding: .2em 1em;
-}
-
-#traversal ul li a:hover {
-  color: #00ACC1;
-  background-color: gray;
-}
-
-.bread{
-    display: inline-block;
-}
-
-.bread .text{
-    display: inline-block;
-}
-
-.bread:nth-child(1):before{
-    display: none;
-}
-
-.bread:before{
-    content: '\E5CC';
-    color: #666;
-    vertical-align: sub;
-    display: inline-block;
-    font-family: 'Material Icons';
-    font-weight: normal;
-    font-style: normal;
-    font-size: 25px;
-    margin: 0 10px;
-    -webkit-font-smoothing: antialiased;
-}
-
-.link{
-    transition: 0.5s all;
-}
-
-.link:hover{
-    cursor: pointer;
-    color: #2196F3 !important
-}
-
-.label-and-text label {
+.label-and-text label{
     font-size: 13px;
 }
 
-.label-and-text p {
-    margin: 0px;
+.label-and-text p{
+    margin: 0px 0px 10px 0px;
     font-size: 19px;
+    min-height: 28px;
 }
 
 .mid-nav{

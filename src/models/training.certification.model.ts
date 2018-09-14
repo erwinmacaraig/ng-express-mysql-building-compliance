@@ -267,7 +267,7 @@ export class TrainingCertification extends BaseClass {
       sql_where_filter += ('certifications_id' in certData) ?
         `AND certifications.certifications_id = ${certData['certifications_id']}` : '';
 
-      const sql_check = `SELECT
+      let sql_check = `SELECT
             certifications.certifications_id,
             certifications.training_requirement_id,
             certifications.user_id,
@@ -301,7 +301,16 @@ export class TrainingCertification extends BaseClass {
             reject('training.certification.model creating/updating certification failed');
           });
         } else {
-          reject('Certificate is still valid');
+          // Certificate is still valid
+          // JUST UPDATE THE CERTIFICATION DATE
+          certData['certifications_id'] = results[0]['certifications_id'];
+          certData['certification_date'] = moment().format('YYYY-DD-MM');
+          this.create(certData).then((data) => {
+            resolve(true);
+          }).catch((e) => {
+            console.log('training.certification.model creating/updating certification failed');
+            reject('training.certification.model creating/updating certification failed');
+          });
         }
       });
       connection.end();

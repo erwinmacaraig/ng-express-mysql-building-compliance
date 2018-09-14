@@ -233,10 +233,13 @@ export class AllUsersArchivedComponent implements OnInit, OnDestroy {
             e.stopPropagation();
             let selected = $('select.filter-by').val();
             __this.dashboardService.show();
-            if(parseInt(selected) != 0){
+            if(parseInt(selected) != 0 && selected != 'pending'){
                 __this.queries.roles = selected;
             }else{
                 __this.queries.roles = 'frp,trp,users,no_roles';
+                if(selected == 'pending'){
+                    __this.queries.roles += ',pending';
+                }
             }
 
             __this.pagination = {

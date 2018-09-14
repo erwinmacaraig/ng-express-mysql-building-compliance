@@ -1,0 +1,127 @@
+<div class="row">
+    <div class="col l12 m12 s12">
+        <h5>{{ userData.first_name }} {{ userData.last_name }}</h5>
+    </div>
+    <div class="col l4 m12 s12">
+        <div class="label-and-text">
+            <label>Email</label>
+            <p>{{ userData.email }}</p>
+        </div>
+    </div>
+    <div class="col l4 m12 s12">
+        <div class="label-and-text">
+            <label>Account</label>
+            <p *ngIf="userData.account">
+                <a [routerLink]="['/admin/users-in-accounts/', userData.account.account_id]">
+                    {{ userData.account.account_name }}
+                </a>
+            </p>
+        </div>
+    </div>
+    <div class="col l4 m12 s12">
+        <div class="label-and-text">
+            <label>Phone:</label>
+            <p>{{ userData.phone }}</p>
+        </div>
+    </div>
+    <div class="col l4 m12 s12">
+        <div class="label-and-text">
+            <label>Mobile:</label>
+            <p>{{ userData.mobile_number }}</p>
+        </div>
+    </div>
+    <div class="col l4 m12 s12">
+        <div class="label-and-text">
+            <label>Imapaired:</label>
+            <p *ngIf="userData.mobility_impaired == 0">No</p>
+            <p *ngIf="userData.mobility_impaired == 1">Yes<p>
+        </div>
+    </div>
+    <div class="col l4 m12 s12">
+        <div class="label-and-text">
+            <label>Last login:</label>
+            <p>{{ userData.last_login }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col l12 m12 s12">
+        <div class="mid-nav">
+            <ul>
+                <li (click)="selectTab('rolesLocations')"> Roles & Locations </li>
+                <li (click)="selectTab('credentials')"> Credentials </li>
+                <li (click)="selectTab('trainings')"> Trainings </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row" *ngIf="activeLink == 'rolesLocations'">
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th>Location ID</th>
+                    <th>Location Name</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row" *ngIf="activeLink == 'credentials'">
+    <div class="col l5 m12 s12">
+        <form #formCredential="ngForm" (submit)="submitCredential(formCredential)">
+            <h5>Update {{userData.first_name}} {{userData.last_name}} Credential</h5>
+            <div class="row">
+                <div class="col s12 input-field">
+                    <label for="userEmail">Email</label>
+                    <input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" [ngModel]="userData.email" required>
+                </div>
+                <div class="col s12 input-field">
+                    <label for="inpPassword">Password
+                        <small *ngIf=" inputPassword.value != inputConfirmPassword.value "> *Mismatched </small>
+                    </label>
+
+                    <input id="inpPassword" type="password" name="password" ngModel #inputPassword="ngModel"
+                    [ngClass]="{
+                        'invalid' : !inputPassword.valid && inputPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+                    }"
+                    required minlength="6" maxlength="150"  >
+                </div>
+                <div class="col s12 input-field">
+                    <label for="confirmPassword"> Confirm password</label>
+
+                    <input id="confirmPassword" type="password" ngModel name="confirm_password"
+                        ngModel #inputConfirmPassword="ngModel"
+                        [ngClass]="{
+                            'invalid' : !inputConfirmPassword.valid && inputConfirmPassword.dirty || (inputPassword.value != inputConfirmPassword.value)
+                        }"
+                        required minlength="6" maxlength="150" >
+                </div>
+
+                <input type="text" name="user_id" ngModel [ngModel]="userData.user_id" required style="visibility: hidden;">
+                <!-- <div class="col s12">
+                    <label for="userEmail">Email</label>
+                    <input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
+                </div> -->
+            </div>
+
+            <div class="row button-container">
+                <div class="col s12 m12 l12 right-align">
+                    <a  class="btn grey lighten-1 waves-light waves-effect modal-close" (click)="updateCredentialsData.hideForm()">Cancel</a>
+                    <button type="submit" class="btn orange waves-light waves-effect" [disabled]="formCredential.invalid">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

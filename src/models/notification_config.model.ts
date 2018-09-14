@@ -25,6 +25,29 @@ export class NotificationConfiguration extends BaseClass {
     });
   }
 
+  public loadByBuilding(building=0): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      const sql_load = `SELECT * FROM notification_config WHERE building_id = ?`;
+      const connection = db.createConnection(dbconfig);
+      connection.query(sql_load, [building], (error, results) => {
+        if (error) {
+          console.log('Cannot load record NotificationConfiguration', sql_load);
+          throw Error(error);
+        } 
+        if (results.length) {
+          this.dbData = results[0];
+          this.setID(results[0]['notification_config_id']);
+          resolve(results);
+        } else {
+          resolve([]);
+        }
+        
+      });
+      connection.end();
+    });
+  }
+
+
   public dbInsert() {
     return new Promise((resolve, reject) => {
       const sql_insert = `INSERT INTO notification_config (

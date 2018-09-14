@@ -17,8 +17,8 @@ export class FileUploader {
     private storageConfig;
     public filename = '';
     public extname = '';
-    // private DIR = '/home/ubuntu/EvacConnectPlatform/evacconnect/uploads/';
-    private DIR = './uploads/';
+    private DIR = __dirname + '/../public/uploads/';
+    // private DIR = './uploads/';
 
     constructor(req: Request, res: Response, next: NextFunction) {
       this.req = req;

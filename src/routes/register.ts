@@ -383,8 +383,8 @@ const md5 = require('md5');
 	 	}
 	}
 
-	private sendEmailForRegistration(userData, req, res, success, error, bodyEmail?, tokenParam?){
-        let opts = {
+	private sendEmailForRegistration(userData, req,res, success, error, bodyEmail?, tokenParam?){
+		let opts = {
             from : 'admin@evacconnect.com',
             fromName : 'EvacConnect',
             to : [],
@@ -396,7 +396,7 @@ const md5 = require('md5');
         let email = new EmailSender(opts),
             tokenModel = new Token(),
             token = (tokenParam) ? tokenParam : userData['user_id']+''+tokenModel.generateRandomChars(50),
-            link = req.protocol + '://' + req.get('host') +'/token/'+token;
+            link = 'https://' + req.get('host') +'/token/'+token;
 
         let emailData = <any> {
             users_fullname : this.toTitleCase(userData.first_name+' '+userData.last_name),
@@ -408,29 +408,29 @@ const md5 = require('md5');
             cc: []
         });
 
-		let expDate = moment(),
-			expDateFormat = '';
-		expDate.add(24, 'hours');
-		expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
+        let expDate = moment(),
+            expDateFormat = '';
+        expDate.add(24, 'hours');
+        expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
 
-		tokenModel.create({
-			'token':token,
-			'id' : userData.user_id,
-			'id_type': 'user_id',
-			'action': 'verify',
-			'verified': 0,
-			'expiration_date' : expDateFormat
-		}).then(
-			() => {
+        tokenModel.create({
+            'token':token,
+            'id' : userData.user_id,
+            'id_type': 'user_id',
+            'action': 'verify',
+            'verified': 0,
+            'expiration_date' : expDateFormat
+        }).then(
+            () => {
                 email.sendFormattedEmail('signup', emailData, res, 
                     (data) => { success(data); },
                     (err) => { error(err); }
                 );
-			},
-			() => {
-				error('Unable to save token');
-			}
-		);
+            },
+            () => {
+                error('Unable to save token');
+            }
+        );
 	}
 
 	private saveUserExtend(reqBody, userRole, user, req, res, emailUserdata, response){
