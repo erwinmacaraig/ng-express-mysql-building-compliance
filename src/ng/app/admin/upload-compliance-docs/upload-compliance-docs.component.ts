@@ -120,10 +120,10 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         const myForm = new FormData();
         this.dashboard.show();
         if (parseInt(this.documentType.value, 10) !== 5) {
+            /*
             for (const f of files) {
-                myForm.append('file', f, f.name);
+                myForm.append('file', f, f.name);                
             }
-
             myForm.append('account_id', this.selectedAccount.toString());
             myForm.append('building_id', this.locationField.value);
             myForm.append('compliance_kpis_id', this.documentType.value);
@@ -132,11 +132,27 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
             myForm.append('date_of_activity', this.dtActivityField.value);
             myForm.append('description', 'Uploaded By Admin');
             myForm.append('override_document', '-1');
+
+            
             console.log(this.sendableFormData.get('files'));
-            // console.log(files);
+            console.log(files);
+            console.log(myForm);
             req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance-documents/`, myForm, {
                 reportProgress: true
             });
+            */
+           this.sendableFormData.append('account_id', this.selectedAccount.toString());
+           this.sendableFormData.append('building_id', this.locationField.value);
+           this.sendableFormData.append('compliance_kpis_id', this.documentType.value);
+           this.sendableFormData.append('document_type', this.accessType.value);
+           this.sendableFormData.append('viewable_by_trp', '1');
+           this.sendableFormData.append('date_of_activity', this.dtActivityField.value);
+           this.sendableFormData.append('description', 'Uploaded By Admin');
+           this.sendableFormData.append('override_document', '-1');
+            req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance-documents/`,this.sendableFormData, {
+                reportProgress: true
+           });
+
         } else {
             // console.log(this.sendableFormData.get('files'));
             req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/compliance/evac-diagrams/`, this.sendableFormData, {
@@ -167,8 +183,16 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
                             this.invalidsFiles = [];                           
                         }
                     }else{
+                        this.files = [];
+                        this.alertService.info('Files successfully uploaded', true);
+                        setTimeout(() => {
+                            this.router.navigate(['/admin', 'view-location-compliance', this.selectedAccount.toString(),
+                                 this.locationField.value, this.documentType.value]);
+                        }, 3000);
+                        /*
                         this.router.navigate(['/admin', 'view-location-compliance', this.selectedAccount.toString(),
                                  this.locationField.value, this.documentType.value]);
+                                 */
                         
                     }
 
@@ -210,7 +234,8 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
     }
 
     setDatePickerDefaultDate() {
-        this.datepickerModel = moment().add(1, 'days').toDate();
+        // this.datepickerModel = moment().add(1, 'days').toDate();
+        this.datepickerModel = moment().toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('YYYY-MM-DD');
         this.validTillDate = moment(this.datepickerModel).add(1, 'years').format('YYYY-MM-DD');
     }
