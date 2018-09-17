@@ -268,7 +268,7 @@ import {  PeepFormComponent } from './peep.form/peep.form';
     AppRoutingModule,
     AgmCoreModule.forRoot({
       // apiKey : 'AIzaSyDmkSaP4MEhSdZxmndpExIbDEaJ3_kZpTk',
-      apiKey : 'AIzaSyCDhryx8ke9B4E3jkVS1TqfJWZ32PVhv-0',
+      apiKey : 'AIzaSyBB5YdbG9RZOiqBLcQsM_0CD7jfGJTs-hU',
       libraries: ['places']
     }),
     // todo: move to location module

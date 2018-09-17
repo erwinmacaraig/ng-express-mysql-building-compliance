@@ -51,7 +51,12 @@ export class AdminRoute extends BaseRoute {
         console.log(dbDataAccountRoles);
         for (const accountRole of dbDataAccountRoles) {
           const configurator = new NotificationConfiguration();
-          const dbConfigData = await configurator.loadByBuilding(accountRole['building_id']);
+          let theBuilding = accountRole['building_id'];  
+          if (accountRole['building_id'] == null && accountRole['locationIsAlreadyABuilding']) {
+            theBuilding = accountRole['location_id'];
+          }
+          console.log('Target Location is: ' + theBuilding);
+          const dbConfigData = await configurator.loadByBuilding(theBuilding);
           const notificationToken = new NotificationToken();
           if (dbConfigData.length == 0) {
               // create config
