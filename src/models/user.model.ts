@@ -771,6 +771,7 @@ export class User extends BaseClass {
                                 user_role_relation.role_id,
                                 locations.name,
                                 locations.location_id,
+                                locations.is_building AS locationIsAlreadyABuilding,
                                 parent.name as building_name,
                                 parent.location_id as building_id
                             FROM
