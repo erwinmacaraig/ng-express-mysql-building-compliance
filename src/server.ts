@@ -5,10 +5,10 @@ import * as logger from 'morgan';
 import * as path from 'path';
 import * as session from 'express-session';
 import * as MemcachedStore from 'connect-memcached';
-
+/*
 import * as http from 'http';
 import * as url from 'url';
-
+*/
 // All Routes here
 import { IndexRoute } from './routes/index';
 import { RegisterRoute } from './routes/register';
@@ -31,6 +31,7 @@ import { ReportsRoute } from './routes/reports';
 import { AdminRoute } from './routes/admin';
 
 import * as cors from 'cors';
+const defs = require('./config/defs.json');
 
 
 import * as swaggerUi from 'swagger-ui-express';
@@ -119,7 +120,20 @@ export class Server {
       this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
       // cors
-      this.app.use(cors());
+      this.app.use(cors({
+        origin: function(origin, callback) {
+          // allow requests with no origin like mobile apps or curl requests
+          if (!origin) {
+            return callback(null, true);
+          }
+          if (defs['ALLOWED_ORIGINS'].indexOf(origin) === -1) {
+            const message = 'Allow access from the specified origin ' + origin + ' is prohibited.';
+            console.log(message);
+            return callback(new Error('message'));
+          }
+          return callback(null, true);
+        }
+      }));
   }
 
   /**
@@ -190,14 +204,14 @@ export class Server {
 
       // use router middleware
       this.app.use(router);
-      /*
+      
       this.app.use(function(req, res, next) {
         if ((!req.secure) && (req.get('X-Forwarded-Proto') !== 'https')) {
           return res.redirect('https://' + req.get('Host') + req.url);
         }
         return next();
       });
-*/
+
       // catch 404 and forward to error handler
       this.app.use(function(req: express.Request, res: express.Response, next: express.NextFunction) {
         return res.sendFile(path.join(__dirname, 'public/index.html'));
