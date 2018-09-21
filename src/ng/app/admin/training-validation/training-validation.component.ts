@@ -28,7 +28,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   userForm: FormGroup;
 
   smartSearchSelection: string;
-  smartSearchSelectionId: number;
+  smartSearchSelectionId: number = 0;
   users = [];
   parentLocationOptionGroup = [];
   parentLocationOptionGroupForNewUser = [];
@@ -121,12 +121,12 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   ngOnInit() {
     this.genericSub = this.smartSearch();
-    this.trainingModeField = new FormControl(null, Validators.required);
+    this.trainingModeField = new FormControl({value: '', disabled: true}, Validators.required);
 
     this.userForm = new FormGroup({});
     this.setDatePickerDefaultDate();
     this.dtTrainingField = new FormControl(this.datepickerModelFormatted, Validators.required);
-    this.courseTraining = new FormControl(null, Validators.required),
+    this.courseTraining = new FormControl({value: '', disabled: true}, Validators.required),
     this.adminService.getTrainingRequirementList().subscribe((response) => {
       this.training_requirements = response['data'];
       // console.log(this.training_requirements);
@@ -165,6 +165,13 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     return this.searchLocationField.valueChanges.debounceTime(350)
       .subscribe((searchValue) => {
         if (searchValue != null && searchValue.length > 0) {
+            this.smartSearchSelectionId = 0;
+            console.log(`smartSearchSelectionId = ${this.smartSearchSelectionId}`);
+            this.courseTraining.setValue(null);
+            this.trainingModeField.setValue(null);
+            this.courseTraining.disable();   
+            this.trainingModeField.disable();
+    
             this.filteredList = [];
             this.adminService.searchLocationByName(searchValue).subscribe((response) => {
               this.filteredList = response['data'];
@@ -175,6 +182,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
                   Object.keys(res['data']['list']).forEach((k) => {
                     this.filteredList.push(res['data']['list'][k]);
                   });
+                  
                 });
             });
         } else {
@@ -343,6 +351,11 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.selectedAccountId = id;
       this.initialAccountName = name;
     }
+    this.courseTraining.enable();
+    this.courseTraining.setValue(null);
+    this.trainingModeField.enable();
+    this.trainingModeField.setValue(null);
+    console.log(this.smartSearchSelectionId);
   }
 
   createFormItem(): FormGroup {

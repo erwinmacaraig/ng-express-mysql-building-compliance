@@ -12,7 +12,7 @@
 <form [formGroup]="userForm" (ngSubmit)="validateTrainingOnSubmit()">
   <div class="row filter-container" >
     <div class="col s12">
-        <div class="search-field">
+        <div class="search-field" [ngStyle]="{border: !searchLocationField.valid ? '1px solid red' : 'inherit'}">
           <input
               type="text"
               placeholder="Search Location/Account here here"
@@ -35,7 +35,7 @@
   <div class="row filter-container" style="overflow: -webkit-paged-y;">
     <div class="col l4 m6 s12 margin-bottom-20">
         <div class="datepicker">
-            <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+            <ng-datepicker *ngIf="searchLocationField.valid && smartSearchSelectionId > 0"  [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
             <input id="dtTraining" [formControl]="dtTrainingField" autocomplete="off" type="text" (click)="showDatePicker()" required>
             <span class="material-icons">date_range</span>
         </div>
@@ -53,7 +53,7 @@
       </select>
     </div>
   </div>
-  <div class="row" *ngIf="trainingModeField.valid && courseTraining.valid && dtTrainingField.valid">
+  <div class="row" *ngIf="trainingModeField.valid && courseTraining.valid && dtTrainingField.valid && searchLocationField.valid">
     <div class="col s12">
       <table id="trainingListTable" class="table bordered">
         <thead>
