@@ -1177,7 +1177,7 @@ export class AdminRoute extends BaseRoute {
           callback(null, __dirname + '/../public/temp');
       },
       filename: (rq, file, callback) => {
-          filename = file.originalname.replace(/\s+/g, '-');
+          filename = `${Date.now()}_` + file.originalname.replace(/\s+/g, '-');
           callback(null, filename);
       }
     });
@@ -1204,7 +1204,7 @@ export class AdminRoute extends BaseRoute {
 
       const params = {
         Bucket: aws_bucket_name,
-        Key: `paper_attendance/${idDir}/${filename}`,
+        Key: `paper_attendance/${filename}`,
         ACL: 'public-read',
         Body: dataStream
       };
