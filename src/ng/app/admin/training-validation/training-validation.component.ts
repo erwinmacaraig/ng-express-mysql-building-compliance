@@ -4,6 +4,9 @@ import { Component, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
 import { DatepickerOptions } from 'ng2-datepicker';
+import { ViewChild, ElementRef } from '@angular/core';
+import { HttpClient, HttpRequest, HttpResponse, HttpEvent } from '@angular/common/http';
+import { PlatformLocation } from '@angular/common';
 
 import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
@@ -24,6 +27,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   defaultTrainingCourse = null;
   courseTraining: FormControl;
   trainingModeField: FormControl;
+  paperAttendanceField: FormControl;
   training_requirements = [];
   userForm: FormGroup;
 
@@ -116,13 +120,22 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   addedUserExceptions: object = {};
   ngDateObjects = [];
   showDateSelection = [];
+  private baseUrl: string;
+  httpEmitter: Subscription;
+  httpEvent: any;
+
+  @ViewChild('fileInput') fileInput: ElementRef;
   constructor(private adminService: AdminService, private formBuilder: FormBuilder,
-    public dashboard: DashboardPreloaderService) {}
+    public dashboard: DashboardPreloaderService,
+    private platformLocation: PlatformLocation,
+    public http: HttpClient) {
+      this.baseUrl = (platformLocation as any).location.origin;
+    }
 
   ngOnInit() {
     this.genericSub = this.smartSearch();
     this.trainingModeField = new FormControl({value: '', disabled: true}, Validators.required);
-
+    this.paperAttendanceField = new FormControl(null, Validators.required);
     this.userForm = new FormGroup({});
     this.setDatePickerDefaultDate();
     this.dtTrainingField = new FormControl(this.datepickerModelFormatted, Validators.required);
@@ -171,6 +184,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             this.trainingModeField.setValue(null);
             this.courseTraining.disable();   
             this.trainingModeField.disable();
+            this.paperAttendanceField.setValue(null);
+            
     
             this.filteredList = [];
             this.adminService.searchLocationByName(searchValue).subscribe((response) => {
@@ -286,6 +301,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           dtTraining: this.dtTrainingField,
           courseMethod: this.trainingModeField,
           courseTraining: this.courseTraining,
+          paperAttandnce: this.paperAttendanceField,
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
@@ -330,7 +346,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           dtTraining: this.dtTrainingField,
           courseMethod: this.trainingModeField,
           courseTraining: this.courseTraining,
-
+          paperAttandnce: this.paperAttendanceField,
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
@@ -426,6 +442,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
     (<FormArray>this.userForm.get('levelUsers')).removeAt(0);
     this.exceptionCtrl = [];
+
   }
 
   public removeUser(index: number = 1) {
@@ -474,11 +491,11 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   public validateTrainingOnSubmit() {
     this.dashboard.show();
-    console.log(this.userForm);
+    
     const values = [];
     const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
-    const u_ex = [];
-    console.log(formUserControls);
+    
+    
     for (const ctrl of formUserControls) {
       values.push({
         email: ctrl.get('email').value,
@@ -496,7 +513,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     Object.keys(this.addedUserExceptions).forEach((key) => {
-      console.log(this.addedUserExceptions[key]);
+      
       values.push({
         email: this.addedUserExceptions[key]['email'],
         user_id: this.addedUserExceptions[key]['user_id'],
@@ -519,11 +536,42 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
     this.cancelUserForm();
     this.exceptionCtrl = [];
+
+    const paperAttandanceForm = new FormData();
+
+    // console.log('paper attandance value' + this.userForm.get('paperAttandnce').value['value']);
+    // console.log('filename ' +  this.userForm.get('paperAttandnce').value['filename']);
+
+    paperAttandanceForm.append('file', this.fileInput.nativeElement.files[0], this.fileInput.nativeElement.files[0].name);
+    paperAttandanceForm.append('dtTraining', this.dtTrainingField.value);
+    paperAttandanceForm.append('training', this.courseTraining.value);
+    paperAttandanceForm.append('id', this.smartSearchSelectionId.toString());
+    paperAttandanceForm.append('type', this.smartSearchSelection);
+    
+    const req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/paper-attendance/`, paperAttandanceForm, {
+      reportProgress: true
+    });
+
     this.adminService.validateUserTrainings(JSON.stringify(values))
     .subscribe((response) => {
       this.genericSub = this.smartSearch();
-      this.dashboard.hide();
+      this.dashboard.hide();      
     });
+
+    // upload document here    
+    return this.httpEmitter = this.http.request(req).subscribe(
+      event => {
+          this.httpEvent = event;
+          if (event instanceof HttpResponse) {
+              delete this.httpEmitter;
+              console.log('request done', event);
+          }
+      },
+      error => {
+          console.log('Error Uploading', error);
+      }
+    );
+
   }
 
   switchLocationDropDown(e: any) {
@@ -610,5 +658,20 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   }
 
+  onFileChange(event) {
+    let reader = new FileReader();
+    if (event.target.files && event.target.files.length > 0) {
+      let file = event.target.files[0];
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        this.userForm.get('paperAttandnce').setValue({
+          filename: file.name,
+          filetype: file.type,
+          value: (reader.result).toString().split(',')[1]
+        });
+        console.log('Processed - ' + file.name + ' ' + file.type);
+      }
+    }
+  }
 
 }

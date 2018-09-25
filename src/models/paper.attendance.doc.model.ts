@@ -31,14 +31,19 @@ export class PaperAttendanceDocumentModel extends BaseClass {
         dtTraining,
         intTrainingCourse,
         intUploadedBy,
-        strOriginalfilename
-      ) VALUES (?, ?, ?, ?)`;
+        strOriginalfilename,
+        id,
+        type
+      ) VALUES (?, ?, ?, ?, ?, ?)`;
 
       const param = [
         ('dtTraining' in this.dbData) ? this.dbData['dtTraining'] : '0000-00-00',
         ('intTrainingCourse' in this.dbData) ? this.dbData['intTrainingCourse'] : 0,
         ('intUploadedBy' in this.dbData) ? this.dbData['intUploadedBy'] : 0,
-        ('strOriginalfilename' in this.dbData) ? this.dbData['strOriginalfilename'] : ''
+        ('strOriginalfilename' in this.dbData) ? this.dbData['strOriginalfilename'] : '',
+        ('id' in this.dbData) ? this.dbData['id'] : 0,
+        ('type' in this.dbData) ? this.dbData['type'] : ''
+
       ];
       const connection = db.createConnection(dbconfig);
       connection.query(sql_insert, param, (err, results) => {
@@ -61,7 +66,9 @@ export class PaperAttendanceDocumentModel extends BaseClass {
           dtTraining = ?,
           intTrainingCourse = ?,
           intUploadedBy = ?,
-          strOriginalfilename = ?
+          strOriginalfilename = ?,
+          id = ?,
+          type = ?
         WHERE paper_attendance_docs_id = ?
       `;
       const param = [
@@ -69,6 +76,8 @@ export class PaperAttendanceDocumentModel extends BaseClass {
         ('intTrainingCourse' in this.dbData) ? this.dbData['intTrainingCourse'] : 0,
         ('intUploadedBy' in this.dbData) ? this.dbData['intUploadedBy'] : 0,
         ('strOriginalfilename' in this.dbData) ? this.dbData['strOriginalfilename'] : '',
+        ('id' in this.dbData) ? this.dbData['id'] : 0,
+        ('type' in this.dbData) ? this.dbData['type'] : '',
         this.ID() ? this.ID() : 0
       ];
       const connection = db.createConnection(dbconfig);

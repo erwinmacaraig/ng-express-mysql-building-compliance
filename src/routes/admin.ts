@@ -316,7 +316,6 @@ export class AdminRoute extends BaseRoute {
     router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
       const users: Array<object> = JSON.parse(req.body.users);
-      // console.log(users);
       const invalidUsers = [];
       for (const u of users) {
        if (parseInt( u['user_id'], 10) == 0) {
@@ -1221,7 +1220,9 @@ export class AdminRoute extends BaseRoute {
             dtTraining: req.body.dtTraining,
             intTrainingCourse: req.body.training,
             intUploadedBy: req.user.user_id,
-            strOriginalfilename: filename
+            strOriginalfilename: filename,
+            id: req.body.id,
+            type: req.body.type
           });
         }
       });
