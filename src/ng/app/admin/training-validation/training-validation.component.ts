@@ -246,8 +246,10 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.exceptionCtrl = [];
     this.searchLocationField.setValue(accountName);
     this.genericSub = this.smartSearch();
+    let temp = [];
     this.adminService.getAllAccountUsers(accountId, 0, 'all').subscribe((response) => {
       const list = response['data']['list'];
+      temp = [];
       for (const l of list) {
         Object.keys(l['locations']).forEach((key) => {
           let role_id = 0;
@@ -258,19 +260,24 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             } else if (l['locations'][key]['account-role-id'].length > 0) {
               role_id = l['locations'][key]['account-role-id'][0];
             }
-            this.users.push({
-              email: l['email'],
-              role_name: ((l['locations'][key]['account-role']).concat(l['locations'][key]['em-role'])).join(','),
-              first_name: l['first_name'],
-              last_name: l['last_name'],
-              user_id: l['user_id'],
-              account_name: l['account'],
-              account_id: l['account_id'],
-              name: l['locations'][key]['location-name'],
-              parent: l['locations'][key]['location-parent'],
-              role_id: role_id,
-              location_id: key
-            });
+            // just get one user even if the user is tagged to differenct sublevels in this building
+            if (temp.indexOf(l['user_id']) == -1) {
+              temp.push(l['user_id']);
+              this.users.push({
+                email: l['email'],
+                role_name: ((l['locations'][key]['account-role']).concat(l['locations'][key]['em-role'])).join(','),
+                first_name: l['first_name'],
+                last_name: l['last_name'],
+                user_id: l['user_id'],
+                account_name: l['account'],
+                account_id: l['account_id'],
+                name: l['locations'][key]['location-name'],
+                parent: l['locations'][key]['location-parent'],
+                role_id: role_id,
+                location_id: key
+              });
+            }
+            
         });
       }
       // if (this.users.length > 0) {

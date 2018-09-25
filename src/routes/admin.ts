@@ -552,10 +552,18 @@ export class AdminRoute extends BaseRoute {
       const userAccountRoles = await lauObj.getUsersInLocationId(tempArr);
       const userEMRoles = await emrrObj.getUsersInLocationIds(tempArr.join(','));
       const allUsers = userAccountRoles.concat(userEMRoles);
-
+      tempArr = [];
+      
+      const uniqUsers = [];
+      for (const u of allUsers) {
+        if (tempArr.indexOf(u['user_id']) == -1) {
+          tempArr.push(u['user_id']);
+          uniqUsers.push(u);
+        }
+      }
       res.status(200).send({
         sublocations: sublocations,
-        users: allUsers
+        users: uniqUsers
       });
     });
 
@@ -843,9 +851,10 @@ export class AdminRoute extends BaseRoute {
         countUsers = <any> [],
         totalResult = 0;
       selectedUsers = await user.getSpliceUsers(req.params.accountId, user_filter);
-
+      
       user_filter['count'] = true;
       countUsers =  await user.getSpliceUsers(req.params.accountId, user_filter);
+      
       if(countUsers.length > 0){
         let count = countUsers[0]['count'];
         totalResult = Math.ceil( count / 10 );
