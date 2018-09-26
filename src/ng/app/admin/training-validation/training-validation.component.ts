@@ -179,7 +179,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       .subscribe((searchValue) => {
         if (searchValue != null && searchValue.length > 0) {
             this.smartSearchSelectionId = 0;
-            console.log(`smartSearchSelectionId = ${this.smartSearchSelectionId}`);
+            // console.log(`smartSearchSelectionId = ${this.smartSearchSelectionId}`);
             this.courseTraining.setValue(null);
             this.trainingModeField.setValue(null);
             this.courseTraining.disable();   
@@ -245,7 +245,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.accountSearchResults[index] = [];
     this.assignSearchEmailAbility(index);
     this.searchAccount(index);
-    console.log(item);
+    // console.log(item);
 
   }
 
@@ -378,7 +378,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.courseTraining.setValue(null);
     this.trainingModeField.enable();
     this.trainingModeField.setValue(null);
-    console.log(this.smartSearchSelectionId);
+    // console.log(this.smartSearchSelectionId);
   }
 
   createFormItem(): FormGroup {
@@ -415,7 +415,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.genericEmailSearchSub[i] =
     this.levelUsers.controls[i].get('email').valueChanges.debounceTime(350)
     .subscribe((inputEmail) => {
-      if (inputEmail.length > 0) {
+      if (inputEmail != null && inputEmail.length > 0) {
         // loop over
         // console.log('At index ' + (i) + ' = ' + inputEmail);
         this.filteredEmailList[i] = [];

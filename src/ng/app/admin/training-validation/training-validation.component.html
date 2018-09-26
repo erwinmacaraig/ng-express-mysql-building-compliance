@@ -72,7 +72,7 @@
             <td class="relative">
               <input formControlName="email" type="text" placeholder="search email" autocomplete="off">
               <input formControlName="user_id" type="hidden">
-              <div class="suggestions" [hidden]="filteredEmailList[i].length == 0" *ngIf="filteredEmailList.length > 0">
+              <div class="suggestions" [hidden]="filteredEmailList[i]?.length == 0" *ngIf="filteredEmailList.length > 0">
                   <ul>
                     <li *ngFor="let item of filteredEmailList[i]; let j = index;">
                       <a (click)="getEmailSelection(i, item)">{{item['email']}} ({{item['role_name']}}, {{item['name']}})</a>
