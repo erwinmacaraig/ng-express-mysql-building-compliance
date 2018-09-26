@@ -36,7 +36,7 @@
     <div class="col l4 m6 s12 margin-bottom-20">
         <div class="datepicker">
             <ng-datepicker *ngIf="searchLocationField.valid && smartSearchSelectionId > 0"  [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
-            <input id="dtTraining" [formControl]="dtTrainingField" autocomplete="off" type="text" (click)="showDatePicker()" required>
+            <input id="dtTraining" [formControl]="dtTrainingField" autocomplete="off" type="text" (click)="showDatePicker()" [readonly]="!searchLocationField.valid">
             <span class="material-icons">date_range</span>
         </div>
     </div>
