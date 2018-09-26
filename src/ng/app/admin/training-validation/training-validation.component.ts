@@ -125,6 +125,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   httpEvent: any;
 
   @ViewChild('fileInput') fileInput: ElementRef;
+  @ViewChild('datepickeroverall') datepickeroverall: ElementRef;
   constructor(private adminService: AdminService, private formBuilder: FormBuilder,
     public dashboard: DashboardPreloaderService,
     private platformLocation: PlatformLocation,
@@ -144,6 +145,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.training_requirements = response['data'];
       // console.log(this.training_requirements);
     });
+    
   }
 
   ngAfterViewInit() {
@@ -390,7 +392,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       user_id: new FormControl('0', null),
       accountId: new FormControl(this.selectedAccountId.toString(), null),
       account_name: new FormControl(this.initialAccountName, Validators.required),
-      sublocation_name: new FormControl(null, null),
+      sublocation_name: new FormControl(null, Validators.required),
       sublocation_id: new FormControl('0', null),
     });
 
