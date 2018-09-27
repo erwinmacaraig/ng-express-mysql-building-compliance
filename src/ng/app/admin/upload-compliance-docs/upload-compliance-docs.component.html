@@ -105,7 +105,7 @@
 <div class="row" *ngIf="documentType.value != 5">
     <div class="col s6">
         <div class="input-field">
-            <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+            <ng-datepicker *ngIf="documentType.valid" [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
             <input id="dateOfActivity" [formControl]="dtActivityField" autocomplete="off" type="text" (click)="showDatePicker()" required >
             <label for="dateOfActivity" class="active" >Date of Activity</label>
         </div>
@@ -134,7 +134,8 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody *ngIf="documentType.value == 5">
+            <tbody>
+            <!-- <tbody *ngIf="documentType.value == 5"> -->
                 <tr *ngFor="let item of files;let i=index">
                     <td>
                         <div *ngIf="['image/gif','image/png','image/jpeg'].indexOf(item.type)>=0">
@@ -154,8 +155,9 @@
                         </a>
                     </td>
                 </tr>
-            </tbody>
+            <!-- </tbody> 
             <tbody *ngIf="documentType.value != 5">
+            
                 <tr *ngIf="files.length > 0">
                     <td>
                         <div *ngIf="['image/gif','image/png','image/jpeg'].indexOf(files[files.length-1].type) >= 0">
@@ -174,7 +176,7 @@
                             <i class="small material-icons red-text">delete_forever</i>
                         </a>
                     </td>
-                </tr>
+                </tr>-->
             </tbody>
         </table>
     </div>

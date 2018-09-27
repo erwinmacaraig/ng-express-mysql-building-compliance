@@ -520,6 +520,7 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
             this.adminService.sendNotificationEmail({
                 user: user['user_id']
             }).subscribe((response) => {
+                alert('Notification sent.');
                 console.log(response);
             });
         }

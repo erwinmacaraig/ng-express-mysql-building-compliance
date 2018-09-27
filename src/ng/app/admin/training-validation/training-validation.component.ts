@@ -4,6 +4,9 @@ import { Component, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
 import { DatepickerOptions } from 'ng2-datepicker';
+import { ViewChild, ElementRef } from '@angular/core';
+import { HttpClient, HttpRequest, HttpResponse, HttpEvent } from '@angular/common/http';
+import { PlatformLocation } from '@angular/common';
 
 import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
@@ -24,11 +27,12 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   defaultTrainingCourse = null;
   courseTraining: FormControl;
   trainingModeField: FormControl;
+  paperAttendanceField: FormControl;
   training_requirements = [];
   userForm: FormGroup;
 
   smartSearchSelection: string;
-  smartSearchSelectionId: number;
+  smartSearchSelectionId: number = 0;
   users = [];
   parentLocationOptionGroup = [];
   parentLocationOptionGroupForNewUser = [];
@@ -116,21 +120,32 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   addedUserExceptions: object = {};
   ngDateObjects = [];
   showDateSelection = [];
+  private baseUrl: string;
+  httpEmitter: Subscription;
+  httpEvent: any;
+
+  @ViewChild('fileInput') fileInput: ElementRef;
+  @ViewChild('datepickeroverall') datepickeroverall: ElementRef;
   constructor(private adminService: AdminService, private formBuilder: FormBuilder,
-    public dashboard: DashboardPreloaderService) {}
+    public dashboard: DashboardPreloaderService,
+    private platformLocation: PlatformLocation,
+    public http: HttpClient) {
+      this.baseUrl = (platformLocation as any).location.origin;
+    }
 
   ngOnInit() {
     this.genericSub = this.smartSearch();
-    this.trainingModeField = new FormControl(null, Validators.required);
-
+    this.trainingModeField = new FormControl({value: '', disabled: true}, Validators.required);
+    this.paperAttendanceField = new FormControl(null, Validators.required);
     this.userForm = new FormGroup({});
     this.setDatePickerDefaultDate();
     this.dtTrainingField = new FormControl(this.datepickerModelFormatted, Validators.required);
-    this.courseTraining = new FormControl(null, Validators.required),
+    this.courseTraining = new FormControl({value: '', disabled: true}, Validators.required),
     this.adminService.getTrainingRequirementList().subscribe((response) => {
       this.training_requirements = response['data'];
       // console.log(this.training_requirements);
     });
+    
   }
 
   ngAfterViewInit() {
@@ -165,6 +180,15 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     return this.searchLocationField.valueChanges.debounceTime(350)
       .subscribe((searchValue) => {
         if (searchValue != null && searchValue.length > 0) {
+            this.smartSearchSelectionId = 0;
+            // console.log(`smartSearchSelectionId = ${this.smartSearchSelectionId}`);
+            this.courseTraining.setValue(null);
+            this.trainingModeField.setValue(null);
+            this.courseTraining.disable();   
+            this.trainingModeField.disable();
+            this.paperAttendanceField.setValue(null);
+            
+    
             this.filteredList = [];
             this.adminService.searchLocationByName(searchValue).subscribe((response) => {
               this.filteredList = response['data'];
@@ -175,6 +199,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
                   Object.keys(res['data']['list']).forEach((k) => {
                     this.filteredList.push(res['data']['list'][k]);
                   });
+                  
                 });
             });
         } else {
@@ -222,7 +247,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.accountSearchResults[index] = [];
     this.assignSearchEmailAbility(index);
     this.searchAccount(index);
-    console.log(item);
+    // console.log(item);
 
   }
 
@@ -238,8 +263,10 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.exceptionCtrl = [];
     this.searchLocationField.setValue(accountName);
     this.genericSub = this.smartSearch();
+    let temp = [];
     this.adminService.getAllAccountUsers(accountId, 0, 'all').subscribe((response) => {
       const list = response['data']['list'];
+      temp = [];
       for (const l of list) {
         Object.keys(l['locations']).forEach((key) => {
           let role_id = 0;
@@ -250,19 +277,24 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             } else if (l['locations'][key]['account-role-id'].length > 0) {
               role_id = l['locations'][key]['account-role-id'][0];
             }
-            this.users.push({
-              email: l['email'],
-              role_name: ((l['locations'][key]['account-role']).concat(l['locations'][key]['em-role'])).join(','),
-              first_name: l['first_name'],
-              last_name: l['last_name'],
-              user_id: l['user_id'],
-              account_name: l['account'],
-              account_id: l['account_id'],
-              name: l['locations'][key]['location-name'],
-              parent: l['locations'][key]['location-parent'],
-              role_id: role_id,
-              location_id: key
-            });
+            // just get one user even if the user is tagged to differenct sublevels in this building
+            if (temp.indexOf(l['user_id']) == -1) {
+              temp.push(l['user_id']);
+              this.users.push({
+                email: l['email'],
+                role_name: ((l['locations'][key]['account-role']).concat(l['locations'][key]['em-role'])).join(','),
+                first_name: l['first_name'],
+                last_name: l['last_name'],
+                user_id: l['user_id'],
+                account_name: l['account'],
+                account_id: l['account_id'],
+                name: l['locations'][key]['location-name'],
+                parent: l['locations'][key]['location-parent'],
+                role_id: role_id,
+                location_id: key
+              });
+            }
+            
         });
       }
       // if (this.users.length > 0) {
@@ -271,6 +303,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           dtTraining: this.dtTrainingField,
           courseMethod: this.trainingModeField,
           courseTraining: this.courseTraining,
+          paperAttandnce: this.paperAttendanceField,
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
@@ -315,7 +348,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           dtTraining: this.dtTrainingField,
           courseMethod: this.trainingModeField,
           courseTraining: this.courseTraining,
-
+          paperAttandnce: this.paperAttendanceField,
         });
         this.levelUsers = this.userForm.get('levelUsers') as FormArray;
         this.assignSearchEmailAbility();
@@ -343,6 +376,11 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.selectedAccountId = id;
       this.initialAccountName = name;
     }
+    this.courseTraining.enable();
+    this.courseTraining.setValue(null);
+    this.trainingModeField.enable();
+    this.trainingModeField.setValue(null);
+    // console.log(this.smartSearchSelectionId);
   }
 
   createFormItem(): FormGroup {
@@ -354,7 +392,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       user_id: new FormControl('0', null),
       accountId: new FormControl(this.selectedAccountId.toString(), null),
       account_name: new FormControl(this.initialAccountName, Validators.required),
-      sublocation_name: new FormControl(null, null),
+      sublocation_name: new FormControl(null, Validators.required),
       sublocation_id: new FormControl('0', null),
     });
 
@@ -379,7 +417,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     this.genericEmailSearchSub[i] =
     this.levelUsers.controls[i].get('email').valueChanges.debounceTime(350)
     .subscribe((inputEmail) => {
-      if (inputEmail.length > 0) {
+      if (inputEmail != null && inputEmail.length > 0) {
         // loop over
         // console.log('At index ' + (i) + ' = ' + inputEmail);
         this.filteredEmailList[i] = [];
@@ -406,6 +444,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
     (<FormArray>this.userForm.get('levelUsers')).removeAt(0);
     this.exceptionCtrl = [];
+
   }
 
   public removeUser(index: number = 1) {
@@ -454,11 +493,11 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   public validateTrainingOnSubmit() {
     this.dashboard.show();
-    console.log(this.userForm);
+    
     const values = [];
     const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
-    const u_ex = [];
-    console.log(formUserControls);
+    
+    
     for (const ctrl of formUserControls) {
       values.push({
         email: ctrl.get('email').value,
@@ -476,7 +515,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     Object.keys(this.addedUserExceptions).forEach((key) => {
-      console.log(this.addedUserExceptions[key]);
+      
       values.push({
         email: this.addedUserExceptions[key]['email'],
         user_id: this.addedUserExceptions[key]['user_id'],
@@ -499,11 +538,42 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
     this.cancelUserForm();
     this.exceptionCtrl = [];
+
+    const paperAttandanceForm = new FormData();
+
+    // console.log('paper attandance value' + this.userForm.get('paperAttandnce').value['value']);
+    // console.log('filename ' +  this.userForm.get('paperAttandnce').value['filename']);
+
+    paperAttandanceForm.append('file', this.fileInput.nativeElement.files[0], this.fileInput.nativeElement.files[0].name);
+    paperAttandanceForm.append('dtTraining', this.dtTrainingField.value);
+    paperAttandanceForm.append('training', this.courseTraining.value);
+    paperAttandanceForm.append('id', this.smartSearchSelectionId.toString());
+    paperAttandanceForm.append('type', this.smartSearchSelection);
+    
+    const req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/paper-attendance/`, paperAttandanceForm, {
+      reportProgress: true
+    });
+
     this.adminService.validateUserTrainings(JSON.stringify(values))
     .subscribe((response) => {
       this.genericSub = this.smartSearch();
-      this.dashboard.hide();
+      this.dashboard.hide();      
     });
+
+    // upload document here    
+    return this.httpEmitter = this.http.request(req).subscribe(
+      event => {
+          this.httpEvent = event;
+          if (event instanceof HttpResponse) {
+              delete this.httpEmitter;
+              console.log('request done', event);
+          }
+      },
+      error => {
+          console.log('Error Uploading', error);
+      }
+    );
+
   }
 
   switchLocationDropDown(e: any) {
@@ -590,5 +660,20 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   }
 
+  onFileChange(event) {
+    let reader = new FileReader();
+    if (event.target.files && event.target.files.length > 0) {
+      let file = event.target.files[0];
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        this.userForm.get('paperAttandnce').setValue({
+          filename: file.name,
+          filetype: file.type,
+          value: (reader.result).toString().split(',')[1]
+        });
+        console.log('Processed - ' + file.name + ' ' + file.type);
+      }
+    }
+  }
 
 }

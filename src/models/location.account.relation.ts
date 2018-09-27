@@ -263,20 +263,22 @@ export class LocationAccountRelation extends BaseClass {
       return new Promise((resolve, reject) => {
         const resultSet = [];
         let filterStr = '';
+        
         if ('responsibility' in filter) {
           if (filter['responsibility'] === defs['Tenant']) {
-            filterStr += ` AND lar.responsibility = 'Tenant'`;
+            // filterStr += ` AND lar.responsibility = 'Tenant'`;
             filterStr += ` AND l.is_building = 0`;
 
           }
           if (filter['responsibility'] === defs['Manager']) {
-            filterStr += ` AND lar.responsibility = 'Manager'`;
+            // filterStr += ` AND lar.responsibility = 'Manager'`;
             filter['is_building'] = 1;
           }
           if(filter['responsibility'] === 'both'){
               filterStr += ` AND lar.responsibility IN ('Manager', 'Tenant')`;
           }
         }
+        
         if ('is_building' in filter) {
           filterStr += ` AND l.is_building = ${filter['is_building']}`;
         }

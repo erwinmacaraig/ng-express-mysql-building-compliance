@@ -1,7 +1,17 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # development config
-/src/config/db.json
+src/config/db.json
+
+# server setup config
+src/server.ts
+
+#angular setup config
+src/ng/app/services/auth-guard.service.ts
+
+# JS specifics
+javascripts/API.js
+
 # compiled output
 /dist
 /tmp

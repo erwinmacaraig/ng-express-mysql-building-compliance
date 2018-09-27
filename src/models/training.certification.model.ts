@@ -304,7 +304,7 @@ export class TrainingCertification extends BaseClass {
           // Certificate is still valid
           // JUST UPDATE THE CERTIFICATION DATE
           certData['certifications_id'] = results[0]['certifications_id'];
-          certData['certification_date'] = moment().format('YYYY-DD-MM');
+          certData['certification_date'] = moment().format('YYYY-MM-DD');
           this.create(certData).then((data) => {
             resolve(true);
           }).catch((e) => {

@@ -2,15 +2,17 @@
   <div class="col s9 top-title-button">
     <h4 class="title left">Training Validation</h4>
   </div>
+  <!--
   <div class="col s3 top-title-button">
     <h4 class="title right link-to-upload"  [routerLink]="['/admin', 'paper-attendance-upload']">Paper Attendance</h4>
   </div>
+  -->
 </div>
 
 <form [formGroup]="userForm" (ngSubmit)="validateTrainingOnSubmit()">
   <div class="row filter-container" >
     <div class="col s12">
-        <div class="search-field">
+        <div class="search-field" [ngStyle]="{border: !searchLocationField.valid ? '1px solid red' : 'inherit'}">
           <input
               type="text"
               placeholder="Search Location/Account here here"
@@ -33,8 +35,8 @@
   <div class="row filter-container" style="overflow: -webkit-paged-y;">
     <div class="col l4 m6 s12 margin-bottom-20">
         <div class="datepicker">
-            <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
-            <input id="dtTraining" [formControl]="dtTrainingField" autocomplete="off" type="text" (click)="showDatePicker()" required>
+            <ng-datepicker *ngIf="searchLocationField.valid && smartSearchSelectionId > 0"  [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+            <input id="dtTraining" [formControl]="dtTrainingField" autocomplete="off" type="text" (click)="showDatePicker()" [readonly]="!searchLocationField.valid">
             <span class="material-icons">date_range</span>
         </div>
     </div>
@@ -51,7 +53,7 @@
       </select>
     </div>
   </div>
-  <div class="row" *ngIf="trainingModeField.valid && courseTraining.valid && dtTrainingField.valid">
+  <div class="row" *ngIf="trainingModeField.valid && courseTraining.valid && dtTrainingField.valid && searchLocationField.valid">
     <div class="col s12">
       <table id="trainingListTable" class="table bordered">
         <thead>
@@ -70,7 +72,7 @@
             <td class="relative">
               <input formControlName="email" type="text" placeholder="search email" autocomplete="off">
               <input formControlName="user_id" type="hidden">
-              <div class="suggestions" [hidden]="filteredEmailList[i].length == 0" *ngIf="filteredEmailList.length > 0">
+              <div class="suggestions" [hidden]="filteredEmailList[i]?.length == 0" *ngIf="filteredEmailList.length > 0">
                   <ul>
                     <li *ngFor="let item of filteredEmailList[i]; let j = index;">
                       <a (click)="getEmailSelection(i, item)">{{item['email']}} ({{item['role_name']}}, {{item['name']}})</a>
@@ -134,6 +136,14 @@
           </tr>
         </tbody>
         <tfoot>
+          <tr>
+            <td class="paper-attendance">
+                <span style="padding-left: 10px;">Upload Paper Attendance Record</span>
+            </td>
+            <td colspan="6">
+              <input type="file" name="file" id="file" class="inputfile" (change)="onFileChange($event)" #fileInput />
+            </td>
+          </tr>
           <tr>
             <td colspan="7">
               <a class="btn blue" (click)="addUserFormItem($event)">+ Add more rows</a>

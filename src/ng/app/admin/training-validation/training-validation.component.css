@@ -269,3 +269,15 @@ table tfoot tr td a{
 .button-container .btn{
     font-size: 14px !important;
 }
+.inputfile {
+    display: table-cell;
+	width: 100%;
+    height: 45px;
+    padding: 20px 10px 45px;
+    background-color: #f1f1f1;
+}
+
+td.paper-attendance {
+    background-color: #f1f1f1;
+}
+

@@ -646,7 +646,7 @@ export class User extends BaseClass {
           page = ( typeof filter['page'] == 'string'  ) ? (isNaN(parseInt(filter['page']))) ? 0 : parseInt(filter['page']) : filter['page']; 
         }
 
-        if ('query' in filter && filter['query'].length > 0) {
+        if ('query' in filter && filter['query'].length > 0 && filter['query'] != 'all') {
           where += ` account_id = ${accountId} AND CONCAT(first_name,' ',last_name) LIKE '%${filter['query']}%' AND archived = 0 OR account_id = ${accountId} AND email like '%${filter['query']}%' AND archived = 0 `;
         }else{
           where += ` account_id = ${accountId} AND archived = 0 `;
@@ -771,6 +771,7 @@ export class User extends BaseClass {
                                 user_role_relation.role_id,
                                 locations.name,
                                 locations.location_id,
+                                locations.is_building AS locationIsAlreadyABuilding,
                                 parent.name as building_name,
                                 parent.location_id as building_id
                             FROM
