@@ -26,7 +26,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   dtTrainingField: FormControl;
   defaultTrainingCourse = null;
   courseTraining: FormControl;
-  trainingModeField: FormControl;
+  // trainingModeField: FormControl;
   paperAttendanceField: FormControl;
   training_requirements = [];
   userForm: FormGroup;
@@ -135,7 +135,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   ngOnInit() {
     this.genericSub = this.smartSearch();
-    this.trainingModeField = new FormControl({value: '', disabled: true}, Validators.required);
+    // this.trainingModeField = new FormControl({value: '', disabled: true}, Validators.required);
     this.paperAttendanceField = new FormControl(null, Validators.required);
     this.userForm = new FormGroup({});
     this.setDatePickerDefaultDate();
@@ -183,9 +183,9 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             this.smartSearchSelectionId = 0;
             // console.log(`smartSearchSelectionId = ${this.smartSearchSelectionId}`);
             this.courseTraining.setValue(null);
-            this.trainingModeField.setValue(null);
+            // this.trainingModeField.setValue(null);
             this.courseTraining.disable();   
-            this.trainingModeField.disable();
+            // this.trainingModeField.disable();
             this.paperAttendanceField.setValue(null);
             
     
@@ -301,7 +301,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.userForm = this.formBuilder.group({
           levelUsers: this.formBuilder.array([this.createFormItem()]),
           dtTraining: this.dtTrainingField,
-          courseMethod: this.trainingModeField,
+          // courseMethod: this.trainingModeField,
           courseTraining: this.courseTraining,
           paperAttandnce: this.paperAttendanceField,
         });
@@ -346,7 +346,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.userForm = this.formBuilder.group({
           levelUsers: this.formBuilder.array([this.createFormItem()]),
           dtTraining: this.dtTrainingField,
-          courseMethod: this.trainingModeField,
+          // courseMethod: this.trainingModeField,
           courseTraining: this.courseTraining,
           paperAttandnce: this.paperAttendanceField,
         });
@@ -378,8 +378,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
     this.courseTraining.enable();
     this.courseTraining.setValue(null);
-    this.trainingModeField.enable();
-    this.trainingModeField.setValue(null);
+    // this.trainingModeField.enable();
+    // this.trainingModeField.setValue(null);
     // console.log(this.smartSearchSelectionId);
   }
 

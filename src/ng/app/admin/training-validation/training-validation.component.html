@@ -47,13 +47,16 @@
       </select>
     </div>
     <div class="col l4 m6 s12 margin-bottom-20">
-      <select [formControl]="trainingModeField" style="display: block;" id="trainingMode">
+      <!--
+        <select [formControl]="trainingModeField" style="display: block;" id="trainingMode">
         <option [value]="null" [disabled]="true == true">Training Mode</option>
         <option value="offline_by_evac">Face to Face</option>
       </select>
+      -->
+      
     </div>
   </div>
-  <div class="row" *ngIf="trainingModeField.valid && courseTraining.valid && dtTrainingField.valid && searchLocationField.valid">
+  <div class="row" *ngIf="courseTraining.valid && dtTrainingField.valid && searchLocationField.valid">
     <div class="col s12">
       <table id="trainingListTable" class="table bordered">
         <thead>
