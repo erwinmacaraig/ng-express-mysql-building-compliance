@@ -26,7 +26,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   dtTrainingField: FormControl;
   defaultTrainingCourse = null;
   courseTraining: FormControl;
-  trainingModeField: FormControl;
+  // trainingModeField: FormControl;
   paperAttendanceField: FormControl;
   training_requirements = [];
   userForm: FormGroup;
@@ -48,7 +48,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   buildings = [];
   buildingsForNewUser = [];
   options: DatepickerOptions = {
-    displayFormat: 'YYYY-MM-DD'
+    displayFormat: 'YYYY-MM-DD',
+    maxDate: new Date(Date.now())
   };
   datepickerModel: Date;
   datepickerModelFormatted = '';
@@ -134,8 +135,9 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
 
   ngOnInit() {
+
     this.genericSub = this.smartSearch();
-    this.trainingModeField = new FormControl({value: '', disabled: true}, Validators.required);
+    // this.trainingModeField = new FormControl({value: '', disabled: true}, Validators.required);
     this.paperAttendanceField = new FormControl(null, Validators.required);
     this.userForm = new FormGroup({});
     this.setDatePickerDefaultDate();
@@ -150,7 +152,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
 
   ngAfterViewInit() {
     $('.modal').modal({
-      dismissible: false
+      dismissible: false     
     });
   }
 
@@ -183,9 +185,9 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             this.smartSearchSelectionId = 0;
             // console.log(`smartSearchSelectionId = ${this.smartSearchSelectionId}`);
             this.courseTraining.setValue(null);
-            this.trainingModeField.setValue(null);
+            // this.trainingModeField.setValue(null);
             this.courseTraining.disable();   
-            this.trainingModeField.disable();
+            // this.trainingModeField.disable();
             this.paperAttendanceField.setValue(null);
             
     
@@ -301,7 +303,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.userForm = this.formBuilder.group({
           levelUsers: this.formBuilder.array([this.createFormItem()]),
           dtTraining: this.dtTrainingField,
-          courseMethod: this.trainingModeField,
+          // courseMethod: this.trainingModeField,
           courseTraining: this.courseTraining,
           paperAttandnce: this.paperAttendanceField,
         });
@@ -346,7 +348,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.userForm = this.formBuilder.group({
           levelUsers: this.formBuilder.array([this.createFormItem()]),
           dtTraining: this.dtTrainingField,
-          courseMethod: this.trainingModeField,
+          // courseMethod: this.trainingModeField,
           courseTraining: this.courseTraining,
           paperAttandnce: this.paperAttendanceField,
         });
@@ -378,8 +380,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
     this.courseTraining.enable();
     this.courseTraining.setValue(null);
-    this.trainingModeField.enable();
-    this.trainingModeField.setValue(null);
+    // this.trainingModeField.enable();
+    // this.trainingModeField.setValue(null);
     // console.log(this.smartSearchSelectionId);
   }
 
@@ -444,7 +446,6 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
     (<FormArray>this.userForm.get('levelUsers')).removeAt(0);
     this.exceptionCtrl = [];
-
   }
 
   public removeUser(index: number = 1) {
@@ -509,7 +510,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         location_id: ctrl.get('sublocation_id').value,
         account_name: ctrl.get('account_name').value,
         account_id: ctrl.get('accountId').value,
-        course_method: this.userForm.get('courseMethod').value,
+        course_method: 'offline_by_evac',
         training_requirement_id: this.userForm.get('courseTraining').value
       });
     }
@@ -620,12 +621,6 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     });
   }
 
-  showModalNewUser() {
-    $('#newUserModal').modal('open');
-    // this.accountSearchSub = this.searchAccount();
-    this.accountSearchResults = [];
-  }
-
   cancelAddNewUser(): void {
     this.accountSearchSub.unsubscribe();
     this.accountIdForAddUser = 0;
@@ -653,7 +648,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       sublocation_id: (<FormArray>this.userForm.get('levelUsers')).controls[index].get('sublocation_id').value,
       certification_date: $(`#dtTrainingException-${index}`).val(),
       training_requirement_id: $(`#trainingCourseException-${index}`).val(),
-      course_method: $(`#trainingModeException-${index}`).val(),
+      course_method: 'offline_by_evac',
     };
     this.exceptionCtrl[index] = 1;
     console.log(this.addedUserExceptions);
@@ -675,5 +670,48 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       }
     }
   }
+
+  checkInputForms() {
+    let hasEnteredData = false;
+    const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
+    for (const ctrl of formUserControls) {
+      if (ctrl.get('email').valid) {
+        hasEnteredData = true;
+        console.log('valid email');
+        break;
+      } else if (ctrl.get('first_name').valid) {
+        hasEnteredData = true;
+        console.log('valid first name');
+        break;
+      } else if (ctrl.get('last_name').valid) {
+        hasEnteredData = true;
+        console.log('valid last name');
+        break;
+      } else if (ctrl.get('role_id').value) {
+        hasEnteredData = true;
+        console.log('valid role');
+        break;
+      } else if (ctrl.get('sublocation_id').value != '0') {
+        hasEnteredData = true;
+        console.log('valid sub loc');
+        break;
+      } else if (ctrl.get('account_name').valid && this.smartSearchSelection !== 'account') {
+        hasEnteredData = true;
+        console.log('valid account name');
+        break;
+      } 
+        // this.userForm.get('dtTraining')        
+        // training_requirement_id: this.userForm.get('courseTraining').value
+    }
+    if (hasEnteredData) {
+      $('.modal').modal('open');
+    } else {
+      this.cancelUserForm();
+    }
+
+
+
+  }
+  
 
 }

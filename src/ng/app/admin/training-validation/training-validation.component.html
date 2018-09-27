@@ -41,19 +41,21 @@
         </div>
     </div>
     <div class="col l4 m6 s12 margin-bottom-20">
-      <select [formControl]="courseTraining" style="display: block;" id="trainingCourse">
+      <select [formControl]="courseTraining" style="display: block;" id="trainingCourse" (change)="checkInputForms()">
         <option [value]="null" [disabled]="true == true">Training Course</option>
         <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
       </select>
     </div>
+    <!--
     <div class="col l4 m6 s12 margin-bottom-20">
       <select [formControl]="trainingModeField" style="display: block;" id="trainingMode">
         <option [value]="null" [disabled]="true == true">Training Mode</option>
         <option value="offline_by_evac">Face to Face</option>
       </select>
     </div>
+    -->
   </div>
-  <div class="row" *ngIf="trainingModeField.valid && courseTraining.valid && dtTrainingField.valid && searchLocationField.valid">
+  <div class="row" *ngIf="courseTraining.valid && dtTrainingField.valid && searchLocationField.valid">
     <div class="col s12">
       <table id="trainingListTable" class="table bordered">
         <thead>
@@ -117,18 +119,19 @@
               <ng-datepicker [(ngModel)]="ngDateObjects[i]" (ngModelChange)="onChangeDatePickerForException($event, i)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="showDateSelection[i]" ></ng-datepicker>
               <input id="dtTrainingException-{{i}}" autocomplete="off" type="text" value="{{datepickerModelFormatted}}" (click)="showDateSelection[i]=true">
             </td>
-            <td colspan="2">
+            <td colspan="4">
                 <select style="display: block;" id="trainingCourseException-{{i}}">
                     <option [value]="null" [disabled]="true == true">Training Course</option>
                     <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
                 </select>
             </td>
-            <td colspan="2">
+            <!-- <td colspan="2">
                 <select style="display: block;" id="trainingModeException-{{i}}">
                     <option [value]="null" [disabled]="true == true">Training Mode</option>
                     <option value="offline_by_evac">Face to Face</option>
                 </select>
             </td>
+          -->
             <td>
                 <button type="button" class="expired-icon hover-grow" (click)="exceptionCtrl[i] = 1"></button>
                 <button type="button" class="checked-icon hover-grow" (click)="confirmException(i)"></button>
@@ -153,7 +156,7 @@
       </table>
       <br>
       <div class="button-container right-align">
-          <a class="btn grey lighten-1 waves-effect waves-light cancel" (click)="cancelUserForm()"> Cancel </a>
+          <a class="btn grey lighten-1 waves-effect waves-light cancel" (click)="checkInputForms()"> Cancel </a>
 
           <input type="submit" [ngClass]="{'btn': true,
                                            'grey': (userForm.valid && searchLocationField.valid) == false,
@@ -169,4 +172,15 @@
   </div>
 </form>
 
+<!--Modal Structure -->
+<div id="modalCancel" class="modal modal-fixed-footer">
+  <div class="modal-content">
+    <h4>Please confirm</h4>
+    <p>Data will be lost.</p>
+  </div>
+  <div class="modal-footer">
+    <a class="modal-close waves-effect waves-red btn-flat">Cancel</a>
+    <a class="modal-close waves-effect waves-green btn-flat" (click)="cancelUserForm()">OK</a>
+  </div>
+</div>
 <div preloader></div>
