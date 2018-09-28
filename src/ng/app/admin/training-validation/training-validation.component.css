@@ -1,3 +1,10 @@
+.modal { max-height: 25% !important;
+     overflow-y: hidden !important ;
+}  
+/* increase the width, height and prevent vertical scroll! 
+However, i don't recommend this, its better to turn on vertical scrolling. */
+
+
 td.with-remove{
   position: relative;
 }
