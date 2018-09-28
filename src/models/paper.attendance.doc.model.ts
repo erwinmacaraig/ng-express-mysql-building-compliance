@@ -33,8 +33,9 @@ export class PaperAttendanceDocumentModel extends BaseClass {
         intUploadedBy,
         strOriginalfilename,
         id,
-        type
-      ) VALUES (?, ?, ?, ?, ?, ?)`;
+        type,
+        compliance_kpis_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
       const param = [
         ('dtTraining' in this.dbData) ? this.dbData['dtTraining'] : '0000-00-00',
@@ -42,7 +43,8 @@ export class PaperAttendanceDocumentModel extends BaseClass {
         ('intUploadedBy' in this.dbData) ? this.dbData['intUploadedBy'] : 0,
         ('strOriginalfilename' in this.dbData) ? this.dbData['strOriginalfilename'] : '',
         ('id' in this.dbData) ? this.dbData['id'] : 0,
-        ('type' in this.dbData) ? this.dbData['type'] : ''
+        ('type' in this.dbData) ? this.dbData['type'] : '',
+        ('compliance_kpis_id' in this.dbData) ? this.dbData['compliance_kpis_id'] : 0
 
       ];
       const connection = db.createConnection(dbconfig);
@@ -68,7 +70,8 @@ export class PaperAttendanceDocumentModel extends BaseClass {
           intUploadedBy = ?,
           strOriginalfilename = ?,
           id = ?,
-          type = ?
+          type = ?,
+          compliance_kpis_id = ?
         WHERE paper_attendance_docs_id = ?
       `;
       const param = [
@@ -78,6 +81,7 @@ export class PaperAttendanceDocumentModel extends BaseClass {
         ('strOriginalfilename' in this.dbData) ? this.dbData['strOriginalfilename'] : '',
         ('id' in this.dbData) ? this.dbData['id'] : 0,
         ('type' in this.dbData) ? this.dbData['type'] : '',
+        ('compliance_kpis_id' in this.dbData) ? this.dbData['compliance_kpis_id'] : 0,
         this.ID() ? this.ID() : 0
       ];
       const connection = db.createConnection(dbconfig);

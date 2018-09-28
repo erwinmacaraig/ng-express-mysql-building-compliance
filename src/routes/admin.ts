@@ -1216,13 +1216,31 @@ export class AdminRoute extends BaseRoute {
           });
         } else {
           // console.log(d);
+          let compliance_kpis_id = 0;
+          switch(parseInt(req.body.training, 10)) {
+            case 16: 
+              compliance_kpis_id = 8;
+            break;
+            case 17:
+              compliance_kpis_id = 6;
+            break;            
+            case 23:
+            case 24: 
+            case 25:
+              compliance_kpis_id = 12;
+            break;
+            default: 
+              compliance_kpis_id = 13;
+            break;
+          }
           await attendance.create({
             dtTraining: req.body.dtTraining,
             intTrainingCourse: req.body.training,
             intUploadedBy: req.user.user_id,
             strOriginalfilename: filename,
             id: req.body.id,
-            type: req.body.type
+            type: req.body.type,
+            compliance_kpis_id: compliance_kpis_id
           });
         }
       });

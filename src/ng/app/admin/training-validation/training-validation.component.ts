@@ -541,7 +541,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           location_id: this.addedUserExceptions[key]['sublocation_id'],
           account_name: this.addedUserExceptions[key]['account_name'],
           account_id: this.addedUserExceptions[key]['accountId'],
-          course_method: this.addedUserExceptions[key]['course_method'],
+          course_method: 'offline_by_evac',
           training_requirement_id: this.addedUserExceptions[key]['training_requirement_id']
         });
       });
@@ -564,7 +564,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       paperAttandanceForm.append('training', this.courseTraining.value);
       paperAttandanceForm.append('id', this.smartSearchSelectionId.toString());
       paperAttandanceForm.append('type', this.smartSearchSelection);
-      
+            
       const req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/paper-attendance/`, paperAttandanceForm, {
         reportProgress: true
       });
