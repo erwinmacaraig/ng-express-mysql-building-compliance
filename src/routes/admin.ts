@@ -644,113 +644,19 @@ export class AdminRoute extends BaseRoute {
 
     router.get('/admin/account-locations/:accountId/', new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
-      const list = new List();
-      const accountId = req.params.accountId;
-      const allLocations = {};
-      const filteredLocations = [];
-      let temp = [];
-      const lar_locations = [];
-      let accountLocations: Array<object> = await list.listTaggedLocationsOnAccount(accountId);
-      for (const location of accountLocations) {
-        lar_locations.push(location['location_id']);
-        if (location['is_building'] == 1) {
-          allLocations[location['location_id']] = {
-            location_id: location['location_id'],
-            display_name: location['name'],
-            formatted_address: location['formatted_address'],
-            responsibility: location['responsibility']
-          };
-        } else {
-          temp = [];
-          let tempColName = '';
-          let tempColLocId = '';
-          for (let p = 5; p > 0; p--) {
-            tempColName = `p${p}_name`;
-            tempColLocId = `p${p}_location_id`;
-            if (location[tempColName] != null && location[`p${p}_is_building`] == 1) {
-              allLocations[location[tempColLocId]] = {
-                location_id: location[tempColLocId],
-                display_name: location[tempColName],
-                formatted_address: location['formatted_address'],
-                responsibility: location['responsibility']
-              };
-              break;
-            }
-          }
+      const 
+        list = new List(),
+        accountId = req.params.accountId,
+        allLocations = {},
+        filteredLocations = [],
+        allTaggedLocationsAccounts = <any> await list.listUnionLocationAccountAndLocationAccountUser(accountId);
+      
+      for(let loc of allTaggedLocationsAccounts){
+        if(loc['is_building'] == 1){
+          filteredLocations.push(loc);
         }
-        /*
-        location['display_name'] = '';
-        // loop through the assumed heirarchy
-        temp = [];
-        let tempColName = '';
-        for (let p = 5; p > 0; p--) {
-          tempColName = `p${p}_name`;
-          if (location[tempColName] != null) {
-            temp.push(location[tempColName]);
-          }
-        }
-        temp.push(location['name']);
-        location['display_name'] = temp.join(' >> ');
-
-        // location['display_name'] = location['name'];
-        */
-
       }
-      const locationsFromLAU: Array<object> = await list.listTaggedLocationsOnAccountFromLAU(accountId, {'exclusion_ids': lar_locations});
-      for (const location of locationsFromLAU) {
-        lar_locations.push(location['location_id']);
-
-        if (location['is_building'] == 1) {
-          allLocations[location['location_id']] = {
-            location_id: location['location_id'],
-            display_name: location['name'],
-            formatted_address: location['formatted_address'],
-            responsibility: location['responsibility']
-          };
-        } else {
-          temp = [];
-          let tempColName = '';
-          let tempColLocId = '';
-          for (let p = 5; p > 0; p--) {
-            tempColName = `p${p}_name`;
-            tempColLocId = `p${p}_location_id`;
-            if (location[tempColName] != null && location[`p${p}_is_building`] == 1) {
-              allLocations[location[tempColLocId]] = {
-                location_id: location[tempColLocId],
-                display_name: location[tempColName],
-                formatted_address: location['formatted_address'],
-                responsibility: location['responsibility']
-              };
-              break;
-            }
-          }
-        }
-
-        /*
-        location['display_name'] = '';
-        // loop through the assumed heirarchy
-        temp = [];
-        let tempColName = '';
-        for (let p = 5; p > 0; p--) {
-          tempColName = `p${p}_name`;
-          if (location[tempColName] != null) {
-            temp.push(location[tempColName]);
-          }
-        }
-        temp.push(location['name']);
-        location['display_name'] = temp.join(' >> ');
-
-        // location['display_name'] = location['name'];
-        */
-      }
-      accountLocations = accountLocations.concat(locationsFromLAU);
-      Object.keys(allLocations).forEach((loc) => {
-        filteredLocations.push(allLocations[loc]);
-      });
-      /*
-      raw: accountLocations,
-      filtered: filteredLocations
-      */
+       
       return res.status(200).send({
         data: filteredLocations
       });
@@ -1467,53 +1373,69 @@ export class AdminRoute extends BaseRoute {
         });
     });
 
-    router.get('/admin/list/compliance-documents/',
-    new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
-      const list = new List();
-      let tempNameParts = [];
-      const hie_locations = [];
-      const location = new Location(req.query.location);
+    router.get('/admin/list/compliance-documents/', new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
+        const 
+          list = new List(),
+          hie_locations = [],
+          location = new Location(req.query.location);
+        
+        let 
+          tempNameParts = [],
+          locAccModel = new LocationAccountRelation(),
+          locAccRoleDb = [],
+          locAccRole = '';
 
-      // get sublocations if any
-      let children = [];
-      const sublocations = [];
-      sublocations.push(req.query.location);
-      if (req.query.kpi == 5 || req.query.kpi == 9) {
-        children = await location.getChildren(req.query.location);
-        for (const c of children) {
-          sublocations.push(c['location_id']);
-        }
-      }
-      const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
-      const location_data = await location.locationHierarchy();
-      let details: object = {};
-      for (const loc of location_data) {
-        loc['display_name'] = '';
-        // loop through the assumed heirarchy
-        tempNameParts = [];
-        let tempColName = '';
-
-        for (let p = 5; p > 0; p--) {
-          tempColName = `p${p}_name`;
-          if (loc[tempColName] != null) {
-            tempNameParts.push(loc[tempColName]);
-            details[loc[`p${p}_location_id`]] = loc[tempColName];
-            hie_locations.push(details);
-            details = {};
+        locAccRoleDb = await locAccModel.getByAccountIdAndLocationId(req.query.account, req.query.location);
+        for(let loc of locAccRoleDb){
+          if(loc['responsibility'] == 'Manager' &&  (locAccRole.trim().length > 0 || locAccRole.trim() != 'Manager')){
+            locAccRole = loc['responsibility'];
+          }else if(locAccRole.trim().length == 0){
+            locAccRole = loc['responsibility'];
           }
         }
-        details[loc['location_id']] = loc['name'];
-        hie_locations.push(details);
-        tempNameParts.push(loc['name']);
-        loc['display_name'] = tempNameParts.join(' >> ');
-      }
-      return res.status(200).send({
-        data: documents,
-        location: location_data,
-        displayName: tempNameParts,
-        detailsObj: hie_locations,
-        children: children
-      });
+
+        // get sublocations if any
+        let children = [];
+        const sublocations = [];
+        sublocations.push(req.query.location);
+        if (req.query.kpi == 5 || req.query.kpi == 9) {
+          children = await location.getChildren(req.query.location);
+          for (const c of children) {
+            sublocations.push(c['location_id']);
+          }
+        }
+        const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
+        const location_data = await location.locationHierarchy();
+        let details: object = {};
+        for (const loc of location_data) {
+          loc['display_name'] = '';
+          // loop through the assumed heirarchy
+          tempNameParts = [];
+          let tempColName = '';
+
+          for (let p = 5; p > 0; p--) {
+            tempColName = `p${p}_name`;
+            if (loc[tempColName] != null) {
+              tempNameParts.push(loc[tempColName]);
+              details[loc[`p${p}_location_id`]] = loc[tempColName];
+              hie_locations.push(details);
+              details = {};
+            }
+          }
+          details[loc['location_id']] = loc['name'];
+          hie_locations.push(details);
+          tempNameParts.push(loc['name']);
+          loc['display_name'] = tempNameParts.join(' >> ');
+        }
+        return res.status(200).send({
+          data: documents,
+          location: location_data,
+          displayName: tempNameParts,
+          detailsObj: hie_locations,
+          children: children,
+          locAccRole : locAccRole,
+          sublocations: sublocations
+        });    
     });
 
     router.post('/admin/upload/compliance-documents/',

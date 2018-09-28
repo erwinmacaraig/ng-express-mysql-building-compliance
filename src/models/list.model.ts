@@ -540,10 +540,12 @@ export class List {
                   WHERE  
                    compliance_documents.building_id IN (${locationStr})
                   AND compliance_documents.compliance_kpis_id = ?
+                  AND compliance_documents.account_id = ?
                   ORDER BY compliance_documents.compliance_documents_id DESC`;
 
         const connection = db.createConnection(dbconfig);
-        connection.query(sql_get, [kpi], (error, results) => {
+ 
+        connection.query(sql_get, [kpi, account], (error, results) => {
           if (error) {
             console.log('list.model.generateComplianceDocumentList', error, sql_get);
             throw Error('There was an error generating the list of documents');
@@ -563,7 +565,130 @@ export class List {
           // console.log(results);
           resolve(results);
         });
+        connection.end();
       });
+    }
+
+    public listUnionLocationAccountAndLocationAccountUser(accountId){
+        return new Promise((resolve, reject) => {
+            let sql = `SELECT 
+                        account_id,
+                        responsibility,
+                        location_id,
+                        parent_id,
+                        name,
+                        formatted_address,
+                        is_building,
+                        display_name
+
+                        FROM
+                        (
+                            SELECT
+                            lar.account_id,
+                            lar.responsibility,
+                            l.location_id,
+                            l.parent_id,
+                            l.name,
+                            IF(p.formatted_address IS NOT NULL, p.formatted_address, l.formatted_address) as formatted_address,
+                            l.is_building,
+                            IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) as display_name
+                            FROM location_account_relation lar 
+                            INNER JOIN locations l ON lar.location_id = l.location_id
+                            LEFT JOIN locations p ON l.parent_id = p.location_id
+                            WHERE lar.account_id = ${accountId} AND l.is_building = 1
+
+                            UNION
+
+                            SELECT
+                            lau.account_id,
+                            IF(lar.location_id IS NOT NULL, lar.responsibility, IF(lar2.responsibility IS NOT NULL, lar2.responsibility, lar3.responsibility)) as responsibility,
+                            p.location_id,
+                            p.parent_id,
+                            p.name,
+                            IF(p.formatted_address IS NOT NULL, p.formatted_address, p2.formatted_address) as formatted_address,
+                            p.is_building,
+                            IF(p2.name IS NOT NULL OR TRIM(p2.name) != '', CONCAT(p2.name, ', ', p.name), p.name ) as display_name
+
+                            FROM locations l 
+                            LEFT JOIN locations p ON l.parent_id = p.location_id
+                            LEFT JOIN locations p2 ON p.parent_id = p2.location_id
+                            LEFT JOIN location_account_user lau ON l.location_id = lau.location_id 
+                            LEFT JOIN location_account_relation lar ON lar.location_id = p.location_id AND lar.account_id = ${accountId}
+                            LEFT JOIN location_account_relation lar2 ON lar2.location_id = p.parent_id AND lar2.account_id = ${accountId}
+                            LEFT JOIN location_account_relation lar3 ON lar3.location_id = l.location_id AND lar3.account_id = ${accountId}
+
+                            WHERE lau.account_id = ${accountId} AND p.location_id IS NOT NULL 
+                            GROUP BY p.location_id
+                            
+                            UNION
+
+                            SELECT 
+                            lau.account_id,
+                            IF(lar.location_id IS NOT NULL, lar.responsibility, lar2.responsibility) as responsibility,
+                            l.location_id,
+                            l.parent_id,
+                            l.name,
+                            IF(p.formatted_address IS NOT NULL, p.formatted_address, l.formatted_address) as formatted_address,
+                            l.is_building,
+                            IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) as display_name
+                            FROM location_account_user lau
+                            INNER JOIN locations l ON lau.location_id = l.location_id
+                            LEFT JOIN locations p ON l.parent_id = p.location_id
+                            LEFT JOIN location_account_relation lar ON p.location_id = lar.location_id AND lar.account_id = ${accountId}
+                            LEFT JOIN location_account_relation lar2 ON lar2.location_id = l.location_id AND lar2.account_id = ${accountId}
+                            WHERE lau.account_id = ${accountId}  AND l.is_building = 1
+
+                            UNION
+
+                            SELECT
+
+                            lau.account_id,
+                            IF(lar.location_id IS NOT NULL, lar.responsibility, '') as responsibility,
+                            p.location_id,
+                            p.parent_id,
+                            p.name,
+                            IF(p.formatted_address IS NOT NULL, p.formatted_address, p2.formatted_address) as formatted_address,
+                            p.is_building,
+                            IF(p2.name IS NOT NULL OR TRIM(p2.name) != '', CONCAT(p2.name, ', ', p.name), p.name ) as display_name
+
+                            FROM locations l 
+                            LEFT JOIN locations p ON l.parent_id = p.location_id
+                            LEFT JOIN locations p2 ON p.parent_id = p2.location_id
+                            LEFT JOIN location_account_user lau ON l.location_id = lau.location_id 
+                            LEFT JOIN location_account_relation lar ON p.location_id = lar.location_id
+
+                            WHERE lau.account_id = ${accountId} AND p.location_id IS NOT NULL AND p.is_building = 1 
+                            GROUP BY p.location_id
+                            
+                            UNION
+                            
+                            SELECT
+                            lar.account_id,
+                            lar.responsibility,
+                            p.location_id,
+                            p.parent_id,
+                            p.name,
+                            IF(p2.formatted_address IS NOT NULL, p2.formatted_address, p.formatted_address) as formatted_address,
+                            p.is_building,
+                            IF(p2.name IS NOT NULL OR TRIM(p2.name) != '', CONCAT(p2.name, ', ', p.name), p.name ) as display_name
+                            FROM location_account_relation lar 
+                            INNER JOIN locations l ON lar.location_id = l.location_id
+                            INNER JOIN locations p ON l.parent_id = p.location_id
+                            LEFT JOIN locations p2 ON p.parent_id = p2.location_id
+                            WHERE lar.account_id = ${accountId}  GROUP BY p.location_id
+                        ) as lcoations
+                        GROUP BY location_id`;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, (error, results) => {
+                if(error){
+                    console.log('listUnionLocationAccountAndLocationAccountUser ', error, sql);
+                    throw Error('There was an error in listUnionLocationAccountAndLocationAccountUser');
+                }
+
+                resolve(results); 
+            });
+            connection.end();
+        });
     }
 
 }
