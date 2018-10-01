@@ -45,6 +45,9 @@
         </tr>
       </thead>
       <tbody>
+        <tr *ngIf="locations.length == 0">
+            <td colspan="6" class="center"> <p>No record found</p> </td>
+        </tr>
         <tr *ngFor="let location of locations">
           <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['location_id']}}</a></td>
           <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['display_name']}}</a></td>

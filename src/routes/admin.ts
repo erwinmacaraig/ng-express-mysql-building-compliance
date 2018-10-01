@@ -649,16 +649,12 @@ export class AdminRoute extends BaseRoute {
         accountId = req.params.accountId,
         allLocations = {},
         filteredLocations = [],
-        allTaggedLocationsAccounts = <any> await list.listUnionLocationAccountAndLocationAccountUser(accountId);
+        allTaggedLocationsAccounts = <any> await list.listAllTaggedBuildingsOfAccount(accountId);
       
-      for(let loc of allTaggedLocationsAccounts){
-        if(loc['is_building'] == 1){
-          filteredLocations.push(loc);
-        }
-      }
+       
        
       return res.status(200).send({
-        data: filteredLocations
+        data: allTaggedLocationsAccounts
       });
     });
 
