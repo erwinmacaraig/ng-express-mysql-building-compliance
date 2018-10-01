@@ -33,6 +33,9 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   paperAttendanceField: FormControl;
   training_requirements = [];
   userForm: FormGroup;
+  confirmationMessage = '';
+  validUsers: Array<string> = [];
+  invalidUsers: Array<string> = [];
 
   smartSearchSelection: string;
   smartSearchSelectionId: number = 0;
@@ -507,8 +510,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
   
     public validateTrainingOnSubmit() {
-      this.dashboard.show();
-      
+      this.dashboard.show();      
       const values = [];
       const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
       
@@ -549,7 +551,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.genericSub.unsubscribe();
       this.users = [];
       this.searchLocationField.reset();
-      console.log(JSON.stringify(values));
+      // console.log(JSON.stringify(values));
   
       this.cancelUserForm();
       this.exceptionCtrl = [];
@@ -571,8 +573,16 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   
       this.adminService.validateUserTrainings(JSON.stringify(values))
       .subscribe((response) => {
-        this.genericSub = this.smartSearch();
-        this.dashboard.hide();      
+        this.validUsers = response['validUsers'];
+        this.invalidUsers = response['invalid_users'];        
+        this.genericSub = this.smartSearch();    
+        setTimeout(() => {
+          this.dashboard.hide();
+          $('#modalConfirm').modal('open');
+        }, 1000);        
+      },
+      (error) => {
+
       });
   
       // upload document here    
@@ -581,11 +591,13 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             this.httpEvent = event;
             if (event instanceof HttpResponse) {
                 delete this.httpEmitter;
-                console.log('request done', event);
+                console.log('request done', event);                
             }
         },
         error => {
             console.log('Error Uploading', error);
+            alert(`There has been a problem uploading the file - ${this.userForm.get('paperAttandnce').value['filename']}`);
+            this.dashboard.hide();
         }
       );
   
@@ -680,7 +692,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             filetype: file.type,
             value: (reader.result).toString().split(',')[1]
           });
-          console.log('Processed - ' + file.name + ' ' + file.type);
+          // console.log('Processed - ' + file.name + ' ' + file.type);
         }
       }
     }
@@ -718,7 +730,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           // training_requirement_id: this.userForm.get('courseTraining').value
       }
       if (hasEnteredData) {
-        $('.modal').modal('open');
+        $('.modalCancel').modal('open');
       } else if (!hasEnteredData && this.userForm.get('levelUsers').dirty) {
         this.cancelUserForm();
       }

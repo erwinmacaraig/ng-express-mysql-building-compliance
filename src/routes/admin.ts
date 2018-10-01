@@ -316,6 +316,7 @@ export class AdminRoute extends BaseRoute {
     router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
       const users: Array<object> = JSON.parse(req.body.users);
+      const validUsers = [];
       const invalidUsers = [];
       for (const u of users) {
        if (parseInt( u['user_id'], 10) == 0) {
@@ -448,8 +449,10 @@ export class AdminRoute extends BaseRoute {
                   'registered': '1',
                   'description': 'Training validated by user ' + req.user.user_id + ' on ' + moment().format('YYYY-MM-DD HH:mm:ss')
                 });
+                validUsers.push(u['email']);
                } catch (e) {
                  console.log(e, u);
+                 invalidUsers.push(u['email'])
                }
            }
          } else {
@@ -457,7 +460,6 @@ export class AdminRoute extends BaseRoute {
          }
        } else {
          try {
-
           await new TrainingCertification().checkAndUpdateTrainingCert({
             'user_id': u['user_id'],
             'certification_date': u['certification_date'],
@@ -467,15 +469,16 @@ export class AdminRoute extends BaseRoute {
             'registered': '1',
             'description': 'Training validated by user ' + req.user.user_id + ' on ' + moment().format('YYYY-MM-DD HH:mm:ss')
           });
-
+          validUsers.push(u['email']);
          } catch (e) {
            console.log(e, u);
+           invalidUsers.push(u['email']);
          }
        }
       }
-
       return res.status(200).send({
-        message: 'test'
+        invalid_users: invalidUsers,
+        validUsers: validUsers
       });
     });
 
@@ -1246,7 +1249,7 @@ export class AdminRoute extends BaseRoute {
       });
     });
     return res.status(200).send({
-      message: 'Success test'
+      message: 'File uploaded successfully'
     });
   });
 
