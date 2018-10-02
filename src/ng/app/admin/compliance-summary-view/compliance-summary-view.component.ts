@@ -44,7 +44,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   validTillDate = '';
   FSAStatus: boolean =  false;
   showLoadingForSignedURL: boolean = true;
-
+  
   sublocations: Array<object> = [];
   httpEmitter: Subscription;
   httpEvent: any;
@@ -121,7 +121,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
 
     this.genericSub =
         this.adminService.FSA_EvacExer_Status(this.accountId.toString(), this.locationId.toString(), '3').subscribe((response) => {
-          console.log(response);
+          // console.log(response);
           if (response['data'] && 'compliance_status' in response['data']) {
             this.FSAStatus = (response['data']['compliance_status'] == 1) ? true : false;
           }
@@ -133,7 +133,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       account_id : this.accountId,
       get_related_only : false
     }, (response) => {
-      console.log(response);
+      // console.log(response);
       if (response.sublocations.length > 0) {
       this.complianceSublocations = response.sublocations;
       } else {
@@ -220,14 +220,64 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
 
   
   public getUploadedDocumentsFromSelectedKPI(kpi, reload: boolean = false) {
-    this.showLoadingForSignedURL = true;
+    
     this.selectedKPI = kpi['compliance_kpis_id'];
     this.documentFiles = [];
     this.displayKPIName = kpi['name']; // clean this up
     this.displayKPIDescription = kpi['description']; // clean this up
-
+   
+    let docCtr = 0;
+    this.showLoadingForSignedURL = false;
     this.myKPI = kpi;
     console.log(`selected kpi is ${this.selectedKPI}`);
+    if ( (this.selectedKPI in this.complianceDocuments && this.complianceDocuments[this.selectedKPI].length == 0) || ( this.selectedKPI in this.complianceDocuments && reload)) {
+      this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
+        this.documentFiles = response['data'];
+        console.log('total docs is ' + this.documentFiles.length);
+        // this.complianceDocuments[this.selectedKPI] = response['data'];
+        this.locationName = response['displayName'].join(' >> ');        
+        for (const doc of this.documentFiles) {               
+          this.showLoadingForSignedURL = true;  
+          this.adminService.getAWSS3DownloadFileURL(doc['urlPath']).subscribe((pathObj) => {
+            doc['urlPath'] = pathObj['url'];          
+            this.complianceDocuments[this.selectedKPI].push(doc);
+            this.complianceDocuments[this.selectedKPI].sort((obj1, obj2) => {
+              return obj2.compliance_documents_id - obj1.compliance_documents_id;
+            });
+            docCtr++;
+            console.log('doc counter ' + docCtr);
+            if (docCtr == this.documentFiles.length) {
+              /*
+              this.complianceDocuments[this.selectedKPI].sort((obj1, obj2) => {
+                return obj2.compliance_documents_id - obj1.compliance_documents_id;
+              });
+              */
+              this.showLoadingForSignedURL = false;              
+            }          
+          }, (err) => {
+            console.log(err.message);
+            docCtr++;
+            console.log('doc counter ' + docCtr);
+            if (docCtr == this.documentFiles.length) {
+              this.showLoadingForSignedURL = false;
+            }          
+          });       
+        }
+      }, (error) => {
+        console.log(error);
+        this.showLoadingForSignedURL = false;
+        alert("There was a problem getting the list of documents. Try again at a later time.");
+      });
+    }
+
+
+
+
+
+    
+    
+
+    /*
     if ( (this.selectedKPI in this.complianceDocuments && this.complianceDocuments[this.selectedKPI].length == 0) || ( this.selectedKPI in this.complianceDocuments && reload)) {
       this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
         // this.documentFiles = response['data'];
@@ -242,6 +292,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     } else {
       this.showLoadingForSignedURL = false;
     }
+    */
    
     for(let k of this.KPIS){
       if(k['compliance_kpis_id'] == this.selectedKPI){

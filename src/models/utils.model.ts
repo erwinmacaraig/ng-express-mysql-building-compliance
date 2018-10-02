@@ -473,7 +473,7 @@ export class Utils {
     });
   }
 
-  public getAWSSignedURL(key = '') {
+  public getAWSSignedURL(key = ''): Promise<string> {
     return new Promise((resolve, reject) => {
       AWS.config.accessKeyId = AWSCredential.AWSAccessKeyId;
       AWS.config.secretAccessKey = AWSCredential.AWSSecretKey;

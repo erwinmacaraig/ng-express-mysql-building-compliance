@@ -37,6 +37,7 @@ import {NotificationToken } from '../models/notification_token.model';
 import { NotificationConfiguration } from '../models/notification_config.model';
 import {EmailSender} from '../models/email.sender';
 import { Utils } from '../models/utils.model';
+
 const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
@@ -1488,6 +1489,27 @@ export class AdminRoute extends BaseRoute {
         });
     });
 
+    router.post('/admin/utility/signedURL/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const utils = new Utils();
+      const key = req.body.key;
+      let signedUrl = '';
+      try {
+        signedUrl = await utils.getAWSSignedURL(key);
+        return res.status(200).send({
+          message: 'Success',
+          url: signedUrl
+        });
+      } catch (e) {
+        console.log(`The file ${key} is not found`);
+        return res.status(400).send({
+          message: `File not found - ${key}`,
+          url: signedUrl
+        });
+      }
+
+    });
+
+
     router.get('/admin/list/compliance-documents/',
     new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
       const list = new List();
@@ -1505,6 +1527,8 @@ export class AdminRoute extends BaseRoute {
           sublocations.push(c['location_id']);
         }
       }
+      const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
+      /*
       const documentsUnfiltered = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
       const documents = [];
       for (const doc of documentsUnfiltered) {
@@ -1515,6 +1539,7 @@ export class AdminRoute extends BaseRoute {
           console.log(`The file ${doc['urlPath']} is not found`);
         }
       }
+      */
 
       const location_data = await location.locationHierarchy();
       let details: object = {};

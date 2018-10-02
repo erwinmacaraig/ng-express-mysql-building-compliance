@@ -186,5 +186,9 @@ export class AdminService {
     return this.http.get(`${this.baseUrl}/admin/user-information/`+userid, this.options);
   }
 
+  getAWSS3DownloadFileURL(key='') {
+    return this.http.post(`${this.baseUrl}/admin/utility/signedURL/`, { key: key});
+  }
+
 }
 

@@ -179,17 +179,8 @@
                 <th>Timestamp</th>
                 <th style="width: 10%;">Action</th>
             </tr>
-        </thead>
-        <tbody *ngIf="showLoadingForSignedURL">
-                <tr>
-                    <td colspan="8">
-                        <div class="progress">
-                            <div class="indeterminate"></div>
-                        </div>									
-                    </td>
-                </tr>
-        </tbody>
-        <tbody *ngIf="!showLoadingForSignedURL">
+        </thead>        
+        <tbody>
             <tr *ngFor="let doc of complianceDocuments[2]">
                 <td>{{doc['compliance_documents_id']}}</td>
                 <td>{{doc['document_type']}}</td>
@@ -199,6 +190,13 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd'}}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+            </tr>
+            <tr *ngIf="showLoadingForSignedURL">
+                <td colspan="8">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>									
+                </td>
             </tr>
         </tbody>
     </table>
@@ -253,17 +251,8 @@
                 <th>Timestamp</th>
                 <th style="width: 10%;">Action</th>
             </tr>
-        </thead>
-        <tbody *ngIf="showLoadingForSignedURL">
-                <tr>
-                    <td colspan="8">
-                        <div class="progress">
-                            <div class="indeterminate"></div>
-                        </div>									
-                    </td>
-                </tr>
-        </tbody>
-        <tbody *ngIf="!showLoadingForSignedURL">
+        </thead>        
+        <tbody>
             <tr *ngFor="let doc of complianceDocuments[4]">
                 <td>{{doc['compliance_documents_id']}}</td>
                 <td>{{doc['document_type']}}</td>
@@ -273,6 +262,13 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+            </tr>
+            <tr *ngIf="showLoadingForSignedURL">
+                <td colspan="8">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>									
+                </td>
             </tr>
         </tbody>
     </table>    
@@ -299,17 +295,8 @@
                 <th>Timestamp</th>
                 <th style="width: 10%;">Action</th>
             </tr>
-        </thead>
-        <tbody *ngIf="showLoadingForSignedURL">
-                <tr>
-                    <td colspan="9">
-                        <div class="progress">
-                            <div class="indeterminate"></div>
-                        </div>									
-                    </td>
-                </tr>
-        </tbody>
-        <tbody *ngIf="!showLoadingForSignedURL">
+        </thead>        
+        <tbody>
             <tr *ngFor="let doc of complianceDocuments[5]">
                 <td>{{doc['compliance_documents_id']}}</td>
                 <td>{{doc['name']}}</td>
@@ -320,6 +307,13 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+            </tr>
+            <tr *ngIf="showLoadingForSignedURL">
+                <td colspan="9">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>									
+                </td>
             </tr>
         </tbody>
     </table>
@@ -577,16 +571,8 @@
                 <th style="width: 10%;">Action</th>
             </tr>
         </thead>
-        <tbody *ngIf="showLoadingForSignedURL">
-                <tr>
-                    <td colspan="8">
-                        <div class="progress">
-                            <div class="indeterminate"></div>
-                        </div>									
-                    </td>
-                </tr>
-        </tbody>
-        <tbody *ngIf="!showLoadingForSignedURL">
+        
+        <tbody>
             <tr *ngFor="let doc of complianceDocuments[9]">
                 <td>{{doc['compliance_documents_id']}}</td>
                 <td>{{doc['document_type']}}</td>
@@ -596,6 +582,13 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+            </tr>
+            <tr *ngIf="showLoadingForSignedURL">
+                <td colspan="8">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>									
+                </td>
             </tr>
         </tbody>
     </table>
@@ -743,16 +736,7 @@
                 <th style="width: 10%;">Action</th>
             </tr>
         </thead>
-        <tbody *ngIf="showLoadingForSignedURL">
-                <tr>
-                    <td colspan="8">
-                        <div class="progress">
-                            <div class="indeterminate"></div>
-                        </div>									
-                    </td>
-                </tr>
-        </tbody>
-        <tbody *ngIf="!showLoadingForSignedURL">
+        <tbody>
             <tr *ngFor="let doc of complianceDocuments[13]">
                 <td>{{doc['compliance_documents_id']}}</td>
                 <td>{{doc['document_type']}}</td>
@@ -762,6 +746,13 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+            </tr>
+            <tr *ngIf="showLoadingForSignedURL">
+                <td colspan="8">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>									
+                </td>
             </tr>
         </tbody>
     </table>
