@@ -347,8 +347,44 @@
 					<div class="background"></div>
 				</div>
 			</div>
-
 		</div>
+		<div class="recently-uploaded" style="display: none;">
+				<h5 class="blue-text" style="margin: 40px 0px 10px 0px; font-size: 20px;">Recently uploaded files</h5>
+	
+				<table class="table striped">
+					<thead>
+						<tr>
+							<th>Filename</th>
+							<th>Date uploaded</th>
+						</tr>
+					</thead>
+					<tbody *ngIf="showLoadingForSignedURL">
+							<tr>
+								<td colspan="2">
+									<div class="progress">
+										<div class="indeterminate"></div>
+									</div>									
+								</td>
+							</tr>
+					</tbody>
+					<tbody *ngIf="!showLoadingForSignedURL">
+						<tr *ngIf="chief_warden_attendance_record.length == 0">
+							<td colspan="2">No recent file found</td>
+						</tr>
+						<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index;" [hidden]="i == 0">
+							<td>
+								<a href="{{doc.urlPath}}" target="_blank" download class="black-text">{{doc.file_name}}</a>
+							</td>
+							<td>{{doc.timestamp_formatted}}</td>
+						</tr>
+						<tr *ngFor="let a of gofr_attendance_record">
+							<td><a href="{{a.downloadUrl}}" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a></td>
+							<td>{{a.dtUploaded | date:'dd/MM/yyyy'}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
         
 	</div>
 </ng-template>
@@ -414,8 +450,17 @@
                         <th>Date uploaded</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr *ngIf="selectedCompliance.compliance.docs.length < 2">
+                <tbody *ngIf="showLoadingForSignedURL">
+						<tr>
+							<td colspan="2">
+								<div class="progress">
+									<div class="indeterminate"></div>
+								</div>									
+							</td>
+						</tr>
+				</tbody>
+				<tbody *ngIf="!showLoadingForSignedURL">
+                    <tr *ngIf="selectedCompliance.compliance.docs.length < 2 && eco_attendance_record.length > 0">
                         <td colspan="2">No recent file found</td>
                     </tr>
                     <tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index;" [hidden]="i == 0">
@@ -423,7 +468,11 @@
                             <a href="{{doc.urlPath}}" target="_blank" download class="black-text">{{doc.file_name}}</a>
                         </td>
                         <td>{{doc.timestamp_formatted}}</td>
-                    </tr>
+					</tr>
+					<tr *ngFor="let a of gofr_attendance_record">
+						<td><a href="{{a.downloadUrl}}" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a></td>
+						<td>{{a.dtUploaded | date:'dd/MM/yyyy'}}</td>
+					</tr>
                 </tbody>
             </table>
         </div>
@@ -561,9 +610,31 @@
                         <th>Filename</th>
                         <th>Date uploaded</th>
                     </tr>
-                </thead>
-                <tbody>
-                    <tr *ngIf="selectedCompliance.compliance.docs.length < 2">
+				</thead>
+				<tbody *ngIf="showLoadingForSignedURL">
+					<tr>
+						<td colspan="2">
+							<div class="progress">
+								<div class="indeterminate"></div>
+							</div>
+							<!--
+								<div class="preloader-wrapper small active">
+								<div class="spinner-layer spinner-green-only">
+									<div class="circle-clipper left">
+									<div class="circle"></div>
+									</div><div class="gap-patch">
+									<div class="circle"></div>
+									</div><div class="circle-clipper right">
+									<div class="circle"></div>
+									</div>
+								</div>
+							</div>
+							-->
+						</td>
+					</tr>
+				</tbody>
+                <tbody *ngIf="!showLoadingForSignedURL">
+                    <tr *ngIf="selectedCompliance.compliance.docs.length < 2 && gofr_attendance_record.length == 0">
                         <td colspan="2">No recent file found</td>
                     </tr>
                     <tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index;" [hidden]="i == 0">
@@ -571,9 +642,14 @@
                             <a href="{{doc.urlPath}}" target="_blank" download class="black-text">{{doc.file_name}}</a>
                         </td>
                         <td>{{doc.timestamp_formatted}}</td>
-                    </tr>
+					</tr>
+					<tr *ngFor="let a of gofr_attendance_record">
+						<td><a href="{{a.downloadUrl}}" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a></td>
+						<td>{{a.dtUploaded | date:'dd/MM/yyyy'}}</td>
+					</tr>
                 </tbody>
-            </table>
+			</table>
+			
         </div>
 	</div>
 </ng-template>
@@ -630,6 +706,42 @@
             </div> -->
 
 		</div>
+		<div class="recently-uploaded" style="display: none;">
+				<h5 class="blue-text" style="margin: 40px 0px 10px 0px; font-size: 20px;">Recently uploaded files</h5>
+	
+				<table class="table striped">
+					<thead>
+						<tr>
+							<th>Filename</th>
+							<th>Date uploaded</th>
+						</tr>
+					</thead>
+					<tbody *ngIf="showLoadingForSignedURL">
+							<tr>
+								<td colspan="2">
+									<div class="progress">
+										<div class="indeterminate"></div>
+									</div>									
+								</td>
+							</tr>
+					</tbody>
+					<tbody *ngIf="!showLoadingForSignedURL">
+						<tr *ngIf="sundry_attendance_record.length == 0">
+							<td colspan="2">No recent file found</td>
+						</tr>
+						<tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index;" [hidden]="i == 0">
+							<td>
+								<a href="{{doc.urlPath}}" target="_blank" download class="black-text">{{doc.file_name}}</a>
+							</td>
+							<td>{{doc.timestamp_formatted}}</td>
+						</tr>
+						<tr *ngFor="let a of gofr_attendance_record">
+							<td><a href="{{a.downloadUrl}}" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a></td>
+							<td>{{a.dtUploaded | date:'dd/MM/yyyy'}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 
 	</div>
 </ng-template>

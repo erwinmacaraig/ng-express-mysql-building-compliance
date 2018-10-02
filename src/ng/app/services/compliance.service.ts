@@ -7,7 +7,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { EncryptDecryptService } from '../services/encrypt.decrypt';
-
+import { PaperAttendanceDocument } from '../models/paper_attendance_document';
 @Injectable()
 export class ComplianceService {
 
@@ -160,6 +160,10 @@ export class ComplianceService {
 
     public paginateAllLocationIds(){
         return this.http.get(this.baseUrl + '/compliance/paginate-all-locationids');
+    }
+
+    public getPaperAttendanceFileUpload(building = 0) {
+        return this.http.post<PaperAttendanceDocument>(this.baseUrl + '/compliance/retrieve-paper-attendance-file-records/', {location: building});
     }
 
 }

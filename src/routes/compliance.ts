@@ -20,6 +20,7 @@ import { TrainingCertification } from './../models/training.certification.model'
 import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_calculator.model';
 import { EpcMinutesMeeting } from './../models/epc.meeting.minutes';
 import { UtilsSync } from '../models/util.sync';
+import { PaperAttendanceDocumentModel } from '../models/paper.attendance.doc.model';
 import * as moment from 'moment';
 // import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
@@ -153,6 +154,37 @@ import * as S3Zipper from 'aws-s3-zipper';
         router.post('/compliance/fire-safety-completed', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ComplianceRoute().fireSafetyCompleted(req, res);
         });
+
+        router.post('/compliance/retrieve-paper-attendance-file-records/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+            new ComplianceRoute().getPaperAttendanceRecord(req, res, next);
+        });
+    }
+
+    public async getPaperAttendanceRecord(req: AuthRequest, res: Response, next: NextFunction) {
+        //
+        const location = req.body.location;
+        const recordObj = new PaperAttendanceDocumentModel();
+        const attendanceFile: Array<object> = await recordObj.getPaperAttendanceRecordByLocation(location);
+        const utils = new Utils();
+        const keyPrefix = 'paper_attendance/';
+        const attendanceRecord = [];
+        
+        for (let i = 0; i < attendanceFile.length; i++) {
+            try {
+                let key = keyPrefix + attendanceFile[i]['strOriginalfilename'];
+                attendanceFile[i]['downloadUrl'] = '';
+                attendanceFile[i]['downloadUrl'] = await utils.getAWSSignedURL(key);                
+                attendanceRecord.push(attendanceFile[i]);
+            } catch(e) {
+                  console.log(e);
+                 
+                  continue;
+              }
+        }
+        return res.status(200).send({
+            attendance_record: attendanceRecord
+        });
+
     }
 
     public async downloadDocumentCompliancePack(req: AuthRequest, res: Response, next: NextFunction) {
