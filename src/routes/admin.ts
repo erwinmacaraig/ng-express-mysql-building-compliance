@@ -36,6 +36,7 @@ import { PaperAttendanceDocumentModel } from '../models/paper.attendance.doc.mod
 import {NotificationToken } from '../models/notification_token.model';
 import { NotificationConfiguration } from '../models/notification_config.model';
 import {EmailSender} from '../models/email.sender';
+import { Utils } from '../models/utils.model';
 const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
@@ -1493,7 +1494,7 @@ export class AdminRoute extends BaseRoute {
       let tempNameParts = [];
       const hie_locations = [];
       const location = new Location(req.query.location);
-
+      const utils = new Utils();
       // get sublocations if any
       let children = [];
       const sublocations = [];
@@ -1504,7 +1505,17 @@ export class AdminRoute extends BaseRoute {
           sublocations.push(c['location_id']);
         }
       }
-      const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
+      const documentsUnfiltered = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
+      const documents = [];
+      for (const doc of documentsUnfiltered) {
+        try {
+          doc['urlPath'] = await utils.getAWSSignedURL(doc['urlPath']);
+          documents.push(doc);
+        } catch (e) {
+          console.log(`The file ${doc['urlPath']} is not found`);
+        }
+      }
+
       const location_data = await location.locationHierarchy();
       let details: object = {};
       for (const loc of location_data) {

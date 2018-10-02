@@ -43,6 +43,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   myKPI: object = {};
   validTillDate = '';
   FSAStatus: boolean =  false;
+  showLoadingForSignedURL: boolean = true;
 
   sublocations: Array<object> = [];
   httpEmitter: Subscription;
@@ -63,6 +64,14 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   selectedCompliance = <any> {};
   tenants = <any> [];
   fetchingWardenList = true;
+  complianceDocuments: object = {    
+    2: [],   
+    4: [],
+    5: [],
+    6: [],        
+    9: [],    
+    13: []
+  };
 
   @ViewChild('inpFileUploadDocs') inpFileUploadDocs: ElementRef;
   constructor(
@@ -101,7 +110,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
 
       this.getLatestCompliance();
 
-      this.getUploadedDocumentsFromSelectedKPI(initKPI);
+      this.getUploadedDocumentsFromSelectedKPI(initKPI, true);
       this.dashboard.hide();
     });
 
@@ -210,29 +219,35 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   }
 
   
-  public getUploadedDocumentsFromSelectedKPI(kpi) {
+  public getUploadedDocumentsFromSelectedKPI(kpi, reload: boolean = false) {
+    this.showLoadingForSignedURL = true;
     this.selectedKPI = kpi['compliance_kpis_id'];
     this.documentFiles = [];
     this.displayKPIName = kpi['name']; // clean this up
     this.displayKPIDescription = kpi['description']; // clean this up
 
     this.myKPI = kpi;
-    // console.log(this.locationId);
-    
-    this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
-      this.documentFiles = response['data'];
-      console.log(this.documentFiles);
-      this.locationName = response['displayName'].join(' >> ');
-    });
-    
-
+    console.log(`selected kpi is ${this.selectedKPI}`);
+    if ( (this.selectedKPI in this.complianceDocuments && this.complianceDocuments[this.selectedKPI].length == 0) || ( this.selectedKPI in this.complianceDocuments && reload)) {
+      this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
+        // this.documentFiles = response['data'];
+        this.complianceDocuments[this.selectedKPI] = response['data'];
+        this.locationName = response['displayName'].join(' >> ');
+        this.showLoadingForSignedURL = false;
+      }, (error) => {
+        console.log(error);
+        this.showLoadingForSignedURL = false;
+        alert("There was a problem getting the list of documents. Try again at a later time.");
+      });
+    } else {
+      this.showLoadingForSignedURL = false;
+    }
+   
     for(let k of this.KPIS){
       if(k['compliance_kpis_id'] == this.selectedKPI){
         this.selectedCompliance = k;
       }
     }
-
-    console.log('this.selectedCompliance', this.selectedCompliance);
   }
 
   showModalUploadDocs() {
@@ -288,7 +303,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         if (event instanceof HttpResponse) {
           delete this.httpEmitter;
           console.log('request done', event);
-          this.getUploadedDocumentsFromSelectedKPI(this.myKPI);
+          this.getUploadedDocumentsFromSelectedKPI(this.myKPI, true);
           this.showModalUploadDocsLoader = false;
           $('#modalManageUpload').css('width');
           this.cancelUploadDocs(f);
