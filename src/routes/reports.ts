@@ -21,6 +21,9 @@ import { Utils } from '../models/utils.model';
 import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calculator.model';
 import { ComplianceRoute } from './compliance';
 
+import { PDFDocumentWithTables } from '../models/pdftable';
+import * as PDFDocument from 'pdfkit';
+
 import * as fs from 'fs';
 import * as path from 'path';
 import * as CryptoJS from 'crypto-js';
@@ -110,6 +113,15 @@ export class ReportsRoute extends BaseRoute {
 
        router.post('/reports/get-activity-report', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
            new ReportsRoute().getActivityReport(req, res);
+       });
+
+       router.get('/reports/pdf-activity-report/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           new ReportsRoute().getActivityReport(req, res, true);
        });
     }
 
@@ -835,13 +847,13 @@ export class ReportsRoute extends BaseRoute {
         res.send(response);
     }
 
-    public async getActivityReport(req: AuthRequest, res: Response){
+    public async getActivityReport(req: AuthRequest, res: Response, toPdf?){
         let
         location_id = req.body.location_id,
         limit = req.body.limit,
         offset = req.body.offset,
         accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
-        userId = req.user.user_id,
+        userId = (req.body.user_id) ? req.body.user_id : req.user.user_id,
         response = {
             status : false, data : [],
             pagination : {
@@ -921,6 +933,63 @@ export class ReportsRoute extends BaseRoute {
             response.pagination.pages = 1;
         }
 
-        res.status(200).send(response);
+        if(!toPdf){
+            res.status(200).send(response);
+        }else{
+            let 
+            timestamp = new Date().getTime(),
+            doc:PDFDocument = new PDFDocumentWithTables(),
+            DIR = __dirname + '/../public/temp/'; //'/../public/uploads/';
+
+            let filepath = DIR + timestamp + '.pdf';
+            
+            console.log('filepath', filepath);
+
+            let writeStream = fs.createWriteStream(filepath);
+            doc.pipe(writeStream); 
+            
+            const table0 = {
+                headers: ['Word', 'Comment', 'Summary'],
+                rows: [
+                    ['Apple', 'Not this one', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla viverra at ligula gravida ultrices. Fusce vitae pulvinar magna.'],
+                    ['Tire', 'Smells like funny', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla viverra at ligula gravida ultrices. Fusce vitae pulvinar magna.']
+                ]
+            };
+
+            doc.table(table0, {
+                prepareHeader: () => doc.font('Helvetica-Bold'),
+                prepareRow: (row, i) => doc.font('Helvetica').fontSize(12)
+            });
+
+            const table1 = {
+                headers: ['Country', 'Conversion rate', 'Trend'],
+                rows: [
+                    ['Switzerland', '12%', '+1.12%'],
+                    ['France', '67%', '-0.98%'],
+                    ['England', '33%', '+4.44%']
+                ]
+            };
+
+            doc.moveDown().table(table1, 100, 350, { width: 300 });
+
+            doc.end();
+
+            writeStream.on('finish', function(){
+                fs.readFile(filepath, "utf8", function(err, data){
+                    if(err) throw err;
+
+                    var file = fs.createReadStream(filepath);
+                    var stat = fs.statSync(filepath);
+
+                    res.setHeader('Content-Length', stat.size);
+                    res.setHeader('Content-Type', 'application/pdf');
+                    res.setHeader('Content-Disposition', 'attachment; filename='+timestamp + '.pdf');
+                    file.pipe(res);
+                });
+            });
+
+            
+            
+        }
     }
 }
