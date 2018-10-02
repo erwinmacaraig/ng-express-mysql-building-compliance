@@ -259,7 +259,7 @@ export class LocationAccountRelation extends BaseClass {
      * required parameter
      * @param filter
      */
-    public listAllLocationsOnAccount(accountId = 0, filter = {}): Promise<Array<object>> {
+    public listAllLocationsOnAccount(accountId = 0, filter = <any> {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         const resultSet = [];
         let filterStr = '';

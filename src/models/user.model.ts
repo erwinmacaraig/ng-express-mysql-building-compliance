@@ -141,8 +141,21 @@ export class User extends BaseClass {
                 if (!results.length) {
                     reject('Invalid user');
                 } else {
-                    this.dbData = results[0];
-                    this.setID(results[0].user_id);
+                    let user = <any> {
+                        'action' : false
+                    };
+                    for(let res of results){
+                        if(res['action'] == 'verify'){
+                            user = res;
+                        }
+                    }
+                    if(!user['action']){
+                        user = results[0];
+                        user['token_id'] = null;
+                    }
+
+                    this.dbData = user;
+                    this.setID(user.user_id);
                     resolve(this.dbData);
                 }
             });
