@@ -231,6 +231,9 @@ export class LocationAccountUser extends BaseClass {
     }
 
     public getByLocationIdAndUserId(locationIds, userId) {
+
+        console.log(locationIds, userId);
+
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_user WHERE location_id IN ('+locationIds+') AND user_id = ?';
             const param = [userId];

@@ -26,7 +26,11 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
             account_id : 0,
             account_name : ''
         }
+        
     };
+
+    locationRoles = <any> [];
+    trainings = <any> [];
 
     constructor(
         private route: ActivatedRoute,
@@ -48,6 +52,8 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
                 if(Object.keys(response.data.user).length > 0){
                     this.userData = response.data.user;
                     this.userData['account'] = response.data.account;
+                    this.locationRoles = response.data.location_roles;
+                    this.trainings = response.data.trainings;
                 }
                 this.dashboard.hide();
             });
@@ -71,6 +77,7 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
             this.userService.update(formCredential.value, (response) => {
                 $('#inpPassword').prop('value', '');
                 $('#confirmPassword').prop('value', '');
+                this.dashboard.hide();
             });
         }
     }

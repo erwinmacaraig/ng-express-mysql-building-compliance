@@ -4,7 +4,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { ElementRef, NgZone, ViewChild } from '@angular/core';
 import { FormControl, FormArray, FormGroup, Validators } from '@angular/forms';
-import { } from 'googlemaps';
+import {  } from 'googlemaps';
 import { MapsAPILoader } from '@agm/core';
 import { LocationsService } from '../../services/locations';
 import { UserService } from './../../services/users';
@@ -102,6 +102,12 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
     isFrp = false;
     isTrp = false;
 
+    searchLocsSubs;
+    showTextSearch = false;
+    searchText = "Searching...";
+    searchedLocations = [];
+    selectedLocationFromSearch = <any> {};
+
     constructor(private mapsAPILoader: MapsAPILoader,
         private ngZone: NgZone,
         private locationService: LocationsService,
@@ -165,6 +171,7 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
             this.skipVerification = false;
         });
 
+        /*
         this.mapsAPILoader.load().then(() => {
             const autocomplete = new google.maps.places.Autocomplete(this.searchElementRef.nativeElement, {
                 types: []
@@ -225,13 +232,16 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
                 });
             });
         });
+        */
 
         this.levelGroup = new FormGroup({
             'levels': new FormArray([])
         });
     }
 
-    ngOnDestroy() {}
+    ngOnDestroy() {
+        this.searchLocsSubs.unsubscribe();
+    }
 
     clearSearch(){
         $('.search-container').removeClass('active');
@@ -251,6 +261,67 @@ export class SearchLocationComponent implements OnInit, OnDestroy {
         $('.nav-list-locations').addClass('active');
         $('.location-navigation .active').removeClass('active');
         $('.location-navigation .add-location').addClass('active');
+
+        this.searchLocsSubs = Observable.fromEvent(this.searchElementRef.nativeElement, 'keyup')
+        .debounceTime(500).distinctUntilChanged().subscribe((event:KeyboardEvent) => {
+            this.searchedLocations = [];
+
+            if(this.searchElementRef.nativeElement.value.length == 0){ return false; }
+
+            this.searchText = "Searching...";
+            this.showTextSearch = true;
+
+            if(this.isFrp){
+                this.locationService.searchBuildings(this.searchElementRef.nativeElement.value).subscribe((locs) => {
+                    if(locs.length == 0){
+                        this.searchText = "No result found";
+                        this.showTextSearch = true;
+                    }else{
+                        this.showTextSearch = false;
+                    }
+                    this.searchedLocations = locs;
+                });
+            }else{
+                this.locationService.searchLevels(this.searchElementRef.nativeElement.value).subscribe((locs) => {
+                    if(locs.length == 0){
+                        this.searchText = "No result found";
+                        this.showTextSearch = true;
+                    }else{
+                        this.showTextSearch = false;
+                    }
+                    this.searchedLocations = locs;
+                });
+            }
+        });
+    }
+
+    selectLocationFromSearch(location){
+        this.searchedLocations = [];
+        this.showTextSearch = false;
+        this.searchElementRef.nativeElement.value = "";
+
+        this.selectedLocationFromSearch = location;
+        $('#modalConfirmSelectLocation').modal('open');
+        console.log('location', location);
+    }
+
+    sendAddLocationRequest(){
+        $('#modalConfirmSelectLocation').find('button').prop('disabled', true);
+        $('#modalConfirmSelectLocation .btn-submit').html('Sending...');
+
+        this.locationService.requestAddLocationToUser({
+            'location_id' : this.selectedLocationFromSearch.location_id,
+            'user_id' : this.userData['userId']
+        }).subscribe((res) => {
+            $('#modalConfirmSelectLocation .btn-submit').html('Sent!');
+            this.selectedLocationFromSearch = {};
+            
+            setTimeout(function(){
+                $('#modalConfirmSelectLocation').find('button').prop('disabled', false);
+                $('#modalConfirmSelectLocation .btn-submit').html('Submit');
+                $('#modalConfirmSelectLocation').modal('close');
+            }, 2000);
+        });
     }
 
     localLocationSearch(location: Object) {

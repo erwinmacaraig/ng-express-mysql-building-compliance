@@ -116,7 +116,6 @@ import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attenda
 import {  PeepFormComponent } from './peep.form/peep.form';
 import { AddAccountLocationComponent } from './admin/add-location/add-location.component';
 
-
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,

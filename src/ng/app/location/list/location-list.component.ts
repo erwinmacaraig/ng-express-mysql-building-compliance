@@ -509,7 +509,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
         let thisClass = this;
 
 		this.searchSubs = Observable.fromEvent(this.inputSearch.nativeElement, 'keyup')
-        .debounceTime(800).subscribe((event:KeyboardEvent) => {
+        .debounceTime(800).distinctUntilChanged().subscribe((event:KeyboardEvent) => {
             thisClass.queries.limit = 10;
             thisClass.queries.offset = 0;
             thisClass.queries.search = this.inputSearch.nativeElement['value'];

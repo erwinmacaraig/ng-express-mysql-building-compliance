@@ -17,6 +17,7 @@ import { FileUploader } from '../models/upload-file';
 import { ComplianceDocumentsModel } from '../models/compliance.documents.model';
 import { ComplianceModel } from '../models/compliance.model';
 import { ComplianceKpisModel } from '../models/comliance.kpis.model';
+import { CourseUserRelation } from '../models/course-user-relation.model';
 import * as moment from 'moment';
 import { UserRoleRelation } from '../models/user.role.relation.model';
 const md5 = require('md5');
@@ -648,115 +649,17 @@ export class AdminRoute extends BaseRoute {
 
     router.get('/admin/account-locations/:accountId/', new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
-      const list = new List();
-      const accountId = req.params.accountId;
-      const allLocations = {};
-      const filteredLocations = [];
-      let temp = [];
-      const lar_locations = [];
-      let accountLocations: Array<object> = await list.listTaggedLocationsOnAccount(accountId);
-      for (const location of accountLocations) {
-        lar_locations.push(location['location_id']);
-        if (location['is_building'] == 1) {
-          allLocations[location['location_id']] = {
-            location_id: location['location_id'],
-            display_name: location['name'],
-            formatted_address: location['formatted_address'],
-            responsibility: location['responsibility']
-          };
-        } else {
-          temp = [];
-          let tempColName = '';
-          let tempColLocId = '';
-          for (let p = 5; p > 0; p--) {
-            tempColName = `p${p}_name`;
-            tempColLocId = `p${p}_location_id`;
-            if (location[tempColName] != null && location[`p${p}_is_building`] == 1) {
-              allLocations[location[tempColLocId]] = {
-                location_id: location[tempColLocId],
-                display_name: location[tempColName],
-                formatted_address: location['formatted_address'],
-                responsibility: location['responsibility']
-              };
-              break;
-            }
-          }
-        }
-        /*
-        location['display_name'] = '';
-        // loop through the assumed heirarchy
-        temp = [];
-        let tempColName = '';
-        for (let p = 5; p > 0; p--) {
-          tempColName = `p${p}_name`;
-          if (location[tempColName] != null) {
-            temp.push(location[tempColName]);
-          }
-        }
-        temp.push(location['name']);
-        location['display_name'] = temp.join(' >> ');
-
-        // location['display_name'] = location['name'];
-        */
-
-      }
-      const locationsFromLAU: Array<object> = await list.listTaggedLocationsOnAccountFromLAU(accountId, {'exclusion_ids': lar_locations});
-      for (const location of locationsFromLAU) {
-        lar_locations.push(location['location_id']);
-
-        if (location['is_building'] == 1) {
-          allLocations[location['location_id']] = {
-            location_id: location['location_id'],
-            display_name: location['name'],
-            formatted_address: location['formatted_address'],
-            responsibility: location['responsibility']
-          };
-        } else {
-          temp = [];
-          let tempColName = '';
-          let tempColLocId = '';
-          for (let p = 5; p > 0; p--) {
-            tempColName = `p${p}_name`;
-            tempColLocId = `p${p}_location_id`;
-            if (location[tempColName] != null && location[`p${p}_is_building`] == 1) {
-              allLocations[location[tempColLocId]] = {
-                location_id: location[tempColLocId],
-                display_name: location[tempColName],
-                formatted_address: location['formatted_address'],
-                responsibility: location['responsibility']
-              };
-              break;
-            }
-          }
-        }
-
-        /*
-        location['display_name'] = '';
-        // loop through the assumed heirarchy
-        temp = [];
-        let tempColName = '';
-        for (let p = 5; p > 0; p--) {
-          tempColName = `p${p}_name`;
-          if (location[tempColName] != null) {
-            temp.push(location[tempColName]);
-          }
-        }
-        temp.push(location['name']);
-        location['display_name'] = temp.join(' >> ');
-
-        // location['display_name'] = location['name'];
-        */
-      }
-      accountLocations = accountLocations.concat(locationsFromLAU);
-      Object.keys(allLocations).forEach((loc) => {
-        filteredLocations.push(allLocations[loc]);
-      });
-      /*
-      raw: accountLocations,
-      filtered: filteredLocations
-      */
+      const 
+        list = new List(),
+        accountId = req.params.accountId,
+        allLocations = {},
+        filteredLocations = [],
+        allTaggedLocationsAccounts = <any> await list.listAllTaggedBuildingsOfAccount(accountId);
+      
+       
+       
       return res.status(200).send({
-        data: filteredLocations
+        data: allTaggedLocationsAccounts
       });
     });
 
@@ -1555,20 +1458,41 @@ export class AdminRoute extends BaseRoute {
             details[loc[`p${p}_location_id`]] = loc[tempColName];
             hie_locations.push(details);
             details = {};
+
           }
         }
-        details[loc['location_id']] = loc['name'];
-        hie_locations.push(details);
-        tempNameParts.push(loc['name']);
-        loc['display_name'] = tempNameParts.join(' >> ');
-      }
-      return res.status(200).send({
-        data: documents,
-        location: location_data,
-        displayName: tempNameParts,
-        detailsObj: hie_locations,
-        children: children
-      });
+        const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
+        const location_data = await location.locationHierarchy();
+        let details: object = {};
+        for (const loc of location_data) {
+          loc['display_name'] = '';
+          // loop through the assumed heirarchy
+          tempNameParts = [];
+          let tempColName = '';
+
+          for (let p = 5; p > 0; p--) {
+            tempColName = `p${p}_name`;
+            if (loc[tempColName] != null) {
+              tempNameParts.push(loc[tempColName]);
+              details[loc[`p${p}_location_id`]] = loc[tempColName];
+              hie_locations.push(details);
+              details = {};
+            }
+          }
+          details[loc['location_id']] = loc['name'];
+          hie_locations.push(details);
+          tempNameParts.push(loc['name']);
+          loc['display_name'] = tempNameParts.join(' >> ');
+        }
+        return res.status(200).send({
+          data: documents,
+          location: location_data,
+          displayName: tempNameParts,
+          detailsObj: hie_locations,
+          children: children,
+          locAccRole : locAccRole,
+          sublocations: sublocations
+        });    
     });
 
     router.post('/admin/upload/compliance-documents/',
@@ -1829,6 +1753,10 @@ export class AdminRoute extends BaseRoute {
 
     router.get('/admin/user-information/:userId', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
         new AdminRoute().getUserInformation(req, res);
+    });
+
+    router.get('/admin/get-tagged-locations-from-account/:accountId', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().getTaggedLocationsFromAccount(req, res);
     });
 
   // ===============
@@ -2148,6 +2076,7 @@ export class AdminRoute extends BaseRoute {
             status : false, data : <any> {}, message : ''
         },
         userRoleModel = new User(),
+        userLocationAndRoles = new User(),
         accountModel = new Account();
 
         try{
@@ -2156,10 +2085,15 @@ export class AdminRoute extends BaseRoute {
 
             response.data['user'] = user;
             response.data['roles'] = await userRoleModel.getAllRoles(user['user_id']);
+            response.data['location_roles'] = await userLocationAndRoles.getAllRolesAndLocations(user['user_id']);
 
             accountModel.setID(user['account_id'])
             account = await accountModel.load();
             response.data['account'] = account;
+
+            
+            let trainingModel = new TrainingCertification();
+            response.data['trainings'] = <any> await trainingModel.getCertificatesByInUsersId([user['user_id']]);
 
         }catch(e){
             response.message = 'No user found';
@@ -2168,6 +2102,16 @@ export class AdminRoute extends BaseRoute {
 
         res.send(response);
 
+    }
+
+    public async getTaggedLocationsFromAccount(req: AuthRequest, res: Response){
+        let 
+        accountId = req.params.accountId,
+        locAccRel = new LocationAccountRelation();
+
+        let data = await locAccRel.getTaggedLocationsOfAccount(accountId);
+
+        res.send(data);
     }
 
 }
