@@ -116,7 +116,6 @@ import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attenda
 import {  PeepFormComponent } from './peep.form/peep.form';
 import { AddAccountLocationComponent } from './admin/add-location/add-location.component';
 
-
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
   { path: 'signup', component: SignupComponent,
@@ -236,7 +235,7 @@ const appRoutes: Routes = [
     path : 'assign-courses', canActivate: [AuthGuard], component : AssignCoursesComponent
   },
   {
-    path: 'admin', component: AdminComponent,
+    path: 'admin', canActivate: [AuthGuard], component: AdminComponent,
     children: [
       { path: 'accounts', component: ListAccountsComponent },
       { path: 'training-validation', component: TrainingValidationComponent, canDeactivate: [CanDeactivateGuard] },

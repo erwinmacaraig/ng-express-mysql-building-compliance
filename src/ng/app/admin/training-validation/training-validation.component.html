@@ -186,4 +186,25 @@
     <a class="modal-close waves-effect waves-green btn-flat" (click)="cancelUserForm()">OK</a>
   </div>
 </div>
+
+<div id="modalConfirm" class="modal modal-fixed-footer">
+  <div class="modal-content">  
+      <h4>Validation Status</h4>  
+    <div *ngIf="validUsers.length > 0">
+        <h6>The following user(s) were validated</h6>
+         <ul>
+           <li *ngFor="let u of validUsers">{{u}}</li>
+         </ul>
+    </div>
+    <div *ngIf="invalidUsers.length > 0">
+      <h6>There was a problem validation the following user(s):</h6>
+      <ul>
+        <li *ngFor="let u of invalidUsers">{{u}}</li>
+      </ul>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <a class="modal-close waves-effect waves-red btn-flat">OK</a>
+  </div>
+</div>
 <div preloader></div>

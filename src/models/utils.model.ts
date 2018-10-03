@@ -473,6 +473,32 @@ export class Utils {
     });
   }
 
+  public getAWSSignedURL(key = ''): Promise<string> {
+    return new Promise((resolve, reject) => {
+      AWS.config.accessKeyId = AWSCredential.AWSAccessKeyId;
+      AWS.config.secretAccessKey = AWSCredential.AWSSecretKey;
+      AWS.config.region = AWSCredential.AWS_REGION;
+      const aws_s3 = new AWS.S3();
+
+      const params = {
+        Bucket:  AWSCredential.AWS_Bucket,
+        Key: key
+      };
+
+      aws_s3.getObject(params, (err, data) => {
+        if (err) {
+          console.log(`${key} not found.`);
+          reject(err.toString());
+        } else {
+          const signedUrl = aws_s3.getSignedUrl('getObject', params);
+          console.log(signedUrl);
+          resolve(signedUrl);
+        }
+      });
+
+    });
+    
+  }
   
 
 

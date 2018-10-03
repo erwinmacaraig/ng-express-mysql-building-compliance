@@ -170,18 +170,18 @@
     <table class="striped table">
         <thead>
             <tr>
-            <th>ID</th>
-            <th>Type</th>
-            <th>Filename</th>
-            <th>Date Of Activity</th>
-            <th>Validity (months)</th>
-            <th>Expiry</th>
-            <th>Timestamp</th>
-            <th style="width: 10%;">Action</th>
-        </tr>
-        </thead>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Filename</th>
+                <th>Date Of Activity</th>
+                <th>Validity (months)</th>
+                <th>Expiry</th>
+                <th>Timestamp</th>
+                <th style="width: 10%;">Action</th>
+            </tr>
+        </thead>        
         <tbody>
-            <tr *ngFor="let doc of documentFiles">
+            <tr *ngFor="let doc of complianceDocuments[2]">
                 <td>{{doc['compliance_documents_id']}}</td>
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
@@ -190,6 +190,13 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd'}}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+            </tr>
+            <tr *ngIf="showLoadingForSignedURL">
+                <td colspan="8">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>									
+                </td>
             </tr>
         </tbody>
     </table>
@@ -244,9 +251,9 @@
                 <th>Timestamp</th>
                 <th style="width: 10%;">Action</th>
             </tr>
-        </thead>
+        </thead>        
         <tbody>
-            <tr *ngFor="let doc of documentFiles">
+            <tr *ngFor="let doc of complianceDocuments[4]">
                 <td>{{doc['compliance_documents_id']}}</td>
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
@@ -255,6 +262,13 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+            </tr>
+            <tr *ngIf="showLoadingForSignedURL">
+                <td colspan="8">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>									
+                </td>
             </tr>
         </tbody>
     </table>    
@@ -281,9 +295,9 @@
                 <th>Timestamp</th>
                 <th style="width: 10%;">Action</th>
             </tr>
-        </thead>
+        </thead>        
         <tbody>
-            <tr *ngFor="let doc of documentFiles">
+            <tr *ngFor="let doc of complianceDocuments[5]">
                 <td>{{doc['compliance_documents_id']}}</td>
                 <td>{{doc['name']}}</td>
                 <td>{{doc['document_type']}}</td>
@@ -293,6 +307,13 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+            </tr>
+            <tr *ngIf="showLoadingForSignedURL">
+                <td colspan="9">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>									
+                </td>
             </tr>
         </tbody>
     </table>
@@ -550,8 +571,9 @@
                 <th style="width: 10%;">Action</th>
             </tr>
         </thead>
+        
         <tbody>
-            <tr *ngFor="let doc of documentFiles">
+            <tr *ngFor="let doc of complianceDocuments[9]">
                 <td>{{doc['compliance_documents_id']}}</td>
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
@@ -560,6 +582,13 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+            </tr>
+            <tr *ngIf="showLoadingForSignedURL">
+                <td colspan="8">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>									
+                </td>
             </tr>
         </tbody>
     </table>
@@ -708,7 +737,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let doc of documentFiles">
+            <tr *ngFor="let doc of complianceDocuments[13]">
                 <td>{{doc['compliance_documents_id']}}</td>
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
@@ -717,6 +746,13 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+            </tr>
+            <tr *ngIf="showLoadingForSignedURL">
+                <td colspan="8">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>									
+                </td>
             </tr>
         </tbody>
     </table>
