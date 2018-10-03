@@ -49,9 +49,9 @@
     <div class="col l12 m12 s12">
         <div class="mid-nav">
             <ul>
-                <li (click)="selectTab('rolesLocations')"> Roles & Locations </li>
-                <li (click)="selectTab('credentials')"> Credentials </li>
-                <li (click)="selectTab('trainings')"> Trainings </li>
+                <li (click)="selectTab('rolesLocations')" [ngClass]="{ active : activeLink == 'rolesLocations' }"> Roles & Locations </li>
+                <li (click)="selectTab('credentials')" [ngClass]="{ active : activeLink == 'credentials' }"> Credentials </li>
+                <li (click)="selectTab('trainings')" [ngClass]="{ active : activeLink == 'trainings' }"> Trainings </li>
             </ul>
         </div>
     </div>
@@ -68,10 +68,15 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                <tr *ngIf="locationRoles.length == 0">
+                    <td colspan="3" class="center">No record found</td>
+                </tr>
+                <tr *ngFor="let lr of locationRoles">
+                    <td>{{lr.location_id}}</td>
+                    <td>
+                        <a href="" [routerLink]="['/admin/view-location/', lr.location_id]" >{{lr.name}}</a>
+                    </td>
+                    <td>{{lr.role}}</td>
                 </tr>
             </tbody>
         </table>
@@ -123,5 +128,34 @@
                 </div>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="row" *ngIf="activeLink == 'trainings'">
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th>Training Id</th>
+                    <th>Training Name</th>
+                    <th>Course Id</th>
+                    <th>Course</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr *ngIf="trainings.length == 0">
+                    <td colspan="5" class="center">No record found</td>
+                </tr>
+                <tr *ngFor="let tr of trainings">
+                    <td>{{tr.training_requirement_id}}</td>
+                    <td>{{tr.training_requirement_name}}</td>
+                    <td>{{tr.course_id}}</td>
+                    <td>{{tr.course_name}}</td>
+                    <td>{{tr.role_name}}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>

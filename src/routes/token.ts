@@ -23,6 +23,9 @@ import { UsersRoute } from './users';
 import { LocationRoute } from './location';
 import { CourseRoute } from './course';
 
+import { Location } from '../models/location.model';
+import { LocationAccountRelation  } from '../models/location.account.relation';
+import { LocationAccountUser  } from '../models/location.account.user';
 
 
 export class TokenRoute extends BaseRoute {
@@ -42,6 +45,10 @@ export class TokenRoute extends BaseRoute {
 		router.get('/token/:token', (req: Request, res: Response, next: NextFunction) => {
 			new TokenRoute().handle(req, res, next);
 		});
+
+        router.get('/token/request/add-location-to-user', (req: Request, res: Response) => {
+            new TokenRoute().addLocationToUser(req, res);
+        });
 	}
 
 	public handle(req: Request, res: Response, next: NextFunction){
@@ -99,7 +106,66 @@ export class TokenRoute extends BaseRoute {
 				res.send(response);
 				break;
 		}
-
 	}
+
+    public async addLocationToUser(req: Request, res: Response){
+        let 
+        locationId = req.query.location,
+        userId = req.query.user,
+        action = req.query.action,
+        userModel = new User(userId),
+        locModel = new Location(),
+        locAccRelModel = new LocationAccountRelation(),
+        locAccUserModel = new LocationAccountUser();
+
+        try{
+            await locAccUserModel.getByLocationIdAndUserId(locationId, userId);
+            res.send('Location is already tagged in the user');
+        }catch(e){
+
+            if(action){
+                try{
+                    let locHie = await locModel.locationHierarchy(locationId);
+                    let location = (locHie[0]) ? locHie[0] : {};
+
+                    if(locHie[0]){
+                        await userModel.load();
+
+                        let accRelations = <any> await locAccRelModel.getByAccountId(<number>userModel.get('account_id'));
+                        let hasLocInAcc = false;
+                        for(let rel of accRelations){
+                            if(rel['location_id'] == locationId){
+                                hasLocInAcc = true;
+                            }
+                        }
+
+                        if(!hasLocInAcc){
+                            await locAccRelModel.create({
+                                account_id : userModel.get('account_id'),
+                                location_id : locationId,
+                                responsibility : (location['is_building'] == 1) ? 'Manager' : (location['p1_is_building'] == 1) ? 'Tenant' : 'Tenant'
+                            });
+                        }
+
+                        await locAccUserModel.create({
+                            location_id : locationId,
+                            account_id : userModel.get('account_id'),
+                            user_id : userId
+                        });
+
+                        res.send('Success!');
+                    }else{
+                        res.send('No location');
+                    }
+                }catch(e2){
+                    res.send('Invalid user');
+                }
+            }else{
+                res.send('Declined');
+            }
+        }
+ 
+        
+    }
 
 }

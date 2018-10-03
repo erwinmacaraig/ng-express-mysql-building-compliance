@@ -1002,6 +1002,7 @@ export class Location extends BaseClass {
           locations.formatted_address,
           p1.name as p1_name,
           p1.location_id as p1_location_id,
+          p1.is_building as p1_is_building,
           p2.name as p2_name,
           p2.location_id as p2_location_id,
           p3.name as p3_name,
@@ -1082,7 +1083,7 @@ export class Location extends BaseClass {
         });
     }
 
-    public searchLocation(searchCriteria: object = {}, limit?, accountId?): Promise<Array<object>> {
+    public searchLocation(searchCriteria: object = {}, limit?, accountId?, searchBuildings?): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             let joins = '';
             if(accountId){
@@ -1098,6 +1099,12 @@ export class Location extends BaseClass {
             }
             if ('parent_id' in searchCriteria) {
                 sql_search += ` AND l.parent_id = ${searchCriteria['parent_id']}`;
+            }
+
+            console.log(searchBuildings);
+            if(searchBuildings !== undefined){
+                let building = (searchBuildings) ? searchBuildings : 0;
+                sql_search += ` AND l.is_building = `+building;
             }
 
             if(accountId){
@@ -1138,6 +1145,60 @@ export class Location extends BaseClass {
           });
 
           connection.end();
+        });
+    }
+
+    public searchBuildings(key = ''){
+        return new Promise((resolve, reject) => {
+            let sql_search = `
+                SELECT
+                l.location_id,
+                l.parent_id,
+                l.formatted_address,
+                l.is_building,
+                IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) as name
+                FROM locations l 
+                LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE l.archived = 0 AND l.is_building = 1 AND 
+                ( l.name LIKE "%${key}%" OR l.formatted_address LIKE "%${key}%" OR p.name LIKE "%${key}%" OR IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) LIKE "%${key}%" )
+                LIMIT 10
+            `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_search, [], (error, results) => {
+                if (error) {
+                    console.log('location.model.searchBuildings', error, sql_search);
+                    throw Error('There was an error searchBuildings');
+                }
+                resolve(results);
+            });
+            connection.end();
+        });
+    }
+
+    public searchLevels(key = ''){
+        return new Promise((resolve, reject) => {
+            let sql_search = `
+                SELECT
+                l.location_id,
+                l.parent_id,
+                l.formatted_address,
+                l.is_building,
+                IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) as name
+                FROM locations l 
+                LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE p.archived = 0 AND p.is_building = 1 AND 
+                ( l.name LIKE "%${key}%" OR l.formatted_address LIKE "%${key}%" OR p.name LIKE "%${key}%" OR IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) LIKE "%${key}%" )
+                LIMIT 10
+            `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql_search, [], (error, results) => {
+                if (error) {
+                    console.log('location.model.searchLevels', error, sql_search);
+                    throw Error('There was an error seasearchLevelsrchBuildings');
+                }
+                resolve(results);
+            });
+            connection.end();
         });
     }
 
