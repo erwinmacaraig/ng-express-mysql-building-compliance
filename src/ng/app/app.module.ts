@@ -139,7 +139,6 @@ import { AdminViewLocationComponent } from './admin/view-location/view-location.
 import { AdminViewUserComponent } from './admin/view-user/view.user.component';
 import { TrainingValidationComponent } from './admin/training-validation/training-validation.component';
 import { AddAccountLocationComponent } from './admin/add-location/add-location.component';
-
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
 import { AdminReportsComponent } from './admin/reports/reports.component';
 import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
@@ -278,7 +277,7 @@ import {  PeepFormComponent } from './peep.form/peep.form';
     ReactiveFormsModule,
     NgDatepickerModule,
     CommonModule,
-    ngfModule
+    ngfModule,
   ],
   providers: [
     AuthService,

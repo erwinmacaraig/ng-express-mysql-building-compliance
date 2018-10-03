@@ -19,6 +19,15 @@
 		              type="text"
 		              #search
 		              [formControl]="searchControl">
+
+                      <div class="search-result-container">
+                        <p class="text" *ngIf="showTextSearch">{{searchText}}</p>
+                        <ul>
+                            <li *ngFor="let location of searchedLocations">
+                                <a (click)="selectLocationFromSearch(location)">{{location.name}}</a>
+                            </li>
+                        </ul>
+                      </div>
 					</div>
 					<div class="search-icon-container">
 						<img class="glass" src="assets/images/locations/search_icon.png" alt="">
@@ -129,6 +138,21 @@
 	</div>
 </div>
 
+<div id="modalConfirmSelectLocation" class="modal">
+    <div class="modal-content" style="padding: 15px 35px 25px 35px;">
+        <h5>Confirm Action</h5>
+        <div style="    margin: 20px 0px;">
+            <h6 style="font-size: 18px; line-height: 22px;">
+                Would you like to send a request to add {{selectedLocationFromSearch.name}} to your account?
+            </h6>
+        </div>
+
+        <div class="buttons-field right-align">
+            <button class="btn waves-effect waves-light lighten-1 grey btn-cancel modal-close">Cancel</button>
+            <button class="btn waves-effect waves-light orange btn-submit"  (click)="sendAddLocationRequest()">Send Request</button>
+        </div>
+    </div>
+</div>
 
 
 <!-- Modal Structure -->

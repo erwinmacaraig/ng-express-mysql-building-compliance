@@ -86,7 +86,7 @@ import * as S3Zipper from 'aws-s3-zipper';
         router.post('/compliance/toggleTPRViewAccess/',
             new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
               const compliance_documents_id = ('compliance_documents_id' in req.body) ? req.body.compliance_documents_id : 0;
-              const viewable_by_trp = ('viewable_by_trp' in req.body) ? req.body.viewable_by_trp : 0;
+              const viewable_by_trp = ('viewable_by_trp' in req.body) ? (req.body.viewable_by_trp) ? 1 : 0 : 0;
               const complianceDocObj = new ComplianceDocumentsModel(compliance_documents_id);
               complianceDocObj.load().then((loadData) => {
                 return complianceDocObj.create({'viewable_by_trp': viewable_by_trp});
@@ -469,7 +469,20 @@ import * as S3Zipper from 'aws-s3-zipper';
         subIds = [0],
         deepLocModel = new Location(),
         deepLocs = [],
-        deepLocIds = [];
+        deepLocIds = [],
+        locAccRoleDb = [],
+        locAccRole = '';
+
+        locAccRoleDb = await locAccModel.getByAccountIdAndLocationId(accountID, locationID);
+        for(let loc of locAccRoleDb){
+            if(loc['responsibility'] == 'Manager' &&  (locAccRole.trim().length > 0 || locAccRole.trim() != 'Manager')){
+                locAccRole = loc['responsibility'];
+            }else if(locAccRole.trim().length == 0){
+                locAccRole = loc['responsibility'];
+            }
+        }
+
+        this.response['locAccRole'] = locAccRole;
 
         try{
             theBuilding = await locModel.getTheParentOrBuiling(locationID);
@@ -858,6 +871,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         whereDocs.push(['compliance_documents.building_id IN (' + docsLocIds.join(',') + ')' ]);
         whereDocs.push(['compliance_documents.document_type = "Primary" ']);
+        whereDocs.push(['compliance_documents.account_id = '+accountID+' ']);
         docs = await complianceDocsModel.getWhere(whereDocs);
         docs = docs.sort((a, b) => {
             let d1 = moment(a.date_of_activity),
