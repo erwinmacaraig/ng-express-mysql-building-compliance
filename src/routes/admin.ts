@@ -1502,8 +1502,7 @@ export class AdminRoute extends BaseRoute {
       } catch (e) {
         console.log(`The file ${key} is not found`);
         return res.status(400).send({
-          message: `File not found - ${key}`,
-          url: signedUrl
+          message: `File not found - ${key}`
         });
       }
 

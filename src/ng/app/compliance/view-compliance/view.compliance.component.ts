@@ -499,7 +499,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           FileSaver.saveAs(blob, filename);
         },
         (error) => {
-          this.alertService.error('No file(s) available for download');
+          // this.alertService.error('No file(s) available for download');
+          $('#modalfilenotfound').modal('open');
           console.log('There was an error', error);
         });
     }

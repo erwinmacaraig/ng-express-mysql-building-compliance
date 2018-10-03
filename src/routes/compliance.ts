@@ -21,6 +21,7 @@ import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_ca
 import { EpcMinutesMeeting } from './../models/epc.meeting.minutes';
 import { UtilsSync } from '../models/util.sync';
 import { PaperAttendanceDocumentModel } from '../models/paper.attendance.doc.model';
+import {EmailSender} from '../models/email.sender';
 import * as moment from 'moment';
 // import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
@@ -77,10 +78,47 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         router.get('/compliance/download-compliance-file/',
             new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-                const uploader = new FileUploader(req, res, next);
-                uploader.getFile().then((data) => {
-                    res.end();
+            const fname = decodeURIComponent(req.query.fname);
+            const key = decodeURIComponent(req.query.keyname);
+            const utils = new Utils();
+            utils.getAWSSignedURL(key).then((signedUrl) => {
+                res.set(
+                    'Content-Disposition',
+                    `attachment; filename=${fname}`
+                );
+                request(signedUrl).pipe(res);
+
+            }).catch((e) => {
+                console.log(e);
+                const opts = {
+                    from : '',
+                    fromName : 'EvacConnect',
+                    to : ['emacaraig@evacgroup.com.au'],
+                    cc: [],
+                    body : `This key (${key}) is being downloaded but was not found in the server`,
+                    attachments: [],
+                    subject : 'EvacConnect Email Notification'
+                };
+                const email = new EmailSender(opts);
+                email.send(
+                    (data) => {
+                        console.log('Email sent successfully');					
+                    },
+                    (err) => console.log(err)
+                );
+                res.status(400).send({
+                    message: `${fname} not found`
                 });
+            });
+
+            /*
+            const uploader = new FileUploader(req, res, next);
+            uploader.getFile().then((data) => {
+                res.end();
+            });
+            */
+
+
         });
 
         router.post('/compliance/toggleTPRViewAccess/',
@@ -881,6 +919,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 paths = [];
             }
         }
+
 
         for (let c in compliances) {
             compliances[c]['docs'] = [];

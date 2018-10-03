@@ -487,7 +487,7 @@ export class Utils {
 
       aws_s3.getObject(params, (err, data) => {
         if (err) {
-          console.log(err);
+          console.log(`${key} not found.`);
           reject(err.toString());
         } else {
           const signedUrl = aws_s3.getSignedUrl('getObject', params);
