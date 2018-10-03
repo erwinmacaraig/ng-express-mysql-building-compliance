@@ -95,7 +95,9 @@ import * as S3Zipper from 'aws-s3-zipper';
                     fromName : 'EvacConnect',
                     to : ['emacaraig@evacgroup.com.au'],
                     cc: [],
-                    body : `This key (${key}) is being downloaded but was not found in the server`,
+                    body : `This key 
+                    ( ${key} ) 
+                    is being downloaded but was not found in the server`,
                     attachments: [],
                     subject : 'EvacConnect Email Notification'
                 };
