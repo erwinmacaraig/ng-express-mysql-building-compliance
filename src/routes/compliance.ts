@@ -20,6 +20,8 @@ import { TrainingCertification } from './../models/training.certification.model'
 import { WardenBenchmarkingCalculator } from './../models/warden_benchmarking_calculator.model';
 import { EpcMinutesMeeting } from './../models/epc.meeting.minutes';
 import { UtilsSync } from '../models/util.sync';
+import { PaperAttendanceDocumentModel } from '../models/paper.attendance.doc.model';
+import {EmailSender} from '../models/email.sender';
 import * as moment from 'moment';
 // import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
@@ -76,16 +78,53 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         router.get('/compliance/download-compliance-file/',
             new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-                const uploader = new FileUploader(req, res, next);
-                uploader.getFile().then((data) => {
-                    res.end();
+            const fname = decodeURIComponent(req.query.fname);
+            const key = decodeURIComponent(req.query.keyname);
+            const utils = new Utils();
+            utils.getAWSSignedURL(key).then((signedUrl) => {
+                res.set(
+                    'Content-Disposition',
+                    `attachment; filename=${fname}`
+                );
+                request(signedUrl).pipe(res);
+
+            }).catch((e) => {
+                console.log(e);
+                const opts = {
+                    from : '',
+                    fromName : 'EvacConnect',
+                    to : ['emacaraig@evacgroup.com.au'],
+                    cc: [],
+                    body : `This key (${key}) is being downloaded but was not found in the server`,
+                    attachments: [],
+                    subject : 'EvacConnect Email Notification'
+                };
+                const email = new EmailSender(opts);
+                email.send(
+                    (data) => {
+                        console.log('Email sent successfully');					
+                    },
+                    (err) => console.log(err)
+                );
+                res.status(400).send({
+                    message: `${fname} not found`
                 });
+            });
+
+            /*
+            const uploader = new FileUploader(req, res, next);
+            uploader.getFile().then((data) => {
+                res.end();
+            });
+            */
+
+
         });
 
         router.post('/compliance/toggleTPRViewAccess/',
             new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
               const compliance_documents_id = ('compliance_documents_id' in req.body) ? req.body.compliance_documents_id : 0;
-              const viewable_by_trp = ('viewable_by_trp' in req.body) ? req.body.viewable_by_trp : 0;
+              const viewable_by_trp = ('viewable_by_trp' in req.body) ? (req.body.viewable_by_trp) ? 1 : 0 : 0;
               const complianceDocObj = new ComplianceDocumentsModel(compliance_documents_id);
               complianceDocObj.load().then((loadData) => {
                 return complianceDocObj.create({'viewable_by_trp': viewable_by_trp});
@@ -153,6 +192,37 @@ import * as S3Zipper from 'aws-s3-zipper';
         router.post('/compliance/fire-safety-completed', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new ComplianceRoute().fireSafetyCompleted(req, res);
         });
+
+        router.post('/compliance/retrieve-paper-attendance-file-records/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+            new ComplianceRoute().getPaperAttendanceRecord(req, res, next);
+        });
+    }
+
+    public async getPaperAttendanceRecord(req: AuthRequest, res: Response, next: NextFunction) {
+        //
+        const location = req.body.location;
+        const recordObj = new PaperAttendanceDocumentModel();
+        const attendanceFile: Array<object> = await recordObj.getPaperAttendanceRecordByLocation(location);
+        const utils = new Utils();
+        const keyPrefix = 'paper_attendance/';
+        const attendanceRecord = [];
+        
+        for (let i = 0; i < attendanceFile.length; i++) {
+            try {
+                let key = keyPrefix + attendanceFile[i]['strOriginalfilename'];
+                attendanceFile[i]['downloadUrl'] = '';
+                attendanceFile[i]['downloadUrl'] = await utils.getAWSSignedURL(key);                
+                attendanceRecord.push(attendanceFile[i]);
+            } catch(e) {
+                  console.log(e);
+                 
+                  continue;
+              }
+        }
+        return res.status(200).send({
+            attendance_record: attendanceRecord
+        });
+
     }
 
     public async downloadDocumentCompliancePack(req: AuthRequest, res: Response, next: NextFunction) {
@@ -437,7 +507,20 @@ import * as S3Zipper from 'aws-s3-zipper';
         subIds = [0],
         deepLocModel = new Location(),
         deepLocs = [],
-        deepLocIds = [];
+        deepLocIds = [],
+        locAccRoleDb = [],
+        locAccRole = '';
+
+        locAccRoleDb = await locAccModel.getByAccountIdAndLocationId(accountID, locationID);
+        for(let loc of locAccRoleDb){
+            if(loc['responsibility'] == 'Manager' &&  (locAccRole.trim().length > 0 || locAccRole.trim() != 'Manager')){
+                locAccRole = loc['responsibility'];
+            }else if(locAccRole.trim().length == 0){
+                locAccRole = loc['responsibility'];
+            }
+        }
+
+        this.response['locAccRole'] = locAccRole;
 
         try{
             theBuilding = await locModel.getTheParentOrBuiling(locationID);
@@ -826,6 +909,7 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         whereDocs.push(['compliance_documents.building_id IN (' + docsLocIds.join(',') + ')' ]);
         whereDocs.push(['compliance_documents.document_type = "Primary" ']);
+        whereDocs.push(['compliance_documents.account_id = '+accountID+' ']);
         docs = await complianceDocsModel.getWhere(whereDocs);
         docs = docs.sort((a, b) => {
             let d1 = moment(a.date_of_activity),
@@ -849,6 +933,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 paths = [];
             }
         }
+
 
         for (let c in compliances) {
             compliances[c]['docs'] = [];

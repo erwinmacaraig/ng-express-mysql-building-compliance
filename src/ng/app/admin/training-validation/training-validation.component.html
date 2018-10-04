@@ -12,7 +12,7 @@
 <form [formGroup]="userForm" (ngSubmit)="validateTrainingOnSubmit()">
   <div class="row filter-container" >
     <div class="col s12">
-        <div class="search-field">
+        <div class="search-field" [ngStyle]="{border: !searchLocationField.valid ? '1px solid red' : 'inherit'}">
           <input
               type="text"
               placeholder="Search Location/Account here here"
@@ -35,25 +35,30 @@
   <div class="row filter-container" style="overflow: -webkit-paged-y;">
     <div class="col l4 m6 s12 margin-bottom-20">
         <div class="datepicker">
-            <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
-            <input id="dtTraining" [formControl]="dtTrainingField" autocomplete="off" type="text" (click)="showDatePicker()" required>
+            <ng-datepicker *ngIf="searchLocationField.valid && smartSearchSelectionId > 0"  [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
+            <input id="dtTraining" [formControl]="dtTrainingField" autocomplete="off" type="text" (click)="showDatePicker()" [readonly]="!searchLocationField.valid">
             <span class="material-icons">date_range</span>
         </div>
     </div>
     <div class="col l4 m6 s12 margin-bottom-20">
-      <select [formControl]="courseTraining" style="display: block;" id="trainingCourse">
+      <select [formControl]="courseTraining" style="display: block;" id="trainingCourse" (change)="checkInputForms()">
         <option [value]="null" [disabled]="true == true">Training Course</option>
         <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
       </select>
     </div>
+    
     <div class="col l4 m6 s12 margin-bottom-20">
-      <select [formControl]="trainingModeField" style="display: block;" id="trainingMode">
+      <!--
+        <select [formControl]="trainingModeField" style="display: block;" id="trainingMode">
         <option [value]="null" [disabled]="true == true">Training Mode</option>
         <option value="offline_by_evac">Face to Face</option>
       </select>
+      -->
+      
     </div>
+    
   </div>
-  <div class="row" *ngIf="trainingModeField.valid && courseTraining.valid && dtTrainingField.valid">
+  <div class="row" *ngIf="courseTraining.valid && dtTrainingField.valid && searchLocationField.valid">
     <div class="col s12">
       <table id="trainingListTable" class="table bordered">
         <thead>
@@ -72,7 +77,7 @@
             <td class="relative">
               <input formControlName="email" type="text" placeholder="search email" autocomplete="off">
               <input formControlName="user_id" type="hidden">
-              <div class="suggestions" [hidden]="filteredEmailList[i].length == 0" *ngIf="filteredEmailList.length > 0">
+              <div class="suggestions" [hidden]="filteredEmailList[i]?.length == 0" *ngIf="filteredEmailList.length > 0">
                   <ul>
                     <li *ngFor="let item of filteredEmailList[i]; let j = index;">
                       <a (click)="getEmailSelection(i, item)">{{item['email']}} ({{item['role_name']}}, {{item['name']}})</a>
@@ -117,18 +122,19 @@
               <ng-datepicker [(ngModel)]="ngDateObjects[i]" (ngModelChange)="onChangeDatePickerForException($event, i)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="showDateSelection[i]" ></ng-datepicker>
               <input id="dtTrainingException-{{i}}" autocomplete="off" type="text" value="{{datepickerModelFormatted}}" (click)="showDateSelection[i]=true">
             </td>
-            <td colspan="2">
+            <td colspan="4">
                 <select style="display: block;" id="trainingCourseException-{{i}}">
                     <option [value]="null" [disabled]="true == true">Training Course</option>
                     <option *ngFor="let t of training_requirements" [value]="t.training_requirement_id">{{t.training_requirement_name}}</option>
                 </select>
             </td>
-            <td colspan="2">
+            <!-- <td colspan="2">
                 <select style="display: block;" id="trainingModeException-{{i}}">
                     <option [value]="null" [disabled]="true == true">Training Mode</option>
                     <option value="offline_by_evac">Face to Face</option>
                 </select>
             </td>
+          -->
             <td>
                 <button type="button" class="expired-icon hover-grow" (click)="exceptionCtrl[i] = 1"></button>
                 <button type="button" class="checked-icon hover-grow" (click)="confirmException(i)"></button>
@@ -136,6 +142,14 @@
           </tr>
         </tbody>
         <tfoot>
+          <tr>
+            <td class="paper-attendance">
+                <span style="padding-left: 10px;">Upload Paper Attendance Record</span>
+            </td>
+            <td colspan="6">
+              <input type="file" name="file" id="file" class="inputfile" (change)="onFileChange($event)" #fileInput />
+            </td>
+          </tr>
           <tr>
             <td colspan="7">
               <a class="btn blue" (click)="addUserFormItem($event)">+ Add more rows</a>
@@ -145,7 +159,7 @@
       </table>
       <br>
       <div class="button-container right-align">
-          <a class="btn grey lighten-1 waves-effect waves-light cancel" (click)="cancelUserForm()"> Cancel </a>
+          <a class="btn grey lighten-1 waves-effect waves-light cancel" (click)="checkInputForms()"> Cancel </a>
 
           <input type="submit" [ngClass]="{'btn': true,
                                            'grey': (userForm.valid && searchLocationField.valid) == false,
@@ -161,4 +175,36 @@
   </div>
 </form>
 
+<!--Modal Structure -->
+<div id="modalCancel" class="modal modal-fixed-footer">
+  <div class="modal-content">
+    <h4>Please confirm</h4>
+    <p>Data will be lost.</p>
+  </div>
+  <div class="modal-footer">
+    <a class="modal-close waves-effect waves-red btn-flat">Cancel</a>
+    <a class="modal-close waves-effect waves-green btn-flat" (click)="cancelUserForm()">OK</a>
+  </div>
+</div>
+
+<div id="modalConfirm" class="modal modal-fixed-footer">
+  <div class="modal-content">  
+      <h4>Validation Status</h4>  
+    <div *ngIf="validUsers.length > 0">
+        <h6>The following user(s) were validated</h6>
+         <ul>
+           <li *ngFor="let u of validUsers">{{u}}</li>
+         </ul>
+    </div>
+    <div *ngIf="invalidUsers.length > 0">
+      <h6>There was a problem validation the following user(s):</h6>
+      <ul>
+        <li *ngFor="let u of invalidUsers">{{u}}</li>
+      </ul>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <a class="modal-close waves-effect waves-red btn-flat">OK</a>
+  </div>
+</div>
 <div preloader></div>

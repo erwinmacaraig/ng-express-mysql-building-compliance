@@ -540,17 +540,19 @@ export class List {
                   WHERE  
                    compliance_documents.building_id IN (${locationStr})
                   AND compliance_documents.compliance_kpis_id = ?
+                  AND compliance_documents.account_id = ?
                   ORDER BY compliance_documents.compliance_documents_id DESC`;
 
         const connection = db.createConnection(dbconfig);
-        connection.query(sql_get, [kpi], (error, results) => {
+ 
+        connection.query(sql_get, [kpi, account], (error, results) => {
           if (error) {
             console.log('list.model.generateComplianceDocumentList', error, sql_get);
             throw Error('There was an error generating the list of documents');
           }
-
           for (const r of results) {
-            let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
+            // let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
+            let urlPath = '';
             urlPath += r['account_directory_name'];
             if (r['parent_location_directory_name'] != null && r['parent_location_directory_name'].trim().length > 0) {
               if(r['parent_is_building'] == 1){
@@ -563,7 +565,80 @@ export class List {
           // console.log(results);
           resolve(results);
         });
+        connection.end();
       });
+    }
+
+    public listAllTaggedBuildingsOfAccount(accountId){
+        return new Promise((resolve, reject) => {
+            let sql = `
+                
+                SELECT
+                
+                account_id, responsibility, location_id, parent_id, name, formatted_address, is_building, display_name
+
+                FROM
+                (
+                    SELECT
+                
+                    lar.account_id,
+                    lar.responsibility,
+                    l.location_id,
+                    l.parent_id,
+                    l.name,
+                    l.formatted_address,
+                    l.is_building,
+                    IF(p1.name IS NOT NULL OR TRIM(p1.name) != '', CONCAT(p1.name, ', ', l.name), l.name ) as display_name
+                                    
+                    FROM locations l
+                    LEFT JOIN locations p1 ON l.parent_id = p1.location_id
+                    LEFT JOIN locations p2 ON p1.parent_id = p2.location_id
+                    LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
+                    LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
+
+                    LEFT JOIN  location_account_relation lar
+                    ON lar.location_id = l.location_id
+                    OR p1.location_id = lar.location_id
+                    OR p2.location_id = lar.location_id
+                    OR p3.location_id = lar.location_id
+                    OR p4.location_id = lar.location_id
+
+                    WHERE lar.account_id = ${accountId} AND l.is_building = 1 AND l.archived = 0
+
+                    UNION
+
+                    SELECT 
+
+                    lar.account_id,
+                    lar.responsibility,
+                    p.location_id,
+                    p.parent_id,
+                    p.name,
+                    p.formatted_address,
+                    p.is_building,
+                    IF(p2.name IS NOT NULL OR TRIM(p2.name) != '', CONCAT(p2.name, ', ', p.name), p.name ) as display_name
+
+                    FROM location_account_relation lar
+                    INNER JOIN locations c ON lar.location_id = c.location_id
+                    INNER JOIN locations p ON c.parent_id = p.location_id
+                    LEFT JOIN locations p2 ON p.parent_id = p2.location_id
+
+                    WHERE lar.account_id = ${accountId} AND p.archived = 0
+                    GROUP BY p.location_id
+                ) as locations
+                GROUP BY location_id
+                `;
+            const connection = db.createConnection(dbconfig);
+            connection.query(sql, (error, results) => {
+                if(error){
+                    console.log('listAllTaggedBuildingsOfAccount ', error, sql);
+                    throw Error('There was an error in listAllTaggedBuildingsOfAccount');
+                }
+
+                resolve(results); 
+            });
+            connection.end();
+        });
     }
 
 }

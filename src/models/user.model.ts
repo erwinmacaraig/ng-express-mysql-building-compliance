@@ -141,8 +141,21 @@ export class User extends BaseClass {
                 if (!results.length) {
                     reject('Invalid user');
                 } else {
-                    this.dbData = results[0];
-                    this.setID(results[0].user_id);
+                    let user = <any> {
+                        'action' : false
+                    };
+                    for(let res of results){
+                        if(res['action'] == 'verify'){
+                            user = res;
+                        }
+                    }
+                    if(!user['action']){
+                        user = results[0];
+                        user['token_id'] = null;
+                    }
+
+                    this.dbData = user;
+                    this.setID(user.user_id);
                     resolve(this.dbData);
                 }
             });
@@ -646,7 +659,7 @@ export class User extends BaseClass {
           page = ( typeof filter['page'] == 'string'  ) ? (isNaN(parseInt(filter['page']))) ? 0 : parseInt(filter['page']) : filter['page']; 
         }
 
-        if ('query' in filter && filter['query'].length > 0) {
+        if ('query' in filter && filter['query'].length > 0 && filter['query'] != 'all') {
           where += ` account_id = ${accountId} AND CONCAT(first_name,' ',last_name) LIKE '%${filter['query']}%' AND archived = 0 OR account_id = ${accountId} AND email like '%${filter['query']}%' AND archived = 0 `;
         }else{
           where += ` account_id = ${accountId} AND archived = 0 `;
@@ -730,18 +743,20 @@ export class User extends BaseClass {
                 select = ' COUNT(users.user_id) as count '
             }
             
-            let where = '';
+            let where = '', join_training = '';
             if(accountId){
                 where += ` AND users.account_id IN (${accountId})  `;
             }
 
             let whereLocations = (locationIds) ? ` WHERE location_id IN (${locationIds}) ` : '';
             where += ` AND users.user_id IN (SELECT user_id FROM user_em_roles_relation ${whereLocations} )  `;
-
+            join_training = (locationIds) ?
+            ` INNER JOIN user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
+              INNER JOIN em_role_training_requirements ON user_em_roles_relation.em_role_id = em_role_training_requirements.em_role_id` : '';
             let offsetLimit = (limit) ? ' LIMIT '+limit : '';
 
-            let sql_load = `SELECT ${select} FROM users INNER JOIN accounts ON users.account_id = accounts.account_id WHERE users.archived = 0 ${where} ${offsetLimit} `;
-
+            let sql_load = `SELECT ${select} FROM users INNER JOIN accounts ON users.account_id = accounts.account_id ${join_training} WHERE users.archived = 0 ${where} ${offsetLimit} `;
+            console.log(sql_load); 
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {
@@ -875,7 +890,7 @@ export class User extends BaseClass {
         });
     }
 
-    public getAllLocations(userId){
+    public getAllRolesAndLocations(userId){
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
@@ -884,25 +899,32 @@ export class User extends BaseClass {
                 }
                 const sql_load = `
                 SELECT
+                lau.location_account_user_id as id,
                 lau.location_id,
                 IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name,
-                @temp := 1 as role_id
+                urr.role_id,
+                'location_account_user_id' as tbl_id,
+                IF(urr.role_id = 1, 'FRP', 'TRP') as role
                 FROM location_account_user lau
                 INNER JOIN locations l ON lau.location_id = l.location_id
                 LEFT JOIN locations p ON l.parent_id = p.location_id
-                WHERE lau.user_id = ${userId}
+                RIGHT JOIN user_role_relation urr ON lau.user_id = urr.user_id
+                WHERE lau.user_id = ${userId} GROUP BY urr.role_id
 
                 UNION
 
                 SELECT 
+                uer.user_em_roles_relation_id as id,
                 uer.location_id,
                 IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name,
-                uer.em_role_id as role_id
+                uer.em_role_id as role_id,
+                'user_em_roles_relation_id' as tbl_id,
+                em.role_name as role
                 FROM user_em_roles_relation uer
+                INNER JOIN em_roles em ON uer.em_role_id = em.em_roles_id
                 INNER JOIN locations l ON uer.location_id = l.location_id
                 LEFT JOIN locations p ON l.parent_id = p.location_id
-                WHERE uer.user_id = ${userId}
-            `;
+                WHERE uer.user_id = ${userId} `;
            
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {

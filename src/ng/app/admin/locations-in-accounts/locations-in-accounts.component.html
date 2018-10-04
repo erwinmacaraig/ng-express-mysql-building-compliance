@@ -26,7 +26,7 @@
 		</select>
   </div>
   <div class="col l2 m3 s12 ">
-		<button class="btn orange waves-effect waves-light" [routerLink]="['/admin', 'add-account-user', accountId]">
+		<button class="btn orange waves-effect waves-light" [routerLink]="['/admin', 'add-location-to-account', accountId]">
 			Add New Location
 		</button>
 	</div>
@@ -45,6 +45,9 @@
         </tr>
       </thead>
       <tbody>
+        <tr *ngIf="locations.length == 0">
+            <td colspan="6" class="center"> <p>No record found</p> </td>
+        </tr>
         <tr *ngFor="let location of locations">
           <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['location_id']}}</a></td>
           <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['display_name']}}</a></td>

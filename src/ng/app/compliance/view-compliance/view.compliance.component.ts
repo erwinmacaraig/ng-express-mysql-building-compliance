@@ -17,7 +17,7 @@ import { AlertComponent } from '../../alert/alert.component';
 import { Observable } from 'rxjs/Rx';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as FileSaver from 'file-saver';
-
+import { PaperAttendanceDocument } from '../../models/paper_attendance_document';
 declare var $: any;
 declare var moment: any;
 
@@ -50,6 +50,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("general_occupant_trainingTableTemplate") general_occupant_trainingTableTemplate : ElementRef;
 	@ViewChild("sundryTableTemplate") sundryTableTemplate : ElementRef;
 
+    paperAttendanceRecord: Array<PaperAttendanceDocument> = [];
+    gofr_attendance_record: Array<PaperAttendanceDocument> = [];
+    sundry_attendance_record: Array<PaperAttendanceDocument> = [];
+    eco_attendance_record: Array<PaperAttendanceDocument> = [];
+    chief_warden_attendance_record: Array<PaperAttendanceDocument> = [];
 	userData = <any> {};
     isFRP = false;
     isTRP = false;
@@ -57,7 +62,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	selectedComplianceTitle = '';
 	selectedComplianceDescription = '';
 	selectedComplianceClasses = 'green darken-1 epm-icon';
-
+    showLoadingForSignedURL:boolean = true;
 	previewTemplate = 1;
 
 	selectedCompliance = {
@@ -357,6 +362,28 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
             }, (responseSubs) => {
                 this.evacDiagramSublocations = responseSubs.data.sublocations;
             });
+
+            this.complianceService.getPaperAttendanceFileUpload(this.locationID).subscribe((response) => {
+                this.paperAttendanceRecord = response['attendance_record'];
+                for (let attendance of this.paperAttendanceRecord) {
+                    switch(attendance.compliance_kpis_id.toString()) {
+                        case '8':
+                            this.gofr_attendance_record.push(attendance);
+                        break;
+                        case '6':
+                            this.eco_attendance_record.push(attendance);
+                        break;
+                        case '12':
+                            this.chief_warden_attendance_record.push(attendance);
+                        break;
+                        case '13':
+                            this.sundry_attendance_record.push(attendance);
+                        break;
+                    } 
+                }
+                this.showLoadingForSignedURL = false;                
+            });
+
         });
     }
 
@@ -472,7 +499,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           FileSaver.saveAs(blob, filename);
         },
         (error) => {
-          this.alertService.error('No file(s) available for download');
+          // this.alertService.error('No file(s) available for download');
+          $('#modalfilenotfound').modal('open');
           console.log('There was an error', error);
         });
     }

@@ -76,7 +76,8 @@ export class ComplianceDocumentsModel extends BaseClass {
                     console.log(error, sql);
                 }
                 for (const r of results) {
-                    let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
+                    // let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
+                    let urlPath = '';
                     urlPath += r['account_directory_name'];
                     if (r['parent_location_directory_name'] != null && r['parent_location_directory_name'].trim().length > 0) {
                         if(r['parent_is_building'] == 1){

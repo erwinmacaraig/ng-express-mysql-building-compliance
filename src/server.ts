@@ -6,9 +6,6 @@ import * as path from 'path';
 import * as session from 'express-session';
 import * as MemcachedStore from 'connect-memcached';
 
-import * as http from 'http';
-import * as url from 'url';
-
 // All Routes here
 import { IndexRoute } from './routes/index';
 import { RegisterRoute } from './routes/register';
@@ -31,6 +28,7 @@ import { ReportsRoute } from './routes/reports';
 import { AdminRoute } from './routes/admin';
 
 import * as cors from 'cors';
+const defs = require('./config/defs.json');
 
 
 import * as swaggerUi from 'swagger-ui-express';
@@ -133,7 +131,6 @@ export class Server {
         }
       }));
   }
-  }
 
   /**
   * Create router.
@@ -210,6 +207,10 @@ export class Server {
         }
         return next();
       });
+<<<<<<< HEAD
+=======
+      */
+>>>>>>> origin/develop
 
       // catch 404 and forward to error handler
       this.app.use(function(req: express.Request, res: express.Response, next: express.NextFunction) {
