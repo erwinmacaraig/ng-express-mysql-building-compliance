@@ -5,10 +5,7 @@ import * as logger from 'morgan';
 import * as path from 'path';
 import * as session from 'express-session';
 import * as MemcachedStore from 'connect-memcached';
-/*
-import * as http from 'http';
-import * as url from 'url';
-*/
+
 // All Routes here
 import { IndexRoute } from './routes/index';
 import { RegisterRoute } from './routes/register';

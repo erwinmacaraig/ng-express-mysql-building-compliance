@@ -26,6 +26,7 @@ import { NoemailComponent } from './noemail/noemail.component';
 import { LocationSignupComponent } from './signup/location.signup/location.signup';
 
 import { AuthGuard } from './services/auth-guard.service';
+import { CanDeactivateGuard } from './services/can-deactivate.guard.service';
 import { PersonInfoResolver} from './services/person-info.resolver';
 import { PersonDataProviderService } from './services/person-data-provider.service';
 import { EmailSuccessVerficiationComponent } from './email-success-verficiation/email-success-verficiation.component';
@@ -113,7 +114,7 @@ import { AdminReportsComponent } from './admin/reports/reports.component';
 import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
 import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
 import {  PeepFormComponent } from './peep.form/peep.form';
-import { AddLocationToAccountComponent } from './admin/add-location-to-account/add.location.to.account';
+import { AddAccountLocationComponent } from './admin/add-location/add-location.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -234,10 +235,10 @@ const appRoutes: Routes = [
     path : 'assign-courses', canActivate: [AuthGuard], component : AssignCoursesComponent
   },
   {
-    path: 'admin', component: AdminComponent,
+    path: 'admin', canActivate: [AuthGuard], component: AdminComponent,
     children: [
       { path: 'accounts', component: ListAccountsComponent },
-      { path: 'training-validation', component: TrainingValidationComponent },
+      { path: 'training-validation', component: TrainingValidationComponent, canDeactivate: [CanDeactivateGuard] },
       { path: 'paper-attendance-upload', component: PaperAttendanceComponent },
       { path: 'account-trainings/:accntId', component: AccountTrainingComponent },
       { path: 'view-location/:locationId', component: AdminViewLocationComponent },
@@ -248,14 +249,14 @@ const appRoutes: Routes = [
       { path: 'upload-compliance-docs', component: UploadComplianceDocComponent },
       { path: 'view-location-compliance/:accntId/:locationId/:kpi', component: ComplianceSummaryViewComponent },
       { path: 'activity-log-report/:location/:accountId', component : ReportsActivityLogComponent },
-      { path : 'trainings-report/:locationId/:accountId', component : ReportsTrainingsComponent },
-      { path : 'teams-report/:location/:accountId', component : ReportsTeamsComponent },
-      { path : 'reports', component : AdminReportsComponent },
+      { path: 'trainings-report/:locationId/:accountId', component : ReportsTrainingsComponent },
+      { path: 'teams-report/:location/:accountId', component : ReportsTeamsComponent },
+      { path: 'reports', component : AdminReportsComponent },
       { path: 'new-account', component: AdminAddAccountComponent },
       { path: 'notification-list', component: NotificationListComponent },
       { path: 'notification-config', component: NotificationConfigurationComponent },
-      { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
-      { path : 'add-location-to-account/:accountId', component : AddLocationToAccountComponent }
+      { path: 'notified-users-list/:config', component: NotifiedUsersListComponent },
+      { path: 'add-account-location', component: AddAccountLocationComponent }
     ]
   },
 

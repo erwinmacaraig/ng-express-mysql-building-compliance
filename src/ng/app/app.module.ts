@@ -12,6 +12,7 @@ import { ngfModule, ngf } from 'angular-file';
 // services section
 import { AuthService } from './services/auth.service';
 import { AuthGuard } from './services/auth-guard.service';
+import { CanDeactivateGuard } from './services/can-deactivate.guard.service'; 
 import { SignupService } from './services/signup.service';
 import { MessageService } from './services/messaging.service';
 import { LocationsService } from './services/locations';
@@ -137,8 +138,7 @@ import { ComplianceSummaryViewComponent } from './admin/compliance-summary-view/
 import { AdminViewLocationComponent } from './admin/view-location/view-location.component';
 import { AdminViewUserComponent } from './admin/view-user/view.user.component';
 import { TrainingValidationComponent } from './admin/training-validation/training-validation.component';
-import { AddLocationToAccountComponent } from './admin/add-location-to-account/add.location.to.account';
-
+import { AddAccountLocationComponent } from './admin/add-location/add-location.component';
 import { AccountTrainingComponent } from './admin/account-training/account-training.component';
 import { AdminReportsComponent } from './admin/reports/reports.component';
 import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
@@ -261,7 +261,7 @@ import {  PeepFormComponent } from './peep.form/peep.form';
     PaperAttendanceComponent,
     PeepFormComponent,
     AlertComponent,
-    AddLocationToAccountComponent
+    AddAccountLocationComponent
   ],
   imports: [
     BrowserModule,
@@ -285,6 +285,7 @@ import {  PeepFormComponent } from './peep.form/peep.form';
     LocationsService,
     MessageService,
     SignupService,
+    CanDeactivateGuard,
     AlertService,
     {
       provide: HTTP_INTERCEPTORS,

@@ -186,9 +186,11 @@ export class AdminService {
     return this.http.get(`${this.baseUrl}/admin/user-information/`+userid, this.options);
   }
 
-  getTaggedLocationsFromAccount(accountId){
-     return this.http.get(`${this.baseUrl}/admin/get-tagged-locations-from-account/`+accountId, this.options);
+  getAWSS3DownloadFileURL(key='') {
+    return this.http.post(`${this.baseUrl}/admin/utility/signedURL/`, { key: key});
   }
 
+  getTaggedLocationsFromAccount(accountId){
+    return this.http.get(`${this.baseUrl}/admin/get-tagged-locations-from-account/`+accountId, this.options);
+  }
 }
-

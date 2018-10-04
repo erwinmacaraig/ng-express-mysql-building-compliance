@@ -37,6 +37,8 @@ import { PaperAttendanceDocumentModel } from '../models/paper.attendance.doc.mod
 import {NotificationToken } from '../models/notification_token.model';
 import { NotificationConfiguration } from '../models/notification_config.model';
 import {EmailSender} from '../models/email.sender';
+import { Utils } from '../models/utils.model';
+
 const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
@@ -317,6 +319,7 @@ export class AdminRoute extends BaseRoute {
     router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
       const users: Array<object> = JSON.parse(req.body.users);
+      const validUsers = [];
       const invalidUsers = [];
       for (const u of users) {
        if (parseInt( u['user_id'], 10) == 0) {
@@ -449,8 +452,10 @@ export class AdminRoute extends BaseRoute {
                   'registered': '1',
                   'description': 'Training validated by user ' + req.user.user_id + ' on ' + moment().format('YYYY-MM-DD HH:mm:ss')
                 });
+                validUsers.push(u['email']);
                } catch (e) {
                  console.log(e, u);
+                 invalidUsers.push(u['email'])
                }
            }
          } else {
@@ -458,7 +463,6 @@ export class AdminRoute extends BaseRoute {
          }
        } else {
          try {
-
           await new TrainingCertification().checkAndUpdateTrainingCert({
             'user_id': u['user_id'],
             'certification_date': u['certification_date'],
@@ -468,15 +472,16 @@ export class AdminRoute extends BaseRoute {
             'registered': '1',
             'description': 'Training validated by user ' + req.user.user_id + ' on ' + moment().format('YYYY-MM-DD HH:mm:ss')
           });
-
+          validUsers.push(u['email']);
          } catch (e) {
            console.log(e, u);
+           invalidUsers.push(u['email']);
          }
        }
       }
-
       return res.status(200).send({
-        message: 'test'
+        invalid_users: invalidUsers,
+        validUsers: validUsers
       });
     });
 
@@ -1119,19 +1124,37 @@ export class AdminRoute extends BaseRoute {
           });
         } else {
           // console.log(d);
+          let compliance_kpis_id = 0;
+          switch(parseInt(req.body.training, 10)) {
+            case 16: 
+              compliance_kpis_id = 8;
+            break;
+            case 17:
+              compliance_kpis_id = 6;
+            break;            
+            case 23:
+            case 24: 
+            case 25:
+              compliance_kpis_id = 12;
+            break;
+            default: 
+              compliance_kpis_id = 13;
+            break;
+          }
           await attendance.create({
             dtTraining: req.body.dtTraining,
             intTrainingCourse: req.body.training,
             intUploadedBy: req.user.user_id,
             strOriginalfilename: filename,
             id: req.body.id,
-            type: req.body.type
+            type: req.body.type,
+            compliance_kpis_id: compliance_kpis_id
           });
         }
       });
     });
     return res.status(200).send({
-      message: 'Success test'
+      message: 'File uploaded successfully'
     });
   });
 
@@ -1369,35 +1392,73 @@ export class AdminRoute extends BaseRoute {
         });
     });
 
-    router.get('/admin/list/compliance-documents/', new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
-        const 
-          list = new List(),
-          hie_locations = [],
-          location = new Location(req.query.location);
-        
-        let 
-          tempNameParts = [],
-          locAccModel = new LocationAccountRelation(),
-          locAccRoleDb = [],
-          locAccRole = '';
+    router.post('/admin/utility/signedURL/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const utils = new Utils();
+      const key = req.body.key;
+      let signedUrl = '';
+      try {
+        signedUrl = await utils.getAWSSignedURL(key);
+        return res.status(200).send({
+          message: 'Success',
+          url: signedUrl
+        });
+      } catch (e) {
+        console.log(`The file ${key} is not found`);
+        return res.status(400).send({
+          message: `File not found - ${key}`
+        });
+      }
 
-        locAccRoleDb = await locAccModel.getByAccountIdAndLocationId(req.query.account, req.query.location);
-        for(let loc of locAccRoleDb){
-          if(loc['responsibility'] == 'Manager' &&  (locAccRole.trim().length > 0 || locAccRole.trim() != 'Manager')){
-            locAccRole = loc['responsibility'];
-          }else if(locAccRole.trim().length == 0){
-            locAccRole = loc['responsibility'];
-          }
+    });
+
+
+    router.get('/admin/list/compliance-documents/',
+    new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response, next: NextFunction) => {
+      const list = new List();
+      let tempNameParts = [];
+      const hie_locations = [];
+      const location = new Location(req.query.location);
+      const utils = new Utils();
+      // get sublocations if any
+      let children = [];
+      const sublocations = [];
+      sublocations.push(req.query.location);
+      if (req.query.kpi == 5 || req.query.kpi == 9) {
+        children = await location.getChildren(req.query.location);
+        for (const c of children) {
+          sublocations.push(c['location_id']);
         }
+      }
+      const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
+      /*
+      const documentsUnfiltered = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
+      const documents = [];
+      for (const doc of documentsUnfiltered) {
+        try {
+          doc['urlPath'] = await utils.getAWSSignedURL(doc['urlPath']);
+          documents.push(doc);
+        } catch (e) {
+          console.log(`The file ${doc['urlPath']} is not found`);
+        }
+      }
+      */
 
-        // get sublocations if any
-        let children = [];
-        const sublocations = [];
-        sublocations.push(req.query.location);
-        if (req.query.kpi == 5 || req.query.kpi == 9) {
-          children = await location.getChildren(req.query.location);
-          for (const c of children) {
-            sublocations.push(c['location_id']);
+      const location_data = await location.locationHierarchy();
+      let details: object = {};
+      for (const loc of location_data) {
+        loc['display_name'] = '';
+        // loop through the assumed heirarchy
+        tempNameParts = [];
+        let tempColName = '';
+
+        for (let p = 5; p > 0; p--) {
+          tempColName = `p${p}_name`;
+          if (loc[tempColName] != null) {
+            tempNameParts.push(loc[tempColName]);
+            details[loc[`p${p}_location_id`]] = loc[tempColName];
+            hie_locations.push(details);
+            details = {};
+
           }
         }
         const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
