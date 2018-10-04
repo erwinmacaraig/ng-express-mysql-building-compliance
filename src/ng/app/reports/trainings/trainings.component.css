@@ -244,3 +244,13 @@ table tr td .material-icons{
     right: 61%;
     width: 34%;
 }
+
+.row-margined-top{
+    margin-top: 35px;
+}
+
+@media print{
+    .row-margined-top{
+        margin-top: 0px;
+    }
+}

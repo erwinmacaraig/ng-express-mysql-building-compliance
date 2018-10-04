@@ -96,7 +96,7 @@ export class ReportsRoute extends BaseRoute {
         * generate list for team
         */
        router.post('/reports/team', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-         new ReportsRoute().generateTeamReport(req, res, next);
+         new ReportsRoute().generateTeamReport(req, res);
        });
 
        router.post('/reports/location-trainings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -123,6 +123,26 @@ export class ReportsRoute extends BaseRoute {
            req.body['user_id'] = req.params.userid;
            new ReportsRoute().getActivityReport(req, res, true);
        });
+
+       router.get('/reports/pdf-team/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           new ReportsRoute().generateTeamReport(req, res, true);
+       });
+
+       router.get('/reports/pdf-location-trainings/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           req.body['course_method'] = 'none';
+           req.body['getall'] = true;
+           new ReportsRoute().locationTrainings(req, res, true);
+       });
     }
 
      /**
@@ -130,7 +150,7 @@ export class ReportsRoute extends BaseRoute {
       * process reporting info for a given root location
       */
 
-    public async generateTeamReport(req: AuthRequest, res: Response, next: NextFunction) {
+    public async generateTeamReport(req: AuthRequest, res: Response, toPdf?) {
 
         let
         userRoleRel = new UserRoleRelation(),
@@ -149,12 +169,13 @@ export class ReportsRoute extends BaseRoute {
         locationModel = new Location(location_id),
         locations = <any> [],
         toReturn = <any> [],
-        isAdmin = (req.user.evac_role == 'admin') ? true : false,
+        isAdmin = (req.user) ? (req.user.evac_role == 'admin') ? true : false : false,
         userRoleModel = new UserRoleRelation(),
+        userId = (req.body.user_id) ? req.body.user_id : req.user.user_id,
         role = 0;
 
         try{
-            role = await userRoleModel.getByUserId(req.user.user_id, true);
+            role = await userRoleModel.getByUserId(userId, true);
         }catch(e){}
 
         if(location_id == 0){
@@ -251,8 +272,6 @@ export class ReportsRoute extends BaseRoute {
                 totalpages++;
             }
 
-
-
             response.pagination.pages = totalpages;
         }
 
@@ -260,7 +279,42 @@ export class ReportsRoute extends BaseRoute {
             response.pagination.pages = 1;
         }
 
-        res.status(200).send(response);
+        if(!toPdf){
+          res.status(200).send(response);
+        }else{
+          response['title'] = 'Team Report';
+          response['tables'] = [];
+          for(let data of response.data){
+            let tblData = {
+              title : data.location.name + ' Current Team Information',
+              data : [], 
+              headers : ['Company', 'Sub Location', 'Contact Person', 'Email', 'Warden', 'P.E.E.P']
+            };
+
+            let totalWardens = 0;
+            for(let d of data.data){
+              let accnts = '';
+              let trps = '';
+              let emails = '';
+              for(let t of d.trp){
+                accnts += t.account_name+'\n';
+                trps += t.first_name+' '+t.last_name+'\n';
+                emails += t.email+'\n';
+              }
+              tblData.data.push([
+                accnts, d.name, trps, emails, d.total_wardens, d.peep_total
+              ]);
+
+              totalWardens += parseInt(d.total_wardens);
+            }
+
+            tblData.data.push([ '', '', '', '', '', 'Total No. Of Wardens '+totalWardens ]);
+
+            response['tables'].push(tblData);
+          }
+          this.generatePDF(response, res);
+        }
+        
     }
 
     public async listLocations(req: AuthRequest, res: Response, toReturn?, filters?){
@@ -278,13 +332,30 @@ export class ReportsRoute extends BaseRoute {
             },
             response = <any> {
                 data : []
-            };
+            }, 
+            userId = (req.body.user_id) ? req.body.user_id : (req.user.user_id) ? req.user.user_id : 0;
 
         try {
-          r = await userRoleRel.getByUserId(req.user.user_id, true);
+          r = await userRoleRel.getByUserId(userId, true);
         } catch(e) {
           console.log('location route get-parent-locations-by-account-d',e);
           r = 0;
+        }
+
+        if(req.user){
+          if(req.user.evac_role == 'admin'){
+            filters['responsibility'] = 'Manager';
+          }
+        }else{
+          try{
+            let uModel = new User(req.body.user_id);
+            await uModel.load();
+
+            if(uModel.get('evac_role') == 'admin'){
+              filters['responsibility'] = 'Manager';
+            }
+          }catch(e){}
+          
         }
 
         if('responsibility' in filters){
@@ -326,7 +397,7 @@ export class ReportsRoute extends BaseRoute {
         }
     }
 
-    public async locationTrainings(req: AuthRequest, res: Response){
+    public async locationTrainings(req: AuthRequest, res: Response, toPdf?){
       let
         response = {
             status : false, data : [], message : '',
@@ -353,10 +424,11 @@ export class ReportsRoute extends BaseRoute {
         getAll = (req.body.getall) ? req.body.getall : false,
         filterExceptLocation = (req.body.nofilter_except_location) ? req.body.nofilter_except_location : false,
         userRoleModel = new UserRoleRelation(),
+        userId = (req.body.user_id) ? req.body.user_id : req.user.user_id,
         role = 0;
 
         try{
-            role = await userRoleModel.getByUserId(req.user.user_id, true);
+            role = await userRoleModel.getByUserId(userId, true);
         }catch(e){}
 
         if(getAll || filterExceptLocation){
@@ -393,8 +465,10 @@ export class ReportsRoute extends BaseRoute {
             users = [];
 
         const config = {};
-        if ( (req.body.searchKey !== null && req.body.searchKey.length > 0) && !getAll && !filterExceptLocation) {
-          config['searchKey'] = req.body.searchKey;
+        if(req.body.searchKey){
+          if ( (req.body.searchKey !== null && req.body.searchKey.length > 0) && !getAll && !filterExceptLocation) {
+            config['searchKey'] = req.body.searchKey;
+          }
         }
 
         if(role != 1){
@@ -541,7 +615,6 @@ export class ReportsRoute extends BaseRoute {
 
         response.data = finalResult;
 
-
         if(response.pagination.total > limit){
             let div = response.pagination.total / limit,
                 rem = (response.pagination.total % limit) * 1,
@@ -558,7 +631,37 @@ export class ReportsRoute extends BaseRoute {
             response.pagination.pages = 1;
         }
 
-        res.send(response);
+        if(!toPdf){
+            res.status(200).send(response);
+        }else{
+          response['tables'] = [];
+          let tblData = {
+            title : 'Training Report',
+            data : [], 
+            headers : ["User", "Training Name", "Training Date", "Status"]
+          };
+
+          for(let re of response.data){
+              let compOrNot = '';
+
+              if(re.status == 'valid' && re.pass == 1){
+                compOrNot = 'Compliant';
+              }else{
+                  let desc = '(Not Taken)';
+                  if(re.pass == 0){
+                      desc = '(Failed)';
+                  }else if(re.status == 'expired'){
+                      desc = '(Expired)';
+                  }
+                  compOrNot = 'Not Compliant '+desc;
+              }
+              tblData.data.push([ re.first_name+' '+re.last_name, re.training_requirement_name, re.certification_date_formatted, compOrNot ]);
+          }
+           
+          response['tables'].push(tblData);
+
+          this.generatePDF(response, res);
+        }
     }
 
     private async createComplianceMapForLocation(locationId, accountId, role){
@@ -871,9 +974,12 @@ export class ReportsRoute extends BaseRoute {
 
         if(location_id == 0){
             try{
+                console.log('req.body', req.body);
                 let responseLocations = <any> await this.listLocations(req,res, true, {'archived' : 0});
                 locations = responseLocations.data;
-            }catch(e){}
+            }catch(e){
+              console.log(e);
+            }
         }else{
             let ids = location_id.split('-'),
                 locsIds = [0],
@@ -936,60 +1042,65 @@ export class ReportsRoute extends BaseRoute {
         if(!toPdf){
             res.status(200).send(response);
         }else{
-            let 
-            timestamp = new Date().getTime(),
-            doc:PDFDocument = new PDFDocumentWithTables(),
-            DIR = __dirname + '/../public/temp/'; //'/../public/uploads/';
+          response['tables'] = [];
+          let tblData = {
+            title : 'Activity Report',
+            data : [], 
+            headers : ['Locations', 'File name', 'Date']
+          };
+          for(let d of response.data){
+            tblData.data.push([ d.location_name, d.file_name, d.timestamp_formatted ]);
+          }
+          response['tables'].push(tblData);
 
-            let filepath = DIR + timestamp + '.pdf';
-            
-            console.log('filepath', filepath);
-
-            let writeStream = fs.createWriteStream(filepath);
-            doc.pipe(writeStream); 
-            
-            const table0 = {
-                headers: ['Word', 'Comment', 'Summary'],
-                rows: [
-                    ['Apple', 'Not this one', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla viverra at ligula gravida ultrices. Fusce vitae pulvinar magna.'],
-                    ['Tire', 'Smells like funny', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla viverra at ligula gravida ultrices. Fusce vitae pulvinar magna.']
-                ]
-            };
-
-            doc.table(table0, {
-                prepareHeader: () => doc.font('Helvetica-Bold'),
-                prepareRow: (row, i) => doc.font('Helvetica').fontSize(12)
-            });
-
-            const table1 = {
-                headers: ['Country', 'Conversion rate', 'Trend'],
-                rows: [
-                    ['Switzerland', '12%', '+1.12%'],
-                    ['France', '67%', '-0.98%'],
-                    ['England', '33%', '+4.44%']
-                ]
-            };
-
-            doc.moveDown().table(table1, 100, 350, { width: 300 });
-
-            doc.end();
-
-            writeStream.on('finish', function(){
-                fs.readFile(filepath, "utf8", function(err, data){
-                    if(err) throw err;
-
-                    var file = fs.createReadStream(filepath);
-                    var stat = fs.statSync(filepath);
-
-                    res.setHeader('Content-Length', stat.size);
-                    res.setHeader('Content-Type', 'application/pdf');
-                    res.setHeader('Content-Disposition', 'attachment; filename='+timestamp + '.pdf');
-                    file.pipe(res);
-                });
-            });
-
-            
-            
+          this.generatePDF(response, res);
         }
+    }
+
+    generatePDF(objRes, res){
+      let 
+        data = objRes.data,
+        tables = objRes.tables,
+        timestamp = new Date().getTime(),
+        doc:PDFDocument = new PDFDocumentWithTables({
+          margins : {
+            top:25, left:25, right:25, bottom:25
+          }
+        }),
+        DIR = __dirname + '/../public/temp/'; //'/../public/uploads/';
+
+        let 
+        filepath = DIR + timestamp + '.pdf',
+        writeStream = fs.createWriteStream(filepath);
+        
+        doc.pipe(writeStream);
+
+        for(let table of tables){
+          doc.table({
+            title : table.title,
+            headers: table.headers,
+            rows: table.data
+          },
+          {
+            prepareHeader: () => doc.font('Helvetica').fontSize(9),
+            prepareRow: (row, i) => doc.font('Helvetica').fontSize(6)
+          });
+        }
+
+        doc.end();
+
+        writeStream.on('finish', function(){
+            fs.readFile(filepath, "utf8", function(err, data){
+                if(err) throw err;
+
+                var file = fs.createReadStream(filepath);
+                var stat = fs.statSync(filepath);
+
+                res.setHeader('Content-Length', stat.size);
+                res.setHeader('Content-Type', 'application/pdf');
+                res.setHeader('Content-Disposition', 'attachment; filename='+timestamp + '.pdf');
+                file.pipe(res);
+            });
+        });
     }
 }

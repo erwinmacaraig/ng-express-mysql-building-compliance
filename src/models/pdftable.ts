@@ -5,13 +5,17 @@ export class PDFDocumentWithTables extends PDFDocument {
     constructor (options?) {
         if(options){
             super(options);
+        }else{
+            super();
         }
     }
 
     public table (table, arg0, arg1, arg2) {
-        let thisClass = <any> this;
-        let startX = thisClass['page'].margins.left, startY = thisClass.y;
-        let options = <any> {};
+        let 
+        thisClass = <any> this,
+        startX = thisClass['page'].margins.left, 
+        startY = thisClass.y,
+        options = <any> {};
 
         if ((typeof arg0 === 'number') && (typeof arg1 === 'number')) {
             startX = arg0;
@@ -55,12 +59,26 @@ export class PDFDocumentWithTables extends PDFDocument {
             rowBottomY = 0;
         });
 
+        // Check to have enough room for header and first rows
+        if (startY + 10 * computeRowHeight(table.headers) > maxY)
+            thisClass.addPage();
+
+        // Titles
+        thisClass.fontSize('14').text(table.title).moveDown(0.5);
+        startY += 21;
+
+        // Refresh the y coordinate of the top of the headers row
+        rowBottomY = Math.max(startY, rowBottomY);
+
+        thisClass
+            .moveTo(startX, rowBottomY - rowSpacing * 0.5)
+            .lineTo(startX + usableWidth, rowBottomY - rowSpacing * 0.5)
+            .lineWidth(0.5);
+
+        startY += 3;
+
         // Allow the user to override style for headers
         prepareHeader();
-
-        // Check to have enough room for header and first rows
-        if (startY + 3 * computeRowHeight(table.headers) > maxY)
-            thisClass.addPage();
 
         // Print all headers
         table.headers.forEach((header, i) => {
@@ -76,10 +94,12 @@ export class PDFDocumentWithTables extends PDFDocument {
         // Separation line between headers and rows
         thisClass.moveTo(startX, rowBottomY - rowSpacing * 0.5)
             .lineTo(startX + usableWidth, rowBottomY - rowSpacing * 0.5)
-            .lineWidth(2)
-            .stroke();
+            .lineWidth(0.5);
 
         table.rows.forEach((row, i) => {
+            // Allow the user to override style for rows
+            prepareRow(row, i);
+
             const rowHeight = computeRowHeight(row);
 
             // Switch to next page if we cannot go any further because the space is over.
@@ -88,9 +108,6 @@ export class PDFDocumentWithTables extends PDFDocument {
                 startY = rowBottomY + rowSpacing;
             else
                 thisClass.addPage();
-
-            // Allow the user to override style for rows
-            prepareRow(row, i);
 
             // Print all cells of the current row
             row.forEach((cell, i) => {
@@ -113,6 +130,8 @@ export class PDFDocumentWithTables extends PDFDocument {
         });
 
         thisClass.x = startX;
+        thisClass.moveDown();
+        thisClass.moveDown();
         thisClass.moveDown();
 
         return thisClass;
