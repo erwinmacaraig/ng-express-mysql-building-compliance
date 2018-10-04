@@ -154,6 +154,7 @@ export class ImportCsvButtonComponent implements OnInit, OnDestroy {
             }
 
             console.log(data);
+            $('#modaCsvUpload').modal('close');
         }, (e) => {
             this.modalCSVMessage = e.error.message;
             setTimeout(() => {
