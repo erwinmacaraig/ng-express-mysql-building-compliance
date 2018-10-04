@@ -117,9 +117,22 @@ export class Server {
       }));
 
       this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
       // cors
-      this.app.use(cors());
+      this.app.use(cors({
+        origin: function(origin, callback) {
+          // allow requests with no origin like mobile apps or curl requests
+          if (!origin) {
+            return callback(null, true);
+          }
+          if (defs['ALLOWED_ORIGINS'].indexOf(origin) === -1) {
+            const message = 'Allow access from the specified origin ' + origin + ' is prohibited.';
+            console.log(message);
+            return callback(new Error('message'));
+          }
+          return callback(null, true);
+        }
+      }));
+  }
   }
 
   /**
