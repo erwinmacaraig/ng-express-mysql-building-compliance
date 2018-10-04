@@ -92,7 +92,7 @@ export class TrainingCertification extends BaseClass {
         ('course_method' in this.dbData) ? this.dbData['course_method'] : 'online_by_evac',
         ('third_party_name' in this.dbData) ? this.dbData['third_party_name'] : null,
         ('description' in this.dbData) ? this.dbData['description'] : null,
-        ('user_id' in this.dbData) ? this.dbData[''] : 0,
+        ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
         ('certification_date' in this.dbData) ? this.dbData['certification_date'] : null,
         ('pass' in this.dbData) ? this.dbData['pass'] : 1,
         ('registered' in this.dbData) ? this.dbData['registered'] : 1,
@@ -259,6 +259,7 @@ export class TrainingCertification extends BaseClass {
   public checkAndUpdateTrainingCert(certData: object = {}) {
     return new Promise((resolve, reject) => {
       let sql_where_filter = 'WHERE 1=1';
+      console.log(certData);
       sql_where_filter += ('training_requirement_id' in certData) ?
         ` AND certifications.training_requirement_id = ${certData['training_requirement_id']}` : '';
 
@@ -286,12 +287,14 @@ export class TrainingCertification extends BaseClass {
           ${sql_where_filter}
           AND DATE_ADD(certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()
       `;
+      
       const connection = db.createConnection(dbconfig);
       connection.query(sql_check, [], (error, results, fields) => {
         if (error) {
           console.log('Cannot check the data of this given certificate', error, certData, sql_check);
           throw new Error('Cannot check the data of this given certificate');
         }
+        
         // there is no certification or certification is expired
         if (!results.length) {
           this.create(certData).then((data) => {
@@ -304,7 +307,7 @@ export class TrainingCertification extends BaseClass {
           // Certificate is still valid
           // JUST UPDATE THE CERTIFICATION DATE
           certData['certifications_id'] = results[0]['certifications_id'];
-          certData['certification_date'] = moment().format('YYYY-MM-DD');
+          certData['certification_date'] = moment().format('YYYY-MM-DD');          
           this.create(certData).then((data) => {
             resolve(true);
           }).catch((e) => {
@@ -374,8 +377,7 @@ export class TrainingCertification extends BaseClass {
               LEFT JOIN training_requirement as tr2 ON tr2.training_requirement_id = em_role_training_requirements.training_requirement_id
               LEFT JOIN course_user_relation as cur ON cur.user_id = users.user_id
               LEFT JOIN scorm_course as sc ON sc.course_id = cur.course_id
-
-            WHERE users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}
+            WHERE users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}            
             GROUP BY certifications.certifications_id
             ${orderSql} ${limitSql}
           `;
