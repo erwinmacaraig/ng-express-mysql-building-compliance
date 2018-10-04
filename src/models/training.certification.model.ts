@@ -377,8 +377,7 @@ export class TrainingCertification extends BaseClass {
               LEFT JOIN training_requirement as tr2 ON tr2.training_requirement_id = em_role_training_requirements.training_requirement_id
               LEFT JOIN course_user_relation as cur ON cur.user_id = users.user_id
               LEFT JOIN scorm_course as sc ON sc.course_id = cur.course_id
-
-            WHERE users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}
+            WHERE users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}            
             GROUP BY certifications.certifications_id
             ${orderSql} ${limitSql}
           `;
