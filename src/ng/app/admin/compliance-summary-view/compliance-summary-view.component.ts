@@ -458,8 +458,6 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   }
 
   downloadKPIFile(kpi_file, filename) {
-      console.log(kpi_file);
-      console.log(filename);
       this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
         const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
         FileSaver.saveAs(blob, filename);
