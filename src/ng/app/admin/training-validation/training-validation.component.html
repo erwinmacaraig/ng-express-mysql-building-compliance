@@ -160,7 +160,13 @@
       <br>
       <div class="button-container right-align">
           <a class="btn grey lighten-1 waves-effect waves-light cancel" (click)="checkInputForms()"> Cancel </a>
-
+          <!--
+          <input type="submit" class="btn lighten-1 orange waves-effect" value="Submit">
+          <pre>
+               userForm is {{userForm.valid}}
+               searchLocationField is {{searchLocationField.valid}}
+             </pre>
+          -->
           <input type="submit" [ngClass]="{'btn': true,
                                            'grey': (userForm.valid && searchLocationField.valid) == false,
                                            'lighten-1': (userForm.valid && searchLocationField.valid) == false,
@@ -169,7 +175,7 @@
                                            'waves-effect': (userForm.valid && searchLocationField.valid) == true,
                                            'waves-light': (userForm.valid && searchLocationField.valid) == true}" value="Submit"
           [disabled]="!userForm.valid || !searchLocationField.valid" />
-
+             
       </div>
     </div>
   </div>
