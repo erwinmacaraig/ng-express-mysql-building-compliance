@@ -40,6 +40,14 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         location_id : 0,
         contact_number : '',
         mobile_number : '',
+        selected_roles : [],
+        new_account : {
+            valid : false,
+            name : '',
+            trp : {
+                firstname : '', lastname : '', email : ''
+            }
+        },
         errors : {}
     };
 
@@ -68,6 +76,18 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     searchModalLocationSubs;
     showLocationsRecursive = false;
     formLocValid = false;
+
+    selectRolesDropdown = [];
+    dropdownSettings = {
+        singleSelection: false,
+        idField: 'role_id',
+        textField: 'role_name',
+        selectAllText: 'Select All',
+        unSelectAllText: 'UnSelect All',
+        itemsShowLimit: 1,
+        allowSearchFilter: false,
+        enableCheckAll: false
+    };
 
     constructor(
         private authService: AuthService,
@@ -114,6 +134,13 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
                 this.ecoRoles = roles;
+                for(let i in roles){
+                    if(roles[i]['em_roles_id'] != 12 && roles[i]['em_roles_id'] != 8){
+                        this.selectRolesDropdown.push({
+                            role_id : roles[i]['em_roles_id'], role_name : roles[i]['role_name']
+                        });
+                    }
+                }
             }, (err) => {
                 console.log('Server Error. Unable to get the list');
             }
@@ -142,6 +169,13 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 
         this.onKeyUpSearchModalLocationEvent();
         this.messageService.sendMessage({ 'csv-upload' : {  'title' : 'Nominate Wardens by CSV Upload'  } });
+    }
+
+    onSelectRole($event, iterator, elem){
+
+        this.selectedUser = this.addedUsers[iterator];
+
+        console.log(this.selectedUser);
     }
 
     filterLocationForSelectedValue(){

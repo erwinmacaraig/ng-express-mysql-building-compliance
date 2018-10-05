@@ -42,6 +42,14 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         contact_number : '',
         mobile_number : '',
         mobility_impaired: 1,
+        selected_roles : [],
+        new_account : {
+            valid : false,
+            name : '',
+            trp : {
+                firstname : '', lastname : '', email : ''
+            }
+        },
         errors : {}
     };
     private userRole;
@@ -62,6 +70,18 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
     formLocValid = false;
 
     modalCSVMessage = '';
+
+    selectRolesDropdown = [];
+    dropdownSettings = {
+        singleSelection: false,
+        idField: 'role_id',
+        textField: 'role_name',
+        selectAllText: 'Select All',
+        unSelectAllText: 'UnSelect All',
+        itemsShowLimit: 1,
+        allowSearchFilter: false,
+        enableCheckAll: false
+    };
 
     constructor(
         private authService: AuthService,
@@ -98,10 +118,16 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         this.dataProvider.buildECORole().subscribe((roles) => {
                 this.ecoRoles = roles;
                 for(let i in roles){
-                    this.accountRoles.push({
-                        role_id : roles[i]['em_roles_id'],
-                        role_name : roles[i]['role_name']
-                    });
+                    if(roles[i]['em_roles_id'] != 12){
+                        this.accountRoles.push({
+                            role_id : roles[i]['em_roles_id'],
+                            role_name : roles[i]['role_name']
+                        });
+
+                        this.selectRolesDropdown.push({
+                            role_id : roles[i]['em_roles_id'], role_name : roles[i]['role_name']
+                        });
+                    }
                 }
             }, (err) => {
                 console.log('Server Error. Unable to get the list');
@@ -134,6 +160,13 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 
         this.messageService.sendMessage({ 'csv-upload' : {  'title' : 'Add Mobility Impaired by CSV Upload', mobility_impaired : true  } });
 	}
+
+    onSelectRole($event, iterator, elem){
+
+        this.selectedUser = this.addedUsers[iterator];
+
+        console.log(this.selectedUser);
+    }
 
 	addMoreRow(){
 		//a copy
