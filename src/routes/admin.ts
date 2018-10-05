@@ -1442,26 +1442,6 @@ export class AdminRoute extends BaseRoute {
         }
       }
       */
-
-      const location_data = await location.locationHierarchy();
-      let details: object = {};
-      for (const loc of location_data) {
-        loc['display_name'] = '';
-        // loop through the assumed heirarchy
-        tempNameParts = [];
-        let tempColName = '';
-
-        for (let p = 5; p > 0; p--) {
-          tempColName = `p${p}_name`;
-          if (loc[tempColName] != null) {
-            tempNameParts.push(loc[tempColName]);
-            details[loc[`p${p}_location_id`]] = loc[tempColName];
-            hie_locations.push(details);
-            details = {};
-
-          }
-        }
-        const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
         const location_data = await location.locationHierarchy();
         let details: object = {};
         for (const loc of location_data) {
@@ -1490,7 +1470,6 @@ export class AdminRoute extends BaseRoute {
           displayName: tempNameParts,
           detailsObj: hie_locations,
           children: children,
-          locAccRole : locAccRole,
           sublocations: sublocations
         });    
     });
