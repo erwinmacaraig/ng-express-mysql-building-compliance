@@ -62,13 +62,14 @@ export class ReportsRoute extends BaseRoute {
                 let 
                 r = 0,
                 locationListing,
-                accountId = (req.query.account_id) ? req.query.account_id : req.user.account_id;
+                accountId = (req.query.account_id) ? req.query.account_id : req.user.account_id,
+                userId = (req.body.user_id) ? req.body.user_id : (req.user.user_id) ? req.user.user_id : 0;
 
                 if(req.user.evac_role == 'admin'){
                     r = 1;
                 }else{
                     try {
-                        r = await userRoleRel.getByUserId(req.user.user_id, true);
+                        r = await userRoleRel.getByUserId(userId, true);
                     } catch (e) {
                         console.log('location route get-parent-locations-by-account-d', e);
                         r = 0;
@@ -80,7 +81,7 @@ export class ReportsRoute extends BaseRoute {
                     isPortfolio = false;
 
                 try {
-                  roles = await userRoleRel.getByUserId(req.user.user_id);
+                  roles = await userRoleRel.getByUserId(userId);
                   for(let role of roles){
                       if(role['is_portfolio'] == 1){
                           isPortfolio = true;
@@ -89,7 +90,7 @@ export class ReportsRoute extends BaseRoute {
                 } catch(e) { }
 
                 filter['isPortfolio'] = isPortfolio;
-                filter['userId'] = req.user.user_id;
+                filter['userId'] = userId;
 
 
                 filter['responsibility'] = r;
@@ -388,7 +389,7 @@ export class ReportsRoute extends BaseRoute {
         } catch(e) { }
 
         filter['isPortfolio'] = isPortfolio;
-        filter['userId'] = req.user.user_id;
+        filter['userId'] = userId;
 
         if('responsibility' in filters){
             filter['responsibility'] = filters['responsibility'];
@@ -1106,6 +1107,8 @@ export class ReportsRoute extends BaseRoute {
         writeStream = fs.createWriteStream(filepath);
         
         doc.pipe(writeStream);
+        doc.image( __dirname + '/../public/assets/images/ec_logo.png', 25, 15, { width: 200, height: 60 });
+        doc.moveDown(4);
 
         for(let table of tables){
           doc.table({
