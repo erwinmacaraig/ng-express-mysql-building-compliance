@@ -394,7 +394,7 @@ export class TeamRoute extends BaseRoute {
                     'token': token,
                     'action': 'verify',
                     'verified': 1,
-                    'expiration_date': '',
+                    'expiration_date': moment().add(7, 'days').format('YYYY-MM-DD'),
                     'id': userSaveModel.ID(),
                     'id_type': 'user_id'
                 });

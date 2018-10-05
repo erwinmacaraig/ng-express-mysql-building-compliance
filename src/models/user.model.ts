@@ -743,18 +743,20 @@ export class User extends BaseClass {
                 select = ' COUNT(users.user_id) as count '
             }
             
-            let where = '';
+            let where = '', join_training = '';
             if(accountId){
                 where += ` AND users.account_id IN (${accountId})  `;
             }
 
             let whereLocations = (locationIds) ? ` WHERE location_id IN (${locationIds}) ` : '';
             where += ` AND users.user_id IN (SELECT user_id FROM user_em_roles_relation ${whereLocations} )  `;
-
+            join_training = (locationIds) ?
+            ` INNER JOIN user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
+              INNER JOIN em_role_training_requirements ON user_em_roles_relation.em_role_id = em_role_training_requirements.em_role_id` : '';
             let offsetLimit = (limit) ? ' LIMIT '+limit : '';
 
-            let sql_load = `SELECT ${select} FROM users INNER JOIN accounts ON users.account_id = accounts.account_id WHERE users.archived = 0 ${where} ${offsetLimit} `;
-
+            let sql_load = `SELECT ${select} FROM users INNER JOIN accounts ON users.account_id = accounts.account_id ${join_training} WHERE users.archived = 0 ${where} ${offsetLimit} `;
+            console.log(sql_load); 
             const connection = db.createConnection(dbconfig);
             connection.query(sql_load, (error, results, fields) => {
                 if (error) {

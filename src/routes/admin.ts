@@ -1428,50 +1428,39 @@ export class AdminRoute extends BaseRoute {
         for (const c of children) {
           sublocations.push(c['location_id']);
         }
-      }
+      }      
       const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
-      /*
-      const documentsUnfiltered = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
-      const documents = [];
-      for (const doc of documentsUnfiltered) {
-        try {
-          doc['urlPath'] = await utils.getAWSSignedURL(doc['urlPath']);
-          documents.push(doc);
-        } catch (e) {
-          console.log(`The file ${doc['urlPath']} is not found`);
-        }
-      }
-      */
-        const location_data = await location.locationHierarchy();
-        let details: object = {};
-        for (const loc of location_data) {
-          loc['display_name'] = '';
-          // loop through the assumed heirarchy
-          tempNameParts = [];
-          let tempColName = '';
+      const location_data = await location.locationHierarchy();
+      let details: object = {};
+      for (const loc of location_data) {
+        loc['display_name'] = '';
+        // loop through the assumed heirarchy
+        tempNameParts = [];
+        let tempColName = '';
 
-          for (let p = 5; p > 0; p--) {
-            tempColName = `p${p}_name`;
-            if (loc[tempColName] != null) {
-              tempNameParts.push(loc[tempColName]);
-              details[loc[`p${p}_location_id`]] = loc[tempColName];
-              hie_locations.push(details);
-              details = {};
-            }
+        for (let p = 5; p > 0; p--) {
+          tempColName = `p${p}_name`;
+          if (loc[tempColName] != null) {
+            tempNameParts.push(loc[tempColName]);
+            details[loc[`p${p}_location_id`]] = loc[tempColName];
+            hie_locations.push(details);
+            details = {};
           }
-          details[loc['location_id']] = loc['name'];
-          hie_locations.push(details);
-          tempNameParts.push(loc['name']);
-          loc['display_name'] = tempNameParts.join(' >> ');
         }
-        return res.status(200).send({
-          data: documents,
-          location: location_data,
-          displayName: tempNameParts,
-          detailsObj: hie_locations,
-          children: children,
-          sublocations: sublocations
-        });    
+        
+        details[loc['location_id']] = loc['name'];
+        hie_locations.push(details);
+        tempNameParts.push(loc['name']);
+        loc['display_name'] = tempNameParts.join(' >> ');
+      }
+      return res.status(200).send({
+        data: documents,
+        location: location_data,
+        displayName: tempNameParts,
+        detailsObj: hie_locations,
+        children: children,       
+        sublocations: sublocations
+      });    
     });
 
     router.post('/admin/upload/compliance-documents/',
