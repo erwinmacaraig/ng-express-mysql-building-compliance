@@ -1,7 +1,7 @@
-<div class="container" #printContainer>
+<div class="container print-no-margin" id="printContainer" #printContainer>
 
     <div *ngIf="reportData.length == 0">
-        <div class="row" style="margin-top: 35px;">
+        <div class="row row-margined-top" >
             <div class="col l12 m12 s12" *ngIf="reportData.location">
                 <h5 class="left">
                     <span *ngIf="reportData.location.parent.name.length > 0">{{reportData.location.parent.name}}, </span> {{reportData.location.name}} 
@@ -13,7 +13,7 @@
     
     <div *ngFor="let report of reportData; let i = index;" >
 
-    	<div class="row" style="margin-top: 35px;">
+    	<div class="row row-margined-top"  >
 
     		<div class="col l12 m12 s12">
     			<h5 class="left">
@@ -151,7 +151,7 @@
 
 </div>
 
-<div class="container">
+<div class="container no-print">
 
     <div class="row no-print">
         <div class="col l12 m12 s12 center pagination" [hidden]="reportData.length == 0 || pagination.pages < 2 ">

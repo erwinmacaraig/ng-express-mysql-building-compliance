@@ -1,10 +1,10 @@
-<div class="container">
-	<div class="row" style="margin-top: 35px;">
+<div class="container print-no-margin" id="printContainer" #printContainer>
+	<div class="row row-margined-top"  >
 
 		<div class="col l12 m12 s12">
 			<h5 class="left">Activity Log</h5>
 
-			<div class="right right-buttons">
+			<div class="right right-buttons no-print">
                 <div style="width: 35px;" *ngIf="pdfLoader">
                     <div class="progress" style="margin: 2px auto;">
                         <div class="indeterminate"></div>
@@ -39,7 +39,7 @@
 
 	</div>
 
-	<div class="row" id="printContainer" #printContainer>
+	<div class="row" >
 		
 		<div class="col l12 m12 s12">
 			<table class="striped">
@@ -80,7 +80,7 @@
 
 	</div>
 
-    <div class="row">
+    <div class="row no-print">
         <div class="col l12 m12 s12 center pagination" [hidden]="activityLogs.length == 0 || pagination.total <= queries.limit || loadingTable">
             <div class="inline-block">
                 <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>

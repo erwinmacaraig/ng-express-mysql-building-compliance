@@ -1447,6 +1447,7 @@ export class AdminRoute extends BaseRoute {
             details = {};
           }
         }
+        
         details[loc['location_id']] = loc['name'];
         hie_locations.push(details);
         tempNameParts.push(loc['name']);

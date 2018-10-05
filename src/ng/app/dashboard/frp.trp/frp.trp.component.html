@@ -142,7 +142,11 @@
                                     <ng-container *ngTemplateOutlet="innerLink"></ng-container>
                                 </a>
 
-                                <a *ngIf="loc.is_building == 0" [attr.disabled]="!loc.fetchingCompliance" [routerLink]="['/location/compliance/view/', loc.enc_parent_id]">
+                                <a *ngIf="loc.is_building == 0 && loc.parent_id != -1" [attr.disabled]="!loc.fetchingCompliance" [routerLink]="['/location/compliance/view/', loc.enc_parent_id]">
+                                    <ng-container *ngTemplateOutlet="innerLink"></ng-container>
+                                </a>
+
+                                <a *ngIf="loc.is_building == 0 && loc.parent_id == -1" [attr.disabled]="!loc.fetchingCompliance" [routerLink]="['/location/compliance/view/', loc.enc_location_id]">
                                     <ng-container *ngTemplateOutlet="innerLink"></ng-container>
                                 </a>
                             </td>

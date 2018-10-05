@@ -282,9 +282,6 @@ export class LocationAccountRelation extends BaseClass {
         if ('is_building' in filter) {
           filterStr += ` AND l.is_building = ${filter['is_building']}`;
         }
-        if('archived' in filter){
-            filterStr += ` AND l.archived = ${filter['archived']}`;
-        }
 
         if('location_id' in filter){
             filterStr += ` AND l.location_id = ${filter['location_id']}`;
@@ -316,6 +313,23 @@ export class LocationAccountRelation extends BaseClass {
         }
 
         let selectParentName = ('no_parent_name' in filter) ? 'l.name,' : `IF (p1.name IS NULL, l.name, IF (CHAR_LENGTH(p1.name) = 0,  l.name, CONCAT(p1.name, ', ', l.name))) as name,`;
+
+        let isPortfolio = (filter['isPortfolio']) ? filter['isPortfolio'] : false;
+
+        let sqlJoinLAU = '';
+        if(!isPortfolio && filter['userId']){
+            sqlJoinLAU = ' INNER JOIN location_account_user lau ON lau.location_id = l.location_id ';
+            filterStr = ' AND lau.user_id = '+filter['userId'];
+            if ('responsibility' in filter) {
+                if(filter['responsibility'] == 1){
+                    filterStr += ` AND true = (l.is_building = 1  OR l.parent_id = -1)`;
+                }
+            }
+        }
+
+        if('archived' in filter){
+            filterStr += ` AND l.archived = ${filter['archived']}`;
+        }
 
         let sql_get_locations = `
             SELECT
@@ -367,6 +381,8 @@ export class LocationAccountRelation extends BaseClass {
             OR p3.location_id = lar.location_id
             OR p4.location_id = lar.location_id
 
+            ${sqlJoinLAU}
+
             WHERE
             lar.account_id = ?
             ${filterStr}
@@ -395,6 +411,8 @@ export class LocationAccountRelation extends BaseClass {
                     OR p3.location_id = lar.location_id
                     OR p4.location_id = lar.location_id
 
+                    ${sqlJoinLAU}
+
                     WHERE
                     lar.account_id = ?
                     ${filterStr}
@@ -420,6 +438,8 @@ export class LocationAccountRelation extends BaseClass {
                 OR p2.location_id = lar.location_id
                 OR p3.location_id = lar.location_id
                 OR p4.location_id = lar.location_id
+
+                ${sqlJoinLAU}
 
                 WHERE
                 lar.account_id = ?

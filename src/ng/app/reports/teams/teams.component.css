@@ -131,3 +131,9 @@ table tr td .material-icons{
 .pagination .select{
     margin: 0px 10px;
 }
+
+@media print{
+    .row-margined-top{
+        margin-top: 0px;
+    }
+}

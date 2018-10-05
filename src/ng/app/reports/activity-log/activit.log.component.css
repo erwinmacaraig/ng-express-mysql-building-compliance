@@ -122,3 +122,13 @@ table tr td a:hover{
 .pagination .select{
     margin: 0px 10px;
 }
+
+.row-margined-top{
+    margin-top: 35px;
+}
+
+@media print{
+    .row-margined-top{
+        margin-top: 0px;
+    }
+}
