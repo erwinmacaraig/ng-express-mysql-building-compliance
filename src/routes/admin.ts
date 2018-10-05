@@ -1914,13 +1914,17 @@ export class AdminRoute extends BaseRoute {
                 for(let user of data.users){
                     let
                     trainCertModel = new TrainingCertification(),
-                    certificates = <any> await trainCertModel.getCertificatesByInUsersId(user.user_id);
+                    certificates = <any> await trainCertModel.getCertificatesByInUsersId(user.user_id, null, null, null, null, user.training_requirement_id);
 
                     user['certificates'] = certificates;
                     user['status'] = (certificates.length > 0) ? certificates[0]['status'] : 'Invalid';
-                    let expDate = moment(certificates[0]['expiry_date']);
-
-                    user['expiry_date_formatted'] = (certificates.length > 0) ? (expDate.isValid()) ?  expDate.format('DD/MM/YYYY') : '' : '';
+                    let expDate;
+                    user['expiry_date_formatted'] = '';
+                    if (certificates.length > 0 && 'expiry_date' in certificates[0]) {
+                      expDate = moment(certificates[0]['expiry_date']);
+                      user['expiry_date_formatted'] = (certificates.length > 0) ? (expDate.isValid()) ?  expDate.format('DD/MM/YYYY') : '' : '';
+                    } 
+                    
                 }
             }else if(type == 'face'){
                 let
