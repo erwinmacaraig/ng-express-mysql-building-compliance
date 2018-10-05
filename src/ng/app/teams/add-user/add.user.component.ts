@@ -116,9 +116,9 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 selected : (this.paramRole == 'tenant') ? true : false
             }
         ];
-        this.selectRolesDropdown.push({
+        /*this.selectRolesDropdown.push({
             role_id : 2, role_name : 'Add Tenant'
-        });
+        });*/
 
         this.userRole = this.authService.getHighestRankRole();
         if (this.userRole == 1) {

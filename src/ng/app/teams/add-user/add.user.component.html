@@ -185,7 +185,7 @@
 
 <div id="modalAddNewTenant" class="modal">
 
-    <div class="modal-content" [hidden]="showModalNewTenantLoader">
+    <div class="modal-content"  >
 
         <h5>Add New Tenant </h5>
 
@@ -229,7 +229,7 @@
                         <input id="trpEmail" type="email" name="email" #email="ngModel" ngModel pattern="[a-zA-Z0-9.-_]{1,}@[a-zA-Z.-]{2,}[.]{1}[a-zA-Z]{2,}" required>
                         <label for="trpEmail">Email
                             <small *ngIf=" !email.valid && email.dirty ">Invalid email address</small>
-                            <span *ngIf="emailTaken" email-taken class="red-text"> *Email taken </span>
+                            <span email-taken class="red-text"> *Email taken </span>
                         </label>
                     </div>
                 </div>
