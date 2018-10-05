@@ -412,7 +412,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         accountId: new FormControl(this.selectedAccountId.toString(), null),
         account_name: new FormControl(this.initialAccountName, Validators.required),
         sublocation_name: new FormControl(null, null),
-        sublocation_id: new FormControl('0', null),
+        sublocation_id: new FormControl('0', Validators.required),
       });
   
     }
