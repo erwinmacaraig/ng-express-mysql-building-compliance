@@ -513,9 +513,9 @@ import * as S3Zipper from 'aws-s3-zipper';
 
         locAccRoleDb = await locAccModel.getByAccountIdAndLocationId(accountID, locationID);
         for(let loc of locAccRoleDb){
-            if(loc['responsibility'] == 'Manager' &&  (locAccRole.trim().length > 0 || locAccRole.trim() != 'Manager')){
+            if(loc['responsibility'] == 'Manager' &&  (locAccRole.trim().length > 0 || locAccRole.trim() != 'Manager') && loc['responsibility'] != null){
                 locAccRole = loc['responsibility'];
-            }else if(locAccRole.trim().length == 0){
+            }else if(locAccRole.trim().length == 0 && loc['responsibility'] != null){
                 locAccRole = loc['responsibility'];
             }
         }
