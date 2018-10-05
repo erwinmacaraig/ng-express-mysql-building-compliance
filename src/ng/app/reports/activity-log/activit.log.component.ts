@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ViewChildren, ElementRef } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRoute  } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MessageService } from '../../services/messaging.service';
@@ -9,6 +9,7 @@ import { ExportToCSV } from '../../services/export.to.csv';
 import html2canvas from 'html2canvas';
 // import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
+import { PrintService } from '../../services/print.service';
 
 declare var $ : any;
 // declare var jsPDF: any;
@@ -21,7 +22,7 @@ declare var $ : any;
 })
 
 export class ReportsActivityLogComponent implements OnInit, OnDestroy {
-
+    @ViewChild('printContainer') printContainer : ElementRef;
 	userData = {};
     locationId = 0;
     accountId = 0;
@@ -35,6 +36,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         location_id : 0,
         account_id : 0
     };
+    totalCountResult = 0;
 
     routerSubs;
 
@@ -152,6 +154,8 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
                 for(let i = 1; i<=this.pagination.pages; i++){
                     this.pagination.selection.push({ 'number' : i });
                 }
+
+                this.totalCountResult = this.pagination.total;
             }
             callBack(response);
         });
@@ -207,61 +211,24 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
             header : headerHtml
         });
         */
+       
+        let print = new PrintService({
+            content : this.printContainer.nativeElement.outerHTML
+        });
+
+        print.print();
     }
 
     pdfExport(aPdf, printContainer){
-      /*
-        let
-        pdf = new jsPDF("p", "pt"),
-        columns = [
-            {
-                title : 'Locations', dataKey : 'locations'
-            },
-            {
-                title : 'File Name', dataKey : 'filename'
-            },
-            {
-                title : 'Date', dataKey : 'date'
-            }
-        ],
-        rows = [];
 
-        pdf.text('Activity Log', 20, 40);
+        let a = document.createElement("a");
+        a.href = location.origin+"/reports/pdf-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+this.userData["accountId"]+"/"+this.userData["userId"];
+        a.target = "_blank";
+        document.body.appendChild(a);
 
-        for(let log of this.exportData){
-            let locName = (log.parent_name.length > 0) ? log.parent_name + ', '+log.location_name : log.location_name;
-            rows.push({
-                locations : locName,
-                filename : log.file_name,
-                date : log.timestamp_formatted
-            });
-        }
+        a.click();
 
-        pdf.autoTable(columns, rows, {
-            theme : 'grid',
-            margin: 20,
-            startY: 50,
-            styles : {
-                fontSize: 8,
-                overflow: 'linebreak'
-            },
-            headerStyles : {
-                fillColor: [50, 50, 50], textColor: 255
-            },
-            columnStyles : { locations : { columnWidth : 140 }, date : { columnWidth : 70 } }
-        });
-
-        let pages = pdf.internal.getNumberOfPages();
-        for(let i=1; i<=pages; i++){
-            pdf.setPage(i);
-            pdf.setFontSize(8);
-            pdf.text('Downloaded from EvacServices : '+moment().format('DD/MM/YYYY hh:mmA'), (pdf.internal.pageSize.width / 2) + 80, pdf.internal.pageSize.height - 10 );
-        }
-
-        pdf.save('activity-log-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
-        */
-       return;
-
+        a.remove();
     }
 
     csvExport(){

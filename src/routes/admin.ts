@@ -1428,53 +1428,39 @@ export class AdminRoute extends BaseRoute {
         for (const c of children) {
           sublocations.push(c['location_id']);
         }
-      }
-     
-      /*
-      const documentsUnfiltered = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
-      const documents = [];
-      for (const doc of documentsUnfiltered) {
-        try {
-          doc['urlPath'] = await utils.getAWSSignedURL(doc['urlPath']);
-          documents.push(doc);
-        } catch (e) {
-          console.log(`The file ${doc['urlPath']} is not found`);
-        }
-      }
-      */
+      }      
+      const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
+      const location_data = await location.locationHierarchy();
+      let details: object = {};
+      for (const loc of location_data) {
+        loc['display_name'] = '';
+        // loop through the assumed heirarchy
+        tempNameParts = [];
+        let tempColName = '';
 
-     
-        const documents = await list.generateComplianceDocumentList(req.query.account, sublocations, req.query.kpi);
-        const location_data = await location.locationHierarchy();
-        let details: object = {};
-        for (const loc of location_data) {
-          loc['display_name'] = '';
-          // loop through the assumed heirarchy
-          tempNameParts = [];
-          let tempColName = '';
-
-          for (let p = 5; p > 0; p--) {
-            tempColName = `p${p}_name`;
-            if (loc[tempColName] != null) {
-              tempNameParts.push(loc[tempColName]);
-              details[loc[`p${p}_location_id`]] = loc[tempColName];
-              hie_locations.push(details);
-              details = {};
-            }
+        for (let p = 5; p > 0; p--) {
+          tempColName = `p${p}_name`;
+          if (loc[tempColName] != null) {
+            tempNameParts.push(loc[tempColName]);
+            details[loc[`p${p}_location_id`]] = loc[tempColName];
+            hie_locations.push(details);
+            details = {};
           }
-          details[loc['location_id']] = loc['name'];
-          hie_locations.push(details);
-          tempNameParts.push(loc['name']);
-          loc['display_name'] = tempNameParts.join(' >> ');
         }
-        return res.status(200).send({
-          data: documents,
-          location: location_data,
-          displayName: tempNameParts,
-          detailsObj: hie_locations,
-          children: children,
-          sublocations: sublocations
-        });    
+        
+        details[loc['location_id']] = loc['name'];
+        hie_locations.push(details);
+        tempNameParts.push(loc['name']);
+        loc['display_name'] = tempNameParts.join(' >> ');
+      }
+      return res.status(200).send({
+        data: documents,
+        location: location_data,
+        displayName: tempNameParts,
+        detailsObj: hie_locations,
+        children: children,       
+        sublocations: sublocations
+      });    
     });
 
     router.post('/admin/upload/compliance-documents/',
@@ -1929,13 +1915,17 @@ export class AdminRoute extends BaseRoute {
                 for(let user of data.users){
                     let
                     trainCertModel = new TrainingCertification(),
-                    certificates = <any> await trainCertModel.getCertificatesByInUsersId(user.user_id);
+                    certificates = <any> await trainCertModel.getCertificatesByInUsersId(user.user_id, null, null, null, null, user.training_requirement_id);
 
                     user['certificates'] = certificates;
                     user['status'] = (certificates.length > 0) ? certificates[0]['status'] : 'Invalid';
-                    let expDate = moment(certificates[0]['expiry_date']);
-
-                    user['expiry_date_formatted'] = (certificates.length > 0) ? (expDate.isValid()) ?  expDate.format('DD/MM/YYYY') : '' : '';
+                    let expDate;
+                    user['expiry_date_formatted'] = '';
+                    if (certificates.length > 0 && 'expiry_date' in certificates[0]) {
+                      expDate = moment(certificates[0]['expiry_date']);
+                      user['expiry_date_formatted'] = (certificates.length > 0) ? (expDate.isValid()) ?  expDate.format('DD/MM/YYYY') : '' : '';
+                    } 
+                    
                 }
             }else if(type == 'face'){
                 let

@@ -12,6 +12,7 @@ import { Observable } from 'rxjs/Rx';
 import html2canvas from 'html2canvas';
 // import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
+import { PrintService } from '../../services/print.service';
 
 declare var $: any;
 // declare var jsPDF: any;
@@ -24,7 +25,7 @@ declare var $: any;
 })
 
 export class ReportsTrainingsComponent implements OnInit, OnDestroy {
-
+    @ViewChild('printContainer') printContainer : ElementRef;
 	userData = {};
 	rootLocationsFromDb = [];
 	results = [];
@@ -49,6 +50,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         getall : false,
         nofilter_except_location : false
     };
+    totalCountResult = 0;
 
     loadingTable = false;
 
@@ -165,6 +167,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 this.loadingTable = false;
                 if(response.data.length > 0){
                     this.pagination.currentPage = 1;
+                    this.totalCountResult = response.pagination.total;
                 }else{
                     this.pagination.currentPage = 0;
                 }
@@ -304,74 +307,22 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
 	printResult(){
-    /*
-		let headerHtml = `<h5> Training Report </h5>`;
+        let print = new PrintService({
+            content : this.printContainer.nativeElement.outerHTML
+        });
 
-		$('#printContainer').printThis({
-			importCSS: true,
-			importStyle: true,
-			loadCSS: [ "/assets/css/materialize.css" ],
-			header : headerHtml
-    });
-    */
+        print.print();
 	}
 
     pdfExport(aPdf, printContainer){
-      /*
-        let
-        pdf = new jsPDF("p", "pt"),
-        columns = [
-            {
-                title : 'User', dataKey : 'user'
-            },
-            {
-                title : 'Training Name', dataKey : 'name'
-            },
-            {
-                title : 'Training Date', dataKey : 'date'
-            },
-            {
-                title : 'Status', dataKey : 'status'
-            }
-        ],
-        rows = [];
+        let a = document.createElement("a");
+        a.href = location.origin+"/reports/pdf-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+this.userData["accountId"]+"/"+this.userData["userId"];
+        a.target = "_blank";
+        document.body.appendChild(a);
 
-        pdf.text('Training Report', 20, 40);
+        a.click();
 
-        for(let re of this.exportData){
-            let statusTxt = (re.status == 'valid' && re.pass == 1) ? 'Compliant' : 'Not Compliant';
-
-            rows.push({
-                user : re.first_name+' '+re.last_name,
-                name : re.training_requirement_name,
-                date : re.certification_date_formatted,
-                status : statusTxt
-            });
-        }
-
-        pdf.autoTable(columns, rows, {
-            theme : 'grid',
-            margin: 20,
-            startY: 60,
-            styles : {
-                fontSize: 8,
-                overflow: 'linebreak'
-            },
-            headerStyles : {
-                fillColor: [50, 50, 50], textColor: 255
-            },
-            columnStyles : { status : { columnWidth : 70 }, date : { columnWidth : 70 } }
-        });
-
-        let pages = pdf.internal.getNumberOfPages();
-        for(let i=1; i<=pages; i++){
-            pdf.setPage(i);
-            pdf.setFontSize(8);
-            pdf.text('Downloaded from EvacServices : '+moment().format('DD/MM/YYYY hh:mmA'), (pdf.internal.pageSize.width / 2) + 80, pdf.internal.pageSize.height - 10 );
-        }
-
-        pdf.save('training-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
-        */
+        a.remove();
     }
 
     csvExport(){

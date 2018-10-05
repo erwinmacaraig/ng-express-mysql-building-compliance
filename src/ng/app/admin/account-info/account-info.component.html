@@ -3,10 +3,12 @@
     <div class="col l12 m12 s12">
         <h4 class="account-name inline-block">{{ accountInfo.account_name }}</h4>
         <p class="inline-block edit-info-text">
+            <!--
             <a href="#"  >
                 <img src="/assets/images/locations/editdetails_icon.png">
                 Edit Information
             </a>
+            -->
         </p>
     </div>
 </div>
@@ -30,7 +32,7 @@
                                 <p>{{accountInfo.account_name}}</p>
                             </div>
                         </div>
-
+                        <!--  
                         <div class="col l4 m12 s12">
                             <div class="label-and-text">
                                 <label>Key Contact</label>
@@ -46,6 +48,7 @@
                                 <p>--</p>
                             </div>
                         </div>
+                    -->
                     </div>
 
                     <div class="row">
@@ -131,7 +134,7 @@
             <ul>
                 <li [routerLink]="['/admin', 'locations-in-account', accountId]" [ngClass]="{active:activeLink=='locations'}"> Locations </li>
                 <li [routerLink]="['/admin', 'users-in-accounts', accountId]" [ngClass]="{active:activeLink=='users'}"> Users </li>
-                <li>Subscriptions</li>
+                <!-- <li>Subscriptions</li> -->
                 <li [routerLink]="['/admin', 'account-trainings', accountId]" [ngClass]="{active:activeLink=='trainings'}"> Trainings </li>
             </ul>
         </div>

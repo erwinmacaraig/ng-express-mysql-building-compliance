@@ -363,6 +363,7 @@ const RateLimiter = require('limiter').RateLimiter;
       data: tokenDBData
       });
     }
+
   }
 
   public async queryNotifiedUser(req: Request, res: Response) {

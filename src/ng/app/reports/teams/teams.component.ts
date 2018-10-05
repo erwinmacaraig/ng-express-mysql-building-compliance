@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MessageService } from '../../services/messaging.service';
@@ -9,7 +9,7 @@ import { ExportToCSV } from '../../services/export.to.csv';
 import html2canvas from 'html2canvas';
 // import * as jsPDF from 'jspdf';
 import * as moment from 'moment';
-
+import { PrintService } from '../../services/print.service';
 
 declare var $: any;
 declare var jsPDF: any;
@@ -22,7 +22,7 @@ declare var jsPDF: any;
 })
 
 export class ReportsTeamsComponent implements OnInit, OnDestroy {
-
+    @ViewChild('printContainer') printContainer : ElementRef;
     userData = {};
     reportData = [];
     private sub: any;
@@ -38,6 +38,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         location_id : 0,
         account_id : 0
     };
+    totalCountResult = 0;
 
     pdfLoader = false;
     csvLoader = false;
@@ -101,6 +102,8 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
                 if(response.data.length > 0){
                     this.pagination.currentPage = 1;
                 }
+
+                this.totalCountResult = response.pagination.total;
 
                 this.dashboardPreloader.hide();
 
@@ -227,119 +230,23 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
             header : headerHtml
         });
         */
+       
+       let print = new PrintService({
+            content : this.printContainer.nativeElement.outerHTML
+        });
+
+        print.print();
     }
 
     pdfExport(printContainer){
-      /*
-        let
-        pdf = new jsPDF("p", "pt"),
-        columns = [
-            { title : 'Company', dataKey : 'company' },
-            { title : 'Sub Location', dataKey : 'sublocation' },
-            { title : 'Contact Person', dataKey : 'contactperson' },
-            { title : 'Email', dataKey : 'email' },
-            { title : 'Warden', dataKey : 'warden' },
-            { title : 'P.E.E.P', dataKey : 'peep' }
-        ],
-        topMargin = 40,
-        count = 0;
+        let a = document.createElement("a");
+        a.href = location.origin+"/reports/pdf-team/"+this.locationIdDecrypted+"/"+this.totalCountResult+"/"+this.userData["accountId"]+"/"+this.userData["userId"];
+        a.target = "_blank";
+        document.body.appendChild(a);
 
-        for(let report of this.exportData){
-            let
-            rows = [],
-            locName = (report.location.parent.name.length > 0) ? report.location.parent.name+', '+report.location.name : report.location.name;
-            locName += '\nCurrent Team Information';
+        a.click();
 
-            pdf.setFontSize(14);
-            pdf.splitTextToSize(locName, 180);
-            if(count == 0){
-                pdf.text(locName, 20, topMargin);
-            }else{
-                pdf.text(locName, 20, pdf.autoTable.previous.finalY + 60 );
-            }
-
-            for(let field of report.data){
-                let comps = [],
-                    persons = [],
-                    email = [];
-                for(let accnt of field['trp']){
-                    comps.push(accnt['account_name']);
-
-                    if(accnt['mobile_number'].length > 0){
-                        persons.push(accnt['first_name']+' '+accnt['last_name']+' ('+accnt['mobile_number']+')'  );
-                    }else{
-                        persons.push(accnt['first_name']+' '+accnt['last_name']  );
-                    }
-
-                    email.push( accnt['email'] );
-                }
-
-                rows.push({
-                    'data' : true,
-                    'company' : comps.join(','),
-                    'sublocation' : field['name'],
-                    'contactperson' : persons.join(','),
-                    'email' : email.join(','),
-                    'warden' : field['total_wardens'],
-                    'peep' : field['peep_total']
-                });
-            }
-
-            let startYvalue = pdf.autoTable.previous.finalY + 80;
-            if(count == 0){
-                startYvalue = 60;
-            }
-
-            if(rows.length == 0){
-                rows.push({ data : false });
-            }
-
-            pdf.autoTable(columns, rows, {
-                theme : 'grid',
-                margin: 20,
-                startY: startYvalue,
-                styles : {
-                    fontSize: 8,
-                    overflow: 'linebreak'
-                },
-                headerStyles : {
-                    fillColor: [50, 50, 50], textColor: 255
-                },
-                columnStyles : { location : { columnWidth : 140 } },
-                drawRow: function(row, data) {
-                    if(!row.raw.data){
-                        pdf.setFontSize(8);
-                        pdf.rect(data.settings.margin.left, row.y, data.table.width, 20, 'S');
-                        pdf.autoTableText("No record found", data.settings.margin.left + data.table.width / 2, row.y + row.height / 2, {
-                            halign: 'center',
-                            valign: 'middle'
-                        });
-                        data.cursor.y += 20;
-                    }
-                },
-                drawCell: function (cell, data) {
-                    if(!data.row.raw.data){
-                        return false;
-                    }
-                }
-            });
-
-            if(rows[0]['data'] === true ){
-                pdf.text("Total No. Of Wardens : "+report.total_warden, 20, pdf.autoTable.previous.finalY + 20);
-            }
-
-            count++;
-        }
-
-        let pages = pdf.internal.getNumberOfPages();
-        for(let i=1; i<=pages; i++){
-            pdf.setPage(i);
-            pdf.setFontSize(8);
-            pdf.text('Downloaded from EvacServices : '+moment().format('DD/MM/YYYY hh:mmA'), (pdf.internal.pageSize.width / 2) + 80, pdf.internal.pageSize.height - 10 );
-        }
-
-        pdf.save('teams-report-'+moment().format('YYYY-MM-DD-HH-mm-ss')+'.pdf');
-        */
+        a.remove();
     }
 
     csvExport(){

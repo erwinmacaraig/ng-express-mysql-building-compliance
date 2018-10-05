@@ -36,7 +36,6 @@
     <table class="table striped">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Location</th>
           <th>Address</th>
           <th>Type</th>
@@ -49,10 +48,9 @@
             <td colspan="6" class="center"> <p>No record found</p> </td>
         </tr>
         <tr *ngFor="let location of locations">
-          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['location_id']}}</a></td>
           <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['display_name']}}</a></td>
-          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['formatted_address']}}</a></td>
-          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['responsibility']}}</a></td>
+          <td>{{location['formatted_address']}}</td>
+          <td>{{location['responsibility']}}</td>
           <td><a [routerLink]="['/admin', 'view-location-compliance', accountId, location['location_id'], '2']">View Compliance</a></td>
           <td>
               <select #selectAction (change)="selectActionEvent(selectAction, location)">
