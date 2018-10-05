@@ -415,3 +415,33 @@ app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
     font-size: 13px !important;
     padding: 10px 12px;
 }
+
+.multiselect-dropdown .dropdown-btn{
+    border: 0px !important;
+    padding:0px !important;
+}
+
+.dropdown-list .filter-textbox input{
+    margin:0px !important;
+    padding:0px !important;
+}
+
+.multiselect-dropdown .dropdown-btn .selected-item{
+    font-size: 12px !important;
+}
+
+.multiselect-dropdown .dropdown-btn .dropdown-down {
+    border-top: 7px solid #adadad !important;
+    border-left: 5px solid transparent !important;
+    border-right: 5px solid transparent !important;
+    position: relative !important;
+    top: -3px !important;
+}
+
+.multiselect-dropdown .dropdown-btn .dropdown-up{
+    border-bottom: 7px solid #adadad !important;
+    border-left: 5px solid transparent !important;
+    border-right: 5px solid transparent !important;
+    position: relative !important;
+    top: -3px !important;
+}
