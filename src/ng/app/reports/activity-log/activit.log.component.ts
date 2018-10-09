@@ -58,7 +58,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 		) {
 
 		this.userData = this.authService.getUserData();
-
+        console.log(this.router);
 	}
 
 	ngOnInit(){
@@ -66,6 +66,8 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 
         this.routerSubs = this.router.params.subscribe((params) => {
             this.locationId = this.encDecService.decrypt( params.location );
+
+            console.log('params', params);
 
             if(params['accountId']){
                 this.accountId = this.encDecService.decrypt( params.accountId );
@@ -221,8 +223,9 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 
     pdfExport(aPdf, printContainer){
 
-        let a = document.createElement("a");
-        a.href = location.origin+"/reports/pdf-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+this.userData["accountId"]+"/"+this.userData["userId"];
+        let a = document.createElement("a"),
+        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
+        a.href = location.origin+"/reports/pdf-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
         a.target = "_blank";
         document.body.appendChild(a);
 

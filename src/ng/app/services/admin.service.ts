@@ -179,7 +179,7 @@ export class AdminService {
   }
 
   searchUserAndLocation(keyword = ''){
-    return this.http.get(`${this.baseUrl}/admin/search/user/location/`+keyword, this.options); 
+    return this.http.get(`${this.baseUrl}/admin/search/user/location/account/`+keyword, this.options); 
   }
 
   getUserInformation(userid = 0){

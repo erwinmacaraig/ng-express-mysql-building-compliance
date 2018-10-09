@@ -16,7 +16,7 @@
                 <div class="results" #searchResults  >
                     <ul>
                         <li *ngFor="let result of searchedResult" (click)="searchClickEvent(result)">
-                            <div class="bg-image" [ngClass]="{  'location' : (result.type == 'location'), 'user' : (result.type == 'user') }"> </div> {{result.name}}
+                            <div class="bg-image" [ngClass]="{  'location' : (result.type == 'location'), 'user' : (result.type == 'user'), 'account' : (result.type == 'account') }"> </div> {{result.name}}
                         </li>
                     </ul>
                 </div>

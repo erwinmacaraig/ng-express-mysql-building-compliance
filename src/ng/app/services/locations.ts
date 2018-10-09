@@ -38,7 +38,8 @@ export class LocationsService {
     }
 
     getByIdWithQueries(form, callBack) {
-        this.http.get(this.baseUrl + '/location/get-with-queries', { params : form})
+        this.options['params'] = form;
+        this.http.get(this.baseUrl + '/location/get-with-queries', this.options)
         .subscribe(res => {
             callBack(res);
         }, err => {
