@@ -193,8 +193,5 @@ export class AdminService {
   getTaggedLocationsFromAccount(accountId){
     return this.http.get(`${this.baseUrl}/admin/get-tagged-locations-from-account/`+accountId, this.options);
   }
-<<<<<<< HEAD
+
 }
-=======
-}
->>>>>>> b8445a107c2a317ee46b3d89ec4d90110e5dd487
