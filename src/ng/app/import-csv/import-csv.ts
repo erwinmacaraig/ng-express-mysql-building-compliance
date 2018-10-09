@@ -1,7 +1,7 @@
 import { LocationsService } from './../services/locations';
 import { AuthService } from './../services/auth.service';
 import { AdminService } from './../services/admin.service';
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -36,10 +36,11 @@ export class ImportCsvButtonComponent implements OnInit, OnDestroy {
     public routeSub;
 
     modalCSVMessage = '';
-    title = '';
+    titleText = <any> 'Add Users by CSV Upload';
     isMobilityImpaired = 0;
 
     constructor(
+        private cdRef:ChangeDetectorRef,
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
         private locationService : LocationsService,
@@ -53,14 +54,7 @@ export class ImportCsvButtonComponent implements OnInit, OnDestroy {
 
         this.userData = this.authService.getUserData();
 
-        this.messageService.getMessage().subscribe((data) => {
-            if(data['csv-upload']){
-                this.title = data['csv-upload']['title'];
-                if(data['csv-upload']['mobility_impaired']){
-                    this.isMobilityImpaired = data['csv-upload']['mobility_impaired'];
-                }
-            }
-        });
+        
     }
 
     ngOnInit(){
@@ -75,6 +69,17 @@ export class ImportCsvButtonComponent implements OnInit, OnDestroy {
         this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {
             this.buildings = response.data.buildings;
             this.levels = response.data.levels;
+        });
+
+        this.messageService.getMessage().subscribe((data) => {
+            if(data['csv-upload']){
+                setTimeout(() => {
+                    this.titleText = data['csv-upload']['title'];
+                    if(data['csv-upload']['mobility_impaired']){
+                        this.isMobilityImpaired = data['csv-upload']['mobility_impaired'];
+                    }
+                },1000);
+            }
         });
     }
 
@@ -93,6 +98,10 @@ export class ImportCsvButtonComponent implements OnInit, OnDestroy {
             endingTop: '5%'
         });
         $('#modaCsvUpload').modal('open');
+    }
+
+    canceModal(){
+        $('#modaCsvUpload').modal('close');
     }
 
     selectCSVButtonClick(inputFileCSV){

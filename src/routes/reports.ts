@@ -173,7 +173,7 @@ export class ReportsRoute extends BaseRoute {
         userRoleRel = new UserRoleRelation(),
         r = 0,
         location_id = req.body.location_id,
-        accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
+        accountId = (req.body.account_id) ? (req.body.account_id > -1) ? req.body.account_id : req.user.account_id : req.user.account_id,
         response = {
             status : true, data : [], message : '',
             pagination : {
@@ -450,7 +450,7 @@ export class ReportsRoute extends BaseRoute {
             sublocations : []
         },
         location_id = req.body.location_id,
-        accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
+        accountId = (req.body.account_id) ? (req.body.account_id > -1) ? req.body.account_id : req.user.account_id : req.user.account_id,
         locationModel = new Location(location_id),
         sublocationModel = new Location(),
         locations = <any> [],
@@ -988,7 +988,7 @@ export class ReportsRoute extends BaseRoute {
         location_id = req.body.location_id,
         limit = req.body.limit,
         offset = req.body.offset,
-        accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
+        accountId = (req.body.account_id) ? (req.body.account_id > -1) ? req.body.account_id : req.user.account_id : req.user.account_id,
         userId = (req.body.user_id) ? req.body.user_id : req.user.user_id,
         response = {
             status : false, data : [],

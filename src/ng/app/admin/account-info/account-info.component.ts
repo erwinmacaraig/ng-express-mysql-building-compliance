@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs/Rx';
 import { AdminService } from './../../services/admin.service';
 import { MessageService } from './../../services/messaging.service';
 import { AuthService } from '../../services/auth.service';
-import { Router, NavigationEnd  } from '@angular/router';
+import { Router, NavigationEnd, ActivatedRoute  } from '@angular/router';
 declare var $: any;
 
 @Component({
@@ -39,14 +39,15 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
 
   msgSrvSub;
   userData = <any> {};
-
+  paramSubs;
   routerSubs;
   activeLink = 'users';
 
   constructor(private adminService: AdminService,
               private msgSrv : MessageService,
               private auth: AuthService,
-              private router: Router) {
+              private router: Router,
+              private activatedRoute: ActivatedRoute ) {
 
     this.routerSubs = this.router.events.subscribe((observer) => {
       if(observer instanceof NavigationEnd){
@@ -59,6 +60,11 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     });
+
+    this.paramSubs = this.activatedRoute.params.subscribe((params) => {
+      this.accountId = params.accntId;
+      this.getAndSetAccountInfo();
+    });
   }
 
   ngOnInit() {
@@ -66,6 +72,10 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
     if(this.userData.evac_role != 'admin'){
         this.router.navigate(['/signout']);
     }
+    this.getAndSetAccountInfo();
+  }
+
+  getAndSetAccountInfo(){
     this.sub = this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
       if (response['message'] === 'Success') {
         Object.keys(this.accountInfo).forEach((key) => {
@@ -89,12 +99,10 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
         console.log(this.accountInfo);
 
         this.msgSrv.sendMessage({
-            'accountInfo' : this.accountInfo
+          'accountInfo' : this.accountInfo
         });
       }
     });
-
-
   }
 
   ngAfterViewInit() {}
@@ -102,6 +110,7 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     this.sub.unsubscribe();
     this.routerSubs.unsubscribe();
+    this.paramSubs.unsubscribe();
   }
 
   public toggleOnlineTrainingAccess(e): void {

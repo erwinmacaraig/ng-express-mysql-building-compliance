@@ -315,8 +315,9 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
     pdfExport(aPdf, printContainer){
-        let a = document.createElement("a");
-        a.href = location.origin+"/reports/pdf-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+this.userData["accountId"]+"/"+this.userData["userId"];
+        let a = document.createElement("a"),
+        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
+        a.href = location.origin+"/reports/pdf-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
         a.target = "_blank";
         document.body.appendChild(a);
 
