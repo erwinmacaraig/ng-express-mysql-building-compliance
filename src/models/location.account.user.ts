@@ -411,7 +411,19 @@ export class LocationAccountUser extends BaseClass {
     public getTrpByLocationIds(locationIds){
         return new Promise((resolve, reject) => {
             const sql_load = `
-            SELECT ur.role_id, u.*, lau.location_id, a.account_name
+            SELECT ur.role_id, lau.location_id, a.account_name,
+                u.first_name,
+                u.last_name,
+                u.email,
+                IF(u.phone_number IS NOT NULL, u.phone_number, '') as phone_number,
+                IF(u.mobile_number IS NOT NULL, u.mobile_number, '') as mobile_number,
+                u.occupation,
+                u.mobility_impaired,
+                u.time_zone,
+                u.can_login,
+                u.account_id,
+                u.evac_role,
+                u.user_id
             FROM location_account_user lau
             INNER JOIN users u
             ON lau.user_id = u.user_id

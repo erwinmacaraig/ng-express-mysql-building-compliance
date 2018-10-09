@@ -1715,8 +1715,8 @@ export class AdminRoute extends BaseRoute {
     });
 
 
-    router.get('/admin/search/user/location/:keyword', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        new AdminRoute().searchUserAndLocation(req, res);
+    router.get('/admin/search/user/location/account/:keyword', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().searchUsersLocationsAndAccount(req, res);
     });
 
     router.get('/admin/user-information/:userId', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -2027,13 +2027,13 @@ export class AdminRoute extends BaseRoute {
        
     }
 
-    public async searchUserAndLocation(req: AuthRequest, res: Response){
+    public async searchUsersLocationsAndAccount(req: AuthRequest, res: Response){
         let 
         keyword = req.params.keyword,
         userModel = new User(),
         results = <any> [];
 
-        results = await userModel.searchUserAndLocation(keyword);
+        results = await userModel.searchUsersLocationsAndAccount(keyword);
 
         res.send(results);
     }

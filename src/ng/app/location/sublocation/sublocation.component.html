@@ -27,16 +27,16 @@
                         <a *ngIf="locationData.admin_verified == 1" class="btn blue waves-effect waves-light" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
                     </div>
                 </div>
-				<div class="col m12 s12" *ngIf="showCompliance">
-					<div class="box">
-						<div class="title-wrapper">
-							Evacuation Diagram
-						</div>
-						<div class="content">
-							<button class="btn waves-effect waves-light orange">Upload Evacuation Diagram</button>
-						</div>
-					</div>
-				</div>
+				<!-- <div class="col m12 s12" *ngIf="showCompliance">
+                    <div class="box">
+                        <div class="title-wrapper">
+                            Evacuation Diagram
+                        </div>
+                        <div class="content">
+                            <button class="btn waves-effect waves-light orange">Upload Evacuation Diagram</button>
+                        </div>
+                    </div>
+                </div> -->
 				<div class="col m12 s12">
 					<div class="box">
 						<div class="title-wrapper">
@@ -97,7 +97,7 @@
 								<div class="background"></div>
 							</div> -->
 
-							<a href="#" class="archived" [routerLink]="['/location/list?archived=true']">
+							<a href="#" class="archived" [routerLink]="['/location/list']" [queryParams]="{ archived : 'true' }">
 								<span class="image"></span>
 								View Archive
 							</a>

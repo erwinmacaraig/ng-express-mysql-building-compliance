@@ -1,10 +1,10 @@
 <div class="row filter-container">
-  <div class="col l4 m5 s12">
-		<div class="search-field">
-			<input type="text" placeholder="Search" id="searchAccounts" (keyup)="searchByAccoutName($event)">
-			<span class="material-icons">search</span>
-		</div>
-  </div>
+  <!-- <div class="col l4 m5 s12">
+          <div class="search-field">
+              <input type="text" placeholder="Search" id="searchAccounts" (keyup)="searchByAccoutName($event)">
+              <span class="material-icons">search</span>
+          </div>
+  </div> 
   <div class="col l2 m6 s6">
 		<select class="sort-by">
 			<option value="0" selected>Sort By</option>
@@ -18,8 +18,11 @@
 			<option value="archive" >Archive selected</option>
 		</select>
   </div>
-  <div class="col l4 m6 s12 ">
-		<button type="button" class="btn orange waves-effect waves-light add-peep pull right" [routerLink]="['/admin', 'new-account']">
+  -->
+
+  <div class="col l10 m6 s12"></div>
+  <div class="col l2 m6 s12 ">
+		<button type="button" class="btn orange waves-effect waves-light pull right" [routerLink]="['/admin', 'new-account']">
 			<span class="image"></span>
 			Add New Account
 		</button>
@@ -62,7 +65,7 @@
             </td>
             <td>
               <div class="text">
-                <a [routerLink]="['/admin', 'locations-in-account', item['account_id']]">{{item['locations'].length}}</a>
+                {{item['locations'].length}}
               </div>
             </td>
             <td>{{item['billing_address']}}</td>

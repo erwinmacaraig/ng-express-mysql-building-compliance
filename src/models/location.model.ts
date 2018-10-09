@@ -483,7 +483,7 @@ export class Location extends BaseClass {
                 sublocationQuery = `SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id  DESC`;
             }
 
-            sublocationQuery = `SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id  DESC`;
+            // sublocationQuery = `SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id  DESC`;
             const sql_get_subloc = `
             SELECT location_id, name, parent_id, is_building FROM (${sublocationQuery}) sublocations, (SELECT @pv := ?)
             initialisation WHERE find_in_set(parent_id, @pv) > 0 AND @pv := concat(@pv, ',', location_id) ORDER BY location_id;`;

@@ -366,6 +366,20 @@ export class UsersRoute extends BaseRoute {
           }
         }
 
+        let toTake = [];
+        for(let co of hadNotTakenCourse){
+          let taken = false;
+          for( let tr of trainings ){
+            if( tr['training_requirement_id'] == co['training_requirement_id'] && tr['status'] == 'valid' ){
+              taken = true;
+            }
+          }
+          if(!taken){
+            toTake.push(co);
+          }
+        }
+        
+
         //
         try {
           await user.load();
@@ -380,7 +394,8 @@ export class UsersRoute extends BaseRoute {
           'em_roles': em_role,
           'locations': locations,
           'trainings': trainings,
-          'courses': hadNotTakenCourse,
+          'courses': toTake,
+          'toTake': toTake,
           'peepDetails': mobilityImpairedDetails,
           'required_trainings_count': req_trainings_count,
           'required_trainings_held': (req.user.user_id in numberOfRequiredTrainingsHeld) ? numberOfRequiredTrainingsHeld[req.user.user_id]['count'] : 0,

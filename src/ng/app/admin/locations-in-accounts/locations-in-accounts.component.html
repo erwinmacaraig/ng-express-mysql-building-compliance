@@ -1,8 +1,9 @@
 <app-admin-account-info [accountId]="accountId"></app-admin-account-info>
+<!--
 <div class="row filter-container">
   <div class="col l4 m5 s12">
 		<div class="search-field">
-			<input type="text" placeholder="Search" id="searchLocations"> <!-- (keyup)=""-->
+			<input type="text" placeholder="Search" id="searchLocations">
 			<span class="material-icons">search</span>
 		</div>
   </div>
@@ -26,20 +27,21 @@
 		</select>
   </div>
   <div class="col l2 m3 s12 ">
-		<button class="btn orange waves-effect waves-light" [routerLink]="['/admin', 'add-location-to-account', accountId]">
-			Add New Location
-		</button>
+		 <button class="btn orange waves-effect waves-light" [routerLink]="['/admin', 'add-location-to-account', accountId]">
+            Add New Location
+        </button> 
 	</div>
 </div>
+-->
 <div class="row">
   <div class="col s12">
     <table class="table striped">
       <thead>
         <tr>
           <th>Location</th>
+          <th>Compliance</th>
           <th>Address</th>
           <th>Type</th>
-          <th>Compliance</th>
           <th style="width: 10%;">Action</th>
         </tr>
       </thead>
@@ -49,9 +51,9 @@
         </tr>
         <tr *ngFor="let location of locations">
           <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['display_name']}}</a></td>
+          <td><a [routerLink]="['/admin', 'view-location-compliance', accountId, location['location_id'], '2']">View Compliance</a></td>
           <td>{{location['formatted_address']}}</td>
           <td>{{location['responsibility']}}</td>
-          <td><a [routerLink]="['/admin', 'view-location-compliance', accountId, location['location_id'], '2']">View Compliance</a></td>
           <td>
               <select #selectAction (change)="selectActionEvent(selectAction, location)">
                     <option value="0" disabled>Select action</option>
