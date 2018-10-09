@@ -93,7 +93,7 @@ import * as S3Zipper from 'aws-s3-zipper';
                 const opts = {
                     from : '',
                     fromName : 'EvacConnect',
-                    to : ['jmanoharan@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
+                    to : ['emacaraig@evacgroup.com.au'],
                     cc: [],
                     body : `This key 
                     ( ${key} ) 
