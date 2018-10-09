@@ -94,12 +94,14 @@ export class SublocationComponent implements OnInit, OnDestroy {
             if (this.role > rol.role_id) {
               this.role = rol.role_id;
             }
-
         }
     }
 
     getLocationData(callBack){
-        this.locationService.getById(this.locationID, (response) => {
+        this.locationService.getByIdWithQueries({
+            location_id : this.locationID,
+            get_related_only : (this.role == 2) ? true : false
+        }, (response) => {
 
             this.parentData = response.parent;
             this.locationData = response.location;

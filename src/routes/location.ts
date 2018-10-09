@@ -1027,8 +1027,8 @@ const defs = require('../config/defs.json');
 	public async getLocation(req: AuthRequest, res: Response) {
 		let
         isQuery = (Object.keys(req.query).length > 0) ? true : false,
-        locationId = (isQuery) ? req.query.location_id : req.params.location_id,
-        accountId = (isQuery) ? req.query.account_id : req.user.account_id,
+        locationId = (isQuery) ? (req.query.location_id) ? req.query.location_id : req.params.location_id : req.params.location_id,
+        accountId = (isQuery) ? (req.query.account_id) ? req.query.account_id : req.user.account_id : req.user.account_id,
         getRelatedOnly = (isQuery) ? (req.query.get_related_only == 'true') ? true : false : false,
         location = new Location(locationId),
         sublocations,
@@ -1246,7 +1246,11 @@ const defs = require('../config/defs.json');
 	    let siblings;
 	    const parentLocation = new Location(parentId);
 	    await parentLocation.load();
-	    siblings = await parentLocation.getSublocations(req.user.user_id, r);
+        if(getRelatedOnly){
+	        siblings = await parentLocation.getSublocations(req.user.user_id, r);
+        }else{
+            siblings = await parentLocation.getSublocations();
+        }
 	    response.parent = parentLocation.getDBData();
 	    response.siblings = siblings;
 

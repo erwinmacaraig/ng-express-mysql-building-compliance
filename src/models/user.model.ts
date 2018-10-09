@@ -450,7 +450,7 @@ export class User extends BaseClass {
         ON
           em_roles.em_roles_id = em_role_training_requirements.em_role_id
         WHERE
-          certifications.user_id = ? ${filterStr}`;
+          certifications.user_id = ? ${filterStr}  GROUP BY certifications.certifications_id ORDER BY certifications.certification_date DESC`;
 
 
       const connection = db.createConnection(dbconfig);
