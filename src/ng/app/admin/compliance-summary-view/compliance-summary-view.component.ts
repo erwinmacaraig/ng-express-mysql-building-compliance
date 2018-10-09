@@ -15,6 +15,7 @@ import { DatepickerOptions } from 'ng2-datepicker';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { LocationsService  } from '../../services/locations';
 import {  UserService } from '../../services/users';
+import { PaperAttendanceDocument } from '../../models/paper_attendance_document';
 declare var $: any;
 declare var moment: any;
 import * as FileSaver from 'file-saver';
@@ -72,6 +73,13 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     9: [],    
     13: []
   };
+
+  paperAttendanceRecord: Array<PaperAttendanceDocument> = [];
+  gofr_attendance_record: Array<PaperAttendanceDocument> = [];
+  sundry_attendance_record: Array<PaperAttendanceDocument> = [];
+  eco_attendance_record: Array<PaperAttendanceDocument> = [];
+  chief_warden_attendance_record: Array<PaperAttendanceDocument> = [];
+  showLoadingForSignedPaperURL:boolean = true;
 
   @ViewChild('inpFileUploadDocs') inpFileUploadDocs: ElementRef;
   constructor(
@@ -140,6 +148,27 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       this.complianceSublocations.push(response.location);
       }
     });
+
+    this.complianceService.getPaperAttendanceFileUpload(this.locationId).subscribe((response) => {
+      this.paperAttendanceRecord = response['attendance_record'];
+      for (let attendance of this.paperAttendanceRecord) {
+          switch(attendance.compliance_kpis_id.toString()) {
+              case '8':
+                  this.gofr_attendance_record.push(attendance);                  
+              break;
+              case '6':
+                  this.eco_attendance_record.push(attendance);
+              break;
+              case '12':
+                  this.chief_warden_attendance_record.push(attendance);
+              break;
+              case '13':
+                  this.sundry_attendance_record.push(attendance);
+              break;
+          } 
+      }
+      this.showLoadingForSignedPaperURL = false;                
+  });
     
   }
 

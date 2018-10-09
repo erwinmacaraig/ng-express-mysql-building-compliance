@@ -147,6 +147,7 @@ export class User extends BaseClass {
                     for(let res of results){
                         if(res['action'] == 'verify' && res['id_type'] == 'user_id'){
                             user = res;
+                            break;
                         }
                     }
                     if(!user['action']){

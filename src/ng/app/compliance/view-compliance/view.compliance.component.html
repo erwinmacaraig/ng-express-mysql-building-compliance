@@ -494,7 +494,7 @@
 						</tr>
 				</tbody>
 				<tbody *ngIf="!showLoadingForSignedURL">
-                    <tr *ngIf="selectedCompliance.compliance.docs.length < 2 && eco_attendance_record.length > 0">
+                    <tr *ngIf="selectedCompliance.compliance.docs.length < 2 && eco_attendance_record.length == 0">
                         <td colspan="2">No recent file found</td>
                     </tr>
                     <tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index;" [hidden]="i == 0">
@@ -506,7 +506,7 @@
                         </td>
                         <td>{{doc.timestamp_formatted}}</td>
 					</tr>
-					<tr *ngFor="let a of gofr_attendance_record">
+					<tr *ngFor="let a of eco_attendance_record">
 						<td><a href="{{a.downloadUrl}}" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a></td>
 						<td>{{a.dtUploaded | date:'dd/MM/yyyy'}}</td>
 					</tr>
