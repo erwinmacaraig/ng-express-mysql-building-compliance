@@ -14,121 +14,136 @@ export class ComplianceModel extends BaseClass {
 
     public load() {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM compliance WHERE compliance_id = ?';
-            const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
                 }
-                if (!results.length){
-                    reject('Compliance not found');
-                } else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['compliance_id']);
-                    resolve(this.dbData);
-                }
-            });
-            connection.end();
+                const sql_load = 'SELECT * FROM compliance WHERE compliance_id = ?';
+                const uid = [this.id]; 
+                connection.query(sql_load, uid, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if (!results.length){
+                        reject('Compliance not found');
+                    } else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['compliance_id']);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();   
+            });            
         });
     }
 
     public getWhere(arrWhere): Promise<Array<object>> {
         return new Promise((resolve) => {
-
-            let sql = `SELECT * FROM compliance`;
-            for(let i in arrWhere){
-                if(parseInt(i) == 0){
-                    sql += ` WHERE `;
-                }else{
-                    sql += ` AND `;
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
                 }
-                sql += arrWhere[i];
-            }
-
-
-            sql += ` ORDER BY compliance_id DESC `;
-
-            // console.log(sql);
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+                let sql = `SELECT * FROM compliance`;
+                for(let i in arrWhere) {
+                    if(parseInt(i) == 0){
+                        sql += ` WHERE `;
+                    }else{
+                        sql += ` AND `;
+                    }
+                    sql += arrWhere[i];
                 }
+                sql += ` ORDER BY compliance_id DESC `;
+                connection.query(sql, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
 
 
-                if (results.length === 1) {
-                  this.dbData = results[0];
-                  this.id = results[0]['compliance_id'];
-                }
-                resolve(results);
+                    if (results.length === 1) {
+                    this.dbData = results[0];
+                    this.id = results[0]['compliance_id'];
+                    }
+                    resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
-
         });
     }
 
     public dbUpdate() {
         return new Promise((resolve, reject) => {
-            const sql_update = `UPDATE compliance SET
-            compliance_kpis_id = ?, compliance_status = ?,
-            building_id = ?, account_id = ?,
-            valid_till = ?, required = ?,
-            account_role = ?, override_by_evac = ?,
-            note = ?,
-            dtLastUpdated = ?
-            WHERE compliance_id = ? `;
-            const param = [
-            ('compliance_kpis_id' in this.dbData) ? this.dbData['compliance_kpis_id'] : null,
-            ('compliance_status' in this.dbData) ? this.dbData['compliance_status'] : null,
-            ('building_id' in this.dbData) ? this.dbData['building_id'] : null,
-            ('account_id' in this.dbData) ? this.dbData['account_id'] : null,
-            ('valid_till' in this.dbData) ? this.dbData['valid_till'] : null,
-            ('required' in this.dbData) ? this.dbData['required'] : null,
-            ('account_role' in this.dbData) ? this.dbData['account_role'] : null,
-            ('override_by_evac' in this.dbData) ? this.dbData['override_by_evac'] : 0,
-            ('note' in this.dbData) ? this.dbData['note'] : null,
-            ('dtLastUpdated' in this.dbData) ? this.dbData['dtLastUpdated'] : null,
-            this.ID() ? this.ID() : 0
-            ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, param, (err, results, fields) => {
-                if (err) {
-                    throw new Error(err);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
                 }
-                resolve(true);
-            });
-            connection.end();
+                const sql_update = `UPDATE compliance SET
+                    compliance_kpis_id = ?, compliance_status = ?,
+                    building_id = ?, account_id = ?,
+                    valid_till = ?, required = ?,
+                    account_role = ?, override_by_evac = ?,
+                    note = ?,
+                    dtLastUpdated = ?
+                    WHERE compliance_id = ? `;
+                    const param = [
+                    ('compliance_kpis_id' in this.dbData) ? this.dbData['compliance_kpis_id'] : null,
+                    ('compliance_status' in this.dbData) ? this.dbData['compliance_status'] : null,
+                    ('building_id' in this.dbData) ? this.dbData['building_id'] : null,
+                    ('account_id' in this.dbData) ? this.dbData['account_id'] : null,
+                    ('valid_till' in this.dbData) ? this.dbData['valid_till'] : null,
+                    ('required' in this.dbData) ? this.dbData['required'] : null,
+                    ('account_role' in this.dbData) ? this.dbData['account_role'] : null,
+                    ('override_by_evac' in this.dbData) ? this.dbData['override_by_evac'] : 0,
+                    ('note' in this.dbData) ? this.dbData['note'] : null,
+                    ('dtLastUpdated' in this.dbData) ? this.dbData['dtLastUpdated'] : null,
+                    this.ID() ? this.ID() : 0
+                    ];
+                connection.query(sql_update, param, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    resolve(true);
+                });
+                connection.release();
+            });            
         });
     }
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
-            const sql = `INSERT INTO compliance
-            ( compliance_kpis_id, compliance_status, building_id, account_id, valid_till, required, account_role, override_by_evac,
-              note, dtLastUpdated )
-            VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-            const param = [
-            ('compliance_kpis_id' in this.dbData) ? this.dbData['compliance_kpis_id'] : null,
-            ('compliance_status' in this.dbData) ? this.dbData['compliance_status'] : null,
-            ('building_id' in this.dbData) ? this.dbData['building_id'] : null,
-            ('account_id' in this.dbData) ? this.dbData['account_id'] : null,
-            ('valid_till' in this.dbData) ? this.dbData['valid_till'] : null,
-            ('required' in this.dbData) ? this.dbData['required'] : null,
-            ('account_role' in this.dbData) ? this.dbData['account_role'] : null,
-            ('override_by_evac' in this.dbData) ? this.dbData['override_by_evac'] : 0,
-            ('note' in this.dbData) ? this.dbData['note'] : null,
-            ('dtLastUpdated' in this.dbData) ? this.dbData['dtLastUpdated'] : null
-            ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, param, (err, results, fields) => {
-                if (err) {
-                    throw new Error(err);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
                 }
-                this.id = results.insertId;
-                resolve(true);
-            });
-            connection.end();
+                const sql = `INSERT INTO compliance
+                    ( compliance_kpis_id, compliance_status, building_id, account_id, valid_till, required, account_role, override_by_evac,
+                    note, dtLastUpdated )
+                    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    const param = [
+                    ('compliance_kpis_id' in this.dbData) ? this.dbData['compliance_kpis_id'] : null,
+                    ('compliance_status' in this.dbData) ? this.dbData['compliance_status'] : null,
+                    ('building_id' in this.dbData) ? this.dbData['building_id'] : null,
+                    ('account_id' in this.dbData) ? this.dbData['account_id'] : null,
+                    ('valid_till' in this.dbData) ? this.dbData['valid_till'] : null,
+                    ('required' in this.dbData) ? this.dbData['required'] : null,
+                    ('account_role' in this.dbData) ? this.dbData['account_role'] : null,
+                    ('override_by_evac' in this.dbData) ? this.dbData['override_by_evac'] : 0,
+                    ('note' in this.dbData) ? this.dbData['note'] : null,
+                    ('dtLastUpdated' in this.dbData) ? this.dbData['dtLastUpdated'] : null
+                    ];
+                connection.query(sql, param, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    this.id = results.insertId;
+                    resolve(true);
+                });
+                connection.release();
+
+            });   
         });
     }
 
@@ -146,48 +161,52 @@ export class ComplianceModel extends BaseClass {
 
     public getLocationCompliance(locId, accntId, roles?) {
         return new Promise((resolve) => {
-            if(roles == 'undefined'){
-                roles = 'Manager, Tenant';
-            }
-            let sql = `
-                SELECT
-                  c.compliance_id,
-                  c.compliance_kpis_id,
-                  c.compliance_status,
-                  c.building_id,
-                  c.account_id,
-                  c.valid_till,
-                  c.required,
-                  c.account_role,
-                  ck.name,
-                  ck.directory_name,
-                  ck.measurement,
-                  ck.validity_in_months,
-                  ck.has_primary_document,
-                  ck.ER_id,
-                  ck.training_id,
-                  c.override_by_evac
-                FROM compliance_kpis ck
-                INNER JOIN compliance c ON ck.compliance_kpis_id = c.compliance_kpis_id
-                WHERE c.building_id = ?
-                AND c.account_id = ?
-                AND c.account_role IN (?)
-                AND ck.description IS NOT NULL
-                ORDER BY c.compliance_id DESC
-            `;
-
-            let param = [locId, accntId, roles];
-
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
                 }
-
-                this.dbData = results;
-                resolve(results);
-            });
-            connection.end();
+                if(roles == 'undefined'){
+                    roles = 'Manager, Tenant';
+                }
+                let sql = `
+                    SELECT
+                      c.compliance_id,
+                      c.compliance_kpis_id,
+                      c.compliance_status,
+                      c.building_id,
+                      c.account_id,
+                      c.valid_till,
+                      c.required,
+                      c.account_role,
+                      ck.name,
+                      ck.directory_name,
+                      ck.measurement,
+                      ck.validity_in_months,
+                      ck.has_primary_document,
+                      ck.ER_id,
+                      ck.training_id,
+                      c.override_by_evac
+                    FROM compliance_kpis ck
+                    INNER JOIN compliance c ON ck.compliance_kpis_id = c.compliance_kpis_id
+                    WHERE c.building_id = ?
+                    AND c.account_id = ?
+                    AND c.account_role IN (?)
+                    AND ck.description IS NOT NULL
+                    ORDER BY c.compliance_id DESC
+                `;
+    
+                let param = [locId, accntId, roles];
+                connection.query(sql, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+    
+                    this.dbData = results;
+                    resolve(results);
+                });
+                connection.release();
+            });            
         });
     }
 
