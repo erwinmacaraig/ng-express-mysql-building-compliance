@@ -39,6 +39,7 @@ import { NotificationConfiguration } from '../models/notification_config.model';
 import {EmailSender} from '../models/email.sender';
 import { Utils } from '../models/utils.model';
 
+
 const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
@@ -628,6 +629,58 @@ export class AdminRoute extends BaseRoute {
 
     });
 
+    router.post('/admin/compliance/FSAByEvac/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      // account id
+      const accountId = req.body.account;
+      const status = req.body.status;
+      const account = new Account(accountId);      
+      const list = new List();
+      // get all locations related to this account
+      const bldgsOnAccount = await list.listAllTaggedBuildingsOfAccount(accountId);
+      const locations = [];
+      const compliance = new ComplianceModel();
+      for (const building of bldgsOnAccount) {
+        // checks if building exists else insert
+        try {
+          await compliance.getComplianceRecord(3, building['location_id'], accountId);
+          locations.push(building['location_id']);
+
+        } catch (e) {
+          console.log(e);
+          await compliance.create({
+            compliance_kpis_id: 3,
+            compliance_status: status,
+            building_id: building['location_id'],
+            account_id: accountId,
+            note: 'FSA Training by Evac',
+            dtLastUpdated: moment().format('YYYY-MM-DD')
+          });
+        }
+        
+      }
+      
+      try {
+        await compliance.FSATrainingByEvac(accountId, locations, status);
+        await account.load();
+        account.set('fsa_by_evac', status);
+        await account.write();
+        return res.status(200).send({
+          message: 'Success',
+          status: status,
+          locations: locations
+        });
+      } catch(e) {
+        console.log(e);
+        return res.status(400).send({
+          message: 'Fail',
+          status: status,
+          locations: locations
+        });
+      }
+
+    });
+
     router.get('/admin/compliance/FSA-EvacExer/', new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const compliance = new ComplianceModel();
@@ -639,12 +692,21 @@ export class AdminRoute extends BaseRoute {
             req.query.account_id,
             req.query.compliance_status);
       }
-      complianceData =
+      try {
+        complianceData =
             await compliance.getComplianceRecord(req.query.compliance_kpis_id, req.query.building_id, req.query.account_id);
         return res.status(200).send({
           message: 'Success',
           data: complianceData
         });
+
+      } catch(e) {
+        return res.status(200).send({
+          message: 'Fail',
+          data: {}
+        });
+      }
+      
     });
 
     router.get('/admin/account-locations/:accountId/', new MiddlewareAuth().authenticate,
