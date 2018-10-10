@@ -1,6 +1,6 @@
 <div class="row">
-  <!-- <div class="col s4">{{ accountInfo.account_name }}</div> -->
-    <div class="col l12 m12 s12">
+    <div class="col l12 m12 s12">    
+        <app-alert></app-alert>    
         <h4 class="account-name inline-block">{{ accountInfo.account_name }}</h4>
         <p class="inline-block edit-info-text">
             <!--
@@ -65,6 +65,8 @@
                                 <!-- <input id="epc" type="checkbox" [(ngModel)]="accountInfo.epc_committee_on_hq"> <label for="epc">EPC Meeting at Head Office</label>
                                 <br> -->
                                 <input id="ola" type="checkbox" [(ngModel)]="accountInfo.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
+                                <br />
+                                <input id="fsa_evac" type="checkbox" [(ngModel)]="accountInfo.fsa_by_evac" (change)="toggleFSAByEvac($event)"><label for="fsa_evac">FSA By Evac</label>
                             </div>
                         </div>
                     </div>

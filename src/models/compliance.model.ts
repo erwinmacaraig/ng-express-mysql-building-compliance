@@ -74,7 +74,9 @@ export class ComplianceModel extends BaseClass {
             compliance_kpis_id = ?, compliance_status = ?,
             building_id = ?, account_id = ?,
             valid_till = ?, required = ?,
-            account_role = ?, override_by_evac = ?
+            account_role = ?, override_by_evac = ?,
+            note = ?,
+            dtLastUpdated = ?
             WHERE compliance_id = ? `;
             const param = [
             ('compliance_kpis_id' in this.dbData) ? this.dbData['compliance_kpis_id'] : null,
@@ -85,6 +87,8 @@ export class ComplianceModel extends BaseClass {
             ('required' in this.dbData) ? this.dbData['required'] : null,
             ('account_role' in this.dbData) ? this.dbData['account_role'] : null,
             ('override_by_evac' in this.dbData) ? this.dbData['override_by_evac'] : 0,
+            ('note' in this.dbData) ? this.dbData['note'] : null,
+            ('dtLastUpdated' in this.dbData) ? this.dbData['dtLastUpdated'] : null,
             this.ID() ? this.ID() : 0
             ];
             const connection = db.createConnection(dbconfig);
@@ -101,8 +105,9 @@ export class ComplianceModel extends BaseClass {
     public dbInsert() {
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO compliance
-            ( compliance_kpis_id, compliance_status, building_id, account_id, valid_till, required, account_role, override_by_evac )
-            VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )`;
+            ( compliance_kpis_id, compliance_status, building_id, account_id, valid_till, required, account_role, override_by_evac,
+              note, dtLastUpdated )
+            VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
             const param = [
             ('compliance_kpis_id' in this.dbData) ? this.dbData['compliance_kpis_id'] : null,
             ('compliance_status' in this.dbData) ? this.dbData['compliance_status'] : null,
@@ -112,7 +117,8 @@ export class ComplianceModel extends BaseClass {
             ('required' in this.dbData) ? this.dbData['required'] : null,
             ('account_role' in this.dbData) ? this.dbData['account_role'] : null,
             ('override_by_evac' in this.dbData) ? this.dbData['override_by_evac'] : 0,
-            this.ID() ? this.ID() : 0
+            ('note' in this.dbData) ? this.dbData['note'] : null,
+            ('dtLastUpdated' in this.dbData) ? this.dbData['dtLastUpdated'] : null
             ];
             const connection = db.createConnection(dbconfig);
             connection.query(sql, param, (err, results, fields) => {
@@ -187,42 +193,97 @@ export class ComplianceModel extends BaseClass {
 
     public getComplianceRecord(kpi, building_id, account_id): Promise<object> {
       return new Promise((resolve, reject) => {
-        const sql = `SELECT * FROM compliance
+          this.pool.getConnection((err, connection) => {
+            if (err) {                    
+                console.log('Error gettting pool connection ' + err);
+                throw err;
+            }
+            const sql = `SELECT * FROM compliance
                      WHERE compliance_kpis_id = ?
                      AND building_id = ?
                      AND account_id = ?
                      ORDER BY compliance_id
                      LIMIT 1`;
-
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql, [kpi, building_id, account_id], (error, results) => {
-            if (error) {
-              console.log('compliance.model.getComplianceRecord', error, sql);
-              throw Error('Cannot get compliance status');
-            }
-            resolve(results[0]);
+            connection.query(sql, [kpi, building_id, account_id], (error, results) => {
+                if (error) {
+                    console.log('compliance.model.getComplianceRecord', error, sql);
+                    throw Error('Cannot get compliance status');
+                }
+                if (results.length > 0) {
+                    resolve(results[0]);
+                } else {
+                    reject('No record can be found.');
+                }
+                
+            });
+            connection.release();
           });
-          connection.end();
+        
+
+          
+         
+          
       });
     }
     public setComplianceRecordStatus(kpi, building_id, account_id, stat: number = 1): Promise<boolean> {
       return new Promise((resolve, reject) => {
-        const sql_update = `UPDATE compliance
+        this.pool.getConnection((err, connection) => {
+            if (err) {                    
+                console.log('Error gettting pool connection ' + err);
+                throw err;
+            }
+            const sql_update = `UPDATE compliance
                             SET compliance_status = ?
                             WHERE compliance_kpis_id = ?
                             AND building_id = ?
                             AND account_id = ?`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_update, [stat, kpi, building_id, account_id], (error, results) => {
-          if (error) {
-            console.log('compliance.model.getComplianceRecord', error, sql_update);
-            throw Error('Cannot get compliance status');
-          }
-          const status = (stat === 1) ? true : false;
-          resolve(status);
+            connection.query(sql_update, [stat, kpi, building_id, account_id], (error, results) => {
+                if (error) {
+                    console.log('compliance.model.getComplianceRecord', error, sql_update);
+                    throw Error('Cannot get compliance status');
+                }
+                const status = (stat === 1) ? true : false;
+                resolve(status);
+            });
+            connection.release();
         });
-        connection.end();
       });
     }
+
+    FSATrainingByEvac(accountId = 0, buildings = [], status = 0) {
+        return new Promise((resolve, reject) => {
+            if (buildings.length == 0) {
+                reject('No locations supplied');
+                return;
+            }
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
+                }
+                const locations = buildings.join(',');
+                const sql = `UPDATE compliance SET
+                                compliance_status = ?,
+                                note = 'FSA Training by Evac',
+                                dtLastUpdated = NOW()
+                            WHERE
+                                compliance_kpis_id = 3
+                            AND
+                                account_id = ?
+                            AND
+                                building_id IN (${locations})`;
+                connection.query(sql, [status, accountId], (error, results) => {
+                    if (error) {
+                        console.log('Cannot update FSA record', error, sql);
+                        throw Error(error.toString());
+                    }
+                    resolve(true); 
+                });
+                connection.release();
+            });
+        });
+    }
+
+
 
 }
