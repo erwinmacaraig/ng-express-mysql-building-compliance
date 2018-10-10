@@ -233,7 +233,7 @@ export class Account extends BaseClass {
     public dbUpdate() {
         return new Promise((resolve, reject) => {
           const sql_update = `UPDATE accounts SET
-                lead = ?, online_training = ?, account_name = ?, building_number = ?,
+                lead = ?, online_training = ?, fsa_by_evac = ?, account_name = ?, building_number = ?,
                 billing_unit = ?, billing_street = ?, billing_city = ?,
                 billing_state = ?, billing_postal_code = ?, billing_country = ?,
                 location_id = ?, account_type = ?, account_directory_name = ?,
@@ -244,6 +244,7 @@ export class Account extends BaseClass {
           const param = [
             ('lead' in this.dbData) ? this.dbData['lead'] : 0,
             ('online_training' in this.dbData) ? this.dbData['online_training'] : 0,
+            ('fsa_by_evac' in this.dbData) ? this.dbData['fsa_by_evac'] : 0,
             ('account_name' in this.dbData) ? this.dbData['account_name'] : "",
             ('building_number' in this.dbData) ? this.dbData['building_number'] : "",
             ('billing_unit' in this.dbData) ? this.dbData['billing_unit'] : "",
@@ -287,6 +288,7 @@ export class Account extends BaseClass {
           const sql_insert = `INSERT INTO accounts (
             lead,
             online_training,
+            fsa_by_evac,
             account_name,
             building_number,
             billing_unit,
@@ -313,6 +315,7 @@ export class Account extends BaseClass {
           const param = [
             ('lead' in this.dbData) ? this.dbData['lead'] : 0,
             ('online_training' in this.dbData) ? this.dbData['online_training'] : 0,
+            ('fsa_by_evac' in this.dbData) ? this.dbData['fsa_by_evac'] : 0,
             ('account_name' in this.dbData) ? this.dbData['account_name'] : "",
             ('building_number' in this.dbData) ? this.dbData['building_number'] : "",
             ('billing_unit' in this.dbData) ? this.dbData['billing_unit'] : "",

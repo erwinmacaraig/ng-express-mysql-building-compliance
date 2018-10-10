@@ -569,7 +569,7 @@ export class List {
       });
     }
 
-    public listAllTaggedBuildingsOfAccount(accountId){
+    public listAllTaggedBuildingsOfAccount(accountId):Promise<Array<object>>{
         return new Promise((resolve, reject) => {
             let sql = `
                 
