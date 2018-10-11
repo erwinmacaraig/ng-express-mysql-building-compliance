@@ -113,15 +113,16 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
             this.KPIS.push(k);
           }
       }
+      
       for ( let i = 0; i < this.KPIS.length; i++) {
         if (this.KPIS[i] != undefined && this.selectedKPI == this.KPIS[i]['compliance_kpis_id']) {
-          initKPI = this.KPIS[i];
+          initKPI = this.KPIS[i];          
         }
+        
+        
       }
-
-      this.getLatestCompliance();
-
       this.getUploadedDocumentsFromSelectedKPI(initKPI, true);
+      this.getLatestCompliance();
       this.dashboard.hide();
     });
 
@@ -265,17 +266,20 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     this.documentFiles = [];
     this.displayKPIName = kpi['name']; // clean this up
     this.displayKPIDescription = kpi['description']; // clean this up
-   
-    let docCtr = 0;
+    // let docCtr = 0;  
     this.showLoadingForSignedURL = false;
     this.myKPI = kpi;
     console.log(`selected kpi is ${this.selectedKPI}`);
     if ( (this.selectedKPI in this.complianceDocuments && this.complianceDocuments[this.selectedKPI].length == 0) || ( this.selectedKPI in this.complianceDocuments && reload)) {
       this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
-        this.documentFiles = response['data'];
+        this.documentFiles = response['data'];        
         console.log('total docs is ' + this.documentFiles.length);
         // this.complianceDocuments[this.selectedKPI] = response['data'];
-        this.locationName = response['displayName'].join(' >> ');        
+        this.locationName = response['displayName'].join(' >> ');
+        for (const doc of this.documentFiles) { 
+          this.complianceDocuments[this.selectedKPI].push(doc);
+        } 
+        /*       
         for (const doc of this.documentFiles) {               
           this.showLoadingForSignedURL = true;  
           this.adminService.getAWSS3DownloadFileURL(doc['urlPath']).subscribe((pathObj) => {
@@ -287,11 +291,11 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
             docCtr++;
             console.log('doc counter ' + docCtr);
             if (docCtr == this.documentFiles.length) {
-              /*
-              this.complianceDocuments[this.selectedKPI].sort((obj1, obj2) => {
-                return obj2.compliance_documents_id - obj1.compliance_documents_id;
-              });
-              */
+              
+              // this.complianceDocuments[this.selectedKPI].sort((obj1, obj2) => {
+              //  return obj2.compliance_documents_id - obj1.compliance_documents_id;
+              // });
+              
               this.showLoadingForSignedURL = false;              
             }          
           }, (err) => {
@@ -302,7 +306,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
               this.showLoadingForSignedURL = false;
             }          
           });       
-        }
+        } */
       }, (error) => {
         console.log(error);
         this.showLoadingForSignedURL = false;
@@ -339,6 +343,18 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         this.selectedCompliance = k;
       }
     }
+  }
+
+  downloadKPIdownloadKPIFile(kpi_file, filename) {
+    this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
+      const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
+      FileSaver.saveAs(blob, filename);
+    },
+    (error) => {
+      // this.alertService.error('No file(s) available for download');
+      // $('#modalfilenotfound').modal('open');
+      console.log('There was an error', error);
+    });
   }
 
   showModalUploadDocs() {

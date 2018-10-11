@@ -188,7 +188,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd'}}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>                    
-                    <a href="{{doc['urlPath']}}" target="_blank">Download</a>
+                    <a (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'])" target="_blank">Download</a>
                 </td>
             </tr>
             <tr *ngIf="showLoadingForSignedURL">
@@ -260,7 +260,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>                    
-                    <a href="{{doc['urlPath']}}" target="_blank">Download</a>
+                    <a (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'])" target="_blank">Download</a>
                 </td>
             </tr>
             <tr *ngIf="showLoadingForSignedURL">
@@ -305,7 +305,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>
-                     <a href="{{doc['urlPath']}}" target="_blank">Download</a>
+                    <a (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'])" target="_blank">Download</a>
                 </td>
             </tr>
             <tr *ngIf="showLoadingForSignedURL">
@@ -639,7 +639,9 @@
                 <td>{{doc['validity_in_months']}}</td>
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
-                <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+                <td>
+                    <a (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'])" target="_blank">Download</a>
+                </td>
             </tr>
             <tr *ngIf="showLoadingForSignedURL">
                 <td colspan="8">
@@ -833,7 +835,9 @@
                 <td>{{doc['validity_in_months']}}</td>
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
-                <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+                <td>
+                    <a (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'])" target="_blank">Download</a>
+                </td>
             </tr>
             <tr *ngFor="let a of sundry_attendance_record">
                 <td><span>Paper attendance</span></td>
