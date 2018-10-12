@@ -103,7 +103,8 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit() {
-
+        $('.workspace.container').css('margin-bottom', '20%');
+        $('.workspace.container').css('overflow', '');
     }
 
     cancel() {
