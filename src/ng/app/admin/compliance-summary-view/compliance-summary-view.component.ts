@@ -16,6 +16,7 @@ import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { LocationsService  } from '../../services/locations';
 import {  UserService } from '../../services/users';
 import { PaperAttendanceDocument } from '../../models/paper_attendance_document';
+import { MessageService } from './../../services/messaging.service';
 declare var $: any;
 declare var moment: any;
 import * as FileSaver from 'file-saver';
@@ -80,6 +81,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   eco_attendance_record: Array<PaperAttendanceDocument> = [];
   chief_warden_attendance_record: Array<PaperAttendanceDocument> = [];
   showLoadingForSignedPaperURL:boolean = true;
+  messagingSub:Subscription;
 
   @ViewChild('inpFileUploadDocs') inpFileUploadDocs: ElementRef;
   constructor(
@@ -90,7 +92,8 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     platformLocation: PlatformLocation,
     public dashboard: DashboardPreloaderService,
     private userService: UserService,
-    private locationService: LocationsService) {
+    private locationService: LocationsService,
+    private messageService: MessageService) {
 
       this.baseUrl = (platformLocation as any).location.origin;
     }
@@ -176,9 +179,17 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     $('.modal').modal({
       dismissible: false
     });
+    this.messagingSub = this.messageService.getMessage().subscribe((message) => {
+      if (message.Fire_Safety_Advisor_Updated) {
+        this.getLatestCompliance();
+      }
+      
+    });
   }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    this.messagingSub.unsubscribe();
+  }
 
   
   getLatestCompliance(){

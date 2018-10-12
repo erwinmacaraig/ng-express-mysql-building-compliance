@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs/Rx';
 import { AdminService } from './../../services/admin.service';
 import { MessageService } from './../../services/messaging.service';
 import { AuthService } from '../../services/auth.service';
+import { AlertService } from '../../services/alert.service';
 import { Router, NavigationEnd, ActivatedRoute  } from '@angular/router';
 declare var $: any;
 
@@ -33,7 +34,8 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
     'email_add_user_exemption': '',
     'lead': '',
     'online_training': 0,
-    'epc_committee_on_hq': 0
+    'epc_committee_on_hq': 0,
+    'fsa_by_evac': 0
   };
   account_billing = '';
 
@@ -47,7 +49,8 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
               private msgSrv : MessageService,
               private auth: AuthService,
               private router: Router,
-              private activatedRoute: ActivatedRoute ) {
+              private activatedRoute: ActivatedRoute,
+              private alertService: AlertService ) {
 
     this.routerSubs = this.router.events.subscribe((observer) => {
       if(observer instanceof NavigationEnd){
@@ -126,6 +129,31 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
         this.msgSrv.sendMessage({
           'update_account_training_listing': true
         });
+    });
+
+  }
+
+  public toggleFSAByEvac(e): void {
+    let toggleFSATraining = 0;
+    if (e.target.checked) {
+      toggleFSATraining = 1;
+    }
+    this.adminService.toggleFSAByEvac({
+      account: this.accountId,
+      status: toggleFSATraining
+    }).subscribe((response) => {
+      console.log(response);
+      this.alertService.info('Fire Safety Advisor Training has been updated.');
+      this.msgSrv.sendMessage({
+        'Fire_Safety_Advisor_Updated': true
+      });
+      setTimeout(() => {
+        this.alertService.info(null); 
+      }, 5000);
+    }, (error) => {
+      console.log(error);
+      this.alertService.error('There was an error setting FSA.');
+      setTimeout(() => {this.alertService.info(null); }, 5000);
     });
 
   }

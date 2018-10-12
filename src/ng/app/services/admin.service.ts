@@ -170,6 +170,10 @@ export class AdminService {
     return this.http.post(`${this.baseUrl}/admin/assign-default-training/`,reqBody, this.options);
   }
 
+  toggleFSAByEvac(reqBody = {}) {
+    return this.http.post(`${this.baseUrl}/admin/compliance/FSAByEvac/`,reqBody, this.options);
+  }
+
   generateAdminReport(form: Object) {
       return this.http.post(`${this.baseUrl}/admin/generate-admin-report`, form);
   }
