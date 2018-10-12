@@ -69,18 +69,16 @@ export class Location extends BaseClass {
 
     public getChildrenTenantRelated(parentId, accountId, responsibility?){
         return new Promise((resolve) => {
-            let paramResponsibility = (responsibility) ? responsibility : 'Tenant';
-
+            let responsibilitSql = (responsibility) ? (responsibility == 'Manager') ? '' : ` AND lar.account_id = ${accountId} AND lar.responsibility = "Tenant" ` : '';
             const sql_load = `
                 SELECT
                     l.*
                 FROM locations l
-                INNER JOIN location_account_relation lar ON l.location_id = lar.location_id
-                WHERE l.parent_id = ${parentId} AND l.archived = 0 AND lar.account_id = ${accountId} AND lar.responsibility = '${paramResponsibility}'
+                LEFT JOIN location_account_relation lar ON l.location_id = lar.location_id
+                WHERE l.parent_id = ${parentId} AND l.archived = 0 ${responsibilitSql} GROUP BY l.location_id
             `;
             const param = [parentId];
             const connection = db.createConnection(dbconfig);
-
             connection.query(sql_load, param, (error, results, fields) => {
                 if (error) {
                     return console.log(error);

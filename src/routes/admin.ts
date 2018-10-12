@@ -654,9 +654,8 @@ export class AdminRoute extends BaseRoute {
         accountId = req.params.accountId,
         allLocations = {},
         filteredLocations = [],
-        allTaggedLocationsAccounts = <any> await list.listAllTaggedBuildingsOfAccount(accountId);
-      
-       
+        archived = (req.query.archived) ? 1 : 0,
+        allTaggedLocationsAccounts = <any> await list.listAllTaggedBuildingsOfAccount(accountId, archived);
        
       return res.status(200).send({
         data: allTaggedLocationsAccounts

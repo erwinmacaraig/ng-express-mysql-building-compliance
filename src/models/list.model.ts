@@ -569,8 +569,10 @@ export class List {
       });
     }
 
-    public listAllTaggedBuildingsOfAccount(accountId){
+    public listAllTaggedBuildingsOfAccount(accountId, archived?){
         return new Promise((resolve, reject) => {
+            let archivedSql = (archived) ? 1 : 0 ;
+
             let sql = `
                 
                 SELECT
@@ -586,7 +588,7 @@ export class List {
                     l.location_id,
                     l.parent_id,
                     l.name,
-                    l.formatted_address,
+                    IF(l.formatted_address IS NOT NULL, l.formatted_address, CONCAT(l.street, ' ', l.city, ' ', l.country)) as formatted_address,
                     l.is_building,
                     IF(p1.name IS NOT NULL OR TRIM(p1.name) != '', CONCAT(p1.name, ', ', l.name), l.name ) as display_name
                                     
@@ -603,7 +605,7 @@ export class List {
                     OR p3.location_id = lar.location_id
                     OR p4.location_id = lar.location_id
 
-                    WHERE lar.account_id = ${accountId} AND l.is_building = 1 AND l.archived = 0
+                    WHERE lar.account_id = ${accountId} AND l.is_building = 1 AND l.archived = ${archivedSql}
 
                     UNION
 
@@ -614,7 +616,7 @@ export class List {
                     p.location_id,
                     p.parent_id,
                     p.name,
-                    p.formatted_address,
+                    IF(p.formatted_address IS NOT NULL, p.formatted_address, CONCAT(p.street, ' ', p.city, ' ', p.country)) as formatted_address,
                     p.is_building,
                     IF(p2.name IS NOT NULL OR TRIM(p2.name) != '', CONCAT(p2.name, ', ', p.name), p.name ) as display_name
 
@@ -623,7 +625,7 @@ export class List {
                     INNER JOIN locations p ON c.parent_id = p.location_id
                     LEFT JOIN locations p2 ON p.parent_id = p2.location_id
 
-                    WHERE lar.account_id = ${accountId} AND p.archived = 0
+                    WHERE lar.account_id = ${accountId} AND p.archived = ${archivedSql}
                     GROUP BY p.location_id
                 ) as locations
                 GROUP BY location_id

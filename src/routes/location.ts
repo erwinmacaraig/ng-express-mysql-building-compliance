@@ -1384,6 +1384,52 @@ const defs = require('../config/defs.json');
             response.locations = [];
         }
 
+        let parentsAndChildIds = {};
+        for(let loc of response.locations){
+            if(!parentsAndChildIds[loc.parent_id]){ parentsAndChildIds[loc.parent_id] = { childids : [], total : 0, isBuilding : 0, replaceToBuilding : false } }
+            parentsAndChildIds[loc.parent_id]['childids'].push(loc.location_id);
+            parentsAndChildIds[loc.parent_id]['total'] = parentsAndChildIds[loc.parent_id]['childids'].length;
+            parentsAndChildIds[loc.parent_id]['isBuilding'] = loc.parent_is_building;
+
+            if( parentsAndChildIds[loc.parent_id]['isBuilding'] == 1 && parentsAndChildIds[loc.parent_id]['total'] > 1 ){
+                parentsAndChildIds[loc.parent_id]['replaceToBuilding'] = true;
+            }
+        }
+
+        let bldgIdsToReplace = [];
+        for(let id in parentsAndChildIds){
+            if( parentsAndChildIds[id]['replaceToBuilding'] ){
+                bldgIdsToReplace.push(id);
+            }
+        }
+
+        let 
+        bldgLocModel = new Location(),
+        buildingsReplacement = ( bldgIdsToReplace.length > 0 ) ? <any> await bldgLocModel.getByInIds( bldgIdsToReplace.toString() ) : [];
+
+        let newLocations = [];
+        for(let id in parentsAndChildIds ){
+            if(!parentsAndChildIds[id]['replaceToBuilding']){
+                for(let idc of parentsAndChildIds[id]['childids']){
+                    for(let loc of response.locations){
+                        if(loc.location_id == idc){
+                            newLocations.push( loc );
+                        }
+                    }
+                }
+
+            }
+        }
+
+        for(let bldg of buildingsReplacement){
+            newLocations.push(bldg);
+        }
+
+        response['locations'] = newLocations;
+        response['buildingsReplacement'] = buildingsReplacement;
+        response['bldgIdsToReplace'] = bldgIdsToReplace;
+        response['parentsAndChildIds'] = parentsAndChildIds;
+
         const subLocsArr = [];
         let subLocsStr = '';
         const subLocationsObj = {};

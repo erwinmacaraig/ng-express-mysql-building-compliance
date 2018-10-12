@@ -171,7 +171,15 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         this.viewData.role_text = response.data.role_text;
         this.viewData.eco_roles = response.data.eco_roles;
         this.viewData.locations = response.data.locations;
-        this.viewData.trainings = response.data.trainings;
+
+        let trainings = [];
+        for(let tr of response.data.trainings){
+            if( this.userData['userId'] == tr.user_id){
+                trainings.push(tr);
+            }
+        }
+
+        this.viewData.trainings = trainings;
         this.viewData.certificates = response.data.certificates;
         this.viewData.valid_trainings = response.data.valid_trainings;
         this.viewData.required_trainings = response.data.required_trainings;

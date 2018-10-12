@@ -28,7 +28,13 @@ export class LocationsService {
         });
     }
 
-    getById(id, callBack) {
+    getById(id,  callBack, data?) {
+        if(data){
+            this.options['params'] = {};
+            for(let i in data){
+                this.options['params'][i] = data[i];
+            }
+        }
         this.http.get(this.baseUrl + '/location/get/' + id, this.options)
         .subscribe(res => {
             callBack(res);

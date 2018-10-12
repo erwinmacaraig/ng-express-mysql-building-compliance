@@ -186,7 +186,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
             });
 
             callBack();
-        });
+        }, { get_related_only : true });
     }
 
     ngOnInit() {
@@ -256,7 +256,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                         this.showLoaderModalSublocation = false;
                         this.errorMessageModalSublocation = '';
                         $('#modalAddSublocation').modal('close');
-                    });
+                    }, { get_related_only : true });
                 });
             }else{
                 this.locationService.createSubLocation({

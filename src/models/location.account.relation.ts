@@ -348,6 +348,7 @@ export class LocationAccountRelation extends BaseClass {
             lar.responsibility,
             lar.location_account_relation_id,
             lar.account_id,
+            p1.is_building as parent_is_building,
             IF(l.is_building = 1, l.location_id,
 
                 IF(p1.is_building = 1, p1.location_id,
