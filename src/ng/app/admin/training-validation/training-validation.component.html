@@ -32,7 +32,7 @@
     </div>
 
   </div>
-  <div class="row filter-container" style="overflow: -webkit-paged-y;">
+  <div class="row filter-container"  >
     <div class="col l4 m6 s12 margin-bottom-20">
         <div class="datepicker">
             <ng-datepicker *ngIf="searchLocationField.valid && smartSearchSelectionId > 0"  [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
