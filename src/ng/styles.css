@@ -5,6 +5,7 @@
 	padding: 1% 2%;
     max-width: 100vw;
     width: 100%;
+    min-height: 90vh;
 }
 
 html{
@@ -444,4 +445,14 @@ app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
     border-right: 5px solid transparent !important;
     position: relative !important;
     top: -3px !important;
+}
+
+.ngx-datepicker-container .ngx-datepicker-calendar-container{
+    width: 320px !important;
+}
+
+.ngx-datepicker-container .ngx-datepicker-calendar-container .main-calendar-container .main-calendar-days, 
+.ngx-datepicker-container .ngx-datepicker-calendar-container .main-calendar-container .main-calendar-years
+{
+    display: block !important;
 }

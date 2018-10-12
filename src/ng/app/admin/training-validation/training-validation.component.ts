@@ -171,6 +171,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       $('.modal').modal({
         dismissible: false     
       });
+      $('.workspace.container').css('overflow', '');
     }
   
     ngOnDestroy() {

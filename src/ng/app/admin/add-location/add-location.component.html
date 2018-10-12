@@ -1,0 +1,39 @@
+<div class="row">
+    <div class="col s12">
+        <span>Account / {{accountInfo['account_name']}} / Location </span>
+    </div>
+    <div class="col s12">
+        <span>Select managing role for this location</span>          
+    </div>
+    <div class="col s12">
+        <input id="managing_role_frp_chkb" class="with-gap" type="radio" name="managing_role" />
+        <label for="managing_role_frp_chkb">FRP</label>
+        
+        <input id="managing_role_trp_all_chkb" class="with-gap" type="radio" name="managing_role" />
+        <label for="managing_role_trp_all_chkb">TRP Occupying all Levels</label>
+        
+        <input id="managing_role_trp_sp_level_chkb" class="with-gap" type="radio" name="managing_role" />
+        <label for="managing_role_trp_sp_level_chkb">TRP Occupying Specific Levels</label>
+    </div>            
+</div>
+<div class="row filter-container">
+    <div class="col s12">Search Location</div>
+    <div class="col s12">
+        <div class="search-field">        
+            <input type="text" placeholder="Search" id="searchLocations" autocorrect="off" autocapitalize="off" spellcheck="off" #search>
+            <span class="material-icons">search</span>
+            <div class="search-result-container">
+                <p class="text"><!-- *ngIf="showTextSearch" {{searchText}}-->SearchText</p>
+                <ul>
+                    <li ><!--*ngFor="let location of searchedLocations"-->
+                        <a><!--{{location.name}}-->Test</a> <!--(click)="selectLocationFromSearch(location)"-->
+                        
+                    </li>
+                    <li>
+                            <a>Test 2</a>
+                    </li>
+                </ul>
+            </div>     
+        </div>        
+    </div>
+</div>

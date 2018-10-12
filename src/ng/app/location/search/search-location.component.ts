@@ -4,7 +4,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { ElementRef, NgZone, ViewChild } from '@angular/core';
 import { FormControl, FormArray, FormGroup, Validators } from '@angular/forms';
-import {  } from 'googlemaps';
+// import {  } from 'googlemaps';
 import { MapsAPILoader } from '@agm/core';
 import { LocationsService } from '../../services/locations';
 import { UserService } from './../../services/users';

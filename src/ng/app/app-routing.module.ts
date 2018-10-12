@@ -100,7 +100,6 @@ import { NotificationPEEPListComponent } from './notification/peep-list/peep-lis
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
-// import { AccountInfoComponent } from './admin/account-info/account-info.component';
 import { AccountUsersListComponent } from './admin/account-users/account-users.component';
 import { AddAccountUserComponent } from './admin/add-user/add-user.component';
 import { LocationsInAccountComponent } from './admin/locations-in-accounts/locations-in-account.component';
@@ -113,7 +112,7 @@ import { AccountTrainingComponent } from './admin/account-training/account-train
 import { AdminReportsComponent } from './admin/reports/reports.component';
 import { AdminAddAccountComponent } from './admin/add-account/add-account.component';
 import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
-import {  PeepFormComponent } from './peep.form/peep.form';
+import { PeepFormComponent } from './peep.form/peep.form';
 import { AddAccountLocationComponent } from './admin/add-location/add-location.component';
 
 const appRoutes: Routes = [
@@ -256,7 +255,7 @@ const appRoutes: Routes = [
       { path: 'notification-list', component: NotificationListComponent },
       { path: 'notification-config', component: NotificationConfigurationComponent },
       { path: 'notified-users-list/:config', component: NotifiedUsersListComponent },
-      { path: 'add-account-location', component: AddAccountLocationComponent }
+      { path: 'add-account-location/:accountId', component: AddAccountLocationComponent }
     ]
   },
 

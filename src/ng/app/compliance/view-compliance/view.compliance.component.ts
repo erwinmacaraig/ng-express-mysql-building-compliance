@@ -493,7 +493,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         });
     }
 
-    downloadKPIFile(kpi_file, filename) {
+    downloadKPIdownloadKPIFile(kpi_file, filename) {
         this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
           const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
           FileSaver.saveAs(blob, filename);
