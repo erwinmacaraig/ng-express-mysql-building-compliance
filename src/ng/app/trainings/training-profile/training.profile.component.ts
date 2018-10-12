@@ -248,34 +248,26 @@ export class TrainingProfile implements OnInit, OnDestroy {
 	}
 
 	selectLocationEvent(){
-		let selectLocation = $('#selectLocation');
-		selectLocation.off('change').on('change', () => {
-			let locId = selectLocation.val(),
-				selectedLoc = <any>{},
-				emRoles = this.viewData.eco_roles;
+    let selectLocation = $('#selectLocation');
+    selectLocation.off('change').on('change', () => {
+      let option = selectLocation.find('option:selected'),
+                index = option.attr('index'),
+                selectedLoc =  <any> this.viewData.locations[index];
 
-			for(let loc of this.viewData.locations){
-				if(loc.location_id == locId){
-					selectedLoc = loc;
-				}
-			}
+      if(selectedLoc){
+                this.viewData.role_text = selectedLoc.role_name;
 
-      console.log('selectedLoc', selectedLoc);
+                setTimeout(() => {
+                    Materialize.updateTextFields();
+                }, 100);
+            }
 
-			if(selectedLoc.em_roles_id !== null && selectedLoc.em_roles_id > 0){
-				this.viewData.role_text = this.getRoleName(selectedLoc.em_roles_id);
-			}else{
-				if(selectedLoc.location_role_id == 1 || selectedLoc.location_role_id == 2){
-					this.viewData.role_text = this.getRoleName(selectedLoc.location_role_id);
-				}
-			}
+      setTimeout(() => {
+        Materialize.updateTextFields();
+      }, 100);
 
-			setTimeout(() => {
-				Materialize.updateTextFields();
-			}, 100);
-
-		});
-	}
+    });
+  }
 
 
 	getInitials(fullName){

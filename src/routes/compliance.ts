@@ -625,6 +625,8 @@ import * as S3Zipper from 'aws-s3-zipper';
                 emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, locationID, role, isAllLocId);
             }
 
+            this.response['emrolesOnThisLocation'] = emrolesOnThisLocation;
+
             if (defs['em_roles']['GENERAL_OCCUPANT'] in emrolesOnThisLocation) {
                 for (let i = 0; i < emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'].length; i++) {
                     let locId = emrolesOnThisLocation[defs['em_roles']['GENERAL_OCCUPANT']]['location'][i].toString();
@@ -1465,6 +1467,12 @@ import * as S3Zipper from 'aws-s3-zipper';
             this.response['epcData'] = epcData;
         }
 
+        for (let comp of compliances) {
+            comp['activity_done_in_building_management'] = false;
+            if(defs['em_roles']['FSA'] in emrolesOnThisLocation && ( comp['compliance_kpis_id'] == epcMeetingId || comp['compliance_kpis_id'] == evacExerId ) ){
+                comp['activity_done_in_building_management'] = true;
+            }
+        }
 
         for(let comp of compliances){
             let tempPoints = comp.points;
