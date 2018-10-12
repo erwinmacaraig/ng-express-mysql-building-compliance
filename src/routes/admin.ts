@@ -637,7 +637,7 @@ export class AdminRoute extends BaseRoute {
       const account = new Account(accountId);      
       const list = new List();
       // get all locations related to this account
-      const bldgsOnAccount = await list.listAllTaggedBuildingsOfAccount(accountId);
+      const bldgsOnAccount = <any> await list.listAllTaggedBuildingsOfAccount(accountId);
       const locations = [];
       const compliance = new ComplianceModel();
       for (const building of bldgsOnAccount) {

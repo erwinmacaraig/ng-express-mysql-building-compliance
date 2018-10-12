@@ -316,6 +316,9 @@ a.btn{
 
 #modalAssignLocations{
     width: 50%;
+}
+
+#modalAssignLocations.overflow-hide{
     overflow-y: hidden;
 }
 
@@ -393,7 +396,6 @@ a.btn{
 
 @media only screen and (max-width: 500px) {
     #modalMobility,
-    #modalAssignLocations,
     #modalAssignLocations{
         width: 95%;
     }

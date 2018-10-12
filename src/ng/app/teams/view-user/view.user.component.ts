@@ -194,6 +194,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         if(this.viewData.user.last_login.length > 0 ){
             this.viewData.user['last_login'] = moment(this.viewData.user['last_login']).format('MMM. DD, YYYY hh:mm A');
         }
+
+        setTimeout(function(){ $('#selectLocation').trigger('change'); },500);
     }
 
 	loadProfile(callBack?){
@@ -246,16 +248,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
         this.selectLocationEvent();
         this.onKeyUpSearchModalLocationEvent();
-
+        this.selectActionEvent();
 		setTimeout(() => {
             $('#selectLocation').trigger('change');
             setTimeout(() => {
                 Materialize.updateTextFields();
             }, 300);
-        }, 300);
-
-		this.selectActionEvent();
-
+        }, 500);
 	}
 
 	selectLocationEvent(){
@@ -598,7 +597,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         this.onChangeSelectRole(loc, loc.role_id);
         this.buildLocationsListInModal();
     	this.showSelectLocation = true;
-
+        $('#modalAssignLocations').scrollTop(0);
     }
 
     submitSelectLocationModal(formLoc, event){

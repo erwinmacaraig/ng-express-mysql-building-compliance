@@ -1380,6 +1380,7 @@ const defs = require('../config/defs.json');
 
         try{
             response.locations = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+            response['locationsX'] = response.locations;
         }catch(e){
             response.locations = [];
         }

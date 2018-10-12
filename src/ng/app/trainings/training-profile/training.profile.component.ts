@@ -13,6 +13,8 @@ import { DatepickerOptions } from 'ng2-datepicker';
 import * as enLocale from 'date-fns/locale/en';
 import { ComplianceService } from './../../services/compliance.service';
 import { DomSanitizer } from '@angular/platform-browser';
+import { AdminService } from './../../services/admin.service';
+import { Observable } from 'rxjs/Rx';
 
 declare var $: any;
 declare var Materialize: any;
@@ -23,18 +25,19 @@ declare var user_course_relation: any;
   selector: 'app-view-training-profile',
   templateUrl: './training.profile.component.html',
   styleUrls: ['./training.profile.component.css'],
-  providers: [DashboardPreloaderService, EncryptDecryptService, UserService, CourseService, ComplianceService]
+  providers: [DashboardPreloaderService, EncryptDecryptService, UserService, CourseService, ComplianceService, AdminService]
 })
 export class TrainingProfile implements OnInit, OnDestroy {
   @ViewChild('formMobility') formMobility : NgForm;
   @ViewChild("durationDate") durationDate: ElementRef;
   @ViewChild("formProfile") formProfile: NgForm;
   @ViewChild("formCredential") formCredential : NgForm;
+  @ViewChild('modalSearchLocation') modalSearchLocation: ElementRef;
   userData = {};
   encryptedID = '';
   decryptedID = '';
   viewData = {
-  user : {
+    user : {
       profilePic : '',
       last_name: '',
       first_name: '',
@@ -85,6 +88,14 @@ export class TrainingProfile implements OnInit, OnDestroy {
   private baseUrl;
   courses = [];
 
+  selectedLocationData = {};
+  showSelectLocation = false;
+
+  buildings = [];
+  levels = [];
+  locationsCopy = [];
+  formLocValid = false;
+  searchModalLocationSubs;
 
 	constructor(
     private auth: AuthService,
@@ -98,7 +109,8 @@ export class TrainingProfile implements OnInit, OnDestroy {
     private elemRef: ElementRef,
     private sanitizer: DomSanitizer,
     private complianceService: ComplianceService,
-    private platformLocation: PlatformLocation
+    private platformLocation: PlatformLocation,
+    private adminService: AdminService
   ) {
 
     this.baseUrl = (platformLocation as any).location.origin;
@@ -120,7 +132,7 @@ export class TrainingProfile implements OnInit, OnDestroy {
 
 
       // console.log(this.viewData.all_trainings);
-
+      this.viewData.locations = [];
       /* Filter out locations so locations will contain locations with EM Role */
       for(let i = 0; i < response.data.locations.length; i++) {
         if (response.data.locations[i]['em_roles_id'] !== null) {
@@ -171,6 +183,11 @@ export class TrainingProfile implements OnInit, OnDestroy {
     });
     this.userData = this.auth.getUserData();
     this.viewData.role_text = this.userData['roles'].join(", ");
+
+    this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {
+        this.buildings = response.data.buildings;
+        this.levels = response.data.levels;
+    });
   }
 
 	ngAfterViewInit(){
@@ -182,21 +199,21 @@ export class TrainingProfile implements OnInit, OnDestroy {
 		this.preloaderService.show();
 
 		$('#modalMobility select[name="is_permanent"]').off('change').on('change', () => {
-            if($('#modalMobility select[name="is_permanent"]').val() == '1'){
-                this.isShowDatepicker = false;
-                $('#durationDate').prop('disabled', true);
-                this.durationDate.nativeElement.value = "no date available";
-                this.formMobility.controls.duration_date.disable();
-            }else{
-                this.durationDate.nativeElement.value = "";
-                this.formMobility.controls.duration_date.markAsPristine();
-                this.formMobility.controls.duration_date.enable();
+        if($('#modalMobility select[name="is_permanent"]').val() == '1'){
+            this.isShowDatepicker = false;
+            $('#durationDate').prop('disabled', true);
+            this.durationDate.nativeElement.value = "no date available";
+            this.formMobility.controls.duration_date.disable();
+        }else{
+            this.durationDate.nativeElement.value = "";
+            this.formMobility.controls.duration_date.markAsPristine();
+            this.formMobility.controls.duration_date.enable();
 
-                $('#durationDate').prop('disabled', false);
-            }
+            $('#durationDate').prop('disabled', false);
+        }
 
-            $('#modalMobility select[name="is_permanent"]').material_select('update');
-        });
+        $('#modalMobility select[name="is_permanent"]').material_select('update');
+    });
 
 		this.selectLocationEvent();
 		setTimeout(() => {
@@ -206,12 +223,12 @@ export class TrainingProfile implements OnInit, OnDestroy {
 			$('#selectLocation').trigger('change');
 		}, 1000);
 
-        this.selectActionEvent();
+    this.selectActionEvent();
+    this.onKeyUpSearchModalLocationEvent();
+    $('.trainings-navigation .active').removeClass('active');
+    $('.trainings-navigation .team-training').addClass('active');
 
-        $('.trainings-navigation .active').removeClass('active');
-        $('.trainings-navigation .team-training').addClass('active');
-
-        $('.workspace.container').css('padding', '0%');
+    $('.workspace.container').css('padding', '0%');
 
 	}
 
@@ -242,6 +259,8 @@ export class TrainingProfile implements OnInit, OnDestroy {
 					selectedLoc = loc;
 				}
 			}
+
+      console.log('selectedLoc', selectedLoc);
 
 			if(selectedLoc.em_roles_id !== null && selectedLoc.em_roles_id > 0){
 				this.viewData.role_text = this.getRoleName(selectedLoc.em_roles_id);
@@ -329,41 +348,41 @@ export class TrainingProfile implements OnInit, OnDestroy {
 	}
 
 	modalPeepFormSubmit(f, event){
-        event.preventDefault();
+      event.preventDefault();
 
-        if(f.valid){
-            let paramData = JSON.parse(JSON.stringify(f.value));
-            paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
-            if('user_id' in this.selectedPeep){
-                paramData['user_id'] = this.selectedPeep['user_id'];
-            }else if('user_invitations_id' in this.selectedPeep){
-                paramData['user_invitations_id'] = this.selectedPeep['user_invitations_id'];
-            }
+      if(f.valid){
+          let paramData = JSON.parse(JSON.stringify(f.value));
+          paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
+          if('user_id' in this.selectedPeep){
+              paramData['user_id'] = this.selectedPeep['user_id'];
+          }else if('user_invitations_id' in this.selectedPeep){
+              paramData['user_invitations_id'] = this.selectedPeep['user_invitations_id'];
+          }
 
-            if(this.selectedPeep['mobility_impaired_details'].length > 0){
-                paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
-            }
+          if(this.selectedPeep['mobility_impaired_details'].length > 0){
+              paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
+          }
 
-            paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
+          paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val()
 
-            this.showModalLoader = true;
+          this.showModalLoader = true;
 
-            this.userService.sendMobilityImpaireInformation(paramData, (response) => {
-            	this.loadProfile(() => {
-            		f.reset();
-            		setTimeout(() => {
-						this.showModalLoader = false;
-						$('#modalMobility').modal('close');
+          this.userService.sendMobilityImpaireInformation(paramData, (response) => {
+          	this.loadProfile(() => {
+          		f.reset();
+          		setTimeout(() => {
+					this.showModalLoader = false;
+					$('#modalMobility').modal('close');
 
-						setTimeout(() => {
-							$('#selectLocation').trigger('change');
-						}, 100);
+					setTimeout(() => {
+						$('#selectLocation').trigger('change');
+					}, 100);
 
-					},500);
-            	});
-            });
-        }
-    }
+				},500);
+          	});
+          });
+      }
+  }
 
     selectActionEvent(){
     	let selectAction = $('#selectAction');
@@ -463,17 +482,248 @@ export class TrainingProfile implements OnInit, OnDestroy {
     	});
     }
 
+    removeAssigned(index){
+      this.toEditLocations[index]['deleted'] = true;
+    }
+
+    buildLocationsListInModal(){
+        const ulModal = $('#modalAssignLocations ul.locations');
+        ulModal.html('');
+        $('body').off('click.radio').on('click.radio', 'input[type="radio"][name="selectLocation"]', () => {
+            $('#modalAssignLocations')[0].scrollTop = 0;
+            this.formLocValid = true;
+        });
+
+        console.log( this.selectedLocationData );
+
+        let maxDisplay = 25,
+            count = 1;
+
+        if (parseInt(this.selectedLocationData['role_id'], 10) === 1 ||
+            parseInt(this.selectedLocationData['role_id'], 10) === 11 ||
+            parseInt(this.selectedLocationData['role_id'], 10) === 15 ||
+            parseInt(this.selectedLocationData['role_id'], 10) === 16 ||
+            parseInt(this.selectedLocationData['role_id'], 10) === 18
+           ) {
+          for (let loc of this.locations) {
+            if (count <= maxDisplay) {
+                let $li = $(`
+                    <li class="list-division" id="${loc.location_id}">
+                        <div class="name-radio-plus">
+                            <div class="input">
+                                <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
+                                <label for="check-${loc.location_id}">${loc.name}</label>
+                                <span hidden class="parent-id">${loc.parent_id}</span>
+                            </div>
+                        </div>
+                    </li>`);
+
+                ulModal.append($li);
+                count++;
+            }
+          }
+        } else {
+          for (const loc of this.locations) {
+            if (count <= maxDisplay) {
+              const $lh = $(`<lh lh-id="${loc['parent_location_id']}"><h6>${loc['parent_location_name']}</h6></lh>`);
+              ulModal.append($lh);
+              if ('sublocations' in loc) {
+                for (const subloc of loc.sublocations) {
+                  const $li = $(`
+                      <li class="list-division" id="${subloc.id}">
+                          <div class="name-radio-plus">
+                              <div class="input">
+                                  <input required type="radio"
+                                  name="selectLocation"
+                                  value="${subloc.id}" id="check-${subloc.id}" lh-target="${loc['parent_location_id']}">
+                                  <label for="check-${subloc.id}">${subloc.name}</label>
+                                  <span hidden class="parent-id">${loc.parent_location_id}</span>
+                              </div>
+                          </div>
+                      </li>`);
+                  ulModal.append($li);
+                }
+              }
+              count++;
+            }
+          }
+        }
+    }
+
+    onChangeSelectRole(location, roleId){
+        this.selectedLocationData = location;
+
+        let rolesForBuildingsOnly = [1,11,15,16,18];
+
+        if( rolesForBuildingsOnly.indexOf( parseInt(roleId) ) > -1 ){
+            this.locations = this.buildings;
+        }else{
+            this.locations = this.levels;
+        }
+
+        this.locationsCopy = JSON.parse( JSON.stringify(this.locations) );
+
+        location.role_id = roleId;
+
+        if(
+            (this.selectedLocationData['is_building'] == 1 && rolesForBuildingsOnly.indexOf( parseInt(roleId) ) == -1) ||
+            (this.selectedLocationData['is_building'] == 0 && rolesForBuildingsOnly.indexOf( parseInt(roleId) ) > -1)
+            ){
+            this.selectedLocationData['location_id'] = 0;
+        }
+
+        this.buildLocationsListInModal();
+    }
+
+    clickSelectLocation(loc){
+      this.selectedLocationData = loc;
+
+      this.onChangeSelectRole(loc, loc.role_id);
+      this.buildLocationsListInModal();
+      this.showSelectLocation = true;
+        $('#modalAssignLocations').scrollTop(0);
+    }
+
+    submitSelectLocationModal(formLoc, event){
+        event.preventDefault();
+        let locationFound = false;
+        if(this.formLocValid){
+            let
+            radio = $(formLoc).find('input[type="radio"]:checked'),
+            lhTarget = radio.attr('lh-target'),
+            selectedLocationId = radio.val(),
+            locationName = radio.parent().find('label').text(),
+            parentId = radio.parent().find('span.parent-id').text();
+
+            if(lhTarget){
+                let parentName = $('lh[lh-id="'+lhTarget+'"]').text();
+                locationName = parentName + ', '+locationName;
+                parentId = lhTarget;
+            }
+
+            this.selectedLocationData['location_id'] = selectedLocationId;
+            this.selectedLocationData['parent_id'] = parentId;
+            this.selectedLocationData['name'] = locationName;
+
+            console.log(this.selectedLocationData);
+            console.log(this.toEditLocations);
+            this.cancelLocationModal();
+        }
+    }
+
+    cancelLocationModal(){
+      this.showSelectLocation = false;
+      this.modalSearchLocation.nativeElement.value = "";
+    }
+
+    onKeyUpSearchModalLocationEvent(){
+        this.searchModalLocationSubs = Observable.fromEvent(this.modalSearchLocation.nativeElement, 'keyup')
+            .debounceTime(500)
+            .subscribe((event) => {
+
+            let value = event['target'].value,
+                result = [];
+            let seenSubLocIndex = [];
+            const seenIndex = [];
+            let findRelatedName;
+            this.formLocValid = false;
+
+            if (parseInt(this.selectedLocationData['role_id'], 10) === 1 ||
+                parseInt(this.selectedLocationData['role_id'], 10) === 11 ||
+                parseInt(this.selectedLocationData['role_id'], 10) === 15 ||
+                parseInt(this.selectedLocationData['role_id'], 10) === 16 ||
+                parseInt(this.selectedLocationData['role_id'], 10) === 18
+            ) {
+              findRelatedName = (data, mainParent?) => {
+                for(let i in data){
+                    if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
+                        result.push(data[i]);
+                    }
+                }
+                return result;
+              };
+            } else {
+              findRelatedName = (data, mainParent?) => {
+                for ( let i = 0; i < data.length; i++) {
+                  if (data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                    result.push(data[i]);
+                  }
+                }
+                for ( let i = 0; i < data.length; i++) {
+                    seenSubLocIndex = [];
+                    for (let s = 0; s < data[i]['sublocations'].length; s++) {
+                      if (data[i]['sublocations'][s]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                        if (seenIndex.indexOf(i)) {
+                          seenIndex.push(i);
+                        }
+                        seenSubLocIndex.push(data[i]['sublocations'][s]);
+                        data[i]['sublocations'] = seenSubLocIndex;
+                      }
+                    }
+                  }
+                  for (let si = 0; si < seenIndex.length; si++) {
+                    result.push(data[seenIndex[si]]);
+                  }
+                return result;
+              };
+            }
+
+            if(value.length > 0){
+                result = [];
+                findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
+                this.locations = result;
+            }else{
+                this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
+            }
+            this.buildLocationsListInModal();
+        });
+    }
+
+    saveLocationAssignments(event){
+      event.preventDefault();
+        let toSaveData = this.toEditLocations,
+            error = 0;
+        for(let data of toSaveData){
+            if(data.location_id == 0 && !data.deleted || data.role_id == 0 && !data.deleted){
+                error++;
+            }
+        }
+
+        if(error == 0){
+
+            $('#modalAssignLocations button').attr('disabled', true);
+            $('#modalAssignLocations input').attr('disabled', true);
+            $('#modalAssignLocations a').attr('disabled', true);
+
+            this.userService.userLocationRoleAssignments({
+                user_id : this.decryptedID, assignments : JSON.stringify(this.toEditLocations)
+            }, (response) => {
+
+                $('#modalAssignLocations button').attr('disabled', false);
+                $('#modalAssignLocations input').attr('disabled', false);
+                $('#modalAssignLocations a').attr('disabled', false);
+
+                if(response.status){
+                    this.loadProfile(function(){
+                      $('#modalAssignLocations').modal('close');
+                    });
+                }
+
+            });
+        }
+    }
+
     ngOnDestroy(){
         $('.workspace.container').css('padding', '');
     }
 
     emailThisCertificate(userId=0, certId=0) {
-    this.userService.emailCertificate(userId, certId).subscribe(() => {
-      alert('Certificate sent successfully!');
-    },
-    (e) => {
-      alert('There was a problem sending certificate.');
-    });
+      this.userService.emailCertificate(userId, certId).subscribe(() => {
+        alert('Certificate sent successfully!');
+      },
+      (e) => {
+        alert('There was a problem sending certificate.');
+      });
     }
 
     formatDate(dt: string): string {

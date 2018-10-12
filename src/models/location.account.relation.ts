@@ -322,7 +322,7 @@ export class LocationAccountRelation extends BaseClass {
             filterStr = ' AND lau.user_id = '+filter['userId'];
             if ('responsibility' in filter) {
                 if(filter['responsibility'] == 1){
-                    filterStr += ` AND true = (l.is_building = 1  OR l.parent_id = -1)`;
+                    // filterStr += ` AND true = (l.is_building = 1  OR l.parent_id = -1)`;
                 }
             }
         }
