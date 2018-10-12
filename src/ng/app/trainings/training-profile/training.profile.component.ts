@@ -705,6 +705,11 @@ export class TrainingProfile implements OnInit, OnDestroy {
         }
     }
 
+    // todo
+    submitAssignLocation(f: NgForm) {
+
+    }
+
     ngOnDestroy(){
         $('.workspace.container').css('padding', '');
     }
