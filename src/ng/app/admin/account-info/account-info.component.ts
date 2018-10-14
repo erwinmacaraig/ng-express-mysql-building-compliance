@@ -143,7 +143,7 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
       status: toggleFSATraining
     }).subscribe((response) => {
       console.log(response);
-      this.alertService.info('Fire Safety Advisor Training has been updated.');
+      this.alertService.info('Evac Services acts as Fire Safety Advisor for the account..');
       this.msgSrv.sendMessage({
         'Fire_Safety_Advisor_Updated': true
       });

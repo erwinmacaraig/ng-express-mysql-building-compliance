@@ -180,7 +180,7 @@
             </tr>
         </thead>        
         <tbody>
-            <tr *ngFor="let doc of complianceDocuments[2]">
+            <tr *ngFor="let doc of complianceDocuments[2]; let i = index;">
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
                 <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
@@ -188,7 +188,10 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd'}}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>                    
-                    <a href="{{doc['urlPath']}}" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 2, i)" target="_blank">Download</a>
+                    <div *ngIf="doc['downloadCtrl']" class="progress">
+                        <div class="indeterminate"></div>
+                    </div>
                 </td>
             </tr>
             <tr *ngIf="showLoadingForSignedURL">
@@ -252,7 +255,7 @@
             </tr>
         </thead>        
         <tbody>
-            <tr *ngFor="let doc of complianceDocuments[4]">
+            <tr *ngFor="let doc of complianceDocuments[4]; let i = index;">
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
                 <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
@@ -260,7 +263,10 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>                    
-                    <a href="{{doc['urlPath']}}" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 4, i)" target="_blank">Download</a>
+                    <div *ngIf="doc['downloadCtrl']" class="progress">
+                        <div class="indeterminate"></div>
+                    </div>
                 </td>
             </tr>
             <tr *ngIf="showLoadingForSignedURL">
@@ -296,7 +302,7 @@
             </tr>
         </thead>        
         <tbody>
-            <tr *ngFor="let doc of complianceDocuments[5]">
+            <tr *ngFor="let doc of complianceDocuments[5]; let i = index">
                 <td>{{doc['name']}}</td>
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
@@ -305,7 +311,10 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>
-                     <a href="{{doc['urlPath']}}" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 5, i)" target="_blank">Download</a>
+                    <div *ngIf="doc['downloadCtrl']" class="progress">
+                        <div class="indeterminate"></div>
+                    </div>
                 </td>
             </tr>
             <tr *ngIf="showLoadingForSignedURL">
@@ -374,9 +383,17 @@
                             <tr *ngIf="eco_attendance_record.length == 0">
                                 <td colspan="2">No recent file found</td>
                             </tr>
-                            <tr *ngFor="let a of eco_attendance_record">
-                                <td><a href="{{a.downloadUrl}}" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a></td>
-                                <td>{{a.dtUploaded | date:'dd/MM/yyyy'}}</td>
+                            <tr *ngFor="let a of eco_attendance_record; let i = index;">
+                                <td><a *ngIf="!a.downloadCtrl" (click)="downloadPaperAttendanceFile(a.strOriginalfilename, 6, i)" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a>
+                                    <div *ngIf="a.downloadCtrl" class="progress">
+                                        <div class="indeterminate"></div>
+                                    </div>
+                                </td>
+                                <td><span *ngIf="!a.downloadCtrl">{{a.dtUploaded | date:'dd/MM/yyyy'}}</span>
+                                    <div *ngIf="a.downloadCtrl" class="progress">
+                                        <div class="indeterminate"></div>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>            
@@ -536,9 +553,17 @@
                                 <tr *ngIf="gofr_attendance_record.length == 0">
                                     <td colspan="2">No recent file found</td>
                                 </tr>
-                                <tr *ngFor="let a of gofr_attendance_record">
-                                    <td><a href="{{a.downloadUrl}}" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a></td>
-                                    <td>{{a.dtUploaded | date:'dd/MM/yyyy'}}</td>
+                                <tr *ngFor="let a of gofr_attendance_record; let i = index;">
+                                    <td><a *ngIf="!a.downloadCtrl" (click)="downloadPaperAttendanceFile(a.strOriginalfilename, 8, i)" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a>
+                                        <div *ngIf="a.downloadCtrl" class="progress">
+                                            <div class="indeterminate"></div>
+                                        </div>
+                                    </td>
+                                    <td><span *ngIf="!a.downloadCtrl">{{a.dtUploaded | date:'dd/MM/yyyy'}}</span>
+                                        <div *ngIf="a.downloadCtrl" class="progress">
+                                            <div class="indeterminate"></div>
+                                        </div>
+                                    </td>
                                 </tr>
                             </tbody>
                     </table>            
@@ -632,17 +657,22 @@
         </thead>
         
         <tbody>
-            <tr *ngFor="let doc of complianceDocuments[9]">
+            <tr *ngFor="let doc of complianceDocuments[9]; let i = index;">
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
                 <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['validity_in_months']}}</td>
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
-                <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+                <td>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 9, i)" target="_blank">Download</a>
+                    <div *ngIf="doc['downloadCtrl']" class="progress">
+                        <div class="indeterminate"></div>
+                    </div>	
+                </td>
             </tr>
             <tr *ngIf="showLoadingForSignedURL">
-                <td colspan="8">
+                <td colspan="7">
                     <div class="progress">
                         <div class="indeterminate"></div>
                     </div>									
@@ -727,9 +757,17 @@
                                 <tr *ngIf="chief_warden_attendance_record.length == 0">
                                     <td colspan="2">No recent file found</td>
                                 </tr>
-                                <tr *ngFor="let a of chief_warden_attendance_record">
-                                    <td><a href="{{a.downloadUrl}}" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a></td>
-                                    <td>{{a.dtUploaded | date:'dd/MM/yyyy'}}</td>
+                                <tr *ngFor="let a of chief_warden_attendance_record; let i = index;">
+                                    <td><a *ngIf="!a.downloadCtrl" (click)="downloadPaperAttendanceFile(a.strOriginalfilename, 12, i)" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a>
+                                        <div *ngIf="a.downloadCtrl" class="progress">
+                                            <div class="indeterminate"></div>
+                                        </div>
+                                    </td>
+                                    <td><span *ngIf="!a.downloadCtrl">{{a.dtUploaded | date:'dd/MM/yyyy'}}</span>
+                                        <div *ngIf="a.downloadCtrl" class="progress">
+                                            <div class="indeterminate"></div>
+                                        </div>
+                                    </td>
                                 </tr>
                             </tbody>
                     </table>            
@@ -826,19 +864,32 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let doc of complianceDocuments[13]">                
+            <tr *ngFor="let doc of complianceDocuments[13]; let i = index;">                
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
                 <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['validity_in_months']}}</td>
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
-                <td><a href="{{doc['urlPath']}}" target="_blank">Download</a></td>
+                <td>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 13, i)" target="_blank">Download</a>
+                    <div *ngIf="doc['downloadCtrl']" class="progress">
+                        <div class="indeterminate"></div>
+                    </div>
+                </td>
             </tr>
-            <tr *ngFor="let a of sundry_attendance_record">
+            <tr *ngFor="let a of sundry_attendance_record; let i = index;">
                 <td><span>Paper attendance</span></td>
-                <td>{{a.strOriginalfilename}}</td>
-                <td>{{a.dtTraining | date: 'yyyy-MM-dd'}}</td>
+                <td><a *ngIf="!a.downloadCtrl" (click)="downloadPaperAttendanceFile(a.strOriginalfilename, 13, i)" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a>
+                    <div *ngIf="a.downloadCtrl" class="progress">
+                        <div class="indeterminate"></div>
+                    </div>
+                </td>
+                <td><span *ngIf="!a.downloadCtrl">{{a.dtUploaded | date:'dd/MM/yyyy'}}</span>
+                    <div *ngIf="a.downloadCtrl" class="progress">
+                        <div class="indeterminate"></div>
+                    </div>
+                </td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>{{a.dtUploaded | date: 'yyyy-MM-dd' }}</td>
@@ -980,5 +1031,17 @@
   </div>
 
 </div>
-
+<div id="modalfilenotfound" class="modal modal-fixed-footer">
+	<div class="modal-content">	
+		<div class="filenotfoundalert error">
+			<div class="material-icons">error_outline</div>	
+			<h6>File not found</h6>
+		</div>	  
+		<p>There was a problem downloading the file.		   
+		<br />Admin will be notified to perform the necessary cleanup procedures.</p>
+	</div>
+	<div class="modal-footer">
+	  <a class="modal-close waves-effect waves-red btn-flat">OK</a>
+	</div>
+</div>
 <div preloader></div>
