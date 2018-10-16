@@ -198,4 +198,7 @@ export class AdminService {
     return this.http.get(`${this.baseUrl}/admin/get-tagged-locations-from-account/`+accountId, this.options);
   }
 
+  addExistingLocationsToAccount(postBody = {}) {
+    return this.http.post(`${this.baseUrl}/admin/tag-account-to-existing-loc/`, postBody);
+  }
 }

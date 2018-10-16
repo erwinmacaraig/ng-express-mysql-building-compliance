@@ -1789,7 +1789,51 @@ export class AdminRoute extends BaseRoute {
         new AdminRoute().getTaggedLocationsFromAccount(req, res);
     });
 
+    router.post('/admin/tag-account-to-existing-loc/', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
+      new AdminRoute().tagAccountToExistingLocation(req, res);
+    });
+
   // ===============
+  }
+
+  public async tagAccountToExistingLocation(req: AuthRequest, res: Response) {
+     const accountId = req.body.accountId;
+     const managingRole = req.body.managing_role;
+
+     const buildingLocation = req.body.building;
+     const sublocations = JSON.parse(req.body.sublocs);
+
+     const locAcctRel = new LocationAccountRelation();
+      let filter = {};
+     if (managingRole == 'Manager') {
+      try {
+        filter['location_id'] = buildingLocation;
+        filter['account_id'] = accountId;
+        filter['responsibility'] = 'Manager';
+        await locAcctRel.getLocationAccountRelation(filter);
+      } catch (e) {
+        console.log(e, 'Creating building record');
+        await locAcctRel.create(filter);
+      }
+    } 
+    for( let sub of sublocations) {
+      filter = {};
+      try {
+        filter['location_id'] = sub;
+        filter['account_id'] = accountId;
+        filter['responsibility'] = 'Tenant';
+        await locAcctRel.getLocationAccountRelation(filter);
+      } catch (e) {
+        console.log(e);
+        console.log('creating sublocation record');
+        await locAcctRel.create(filter);
+      }          
+    }
+
+    res.status(200).send({
+       message: 'Success'
+    });
+
   }
 
 

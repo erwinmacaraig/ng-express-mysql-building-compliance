@@ -1,39 +1,88 @@
 <div class="row">
     <div class="col s12">
-        <span>Account / {{accountInfo['account_name']}} / Location </span>
+        <p>Account / {{accountInfo['account_name']}} / Location </p>
     </div>
     <div class="col s12">
         <span>Select managing role for this location</span>          
     </div>
-    <div class="col s12">
-        <input id="managing_role_frp_chkb" class="with-gap" type="radio" name="managing_role" />
+    <div class="col s12" [formGroup]="managingRoleGroup">
+        <input
+            id="managing_role_frp_chkb"
+            class="with-gap"
+            type="radio"
+            name="managingRoleControl"
+            formControlName="managingRoleControl"
+            value="FRP"
+            (change)="setLocationManagingRole($event, 'FRP')" />
         <label for="managing_role_frp_chkb">FRP</label>
         
-        <input id="managing_role_trp_all_chkb" class="with-gap" type="radio" name="managing_role" />
+        <input
+            id="managing_role_trp_all_chkb"
+            class="with-gap"
+            type="radio"
+            name="managingRoleControl"
+            formControlName="managingRoleControl"
+            value="TRP All Levels"
+            (change)="setLocationManagingRole($event, 'TRP All Levels')" />
         <label for="managing_role_trp_all_chkb">TRP Occupying all Levels</label>
         
-        <input id="managing_role_trp_sp_level_chkb" class="with-gap" type="radio" name="managing_role" />
+        <input
+            id="managing_role_trp_sp_level_chkb"
+            class="with-gap"
+            type="radio"
+            name="managingRoleControl"
+            formControlName="managingRoleControl"
+            value="TRP"
+            (change)="setLocationManagingRole($event, 'TRP')" />
         <label for="managing_role_trp_sp_level_chkb">TRP Occupying Specific Levels</label>
     </div>            
 </div>
-<div class="row filter-container">
+<div class="row filter-container" [hidden]="!showSearchLocation">
     <div class="col s12">Search Location</div>
     <div class="col s12">
-        <div class="search-field">        
+        <div class="search-field">
             <input type="text" placeholder="Search" id="searchLocations" autocorrect="off" autocapitalize="off" spellcheck="off" #search>
             <span class="material-icons">search</span>
-            <div class="search-result-container">
-                <p class="text"><!-- *ngIf="showTextSearch" {{searchText}}-->SearchText</p>
-                <ul>
-                    <li ><!--*ngFor="let location of searchedLocations"-->
-                        <a><!--{{location.name}}-->Test</a> <!--(click)="selectLocationFromSearch(location)"-->
-                        
-                    </li>
-                    <li>
-                            <a>Test 2</a>
-                    </li>
+            <div class="search-result-container">                
+                <ul *ngIf="searchedLocations.length > 0">
+                    <li *ngFor="let location of searchedLocations">
+                        <a (click)="selectLocationFromSearch(location)">{{location['name']}}</a>                        
+                    </li>                   
                 </ul>
+                <div *ngIf="searchedLocations == 0 && showTextSearch">
+                    <p class="text">Location not found, create this new location</p>	
+                    <p class="text">
+                        <button class="btn grey waves-effect waves-light" (click)="cancelNewLoc()">No</button>
+                        <button class="btn waves-effect waves-light orange"> Yes </button>
+                    </p>
+                </div>
             </div>     
-        </div>        
+        </div><!--
+        <div class="search-icon-container">
+            <img class="glass" src="assets/images/locations/search_icon.png" alt="">
+            <a  class="close-link" (click)="clearSearch()">
+                <img class="close" src="assets/images/locations/close_search.png" alt="">
+            </a>
+        </div>    
+        --> 
+          
+    </div>    
+</div>
+<div class="row" *ngIf="selectedLocationFromSearch['location_id']" >
+    <div class="col s12">
+        <h4>{{selectedLocationFromSearch['name']}}</h4>
+        <h6>{{selectedLocationFromSearch['formatted_address']}}</h6>
+    </div>
+    <div class="col s12">
+        <h6>Total number of Levels: {{sublocations.length}}</h6>
+        <p *ngFor="let s of sublocations">
+            <input *ngIf="managingRole == 'TRP'" type="checkbox" id="{{s['location_id']}}" (change)="onChangeSublocation($event, s['location_id'])" >
+            <label *ngIf="managingRole == 'TRP'" for="{{s['location_id']}}">{{s['name']}}</label>
+            
+            <input *ngIf="managingRole != 'TRP'" type="checkbox" id="{{s['location_id']}}" disabled="disabled" checked="checked" />
+            <label *ngIf="managingRole != 'TRP'" for="{{s['location_id']}}">{{s['name']}}</label>
+        </p> 
+        <button type="button" (click)="resetSelections()" class="btn grey waves-effect waves-light">Back</button>           
+        <button type="button" class="btn waves-effect waves-light orange" (click)="addExistingLocToAccount()">Submit</button>
     </div>
 </div>
