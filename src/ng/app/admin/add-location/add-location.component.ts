@@ -131,6 +131,7 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     }
     cancelNewLoc(){
         this.searchElementRef.nativeElement.value = "";
+        this.showTextSearch = false;
     }
 
     addExistingLocToAccount() {

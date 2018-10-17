@@ -119,3 +119,61 @@
     border-bottom: 0px !important;
     margin-bottom: 0px !important;
 }
+.inputs-button-container .inline-block{
+    margin: 5px;
+}
+
+.inputs-button-container .btn{
+    font-size: 15px !important;
+}
+
+.inputs-button-container{
+    margin: 40px 0px;
+}
+
+
+.input-arrow-up-down{
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 60px;
+    display: inline-block;
+    overflow: hidden;
+    height: 42px;
+    vertical-align: middle;
+}
+
+.input-arrow-up-down input{
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+    height: 40px;
+    background-color: #fff;
+    position: absolute;
+    left: 0px;
+    width: 37px;
+}
+
+.input-arrow-up-down .btn-arrow-up, 
+.input-arrow-up-down .btn-arrow-down{
+    background: transparent;
+    padding: 0px;
+    border: 0px;
+    height: 20px;
+    width: 20px;
+    position: absolute;
+    right: 0px;
+    background-color: #434343;
+    color: #fff;
+}
+
+.input-arrow-up-down .btn-arrow-down{
+    bottom: 0px;
+}
+
+.input-arrow-up-down .material-icons{
+    font-size: 20px;
+}
+.inline-block{
+    display: inline-block;
+}
