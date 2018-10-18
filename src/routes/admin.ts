@@ -328,6 +328,7 @@ export class AdminRoute extends BaseRoute {
       const users: Array<object> = JSON.parse(req.body.users);
       const validUsers = [];
       const invalidUsers = [];
+      const takenEmailAdress = [];
       for (const u of users) {
        if (parseInt( u['user_id'], 10) == 0) {
          const user = new User();
@@ -374,6 +375,7 @@ export class AdminRoute extends BaseRoute {
          if (validator.isEmail(u['email'])) {
            try {
              await user.getByEmail(u['email']);
+             takenEmailAdress.push(u['email']);
            } catch (e) {
               const locationAccntUser = new LocationAccountUser();
                await user.create({
@@ -488,7 +490,8 @@ export class AdminRoute extends BaseRoute {
       }
       return res.status(200).send({
         invalid_users: invalidUsers,
-        validUsers: validUsers
+        validUsers: validUsers,
+        takenEmailAdress: takenEmailAdress
       });
     });
 
