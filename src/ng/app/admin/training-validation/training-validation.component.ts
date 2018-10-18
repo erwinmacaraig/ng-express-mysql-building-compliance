@@ -171,6 +171,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       $('.modal').modal({
         dismissible: false     
       });
+      $('.workspace.container').css('overflow', '');
     }
   
     ngOnDestroy() {
@@ -411,8 +412,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         user_id: new FormControl('0', null),
         accountId: new FormControl(this.selectedAccountId.toString(), null),
         account_name: new FormControl(this.initialAccountName, Validators.required),
-        sublocation_name: new FormControl(null, Validators.required),
-        sublocation_id: new FormControl('0', null),
+        sublocation_name: new FormControl(null, null),
+        sublocation_id: new FormControl('0', Validators.required),
       });
   
     }
@@ -513,7 +514,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.dashboard.show();      
       const values = [];
       const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
-      
+      console.log(formUserControls);
       
       for (const ctrl of formUserControls) {
         values.push({
@@ -730,7 +731,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           // training_requirement_id: this.userForm.get('courseTraining').value
       }
       if (hasEnteredData) {
-        $('.modalCancel').modal('open');
+        $('#modalCancel').modal('open');
       } else if (!hasEnteredData && this.userForm.get('levelUsers').dirty) {
         this.cancelUserForm();
       }
