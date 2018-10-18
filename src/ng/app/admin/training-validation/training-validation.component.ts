@@ -36,6 +36,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   confirmationMessage = '';
   validUsers: Array<string> = [];
   invalidUsers: Array<string> = [];
+  takenEmailAddress: Array<string> = [];
 
   smartSearchSelection: string;
   smartSearchSelectionId: number = 0;
@@ -575,7 +576,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.adminService.validateUserTrainings(JSON.stringify(values))
       .subscribe((response) => {
         this.validUsers = response['validUsers'];
-        this.invalidUsers = response['invalid_users'];        
+        this.invalidUsers = response['invalid_users'];  
+        this.takenEmailAddress = response['takenEmailAdress'];
         this.genericSub = this.smartSearch();    
         setTimeout(() => {
           this.dashboard.hide();
