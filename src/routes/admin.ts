@@ -39,17 +39,18 @@ import { NotificationConfiguration } from '../models/notification_config.model';
 import {EmailSender} from '../models/email.sender';
 import { Utils } from '../models/utils.model';
 
+
 const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
-  
+
   public static create(router: Router) {
 
     router.post('/admin/set-passwd-invite/',
-      new MiddlewareAuth().authenticate,
-      (req: AuthRequest, res: Response, next: NextFunction) => {
-        new AdminRoute().setInvitePassword(req, res, next);
-      });
+    new MiddlewareAuth().authenticate,
+    (req: AuthRequest, res: Response, next: NextFunction) => {
+      new AdminRoute().setInvitePassword(req, res, next);
+    });
 
     router.post('/admin/send-notification/',
       new MiddlewareAuth().authenticate,
@@ -634,6 +635,8 @@ export class AdminRoute extends BaseRoute {
 
     });
 
+    
+
     router.get('/admin/compliance/FSA-EvacExer/', new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const compliance = new ComplianceModel();
@@ -645,12 +648,21 @@ export class AdminRoute extends BaseRoute {
             req.query.account_id,
             req.query.compliance_status);
       }
-      complianceData =
+      try {
+        complianceData =
             await compliance.getComplianceRecord(req.query.compliance_kpis_id, req.query.building_id, req.query.account_id);
         return res.status(200).send({
           message: 'Success',
           data: complianceData
         });
+
+      } catch(e) {
+        return res.status(200).send({
+          message: 'Fail',
+          data: {}
+        });
+      }
+      
     });
 
     router.get('/admin/account-locations/:accountId/', new MiddlewareAuth().authenticate,
@@ -1453,6 +1465,7 @@ export class AdminRoute extends BaseRoute {
             details = {};
           }
         }
+        
         details[loc['location_id']] = loc['name'];
         hie_locations.push(details);
         tempNameParts.push(loc['name']);
@@ -1719,11 +1732,6 @@ export class AdminRoute extends BaseRoute {
         new AdminRoute().generateAdminReport(req, res);
     });
 
-
-    router.get('/admin/search/user/location/:keyword', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        new AdminRoute().searchUserAndLocation(req, res);
-    });
-
     router.get('/admin/user-information/:userId', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
         new AdminRoute().getUserInformation(req, res);
     });
@@ -1920,13 +1928,17 @@ export class AdminRoute extends BaseRoute {
                 for(let user of data.users){
                     let
                     trainCertModel = new TrainingCertification(),
-                    certificates = <any> await trainCertModel.getCertificatesByInUsersId(user.user_id);
+                    certificates = <any> await trainCertModel.getCertificatesByInUsersId(user.user_id, null, null, null, null, user.training_requirement_id);
 
                     user['certificates'] = certificates;
                     user['status'] = (certificates.length > 0) ? certificates[0]['status'] : 'Invalid';
-                    let expDate = moment(certificates[0]['expiry_date']);
-
-                    user['expiry_date_formatted'] = (certificates.length > 0) ? (expDate.isValid()) ?  expDate.format('DD/MM/YYYY') : '' : '';
+                    let expDate;
+                    user['expiry_date_formatted'] = '';
+                    if (certificates.length > 0 && 'expiry_date' in certificates[0]) {
+                      expDate = moment(certificates[0]['expiry_date']);
+                      user['expiry_date_formatted'] = (certificates.length > 0) ? (expDate.isValid()) ?  expDate.format('DD/MM/YYYY') : '' : '';
+                    } 
+                    
                 }
             }else if(type == 'face'){
                 let
@@ -2028,16 +2040,7 @@ export class AdminRoute extends BaseRoute {
        
     }
 
-    public async searchUserAndLocation(req: AuthRequest, res: Response){
-        let 
-        keyword = req.params.keyword,
-        userModel = new User(),
-        results = <any> [];
-
-        results = await userModel.searchUserAndLocation(keyword);
-
-        res.send(results);
-    }
+    
 
     public async getUserInformation(req: AuthRequest, res: Response){
         let 
@@ -2088,79 +2091,80 @@ export class AdminRoute extends BaseRoute {
     }
 
     public async setInvitePassword(req: AuthRequest, res: Response, next: NextFunction) {
-        const user = new User(req.body.user);
-        const dbData = await user.getAllRolesAndLocations(req.body.user); 
-        const roleArr = [];
-        const locNameArr = [];
-        let roleStr = '';
-        let locStr = '';
-        let tkString = '';
-        const newToken  = new Token();
-        for (let data of dbData) {
-          if (roleArr.indexOf(data['role']) == -1) {
-            roleArr.push(data['role']);
-          }
-          if (locNameArr.indexOf(data['name']) == -1) {
-            locNameArr.push(data['name']);
+      const user = new User(req.body.user);
+      const dbData = await user.getAllRolesAndLocations(req.body.user); 
+      const roleArr = [];
+      const locNameArr = [];
+      let roleStr = '';
+      let locStr = '';
+      let tkString = '';
+      const newToken  = new Token();
+      for (let data of dbData) {
+        if (roleArr.indexOf(data['role']) == -1) {
+          roleArr.push(data['role']);
+        }
+        if (locNameArr.indexOf(data['name']) == -1) {
+          locNameArr.push(data['name']);
+        }
+      }
+      roleStr = roleArr.join(' and ');
+      locStr = locNameArr.join(' and ');
+      const userData = await user.load();
+      const account = new Account(userData['account_id']);
+      const accountData = await account.load();
+      // create token
+      let tokenObj = new Token();
+      let tokenDbData = <any>[];
+      try {
+        tokenDbData = await tokenObj.getAllByUserId(req.body.user);
+        for (const t of tokenDbData) {
+          if(t['action'] == 'setup-invite-passwd') {
+            let tokenDeleteObj = new Token(t['token_id']);
+            await tokenDeleteObj.delete();
+            tokenDeleteObj = null;
           }
         }
-        roleStr = roleArr.join(' and ');
-        locStr = locNameArr.join(' and ');
-        const userData = await user.load();
-        const account = new Account(userData['account_id']);
-        const accountData = await account.load();
-        // create token
-        let tokenObj = new Token();
-        let tokenDbData = <any>[];
-        try {
-          tokenDbData = await tokenObj.getAllByUserId(req.body.user);
-          for (const t of tokenDbData) {
-            if(t['action'] == 'setup-invite-passwd') {
-              let tokenDeleteObj = new Token(t['token_id']);
-              await tokenDeleteObj.delete();
-              tokenDeleteObj = null;
-            }
-          }
-        } catch(e) {
-          console.log(e);
-        }
-        tkString = userData['user_id']+ '' + this.generateRandomChars(15);
-        if (userData['token'] == null) {
-          user.set('token', tkString);
-          await user.write();
-        }
-        await newToken.create({
-          id: userData['user_id'],
-          id_type: 'user_id',
-          token: tkString,
-          action: 'setup-invite-passwd',
-          expiration_date:  moment().add(1, 'day').format('YYYY-MM-DD')
-        });
-        const opts = {
-          from : '',
-          fromName : 'EvacConnect',
-          to : [userData['email']],
-          cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
-          body : '',
-          attachments: [],
-          subject : 'EvacConnect Email Notification'
-        };
-        const email = new EmailSender(opts);
-        const emailData = {
-          users_fullname: userData['first_name'] + ' ' + userData['last_name'],
-          account_name: accountData['account_name'],
-          role: roleStr,
-          location_name: locStr,
-          setup_link: 'https://' + req.get('host') + '/change-user-password/'+tkString 
-        };
-        email.sendFormattedEmail('set-passwd-invite', emailData, res, 
-          (data) => console.log(data),
-          (err) => console.log(err)
-        );
-      
-      return res.status(200).send({
-        message: 'Success'
+      } catch(e) {
+        console.log(e);
+      }
+      tkString = userData['user_id']+ '' + this.generateRandomChars(15);
+      if (userData['token'] == null) {
+        user.set('token', tkString);
+        await user.write();
+      }
+      await newToken.create({
+        id: userData['user_id'],
+        id_type: 'user_id',
+        token: tkString,
+        action: 'setup-invite-passwd',
+        expiration_date:  moment().add(1, 'day').format('YYYY-MM-DD')
       });
-    }
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : [userData['email']],
+        cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
+        body : '',
+        attachments: [],
+        subject : 'EvacConnect Email Notification'
+      };
+      const email = new EmailSender(opts);
+      const emailData = {
+        users_fullname: userData['first_name'] + ' ' + userData['last_name'],
+        account_name: accountData['account_name'],
+        role: roleStr,
+        location_name: locStr,
+        setup_link: 'https://' + req.get('host') + '/change-user-password/'+tkString 
+      };
+      email.sendFormattedEmail('set-passwd-invite', emailData, res, 
+        (data) => console.log(data),
+        (err) => console.log(err)
+      );
+    
+    return res.status(200).send({
+      message: 'Success'
+    });
+  }
+
 
 }

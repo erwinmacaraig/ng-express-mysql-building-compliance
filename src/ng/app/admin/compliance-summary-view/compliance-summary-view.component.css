@@ -747,3 +747,18 @@ a:hover{
     background-image: url(/assets/images/compliance/icons/sundry_compliance.png);
     background-size: 63% !important;
 }
+
+.filenotfoundalert .material-icons{
+    margin-right: 10px;
+}
+.filenotfoundalert.error{
+    background-color: #c62828;
+    color: #fff;
+}
+#modalfilenotfound {
+    max-height: 25% !important;
+    overflow-y: hidden !important ;
+}
+#modalfilenotfound .modal-content {
+    height: 205px !important;
+}

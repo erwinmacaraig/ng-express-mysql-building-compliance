@@ -366,6 +366,20 @@ export class UsersRoute extends BaseRoute {
           }
         }
 
+        let toTake = [];
+        for(let co of hadNotTakenCourse){
+          let taken = false;
+          for( let tr of trainings ){
+            if( tr['training_requirement_id'] == co['training_requirement_id'] && tr['status'] == 'valid' ){
+              taken = true;
+            }
+          }
+          if(!taken){
+            toTake.push(co);
+          }
+        }
+        
+
         //
         try {
           await user.load();
@@ -380,7 +394,8 @@ export class UsersRoute extends BaseRoute {
           'em_roles': em_role,
           'locations': locations,
           'trainings': trainings,
-          'courses': hadNotTakenCourse,
+          'courses': toTake,
+          'toTake': toTake,
           'peepDetails': mobilityImpairedDetails,
           'required_trainings_count': req_trainings_count,
           'required_trainings_held': (req.user.user_id in numberOfRequiredTrainingsHeld) ? numberOfRequiredTrainingsHeld[req.user.user_id]['count'] : 0,
@@ -2172,7 +2187,8 @@ export class UsersRoute extends BaseRoute {
     				userEmRole = new UserEmRoleRelation(),
     				isEmailValid = this.isEmailValid(users[i]['email']),
     				isBlackListedEmail = false,
-    				hasError = false;
+    				hasError = false,
+                    selectedRoles = (users[i]["selected_roles"]) ? users[i]["selected_roles"] : [];
 
     			users[i]['errors'] = {};
 
@@ -2306,26 +2322,28 @@ export class UsersRoute extends BaseRoute {
                     await userSaveModel.create(userSaveData);
                     tokenSaveData.id = userSaveModel.ID();
 
-                    if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                    let 
+                    saveLocAccUser = async (user, roleid) => {
                         let locationAcctUser = new LocationAccountUser();
                         await locationAcctUser.create({
-                            'location_id': users[i]['account_location_id'],
+                            'location_id': user['account_location_id'],
                             'account_id': accountId,
                             'user_id': userSaveModel.ID(),
-                            'role_id': users[i]['account_role_id']
+                            'role_id': roleid
                         });
 
-                        emailRole = (users[i]['account_role_id'] == 1) ? 'Building Manager' : 'Tenant Responsible Person';
+                        emailRole = (roleid == 1) ? 'Building Manager' : 'Tenant Responsible Person';
 
                         const userRoleRel = new UserRoleRelation();
                         await userRoleRel.create({
                             'user_id': userSaveModel.ID(),
-                            'role_id': users[i]['account_role_id']
+                            'role_id': roleid
                         });
-                    } else {
+                    },
+                    saveEmUser = async (user, roleid) => {
                         // get account trainings
                         accountTrainings = await new AccountTrainingsModel().getAccountTrainings(accountId, {
-                          role: (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id']
+                          role: roleid
                         });
 
                         for (const training of accountTrainings) {
@@ -2339,11 +2357,28 @@ export class UsersRoute extends BaseRoute {
                         const EMRoleUserRole = new UserEmRoleRelation();
                         await EMRoleUserRole.create({
                             'user_id': userSaveModel.ID(),
-                            'em_role_id': (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'],
-                            'location_id': users[i]['account_location_id']
+                            'em_role_id': roleid,
+                            'location_id': user['account_location_id']
                         });
+                    };
 
+                    if(selectedRoles.length > 0){
+                        for(let role of selectedRoles){
+                            if(parseInt(role['role_id']) == 1 || parseInt(role['role_id']) == 2){
+                                await saveLocAccUser(users[i], users[i]['account_role_id']);
+                            }else{
+                                await saveEmUser(users[i], role['role_id']);
+                            }
+                        }
+                    }else{
+                        if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
+                            await saveLocAccUser(users[i], users[i]['account_role_id']);
+                        } else {
+                            let roleid = (users[i]['eco_role_id'] > 0) ? users[i]['eco_role_id'] : users[i]['account_role_id'];
+                            await saveEmUser(users[i], roleid);
+                        }
                     }
+
 
                     emailData.setup_link = emailLink;
 
@@ -3218,6 +3253,7 @@ export class UsersRoute extends BaseRoute {
         userId = req.body.user_id,
         assignments = JSON.parse(req.body.assignments),
         userModel = new User(userId),
+        locAccRelationModel = new LocationAccountRelation(),
         locAccModel = new LocationAccountUser(),
         userEmModel = new UserEmRoleRelation(),
         userRoleModel = new UserRoleRelation(),
@@ -3235,6 +3271,20 @@ export class UsersRoute extends BaseRoute {
             }
         },
         createFrpTrp = async (assign) => {
+            try{
+                await locAccRelationModel.getLocationAccountRelation({
+                    'location_id' : assign.location_id,
+                    'account_id' : assign.account_id,
+                    'responsibility' : (assign.role_id == 1) ? 'Manager' : 'Tenant'
+                });
+            }catch(e){
+                await locAccRelationModel.create({
+                    'location_id' : assign.location_id,
+                    'account_id' : assign.account_id,
+                    'responsibility' : (assign.role_id == 1) ? 'Manager' : 'Tenant'
+                });
+            }
+
             try{
                 await locAccModel.getByLocationIdAndUserId(assign.location_id, userId);
             }catch(errLoc){
