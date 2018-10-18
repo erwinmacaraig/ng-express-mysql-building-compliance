@@ -213,7 +213,7 @@ const md5 = require('md5');
 
 								// Redirect to angular Router
 								//change-user-password/:user_id/:token
-								let link = req.protocol + '://' + req.get('host') + '/change-user-password/'+token;
+								let link = 'https://' + req.get('host') + '/change-user-password/'+token;
 								res.redirect(link);
 
 							}else{
@@ -291,6 +291,8 @@ const md5 = require('md5');
 			},
 			() => {
 				response.message = 'No token found';
+				response.data = [];
+				console.log(response);
 				res.send(response);
 			}
 		);
@@ -334,6 +336,7 @@ const md5 = require('md5');
 									}else{
                                         tokenModel.set('verified', 1);
 										tokenModel.set('action', 'verify');
+										tokenModel.set('token', this.generateRandomChars(5)+`_${Date.now()}_${userId}`) // update token
 										tokenModel.dbUpdate().then(
 											() => {
 												user.set('password', md5('Ideation'+newPass+'Max'));

@@ -498,6 +498,7 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
 
     selectActionChangeEvent(user, event){
         let val = event.target.value;
+        console.log('user - ', user);
         if(val == 'profile'){
             this.updateProfileData.user = user;
             this.updateProfileData.showForm();
@@ -540,6 +541,9 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                 this.assignLocationRoleData.fetching = false;
             });
         } else if (val == 'set-passwd-invite') {
+            this.adminService.sendPasswordSetupInvite({user: user['user_id']}).subscribe((response) => {
+                alert('Send invite successful!');
+            });
 
         }
 
