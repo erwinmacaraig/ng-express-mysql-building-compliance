@@ -1134,8 +1134,6 @@ const defs = require('../config/defs.json');
           floorWardenRoles = {};
         }
 
-
-
         let allWardens = [];
 
         for (const sub of sublocations) {

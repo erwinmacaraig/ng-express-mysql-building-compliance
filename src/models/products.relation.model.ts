@@ -18,20 +18,26 @@ export class ProductsRelationModel extends BaseClass{
 	public load(){
 		return new Promise((resolve, reject) => {
 			const sql_load = `SELECT * FROM products_relation WHERE products_relation_id = ?`;
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql_load, [this.id], (error, results, fields) => {
-				if (error) {
-					throw new Error(error);
-				}
-				if (!results.length) {
-					reject(`Product relation not found.`);
-				} else {
-					this.dbData = results[0];
-					this.setID(results[0]['products_relation_id']);
-					resolve(this.dbData);
-				}
-			});
-			connection.end();
+			this.pool.getConnection((err, connection) => {
+                if(err){
+                  throw new Error(err);
+                }
+
+                connection.query(sql_load, [this.id], (error, results, fields) => {
+                    if (error) {
+                        throw new Error(error);
+                    }
+                    if (!results.length) {
+                        reject(`Product relation not found.`);
+                    } else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['products_relation_id']);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
+            });
+			
 		});
 	}
 
@@ -60,15 +66,22 @@ export class ProductsRelationModel extends BaseClass{
 				('product_id' in this.dbData) ? this.dbData['product_id'] : 0
 			];
 
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql, data, (error, results, fields) => {
-				if (error) {
-					throw new Error(error);
-				}
-				this.id = results.insertId;
-		        this.dbData['products_relation_id'] = results.insertId;
-		        resolve(this.id);
-			});
+			this.pool.getConnection((err, connection) => {
+                if(err){
+                  throw new Error(err);
+                }
+
+                connection.query(sql, data, (error, results, fields) => {
+                    if (error) {
+                        throw new Error(error);
+                    }
+                    this.id = results.insertId;
+                    this.dbData['products_relation_id'] = results.insertId;
+                    resolve(this.id);
+                });
+                connection.release();
+            });
+			
 
 		});
 	}
@@ -86,13 +99,20 @@ export class ProductsRelationModel extends BaseClass{
 				(this.ID()) ? this.ID() : 0
 			];
 
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql, data, (error, results, fields) => {
-				if (error) {
-					throw new Error(error);
-				}	
-		        resolve(true);
-			});
+			this.pool.getConnection((err, connection) => {
+                if(err){
+                  throw new Error(err);
+                }
+
+                connection.query(sql, data, (error, results, fields) => {
+                    if (error) {
+                        throw new Error(error);
+                    }    
+                    resolve(true);
+                });
+                connection.release();
+            });
+			
 
 		});
 	}
@@ -117,17 +137,23 @@ export class ProductsRelationModel extends BaseClass{
 
 			sql = sql+' '+where;
 
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql, (error, results, fields) => {
-				if (error) {
-					throw new Error(error);
-				}
+			this.pool.getConnection((err, connection) => {
+                if(err){
+                  throw new Error(err);
+                }
 
-				this.dbData = results;
-				resolve(this.dbData);
+                connection.query(sql, (error, results, fields) => {
+                    if (error) {
+                        throw new Error(error);
+                    }
 
-			});
-			connection.end();
+                    this.dbData = results;
+                    resolve(this.dbData);
+
+                });
+                connection.release();
+            });
+			
 		});
 	}
 
@@ -139,15 +165,22 @@ export class ProductsRelationModel extends BaseClass{
 				INNER JOIN products p ON pr.product_id = p.product_id
 				WHERE pr.parent_product_id = `+parentId;
 
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql, (error, results, fields) => {
-				if (error) {
-					throw new Error(error);
-				}
+			this.pool.getConnection((err, connection) => {
+                if(err){
+                  throw new Error(err);
+                }
 
-				this.dbData = results;
-				resolve(this.dbData);
-			});
+                connection.query(sql, (error, results, fields) => {
+                    if (error) {
+                        throw new Error(error);
+                    }
+
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+                connection.release();
+            });
+			
 		});
 	}
 
@@ -155,42 +188,48 @@ export class ProductsRelationModel extends BaseClass{
 
 		return new Promise((resolve, reject) => {
 			let sql = `SELECT * FROM products WHERE product_type = "package" AND archived = 0 `;
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql, (error, results, fields) => {
-				if (error) {
-					throw new Error(error);
-				}
+			this.pool.getConnection((err, connection) => {
+                if(err){
+                  throw new Error(err);
+                }
 
-				let promises = [];
+                connection.query(sql, (error, results, fields) => {
+                    if (error) {
+                        throw new Error(error);
+                    }
 
-				for(let i in results){
-					results[i]['products'] = [];
-					promises.push(this.getProductsFromParentId(results[i]['product_id']));
-				}
+                    let promises = [];
 
-				Promise.all(promises).then((productsResults) => {
-					productsResults.forEach((products) => {
+                    for(let i in results){
+                        results[i]['products'] = [];
+                        promises.push(this.getProductsFromParentId(results[i]['product_id']));
+                    }
 
-						for(let prod of products){
-							for(let i in results){
-								if(results[i]['product_id'] == prod.parent_product_id){
-									results[i]['products'].push(prod);
-								}
-							}
-						}
+                    Promise.all(promises).then((productsResults) => {
+                        productsResults.forEach((products) => {
 
-						this.dbData = results;
-						resolve(this.dbData);
-					});
-				});
+                            for(let prod of products){
+                                for(let i in results){
+                                    if(results[i]['product_id'] == prod.parent_product_id){
+                                        results[i]['products'].push(prod);
+                                    }
+                                }
+                            }
 
-				if(results.length == 0){
-					this.dbData = results;
-					resolve(this.dbData);
-				}
+                            this.dbData = results;
+                            resolve(this.dbData);
+                        });
+                    });
 
-			});
-			connection.end();
+                    if(results.length == 0){
+                        this.dbData = results;
+                        resolve(this.dbData);
+                    }
+
+                });
+                connection.release();
+            });
+			
 		});
 	}
 

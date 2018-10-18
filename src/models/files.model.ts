@@ -22,20 +22,26 @@ export class Files extends BaseClass {
             const sql_load = `SELECT f.*, fu.type FROM 
                             files f LEFT JOIN file_user fu WHERE f.file_id = ?`;
             const param = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    throw error;
+            this.pool.getConnection((err, connection) => {
+                if(err){
+                    throw new Error(err);
                 }
-                if (!results.length) {
-                    reject('No file found');
-                } else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['file_id']);
-                    resolve(this.dbData);
-                }
+
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        throw error;
+                    }
+                    if (!results.length) {
+                        reject('No file found');
+                    } else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['file_id']);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -43,19 +49,25 @@ export class Files extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT f.*, fu.type FROM files f LEFT JOIN file_user fu ON f.file_id = fu.file_id WHERE fu.user_id = ? AND fu.type = ? ORDER BY fu.file_user_id DESC`;
             const param = [userId, type];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    throw error;
+            this.pool.getConnection((err, connection) => {
+                if(err){
+                    throw new Error(err);
                 }
-                if (!results.length) {
-                    reject('No record found');
-                } else {
-                    this.dbData = results;
-                    resolve(this.dbData);
-                }
+
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        throw error;
+                    }
+                    if (!results.length) {
+                        reject('No record found');
+                    } else {
+                        this.dbData = results;
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -69,16 +81,22 @@ export class Files extends BaseClass {
             ('uploaded_by' in this.dbData) ? this.dbData['uploaded_by'] : '',
             ('datetime' in this.dbData) ? this.dbData['datetime'] : moment().format('YYYY-MM-DD HH:mm:ss')
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_insert, fileparam, (err, results, fields) => {
-                if (err) {
+            this.pool.getConnection((err, connection) => {
+                if(err){
                     throw new Error(err);
                 }
-                this.id = results.insertId;
-                this.dbData['file_id'] = this.id;
-                resolve(true);
+
+                connection.query(sql_insert, fileparam, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    this.id = results.insertId;
+                    this.dbData['file_id'] = this.id;
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
 
         });
     }
@@ -101,14 +119,20 @@ export class Files extends BaseClass {
             ('datetime' in this.dbData) ? this.dbData['datetime'] : moment().format('YYYY-MM-DD HH:mm:ss'),
             this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, fileparam, (err, results, fields) => {
-                if (err) {
-                    throw new Error(err + ' ' + sql_update);
+            this.pool.getConnection((err, connection) => {
+                if(err){
+                    throw new Error(err);
                 }
-                resolve(true);
+
+                connection.query(sql_update, fileparam, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err + ' ' + sql_update);
+                    }
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
         }); // end Promise
     }
 

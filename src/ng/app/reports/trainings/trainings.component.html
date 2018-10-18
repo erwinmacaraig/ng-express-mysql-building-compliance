@@ -1,4 +1,4 @@
-<div class="container print-no-margin" id="printContainer" #printContainer>
+<div class="print-no-margin" id="printContainer" #printContainer>
     <div class="row row-margined-top">
         <div class="col s12">
             <h5>Training Report</h5>
@@ -83,6 +83,9 @@
                 <thead>
                     <tr class="grey darken-5 white-text">
                         <th>User</th>
+                        <th>Email</th>
+                        <th>Account</th>
+                        <th>Location</th>
                         <th>Training Name</th>
                         <th>Training Date</th>
                         <th>Status</th>
@@ -90,19 +93,22 @@
                 </thead>
                 <tbody [hidden]="!loadingTable">
                     <tr>
-                        <td colspan="4" class="center">
+                        <td colspan="7" class="center">
                             <h6>Loading records...</h6>
                         </td>
                     </tr>
                 </tbody>
                 <tbody [hidden]="loadingTable">
                     <tr *ngIf="results.length == 0">
-                        <td colspan="4" class="center">
+                        <td colspan="7" class="center">
                             <h6>No result found</h6>
                         </td>
                     </tr>
                     <tr *ngFor="let re of results">
                         <td>{{re.first_name}} {{re.last_name}}</td>
+                        <td>{{re.email}}</td>
+                        <td>{{re.account_name}}</td>
+                        <td>{{re.location_name}}</td>
                         <td>{{re.training_requirement_name}}</td>
                         <td>{{re.certification_date_formatted}}</td>
                         <td>

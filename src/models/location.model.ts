@@ -20,34 +20,48 @@ export class Location extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM locations WHERE location_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                if(!results.length){
-                    reject('Location not found');
-                }else{
-                    this.dbData = results[0];
-                    this.setID(results[0]['location_id']);
-                    resolve(this.dbData);
-                }
+
+                connection.query(sql_load, uid, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if(!results.length){
+                        reject('Location not found');
+                    }else{
+                        this.dbData = results[0];
+                        this.setID(results[0]['location_id']);
+                        resolve(this.dbData);
+                    }
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
     public getAllLocations(){
         return new Promise((resolve) => {
             const sql_load = `SELECT * FROM locations WHERE archived = 0 `;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                resolve(results);
+
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    resolve(results);
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -55,15 +69,21 @@ export class Location extends BaseClass {
         return new Promise((resolve) => {
             const sql_load = `SELECT * FROM locations WHERE parent_id = ? AND archived = 0 `;
             const param = [parentId];
-            const connection = db.createConnection(dbconfig);
-
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                resolve(results);
+
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    resolve(results);
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -78,14 +98,20 @@ export class Location extends BaseClass {
                 WHERE l.parent_id = ${parentId} AND l.archived = 0 ${responsibilitSql} GROUP BY l.location_id
             `;
             const param = [parentId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                resolve(results);
+
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    resolve(results);
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -93,16 +119,22 @@ export class Location extends BaseClass {
         return new Promise((resolve) => {
             const sql_load = `SELECT COUNT(location_id) as count FROM locations WHERE parent_id = ? AND archived = 0 `;
             const param = [parentId];
-            const connection = db.createConnection(dbconfig);
-
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
 
-                resolve( results[0]['count'] );
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+
+                    resolve( results[0]['count'] );
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -127,21 +159,27 @@ export class Location extends BaseClass {
                 sql_load += ' LIMIT '+limit;
             }
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    console.log(error, sql_load);
-                    return false;
-                }
-                for(let i in results){
-                    results[i]['sublocations'] = [];
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
 
-                this.dbData = results;
-                resolve(this.dbData);
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        console.log(error, sql_load);
+                        return false;
+                    }
+                    for(let i in results){
+                        results[i]['sublocations'] = [];
+                    }
 
+                    this.dbData = results;
+                    resolve(this.dbData);
+
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -154,25 +192,32 @@ export class Location extends BaseClass {
             ORDER BY location_id ASC
             `;
             const param = [accountId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                if(!results.length){
-                    reject('Location not found');
-                }else{
 
-                    for(let i in results){
-                        results[i]['sublocations'] = [];
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if(!results.length){
+                        reject('Location not found');
+                    }else{
+
+                        for(let i in results){
+                            results[i]['sublocations'] = [];
+                        }
+
+                        this.dbData = results;
+                        resolve(this.dbData);
                     }
 
-                    this.dbData = results;
-                    resolve(this.dbData);
-                }
+                });
 
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -185,31 +230,40 @@ export class Location extends BaseClass {
             ORDER BY location_id ASC
             `;
             const param = [accountId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                for(let i in results){
-                    results[i]['sublocations'] = [];
-                    if(getChild){
-                        this.getChildren(results[i]['location_id']).then(
-                            (child) => {
-                                results[i]['sublocations'] = child;
-                                this.dbData = results;
-                                resolve(this.dbData);
-                            }
-                            );
-                    }else{
-                        this.dbData = results;
-                        resolve(this.dbData);
-                    }
+
+            this.pool.getConnection((err, connection) => {
+
+                if(err){
+                    throw new Error(err);
                 }
 
-                this.dbData = results;
-                resolve(this.dbData);
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    for(let i in results){
+                        results[i]['sublocations'] = [];
+                        if(getChild){
+                            this.getChildren(results[i]['location_id']).then(
+                                (child) => {
+                                    results[i]['sublocations'] = child;
+                                    this.dbData = results;
+                                    resolve(this.dbData);
+                                }
+                                );
+                        }else{
+                            this.dbData = results;
+                            resolve(this.dbData);
+                        }
+                    }
+
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+
+                connection.release();
+
             });
-            connection.end();
         });
     }
 
@@ -220,14 +274,20 @@ export class Location extends BaseClass {
             }
 
             const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived + ` ORDER BY location_id ASC `;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                resolve(results);
+
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    resolve(results);
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -244,19 +304,25 @@ export class Location extends BaseClass {
             ORDER BY l.location_id ASC
             `;
             const param = [userId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                if(!results.length){
-                    reject('Location not found');
-                }else{
-                    this.dbData = results;
-                    resolve(this.dbData);
-                }
+
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if(!results.length){
+                        reject('Location not found');
+                    }else{
+                        this.dbData = results;
+                        resolve(this.dbData);
+                    }
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -297,14 +363,20 @@ export class Location extends BaseClass {
             this.ID() ? this.ID() : 0
             ];
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, param, (err, results, fields) => {
-                if (err) {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
                     throw new Error(err);
                 }
-                resolve(true);
+
+                connection.query(sql_update, param, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    resolve(true);
+                });
+
+                connection.release();
             });
-            connection.end();
 
         });
     }
@@ -359,18 +431,24 @@ export class Location extends BaseClass {
             ('admin_id' in this.dbData) ? this.dbData['admin_id'] : 0,
             ('online_training' in this.dbData) ? this.dbData['online_training'] : 0,
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_insert, param, (err, results, fields) => {
-                if (err) {
-                    console.log(sql_insert);
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
                     throw new Error(err);
                 }
-                this.id = results.insertId;
-                this.dbData['location_id'] = this.id;
-                resolve(true);
-            });
-            connection.end();
 
+                connection.query(sql_insert, param, (err, results, fields) => {
+                    if (err) {
+                        console.log(sql_insert);
+                        throw new Error(err);
+                    }
+                    this.id = results.insertId;
+                    this.dbData['location_id'] = this.id;
+                    resolve(true);
+                });
+
+                connection.release();
+            });
         });
     }
 
@@ -409,55 +487,74 @@ export class Location extends BaseClass {
             AND archived = 0
             LIMIT 5`;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_search, [place_id], (err, results, fields) => {
-                if (err) {
-                    reject('There was problem processing SQL');
-                    console.log(sql_search);
-                    throw new Error('Internal Error. Unable to execute query.');
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                for (let ref of results) {
-              // console.log(ref);
-              if (ref['parent_id'] === -1) {
-                  arrResults.push(ref);
-              }
-          }
-          resolve(arrResults);
-        });
 
-            connection.end();
+                connection.query(sql_search, [place_id], (err, results, fields) => {
+                    if (err) {
+                        reject('There was problem processing SQL');
+                        console.log(sql_search);
+                        throw new Error('Internal Error. Unable to execute query.');
+                    }
+                    for (let ref of results) {
+                        // console.log(ref);
+                        if (ref['parent_id'] === -1) {
+                            arrResults.push(ref);
+                        }
+                    }
+                    resolve(arrResults);
+                });
+
+                connection.release();
+            });
         });
     }
 
     public getDeepLocationsByParentId(parentId){
         return new Promise((resolve) => {
-            const sql_load = `SELECT *
-            FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
-            (SELECT @pi := ('${parentId}')) initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
                 }
-                resolve(results);
+
+                const sql_load = `SELECT *
+                FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
+                (SELECT @pi := ('${parentId}')) initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    resolve(results);
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
     public getDeepLocationsMinimizedDataByParentId(parentId){
         return new Promise((resolve) => {
-            const sql_load = `SELECT location_id, parent_id, name
-            FROM (SELECT location_id, parent_id, name FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
-            (SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
                 }
-                resolve(results);
+
+                const sql_load = `SELECT location_id, parent_id, name
+                FROM (SELECT location_id, parent_id, name FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
+                (SELECT @pi := '${parentId}') initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    resolve(results);
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -486,80 +583,92 @@ export class Location extends BaseClass {
             SELECT location_id, name, parent_id, is_building FROM (${sublocationQuery}) sublocations, (SELECT @pv := ?)
             initialisation WHERE find_in_set(parent_id, @pv) > 0 AND @pv := concat(@pv, ',', location_id) ORDER BY location_id;`;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
-                if (err) {
-                    console.log(sql_get_subloc);
-                    throw new Error('Internal error. There was a problem processing your query');
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                if (results.length) {
-                    let newResults = [],
-                        unassignedResults = [];
 
-                    for (let i = 0; i < results.length; i++) {
-                        unassignedResults.push({
-                            'location_id' : results[i]['location_id'],
-                            'name' : results[i]['name'],
-                            'parent_id' : results[i]['parent_id'],
-                            'is_building' : results[i]['is_building'],
-                            'children' : []
-                        });
+                connection.query(sql_get_subloc, [this.ID()], (err, results, fields) => {
+                    if (err) {
+                        console.log(sql_get_subloc);
+                        throw new Error('Internal error. There was a problem processing your query');
                     }
+                    if (results.length) {
+                        let newResults = [],
+                            unassignedResults = [];
 
-                    for(let i in unassignedResults){
-                        for(let x in unassignedResults){
-                            if(unassignedResults[i]['parent_id'] == unassignedResults[x]['location_id']){
-                                unassignedResults[x]['children'].push(unassignedResults[i]);
+                        for (let i = 0; i < results.length; i++) {
+                            unassignedResults.push({
+                                'location_id' : results[i]['location_id'],
+                                'name' : results[i]['name'],
+                                'parent_id' : results[i]['parent_id'],
+                                'is_building' : results[i]['is_building'],
+                                'children' : []
+                            });
+                        }
+
+                        for(let i in unassignedResults){
+                            for(let x in unassignedResults){
+                                if(unassignedResults[i]['parent_id'] == unassignedResults[x]['location_id']){
+                                    unassignedResults[x]['children'].push(unassignedResults[i]);
+                                }
                             }
                         }
-                    }
 
-                    for(let i in unassignedResults){
-                        if(unassignedResults[i]['parent_id'] == this.ID()){
-                            newResults.push(unassignedResults[i]);
+                        for(let i in unassignedResults){
+                            if(unassignedResults[i]['parent_id'] == this.ID()){
+                                newResults.push(unassignedResults[i]);
+                            }
                         }
+
+                        resolve(newResults);
+                    } else {
+                        resolve([]);
                     }
 
-                    resolve(newResults);
-                } else {
-                    resolve([]);
-                }
+                });
 
+                connection.release();
             });
-            connection.end();
         });
     }
 
     public getParentsChildren(parentId, raw = 1, buildings_only:boolean = false, archived?): any {
         return new Promise((resolve) => {
-            let archiveStr = (archived) ? archived : '0';
-            let locationIds = [];
-            let sql = `SELECT *
-            FROM (SELECT l.*, p.name as parent_name FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id WHERE l.archived = ${archiveStr} ORDER BY l.parent_id, l.location_id) sublocations,
-            (SELECT @pi := ('${parentId}')) initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, (err, results, fields) => {
+            this.pool.getConnection((err, connection) => {
                 if (err) {
-                    console.log(sql);
-                    throw new Error('Internal error. There was a problem processing your query');
+                    console.log('Error gettting pool connection ' + err);
+                    throw err;
                 }
-                if (raw) {
-                    resolve(results);
-                } else if (buildings_only) {
-                    for (const r of results) {
-                        if (parseInt(r['is_building'], 10) === 1) {
+
+                let archiveStr = (archived) ? archived : '0';
+                let locationIds = [];
+                let sql = `SELECT *
+                FROM (SELECT l.*, p.name as parent_name FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id WHERE l.archived = ${archiveStr} ORDER BY l.parent_id, l.location_id) sublocations,
+                (SELECT @pi := ('${parentId}')) initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
+                connection.query(sql, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if (raw) {
+                        resolve(results);
+                    } else if (buildings_only) {
+                        for (const r of results) {
+                            if (parseInt(r['is_building'], 10) === 1) {
+                                locationIds.push(r['location_id']);
+                            }
+                        }
+                        resolve(locationIds);
+                    } else {
+                        for (const r of results) {
                             locationIds.push(r['location_id']);
                         }
+                        resolve(locationIds);
                     }
-                    resolve(locationIds);
-                } else {
-                    for (const r of results) {
-                        locationIds.push(r['location_id']);
-                    }
-                    resolve(locationIds);
-                }
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -571,28 +680,32 @@ export class Location extends BaseClass {
                         WHERE FIND_IN_SET(location_id, @pi) > 0 AND @pi := concat(@pi, ',', parent_id)
                         ORDER BY location_id DESC`;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, (err, results, fields) => {
-                if (err) {
-                    console.log(err);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
                     throw new Error(err);
                 }
 
-                if(results.length > 0){
-                    resolve([
-                        {
-                            ids : results[ results.length - 1 ]['ids']
-                        }
-                    ]);
-                }else{
-                    resolve([ {
-                        ids : '0'
-                    } ]);
-                }
+                connection.query(sql, (err, results, fields) => {
+                    if (err) {
+                        console.log(err);
+                        throw new Error(err);
+                    }
 
+                    if(results.length > 0){
+                        resolve([
+                            {
+                                ids : results[ results.length - 1 ]['ids']
+                            }
+                        ]);
+                    }else{
+                        resolve([ {
+                            ids : '0'
+                        } ]);
+                    }
+                });
 
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -611,16 +724,22 @@ export class Location extends BaseClass {
                     sql = `SELECT * FROM locations WHERE location_id IN (` + sublocId + `,` + resultsIds[0]['ids'] + `)`;
                 }
 
-                const connection = db.createConnection(dbconfig);
-                connection.query(sql, (err, results, fields) => {
-                    if (err) {
-                        console.log(sql);
-                        throw new Error('Internal error. There was a problem processing your query');
+                this.pool.getConnection((err, connection) => {
+                    if (err) {                    
+                        throw new Error(err);
                     }
 
-                    resolve(results);
+                    connection.query(sql, (err, results, fields) => {
+                        if (err) {
+                            console.log(sql);
+                            throw new Error('Internal error. There was a problem processing your query');
+                        }
+
+                        resolve(results);
+                    });
+
+                    connection.release();
                 });
-                connection.end();
             });
         });
     }
@@ -698,52 +817,61 @@ export class Location extends BaseClass {
                 // FRP SECTION
                 if(!isAllLocationIds){
                     this.getParentsChildren(location).then((sublocations) => {
-                      const subIds = [location_id];
-                      Object.keys(sublocations).forEach((key) => {
-                        subIds.push(sublocations[key]['location_id']);
-                      });
-                      let subIdstring = subIds.join(',');
-                      subIdstring = (subIdstring.length == 0) ? '0' : subIdstring;
 
-                      sql = `SELECT
-                                  user_em_roles_relation.*,
-                                  em_roles.role_name,
-                                  locations.name,
-                                  locations.is_building
-                                FROM
-                                  user_em_roles_relation
-                                INNER JOIN users ON users.user_id = user_em_roles_relation.user_id
-                                INNER JOIN
-                                  em_roles
-                                ON
-                                  em_roles.em_roles_id = user_em_roles_relation.em_role_id
-                                INNER JOIN
-                                  locations
-                                ON
-                                  locations.location_id = user_em_roles_relation.location_id
-                                WHERE
-                                users.archived = 0
-                                AND user_em_roles_relation.location_id IN (${subIdstring}) ${em_role_filter}
-                                ${accountClause}
-                                ORDER BY em_role_id
-                                `;
+                      this.pool.getConnection((err, connection) => {
+                        if (err) {
+                            console.log('Error gettting pool connection ' + err);
+                            throw err;
+                        }
 
-                        connection = db.createConnection(dbconfig);
-                        connection.query(sql, [], (error, results, fields) => {
-                        if (error) {
-                          console.log('location.model.getEMRolesForThisLocation', error, sql);
-                          throw new Error('There was an error getting the EM Roles for this location');
-                        }
-                        if (!results.length) {
-                          reject('There are no EM Roles for this location id - ' + location);
-                        } else {
-                          resultModification(results);
-                          resolve(location_em_roles);
-                        }
+                        const subIds = [location_id];
+                        Object.keys(sublocations).forEach((key) => {
+                          subIds.push(sublocations[key]['location_id']);
                         });
-                        connection.end();
-                    }).catch((e) => {
-                      return [];
+                        let subIdstring = subIds.join(',');
+                        subIdstring = (subIdstring.length == 0) ? '0' : subIdstring;
+
+                        sql = `SELECT
+                                user_em_roles_relation.*,
+                                em_roles.role_name,
+                                locations.name,
+                                locations.is_building
+                              FROM
+                                user_em_roles_relation
+                              INNER JOIN users ON users.user_id = user_em_roles_relation.user_id
+                              INNER JOIN
+                                em_roles
+                              ON
+                                em_roles.em_roles_id = user_em_roles_relation.em_role_id
+                              INNER JOIN
+                                locations
+                              ON
+                                locations.location_id = user_em_roles_relation.location_id
+                              WHERE
+                              users.archived = 0
+                              AND user_em_roles_relation.location_id IN (${subIdstring}) ${em_role_filter}
+                              ${accountClause}
+                              ORDER BY em_role_id
+                              `;
+                        
+                        connection.query(sql, (error, results, fields) => {
+                            if (error) {
+                                return console.log(error);
+                            }
+                            if (error) {
+                              console.log('location.model.getEMRolesForThisLocation', error, sql);
+                              throw new Error('There was an error getting the EM Roles for this location');
+                            }
+                            if (!results.length) {
+                              reject('There are no EM Roles for this location id - ' + location);
+                            } else {
+                              resultModification(results);
+                              resolve(location_em_roles);
+                            }
+                        });
+
+                        connection.release();
+                      });
                     });
                 }else{
                     let subIdstring = location_id;

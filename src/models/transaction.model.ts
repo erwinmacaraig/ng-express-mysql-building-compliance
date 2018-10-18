@@ -15,21 +15,22 @@ export class Transaction extends BaseClass {
   public load() {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT * FROM transactions WHERE transaction_id = ?`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_load, [this.id], (error, results, fields) => {
-        if (error) {
-          console.log('transaction.model load', error);
-          throw new Error(error);
-        }
-        if (!results.length) {
-          reject(`Cannot find transaction for id ${this.id}`);
-        } else {
-          this.dbData = results[0];
-          this.setID(results[0]['transaction_id']);
-          resolve(this.dbData);
-        }
+      this.pool.getConnection((err, connection) => {
+        connection.query(sql_load, [this.id], (error, results, fields) => {
+          if (error) {
+            console.log('transaction.model load', error);
+            throw new Error(error);
+          }
+          if (!results.length) {
+            reject(`Cannot find transaction for id ${this.id}`);
+          } else {
+            this.dbData = results[0];
+            this.setID(results[0]['transaction_id']);
+            resolve(this.dbData);
+          }
+        });
+        connection.release();
       });
-      connection.end();
     });
   }
 
@@ -66,15 +67,17 @@ export class Transaction extends BaseClass {
         this.ID() ? this.ID() : 0
       ];
 
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, transaction, (error, results, fields) => {
-        if (error) {
-          console.log('transaction.model update', error);
-          throw new Error(error);
-        }
-        resolve(true);
+      this.pool.getConnection((err, connection) => {
+        connection.query(sql_update, transaction, (error, results, fields) => {
+          if (error) {
+            console.log('transaction.model update', error);
+            throw new Error(error);
+          }
+          resolve(true);
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -104,17 +107,19 @@ export class Transaction extends BaseClass {
         ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
         ('account_id' in this.dbData) ? this.dbData['account_id'] : 0
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(insert_sql, transaction, (error, results, fields) => {
-        if (error) {
-          console.log('transaction.model insert', error);
-          throw new Error(error);
-        }
-        this.id = results.insertId;
-        this.dbData['transaction_id'] = results.insertId;
-        resolve(this.id);
+      this.pool.getConnection((err, connection) => {
+        connection.query(insert_sql, transaction, (error, results, fields) => {
+          if (error) {
+            console.log('transaction.model insert', error);
+            throw new Error(error);
+          }
+          this.id = results.insertId;
+          this.dbData['transaction_id'] = results.insertId;
+          resolve(this.id);
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -161,16 +166,18 @@ export class Transaction extends BaseClass {
                           WHERE
                             translog_id = ?`;
       const values = [status, translog];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, values, (error, results, fields) => {
-        if (error) {
-          console.log('transaction.markTransactionAsPaid', error);
-          throw new Error(error);
-        } else {
-          resolve(true);
-        }
+      this.pool.getConnection((err, connection) => {
+        connection.query(sql_update, values, (error, results, fields) => {
+          if (error) {
+            console.log('transaction.markTransactionAsPaid', error);
+            throw new Error(error);
+          } else {
+            resolve(true);
+          }
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
 
   }

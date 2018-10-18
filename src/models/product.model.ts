@@ -15,21 +15,28 @@ export class Product extends BaseClass {
   public load() {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT * FROM products WHERE product_id = ?`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_load, [this.id], (error, results, fields) => {
-        if (error) {
-          console.log('product.model.ts', error);
-          throw new Error(error);
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
         }
-        if (!results.length) {
-          reject(`Product with id ${this.id} not found.`);
-        } else {
-          this.dbData = results[0];
-          this.setID(results[0]['product_id']);
-          resolve(this.dbData);
-        }
+
+        connection.query(sql_load, [this.id], (error, results, fields) => {
+          if (error) {
+            console.log('product.model.ts', error);
+            throw new Error(error);
+          }
+          if (!results.length) {
+            reject(`Product with id ${this.id} not found.`);
+          } else {
+            this.dbData = results[0];
+            this.setID(results[0]['product_id']);
+            resolve(this.dbData);
+          }
+        });
+        connection.release();
+
       });
-      connection.end();
+      
     });
   }
 
@@ -61,15 +68,22 @@ export class Product extends BaseClass {
         this.ID() ? this.ID() : 0
       ];
 
-    const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, product, (error, results, fields) => {
-        if (error) {
-          console.log('product.model', error);
-          throw new Error(error);
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
         }
-        resolve(true);
+
+        connection.query(sql_update, product, (error, results, fields) => {
+          if (error) {
+            console.log('product.model', error);
+            throw new Error(error);
+          }
+          resolve(true);
+        });
+        connection.release();
+
       });
-      connection.end();
+      
     });
   }
 
@@ -97,16 +111,25 @@ export class Product extends BaseClass {
         ('archived' in this.dbData) ? this.dbData['archived'] : 0,
         ('months_of_validity' in this.dbData) ? this.dbData['months_of_validity'] : 12
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(insert_sql, product, (error, results, fields) => {
-        if (error) {
-          throw new Error(error);
+      
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
         }
-        this.id = results.insertId;
-        this.dbData['product_id'] = results.insertId;
-        resolve(this.id);
+
+        connection.query(insert_sql, product, (error, results, fields) => {
+          if (error) {
+            throw new Error(error);
+          }
+          this.id = results.insertId;
+          this.dbData['product_id'] = results.insertId;
+          resolve(this.id);
+        });
+        connection.release();
+
       });
-      connection.end();
+      
+      
     });
   }
   public create(createData) {
@@ -124,19 +147,26 @@ export class Product extends BaseClass {
   public listProducts(filter?: any) {
     return new Promise((resolve, reject) => {
       const sql_list = `SELECT * FROM products WHERE archived = 0`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_list, [], (error, results, fields) => {
-        if (error) {
-          console.log('product.model', error);
-          throw new Error(error);
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
         }
-        if (!results.length) {
-          reject(`Product listing empty.`);
-        } else {
-          resolve(results);
-        }
+
+        connection.query(sql_list, [], (error, results, fields) => {
+          if (error) {
+            console.log('product.model', error);
+            throw new Error(error);
+          }
+          if (!results.length) {
+            reject(`Product listing empty.`);
+          } else {
+            resolve(results);
+          }
+        });
+        connection.release();
+
       });
-      connection.end();
+      
     });
   }
 }

@@ -17,38 +17,50 @@ export class Token extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM token WHERE token_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              if(!results.length){
-                reject('Token not found');
-              }else{
-                this.dbData = results[0];
-                this.setID(results[0]['token_id']);
-                resolve(this.dbData);
-              }
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+
+                connection.query(sql_load, uid, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  if(!results.length){
+                    reject('Token not found');
+                  }else{
+                    this.dbData = results[0];
+                    this.setID(results[0]['token_id']);
+                    resolve(this.dbData);
+                  }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
     public delete() {
       return new Promise((resolve, reject) => {
         const sql_del = `DELETE FROM token WHERE token_id = ? LIMIT 1`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_del, [this.ID()], (error, results, fields) => {
-          if (error) {
-            console.log(error);
-            reject('Error deleting record');
+        this.pool.getConnection((err, connection) => {
+            if (err) {                    
+                throw new Error(err);
+            }
 
-          } else {
-            resolve(true);
-          }
+            connection.query(sql_del, [this.ID()], (error, results, fields) => {
+              if (error) {
+                console.log(error);
+                reject('Error deleting record');
 
+              } else {
+                resolve(true);
+              }
+
+            });
+            connection.release();
         });
-        connection.end();
+        
       });
     }
 
@@ -56,20 +68,26 @@ export class Token extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM token WHERE token = ?';
             const param = [token];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              if(!results.length) {
-                reject('Token not found');
-              }else{
-                this.dbData = results[0];
-                this.setID(results[0]['token_id']);
-                resolve(this.dbData);
-              }
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  if(!results.length) {
+                    reject('Token not found');
+                  }else{
+                    this.dbData = results[0];
+                    this.setID(results[0]['token_id']);
+                    resolve(this.dbData);
+                  }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -86,19 +104,25 @@ export class Token extends BaseClass {
             sql_load += ' AND id_type = ? ORDER BY token_id DESC ';
             param.push(id_type);
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              if(!results.length){
-                reject('Token not found');
-              }else{
-                this.dbData = results;
-                resolve(this.dbData);
-              }
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  if(!results.length){
+                    reject('Token not found');
+                  }else{
+                    this.dbData = results;
+                    resolve(this.dbData);
+                  }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -107,20 +131,26 @@ export class Token extends BaseClass {
             const sql_load = 'SELECT * FROM token WHERE id = ? AND verified = 1 AND id_type = ?';
             const param = [userId, id_type];
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              if(!results.length){
-                reject('Token not found');
-              }else{
-                this.dbData = results[0];
-                this.setID(results[0]['token_id']);
-                resolve(this.dbData);
-              }
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  if(!results.length){
+                    reject('Token not found');
+                  }else{
+                    this.dbData = results[0];
+                    this.setID(results[0]['token_id']);
+                    resolve(this.dbData);
+                  }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -146,16 +176,20 @@ export class Token extends BaseClass {
             ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : '0000-00-00 00-00-00',
             this.ID() ? this.ID() : 0
           ];
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql_update, token, (err, results, fields) => {
-            if (err) {
-              console.log('token.model dbUpdate', sql_update, token);
-              throw new Error(err);
-            }
-            resolve(true);
-          });
-          connection.end();
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
 
+                connection.query(sql_update, token, (err, results, fields) => {
+                    if (err) {
+                      console.log('token.model dbUpdate', sql_update, token);
+                      throw new Error(err);
+                    }
+                    resolve(true);
+                });
+                connection.release();
+            });
         });
     }
 
@@ -178,16 +212,22 @@ export class Token extends BaseClass {
             ('verified' in this.dbData) ? this.dbData['verified'] : 0,
             ('expiration_date' in this.dbData) ? this.dbData['expiration_date'] : '0000-00-00'
           ];
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql_insert, token, (err, results, fields) => {
-            if (err) {
-              throw new Error(err);
-            }
-            this.id = results.insertId;
-            this.dbData['token_id'] = this.id;
-            resolve(true);
-          });
-          connection.end();
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+
+                connection.query(sql_insert, token, (err, results, fields) => {
+                    if (err) {
+                      throw new Error(err);
+                    }
+                    this.id = results.insertId;
+                    this.dbData['token_id'] = this.id;
+                    resolve(true);
+                });
+                connection.release();
+            });
+          
 
         });
     }

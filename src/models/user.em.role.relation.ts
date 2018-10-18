@@ -17,20 +17,25 @@ export class UserEmRoleRelation extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM user_em_roles_relation WHERE user_em_roles_relation_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                if(!results.length){
-                    reject('No role found');
-                }else{
-                    this.dbData = results[0];
-                    this.setID(results[0]['user_em_roles_relation_id']);
-                    resolve(this.dbData);
-                }
+                connection.query(sql_load, uid, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if(!results.length){
+                        reject('No role found');
+                    }else{
+                        this.dbData = results[0];
+                        this.setID(results[0]['user_em_roles_relation_id']);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -58,20 +63,26 @@ export class UserEmRoleRelation extends BaseClass {
                     LEFT JOIN locations l ON l.location_id = uer.location_id
                     WHERE uer.user_id = ? AND l.archived = ${archived}`;
             const uid = [userId];
-            const connection = db.createConnection(dbconfig);
 
-            connection.query(sql_load, uid, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                if(!results.length){
-                    reject('No role found');
-                }else{
-                    this.dbData = results;
-                    resolve(this.dbData);
-                }
+
+                connection.query(sql_load, uid, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if(!results.length){
+                        reject('No role found');
+                    }else{
+                        this.dbData = results;
+                        resolve(this.dbData);
+                    }
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -101,30 +112,39 @@ export class UserEmRoleRelation extends BaseClass {
                     LEFT JOIN locations l ON l.location_id = uer.location_id
                     WHERE u.account_id = ${accountId} AND l.location_id IN (${locIds}) AND l.archived = ${archived} AND u.archived = 0`;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
     public getEmRoles() {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT * FROM em_roles`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -144,24 +164,28 @@ export class UserEmRoleRelation extends BaseClass {
           whereClause += ` GROUP BY ${filter['distinct']}`;
         }
         const sql_get_roles = `SELECT em_role_id, location_id, user_id FROM user_em_roles_relation ${whereClause}`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_get_roles, [], (error, results, fields) => {
-          if (error) {
-            console.log('user.em.role.relation.getEmRolesFilterBy', error, sql_get_roles);
-            throw new Error('Cannot get roles');
-          }
-          if (results.length > 0) {
-            for (let i = 0; i < results.length; i++) {
-              em_roles.push(results[i]['em_role_id']);
-              user_ids.push(results[i]['user_id']);
-              location_ids.push(results[i]['location_id']);
+        this.pool.getConnection((err, connection) => {
+            if (err) {                    
+                throw new Error(err);
             }
-            resolve([em_roles, location_ids, user_ids]);
-          } else {
-            reject('Cannot get emergency roles');
-          }
+            connection.query(sql_get_roles, [], (error, results, fields) => {
+              if (error) {
+                console.log('user.em.role.relation.getEmRolesFilterBy', error, sql_get_roles);
+                throw new Error('Cannot get roles');
+              }
+              if (results.length > 0) {
+                for (let i = 0; i < results.length; i++) {
+                  em_roles.push(results[i]['em_role_id']);
+                  user_ids.push(results[i]['user_id']);
+                  location_ids.push(results[i]['location_id']);
+                }
+                resolve([em_roles, location_ids, user_ids]);
+              } else {
+                reject('Cannot get emergency roles');
+              }
+            });
+            connection.release();
         });
-        connection.end();
       });
     }
 
@@ -178,14 +202,19 @@ export class UserEmRoleRelation extends BaseClass {
             ('em_role_id' in this.dbData) ? this.dbData['em_role_id'] : null,
             ('location_id' in this.dbData) ? this.dbData['location_id'] : null
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_insert, user, (err, results, fields) => {
-                if (err) {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
                     throw new Error(err);
                 }
-                resolve(true);
+                connection.query(sql_insert, user, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -198,14 +227,19 @@ export class UserEmRoleRelation extends BaseClass {
             ('location_id' in this.dbData) ? this.dbData['location_id'] : null,
             this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, user, (err, results, fields) => {
-                if (err) {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
                     throw new Error(err);
                 }
-                resolve(true);
+                connection.query(sql_update, user, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -224,18 +258,23 @@ export class UserEmRoleRelation extends BaseClass {
     public delete() {
         return new Promise((resolve, reject) => {
             const sql_del = `DELETE FROM user_em_roles_relation WHERE user_em_roles_relation_id = ? LIMIT 1`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_del, [this.ID()], (error, results, fields) => {
-                if (error) {
-                    console.log(error);
-                    reject('Error deleting record');
-
-                } else {
-                    resolve(true);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
+                connection.query(sql_del, [this.ID()], (error, results, fields) => {
+                    if (error) {
+                        console.log(error);
+                        reject('Error deleting record');
 
+                    } else {
+                        resolve(true);
+                    }
+
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -265,29 +304,36 @@ export class UserEmRoleRelation extends BaseClass {
                 AND
                   location_id = ? AND users.archived = 0
                 ${role_filter}`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [account_id, location_id], (error, results, fields) => {
-          if (error) {
-            console.log('user.em.role.relation.getEMRolesOnAccountOnLocation', sql, error);
-            throw new Error('Cannot retrieve the role(s) on location');
-          }
-          const users = [];
-          if (results.length > 0) {
-            for (let i = 0; i < results.length; i++) {
-              users.push(results[i]['user_id']);
+        
+        this.pool.getConnection((err, connection) => {
+            if (err) {                    
+                throw new Error(err);
             }
-            resolve({
-              'raw': Object.keys(results).map((key) =>  { return results[key]; }),
-              'users': users
+            connection.query(sql, [account_id, location_id], (error, results, fields) => {
+              if (error) {
+                console.log('user.em.role.relation.getEMRolesOnAccountOnLocation', sql, error);
+                throw new Error('Cannot retrieve the role(s) on location');
+              }
+              const users = [];
+              if (results.length > 0) {
+                for (let i = 0; i < results.length; i++) {
+                  users.push(results[i]['user_id']);
+                }
+                resolve({
+                  'raw': Object.keys(results).map((key) =>  { return results[key]; }),
+                  'users': users
+                });
+              } else {
+                resolve({
+                  'raw': [],
+                  'users': []
+                });
+              }
             });
-          } else {
-            resolve({
-              'raw': [],
-              'users': []
-            });
-          }
+            connection.release();
         });
-        connection.end();
+
+        
       });
     }
 
@@ -304,20 +350,25 @@ export class UserEmRoleRelation extends BaseClass {
                 WHERE u.account_id = ? AND u.archived = ?
             `;
             const param = [accountId, archived];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
 
-                this.dbData = results;
-                resolve(results);
+                    this.dbData = results;
+                    resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
-    public getUsersInLocationIds(locationIds, archived?, config = {}): Promise<Array<object>> {
+    public getUsersInLocationIds(locationIds, archived?, config:any = {}): Promise<Array<object>> {
         archived = (archived) ? archived : 0;
 
         return new Promise((resolve, reject) => {
@@ -353,14 +404,19 @@ export class UserEmRoleRelation extends BaseClass {
                 INNER JOIN accounts ON accounts.account_id = u.account_id
                 WHERE u.archived = ${archived} ${configFilter} ${limitQuery}`;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                resolve(results);
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -385,15 +441,20 @@ export class UserEmRoleRelation extends BaseClass {
                 sql_load += ` AND l.location_id IN (${locationIds}) `;
             }
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                // this.dbData = results;
-                resolve(results);
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    // this.dbData = results;
+                    resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -415,15 +476,20 @@ export class UserEmRoleRelation extends BaseClass {
                 sql_load += ` AND em.location_id IN (${locationIds}) `;
             }
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                this.dbData = results;
-                resolve(results);
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -467,36 +533,43 @@ export class UserEmRoleRelation extends BaseClass {
                     ON
                       user_em_roles_relation.em_role_id = em_roles.em_roles_id
                     WHERE location_id IN (${locationStr}) AND user_id IN (${usersStr});`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [], (error, results, fields) => {
-          if (error) {
-            console.log(error, 'user.em.role.relation.getEmergencyRolesOfUsersInLocations', sql);
-            throw Error('Cannot perform query');
-          }
-          if (!results.length) {
-            resolve({});
-          } else {
-            for (let i = 0; i <  results.length; i++) {
-              if (results[i]['location_id'] in r) {
-                (r[results[i]['user_id']]['data']).push({
-                  'em_role_id': results[i]['em_role_id'],
-                  'user_id': results[i]['user_id'],
-                  'em_role_name': results[i]['role_name']
-                });
-              } else {
-                r[results[i]['location_id']] = {
-                  'data': [{
-                    'em_role_id': results[i]['em_role_id'],
-                    'user_id': results[i]['user_id'],
-                    'em_role_name': results[i]['role_name']
-                  }]
-                };
-              }
+        
+        this.pool.getConnection((err, connection) => {
+            if (err) {                    
+                throw new Error(err);
             }
-            resolve(r);
-          }
+            connection.query(sql, [], (error, results, fields) => {
+              if (error) {
+                console.log(error, 'user.em.role.relation.getEmergencyRolesOfUsersInLocations', sql);
+                throw Error('Cannot perform query');
+              }
+              if (!results.length) {
+                resolve({});
+              } else {
+                for (let i = 0; i <  results.length; i++) {
+                  if (results[i]['location_id'] in r) {
+                    (r[results[i]['user_id']]['data']).push({
+                      'em_role_id': results[i]['em_role_id'],
+                      'user_id': results[i]['user_id'],
+                      'em_role_name': results[i]['role_name']
+                    });
+                  } else {
+                    r[results[i]['location_id']] = {
+                      'data': [{
+                        'em_role_id': results[i]['em_role_id'],
+                        'user_id': results[i]['user_id'],
+                        'em_role_name': results[i]['role_name']
+                      }]
+                    };
+                  }
+                }
+                resolve(r);
+              }
+            });
+            connection.release();
         });
-        connection.end();
+
+        
       });
 
     }
@@ -514,15 +587,20 @@ export class UserEmRoleRelation extends BaseClass {
                     sql_load += ' AND em.em_role_id IN ('+inRoleId+')';
               }
           }
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql_load, (error, results, fields) => {
-              if (error) {
-                  return console.log(error);
+          this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
               }
-              this.dbData = results;
-              resolve(this.dbData);
+              connection.query(sql_load, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+              connection.release();
           });
-          connection.end();
+          
       });
     }
 
@@ -554,17 +632,22 @@ export class UserEmRoleRelation extends BaseClass {
                     sql_load += ' AND uemr.em_role_id NOT IN ('+notRoleIdsOrLocId+')';
                 }
             }
-            const connection = db.createConnection(dbconfig);
-
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    console.log('sql_load', sql_load);
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        console.log('sql_load', sql_load);
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
+
+            
         });
     }
 
@@ -590,17 +673,22 @@ export class UserEmRoleRelation extends BaseClass {
                     INNER JOIN em_roles er ON er.em_roles_id = uemr.em_role_id
                     WHERE uemr.user_id IN (`+userIds+`) ${whereLoc} `;
 
-            const connection = db.createConnection(dbconfig);
-
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    console.log('sql_load', sql_load);
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        console.log('sql_load', sql_load);
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
+
+            
         });
     }
 
@@ -620,15 +708,20 @@ export class UserEmRoleRelation extends BaseClass {
             }
 
             const sql_load = 'SELECT em.*, er.role_name  FROM user_em_roles_relation em INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id '+whereSql;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -676,15 +769,20 @@ export class UserEmRoleRelation extends BaseClass {
                         user_em_roles_relation.location_id IN (${locationStr})
                       GROUP BY users.user_id`;
 
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [], (error, results) => {
-          if (error) {
-            console.log('Cannot retrieve a record - emUsersForNotification');
-            throw Error(error);
-          }
-          resolve(results);
+        this.pool.getConnection((err, connection) => {
+            if (err) {                    
+                throw new Error(err);
+            }
+            connection.query(sql, [], (error, results) => {
+              if (error) {
+                console.log('Cannot retrieve a record - emUsersForNotification');
+                throw Error(error);
+              }
+              resolve(results);
+            });
+            connection.release();
         });
-        connection.end();
+        
       });
     }
 }

@@ -16,20 +16,26 @@ export class ComplianceNotesModel extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM compliance_notes WHERE compliance_notes_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){
+                    throw new Error(err);
                 }
-                if (!results.length){
-                    reject('Compliance note not found');
-                } else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['compliance_notes_id']);
-                    resolve(this.dbData);
-                }
+
+                connection.query(sql_load, uid, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if (!results.length){
+                        reject('Compliance note not found');
+                    } else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['compliance_notes_id']);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -46,16 +52,22 @@ export class ComplianceNotesModel extends BaseClass {
                 sql += arrWhere[i];
             }
             sql += ` ORDER BY compliance_notes_id DESC `;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){
+                    throw new Error(err);
                 }
 
-                this.dbData = results;
-                resolve(results);
+                connection.query(sql, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+
+                    this.dbData = results;
+                    resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
+            
 
         });
     }
@@ -73,14 +85,20 @@ export class ComplianceNotesModel extends BaseClass {
             ('include_in_report' in this.dbData) ? this.dbData['include_in_report'] : null,
             this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, param, (err, results, fields) => {
-                if (err) {
+            this.pool.getConnection((err, connection) => {
+                if(err){
                     throw new Error(err);
                 }
-                resolve(true);
+
+                connection.query(sql_update, param, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -97,14 +115,20 @@ export class ComplianceNotesModel extends BaseClass {
             ('include_in_report' in this.dbData) ? this.dbData['include_in_report'] : null,
             this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, param, (err, results, fields) => {
-                if (err) {
+            this.pool.getConnection((err, connection) => {
+                if(err){
                     throw new Error(err);
                 }
-                resolve(true);
+
+                connection.query(sql_update, param, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 

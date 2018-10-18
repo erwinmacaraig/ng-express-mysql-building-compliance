@@ -92,6 +92,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
     routerSubs;
 
     showLoadingSublocations = false;
+    viewWardens = [];
 
     constructor (
       private platformLocation: PlatformLocation,
@@ -569,8 +570,14 @@ export class LocationListComponent implements OnInit, OnDestroy {
 				this.arraySelectedLocs = newArr;
 				break;
 		}
-
 	}
+
+    viewWardenList(location){
+        console.log(location);
+        this.viewWardens = location.wardens;
+        $('#modalWardenList').modal({ dismissible : false });
+        $('#modalWardenList').modal('open');
+    }
 
 	ngOnDestroy(){
 		this.mutationOversable.disconnect();

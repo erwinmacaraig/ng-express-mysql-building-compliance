@@ -1,178 +1,177 @@
-<div class="workspace container">
-	<div class="row">
-		<div class="col l2 m2 s12 left-part">
-			<div class="row left-box-container">
-                <div class="col l12 m12 s12" *ngIf="showCompliance">
-                    <div class="manage-compliance">
-                        <h5 class="center compliacne-rating">Compliance Rating</h5>
-                        <div id="specificChart" class="donut-size">
-                            <div class="pie-wrapper">
-                                <span class="label">
-                                    <span class="num"> 00 </span><span class="smaller">%</span>
-                                </span>
-                                <div class="pie">
-                                    <div class="left-side half-circle" ></div>
-                                    <div class="right-side half-circle" ></div>
-                                </div>
-                                <div class="shadow"></div>
+<breadcrumbs-component></breadcrumbs-component>
+<div class="row">
+    <div class="col l2 m2 s12 left-part">
+        <div class="row left-box-container">
+            <div class="col l12 m12 s12" *ngIf="showCompliance">
+                <div class="manage-compliance">
+                    <h5 class="center compliacne-rating">Compliance Rating</h5>
+                    <div id="specificChart" class="donut-size">
+                        <div class="pie-wrapper">
+                            <span class="label">
+                                <span class="num"> 00 </span><span class="smaller">%</span>
+                            </span>
+                            <div class="pie">
+                                <div class="left-side half-circle" ></div>
+                                <div class="right-side half-circle" ></div>
                             </div>
+                            <div class="shadow"></div>
                         </div>
-                        <p class="completion">
-                            <span class="start">0 </span>
-                            <span>of </span>
-                            <span class="end end-num">0 </span>
-                            <span class="end">completion</span>
-                        </p>
-                        <h5 *ngIf="locationData.admin_verified == 0" class="red-text center">For Verification</h5>
-                        <a *ngIf="locationData.admin_verified == 1" class="btn blue waves-effect waves-light" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
+                    </div>
+                    <p class="completion">
+                        <span class="start">0 </span>
+                        <span>of </span>
+                        <span class="end end-num">0 </span>
+                        <span class="end">completion</span>
+                    </p>
+                    <h5 *ngIf="locationData.admin_verified == 0" class="red-text center">For Verification</h5>
+                    <a *ngIf="locationData.admin_verified == 1" class="btn blue waves-effect waves-light" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
+                </div>
+            </div>
+            <!-- <div class="col m12 s12" *ngIf="showCompliance">
+                <div class="box">
+                    <div class="title-wrapper">
+                        Evacuation Diagram
+                    </div>
+                    <div class="content">
+                        <button class="btn waves-effect waves-light orange">Upload Evacuation Diagram</button>
                     </div>
                 </div>
-				<!-- <div class="col m12 s12" *ngIf="showCompliance">
-                    <div class="box">
-                        <div class="title-wrapper">
-                            Evacuation Diagram
-                        </div>
-                        <div class="content">
-                            <button class="btn waves-effect waves-light orange">Upload Evacuation Diagram</button>
+            </div> -->
+            <div class="col m12 s12">
+                <div class="box">
+                    <div class="title-wrapper">
+                        Siblings
+                    </div>
+                    <div class="content">
+                        <h6 class="center" *ngIf="parentData.sublocations.length == 0">No Siblings</h6>
+                        <ul class="sub-list" *ngIf="parentData.sublocations.length > 0">
+                            <li *ngFor="let location of parentData.sublocations"
+                            [ngClass]="{active : encryptDecrypt.decrypt(location.location_id) == locationID}">
+                                <a [routerLink]="['/location', 'view-sublocation', location.location_id]">{{ location.name }}</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col l10 m10 s12 right-part">
+
+        <div class="row">
+            <div class="col l12 m12 s12" style="margin-bottom: 40px;">
+                <div class="details-container left">
+                    <div class="inline-block image-wrapper">
+                        <div class="image-container">
+                            <div class="image">
+                                <img src="assets/images/locations/default_profile_location.png" alt="" *ngIf="locationData.google_photo_url != null && !locationData.google_photo_url">
+                                <img src="{{locationData.google_photo_url}}" alt="" *ngIf="locationData.google_photo_url != null && locationData.google_photo_url">
+                            </div>
                         </div>
                     </div>
-                </div> -->
-				<div class="col m12 s12">
-					<div class="box">
-						<div class="title-wrapper">
-							Siblings
-						</div>
-						<div class="content">
-                            <h6 class="center" *ngIf="parentData.sublocations.length == 0">No Siblings</h6>
-							<ul class="sub-list" *ngIf="parentData.sublocations.length > 0">
-								<li *ngFor="let location of parentData.sublocations"
-								[ngClass]="{active : encryptDecrypt.decrypt(location.location_id) == locationID}">
-									<a [routerLink]="['/location', 'view-sublocation', location.location_id]">{{ location.name }}</a>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</div>
+                    <div class="inline-block details">
+                        <table class="no-borders">
+                            <tr>
+                                <td><h5> <span *ngIf="parentData.name != null && parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}} </h5></td>
+                            </tr>
+                            <tr>
+                                <td>{{locationData.formatted_address}}</td>
+                            </tr>
 
-		</div>
-		<div class="col l10 m10 s12 right-part">
+                            <!-- <tr>
+                                <td>Region : N/A</td>
+                            </tr> -->
 
-			<div class="row">
-				<div class="col l12 m12 s12" style="margin-bottom: 40px;">
-					<div class="details-container left">
-						<div class="inline-block image-wrapper">
-							<div class="image-container">
-								<div class="image">
-									<img src="assets/images/locations/default_profile_location.png" alt="" *ngIf="locationData.google_photo_url != null && !locationData.google_photo_url">
-									<img src="{{locationData.google_photo_url}}" alt="" *ngIf="locationData.google_photo_url != null && locationData.google_photo_url">
-								</div>
-							</div>
-						</div>
-						<div class="inline-block details">
-							<table class="no-borders">
-								<tr>
-									<td><h5> <span *ngIf="parentData.name != null && parentData.name.length > 0">{{parentData.name}},</span> {{locationData.name}} </h5></td>
-								</tr>
-								<tr>
-									<td>{{locationData.formatted_address}}</td>
-								</tr>
+                        </table>
+                    </div>
+                </div>
 
-								<!-- <tr>
-									<td>Region : N/A</td>
-								</tr> -->
+                <div class="right">
+                    <div class="right-align" >
+                        <!-- <h5 class="medium-text">Show only not compliant</h5>
+                        <div class="switch">
+                            <input type="checkbox" id="override">
+                            <div class="yes">Yes</div>
+                            <div class="no">No</div>
+                            <div class="highlight"></div>
+                            <div class="background"></div>
+                        </div> -->
 
-							</table>
-						</div>
-					</div>
+                        <a href="#" class="archived" [routerLink]="['/location/list']" [queryParams]="{ archived : 'true' }">
+                            <span class="image"></span>
+                            View Archive
+                        </a>
+                    </div>
 
-					<div class="right">
-						<div class="right-align" >
-							<!-- <h5 class="medium-text">Show only not compliant</h5>
-							<div class="switch">
-								<input type="checkbox" id="override">
-								<div class="yes">Yes</div>
-								<div class="no">No</div>
-								<div class="highlight"></div>
-								<div class="background"></div>
-							</div> -->
+                    <!-- <a [hidden]="true" class="btn grey waves-effect waves-light back-to-location right" [routerLink]="['/location', 'view', parentData.location_id]">
+                        Back to {{parentData.name}}
+                    </a> -->
+                </div>
 
-							<a href="#" class="archived" [routerLink]="['/location/list']" [queryParams]="{ archived : 'true' }">
-								<span class="image"></span>
-								View Archive
-							</a>
-						</div>
+                <div style="clear: both;"></div>
+            </div>
 
-						<!-- <a [hidden]="true" class="btn grey waves-effect waves-light back-to-location right" [routerLink]="['/location', 'view', parentData.location_id]">
-                            Back to {{parentData.name}}
-                        </a> -->
-					</div>
+            <div class="col l12 m12 s12">
+                <table class="highlight striped no-borders">
+                    <thead>
+                        <tr class="grey darken-4 white-text">
+                            <th>Tenants</th>
+                            <th>TRP</th>
+                            <!-- <th>Warden Benchmarking</th> -->
+                            <th>Wardens</th>
+                            <th>Wardens Trained</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="tenants && tenants.length == 0">
+                            <td class="center" colspan="6">
+                                <strong>No tenants found</strong>
+                            </td>
+                        </tr>
+                        <tr *ngFor="let tenant of tenants">
+                            <td>
+                                {{tenant.account_name}}
+                            </td>
+                            <td>
+              <span *ngFor="let t of tenant['trp']" [ngStyle]="{'display': 'block'}">
+                  {{ t }}
+              </span>
+                            </td>
+            <!--
+            <td>
+                                {{tenant.warden_benchmarking}}
+            </td>
+          -->
+                            <td>
+                                {{tenant.total_wardens}}
+                            </td>
+                            <td class="with-bar">
+                                <div class="text">{{tenant.trained_wardens.percentage}}</div>
+                                <div class="progress-container">
+                                    <div class="progress">
+                                        <div class="determinate" [ngStyle]="{'width': tenant.trained_wardens.percentage}"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="select-blue">
+                                <select>
+                                    <option value="0">Manage</option>
+                                    <option value="archive">Archive</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr *ngIf="role == 1">
+                            <td colspan="6" class="btn-block-holder">
+                                <a class="btn blue waves-effect waves-light" (click)="addNewTenantClickEvent()">+ Add new tenant</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-					<div style="clear: both;"></div>
-				</div>
-
-				<div class="col l12 m12 s12">
-					<table class="highlight striped no-borders">
-						<thead>
-							<tr class="grey darken-4 white-text">
-								<th>Tenants</th>
-								<th>TRP</th>
-								<!-- <th>Warden Benchmarking</th> -->
-								<th>Wardens</th>
-								<th>Wardens Trained</th>
-								<th>Action</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr *ngIf="tenants && tenants.length == 0">
-								<td class="center" colspan="6">
-									<strong>No tenants found</strong>
-								</td>
-							</tr>
-							<tr *ngFor="let tenant of tenants">
-								<td>
-									{{tenant.account_name}}
-								</td>
-								<td>
-                  <span *ngFor="let t of tenant['trp']" [ngStyle]="{'display': 'block'}">
-                      {{ t }}
-                  </span>
-								</td>
-                <!--
-                <td>
-									{{tenant.warden_benchmarking}}
-                </td>
-              -->
-								<td>
-									{{tenant.total_wardens}}
-								</td>
-								<td class="with-bar">
-									<div class="text">{{tenant.trained_wardens.percentage}}</div>
-									<div class="progress-container">
-										<div class="progress">
-									    	<div class="determinate" [ngStyle]="{'width': tenant.trained_wardens.percentage}"></div>
-										</div>
-									</div>
-								</td>
-								<td class="select-blue">
-									<select>
-										<option value="0">Manage</option>
-										<option value="archive">Archive</option>
-									</select>
-								</td>
-							</tr>
-							<tr *ngIf="role == 1">
-								<td colspan="6" class="btn-block-holder">
-									<a class="btn blue waves-effect waves-light" (click)="addNewTenantClickEvent()">+ Add new tenant</a>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
-
-		</div>
-	</div>
+    </div>
 </div>
 
 

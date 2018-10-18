@@ -132,7 +132,7 @@
 					</td>
 
 					<td>
-						<span style="margin-right:10px;">{{location.num_wardens}}</span>
+                        <a class="blue-text" (click)="viewWardenList(location)"> {{location.num_wardens}} </a>
 						<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-wardens/', location.location_id]" > Add Wardens </a> -->
 					</td>
 					<td>
@@ -436,4 +436,40 @@
 
 
 	</div>
+</div>
+
+
+<div id="modalAddNewTenant" class="modal">
+    <div class="modal-content" [hidden]="!showModalNewTenantLoader">
+        <div class="center-align">
+            <div class="preloader-wrapper active" >
+                <div class="spinner-layer spinner-red-only">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div><div class="gap-patch">
+                        <div class="circle"></div>
+                    </div><div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modalWardenList">
+    <div class="modal-content">
+        <h5 *ngIf="viewWardens.length == 0">No warden</h5>
+        
+        <h5 *ngIf="viewWardens.length > 0"> Wardens </h5>
+        <ol style="max-height: 400px; overflow: auto;">
+            <li *ngFor="let warden of viewWardens" style="font-size: 17px; margin: 10px 0px;">
+                {{warden.first_name}} {{warden.last_name}} <small class="grey-text">{{warden.role_name}}</small>
+            </li>
+        </ol>
+        
+        <div class="modal-footer">
+            <button class="btn grey modal-close">Close</button>
+        </div>
+    </div>
 </div>

@@ -19,20 +19,24 @@ export class LocationAccountRelation extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_relation WHERE location_account_relation_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              if(!results.length) {
-                reject('Record not found');
-              }else{
-                this.dbData = results[0];
-                this.setID(results[0]['location_account_relation_id']);
-                resolve(this.dbData);
-              }
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                connection.query(sql_load, uid, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  if(!results.length) {
+                    reject('Record not found');
+                  }else{
+                    this.dbData = results[0];
+                    this.setID(results[0]['location_account_relation_id']);
+                    resolve(this.dbData);
+                  }
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -47,14 +51,18 @@ export class LocationAccountRelation extends BaseClass {
                 WHERE location_account_relation.location_id = ?`;
             }
             const param = [locationId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              resolve(results);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -63,15 +71,19 @@ export class LocationAccountRelation extends BaseClass {
             const sql_load = `SELECT * FROM location_account_relation WHERE account_id = ?
             AND location_id = ? ORDER BY location_account_relation_id DESC`;
             const param = [accountId, locationId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                console.log('location.account.relation.getByAccountIdAndLocationId', error);
-                throw Error('Internal Server Error');
-              }
-              resolve(results);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    console.log('location.account.relation.getByAccountIdAndLocationId', error);
+                    throw Error('Internal Server Error');
+                  }
+                  resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -79,15 +91,20 @@ export class LocationAccountRelation extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_relation WHERE location_id IN ('+locationIds+')';
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              this.dbData = results;
-              resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                connection.query(sql_load, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -95,15 +112,20 @@ export class LocationAccountRelation extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_relation WHERE location_id = ?';
             const param = [locationId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              this.dbData = results;
-              resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -111,15 +133,19 @@ export class LocationAccountRelation extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_relation WHERE location_id = ? AND responsibility IN ("Tenant", "tenant") ';
             const param = [locationId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-                this.dbData = results;
-                resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -127,15 +153,20 @@ export class LocationAccountRelation extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_relation WHERE account_id = ?';
             const param = [accountId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              this.dbData = results;
-              resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -156,18 +187,23 @@ export class LocationAccountRelation extends BaseClass {
           val.push(filter['responsibility']);
         }
         const sql = `SELECT * FROM location_account_relation WHERE 1=1 ${whereClause}`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, val, (error, results, fields) => {
-          if (error) {
-            return console.log(error);
-          }
-          if (!results.length) {
-            reject('Record not found '+JSON.stringify(filter));
-          } else {
-            resolve(results);
-          }
+        this.pool.getConnection((err, connection) => {
+            if (err) {                    
+                throw new Error(err);
+            }
+            connection.query(sql, val, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              if (!results.length) {
+                reject('Record not found '+JSON.stringify(filter));
+              } else {
+                resolve(results);
+              }
+            });
+            connection.release();
         });
-        connection.end();
+        
       });
     }
 
@@ -182,15 +218,18 @@ export class LocationAccountRelation extends BaseClass {
             ('responsibility' in this.dbData) ? this.dbData['responsibility'] : "",
             this.ID() ? this.ID() : 0
           ];
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql_update, param, (err, results, fields) => {
-            if (err) {
-              throw new Error(err);
-            }
-            resolve(true);
+          this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+              connection.query(sql_update, param, (err, results, fields) => {
+                if (err) {
+                  throw new Error(err);
+                }
+                resolve(true);
+              });
+              connection.release();
           });
-          connection.end();
-
         });
     }
 
@@ -207,16 +246,21 @@ export class LocationAccountRelation extends BaseClass {
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             ('responsibility' in this.dbData) ? this.dbData['responsibility'] : ""
           ];
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql_insert, param, (err, results, fields) => {
-            if (err) {
-              throw new Error(err);
-            }
-            this.id = results.insertId;
-            this.dbData['location_account_relation_id'] = this.id;
-            resolve(true);
+          this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+              connection.query(sql_insert, param, (err, results, fields) => {
+                if (err) {
+                  throw new Error(err);
+                }
+                this.id = results.insertId;
+                this.dbData['location_account_relation_id'] = this.id;
+                resolve(true);
+              });
+              connection.release();
           });
-          connection.end();
+          
 
         });
     }
@@ -236,18 +280,23 @@ export class LocationAccountRelation extends BaseClass {
     public delete() {
         return new Promise((resolve, reject) => {
             const sql_del = `DELETE FROM location_account_relation WHERE location_account_relation_id = ? LIMIT 1`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_del, [this.ID()], (error, results, fields) => {
-                if (error) {
-                    console.log(error);
-                    reject('Error deleting record');
-
-                } else {
-                    resolve(true);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
+                connection.query(sql_del, [this.ID()], (error, results, fields) => {
+                    if (error) {
+                        console.log(error);
+                        reject('Error deleting record');
 
+                    } else {
+                        resolve(true);
+                    }
+
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -453,10 +502,15 @@ export class LocationAccountRelation extends BaseClass {
             sql_get_locations += ` ${offsetLimit}`;
         }
 
-        // console.log('sql_get_locations', sql_get_locations);
+        console.log('sql_get_locations', sql_get_locations);
 
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_get_locations, [accountId], (error, results) => {
+        this.pool.getConnection((err, connection) => {
+          if (err) {
+            console.log('Error gettting pool connection ' + err);
+            throw new Error(err);
+          }
+
+          connection.query(sql_get_locations, [accountId], (error, results) => {
             if (error) {
                 console.log('location.account.relation.listAllLocationsOnAccount', error, sql_get_locations);
                 throw Error('Cannot get all locations for this account');
@@ -464,17 +518,16 @@ export class LocationAccountRelation extends BaseClass {
 
             if('count' in filter){
                 if(results[0]['count'] == null){
-                    resolve([{ count : 0 }]);
+                  resolve([{ count : 0 }]);
                 }else{
-                    resolve(results);
+                  resolve(results);
                 }
             }else{
-                resolve(results);
+              resolve(results);
             }
-            
+          });
+          connection.release();
         });
-        connection.end();
-
       });
     }
 
@@ -489,15 +542,21 @@ export class LocationAccountRelation extends BaseClass {
 
                 WHERE  lar.account_id = ${accountId} AND lar.responsibility = 'Tenant' AND location.location_id = ${locationId} AND siblings.location_id != ${locationId} AND siblings.archived = 0
             `;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load,  (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              this.dbData = results;
-              resolve(this.dbData);
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                connection.query(sql_load,  (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -514,15 +573,20 @@ export class LocationAccountRelation extends BaseClass {
                 WHERE lar.account_id = ? AND l.archived = 0
             `;
             const param = [accountId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              this.dbData = results;
-              resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 

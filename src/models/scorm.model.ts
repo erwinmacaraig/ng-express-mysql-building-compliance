@@ -4,8 +4,28 @@ const dbconfig = require('../config/db');
 import * as moment from 'moment';
 import * as Promise from 'promise';
 
-export class Scorm {
-    constructor() {
+export class Scorm extends BaseClass {
+    
+    constructor(id?: number) {
+        super();
+        if (id) {
+            this.id = id;
+        }
+    }
+
+    public load() {
+
+    }
+
+    public dbInsert() {
+
+    }
+
+    public dbUpdate() {
+
+    }
+
+    public create(createData) {
 
     }
 
@@ -85,19 +105,21 @@ export class Scorm {
     private checkRelationExist(relationId: number = 0){
         return new Promise((resolve, reject) => {
             const sql_check = `SELECT course_user_relation_id FROM scorm WHERE course_user_relation_id = ? LIMIT 1`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_check, [relationId], (error, results, fields) => {
-                if (error) {
-                    console.log('scorm.model.checkRelationsExist', error, sql_check);
-                    throw new Error('cannot check relation');
-                }
-                if (!results.length) {
-                    resolve(false);
-                } else {
-                    resolve(true);
-                }
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_check, [relationId], (error, results, fields) => {
+                    if (error) {
+                        console.log('scorm.model.checkRelationsExist', error, sql_check);
+                        throw new Error('cannot check relation');
+                    }
+                    if (!results.length) {
+                        resolve(false);
+                    } else {
+                        resolve(true);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -114,16 +136,18 @@ export class Scorm {
                             AND
                               course_user_relation_id = ?
                             LIMIT 1`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_get, [param, relation], (error, results, fields) => {
-                if (error) {
-                    console.log('scorm.model.getDataModelVal', error);
-                    throw new Error('Cannot get data model value with the given parameter ' + param + ' AND relation ' + relation);
-                }
-                console.log(results);
-                resolve(results[0]['parameter_value']);
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_get, [param, relation], (error, results, fields) => {
+                    if (error) {
+                        console.log('scorm.model.getDataModelVal', error);
+                        throw new Error('Cannot get data model value with the given parameter ' + param + ' AND relation ' + relation);
+                    }
+                    console.log(results);
+                    resolve(results[0]['parameter_value']);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -137,15 +161,17 @@ export class Scorm {
                               parameter_name = ?
                             AND
                               course_user_relation_id = ?`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_set, [paramVal, paramName, relation], (error, results, fields) => {
-                if (error) {
-                    console.log('scorm.model.setDataModelVal', error);
-                    throw new Error('Cannot set value with the given parameter ' + paramName + ' AND relation ' + relation);
-                }
-                resolve(true);
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_set, [paramVal, paramName, relation], (error, results, fields) => {
+                    if (error) {
+                        console.log('scorm.model.setDataModelVal', error);
+                        throw new Error('Cannot set value with the given parameter ' + paramName + ' AND relation ' + relation);
+                    }
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 }

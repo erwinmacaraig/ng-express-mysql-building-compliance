@@ -82,6 +82,18 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     showLoadingSublocations = false;
     emailTaken = false;
 
+    breadCrumbs = [];
+
+    modalArchive = {
+        loader : false
+    };
+
+    selectedArchive = {
+        length : 0
+    };
+
+    paramArchived = <any> false;
+
     constructor(
         private auth: AuthService,
         private preloaderService: DashboardPreloaderService,
@@ -104,7 +116,6 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                     if(target.find('select.select-from-row:not(.initialized)').length > 0){
 
                         target.find('select.select-from-row:not(.initialized)').material_select();
-
                     }
                 }
             });
@@ -137,6 +148,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                     = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
                 }
             });
+          }else if( msg.getbreadcrumbs ){
+            this.messageService.sendMessage({ 'breadcrumbs' : this.breadCrumbs });
           }
         });
     }
@@ -185,6 +198,14 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 $('.manage-compliance .completion .end.number').html(denom);
             });
 
+            this.breadCrumbs = [];
+            this.breadCrumbs.push({
+              'value' : 'Location list', 'link' : '/location/list'
+            });
+            this.breadCrumbs.push({
+              'value' : this.locationData.name, 'link' : '/location/view/'+this.encryptedID
+            });
+            this.messageService.sendMessage({ 'breadcrumbs' : this.breadCrumbs });
             callBack();
         }, { get_related_only : true });
     }
@@ -237,7 +258,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         $('body').off('change.locationchange').on('change.locationchange', 'select.location-id', (event) => {
             formAddTenant.controls.location_id.setValue( event.currentTarget.value );
         });
-	}
+	  }
 
     addNewSubLocationSubmit(form, e) {
         if(form.valid){
@@ -292,32 +313,25 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         }
     }
 
-    onClickArchiveLocation(locationData){
-        this.selectedLocationToArchive = locationData;
-        $('#modalArchive').modal('open');
-    }
+    archiveClick(){
+        if(this.selectedArchive.length > 0){
+            this.modalArchive.loader = true;
+            let locs = [];
 
-    onClickYesArchive(){
-        this.errorMessageModalSublocation = '';
-        this.showLoaderModalSublocation = true;
-        this.locationService.archiveLocation({
-            location_id : this.locationID
-        }).subscribe(
-            (response) => {
-                this.showLoaderModalSublocation = false;
-                this.errorMessageModalSublocation = '';
-                $('#modalArchive').modal('close');
+            locs.push({
+                location_id : this.encryptDecrypt.decrypt(this.selectedArchive['location_id']),
+                archived : (!this.paramArchived) ? 1 : 0
+            });
 
-                this.router.navigate(['/location/view', this.locationData['parent_id']]);
-            },
-            (msg) => {
-                this.showLoaderModalSublocation = false;
-                this.errorMessageModalSublocation = msg;
-                setTimeout(() => {
-                    this.errorMessageModalSublocation = '';
-                }, 2000);
-            }
-        );
+            this.locationService.archiveMultipleLocation({
+                locations : locs
+            }).subscribe(() => {
+                this.getLocationData(() => {
+                    this.modalArchive.loader = false;
+                    $('#modalArchive').modal('close');
+                });
+            });
+        }
     }
 
 	ngAfterViewInit(){
@@ -380,6 +394,17 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 this.locationToApplyActionTo = this.encryptDecrypt.decrypt(val.replace('benchmark-', ''));
                 $('#modalWardenBenchmarkCalc').modal('open');
                 console.log(' Benchmark location id ' + this.locationToApplyActionTo);
+            }else if(val.indexOf("archive-") > -1){
+                let locIdEnc = val.replace('archive-', '');
+
+                for(let i in this.locationData.sublocations){
+                    if(this.locationData.sublocations[i]['location_id'] == locIdEnc){
+                        this.selectedArchive = this.locationData.sublocations[i];
+                        this.selectedArchive.length = 1;
+                        $('#modalArchive').modal('open');
+                    }
+                }
+
             }
 
             target.val(0);

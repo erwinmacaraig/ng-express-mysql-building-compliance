@@ -15,6 +15,7 @@ import { DonutService } from '../../services/donut';
 
 import { Countries } from '../../models/country.model';
 import { Timezone } from '../../models/timezone';
+import { MessageService } from '../../services/messaging.service';
 
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -75,6 +76,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
     latestCompliance = <any> {};
 
+    breadCrumbs = [];
+
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
         private activeRoute: ActivatedRoute,
@@ -85,7 +88,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
         private accountService: AccountsDataProviderService,
         private dashboardService: DashboardPreloaderService,
         private complianceService: ComplianceService,
-        private donutService: DonutService
+        private donutService: DonutService,
+        private messageService: MessageService
     ) {
 
         this.userData = this.auth.getUserData();
@@ -124,6 +128,18 @@ export class SublocationComponent implements OnInit, OnDestroy {
             }else{
                 this.showCompliance = false;
             }
+
+            this.breadCrumbs = [];
+            this.breadCrumbs.push({
+              'value' : 'Location list', 'link' : '/location/list'
+            });
+            this.breadCrumbs.push({
+              'value' : this.parentData.name, 'link' : '/location/view/'+this.parentData['location_id']
+            });
+            this.breadCrumbs.push({
+              'value' : this.locationData.name, 'link' : '/location/view-sublocation/'+this.encryptedID
+            });
+            this.messageService.sendMessage({ 'breadcrumbs' : this.breadCrumbs });
 
             callBack();
         });

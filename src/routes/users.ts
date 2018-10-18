@@ -857,7 +857,8 @@ export class UsersRoute extends BaseRoute {
         emRoleIdSelected = [],
         getUSERS = ( queryRoles.indexOf('users') > -1 || queryRoles.indexOf() > -1 ) ? true : false,
         getPendings = (queryRoles.indexOf('pending') > -1) ? true : false,
-        getUsersByEmRoleId = false;
+        getUsersByEmRoleId = false,
+        locationId = (query.location_id) ? query.location_id : false;
 
         for(let id of emRoleIds){
             if(queryRoles.indexOf(''+id) > -1){
@@ -1065,8 +1066,8 @@ export class UsersRoute extends BaseRoute {
                 locationsDB = <any> [],
                 locations = <any> [],
                 locationIds = [],
-                locationsEmRoles = (getUSERS && !noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : (getUSERS && noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(','), '8') : [],
-                locationFRPTRP =  (getFRP || getTRP) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','), false,  (frptrpIds.length > 0) ? frptrpIds.join(',') : false  ) : [];
+                locationsEmRoles = (locationId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(','), locationId, true) : (getUSERS && !noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : (getUSERS && noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(','), '8') : [],
+                locationFRPTRP =  (locationId) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','), locationId)  : (getFRP || getTRP) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','), false,  (frptrpIds.length > 0) ? frptrpIds.join(',') : false  ) : [];
 
             if(!getUSERS && !noGeneralOcc && getUsersByEmRoleId){
                 locationsEmRoles = <any> await emRolesModel.getLocationsByUserIdsAndRoleIds(userIds.join(','), emRoleIdSelected.join(','));

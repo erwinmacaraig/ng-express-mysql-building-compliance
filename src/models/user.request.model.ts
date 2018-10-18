@@ -17,20 +17,30 @@ export class UserRequest extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT * FROM user_requests WHERE user_requests_id = ?`;
             const param = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    throw error;
+            
+            this.pool.getConnection((err, connection) => {
+
+                if(err){
+                    throw new Error(err);
+                    
                 }
-                if (!results.length) {
-                    reject('No request found');
-                } else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['user_requests_id']);
-                    resolve(this.dbData);
-                }
+
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        throw error;
+                    }
+                    if (!results.length) {
+                        reject('No request found');
+                    } else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['user_requests_id']);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
+                
             });
-            connection.end();
+
         });
     }
 
@@ -54,15 +64,22 @@ export class UserRequest extends BaseClass {
 
             sql_load += ' '+whereString;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    throw error;
+            this.pool.getConnection((err, connection) => {
+
+                if(err){
+                    throw new Error(err);
+                    
                 }
-                this.dbData = results
-                resolve(this.dbData);
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        throw error;
+                    }
+                    this.dbData = results
+                    resolve(this.dbData);
+                });
+                connection.release();
+
             });
-            connection.end();
         });
 
     }
@@ -80,16 +97,24 @@ export class UserRequest extends BaseClass {
             ('date_responded' in this.dbData) ? this.dbData['date_responded'] : null,
             ('viewed' in this.dbData) ? this.dbData['viewed'] : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_insert, param, (err, results, fields) => {
-                if (err) {
+            this.pool.getConnection((err, connection) => {
+
+                if(err){
                     throw new Error(err);
+                    
                 }
-                this.id = results.insertId;
-                this.dbData['user_requests_id'] = this.id;
-                resolve(true);
+                connection.query(sql_insert, param, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    this.id = results.insertId;
+                    this.dbData['user_requests_id'] = this.id;
+                    resolve(true);
+                });
+                connection.release();
+
             });
-            connection.end();
+            
 
         });
     }
@@ -118,14 +143,22 @@ export class UserRequest extends BaseClass {
             ('viewed' in this.dbData) ? this.dbData['viewed'] : 0,
             this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, param, (err, results, fields) => {
-                if (err) {
-                    throw new Error(err + ' ' + sql_update);
+            this.pool.getConnection((err, connection) => {
+
+                if(err){
+                    throw new Error(err);
+                    
                 }
-                resolve(true);
+                connection.query(sql_update, param, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err + ' ' + sql_update);
+                    }
+                    resolve(true);
+                });
+                connection.release();
+
             });
-            connection.end();
+            
         });
     }
 
