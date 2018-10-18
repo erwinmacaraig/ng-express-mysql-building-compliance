@@ -5,7 +5,8 @@
 	padding: 1% 2%;
     max-width: 100vw;
     width: 100%;
-}
+    min-height: 90vh;
+} 
 
 html{
     font-family: 'Open Sans' !important;
@@ -414,4 +415,45 @@ app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
 .select-action-table .select-dropdown li span{
     font-size: 13px !important;
     padding: 10px 12px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ngx-datepicker-container .ngx-datepicker-calendar-container{
+    width: 320px !important;
+}
+
+.ngx-datepicker-container .ngx-datepicker-calendar-container .main-calendar-container .main-calendar-days, 
+.ngx-datepicker-container .ngx-datepicker-calendar-container .main-calendar-container .main-calendar-years
+{
+    display: block !important;
 }
