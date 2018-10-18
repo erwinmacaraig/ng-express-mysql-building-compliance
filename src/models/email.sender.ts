@@ -203,6 +203,13 @@ export class EmailSender {
             case "training-invite":
                 subj = "EvacConnect Training Invite";
                 filename = "training-invite";
+                break;
+            case "set-passwd-invite":
+                subj = "EvacConnect Account Setup";
+                filename = "set-passwd-invite";
+                break;
+
+            
         }
 
         fs.readFile(dir+'/footer-email.hbs', 'utf8', (err, footer) => {

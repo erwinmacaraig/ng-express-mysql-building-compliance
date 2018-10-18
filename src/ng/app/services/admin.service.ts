@@ -193,4 +193,9 @@ export class AdminService {
   getTaggedLocationsFromAccount(accountId){
     return this.http.get(`${this.baseUrl}/admin/get-tagged-locations-from-account/`+accountId, this.options);
   }
+
+  sendPasswordSetupInvite(postBody={}) {
+    return this.http.post(`${this.baseUrl}/admin/set-passwd-invite/`, postBody);
+  }
+  
 }
