@@ -123,7 +123,7 @@ export class AdminService {
   }
 
   validateUserTrainings(users: string) {
-    return this.http.post(`${this.baseUrl}/admin/validate-training/`, {users: users}, this.options);
+    return this.http.post(`${this.baseUrl}/admin/validate-training/`, {users: users});
   }
 
   getAccountTrainings(id){
