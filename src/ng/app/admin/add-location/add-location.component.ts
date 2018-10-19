@@ -5,7 +5,7 @@ import { Router, NavigationEnd, ActivatedRoute  } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { AdminService } from './../../services/admin.service';
 import { Observable } from 'rxjs/Rx';
-import { FormControl, FormArray, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormArray, FormGroup, Validators, FormBuilder } from '@angular/forms';
 import { LocationsService } from '../../services/locations';
 import { AlertService } from '../../services/alert.service';
 
@@ -27,19 +27,29 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     sublocations:Array<object> = [];
     selectedSublevels:Array<number | string> = [];
     managingRoleGroup:FormGroup;
+    newLocationFrmGroup:FormGroup;
     managingRole:string = '';
     showSearchLocation:boolean = false;
+    showNewBuildingForm: boolean = false;
+    total_levels:FormControl;
     
+    street:FormControl;
     @ViewChild('search')
     public searchElementRef: ElementRef;
+
+    @ViewChild('inpOccupiable')
+    public occupiableElementRef: ElementRef;
+
 
     constructor(
         private activatedRoute: ActivatedRoute,
         private adminService: AdminService,
-        private locationService: LocationsService
+        private locationService: LocationsService,
+        private formBuilder: FormBuilder
     ) {}
 
     ngOnInit() {
+        this.street = new FormControl('test', Validators.required);
         this.paramSub = this.activatedRoute.params.subscribe((params) => {
             this.accountId = params.accountId;
             this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
@@ -49,6 +59,32 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
         this.managingRoleGroup = new FormGroup({
             managingRoleControl: new FormControl()
         });
+        /*
+        this.newLocationFrmGroup = this.formBuilder.group({
+            name: new FormControl(null, Validators.required),
+            street: this.street,
+            city:  this.formBuilder.control('Sample City', Validators.required),
+            state:  new FormControl({value: 'State'}),
+            carpark: new FormControl('0', null),
+            plantroom: new FormControl('0', null),
+            others: new FormControl('0', null),
+            levels: this.formBuilder.array([{}]),
+            occupiableLvls: new FormControl('0'),
+            total_levels: new FormControl(0, null)
+        });
+        */
+       this.newLocationFrmGroup = new FormGroup({
+        name: new FormControl(null, Validators.required),
+        street: this.street,
+        city:  new FormControl('Sample City', Validators.required),
+        state:  new FormControl('Sample State'),
+        carpark: new FormControl('0', null),
+        plantroom: new FormControl('0', null),
+        others: new FormControl('0', null),
+        levels: new FormArray([]),
+        occupiableLvls: new FormControl('0'),
+        total_levels: new FormControl(0, null)
+    });
 
     }
 
@@ -75,6 +111,7 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
                 this.searchedLocations = locs;
             });
         });
+        
     }
 
     ngOnDestroy() {
@@ -111,6 +148,8 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     }
     setLocationManagingRole(e, managing_role) {
         console.log(managing_role);
+        this.showNewBuildingForm = false;
+        this.newLocationFrmGroup.reset();
         this.managingRole = managing_role;
         this.selectedSublevels = [];
         if (this.selectedLocationFromSearch['location_id'] && !this.showSearchLocation) {
@@ -128,10 +167,20 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
         this.sublocations = [];
         this.managingRole = '';
         this.showSearchLocation = false;
+        this.newLocationFrmGroup.reset();
     }
     cancelNewLoc(){
         this.searchElementRef.nativeElement.value = "";
         this.showTextSearch = false;
+    }
+    showNewLocForm() {
+        this.showNewBuildingForm=true;
+        this.showTextSearch = false;
+        this.showSearchLocation = false;
+        this.newLocationFrmGroup.get('name').setValue(this.searchElementRef.nativeElement.value);
+        this.searchElementRef.nativeElement.value = "";
+        
+
     }
 
     addExistingLocToAccount() {
@@ -157,5 +206,27 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
             console.log(response);
         });
     }
+
+    onCreateNewBuildingLocation() {
+        
+    }
+
+    addLevel(fieldName, ref:ElementRef) {
+        if (parseInt(this.newLocationFrmGroup.get(fieldName).value, 10) >= 99) {
+            this.newLocationFrmGroup.get(fieldName).setValue('1');
+        } else {
+            this.newLocationFrmGroup.get(fieldName).setValue((parseInt(this.newLocationFrmGroup.get(fieldName).value, 10) + 1).toString());
+        }
+    }
+    subtractLevel(fieldName, elRef:ElementRef) { 
+        console.log(fieldName);
+        console.log(elRef);
+        if (parseInt(this.newLocationFrmGroup.get(fieldName).value, 10) <= 0) {
+            this.newLocationFrmGroup.get(fieldName).setValue('99');
+        } else {
+            this.newLocationFrmGroup.get(fieldName).setValue((parseInt(this.newLocationFrmGroup.get(fieldName).value, 10) - 1).toString());
+        }
+    }
+
     
 }
