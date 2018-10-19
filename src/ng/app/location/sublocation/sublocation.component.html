@@ -40,10 +40,10 @@
             <div class="col m12 s12">
                 <div class="box">
                     <div class="title-wrapper">
-                        Siblings
+                        Same level
                     </div>
                     <div class="content">
-                        <h6 class="center" *ngIf="parentData.sublocations.length == 0">No Siblings</h6>
+                        <h6 class="center" *ngIf="parentData.sublocations.length == 0">No Levels</h6>
                         <ul class="sub-list" *ngIf="parentData.sublocations.length > 0">
                             <li *ngFor="let location of parentData.sublocations"
                             [ngClass]="{active : encryptDecrypt.decrypt(location.location_id) == locationID}">

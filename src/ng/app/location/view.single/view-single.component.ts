@@ -44,9 +44,10 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         google_photo_url: '',
         formatted_address: '',
         sublocations : [],
+        is_building : 0,
         admin_verified : 0,
         parent : {
-            name : <any> false
+            name : <any> false, is_building : 0
         }
     };
     private sub;
@@ -133,6 +134,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                     this.preloaderService.hide();
                 }, 250);
                 this.locationData.name = response.location.name;
+                this.locationData.is_building = response.location.is_building;
                 this.locationData.formatted_address = response.location.formatted_address;
                 this.locationData.sublocations = response.sublocations;
                 this.locationData.google_photo_url = response.location.google_photo_url || undefined;
@@ -165,6 +167,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
 
             this.locationData.name = response.location.name;
             this.locationData.location_id = response.locationID;
+            this.locationData.is_building = response.location.is_building;
             this.locationData.formatted_address = response.location.formatted_address;
             this.locationData.sublocations = response.sublocations;
             this.locationData.google_photo_url = response.location.google_photo_url || undefined;

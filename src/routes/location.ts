@@ -1316,6 +1316,7 @@ const defs = require('../config/defs.json');
             filter = {
                 archived : (archived) ? archived : 0
             },
+            parentOnly = (queries.showparentonly) ? queries.showparentonly : false,
             mobilityImpaired = new MobilityImpairedModel();
         let
             r = 0,
@@ -1352,6 +1353,7 @@ const defs = require('../config/defs.json');
           console.log('location route get-parent-locations-by-account-d',e);
           r = 0;
         }
+        filter['parentOnly'] = parentOnly;
         filter['responsibility'] = r;
         filter['isPortfolio'] = isPortfolio;
         filter['userId'] = req.user.user_id;
@@ -1382,7 +1384,7 @@ const defs = require('../config/defs.json');
             response.locations = [];
         }
 
-        let parentsAndChildIds = {};
+        /*let parentsAndChildIds = {};
         for(let loc of response.locations){
             if(!parentsAndChildIds[loc.parent_id]){ parentsAndChildIds[loc.parent_id] = { childids : [], total : 0, isBuilding : 0, replaceToBuilding : false } }
             parentsAndChildIds[loc.parent_id]['childids'].push(loc.location_id);
@@ -1426,7 +1428,7 @@ const defs = require('../config/defs.json');
         response['locations'] = newLocations;
         response['buildingsReplacement'] = buildingsReplacement;
         response['bldgIdsToReplace'] = bldgIdsToReplace;
-        response['parentsAndChildIds'] = parentsAndChildIds;
+        response['parentsAndChildIds'] = parentsAndChildIds;*/
 
         const subLocsArr = [];
         let subLocsStr = '';

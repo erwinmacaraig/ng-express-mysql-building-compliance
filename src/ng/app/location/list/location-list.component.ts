@@ -83,7 +83,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
         limit : 10,
         search : '',
         sort : '',
-        archived : 0
+        archived : 0,
+        showparentonly: true
     };
 
     searchSubs;

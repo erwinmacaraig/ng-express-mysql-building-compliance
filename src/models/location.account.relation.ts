@@ -316,7 +316,7 @@ export class LocationAccountRelation extends BaseClass {
         if ('responsibility' in filter) {
           if (filter['responsibility'] === defs['Tenant']) {
             // filterStr += ` AND lar.responsibility = 'Tenant'`;
-            filterStr += ` AND l.is_building = 0`;
+            //filterStr += ` AND l.is_building = 0`;
 
           }
           if (filter['responsibility'] === defs['Manager']) {
@@ -324,16 +324,16 @@ export class LocationAccountRelation extends BaseClass {
             filter['is_building'] = 1;
           }
           if(filter['responsibility'] === 'both'){
-              filterStr += ` AND lar.responsibility IN ('Manager', 'Tenant')`;
+              //filterStr += ` AND lar.responsibility IN ('Manager', 'Tenant')`;
           }
         }
         
         if ('is_building' in filter) {
-          filterStr += ` AND l.is_building = ${filter['is_building']}`;
+          filterStr += ` AND is_building = ${filter['is_building']}`;
         }
 
         if('location_id' in filter){
-            filterStr += ` AND l.location_id = ${filter['location_id']}`;
+            filterStr += ` AND location_id = ${filter['location_id']}`;
         }
 
         let offsetLimit = ``;
@@ -346,10 +346,10 @@ export class LocationAccountRelation extends BaseClass {
             offsetLimit = ' LIMIT '+filter['offset']+','+filter['limit'];
         }
 
-        let nameSearchForTRP = '';
+        let nameSearch = '';
         // if('name' in filter && filter['name'].length > 0 && ('responsibility' in filter && filter['responsibility'] === defs['Tenant'])){
         if('name' in filter){
-            nameSearchForTRP = (filter['name'].length > 0) ? ` AND IF (p1.name IS NULL, l.name, IF (CHAR_LENGTH(p1.name) = 0,  l.name, CONCAT(p1.name, ', ', l.name))) LIKE '%${filter['name']}%'` : '  ';
+            nameSearch = (filter['name'].length > 0) ? ` AND name LIKE '%${filter['name']}%'` : '  ';
         }
 
         let orderBy = '';
@@ -361,14 +361,14 @@ export class LocationAccountRelation extends BaseClass {
             }
         }
 
-        let selectParentName = ('no_parent_name' in filter) ? 'l.name,' : `IF (p1.name IS NULL, l.name, IF (CHAR_LENGTH(p1.name) = 0,  l.name, CONCAT(p1.name, ', ', l.name))) as name,`;
+        let selectParentName = ('no_parent_name' in filter) ? 'b.name,' : `IF (p.name IS NULL, b.name, IF (CHAR_LENGTH(p.name) = 0,  b.name, CONCAT(p.name, ', ', b.name))) as name,`;
 
         let isPortfolio = (filter['isPortfolio']) ? filter['isPortfolio'] : false;
 
         let sqlJoinLAU = '';
         if(!isPortfolio && filter['userId']){
             sqlJoinLAU = ' INNER JOIN location_account_user lau ON lau.location_id = l.location_id ';
-            filterStr = ' AND lau.user_id = '+filter['userId'];
+            //filterStr = ' AND lau.user_id = '+filter['userId'];
             if ('responsibility' in filter) {
                 if(filter['responsibility'] == 1){
                     // filterStr += ` AND true = (l.is_building = 1  OR l.parent_id = -1)`;
@@ -376,158 +376,172 @@ export class LocationAccountRelation extends BaseClass {
             }
         }
 
+        let archived = 0;
         if('archived' in filter){
-            filterStr += ` AND l.archived = ${filter['archived']}`;
+            archived = filter['archived'];
         }
 
-        let sql_get_locations = `
+        // console.log(filter['userId']);
+
+        let userIdQuery = '';
+        if('userId' in filter){
+            userIdQuery =  ` AND lau.user_id = ${filter['userId']} `;
+            // lau.user_id = ${filter['userId']}
+        }
+
+        userIdQuery += ` AND lau.account_id = ${accountId} `;
+
+        let sqlGetIds = `
             SELECT
-            l.location_id,
-            ${selectParentName}
-            l.is_building,
-            l.parent_id,
-            l.google_photo_url,
-            l.admin_verified,
-            l.location_directory_name,
-            l.archived,
-            l.google_place_id,
-            l.google_photo_url,
-            l.admin_verified,
-            l.formatted_address,
-            lar.responsibility,
-            lar.location_account_relation_id,
-            lar.account_id,
-            p1.is_building as parent_is_building,
-            IF(l.is_building = 1, l.location_id,
 
-                IF(p1.is_building = 1, p1.location_id,
-                   IF(p1.parent_id = -1, p1.location_id,
-                      IF(p2.is_building = 1, p2.location_id,
-                        IF(p2.parent_id = -1, p2.location_id,
-                            IF(p3.is_building = 1, p3.location_id,
-                               IF(p3.parent_id = -1, p3.location_id,
-                                    IF(p4.is_building = 1, p4.location_id,
-                                       IF(p4.parent_id = -1, p4.location_id,
-                                            0
-                                    ) )
-                            ) )
-                        ) )
-                   ) )
-
-                )
-
-            as building_id
+            DISTINCT GROUP_CONCAT(
+                IF(p1.is_building = 1, p1.location_id, l.location_id)
+            ) as location_id
 
             FROM locations l
+            INNER JOIN location_account_user lau ON l.location_id = lau.location_id
             LEFT JOIN locations p1 ON l.parent_id = p1.location_id
             LEFT JOIN locations p2 ON p1.parent_id = p2.location_id
-            LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
-            LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
 
-            LEFT JOIN  location_account_relation lar
-            ON lar.location_id = l.location_id
-            OR p1.location_id = lar.location_id
-            OR p2.location_id = lar.location_id
-            OR p3.location_id = lar.location_id
-            OR p4.location_id = lar.location_id
-
-            ${sqlJoinLAU}
-
-            WHERE
-            lar.account_id = ?
-            ${filterStr}
-            ${nameSearchForTRP}
-            GROUP BY l.location_id
-            ${orderBy}
+            WHERE 1 = 1 
+            ${userIdQuery} 
+            AND (l.is_building = 1 OR p1.is_building = 1 OR p2.is_building = 1 OR l.location_id IN ( SELECT parent_id FROM locations WHERE is_building = 1 ))
         `;
 
-        if('count' in filter){
-            sql_get_locations = `
-                SELECT SUM(count) as count FROM (
-                    SELECT
-                    ${selectParentName}
-                    @c := 1 as count
-
-                    FROM locations l
-                    LEFT JOIN locations p1 ON l.parent_id = p1.location_id
-                    LEFT JOIN locations p2 ON p1.parent_id = p2.location_id
-                    LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
-                    LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
-
-                    LEFT JOIN  location_account_relation lar
-                    ON lar.location_id = l.location_id
-                    OR p1.location_id = lar.location_id
-                    OR p2.location_id = lar.location_id
-                    OR p3.location_id = lar.location_id
-                    OR p4.location_id = lar.location_id
-
-                    ${sqlJoinLAU}
-
-                    WHERE
-                    lar.account_id = ?
-                    ${filterStr}
-                    ${nameSearchForTRP}
-
-                    GROUP BY l.location_id
-                ) src
-            `;
-        }else if('locationIdOnly' in filter){
-            sql_get_locations = `
-                SELECT
-                l.location_id
-
-                FROM locations l
-                LEFT JOIN locations p1 ON l.parent_id = p1.location_id
-                LEFT JOIN locations p2 ON p1.parent_id = p2.location_id
-                LEFT JOIN locations p3 ON p2.parent_id = p3.location_id
-                LEFT JOIN locations p4 ON p3.parent_id = p4.location_id
-
-                LEFT JOIN  location_account_relation lar
-                ON lar.location_id = l.location_id
-                OR p1.location_id = lar.location_id
-                OR p2.location_id = lar.location_id
-                OR p3.location_id = lar.location_id
-                OR p4.location_id = lar.location_id
-
-                ${sqlJoinLAU}
-
-                WHERE
-                lar.account_id = ?
-                ${filterStr}
-                ${nameSearchForTRP}
-                GROUP BY l.location_id
-                ${orderBy} ${offsetLimit}
-            `;
-        }else{
-            sql_get_locations += ` ${offsetLimit}`;
-        }
-
-        console.log('sql_get_locations', sql_get_locations);
+        // console.log('sqlGetIds', sqlGetIds);
 
         this.pool.getConnection((err, connection) => {
-          if (err) {
-            console.log('Error gettting pool connection ' + err);
-            throw new Error(err);
-          }
-
-          connection.query(sql_get_locations, [accountId], (error, results) => {
-            if (error) {
-                console.log('location.account.relation.listAllLocationsOnAccount', error, sql_get_locations);
-                throw Error('Cannot get all locations for this account');
-            }
-
-            if('count' in filter){
-                if(results[0]['count'] == null){
-                  resolve([{ count : 0 }]);
-                }else{
-                  resolve(results);
+            connection.query(sqlGetIds,  (error, idResults) => {
+                if(error){
+                    console.log(filter['userId']);
+                    throw new Error(error);
                 }
-            }else{
-              resolve(results);
-            }
-          });
-          connection.release();
+
+                if(idResults.length > 0){
+                    let ids = idResults[0]['location_id'];
+
+                    let sql_get_locations = `
+                        SELECT * 
+                        FROM locations
+                        WHERE 
+                        (location_id IN (${ids}) AND is_building = 1
+                        OR parent_id IN (${ids}) AND is_building = 1)
+                        ${nameSearch}
+                        ${orderBy}
+                    `;
+
+                    if('parentOnly' in filter){
+                        sql_get_locations = `
+                            SELECT * 
+                            FROM locations
+                            WHERE 
+                            location_id IN (
+                                SELECT DISTINCT(parent_id)
+                                FROM locations
+                                WHERE 
+                                (location_id IN (${ids}) AND is_building = 1
+                                OR parent_id IN (${ids}) AND is_building = 1)
+                            )
+                            ${nameSearch}
+                            ${orderBy}
+                        `;
+                    }
+
+                    if('count' in filter){
+                        sql_get_locations = `
+                            SELECT COUNT(location_id) as count 
+                            FROM locations
+                            WHERE 
+                            (location_id IN (${ids}) AND is_building = 1
+                            OR parent_id IN (${ids}) AND is_building = 1)
+                            ${nameSearch}
+                        `;
+                        if('parentOnly' in filter){
+                            sql_get_locations = `
+                                SELECT COUNT(location_id) as count 
+                                FROM locations
+                                WHERE 
+                                location_id IN (
+                                    SELECT DISTINCT(parent_id)
+                                    FROM locations
+                                    WHERE 
+                                    (location_id IN (${ids}) AND is_building = 1
+                                    OR parent_id IN (${ids}) AND is_building = 1)
+                                )
+                                ${nameSearch}
+                            `;
+                        }
+                    }else if('locationIdOnly' in filter){
+                        sql_get_locations = `
+                            SELECT location_id
+                            FROM locations
+                            WHERE 
+                            (location_id IN (${ids}) AND is_building = 1
+                            OR parent_id IN (${ids}) AND is_building = 1)
+                            ${nameSearch}
+                        `;
+                        if('parentOnly' in filter){
+                            sql_get_locations = `
+                                SELECT location_id
+                                FROM locations
+                                WHERE 
+                                location_id IN (
+                                    SELECT DISTINCT(parent_id)
+                                    FROM locations
+                                    WHERE 
+                                    (location_id IN (${ids}) AND is_building = 1
+                                    OR parent_id IN (${ids}) AND is_building = 1)
+                                )
+                                ${nameSearch}
+                            `;
+                        }
+                    }else{
+                        sql_get_locations += ` ${offsetLimit}`;
+                    }
+
+                    
+
+ 
+                    // console.log('sql_get_locations', sql_get_locations);
+
+                    this.pool.getConnection((err, connection) => {
+                      if (err) {
+                        console.log('Error gettting pool connection ' + err);
+                        throw new Error(err);
+                      }
+
+                      connection.query(sql_get_locations,  (error, bldgs) => {
+                        if (error) {
+                            console.log('location.account.relation.listAllLocationsOnAccount', error, sql_get_locations);
+                            throw Error('Cannot get all locations for this account');
+                        }
+
+                        if('count' in filter){
+                            if(bldgs[0]['count'] == null){
+                              resolve([{ count : 0 }]);
+                            }else{
+                              resolve(bldgs);
+                            }
+                        }else{
+                          resolve(bldgs);
+                        }
+
+                      });
+                      connection.release();
+                    });
+                }else{
+                    if('count' in filter){
+                        resolve([{ count : 0 }]);
+                    }else{
+                        resolve([]);
+                    }
+                }
+            });
+
+            connection.release();
         });
+
+        
       });
     }
 

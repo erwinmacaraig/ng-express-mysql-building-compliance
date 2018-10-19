@@ -123,11 +123,11 @@ export class SublocationComponent implements OnInit, OnDestroy {
               this.parentData['name'] = this.parentData['formatted_address'];
             }
 
-            if(response.show_compliance){
+            /*if(response.show_compliance){
                 this.showCompliance = true;
             }else{
                 this.showCompliance = false;
-            }
+            }*/
 
             this.breadCrumbs = [];
             this.breadCrumbs.push({
