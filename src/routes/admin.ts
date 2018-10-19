@@ -46,6 +46,12 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.post('/admin/set-passwd-invite/',
+    new MiddlewareAuth().authenticate,
+    (req: AuthRequest, res: Response, next: NextFunction) => {
+      new AdminRoute().setInvitePassword(req, res, next);
+    });
+
     router.post('/admin/send-notification/',
       new MiddlewareAuth().authenticate,
       async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -322,6 +328,7 @@ export class AdminRoute extends BaseRoute {
       const users: Array<object> = JSON.parse(req.body.users);
       const validUsers = [];
       const invalidUsers = [];
+      const takenEmailAdress = [];
       for (const u of users) {
        if (parseInt( u['user_id'], 10) == 0) {
          const user = new User();
@@ -368,6 +375,7 @@ export class AdminRoute extends BaseRoute {
          if (validator.isEmail(u['email'])) {
            try {
              await user.getByEmail(u['email']);
+             takenEmailAdress.push(u['email']);
            } catch (e) {
               const locationAccntUser = new LocationAccountUser();
                await user.create({
@@ -482,7 +490,8 @@ export class AdminRoute extends BaseRoute {
       }
       return res.status(200).send({
         invalid_users: invalidUsers,
-        validUsers: validUsers
+        validUsers: validUsers,
+        takenEmailAdress: takenEmailAdress
       });
     });
 
@@ -1775,7 +1784,6 @@ export class AdminRoute extends BaseRoute {
         new AdminRoute().generateAdminReport(req, res);
     });
 
-
     router.get('/admin/search/user/location/account/:keyword', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
         new AdminRoute().searchUsersLocationsAndAccount(req, res);
     });
@@ -2146,5 +2154,82 @@ export class AdminRoute extends BaseRoute {
 
         res.send(data);
     }
+
+    public async setInvitePassword(req: AuthRequest, res: Response, next: NextFunction) {
+      const user = new User(req.body.user);
+      const dbData = await user.getAllRolesAndLocations(req.body.user); 
+      const roleArr = [];
+      const locNameArr = [];
+      let roleStr = '';
+      let locStr = '';
+      let tkString = '';
+      const newToken  = new Token();
+      for (let data of dbData) {
+        if (roleArr.indexOf(data['role']) == -1) {
+          roleArr.push(data['role']);
+        }
+        if (locNameArr.indexOf(data['name']) == -1) {
+          locNameArr.push(data['name']);
+        }
+      }
+      roleStr = roleArr.join(' and ');
+      locStr = locNameArr.join(' and ');
+      const userData = await user.load();
+      const account = new Account(userData['account_id']);
+      const accountData = await account.load();
+      // create token
+      let tokenObj = new Token();
+      let tokenDbData = <any>[];
+      try {
+        tokenDbData = await tokenObj.getAllByUserId(req.body.user);
+        for (const t of tokenDbData) {
+          if(t['action'] == 'setup-invite-passwd') {
+            let tokenDeleteObj = new Token(t['token_id']);
+            await tokenDeleteObj.delete();
+            tokenDeleteObj = null;
+          }
+        }
+      } catch(e) {
+        console.log(e);
+      }
+      tkString = userData['user_id']+ '' + this.generateRandomChars(15);
+      if (userData['token'] == null) {
+        user.set('token', tkString);
+        await user.write();
+      }
+      await newToken.create({
+        id: userData['user_id'],
+        id_type: 'user_id',
+        token: tkString,
+        action: 'setup-invite-passwd',
+        expiration_date:  moment().add(1, 'day').format('YYYY-MM-DD')
+      });
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : [userData['email']],
+        cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
+        body : '',
+        attachments: [],
+        subject : 'EvacConnect Email Notification'
+      };
+      const email = new EmailSender(opts);
+      const emailData = {
+        users_fullname: userData['first_name'] + ' ' + userData['last_name'],
+        account_name: accountData['account_name'],
+        role: roleStr,
+        location_name: locStr,
+        setup_link: 'https://' + req.get('host') + '/change-user-password/'+tkString 
+      };
+      email.sendFormattedEmail('set-passwd-invite', emailData, res, 
+        (data) => console.log(data),
+        (err) => console.log(err)
+      );
+    
+    return res.status(200).send({
+      message: 'Success'
+    });
+  }
+
 
 }

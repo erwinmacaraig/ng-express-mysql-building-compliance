@@ -35,7 +35,8 @@ export class ForgotPasswordService {
 		        callBack(res);
 	      	},
 	      	(err) => {
-	        	callBack( JSON.parse(err.error) );
+				// callBack( JSON.parse(err) );
+				callBack({message: err['message']});
 	      	}
 	    );
 	}

@@ -49,14 +49,17 @@ export class ChangepasswordComponent implements OnInit, AfterViewInit {
 	ngOnInit() {
 		this.route.params.subscribe(params => {
 			this.token = params.token;
-
+            console.log(this.token);
 			this.fpService.getTokenData(this.token, (response) => {
+				console.log(response);
 				if(response.status){
 					this.userId = response.data.id;
 				}else{
 					this.modalshowCheckIcon = false;
 					this.modalshowCloseIcon = true;
-					this.modalMessage = response.message;
+					this.modalMessage = 'No token found.';
+					this.modalMsg.modal('open');
+					//this.modalMessage = response.message;
 				}
 			});
 

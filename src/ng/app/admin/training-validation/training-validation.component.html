@@ -208,6 +208,12 @@
         <li *ngFor="let u of invalidUsers">{{u}}</li>
       </ul>
     </div>
+    <div *ngIf="takenEmailAddress.length > 0">
+      <h6>The following email address(es) are already taken:</h6>
+      <ul>
+        <li *ngFor="let u of takenEmailAddress">{{u}}</li>
+      </ul>
+    </div>
   </div>
   <div class="modal-footer">
     <a class="modal-close waves-effect waves-red btn-flat">OK</a>

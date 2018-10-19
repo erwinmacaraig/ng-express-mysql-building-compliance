@@ -983,7 +983,7 @@ export class User extends BaseClass {
         });
     }
 
-    public getAllRolesAndLocations(userId){
+    public getAllRolesAndLocations(userId): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
                 if (err) {                    

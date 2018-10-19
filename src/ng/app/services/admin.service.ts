@@ -127,7 +127,7 @@ export class AdminService {
   }
 
   validateUserTrainings(users: string) {
-    return this.http.post(`${this.baseUrl}/admin/validate-training/`, {users: users}, this.options);
+    return this.http.post(`${this.baseUrl}/admin/validate-training/`, {users: users});
   }
 
   getAccountTrainings(id){
@@ -202,4 +202,8 @@ export class AdminService {
     return this.http.get(`${this.baseUrl}/admin/get-tagged-locations-from-account/`+accountId, this.options);
   }
 
+  sendPasswordSetupInvite(postBody={}) {
+    return this.http.post(`${this.baseUrl}/admin/set-passwd-invite/`, postBody);
+  }
+  
 }
