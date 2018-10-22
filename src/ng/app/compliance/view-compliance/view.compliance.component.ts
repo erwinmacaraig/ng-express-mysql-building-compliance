@@ -572,18 +572,18 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
     public viewEmUsers(locationId, type){
         let queries = {
-            location_id : locationId,
-            roles : type,
-            users_locations : true,
-            archived : 0,
-            impaired : false,
-            'type' : 'client',
-            search : '',
-            user_training : false,
-            pagination : false,
-            online_trainings : false,
-            offset : 0,
-            limit : 1000
+            roles: type,
+            impaired: null,
+            type: 'client',
+            offset: 0,
+            limit: 1000,
+            archived: 0,
+            pagination: true,
+            user_training: true,
+            users_locations: true,
+            search: '',
+            online_trainings: true,
+            location_id : locationId 
         };
 
         this.userService.queryUsers(queries, (response) => {

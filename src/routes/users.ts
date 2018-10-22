@@ -902,7 +902,7 @@ export class UsersRoute extends BaseRoute {
             }
         }
 
-        modelQueries.joins.push(' LEFT JOIN file_user ON users.user_id = file_user.user_id LEFT JOIN files ON files.file_id = file_user.file_id ');
+        modelQueries.joins.push(' LEFT JOIN file_user ON users.user_id = file_user.user_id LEFT JOIN files ON files.file_id = file_user.file_id INNER JOIN accounts ON users.account_id = accounts.account_id ');
 
         if(query.roles){
 
@@ -1008,7 +1008,7 @@ export class UsersRoute extends BaseRoute {
             }
         }
 
-        modelQueries.select['custom'] = [" IF(files.url IS NULL, '', files.url) as profile_pic "];
+        modelQueries.select['custom'] = [" IF(files.url IS NULL, '', files.url) as profile_pic, accounts.account_name "];
 
         if(query.limit){
             modelQueries.limit = query.limit;

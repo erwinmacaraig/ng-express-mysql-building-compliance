@@ -632,8 +632,11 @@ export class UserEmRoleRelation extends BaseClass {
                     sql_load += ' AND uemr.em_role_id NOT IN ('+notRoleIdsOrLocId+')';
                 }
             }
+
+
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
+                    console.log('sql_load', sql_load);              
                     throw new Error(err);
                 }
                 connection.query(sql_load, (error, results, fields) => {

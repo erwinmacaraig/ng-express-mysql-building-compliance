@@ -1186,7 +1186,7 @@
                   {{selectedCompliance['compliance']['location_details'][sub['location_id']]['training'].percentage}}
               </td>
               <td class="center">
-                  <a  (click)="viewEmUsers(sub['location_id'], '9,10,11,15,16,18')" class="blue-text"> View Warden List </a>
+                  <a  (click)="viewWardenList(sub['location_id'])" class="blue-text"> View Warden List </a>
               </td>
               <ng-template #noChiefWarden>
                 <td >0</td>
