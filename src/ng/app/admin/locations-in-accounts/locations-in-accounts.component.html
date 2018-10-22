@@ -43,11 +43,19 @@
 </div>
 
 <div class="row">
+  <div class="col l12 right" *ngIf="!isArchived">
+    <div class="right table-align">
+      <a class="archived" [routerLink]="['/admin/locations-in-account/', accountId]" [queryParams]="{ archived : true }">
+        <span class="image"></span>
+        View Archive
+      </a>
+    </div>
+  </div>
   <div class="col s12">
     <table class="table striped">
       <thead>
         <tr>
-          <th>Location</th>
+          <th> <span *ngIf="isArchived">Archived</span> Location</th>
           <th>Compliance</th>
           <th>Address</th>
           <th>Type</th>
@@ -69,6 +77,8 @@
                     <option value="activity-log">Activity Log Report</option>
                     <option value="team">Team Report</option>
                     <option value="training">Training Report</option>
+                    <option value="restore" *ngIf="isArchived">Restore</option>
+                    <option value="archive" *ngIf="!isArchived">Archive</option>
               </select>
           </td>
         </tr>
@@ -78,3 +88,38 @@
   </div>
 </div>
 <div preloader></div>
+
+
+<div id="modalArchive" class="modal">
+  <div class="modal-content center" [hidden]="!modalArchive.loader">
+    <div class="preloader-wrapper active">
+      <div class="spinner-layer spinner-red-only">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div><div class="gap-patch">
+          <div class="circle"></div>
+        </div><div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-content" [hidden]="modalArchive.loader">
+    <h5>Confirmation</h5>
+    <div *ngIf="modalArchive.selected['location_id']">
+      <p style="font-size: 16px;" *ngIf="!isArchived">
+        Are you sure you want archive location : {{modalArchive.selected.name}}?
+      </p>
+      <p style="font-size: 16px;" *ngIf="isArchived">
+          Are you sure you want restore location : {{modalArchive.selected.name}}?
+      </p>
+    </div>
+  </div>
+  <div class="modal-footer" [hidden]="modalArchive.loader">
+    <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+    <a  *ngIf="modalArchive.selected['location_id']" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">
+            <span *ngIf="!isArchived">Archive</span>
+            <span *ngIf="isArchived">Restore</span>
+        </a>
+  </div>
+</div>

@@ -14,21 +14,26 @@ export class Course extends BaseClass {
   public load(): Promise<object> {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT * FROM scorm_course WHERE course_id = ?`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_load, [this.ID()], (error, results, fields) => {
-        if (error) {
-          console.log('course.model.load', error, sql_load);
-          throw new Error('There was a problem loading data model values');
-        }
-        if (!results.length) {
-          reject({'message': 'No records found with course id:' + this.ID()});
-        } else {
-          this.dbData = results[0];
-          this.setID(results[0]['course_id']);
-          resolve(this.dbData);
-        }
+      this.pool.getConnection((err, connection) => {
+          if(err){
+              throw new Error(err);
+          }
+          connection.query(sql_load, [this.ID()], (error, results, fields) => {
+            if (error) {
+              console.log('course.model.load', error, sql_load);
+              throw new Error('There was a problem loading data model values');
+            }
+            if (!results.length) {
+              reject({'message': 'No records found with course id:' + this.ID()});
+            } else {
+              this.dbData = results[0];
+              this.setID(results[0]['course_id']);
+              resolve(this.dbData);
+            }
+          });
+
+          connection.release();
       });
-      connection.end();
     });
   } // end load
 
@@ -47,16 +52,21 @@ export class Course extends BaseClass {
           }
 
 
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql, [this.id], (error, results, fields) => {
-              if (error) {
-                  throw new Error('Error loading scorm course');
-              } else {
-                  this.dbData = results;
-                  resolve(results);
+          this.pool.getConnection((err, connection) => {
+              if(err){
+                  throw new Error(err);
               }
+              connection.query(sql, [this.id], (error, results, fields) => {
+                  if (error) {
+                      throw new Error('Error loading scorm course');
+                  } else {
+                      this.dbData = results;
+                      resolve(results);
+                  }
+              });
+              connection.release();
           });
-          connection.end();
+          
       });
   }
 
@@ -70,17 +80,22 @@ export class Course extends BaseClass {
         ('course_name' in this.dbData) ? this.dbData['course_name'] : null,
         ('course_launcher' in this.dbData) ? this.dbData['course_launcher'] : null
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_insert, param, (error, results, fields) => {
-        if (error) {
-          console.log('course.model.dbInsert', error, sql_insert);
-          throw new Error('There was a problem adding a new course');
-        }
-        this.id = results.insertId;
-        this.dbData['course_id'] = this.id;
-        resolve(true);
+      this.pool.getConnection((err, connection) => {
+          if(err){
+              throw new Error(err);
+          }
+          connection.query(sql_insert, param, (error, results, fields) => {
+            if (error) {
+              console.log('course.model.dbInsert', error, sql_insert);
+              throw new Error('There was a problem adding a new course');
+            }
+            this.id = results.insertId;
+            this.dbData['course_id'] = this.id;
+            resolve(true);
+          });
+          connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -96,15 +111,20 @@ export class Course extends BaseClass {
         ('course_launcher' in this.dbData) ? this.dbData['course_launcher'] : null,
         this.ID() ? this.ID() : 0
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, param, (error, results, fields) => {
-        if (error) {
-          console.log('course.model.dbUpdate', error, sql_update);
-          throw new Error('Cannot update course');
-        }
-        resolve(true);
+      this.pool.getConnection((err, connection) => {
+          if(err){
+              throw new Error(err);
+          }
+          connection.query(sql_update, param, (error, results, fields) => {
+            if (error) {
+              console.log('course.model.dbUpdate', error, sql_update);
+              throw new Error('Cannot update course');
+            }
+            resolve(true);
+          });
+          connection.release();
       });
-      connection.end();
+      
     });
   }
 

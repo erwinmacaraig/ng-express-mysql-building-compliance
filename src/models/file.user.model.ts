@@ -21,20 +21,26 @@ export class FileUser extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT * FROM file_user WHERE file_user_id = ?`;
             const param = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    throw error;
+            this.pool.getConnection((err, connection) => {
+                if(err){
+                    throw new Error(err);
                 }
-                if (!results.length) {
-                    reject('No file user found');
-                } else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['file_user_id']);
-                    resolve(this.dbData);
-                }
+
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        throw error;
+                    }
+                    if (!results.length) {
+                        reject('No file user found');
+                    } else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['file_user_id']);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -46,16 +52,22 @@ export class FileUser extends BaseClass {
             ('file_id' in this.dbData) ? this.dbData['file_id'] : '',
             ('type' in this.dbData) ? this.dbData['type'] : ''
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_insert, fileparam, (err, results, fields) => {
-                if (err) {
+            this.pool.getConnection((err, connection) => {
+                if(err){
                     throw new Error(err);
                 }
-                this.id = results.insertId;
-                this.dbData['file_user_id'] = this.id;
-                resolve(true);
+
+                connection.query(sql_insert, fileparam, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    this.id = results.insertId;
+                    this.dbData['file_user_id'] = this.id;
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
 
         });
     }
@@ -74,14 +86,20 @@ export class FileUser extends BaseClass {
             ('type' in this.dbData) ? this.dbData['type'] : '',
             this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, fileparam, (err, results, fields) => {
-                if (err) {
-                    throw new Error(err + ' ' + sql_update);
+            this.pool.getConnection((err, connection) => {
+                if(err){
+                    throw new Error(err);
                 }
-                resolve(true);
+
+                connection.query(sql_update, fileparam, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err + ' ' + sql_update);
+                    }
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
         }); // end Promise
     }
 

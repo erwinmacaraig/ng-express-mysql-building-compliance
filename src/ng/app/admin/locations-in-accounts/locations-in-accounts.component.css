@@ -1,18 +1,27 @@
 .archived{
-	font-size: 14px;
-    position: absolute;
-    right: 30px;
-    top: 26px;
+    font-size: 15px;
     color: #4f4f4f;
 }
 
+.archived:hover{
+    color: #39a1ff;
+}
+
 .archived .image{
-	background: url(/assets/images/team_icons.png) no-repeat;
+    background: url(/assets/images/team_icons.png) no-repeat;
     width: 23px;
     height: 27px;
     background-position: 30.5% 35.7%;
     vertical-align: middle;
     display: inline-block;
+}
+
+.right.table-align{
+    margin-bottom: 20px;
+}
+
+.right.table-align .archived{
+    padding: 0px 0px 0px 30px;
 }
 
 .filter-container > .col{

@@ -24,82 +24,87 @@ export class DashboardComponent implements OnInit {
 	responseMessage = '';
 
 	routerSubs;
-    isFRP = false;
-	isTRP = false;
+  isFRP = false;
+  isTRP = false;
 
-	constructor(
-		private http: HttpClient,
-		private platform: PlatformLocation,
-		private auth: AuthService,
-		private router: Router,
-		private signupServices: SignupService,
-		private userService: UserService
-	) {
-		this.baseUrl = (platform as any).location.origin;
-		this.subscribeAndCheckUserHasAccountToSetup(router);
-		this.userData = this.auth.getUserData();
-	}
+  constructor(
+    private http: HttpClient,
+    private platform: PlatformLocation,
+    private auth: AuthService,
+    private router: Router,
+    private signupServices: SignupService,
+    private userService: UserService
+    ) {
+    this.baseUrl = (platform as any).location.origin;
+    this.subscribeAndCheckUserHasAccountToSetup(router);
+    this.userData = this.auth.getUserData();
+  }
 
-	subscribeAndCheckUserHasAccountToSetup(router){
-		this.routerSubs = router.events.subscribe((val) => {
-			if(val instanceof NavigationEnd){
-				if( this.userData ){
-					this.userRoles = this.userData['roles'];
+  subscribeAndCheckUserHasAccountToSetup(router){
+    this.routerSubs = router.events.subscribe((val) => {
+      if(val instanceof NavigationEnd){
+        if( this.userData ){
+          this.userRoles = this.userData['roles'];
 
-					for(let i in this.userRoles){
-                        if( this.userRoles[i]['role_id'] == 1 ){
-                            this.isFRP = true;
-                        }
-                        if( this.userRoles[i]['role_id'] == 2 ){
-                            this.isTRP = true;
-                        }
+          for(let i in this.userRoles){
+            if( this.userRoles[i]['role_id'] == 1 ){
+              this.isFRP = true;
+            }
+            if( this.userRoles[i]['role_id'] == 2 ){
+              this.isTRP = true;
+            }
 
-						if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
-							if(this.userData['accountId'] < 1){
-								router.navigate(['/setup-company']);
-							}
-						}
-					}
+            if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
+              if(this.userData['accountId'] < 1){
+                router.navigate(['/setup-company']);
+              }
+            }
+          }
 
-					if(val.url == '/' || val.url == '/dashboard'){
-                        if(this.isTRP && val.url == '/'){
-                           router.navigate(['/teams/list-wardens']);
-                        }else if(this.isFRP && (val.url == '/dashboard' || val.url == '/') ){
-                           router.navigate(['/dashboard/main']);
-                        }else{
-							router.navigate(['/dashboard/user']);
-						}
-					}
+          if(val.url == '/' || val.url == '/dashboard'){
+            /*if(this.isTRP && val.url == '/'){
+              router.navigate(['/teams/list-wardens']);
+            }else if(this.isFRP && (val.url == '/dashboard' || val.url == '/') ){
+              router.navigate(['/dashboard/main']);
+            }else{
+              router.navigate(['/dashboard/user']);
+            }*/
+            if(this.isFRP && (val.url == '/dashboard' || val.url == '/') ){
+              router.navigate(['/dashboard/main']);
+            }else{
+              router.navigate(['/dashboard/user']);
+            }
+          }
 
 
-				}
-			}
-	    });
-	}
+        }
+      }
+    });
+  }
 
-	resendEmailVerification(){
-		this.showResponse = true;
-		this.responseMessage = 'Re-sending email for verification';
-		this.signupServices.resendEmailVerification(this.userData['userId'], (response) => {
-			this.responseMessage = response.message;
-			setTimeout(() => {
-				this.showResponse = false;
-			}, 3000);
-		});
-	}
+  resendEmailVerification(){
+    this.showResponse = true;
+    this.responseMessage = 'Re-sending email for verification';
+    this.signupServices.resendEmailVerification(this.userData['userId'], (response) => {
+      this.responseMessage = response.message;
+      setTimeout(() => {
+        this.showResponse = false;
+      }, 3000);
+    });
+  }
 
-	ngOnInit() {
-		this.userService.checkUserVerified( this.userData['userId'] , (response) => {
-			if(response.status === false && response.message == 'not verified'){
-				localStorage.setItem('showemailverification', 'true');
-				this.showEmailVerification = true;
-				setTimeout(() => {
-					$('.alert-email-verification').removeAttr('style').css('opacity', '1');
-				},1000);
-			} else {
-				localStorage.removeItem('showemailverification');
-			}
-		});
-	}
+  ngOnInit() {
+    this.userService.checkUserVerified( this.userData['userId'] , (response) => {
+      if(response.status === false && response.message == 'not verified'){
+        localStorage.setItem('showemailverification', 'true');
+        this.showEmailVerification = true;
+        setTimeout(() => {
+          $('.alert-email-verification').removeAttr('style').css('opacity', '1');
+        },1000);
+      } else {
+        localStorage.removeItem('showemailverification');
+      }
+    });
+  }
 
 }

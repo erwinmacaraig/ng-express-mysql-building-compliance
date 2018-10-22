@@ -16,21 +16,22 @@ export class TrainingRequirements extends BaseClass {
     public load(): Promise<object> {
         return new Promise((resolve, reject) => {
             const sql = `SELECT * FROM training_requirement WHERE training_requirement_id = ?`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, [this.id], (error, results, fields) => {
-                if (error) {
-                    throw new Error('Error loading training requirements.');
-                } else {
-                    if (results.length > 0) {
-                        this.dbData = results[0];
-                        this.setID(results[0]['training_requirement_id']);
-                        resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql, [this.id], (error, results, fields) => {
+                    if (error) {
+                        throw new Error('Error loading training requirements.');
                     } else {
-                        reject('No training requirement found.');
+                        if (results.length > 0) {
+                            this.dbData = results[0];
+                            this.setID(results[0]['training_requirement_id']);
+                            resolve(this.dbData);
+                        } else {
+                            reject('No training requirement found.');
+                        }
                     }
-                }
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -49,16 +50,18 @@ export class TrainingRequirements extends BaseClass {
             }
 
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, [this.id], (error, results, fields) => {
-                if (error) {
-                    throw new Error('Error loading training requirements.');
-                } else {
-                    this.dbData = results;
-                    resolve(results);
-                }
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql, [this.id], (error, results, fields) => {
+                    if (error) {
+                        throw new Error('Error loading training requirements.');
+                    } else {
+                        this.dbData = results;
+                        resolve(results);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -71,22 +74,24 @@ export class TrainingRequirements extends BaseClass {
             description
             ) VALUES (?, ?, ?, ?)`;
 
-            const connection = db.createConnection(dbconfig);
             const values = [
             ('training_requirement_name' in this.dbData) ? this.dbData['training_requirement_name'] : null,
             ('num_months_valid' in this.dbData) ? this.dbData['num_months_valid'] : null,
             ('scorm_course_id' in this.dbData) ? this.dbData['scorm_course_id'] : null,
             ('description' in this.dbData) ? this.dbData['description'] : null
             ];
-            connection.query(sql_insert, values, (error, results, fields) => {
-                if (error) {
-                    throw new Error('Error inserting training requirements.');
-                }
-                this.id = results.insertId;
-                this.dbData['training_requirement_id'] = this.id;
-                resolve(true);
+
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_insert, values, (error, results, fields) => {
+                    if (error) {
+                        throw new Error('Error inserting training requirements.');
+                    }
+                    this.id = results.insertId;
+                    this.dbData['training_requirement_id'] = this.id;
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
 
         });
     }
@@ -108,14 +113,16 @@ export class TrainingRequirements extends BaseClass {
             ('description' in this.dbData) ? this.dbData['description'] : null,
             this.id
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, values, (error, results, fields) => {
-                if (error) {
-                    throw new Error('Error inserting updating requirements.');
-                }
-                resolve(true);
+            
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_update, values, (error, results, fields) => {
+                    if (error) {
+                        throw new Error('Error inserting updating requirements.');
+                    }
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -135,16 +142,18 @@ export class TrainingRequirements extends BaseClass {
             WHERE training_requirement.training_requirement_id IN (${requirements})
             AND em_roles.em_roles_id IN (${roles})`;
 
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [], (error, results) => {
-          if (error) {
-            console.log('training_requirements.requirement_details', error, sql);
-            throw Error('Cannot get requirements');
-          }
-          resolve(results);
-
+        
+        this.pool.getConnection((err, connection) => {
+            connection.query(sql, [], (error, results) => {
+                if (error) {
+                    console.log('training_requirements.requirement_details', error, sql);
+                    throw Error('Cannot get requirements');
+                }
+                resolve(results);
+            });
+            connection.release();
         });
-        connection.end();
+
       });
     }
 
@@ -173,16 +182,20 @@ export class TrainingRequirements extends BaseClass {
                 INNER JOIN em_roles em ON emt.em_role_id = em.em_roles_id
                 INNER JOIN training_requirement tr ON emt.training_requirement_id = tr.training_requirement_id
             `;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, (error, results, fields) => {
-                if (error) {
-                    throw new Error('Error allEmRolesTrainings');
-                } else {
-                    resolve(results);
-                    this.dbData = results;
-                }
+            
+
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql, (error, results, fields) => {
+                    if (error) {
+                        throw new Error('Error allEmRolesTrainings');
+                    } else {
+                        resolve(results);
+                        this.dbData = results;
+                    }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 

@@ -6,7 +6,7 @@ export abstract class BaseClass {
     protected id: number;
     protected dbData = {};
     protected fields: Array<string> = [];
-    protected pool: db.Pool = db.createPool(dbconfig);
+    protected pool: db.Pool = global['dbconnection'] = (global['dbconnection']) ? global['dbconnection'] : db.createPool(dbconfig);
 
     constructor(id?: number) {
         if (id) {

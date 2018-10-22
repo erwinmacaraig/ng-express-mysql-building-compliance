@@ -17,20 +17,26 @@ export class UserRoleRelation extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM user_role_relation WHERE user_role_relation_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                if (!results.length) {
-                    reject('No role found');
-                }else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['user_role_relation_id']);
-                    resolve(this.dbData);
-                }
+
+                connection.query(sql_load, uid, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if (!results.length) {
+                        reject('No role found');
+                    }else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['user_role_relation_id']);
+                        resolve(this.dbData);
+                    }
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -63,28 +69,34 @@ export class UserRoleRelation extends BaseClass {
             param.push(location);
 
           }
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                  return console.log('user.role.relation.model.getByUserId', error, sql_load);
+          this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
               }
-              if (!results.length) {
-                  reject('No role found');
-              } else {
-                  if (highest_rank) {
-                      let r = 100;
-                      for (let i = 0; i < results.length; i++) {
-                          if (r > parseInt(results[i]['role_id'], 10)) {
-                              r = results[i]['role_id'];
-                          }
-                      }
-                      resolve(r);
-                  } else {
-                      resolve(results);
+
+              connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                      return console.log('user.role.relation.model.getByUserId', error, sql_load);
                   }
-              }
+                  if (!results.length) {
+                      reject('No role found');
+                  } else {
+                      if (highest_rank) {
+                          let r = 100;
+                          for (let i = 0; i < results.length; i++) {
+                              if (r > parseInt(results[i]['role_id'], 10)) {
+                                  r = results[i]['role_id'];
+                              }
+                          }
+                          resolve(r);
+                      } else {
+                          resolve(results);
+                      }
+                  }
+              });
+
+              connection.release();
           });
-          connection.end();
       });
   }
 
@@ -99,14 +111,20 @@ export class UserRoleRelation extends BaseClass {
             ('user_id' in this.dbData) ? this.dbData['user_id'] : null,
             ('role_id' in this.dbData) ? this.dbData['role_id'] : null
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_insert, user, (err, results, fields) => {
-                if (err) {
-                    throw new Error(err);
-                }
-                resolve(true);
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_insert, user, (err, results, fields) => {
+                  if (err) {
+                      throw new Error(err);
+                  }
+                  resolve(true);
+              });
+
+              connection.release();
             });
-            connection.end();
 
         });
     }
@@ -119,14 +137,20 @@ export class UserRoleRelation extends BaseClass {
             ('role_id' in this.dbData) ? this.dbData['role_id'] : null,
             this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, user, (err, results, fields) => {
-                if (err) {
-                    throw new Error(err);
-                }
-                resolve(true);
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_update, user, (err, results, fields) => {
+                  if (err) {
+                      throw new Error(err);
+                  }
+                  resolve(true);
+              });
+
+              connection.release();
             });
-            connection.end();
 
         });
     }
@@ -147,17 +171,23 @@ export class UserRoleRelation extends BaseClass {
         return new Promise((resolve, reject) => {
             const
             roleidsQ = (roleIds) ? ' AND role_id IN ('+roleIds+') ' : '',
-            sql_load = 'SELECT * FROM user_role_relation WHERE user_id IN ('+userIds+') ' + roleidsQ,
-            connection = db.createConnection(dbconfig);
+            sql_load = 'SELECT * FROM user_role_relation WHERE user_id IN ('+userIds+') ' + roleidsQ;
 
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                this.dbData = results;
-                resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+
+              connection.release();
             });
-            connection.end();
         });
     }
 
@@ -171,15 +201,22 @@ export class UserRoleRelation extends BaseClass {
          whereClause += ` AND role_id = ${whereConfig['role_id']}`;
        }
         const sql = `SELECT * FROM user_role_relation ${whereClause}`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [], (error, results) => {
-          if (error) {
-            console.log('user.role.relation.model.getUserRoleRelationId', sql, error);
-            throw Error('Cannot get user role relation');
+        
+        this.pool.getConnection((err, connection) => {
+          if (err) {                    
+              throw new Error(err);
           }
-          resolve(results);
+
+          connection.query(sql, [], (error, results) => {
+            if (error) {
+              console.log('user.role.relation.model.getUserRoleRelationId', sql, error);
+              throw Error('Cannot get user role relation');
+            }
+            resolve(results);
+          });
+
+          connection.release();
         });
-        connection.end();
       });
     }
 
@@ -193,22 +230,30 @@ export class UserRoleRelation extends BaseClass {
                 INNER JOIN users u ON urr.user_id = u.user_id
                 WHERE lau.location_id = ${locationId} AND urr.role_id = 2
             `;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
+            
 
-                if(results){
-                    this.dbData = results;
-                    resolve(results);
-                }else{
-                    reject();
-                }
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
 
+              connection.query(sql_load, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+
+                  if(results){
+                      this.dbData = results;
+                      resolve(results);
+                  }else{
+                      reject();
+                  }
+
+              });
+
+              connection.release();
             });
-            connection.end();
-
+            
         });
     }
 

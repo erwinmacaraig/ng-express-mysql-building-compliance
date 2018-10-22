@@ -12,6 +12,7 @@ import { AdminService } from '../../services/admin.service';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { MessageService } from '../../services/messaging.service';
+import { AccountsDataProviderService } from '../../services/accounts';
 import { AlertService } from '../../services/alert.service';
 import { AlertComponent } from '../../alert/alert.component';
 import { Observable } from 'rxjs/Rx';
@@ -25,7 +26,7 @@ declare var moment: any;
 	selector : 'app-view-compliance',
 	templateUrl : './view.compliance.component.html',
 	styleUrls : [ './view.compliance.component.css' ],
-    providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService, AdminService]
+    providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService, AdminService, AccountsDataProviderService]
 })
 export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("notesTemplate") notesTemplate : ElementRef;
@@ -169,6 +170,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     downloadAllPackLabel = '';
     downloadAllPackControler = false;
     downloadPackName = '';
+
+    breadcrumbsData = [];
+
+    accountData = <any> {};
+
     constructor(
         private router : Router,
         private route: ActivatedRoute,
@@ -181,7 +187,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         private encryptDecrypt : EncryptDecryptService,
         private adminService : AdminService,
         private messageService : MessageService,
-        private alertService: AlertService
+        private alertService: AlertService,
+        private accountService: AccountsDataProviderService
         ) {
 
         this.userData = this.authService.getUserData(); 
@@ -202,6 +209,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
             this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
         });
 
+        this.messageService.sendMessage({ 'breadcrumbs' : this.breadcrumbsData });
+
         this.msgSubs = this.messageService.getMessage().subscribe((message) => {
             if(message.epcform){
                 if(message.epcform == 'hide') {
@@ -211,7 +220,13 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 this.messageService.sendMessage({
                     'locationId' : this.locationID
                 });
+            }else if(message.getbreadcrumbs){
+                this.messageService.sendMessage({ 'breadcrumbs' : this.breadcrumbsData });
             }
+        });
+
+        this.accountService.getByUserId(this.userData['userId'], (response) => {
+            this.accountData = response.data;
         });
     }
 
@@ -324,6 +339,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                         this.nameDisplay = (this.locationData.parentData.name) ? this.locationData.parentData.name+', '+this.locationData.name : this.locationData.name; 
                     }
 
+                    this.nameDisplay = this.accountData.account_name + ' Tenancy at ' + this.nameDisplay;
+
 		            this.downloadPackName = this.locationData['location_directory_name'];
 	
                     this.setKPISdataForDisplay();
@@ -384,6 +401,15 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 this.showLoadingForSignedURL = false;                
             });
 
+            this.breadcrumbsData.push({
+                'name' : 'Locations', 'link' : '/location/list'
+            });
+            this.breadcrumbsData.push({
+                'name' : this.locationData.name, 'link' : '/location/view/'+this.encryptedID
+            });
+            
+            console.log( 'this.breadcrumbsData', this.breadcrumbsData );
+
         });
     }
 
@@ -412,6 +438,21 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 });
             }
         });
+
+        window.onscroll = function(){
+            if( this['scrollY'] >= 70 ){
+                $('.top-gray').css({
+                    'position' : 'fixed',
+                    'top' : '94px',
+                    'z-index' : '999'
+                });
+            }else{
+                $('.top-gray').css({
+                    'position' : 'absolute',
+                    'top' : '0px'
+                });
+            }
+        }
 	}
 
 	clickSelectComplianceFromList(compliance) {
@@ -435,11 +476,9 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     		this.selectedComplianceClasses = compliance.icon_class;
 
             $('.compliance-title-container .image').css('background-color', this.selectedCompliance['background_color']);
-
 	}
 
 	showDiagramDetails(){
-
 		let tableLeft = $('.row-table-content').position().left,
 			tableW = $('.row-table-content').width(),
 			diagramLeft = $('.row-diagram-details').position().left;
@@ -469,6 +508,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 	ngOnDestroy() {
         this.msgSubs.unsubscribe();
+        window.onscroll = null;
     }
 
     downloadAllPack() {
@@ -528,6 +568,32 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           $('#modalWardenList').modal('open');
           console.log(this.tenants);
         });
+    }
+
+    public viewEmUsers(locationId, type){
+        let queries = {
+            roles: type,
+            impaired: null,
+            type: 'client',
+            offset: 0,
+            limit: 1000,
+            archived: 0,
+            pagination: true,
+            user_training: true,
+            users_locations: true,
+            search: '',
+            online_trainings: true,
+            location_id : locationId 
+        };
+
+        this.userService.queryUsers(queries, (response) => {
+            this.tenants = response.data.users;
+            $('#modalWardenList').modal('open');
+        });
+
+        // this.userService.queryUsers({
+            
+        // })
     }
 
     showModalUploadDocs(shortCode){

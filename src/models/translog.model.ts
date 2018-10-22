@@ -16,21 +16,23 @@ export class Translog extends BaseClass {
   public load() {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT * FROM gateway_translog WHERE translog_id = ?`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_load, [this.id], (error, results, fields) => {
-        if (error) {
-          console.log('translog.model load', error);
-          throw new Error(error);
-        }
-        if (!results.length) {
-          reject(`Cannot find transaction logs for id ${this.id}`);
-        } else {
-          this.dbData = results[0];
-          this.setID(results[0]['translog_id']);
-          resolve(this.dbData);
-        }
+      this.pool.getConnection((err, connection) => {
+        connection.query(sql_load, [this.id], (error, results, fields) => {
+          if (error) {
+            console.log('translog.model load', error);
+            throw new Error(error);
+          }
+          if (!results.length) {
+            reject(`Cannot find transaction logs for id ${this.id}`);
+          } else {
+            this.dbData = results[0];
+            this.setID(results[0]['translog_id']);
+            resolve(this.dbData);
+          }
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
   public dbUpdate() {
@@ -58,15 +60,17 @@ export class Translog extends BaseClass {
         this.ID() ? this.ID() : 0
       ];
 
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, translog, (error, results, fields) => {
-        if (error) {
-          console.log('translog.model update', error, sql_update);
-          throw new Error(error);
-        }
-        resolve(true);
+      this.pool.getConnection((err, connection) => {
+        connection.query(sql_update, translog, (error, results, fields) => {
+          if (error) {
+            console.log('translog.model update', error, sql_update);
+            throw new Error(error);
+          }
+          resolve(true);
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -90,17 +94,19 @@ export class Translog extends BaseClass {
         ('sent_to_gateway' in this.dbData ) ? this.dbData['sent_to_gateway'] : 0,
         ('status' in this.dbData ) ? this.dbData['status'] : 0
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(insert_sql, translog, (error, results, fields) => {
-        if (error) {
-          console.log('translog.model insert', error);
-          throw new Error(error);
-        }
-        this.id = results.insertId;
-        this.dbData['translog_id'] = results.insertId;
-        resolve(this.id);
+      this.pool.getConnection((err, connection) => {
+        connection.query(insert_sql, translog, (error, results, fields) => {
+          if (error) {
+            console.log('translog.model insert', error);
+            throw new Error(error);
+          }
+          this.id = results.insertId;
+          this.dbData['translog_id'] = results.insertId;
+          resolve(this.id);
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -126,16 +132,18 @@ export class Translog extends BaseClass {
                           WHERE
                             translog_id = ?`;
       const values = [status, this.ID()];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, values, (error, results, fields) => {
-        if (error) {
-          console.log('translog.markTransactions', error);
-          throw new Error(error);
-        } else {
-          resolve(true);
-        }
+      this.pool.getConnection((err, connection) => {
+        connection.query(sql_update, values, (error, results, fields) => {
+          if (error) {
+            console.log('translog.markTransactions', error);
+            throw new Error(error);
+          } else {
+            resolve(true);
+          }
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
 
   }

@@ -56,7 +56,8 @@
 			<select id="selectAction">
 				<option value="0" disabled selected>Select Action</option>
 				<option value="profile">Update Profile</option>
-				<option value="credential">Update Credential</option>
+                <option value="credential">Update Credential</option>
+				<option value="location">Assign Location & Role</option>
 			</select>
 		</div>
 	</div>
@@ -415,63 +416,6 @@
 	</form>
 </div>
 
-<div id="modalAssignLocations" class="modal">
-	<div class="modal-content" [hidden]="showLocationSelection">
-		<h5>Assign {{viewData.user.first_name+' '+viewData.user.last_name}} To Locations
-			<a  class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
-		</h5>
-
-
-		<form #formAssignLocation>
-
-		<table class="table striped">
-			<thead>
-				<tr>
-					<th>Location</th>
-					<th style="width: 30%;">Role</th>
-					<th style="width: 20%;">Action</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr *ngFor="let loc of toEditLocations; let i = index;">
-					<td>
-						<a  class="blue-text change-location">
-							<span *ngIf="loc.parent_name !== null">{{loc.parent_name}},</span> {{loc.name}}
-						</a>
-						<input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
-					</td>
-					<td>
-						<select name="role_id[{{i}}]" style="display: block;">
-							<option value="1" [selected]="loc.em_roles_id == null && loc.location_role_id == 1">Building Manager</option>
-							<option value="2" [selected]="loc.em_roles_id == null && loc.location_role_id == 2">Tenancy Responsible Personnel</option>
-							<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [selected]="loc.em_roles_id != null && loc.em_roles_id == eco.em_roles_id ">
-								{{eco.role_name}}
-							</option>
-						</select>
-					</td>
-					<td>
-						<a  class="red-text delete">Delete</a>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-
-		<div class="button-container right-align">
-			<a class="btn grey lighten-1 waves-effect waves-light modal-close" > Cancel </a>
-			<button type="submit" class="btn orange waves-effect waves-light"  > Save </button>
-		</div>
-
-		</form>
-	</div>
-
-
-	<div class="modal-content" [hidden]="!showLocationSelection">
-		<h5>Select Location for {{viewData.user.first_name + ' ' + viewData.user.last_name}}
-			<a  class="red-text right" style="font-size: 18px;" (click)="showLocationSelection = false">Cancel</a>
-		</h5>
-	</div>
-</div>
-
 <!-- <div id="modalLocations" class="modal">
 	<div class="modal-content">
 
@@ -525,11 +469,98 @@
 
 <div *ngIf="toggle">
     <div class="modal" id="training">
-      <div class="modal-content">
-        <iframe [src]="selectedCourse.formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule(selectedCourse)" >Close</button>
-      </div>
+        <div class="modal-content">
+            <iframe [src]="selectedCourse.formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule(selectedCourse)" >Close</button>
+        </div>
     </div>
-  </div>
+</div>
+
+
+<div id="modalAssignLocations" class="modal modal-sublocations" [ngClass]="{ 'overflow-hide' : showSelectLocation }">
+
+    <div [hidden]="showSelectLocation">
+        <div class="modal-content"  >
+            <h5>Assign {{ viewData.user.first_name + ' ' + viewData.user.last_name}} To Locations
+                <a  class="blue-text right" style="font-size: 18px;" (click)="assignNewClickEvent()">+Assign New</a>
+            </h5>
+
+
+            <form #formAssignLocation (submit)="submitAssignLocation(formAssignLocation)">
+
+            <table class="table striped">
+                <thead>
+                    <tr>
+                        <th>Location</th>
+                        <th style="width: 30%;">Role</th>
+                        <th style="width: 9%;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let loc of toEditLocations; let i = index;">
+                        <td *ngIf="!loc.deleted">
+                            <a  class="blue-text change-location" (click)="clickSelectLocation(loc)" *ngIf="loc.location_id > 0">{{loc.name}} </a>
+
+                            <a  class="blue-text change-location" (click)="clickSelectLocation(loc)" *ngIf="loc.location_id == 0"> Select Location </a>
+
+                            <input type="hidden" name="location_id[{{i}}]" ngModel value="loc.location_id">
+                        </td>
+                        <td *ngIf="!loc.deleted">
+                            <select name="role_id[{{i}}]" style="display: block;" (change)="onChangeSelectRole(loc, $event.currentTarget.value)" >
+                                <option value="0" [selected]="loc.role_id == 0" disabled>Select Role</option>
+                                <option value="1" [selected]="loc.role_id == 1">Building Manager</option>
+                                <option value="2" [selected]="loc.role_id == 2">Tenancy Responsible Personnel</option>
+                                <option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [selected]="loc.role_id == eco.em_roles_id ">
+                                    {{eco.role_name}}
+                                </option>
+                            </select>
+                        </td>
+                        <td *ngIf="!loc.deleted">
+                            <a  class="red-text delete" (click)="removeAssigned(i)">Delete</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="button-container right-align">
+                <a class="btn grey lighten-1 waves-effect waves-light modal-close"> Cancel </a>
+                <button type="submit" class="btn orange waves-effect waves-light"  (click)="saveLocationAssignments($event)" > Save </button>
+            </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div [hidden]="!showSelectLocation">
+        <div class="modal-content">
+            <h5>Select Location for {{viewData.user.first_name+' '+viewData.user.last_name}}</h5>
+            <div class="search-container" >
+                <div class="input-container">
+                    <input type="text" placeholder="Search Location" #modalSearchLocation  >
+                </div>
+                <div class="icon-container">
+                    <img src="assets/images/locations/search_icon.png" alt="">
+                </div>
+            </div>
+
+            <form #formLoc (submit)="submitSelectLocationModal(formLoc, $event)">
+
+            <div class="list-region" style="overflow-y: auto; height: 340px; margin: 20px 5px;">
+                <p *ngIf="locations.length == 0">No location found</p>
+                <ul class="locations">
+                </ul>
+            </div>
+
+            <div class="button-container">
+                <a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
+                <button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLocValid" *ngIf="locations.length > 0"> Submit </button>
+            </div>
+
+            </form>
+        </div>
+
+    </div>
+
+</div>

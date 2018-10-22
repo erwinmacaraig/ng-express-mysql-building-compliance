@@ -314,9 +314,9 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         this.sundry_attendance_record[index]['downloadCtrl'] = true; 
       break;
     }
-    this.complianceService.downloadComplianceFile(`paper_attendance/${filename}`, filename).subscribe((data) => {
-      const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
-      FileSaver.saveAs(blob, filename);
+    this.complianceService.downloadComplianceFile(encodeURIComponent(`paper_attendance/${filename}`), encodeURIComponent(filename)).subscribe((data) => {
+      const blob = new Blob([data.body], {type: data.headers.get('Content-Type')}); 
+      FileSaver.saveAs(blob, filename); 
       switch(kpi.toString()) {
         case '8':                             
           this.gofr_attendance_record[index]['downloadCtrl'] = false;  

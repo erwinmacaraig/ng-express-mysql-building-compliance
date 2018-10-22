@@ -17,35 +17,39 @@ export class SecurityQuestions extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM security_question WHERE security_question_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              if(!results.length){
-                reject('Question not found');
-              }else{
-                this.dbData = results[0];
-                this.setID(results[0]['security_question_id']);
-                resolve(this.dbData);
-              }
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_load, uid, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  if(!results.length){
+                    reject('Question not found');
+                  }else{
+                    this.dbData = results[0];
+                    this.setID(results[0]['security_question_id']);
+                    resolve(this.dbData);
+                  }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
     public getAll() {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM security_question';
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              this.dbData = results;
-              resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_load, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -56,15 +60,15 @@ export class SecurityQuestions extends BaseClass {
             ('question' in this.dbData) ? this.dbData['question'] : '',
             this.ID() ? this.ID() : 0
           ];
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql_update, token, (err, results, fields) => {
-            if (err) {
-              throw new Error(err);
-            }
-            resolve(true);
+          this.pool.getConnection((err, connection) => {
+              connection.query(sql_update, token, (err, results, fields) => {
+                if (err) {
+                  throw new Error(err);
+                }
+                resolve(true);
+              });
+              connection.release();
           });
-          connection.end();
-
         });
     }
 
@@ -74,17 +78,18 @@ export class SecurityQuestions extends BaseClass {
           const token = [
             ('question' in this.dbData) ? this.dbData['user_id'] : ''
           ];
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql_insert, token, (err, results, fields) => {
-            if (err) {
-              throw new Error(err);
-            }
-            this.id = results.insertId;
-            this.dbData['security_question_id'] = this.id;
-            resolve(true);
+          
+          this.pool.getConnection((err, connection) => {
+              connection.query(sql_insert, token, (err, results, fields) => {
+                if (err) {
+                  throw new Error(err);
+                }
+                this.id = results.insertId;
+                this.dbData['security_question_id'] = this.id;
+                resolve(true);
+              });
+              connection.release();
           });
-          connection.end();
-
         });
     }
 

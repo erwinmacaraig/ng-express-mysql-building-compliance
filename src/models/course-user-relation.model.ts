@@ -16,21 +16,27 @@ export class CourseUserRelation extends BaseClass {
   public load(): Promise<object> {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT * FROM course_user_relation WHERE course_user_relation_id = ?`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_load, [this.ID()], (error, results, fields) => {
-        if (error) {
-          console.log('course-user-relation.model.load', error, sql_load);
-          throw new Error('There was a problem loading course user relation id');
-        }
-        if (!results.length) {
-          reject({'message': 'No records found with relation id:' + this.ID()});
-        } else {
-          this.dbData = results[0];
-          this.setID(results[0]['course_id']);
-          resolve(this.dbData);
-        }
+      this.pool.getConnection((err, connection) => {
+          if(err){
+              throw new Error(err);
+          }
+
+          connection.query(sql_load, [this.ID()], (error, results, fields) => {
+            if (error) {
+              console.log('course-user-relation.model.load', error, sql_load);
+              throw new Error('There was a problem loading course user relation id');
+            }
+            if (!results.length) {
+              reject({'message': 'No records found with relation id:' + this.ID()});
+            } else {
+              this.dbData = results[0];
+              this.setID(results[0]['course_id']);
+              resolve(this.dbData);
+            }
+          });
+          connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -50,17 +56,23 @@ export class CourseUserRelation extends BaseClass {
         ('disabled' in this.dbData) ? this.dbData['disabled'] : 0,
         ('disabled' in this.dbData) ? this.dbData['disabled'] : 0
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_insert, param, (error, results, fields) => {
-        if (error) {
-          console.log('course_user_relation.model.dbInsert', error, sql_insert);
-          throw new Error('There was a problem registering this person to the course');
-        }
-        this.id = results.insertId;
-        this.dbData['course_user_relation_id'] = this.id;
-        resolve(true);
+      this.pool.getConnection((err, connection) => {
+          if(err){
+              throw new Error(err);
+          }
+
+          connection.query(sql_insert, param, (error, results, fields) => {
+            if (error) {
+              console.log('course_user_relation.model.dbInsert', error, sql_insert);
+              throw new Error('There was a problem registering this person to the course');
+            }
+            this.id = results.insertId;
+            this.dbData['course_user_relation_id'] = this.id;
+            resolve(true);
+          });
+          connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -81,15 +93,21 @@ export class CourseUserRelation extends BaseClass {
         ('disabled' in this.dbData) ? this.dbData['disabled'] : 0,
         this.ID() ? this.ID() : 0
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, param, (error, results, fields) => {
-        if (error) {
-          console.log('course_user_relation.model.dbUpdate', error, sql_update);
-          throw new Error('Cannot update relation');
-        }
-        resolve(true);
+      this.pool.getConnection((err, connection) => {
+          if(err){
+              throw new Error(err);
+          }
+
+          connection.query(sql_update, param, (error, results, fields) => {
+            if (error) {
+              console.log('course_user_relation.model.dbUpdate', error, sql_update);
+              throw new Error('Cannot update relation');
+            }
+            resolve(true);
+          });
+          connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -108,16 +126,22 @@ export class CourseUserRelation extends BaseClass {
           }
 
 
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql, [this.id], (error, results, fields) => {
-              if (error) {
-                  throw new Error('Error loading course user relation');
-              } else {
-                  this.dbData = results;
-                  resolve(this.dbData);
+          this.pool.getConnection((err, connection) => {
+              if(err){
+                  throw new Error(err);
               }
+
+              connection.query(sql, [this.id], (error, results, fields) => {
+                  if (error) {
+                      throw new Error('Error loading course user relation');
+                  } else {
+                      this.dbData = results;
+                      resolve(this.dbData);
+                  }
+              });
+              connection.release();
           });
-          connection.end();
+          
       });
   }
 
@@ -154,21 +178,27 @@ export class CourseUserRelation extends BaseClass {
                       FROM
                         course_user_relation
                       WHERE 1=1 ${whereClause}`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_get, values, (error, results, fields) => {
-          if (error) {
-              console.log('course-user-relation.model', error, sql_get);
-              throw new Error('There was an error getting relationship');
+      this.pool.getConnection((err, connection) => {
+          if(err){
+              throw new Error(err);
           }
-          if (results.length) {
-              resolve(results[0]['course_user_relation_id']);
-          } else {
-              reject({
-                  'message': 'There are no relation between user and course'
-              });
-          }
+
+          connection.query(sql_get, values, (error, results, fields) => {
+              if (error) {
+                  console.log('course-user-relation.model', error, sql_get);
+                  throw new Error('There was an error getting relationship');
+              }
+              if (results.length) {
+                  resolve(results[0]['course_user_relation_id']);
+              } else {
+                  reject({
+                      'message': 'There are no relation between user and course'
+                  });
+              }
+          });
+          connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -203,21 +233,27 @@ export class CourseUserRelation extends BaseClass {
                         course_user_relation.course_id = scorm_course.course_id
                       WHERE 1=1
                         ${whereClause}`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_get, values, (error, results, fields) => {
-          if (error) {
-              console.log('course-user-relation.model', error, sql_get);
-              throw new Error('There was an error getting relationship');
+      this.pool.getConnection((err, connection) => {
+          if(err){
+              throw new Error(err);
           }
-          if (results.length) {
-              resolve(results[0]);
-          } else {
-              reject({
-                  'message': 'There are no relation between user and course'
-              });
-          }
+
+          connection.query(sql_get, values, (error, results, fields) => {
+              if (error) {
+                  console.log('course-user-relation.model', error, sql_get);
+                  throw new Error('There was an error getting relationship');
+              }
+              if (results.length) {
+                  resolve(results[0]);
+              } else {
+                  reject({
+                      'message': 'There are no relation between user and course'
+                  });
+              }
+          });
+          connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -259,19 +295,27 @@ export class CourseUserRelation extends BaseClass {
         WHERE
           course_user_relation.user_id = ? AND course_user_relation.disabled = ?
         ORDER BY course_user_relation.dtTimeStamp DESC`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql, [user, disabled], (error, results, fields) => {
-        if (error) {
-          console.log('course-user-relation.model.getAllCourseForUser', error, sql);
-          throw new Error('There was a problem retrieving all courses for this user - ' + user);
-        }
-        if (results.length > 0) {
-          resolve(results);
-        } else {
-          reject('There were no records found for this user - ' +  user);
-        }
+      
+      this.pool.getConnection((err, connection) => {
+          if(err){
+              throw new Error(err);
+          }
+
+          connection.query(sql, [user, disabled], (error, results, fields) => {
+            if (error) {
+              console.log('course-user-relation.model.getAllCourseForUser', error, sql);
+              throw new Error('There was a problem retrieving all courses for this user - ' + user);
+            }
+            if (results.length > 0) {
+              resolve(results);
+            } else {
+              reject('There were no records found for this user - ' +  user);
+            }
+          });
+          connection.release();
       });
-      connection.end();
+
+      
     });
   }
 
@@ -337,37 +381,45 @@ export class CourseUserRelation extends BaseClass {
           course_user_relation.user_id IN (${userIdString}) AND course_user_relation.disabled = ?
         ORDER BY
           user_id`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_get, [disabled], (error, results, fields) => {
-        if (error) {
-          console.log('course-user-relation.getNumberOfAssignedCourses', error, sql_get);
-          throw Error('Cannot query database');
-        }
-        if (!results.length) {
-          resolve({});
-        } else {
-          for (let i = 0; i < results.length; i++) {
-            if (results[i]['user_id'] in user_course_total) {
-              user_course_total[results[i]['user_id']]['count'] = user_course_total[results[i]['user_id']]['count'] + 1;
-              if (user_course_total[results[i]['user_id']]['trids']
-                .indexOf(results[i]['training_requirement_id']) === -1 ) {
-                  user_course_total[results[i]['user_id']]['trids'].push((results[i]['training_requirement_id']));
-                }
-            } else {
-              user_course_total[results[i]['user_id']] = {
-                'count': 1,
-                'trids': [results[i]['training_requirement_id']]
-              };
-            }
-          }
+      
 
-          resolve(user_course_total);
-        }
-      });
-      connection.end();
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
+            }
+
+            connection.query(sql_get, [disabled], (error, results, fields) => {
+              if (error) {
+                console.log('course-user-relation.getNumberOfAssignedCourses', error, sql_get);
+                throw Error('Cannot query database');
+              }
+              if (!results.length) {
+                resolve({});
+              } else {
+                for (let i = 0; i < results.length; i++) {
+                  if (results[i]['user_id'] in user_course_total) {
+                    user_course_total[results[i]['user_id']]['count'] = user_course_total[results[i]['user_id']]['count'] + 1;
+                    if (user_course_total[results[i]['user_id']]['trids']
+                      .indexOf(results[i]['training_requirement_id']) === -1 ) {
+                        user_course_total[results[i]['user_id']]['trids'].push((results[i]['training_requirement_id']));
+                      }
+                  } else {
+                    user_course_total[results[i]['user_id']] = {
+                      'count': 1,
+                      'trids': [results[i]['training_requirement_id']]
+                    };
+                  }
+                }
+
+                resolve(user_course_total);
+              }
+            });
+            connection.release();
+        });
+
       }
+
     });
   }
-  public
 
 }

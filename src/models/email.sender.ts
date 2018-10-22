@@ -90,8 +90,8 @@ export class EmailSender {
         params = {
             // RawMessage: { Data: new Buffer(email) },
             Destination: {
-              // ToAddresses: this.options['to'],
-              ToAddresses : ['jmanoharan@evacgroup.com.au', 'adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
+              ToAddresses: this.options['to'],
+              // ToAddresses : ['jmanoharan@evacgroup.com.au', 'adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
               CcAddresses: this.options['cc']
             }, 
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
@@ -203,6 +203,13 @@ export class EmailSender {
             case "training-invite":
                 subj = "EvacConnect Training Invite";
                 filename = "training-invite";
+                break;
+            case "set-passwd-invite":
+                subj = "EvacConnect Account Setup";
+                filename = "set-passwd-invite";
+                break;
+
+            
         }
 
         fs.readFile(dir+'/footer-email.hbs', 'utf8', (err, footer) => {

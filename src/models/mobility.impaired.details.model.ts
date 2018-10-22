@@ -16,16 +16,22 @@ export class MobilityImpairedModel extends BaseClass {
 		return new Promise((resolve, reject) => {
 			const sql_load = 'SELECT * FROM mobility_impaired_details WHERE mobility_impaired_details_id = ? ORDER BY date_created DESC';
 			const uid = [this.id];
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql_load, uid, (error, results, fields) => {
-				if (error) {
-					return console.log(error);
-				}
-				this.dbData = results[0];
-				this.setID(results[0]['mobility_impaired_details_id']);
-				resolve(this.dbData);
-			});
-			connection.end();
+			this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
+        }
+
+        connection.query(sql_load, uid, (error, results, fields) => {
+          if (error) {
+            return console.log(error);
+          }
+          this.dbData = results[0];
+          this.setID(results[0]['mobility_impaired_details_id']);
+          resolve(this.dbData);
+        });
+        connection.release();
+      });
+			
 		});
 	}
 
@@ -47,15 +53,21 @@ export class MobilityImpairedModel extends BaseClass {
 
 			sql_load += ' ORDER BY date_created DESC ';
 
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql_load, (error, results, fields) => {
-				if (error) {
-					return console.log(error);
-				}
-				this.dbData = results;
-				resolve(this.dbData);
-			});
-			connection.end();
+			this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
+        }
+
+        connection.query(sql_load, (error, results, fields) => {
+          if (error) {
+            return console.log(error);
+          }
+          this.dbData = results;
+          resolve(this.dbData);
+        });
+        connection.release();
+      });
+			
 		});
 	}
 
@@ -77,14 +89,20 @@ export class MobilityImpairedModel extends BaseClass {
 			this.ID() ? this.ID() : 0
 			];
 
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql_update, param, (err, results, fields) => {
-				if (err) {
-					throw new Error(err);
-				}
-				resolve(true);
-			});
-			connection.end();
+			this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
+        }
+
+        connection.query(sql_update, param, (err, results, fields) => {
+          if (err) {
+            throw new Error(err);
+          }
+          resolve(true);
+        });
+        connection.release();
+      });
+			
 
 		});
 	}
@@ -104,17 +122,25 @@ export class MobilityImpairedModel extends BaseClass {
 			('date_created' in this.dbData) ? this.dbData['date_created'] : '',
 			('user_invitations_id' in this.dbData) ? this.dbData['user_invitations_id'] : 0
 			];
-			const connection = db.createConnection(dbconfig);
-			connection.query(sql_insert, param, (err, results, fields) => {
-				if (err) {
-					console.log(sql_insert);
-					throw new Error(err);
-				}
-				this.id = results.insertId;
-				this.dbData['mobility_impaired_details_id'] = this.id;
-				resolve(true);
-			});
-			connection.end();
+			
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
+        }
+
+        connection.query(sql_insert, param, (err, results, fields) => {
+          if (err) {
+            console.log(sql_insert);
+            throw new Error(err);
+          }
+          this.id = results.insertId;
+          this.dbData['mobility_impaired_details_id'] = this.id;
+          resolve(true);
+        });
+        connection.release();
+      });
+
+			
 
 		});
 	}
@@ -166,17 +192,23 @@ export class MobilityImpairedModel extends BaseClass {
                 GROUP BY users.user_id
             `;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, (error, results) => {
-                if (error) {
-                    console.log(sql);
-                    throw Error('Cannot generate list of peep emergency users');
-                }
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
 
-                resolve(results);
+              connection.query(sql, (error, results) => {
+                  if (error) {
+                      console.log(sql);
+                      throw Error('Cannot generate list of peep emergency users');
+                  }
+
+                  resolve(results);
+              });
+
+              connection.release();
             });
-
-            connection.end();
+            
         });
     }
 
@@ -270,20 +302,28 @@ export class MobilityImpairedModel extends BaseClass {
         `;
       }
 
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_peep_users, [account_id], (error, results) => {
-        if (error) {
-          console.log('mobility.impaired.details.listAllMobilityImpaired', error, sql_peep_users);
-          throw Error('Cannot generate list of peep emergency users');
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
-        if (results.length > 0) {
-          for (const r of results) {
-            queryResultSet.push(r);
-          }
-        }
-        resolve(queryResultSet);
-      });
 
+        connection.query(sql_peep_users, [account_id], (error, results) => {
+          if (error) {
+            console.log('mobility.impaired.details.listAllMobilityImpaired', error, sql_peep_users);
+            throw Error('Cannot generate list of peep emergency users');
+          }
+          if (results.length > 0) {
+            for (const r of results) {
+              queryResultSet.push(r);
+            }
+          }
+          resolve(queryResultSet);
+        });
+
+
+        connection.release();
+      });
+      
        /*
       if (queryStat) {
         connection.query(sql_peep_account_users, [account_id], (error, results) => {
@@ -303,7 +343,6 @@ export class MobilityImpairedModel extends BaseClass {
         });
       }
       */
-      connection.end();
     });
   }
 

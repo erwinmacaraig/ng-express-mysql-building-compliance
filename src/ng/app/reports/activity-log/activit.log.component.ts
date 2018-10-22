@@ -47,6 +47,8 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
     exportFetchMarker = {};
     exportData = [];
 
+    print:any;
+
 	constructor(
 		private router : ActivatedRoute,
 		private authService : AuthService,
@@ -91,6 +93,10 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 
 	ngAfterViewInit(){
         $('.pagination select').material_select('destroy');
+
+        this.print = new PrintService({
+            content : this.printContainer.nativeElement.outerHTML
+        });
     }
 
     generateReportDataForExport(){
@@ -214,11 +220,9 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         });
         */
        
-        let print = new PrintService({
-            content : this.printContainer.nativeElement.outerHTML
-        });
+        
 
-        print.print();
+        this.print.print(document.getElementById('printContainer').innerHTML);
     }
 
     pdfExport(aPdf, printContainer){

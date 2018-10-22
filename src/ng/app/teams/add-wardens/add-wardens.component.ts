@@ -169,6 +169,15 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 
         this.onKeyUpSearchModalLocationEvent();
         this.messageService.sendMessage({ 'csv-upload' : {  'title' : 'Nominate Wardens by CSV Upload'  } });
+
+        let breadCrumbs = [];
+        breadCrumbs.push({
+          'value' : 'ECO Member', 'link' : '/teams/list-wardens'
+        });
+        breadCrumbs.push({
+          'value' : 'Nominate warden', 'link' : '/teams/add-wardens'
+        });
+        this.messageService.sendMessage({ 'breadcrumbs' : breadCrumbs });
     }
 
     onSelectRole($event, iterator, elem){

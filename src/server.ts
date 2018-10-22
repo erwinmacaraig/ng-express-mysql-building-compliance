@@ -115,7 +115,6 @@ export class Server {
       }));
 
       this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
       // cors
       this.app.use(cors({
         origin: function(origin, callback) {
@@ -201,14 +200,13 @@ export class Server {
 
       // use router middleware
       this.app.use(router);
-      /*
+      
       this.app.use(function(req, res, next) {
         if ((!req.secure) && (req.get('X-Forwarded-Proto') !== 'https')) {
-          return res.redirect('https://' + req.get('Host') + req.url);
+          // return res.redirect('https://' + req.get('Host') + req.url);
         }
         return next();
       });
-      */
 
       // catch 404 and forward to error handler
       this.app.use(function(req: express.Request, res: express.Response, next: express.NextFunction) {
