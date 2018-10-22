@@ -50,7 +50,7 @@ export class AdminRoute extends BaseRoute {
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       let sublocs = [];
       let location = new Location();
-      let locationAccountRelationObj = new LocationAccountRelation();
+      let locationAccountRelationObj; 
       let sublocation;
       if (req.body.role == 'Tenant') {
         sublocs = JSON.parse(req.body.sublocs);
@@ -65,12 +65,16 @@ export class AdminRoute extends BaseRoute {
           location_directory_name: (req.body.name).replace(/\s/g, ''),
           admin_verified: 1
         });
+        locationAccountRelationObj = new LocationAccountRelation();
 
         await locationAccountRelationObj.create({
           location_id: location.ID(),
           account_id: req.body.account_id,
           responsibility: 'Tenant'
         });
+
+        locationAccountRelationObj = null;
+
 
 
         for(const sublevel of sublocs) {
@@ -87,11 +91,14 @@ export class AdminRoute extends BaseRoute {
             location_directory_name: (sublevel).replace(/\s/g, ''),
             admin_verified: 1
           });
+          locationAccountRelationObj = new LocationAccountRelation();
           await locationAccountRelationObj.create({
             location_id: sublocation.ID(),
             account_id: req.body.account_id,
             responsibility: 'Tenant'
           });
+
+          locationAccountRelationObj = null;
           sublocation = null;
         }
       }
