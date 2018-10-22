@@ -205,9 +205,13 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
             this.breadCrumbs.push({
               'value' : 'Location list', 'link' : '/location/list'
             });
-            this.breadCrumbs.push({
-              'value' : this.locationData.name, 'link' : '/location/view/'+this.encryptedID
-            });
+            for(let i in response.ancestries){
+                this.breadCrumbs.push({
+                  'value' : response.ancestries[i].name, 'link' : '/location/view/'+this.encryptDecrypt.encrypt(response.ancestries[i]['location_id'])
+                });
+
+            }
+             
             this.messageService.sendMessage({ 'breadcrumbs' : this.breadCrumbs });
             callBack();
         }, { get_related_only : true });

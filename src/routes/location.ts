@@ -1234,6 +1234,11 @@ const defs = require('../config/defs.json');
         });
 
       	response.sublocations = sublocations;
+
+        let ancestriesModel = new Location(),
+        ancestries = await ancestriesModel.getAncestries(locationId);
+        response['ancestries'] = ancestries;
+
 	    // get immediate parent
 	    const parentId = <number>location.get('parent_id');
 
