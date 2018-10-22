@@ -431,20 +431,22 @@ export class LocationAccountRelation extends BaseClass {
                     `;
 
                     if('parentOnly' in filter){
-                        sql_get_locations = `
-                            SELECT * 
-                            FROM locations
-                            WHERE 
-                            location_id IN (
-                                SELECT DISTINCT(parent_id)
+                        if(filter['parentOnly']){
+                            sql_get_locations = `
+                                SELECT * 
                                 FROM locations
                                 WHERE 
-                                (location_id IN (${ids}) AND is_building = 1
-                                OR parent_id IN (${ids}) AND is_building = 1)
-                            )
-                            ${nameSearch}
-                            ${orderBy}
-                        `;
+                                location_id IN (
+                                    SELECT DISTINCT(IF(parent_id > -1, parent_id, location_id))
+                                    FROM locations
+                                    WHERE 
+                                    (location_id IN (${ids}) AND is_building = 1
+                                    OR parent_id IN (${ids}) AND is_building = 1)
+                                )
+                                ${nameSearch}
+                                ${orderBy}
+                            `;
+                        }
                     }
 
                     if('count' in filter){
@@ -457,19 +459,21 @@ export class LocationAccountRelation extends BaseClass {
                             ${nameSearch}
                         `;
                         if('parentOnly' in filter){
-                            sql_get_locations = `
-                                SELECT COUNT(location_id) as count 
-                                FROM locations
-                                WHERE 
-                                location_id IN (
-                                    SELECT DISTINCT(parent_id)
+                            if(filter['parentOnly']){
+                                sql_get_locations = `
+                                    SELECT COUNT(location_id) as count 
                                     FROM locations
                                     WHERE 
-                                    (location_id IN (${ids}) AND is_building = 1
-                                    OR parent_id IN (${ids}) AND is_building = 1)
-                                )
-                                ${nameSearch}
-                            `;
+                                    location_id IN (
+                                        SELECT DISTINCT(IF(parent_id > -1, parent_id, location_id))
+                                        FROM locations
+                                        WHERE 
+                                        (location_id IN (${ids}) AND is_building = 1
+                                        OR parent_id IN (${ids}) AND is_building = 1)
+                                    )
+                                    ${nameSearch}
+                                `;
+                            }
                         }
                     }else if('locationIdOnly' in filter){
                         sql_get_locations = `
@@ -481,27 +485,26 @@ export class LocationAccountRelation extends BaseClass {
                             ${nameSearch}
                         `;
                         if('parentOnly' in filter){
-                            sql_get_locations = `
-                                SELECT location_id
-                                FROM locations
-                                WHERE 
-                                location_id IN (
-                                    SELECT DISTINCT(parent_id)
+                            if(filter['parentOnly']){
+                                sql_get_locations = `
+                                    SELECT location_id
                                     FROM locations
                                     WHERE 
-                                    (location_id IN (${ids}) AND is_building = 1
-                                    OR parent_id IN (${ids}) AND is_building = 1)
-                                )
-                                ${nameSearch}
-                            `;
+                                    location_id IN (
+                                        SELECT DISTINCT(IF(parent_id > -1, parent_id, location_id))
+                                        FROM locations
+                                        WHERE 
+                                        (location_id IN (${ids}) AND is_building = 1
+                                        OR parent_id IN (${ids}) AND is_building = 1)
+                                    )
+                                    ${nameSearch}
+                                `;
+                            }
                         }
                     }else{
                         sql_get_locations += ` ${offsetLimit}`;
                     }
 
-                    
-
- 
                     // console.log('sql_get_locations', sql_get_locations);
 
                     this.pool.getConnection((err, connection) => {
