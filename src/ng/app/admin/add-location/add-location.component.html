@@ -157,32 +157,32 @@
                             <span>Occupiable Levels</span>
                             <div class="input-arrow-up-down">
                                 <input formControlName="occupiableLvls" type="text" readonly class="input-level" value="0">
-                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevel('occupiableLvls')"><i class="material-icons">arrow_drop_up</i></button>
-                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="subtractLevel('occupiableLvls')"><i class="material-icons">arrow_drop_down</i></button>
+                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevelForFRPBuilding('occupiableLvls')"><i class="material-icons">arrow_drop_up</i></button>
+                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="removeLevelForFRPBuilding('occupiableLvls')"><i class="material-icons">arrow_drop_down</i></button>
                             </div>
                         </div>
                         <div class="inline-block">
                             <span>Carpark Level</span>
                             <div class="input-arrow-up-down" >
                                 <input type="text" formControlName="carpark" readonly class="input-level" value="0" #inpCarPark>
-                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevel('carpark')"><i class="material-icons">arrow_drop_up</i></button>
-                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="subtractLevel('carpark')"><i class="material-icons">arrow_drop_down</i></button>
+                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevelForFRPBuilding('carpark')"><i class="material-icons">arrow_drop_up</i></button>
+                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="removeLevelForFRPBuilding('carpark')"><i class="material-icons">arrow_drop_down</i></button>
                             </div>
                         </div>
                         <div class="inline-block">
                             <span>Plant Room</span>
                             <div class="input-arrow-up-down" >
                                 <input type="text" formControlName="plantroom" readonly class="input-level" value="0">
-                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevel('plantroom')"><i class="material-icons">arrow_drop_up</i></button>
-                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="subtractLevel('plantroom')"><i class="material-icons">arrow_drop_down</i></button>
+                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevelForFRPBuilding('plantroom')"><i class="material-icons">arrow_drop_up</i></button>
+                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="removeLevelForFRPBuilding('plantroom')"><i class="material-icons">arrow_drop_down</i></button>
                             </div>
                         </div>
                         <div class="inline-block">
                             <span>Others</span>
                             <div class="input-arrow-up-down" >
                                 <input type="text" formControlName="others" readonly class="input-level" value="0">
-                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevel('others')"><i class="material-icons">arrow_drop_up</i></button>
-                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="subtractLevel('others')"><i class="material-icons">arrow_drop_down</i></button>
+                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevelForFRPBuilding('others')"><i class="material-icons">arrow_drop_up</i></button>
+                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="removeLevelForFRPBuilding('others')"><i class="material-icons">arrow_drop_down</i></button>
                             </div>
                         </div>
                     </div>
@@ -190,7 +190,8 @@
                 <div class="row">
                     <div class="col s12 right-align">
                         <button type="button" class="btn grey waves-effect waves-light" (click)="cancelAll()">Cancel</button>
-                        <button type="button" class="btn orange waves-effect waves-light" [disabled]="!newLocationFrmGroup.valid" (click)="showDynamicLevelForm()">Next</button>                    
+                        <button *ngIf="managingRole != 'FRP'" type="button" class="btn orange waves-effect waves-light" [disabled]="!newLocationFrmGroup.valid" (click)="showDynamicLevelForm()">Next</button>                    
+                        <button *ngIf="managingRole == 'FRP'" type="button" class="btn orange waves-effect waves-light" [disabled]="!(newLocationFrmGroup.valid && addLocationBldgFRPCtrl)" (click)="showFRPNewLocationDetails()">Disabled - {{ !(newLocationFrmGroup.valid && addLocationBldgFRPCtrl) }}</button>                    
                     </div>
                 </div>            
             </div>
@@ -215,6 +216,28 @@
             <div class="col s12 right-align">
                 <button type="button" class="btn grey waves-effect waves-light" (click)="cancelAll()">Cancel</button>
                 <button type="submit" class="btn orange waves-effect waves-light" [disabled]="!newLocationFrmGroup.valid" >Submit</button>                    
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="frpBuildingLocationConfirmation">
+        <div class="row">
+            <div col="col s8">
+                <h5>{{newLocationFrmGroup.get('name').value}}</h5> 
+                <h6>{{newLocationFrmGroup.get('street').value}}, {{newLocationFrmGroup.get('city').value}}, {{newLocationFrmGroup.get('state').value}}</h6>
+                <br>
+                <span>Number of occupiable levels: {{newLocationFrmGroup.get('occupiableLvls').value}}</span>
+                <div>
+                    <ul>
+                        <li *ngFor="let l of occupiableLevelArr; let i = index">Level {{i+1}}</li>
+                    </ul>
+                </div>
+            </div>           
+        </div>
+        <div class="row">
+            <div class="col s12 right-align">
+                <button type="button" class="btn grey waves-effect waves-light" (click)="cancelAll()">Cancel</button>
+                <button type="submit" class="btn orange waves-effect waves-light">Submit</button>                    
             </div>
         </div>
     </div>

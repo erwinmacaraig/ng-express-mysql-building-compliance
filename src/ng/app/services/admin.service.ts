@@ -201,4 +201,9 @@ export class AdminService {
   addExistingLocationsToAccount(postBody = {}) {
     return this.http.post(`${this.baseUrl}/admin/tag-account-to-existing-loc/`, postBody);
   }
+
+  addNewLocation(postBody = {}) {
+    return  this.http.post(`${this.baseUrl}/admin/create-new-location/`, postBody);
+  }
+
 }

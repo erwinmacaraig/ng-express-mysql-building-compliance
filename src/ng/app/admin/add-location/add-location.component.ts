@@ -31,8 +31,11 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     managingRole:string = '';
     showSearchLocation:boolean = false;
     showNewBuildingForm: boolean = false;
-    showLevelForm:boolean = false;   
+    showLevelForm:boolean = false;
+    addLocationBldgFRPCtrl = false;
+    frpBuildingLocationConfirmation:boolean = false;   
         
+    occupiableLevelArr:Array<number>;
     @ViewChild('search')
     public searchElementRef: ElementRef;
 
@@ -169,6 +172,7 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
         this.managingRoleGroup.reset();
         this.showSearchLocation = false;
         this.showNewBuildingForm = false;
+        this.frpBuildingLocationConfirmation = false;
         this.showLevelForm = false;
         this.selectedSublevels = [];
         this.selectedLocationFromSearch = {};
@@ -228,16 +232,19 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
         let role = '';
         let postBody = {};
         this.managingRole == 'FRP' ? role = 'Manager' :  role = 'Tenant';
+        postBody['name'] = this.newLocationFrmGroup.get('name').value;
+        postBody['street'] = this.newLocationFrmGroup.get('street').value;
+        postBody['city'] = this.newLocationFrmGroup.get('city').value;
+        postBody['state'] = this.newLocationFrmGroup.get('state').value;
+        postBody['account_id'] = this.accountId;
         if (role=='Manager') {
-            
-
+            postBody['role'] = 'Manager';
+            postBody['occupiable_levels'] = this.newLocationFrmGroup.get('occupiableLvls').value;
+            postBody['carpark'] = this.newLocationFrmGroup.get('carpark').value;
+            postBody['plantroom'] = this.newLocationFrmGroup.get('plantroom').value;
+            postBody['others'] = this.newLocationFrmGroup.get('others').value;
         } else {
             postBody['role'] = 'Tenant';
-            postBody['name'] = this.newLocationFrmGroup.get('name').value;
-            postBody['street'] = this.newLocationFrmGroup.get('street').value;
-            postBody['city'] = this.newLocationFrmGroup.get('city').value;
-            postBody['state'] = this.newLocationFrmGroup.get('state').value;
-
             const sublocsArr = [];
             for (const s of this.newLocationFrmGroup.get('levels').value) {
                 sublocsArr.push(s['new_level']);
@@ -246,10 +253,124 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
 
         } 
         console.log(postBody);
-
         this.cancelAll();
 
+        this.adminService.addNewLocation(postBody).subscribe((response) => {
+            console.log(response);
+            
+        });
+
+
         
+    }
+    
+    removeLevelForFRPBuilding(fieldName) {
+        let carparkTotal = 0;
+        let occupiableTotal = 0;
+        let plantroomTotal = 0;
+        let othersTotal = 0;
+        let levels = 0;
+        let total = 0;
+
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get('total_levels').value, 10))) {
+            total = parseInt(this.newLocationFrmGroup.get('total_levels').value, 10);
+        }
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get('occupiableLvls').value, 10))) {
+            occupiableTotal = parseInt(this.newLocationFrmGroup.get('occupiableLvls').value, 10);
+        }
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get('carpark').value, 10))) {
+            carparkTotal = parseInt(this.newLocationFrmGroup.get('carpark').value, 10);
+        }
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get('plantroom').value, 10))) {
+            plantroomTotal = parseInt(this.newLocationFrmGroup.get('plantroom').value, 10);
+        }
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get('others').value, 10))) {
+            othersTotal = parseInt(this.newLocationFrmGroup.get('others').value, 10);
+        }
+               
+        switch(fieldName) {
+            case 'occupiableLvls':
+                if (occupiableTotal > 0) {
+                    occupiableTotal -= 1;
+                    this.newLocationFrmGroup.get('occupiableLvls').setValue(occupiableTotal);                                
+                }                    
+                break;
+            case 'carpark':
+                if (carparkTotal > 0) {
+                    carparkTotal -= 1;
+                    this.newLocationFrmGroup.get('carpark').setValue(carparkTotal);
+                }                    
+                break;
+            case 'plantroom':
+                if (plantroomTotal > 0) {
+                    plantroomTotal -= 1;
+                    this.newLocationFrmGroup.get('plantroom').setValue(plantroomTotal);
+                }                    
+                break;
+            case 'others':
+                if (othersTotal > 0) {
+                    othersTotal -= 1;
+                    this.newLocationFrmGroup.get('others').setValue(othersTotal);
+                }                    
+                break;
+        }
+        levels = occupiableTotal + carparkTotal + plantroomTotal + othersTotal;                     
+        if (levels != total) {
+            this.addLocationBldgFRPCtrl = false;
+        }
+    }
+    addLevelForFRPBuilding(fieldName) {
+        let carparkTotal = 0;
+        let occupiableTotal = 0;
+        let plantroomTotal = 0;
+        let othersTotal = 0;
+        let levels = 0;
+        let total = 0;
+
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get('total_levels').value, 10))) {
+            total = parseInt(this.newLocationFrmGroup.get('total_levels').value, 10);
+        }
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get('occupiableLvls').value, 10))) {
+            occupiableTotal = parseInt(this.newLocationFrmGroup.get('occupiableLvls').value, 10);
+        }
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get('carpark').value, 10))) {
+            carparkTotal = parseInt(this.newLocationFrmGroup.get('carpark').value, 10);
+        }
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get('plantroom').value, 10))) {
+            plantroomTotal = parseInt(this.newLocationFrmGroup.get('plantroom').value, 10);
+        }
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get('others').value, 10))) {
+            othersTotal = parseInt(this.newLocationFrmGroup.get('others').value, 10);
+        }
+        levels = occupiableTotal + carparkTotal + plantroomTotal + othersTotal;
+
+        if (levels < total) {
+            switch(fieldName) {
+                case 'occupiableLvls':
+                    occupiableTotal += 1;
+                    this.newLocationFrmGroup.get('occupiableLvls').setValue(occupiableTotal);                                
+                    break;
+                case 'carpark':
+                    carparkTotal += 1;
+                    this.newLocationFrmGroup.get('carpark').setValue(carparkTotal);
+                    break;
+                case 'plantroom':
+                    plantroomTotal += 1;
+                    this.newLocationFrmGroup.get('plantroom').setValue(plantroomTotal);
+                    break;
+                case 'others':
+                    othersTotal += 1;
+                    this.newLocationFrmGroup.get('others').setValue(othersTotal);
+                    break;
+            }                    
+        }
+        levels = occupiableTotal + carparkTotal + plantroomTotal + othersTotal;
+        if (levels == total) {
+            this.addLocationBldgFRPCtrl = true;
+        } else {
+            this.addLocationBldgFRPCtrl = false;
+        }
+        console.log(this.addLocationBldgFRPCtrl);
     }
 
     addLevel(fieldName) {        
@@ -263,15 +384,15 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
             totalLevels += 1;
             this.newLocationFrmGroup.get(fieldName).setValue(totalLevels);
         }
+
+
     }
-    subtractLevel(fieldName, elRef:ElementRef) { 
+    subtractLevel(fieldName) { 
         let totalLevels = 0;
         if (!isNaN(parseInt(this.newLocationFrmGroup.get(fieldName).value, 10))) {
             totalLevels = parseInt(this.newLocationFrmGroup.get(fieldName).value, 10);
         }
-        if (totalLevels <= 0) {
-            this.newLocationFrmGroup.get(fieldName).setValue('99');
-        } else {
+        if (totalLevels > 0) {            
             totalLevels -= 1;
             this.newLocationFrmGroup.get(fieldName).setValue(totalLevels);
         }
@@ -284,8 +405,13 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
             (<FormArray>this.newLocationFrmGroup.controls['levels']).push(new FormGroup({
                 new_level: new FormControl(null, Validators.required)
             }));
-        }        
+        }
+    }
 
+    showFRPNewLocationDetails() {
+        this.frpBuildingLocationConfirmation = true;
+        this.showNewBuildingForm = false;
+        this.occupiableLevelArr = new Array( parseInt(this.newLocationFrmGroup.get('occupiableLvls').value, 10));
     }
 
     

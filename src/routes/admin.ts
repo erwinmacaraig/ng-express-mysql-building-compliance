@@ -46,6 +46,61 @@ export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {
 
+    router.post('/admin/create-new-location/',new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      let sublocs = [];
+      let location = new Location();
+      let locationAccountRelationObj = new LocationAccountRelation();
+      let sublocation;
+      if (req.body.role == 'Tenant') {
+        sublocs = JSON.parse(req.body.sublocs);
+        await location.create({
+          name: req.body.name,
+          is_building: 1,
+          parent_id: -1,
+          street: req.body.street,
+          city: req.body.city,
+          state: req.body.state,
+          formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+          location_directory_name: (req.body.name).replace(/\s/g, ''),
+          admin_verified: 1
+        });
+
+        await locationAccountRelationObj.create({
+          location_id: location.ID(),
+          account_id: req.body.account_id,
+          responsibility: 'Tenant'
+        });
+
+
+        for(const sublevel of sublocs) {
+          let sublocation = new Location();
+
+          await sublocation.create({
+            name: sublevel,
+            is_building: 0,
+            parent_id: location.ID(),
+            street: req.body.street,
+            city: req.body.city,
+            state: req.body.state,
+            formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+            location_directory_name: (sublevel).replace(/\s/g, ''),
+            admin_verified: 1
+          });
+          await locationAccountRelationObj.create({
+            location_id: sublocation.ID(),
+            account_id: req.body.account_id,
+            responsibility: 'Tenant'
+          });
+          sublocation = null;
+        }
+      }
+
+      return res.status(200).send({
+        message: 'Success'
+      });
+    });
+
     router.post('/admin/send-notification/',
       new MiddlewareAuth().authenticate,
       async (req: AuthRequest, res: Response, next: NextFunction) => {
