@@ -52,31 +52,27 @@ export class AdminRoute extends BaseRoute {
       let location = new Location();
       let locationAccountRelationObj; 
       let sublocation;
-      if (req.body.role == 'Tenant') {
-        sublocs = JSON.parse(req.body.sublocs);
-        await location.create({
-          name: req.body.name,
-          is_building: 1,
-          parent_id: -1,
-          street: req.body.street,
-          city: req.body.city,
-          state: req.body.state,
-          formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
-          location_directory_name: (req.body.name).replace(/\s/g, ''),
-          admin_verified: 1
-        });
-        locationAccountRelationObj = new LocationAccountRelation();
-
+      await location.create({
+        name: req.body.name,
+        is_building: 1,
+        parent_id: -1,
+        street: req.body.street,
+        city: req.body.city,
+        state: req.body.state,
+        formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+        location_directory_name: (req.body.name).replace(/\s/g, ''),
+        admin_verified: 1
+      });
+      locationAccountRelationObj = new LocationAccountRelation();
         await locationAccountRelationObj.create({
           location_id: location.ID(),
           account_id: req.body.account_id,
-          responsibility: 'Tenant'
+          responsibility: req.body.role
         });
-
         locationAccountRelationObj = null;
-
-
-
+      if (req.body.role == 'Tenant') {
+        sublocs = JSON.parse(req.body.sublocs);        
+        
         for(const sublevel of sublocs) {
           let sublocation = new Location();
 
@@ -100,7 +96,117 @@ export class AdminRoute extends BaseRoute {
 
           locationAccountRelationObj = null;
           sublocation = null;
-        }
+        } 
+      }
+      else if(req.body.role == 'Manager') {
+        console.log(req.body);
+         // if (req.body.occupiable_levels != null || parseInt(req.body.occupiable_levels, 10) != 0) {
+        if (req.body.occupiable_levels) {
+          let occupiableLevels = parseInt(req.body.occupiable_levels, 10);
+          for (let i = 0; i < occupiableLevels; i++) {
+            let sublocation = new Location();
+            await sublocation.create({
+              name: `Level ${i+1}`,
+              is_building: 0,
+              parent_id: location.ID(),
+              street: req.body.street,
+              city: req.body.city,
+              state: req.body.state,
+              formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+              location_directory_name: `Level${i+1}`,
+              admin_verified: 1
+            });
+            locationAccountRelationObj = new LocationAccountRelation();
+            await locationAccountRelationObj.create({
+              location_id: sublocation.ID(),
+              account_id: req.body.account_id,
+              responsibility: 'Manager'
+            });
+            locationAccountRelationObj = null;
+            sublocation = null;
+          }
+         }
+
+         if (req.body.carpark) {
+          let carpark = parseInt(req.body.carpark, 10);
+          for (let i = 0; i < carpark; i++) {
+            let sublocation = new Location();
+            await sublocation.create({
+              name: `Carpark ${i+1}`,
+              is_building: 0,
+              parent_id: location.ID(),
+              street: req.body.street,
+              city: req.body.city,
+              state: req.body.state,
+              formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+              location_directory_name: `Carpark${i+1}`,
+              admin_verified: 1
+            });
+            locationAccountRelationObj = new LocationAccountRelation();
+            await locationAccountRelationObj.create({
+              location_id: sublocation.ID(),
+              account_id: req.body.account_id,
+              responsibility: 'Manager'
+            });
+            locationAccountRelationObj = null;
+            sublocation = null;
+          }
+         }
+
+         if (req.body.plantroom) {
+          let plantroom = parseInt(req.body.plantroom, 10);
+          for (let i = 0; i < plantroom; i++) {
+            let sublocation = new Location();
+            await sublocation.create({
+              name: `Plantroom ${i+1}`,
+              is_building: 0,
+              parent_id: location.ID(),
+              street: req.body.street,
+              city: req.body.city,
+              state: req.body.state,
+              formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+              location_directory_name: `Plantroom${i+1}`,
+              admin_verified: 1
+            });
+            locationAccountRelationObj = new LocationAccountRelation();
+            await locationAccountRelationObj.create({
+              location_id: sublocation.ID(),
+              account_id: req.body.account_id,
+              responsibility: 'Manager'
+            });
+            locationAccountRelationObj = null;
+            sublocation = null;
+          }
+         }
+
+         if (req.body.others) {
+          let others = parseInt(req.body.others, 10);
+          for (let i = 0; i < others; i++) {
+            let sublocation = new Location();
+            await sublocation.create({
+              name: `Others ${i+1}`,
+              is_building: 0,
+              parent_id: location.ID(),
+              street: req.body.street,
+              city: req.body.city,
+              state: req.body.state,
+              formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+              location_directory_name: `Others${i+1}`,
+              admin_verified: 1
+            });
+            locationAccountRelationObj = new LocationAccountRelation();
+            await locationAccountRelationObj.create({
+              location_id: sublocation.ID(),
+              account_id: req.body.account_id,
+              responsibility: 'Manager'
+            });
+            locationAccountRelationObj = null;
+            sublocation = null;
+          }
+         }
+
+
+
       }
 
       return res.status(200).send({

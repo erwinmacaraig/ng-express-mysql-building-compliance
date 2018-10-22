@@ -191,7 +191,7 @@
                     <div class="col s12 right-align">
                         <button type="button" class="btn grey waves-effect waves-light" (click)="cancelAll()">Cancel</button>
                         <button *ngIf="managingRole != 'FRP'" type="button" class="btn orange waves-effect waves-light" [disabled]="!newLocationFrmGroup.valid" (click)="showDynamicLevelForm()">Next</button>                    
-                        <button *ngIf="managingRole == 'FRP'" type="button" class="btn orange waves-effect waves-light" [disabled]="!(newLocationFrmGroup.valid && addLocationBldgFRPCtrl)" (click)="showFRPNewLocationDetails()">Disabled - {{ !(newLocationFrmGroup.valid && addLocationBldgFRPCtrl) }}</button>                    
+                        <button *ngIf="managingRole == 'FRP'" type="button" class="btn orange waves-effect waves-light" [disabled]="!(newLocationFrmGroup.valid && addLocationBldgFRPCtrl)" (click)="showFRPNewLocationDetails()">Next</button>                    
                     </div>
                 </div>            
             </div>
