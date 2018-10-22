@@ -90,6 +90,7 @@ export class PrintService{
                     </style>
                 </head>
                 <body onload="window.print(); window.close()">
+                    <img src="/assets/images/ec_logo.png"  style="width:200px;" />
                     ${this.content}
                 </body>
             </html>
