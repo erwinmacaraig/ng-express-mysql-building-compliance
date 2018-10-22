@@ -31,9 +31,8 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     managingRole:string = '';
     showSearchLocation:boolean = false;
     showNewBuildingForm: boolean = false;
-    total_levels:FormControl;
-    
-    street:FormControl;
+    showLevelForm:boolean = false;   
+        
     @ViewChild('search')
     public searchElementRef: ElementRef;
 
@@ -49,7 +48,7 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     ) {}
 
     ngOnInit() {
-        this.street = new FormControl('test', Validators.required);
+        
         this.paramSub = this.activatedRoute.params.subscribe((params) => {
             this.accountId = params.accountId;
             this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
@@ -75,17 +74,20 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
         */
        this.newLocationFrmGroup = new FormGroup({
         name: new FormControl(null, Validators.required),
-        street: this.street,
-        city:  new FormControl('Sample City', Validators.required),
-        state:  new FormControl('Sample State'),
+        street: new FormControl(null, Validators.required),
+        city:  new FormControl(null, Validators.required),
+        state:  new FormControl(null, Validators.required),
         carpark: new FormControl('0', null),
         plantroom: new FormControl('0', null),
         others: new FormControl('0', null),
         levels: new FormArray([]),
         occupiableLvls: new FormControl('0'),
-        total_levels: new FormControl(0, null)
+        total_levels: new FormControl("0", Validators.required)        
     });
 
+    this.newLocationFrmGroup.get('total_levels').setValue('0');
+
+    console.log(this.newLocationFrmGroup.controls);
     }
 
     ngAfterViewInit() {
@@ -111,6 +113,7 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
                 this.searchedLocations = locs;
             });
         });
+        this.newLocationFrmGroup.get('total_levels').setValue('0');
         
     }
 
@@ -149,6 +152,7 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     setLocationManagingRole(e, managing_role) {
         console.log(managing_role);
         this.showNewBuildingForm = false;
+        this.showLevelForm = false;
         this.newLocationFrmGroup.reset();
         this.managingRole = managing_role;
         this.selectedSublevels = [];
@@ -158,6 +162,18 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
             this.showSearchLocation = true;
         }
 
+    }
+
+    cancelAll() {
+        this.newLocationFrmGroup.reset();
+        this.managingRoleGroup.reset();
+        this.showSearchLocation = false;
+        this.showNewBuildingForm = false;
+        this.showLevelForm = false;
+        this.selectedSublevels = [];
+        this.selectedLocationFromSearch = {};
+        this.sublocations = [];
+        this.managingRole = '';
     }
 
     resetSelections() {
@@ -207,25 +223,69 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
         });
     }
 
-    onCreateNewBuildingLocation() {
+    createNewLocation() {
+        console.log(this.newLocationFrmGroup.value);
+        let role = '';
+        let postBody = {};
+        this.managingRole == 'FRP' ? role = 'Manager' :  role = 'Tenant';
+        if (role=='Manager') {
+            
+
+        } else {
+            postBody['role'] = 'Tenant';
+            postBody['name'] = this.newLocationFrmGroup.get('name').value;
+            postBody['street'] = this.newLocationFrmGroup.get('street').value;
+            postBody['city'] = this.newLocationFrmGroup.get('city').value;
+            postBody['state'] = this.newLocationFrmGroup.get('state').value;
+
+            const sublocsArr = [];
+            for (const s of this.newLocationFrmGroup.get('levels').value) {
+                sublocsArr.push(s['new_level']);
+            }
+            postBody['sublocs'] = JSON.stringify(sublocsArr);
+
+        } 
+        console.log(postBody);
+
+        this.cancelAll();
+
         
     }
 
-    addLevel(fieldName, ref:ElementRef) {
-        if (parseInt(this.newLocationFrmGroup.get(fieldName).value, 10) >= 99) {
+    addLevel(fieldName) {        
+        let totalLevels = 0;
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get(fieldName).value, 10))) {
+            totalLevels = parseInt(this.newLocationFrmGroup.get(fieldName).value, 10);
+        }
+        if (totalLevels >= 99) {
             this.newLocationFrmGroup.get(fieldName).setValue('1');
         } else {
-            this.newLocationFrmGroup.get(fieldName).setValue((parseInt(this.newLocationFrmGroup.get(fieldName).value, 10) + 1).toString());
+            totalLevels += 1;
+            this.newLocationFrmGroup.get(fieldName).setValue(totalLevels);
         }
     }
     subtractLevel(fieldName, elRef:ElementRef) { 
-        console.log(fieldName);
-        console.log(elRef);
-        if (parseInt(this.newLocationFrmGroup.get(fieldName).value, 10) <= 0) {
+        let totalLevels = 0;
+        if (!isNaN(parseInt(this.newLocationFrmGroup.get(fieldName).value, 10))) {
+            totalLevels = parseInt(this.newLocationFrmGroup.get(fieldName).value, 10);
+        }
+        if (totalLevels <= 0) {
             this.newLocationFrmGroup.get(fieldName).setValue('99');
         } else {
-            this.newLocationFrmGroup.get(fieldName).setValue((parseInt(this.newLocationFrmGroup.get(fieldName).value, 10) - 1).toString());
+            totalLevels -= 1;
+            this.newLocationFrmGroup.get(fieldName).setValue(totalLevels);
         }
+    }
+    showDynamicLevelForm() {
+        this.showLevelForm = true;
+        this.showNewBuildingForm = false;
+        const totalLevels =  parseInt(this.newLocationFrmGroup.get('total_levels').value, 10);
+        for(let i = 0; i < totalLevels; i++) {
+            (<FormArray>this.newLocationFrmGroup.controls['levels']).push(new FormGroup({
+                new_level: new FormControl(null, Validators.required)
+            }));
+        }        
+
     }
 
     
