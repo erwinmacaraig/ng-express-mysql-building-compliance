@@ -47,6 +47,8 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
     accountId = 0;
 
+    print:any;
+
     constructor (
         private router: Router,
         private authService: AuthService,
@@ -180,6 +182,10 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
             this.dashboardPreloader.show();
             this.router.navigate([ '/reports/teams/', encId]);
         });*/
+
+        this.print = new PrintService({
+            content : this.printContainer.nativeElement.outerHTML
+        });
     }
 
     pageChange(type){
@@ -230,12 +236,8 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
             header : headerHtml
         });
         */
-       
-       let print = new PrintService({
-            content : this.printContainer.nativeElement.outerHTML
-        });
 
-        print.print();
+        this.print.print(document.getElementById('printContainer').outerHTML);
     }
 
     pdfExport(printContainer){
