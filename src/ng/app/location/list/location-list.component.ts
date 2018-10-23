@@ -246,6 +246,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
                 }
                  
                 this.messageService.sendMessage({ 'breadcrumbs' : breadCrumbs });
+            }else{
+                this.messageService.sendMessage({ 'breadcrumbs' : [] });
             }
 
     		callback(response);

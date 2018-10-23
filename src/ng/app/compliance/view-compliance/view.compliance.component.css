@@ -49,9 +49,12 @@
     width: 60%;
 }
 
+.breadcrumb{
+    margin-top: 5%;
+}
 
 .row-table-content{
-    margin-top: 5%;
+    margin-top: 4%;
     position: absolute;
     top: 0px;
     transition: all 0.5s;
