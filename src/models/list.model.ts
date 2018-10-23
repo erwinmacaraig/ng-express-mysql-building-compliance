@@ -1,11 +1,32 @@
 import * as db from 'mysql2';
 import * as Promise from 'promise';
-
+import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
 const aws_credential = require('../config/aws-access-credentials.json');
 
-export class List {
-    constructor() {}
+export class List extends BaseClass{
+    constructor(id?: number) {
+        super();
+        if (id) {
+            this.id = id;
+        }
+    }
+
+    public load() {
+
+    }
+
+    public dbInsert() {
+
+    }
+
+    public dbUpdate() {
+
+    }
+
+    public create(createData) {
+
+    }
 
     public listTaggedLocationsOnAccountFromLAU(account = '0', filter: object = {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
@@ -56,14 +77,21 @@ export class List {
           LEFT JOIN locations as p4 ON p4.location_id = p3.parent_id
           LEFT JOIN locations as p5 ON p5.location_id = p4.parent_id
         WHERE  ${clause} GROUP BY location_account_user.location_id;`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, paramWhere, (error, results) => {
-          if (error) {
-            console.log(`list.model.listTaggedLocationsOnAccount`, error, sql);
-            throw Error('Cannot generate list for the account');
-          }
-          resolve(results);
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
+            }
+
+            connection.query(sql, paramWhere, (error, results) => {
+              if (error) {
+                console.log(`list.model.listTaggedLocationsOnAccount`, error, sql);
+                throw Error('Cannot generate list for the account');
+              }
+              resolve(results);
+            });
+            connection.release();
         });
+        
       });
     }
 
@@ -116,14 +144,21 @@ export class List {
         LEFT JOIN locations as p4 ON p4.location_id = p3.parent_id
         LEFT JOIN locations as p5 ON p5.location_id = p4.parent_id
         WHERE ${whereClause} ORDER BY locations.location_id`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, paramWhere, (error, results) => {
-          if (error) {
-            console.log(`list.model.listTaggedLocationsOnAccount`, error, sql);
-            throw Error('Cannot generate list for the account');
-          }
-          resolve(results);
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
+            }
+
+            connection.query(sql, paramWhere, (error, results) => {
+              if (error) {
+                console.log(`list.model.listTaggedLocationsOnAccount`, error, sql);
+                throw Error('Cannot generate list for the account');
+              }
+              resolve(results);
+            });
+            connection.release();
         });
+        
       });
     }
 
@@ -151,6 +186,7 @@ export class List {
             accounts.epc_committee_on_hq,
             accounts.online_training,
             accounts.key_contact,
+            accounts.fsa_by_evac,
             location_account_user.location_id
           FROM
             accounts
@@ -163,60 +199,66 @@ export class List {
             location_account_user.location_id
           ORDER BY
             accounts.account_id DESC;`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_account_list, [], (error, results) => {
-          if (error) {
-            console.log('list.model.generateAccountsAdminListFromLAU', error, sql_account_list);
-            throw Error('There was a problem generating the list');
-          }
-          for (const r of results) {
-            if (r['account_id'] in accounts) {
-              if (accounts[r['account_id']]['locations'].indexOf(r['location_id']) == -1) {
-                accounts[r['account_id']]['locations'].push(r['location_id']);
-              }
-            } else {
-              let billingAddress = '';
-              /*
-              if (r['billing_unit'] && r['billing_unit'].length > 0) {
-                billingAddress = `${r['billing_unit']}`;
-              }
-              */
-              if (r['billing_street'] && r['billing_street'].length > 0) {
-                billingAddress += `${r['billing_street']}`;
-              }
-              if (r['billing_city'] && r['billing_city'].length > 0) {
-                billingAddress += `, ${r['billing_city']}`;
-              }
-              if (r['billing_state'] && r['billing_state'].length > 0) {
-                billingAddress += `, ${r['billing_state']}`;
-              }
-              if (r['billing_postal_code'] && r['billing_postal_code'].length > 0) {
-                billingAddress += `, ${r['billing_postal_code']}`;
-              }
-              if (r['billing_country'] && r['billing_country'].length > 0) {
-                billingAddress += `, ${r['billing_country']}`;
-              }
-              accounts[r['account_id']] = {
-                'account_id': r['account_id'],
-                'id': r['account_id'],
-                'account_name': r['account_name'],
-                'name':  r['account_name'],
-                'key_contact': r['key_contact'],
-                'billing_street': r['billing_street'],
-                'billing_city': r['billing_city'],
-                'billing_state': r['billing_state'],
-                'billing_postal_code': r['billing_postal_code'],
-                'epc_committee_on_hq': r['epc_committee_on_hq'],
-                'online_training': r['online_training'],
-                'billing_address': `${billingAddress}`,
-                'locations': [r['location_id']],
-                'type': 'account'
-              };
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
             }
-          }
-          resolve(accounts);
+
+            connection.query(sql_account_list, [], (error, results) => {
+              if (error) {
+                console.log('list.model.generateAccountsAdminListFromLAU', error, sql_account_list);
+                throw Error('There was a problem generating the list');
+              }
+              for (const r of results) {
+                if (r['account_id'] in accounts) {
+                  if (accounts[r['account_id']]['locations'].indexOf(r['location_id']) == -1) {
+                    accounts[r['account_id']]['locations'].push(r['location_id']);
+                  }
+                } else {
+                  let billingAddress = '';
+                  /*
+                  if (r['billing_unit'] && r['billing_unit'].length > 0) {
+                    billingAddress = `${r['billing_unit']}`;
+                  }
+                  */
+                  if (r['billing_street'] && r['billing_street'].length > 0) {
+                    billingAddress += `${r['billing_street']}`;
+                  }
+                  if (r['billing_city'] && r['billing_city'].length > 0) {
+                    billingAddress += `, ${r['billing_city']}`;
+                  }
+                  if (r['billing_state'] && r['billing_state'].length > 0) {
+                    billingAddress += `, ${r['billing_state']}`;
+                  }
+                  if (r['billing_postal_code'] && r['billing_postal_code'].length > 0) {
+                    billingAddress += `, ${r['billing_postal_code']}`;
+                  }
+                  if (r['billing_country'] && r['billing_country'].length > 0) {
+                    billingAddress += `, ${r['billing_country']}`;
+                  }
+                  accounts[r['account_id']] = {
+                    'account_id': r['account_id'],
+                    'id': r['account_id'],
+                    'account_name': r['account_name'],
+                    'name':  r['account_name'],
+                    'key_contact': r['key_contact'],
+                    'billing_street': r['billing_street'],
+                    'billing_city': r['billing_city'],
+                    'billing_state': r['billing_state'],
+                    'billing_postal_code': r['billing_postal_code'],
+                    'epc_committee_on_hq': r['epc_committee_on_hq'],
+                    'online_training': r['online_training'],
+                    'billing_address': `${billingAddress}`,
+                    'locations': [r['location_id']],
+                    'type': 'account'
+                  };
+                }
+              }
+              resolve(accounts);
+            });
+            connection.release();
         });
-        connection.end();
+        
       });
     }
 
@@ -244,6 +286,7 @@ export class List {
             accounts.epc_committee_on_hq,
             accounts.online_training,
             accounts.key_contact,
+            accounts.fsa_by_evac,
             location_account_relation.location_id
           FROM
             accounts
@@ -254,61 +297,65 @@ export class List {
           WHERE 1 = 1 ${accntIdStr}
           ORDER BY
             accounts.account_id DESC;`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_account_list, [], (error, results) => {
-          if (error) {
-            console.log('list.model.generateAccountsAdminList', error, sql_account_list);
-            throw Error('There was a problem generating the list');
-          }
-          for (const r of results) {
-            if (r['account_id'] in accounts) {
-              if (accounts[r['account_id']]['locations'].indexOf(r['location_id']) == -1) {
-                accounts[r['account_id']]['locations'].push(r['location_id']);
-              }
-
-            } else {
-              let billingAddress = '';
-              /*
-              if (r['billing_unit'] && r['billing_unit'].length > 0) {
-                billingAddress = `${r['billing_unit']}`;
-              }
-              */
-              if (r['billing_street'] && r['billing_street'].length > 0) {
-                billingAddress += `${r['billing_street']}`;
-              }
-              if (r['billing_city'] && r['billing_city'].length > 0) {
-                billingAddress += `, ${r['billing_city']}`;
-              }
-              if (r['billing_state'] && r['billing_state'].length > 0) {
-                billingAddress += `, ${r['billing_state']}`;
-              }
-              if (r['billing_postal_code'] && r['billing_postal_code'].length > 0) {
-                billingAddress += `, ${r['billing_postal_code']}`;
-              }
-              if (r['billing_country'] && r['billing_country'].length > 0) {
-                billingAddress += `, ${r['billing_country']}`;
-              }
-              accounts[r['account_id']] = {
-                'account_id': r['account_id'],
-                'id': r['account_id'],
-                'account_name': r['account_name'],
-                'name':  r['account_name'],
-                'key_contact': r['key_contact'],
-                'billing_street': r['billing_street'],
-                'billing_city': r['billing_city'],
-                'billing_state': r['billing_state'],
-                'billing_postal_code': r['billing_postal_code'],
-                'epc_committee_on_hq': r['epc_committee_on_hq'],
-                'online_training': r['online_training'],
-                'billing_address': `${billingAddress}`,
-                'locations': [r['location_id']],
-                'type': 'account'
-              };
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
             }
-          }
-          resolve(accounts);
+          connection.query(sql_account_list, [], (error, results) => {
+            if (error) {
+              console.log('list.model.generateAccountsAdminList', error, sql_account_list);
+              throw Error('There was a problem generating the list');
+            }
+            for (const r of results) {
+              if (r['account_id'] in accounts) {
+                if (accounts[r['account_id']]['locations'].indexOf(r['location_id']) == -1) {
+                  accounts[r['account_id']]['locations'].push(r['location_id']);
+                }
+
+              } else {
+                let billingAddress = '';
+                /*
+                if (r['billing_unit'] && r['billing_unit'].length > 0) {
+                  billingAddress = `${r['billing_unit']}`;
+                }
+                */
+                if (r['billing_street'] && r['billing_street'].length > 0) {
+                  billingAddress += `${r['billing_street']}`;
+                }
+                if (r['billing_city'] && r['billing_city'].length > 0) {
+                  billingAddress += `, ${r['billing_city']}`;
+                }
+                if (r['billing_state'] && r['billing_state'].length > 0) {
+                  billingAddress += `, ${r['billing_state']}`;
+                }
+                if (r['billing_postal_code'] && r['billing_postal_code'].length > 0) {
+                  billingAddress += `, ${r['billing_postal_code']}`;
+                }
+                if (r['billing_country'] && r['billing_country'].length > 0) {
+                  billingAddress += `, ${r['billing_country']}`;
+                }
+                accounts[r['account_id']] = {
+                  'account_id': r['account_id'],
+                  'id': r['account_id'],
+                  'account_name': r['account_name'],
+                  'name':  r['account_name'],
+                  'key_contact': r['key_contact'],
+                  'billing_street': r['billing_street'],
+                  'billing_city': r['billing_city'],
+                  'billing_state': r['billing_state'],
+                  'billing_postal_code': r['billing_postal_code'],
+                  'epc_committee_on_hq': r['epc_committee_on_hq'],
+                  'online_training': r['online_training'],
+                  'billing_address': `${billingAddress}`,
+                  'locations': [r['location_id']],
+                  'type': 'account'
+                };
+              }
+            }
+            resolve(accounts);
+          });
+          connection.release();
         });
-        connection.end();
       });
     }
     /**
@@ -349,49 +396,54 @@ export class List {
                  ON locations.parent_id = parent_location.location_id
                  WHERE locations.parent_id IN (${buildingLocationsStr})
                  ORDER BY locations.parent_id`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [], (error, results) => {
-          if (error) {
-            console.log('list.model.generateSublocationsForListing', error, sql);
-            throw Error('There was an error generating the list of sublocations');
-          }
-          for (const r of results) {
-            if (locationIds.indexOf(r['location_id']) === -1) {
-              locationIds.push(r['location_id']);
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
             }
-            if (r['parent_id'] in sublocations) {
-              loc['id'] = r['location_id'];
-              loc['name'] = r['name'];
-              sublocations[r['parent_id']]['sublocations'].push({
-                'id': r['location_id'],
-                'name': r['name'],
-                'formatted_address': r['formatted_address']
-              });
-            } else {
-              const locationParentIndex = r['parent_id'];
+            connection.query(sql, [], (error, results) => {
+              if (error) {
+                console.log('list.model.generateSublocationsForListing', error, sql);
+                throw Error('There was an error generating the list of sublocations');
+              }
+              for (const r of results) {
+                if (locationIds.indexOf(r['location_id']) === -1) {
+                  locationIds.push(r['location_id']);
+                }
+                if (r['parent_id'] in sublocations) {
+                  loc['id'] = r['location_id'];
+                  loc['name'] = r['name'];
+                  sublocations[r['parent_id']]['sublocations'].push({
+                    'id': r['location_id'],
+                    'name': r['name'],
+                    'formatted_address': r['formatted_address']
+                  });
+                } else {
+                  const locationParentIndex = r['parent_id'];
 
-              sublocations[locationParentIndex] = {
-                parent_location_id: locationParentIndex,
-                parent_location_name: r['parent_location_name'],
-                formatted_address: r['parent_location_formatted_address'],
-                sublocations: [{
-                  'id': r['location_id'],
-                  'name': r['name'],
-                  'formatted_address': r['formatted_address']
-                }]
-              };
-            }
-          }
-          Object.keys(sublocations).forEach((parent) => {
-            resultSet.push(sublocations[parent]);
-          });
-          resolve({
-            resultArray: resultSet,
-            resultObject: sublocations,
-            resultLocationIds: locationIds
-          });
+                  sublocations[locationParentIndex] = {
+                    parent_location_id: locationParentIndex,
+                    parent_location_name: r['parent_location_name'],
+                    formatted_address: r['parent_location_formatted_address'],
+                    sublocations: [{
+                      'id': r['location_id'],
+                      'name': r['name'],
+                      'formatted_address': r['formatted_address']
+                    }]
+                  };
+                }
+              }
+              Object.keys(sublocations).forEach((parent) => {
+                resultSet.push(sublocations[parent]);
+              });
+              resolve({
+                resultArray: resultSet,
+                resultObject: sublocations,
+                resultLocationIds: locationIds
+              });
+            });
+            connection.release();
+
         });
-        connection.end();
 
       });
     }
@@ -413,13 +465,19 @@ export class List {
                      INNER JOIN users ON users.user_id = user_em_roles_relation.user_id
                      WHERE users.account_id = ? AND locations.is_building = 0
                      ORDER BY locations.parent_id`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [account], (error, results) => {
-          if (error) {
-            console.log('list.models.generateSublocationsFromEMRoles', error, sql);
-            throw Error('cannot generate list');
-          }
-          resolve(results);
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
+            }
+          connection.query(sql, [account], (error, results) => {
+            if (error) {
+              console.log('list.models.generateSublocationsFromEMRoles', error, sql);
+              throw Error('cannot generate list');
+            }
+            resolve(results);
+          });
+
+          connection.release();
         });
 
       });
@@ -451,69 +509,73 @@ export class List {
            WHERE locations.location_id IN (${locationIdStr})
            ORDER BY locations.parent_id`;
 
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [], (error, results) => {
-          if (error) {
-            console.log('list.model.generateLocationDetailsForAddUsers', error, sql);
-            throw Error('There was an error generating the list of sublocations');
-          }
-          for (const r of results) {
-            if (r['parent_id'] === -1) {
-              if (r['location_id'] in theLocations) {
-                loc['id'] = r['location_id'];
-                loc['name'] = r['name'];
-                theLocations[r['parent_id']]['sublocations'].push({
-                  'id': r['location_id'],
-                  'name': r['name'],
-                  'formatted_address': r['formatted_address']
-                });
-              } else {
-                theLocations[r['location_id']] = {
-                  parent_location_id: r['parent_id'],
-                  sublocations: [{
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
+            }
+          connection.query(sql, [], (error, results) => {
+            if (error) {
+              console.log('list.model.generateLocationDetailsForAddUsers', error, sql);
+              throw Error('There was an error generating the list of sublocations');
+            }
+            for (const r of results) {
+              if (r['parent_id'] === -1) {
+                if (r['location_id'] in theLocations) {
+                  loc['id'] = r['location_id'];
+                  loc['name'] = r['name'];
+                  theLocations[r['parent_id']]['sublocations'].push({
                     'id': r['location_id'],
                     'name': r['name'],
                     'formatted_address': r['formatted_address']
-                  }],
-                  parent_location_name: '',
-                  formatted_address: r['formatted_address']
-                };
-              }
-            } else {
-              if (r['parent_id'] in theLocations) {
-                loc['id'] = r['location_id'];
-                loc['name'] = r['name'];
-                theLocations[r['parent_id']]['sublocations'].push({
-                  'id': r['location_id'],
-                  'name': r['name'],
-                  'formatted_address': r['formatted_address']
-                });
-              } else {
-                let locName = '';
-                if (r['parent_location_name'] == null || r['parent_location_name'].length == 0) {
-                  locName = '_';
+                  });
                 } else {
-                  locName = r['parent_location_name'];
+                  theLocations[r['location_id']] = {
+                    parent_location_id: r['parent_id'],
+                    sublocations: [{
+                      'id': r['location_id'],
+                      'name': r['name'],
+                      'formatted_address': r['formatted_address']
+                    }],
+                    parent_location_name: '',
+                    formatted_address: r['formatted_address']
+                  };
                 }
-                theLocations[r['parent_id']] = {
-                  parent_location_id: r['parent_id'],
-                  parent_location_name: locName,
-                  formatted_address: r['parent_location_formatted_address'],
-                  sublocations: [{
+              } else {
+                if (r['parent_id'] in theLocations) {
+                  loc['id'] = r['location_id'];
+                  loc['name'] = r['name'];
+                  theLocations[r['parent_id']]['sublocations'].push({
                     'id': r['location_id'],
                     'name': r['name'],
                     'formatted_address': r['formatted_address']
-                  }]
-                };
+                  });
+                } else {
+                  let locName = '';
+                  if (r['parent_location_name'] == null || r['parent_location_name'].length == 0) {
+                    locName = '_';
+                  } else {
+                    locName = r['parent_location_name'];
+                  }
+                  theLocations[r['parent_id']] = {
+                    parent_location_id: r['parent_id'],
+                    parent_location_name: locName,
+                    formatted_address: r['parent_location_formatted_address'],
+                    sublocations: [{
+                      'id': r['location_id'],
+                      'name': r['name'],
+                      'formatted_address': r['formatted_address']
+                    }]
+                  };
+                }
               }
             }
-          }
-          Object.keys(theLocations).forEach((parent) => {
-            resultSet.push(theLocations[parent]);
+            Object.keys(theLocations).forEach((parent) => {
+              resultSet.push(theLocations[parent]);
+            });
+            resolve(resultSet);
           });
-          resolve(resultSet);
+          connection.release();
         });
-        connection.end();
       });
     }
 
@@ -543,34 +605,41 @@ export class List {
                   AND compliance_documents.account_id = ?
                   ORDER BY compliance_documents.compliance_documents_id DESC`;
 
-        const connection = db.createConnection(dbconfig);
- 
-        connection.query(sql_get, [kpi, account], (error, results) => {
-          if (error) {
-            console.log('list.model.generateComplianceDocumentList', error, sql_get);
-            throw Error('There was an error generating the list of documents');
-          }
-          for (const r of results) {
-            // let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
-            let urlPath = '';
-            urlPath += r['account_directory_name'];
-            if (r['parent_location_directory_name'] != null && r['parent_location_directory_name'].trim().length > 0) {
-              if(r['parent_is_building'] == 1){
-                urlPath +=  `/${r['parent_location_directory_name']}`;
-              }
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
             }
-            urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/${r['file_name']}`;
-            r['urlPath'] = urlPath;
-          }
-          // console.log(results);
-          resolve(results);
+ 
+            connection.query(sql_get, [kpi, account], (error, results) => {
+              if (error) {
+                console.log('list.model.generateComplianceDocumentList', error, sql_get);
+                throw Error('There was an error generating the list of documents');
+              }
+              for (const r of results) {
+                // let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
+                let urlPath = '';
+                urlPath += r['account_directory_name'];
+                if (r['parent_location_directory_name'] != null && r['parent_location_directory_name'].trim().length > 0) {
+                  if(r['parent_is_building'] == 1){
+                    urlPath +=  `/${r['parent_location_directory_name']}`;
+                  }
+                }
+                urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/${r['file_name']}`;
+                r['urlPath'] = urlPath;
+              }
+              // console.log(results);
+              resolve(results);
+            });
+            connection.release();
+
         });
-        connection.end();
       });
     }
 
-    public listAllTaggedBuildingsOfAccount(accountId):Promise<Array<object>>{
+    public listAllTaggedBuildingsOfAccount(accountId, archived?){
         return new Promise((resolve, reject) => {
+            let archivedSql = (archived) ? 1 : 0 ;
+
             let sql = `
                 
                 SELECT
@@ -586,7 +655,7 @@ export class List {
                     l.location_id,
                     l.parent_id,
                     l.name,
-                    l.formatted_address,
+                    IF(l.formatted_address IS NOT NULL, l.formatted_address, CONCAT(l.street, ' ', l.city, ' ', l.country)) as formatted_address,
                     l.is_building,
                     IF(p1.name IS NOT NULL OR TRIM(p1.name) != '', CONCAT(p1.name, ', ', l.name), l.name ) as display_name
                                     
@@ -603,7 +672,7 @@ export class List {
                     OR p3.location_id = lar.location_id
                     OR p4.location_id = lar.location_id
 
-                    WHERE lar.account_id = ${accountId} AND l.is_building = 1 AND l.archived = 0
+                    WHERE lar.account_id = ${accountId} AND l.is_building = 1 AND l.archived = ${archivedSql}
 
                     UNION
 
@@ -614,7 +683,7 @@ export class List {
                     p.location_id,
                     p.parent_id,
                     p.name,
-                    p.formatted_address,
+                    IF(p.formatted_address IS NOT NULL, p.formatted_address, CONCAT(p.street, ' ', p.city, ' ', p.country)) as formatted_address,
                     p.is_building,
                     IF(p2.name IS NOT NULL OR TRIM(p2.name) != '', CONCAT(p2.name, ', ', p.name), p.name ) as display_name
 
@@ -623,21 +692,25 @@ export class List {
                     INNER JOIN locations p ON c.parent_id = p.location_id
                     LEFT JOIN locations p2 ON p.parent_id = p2.location_id
 
-                    WHERE lar.account_id = ${accountId} AND p.archived = 0
+                    WHERE lar.account_id = ${accountId} AND p.archived = ${archivedSql}
                     GROUP BY p.location_id
                 ) as locations
                 GROUP BY location_id
                 `;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, (error, results) => {
-                if(error){
-                    console.log('listAllTaggedBuildingsOfAccount ', error, sql);
-                    throw Error('There was an error in listAllTaggedBuildingsOfAccount');
-                }
+            this.pool.getConnection((err, connection) => {
+              if(err){
+                  throw new Error(err);
+              }
+              connection.query(sql, (error, results) => {
+                  if(error){
+                      console.log('listAllTaggedBuildingsOfAccount ', error, sql);
+                      throw Error('There was an error in listAllTaggedBuildingsOfAccount');
+                  }
 
-                resolve(results); 
+                  resolve(results); 
+              });
+              connection.release();
             });
-            connection.end();
         });
     }
 

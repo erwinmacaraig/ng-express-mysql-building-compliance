@@ -17,20 +17,28 @@ export class ComplianceDocumentsModel extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM compliance_documents WHERE compliance_documents_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                if (!results.length){
-                    reject('Compliance docs not found');
-                } else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['compliance_documents_id']);
-                    resolve(this.dbData);
-                }
+
+                connection.query(sql_load, uid, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if (!results.length){
+                        reject('Compliance docs not found');
+                    } else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['compliance_documents_id']);
+                        resolve(this.dbData);
+                    }
+                });
+
+                connection.release();
             });
-            connection.end();
+
         });
     }
 
@@ -70,27 +78,34 @@ export class ComplianceDocumentsModel extends BaseClass {
                 sql += arrWhere[i];
             }
             sql += ` ORDER BY timestamp DESC `;
-            const connection = db.createConnection(dbconfig);            
-            connection.query(sql, (error, results, fields) => {
-                if (error) {
-                    console.log(error, sql);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                for (const r of results) {
-                    // let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
-                    let urlPath = '';
-                    urlPath += r['account_directory_name'];
-                    if (r['parent_location_directory_name'] != null && r['parent_location_directory_name'].trim().length > 0) {
-                        if(r['parent_is_building'] == 1){
-                            urlPath +=  `/${r['parent_location_directory_name']}`;
-                        }
+
+                connection.query(sql, (error, results, fields) => {
+                    if (error) {
+                        console.log(error, sql);
+                        throw new Error(error);
                     }
-                    urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/`+encodeURIComponent(r['file_name']);
-                    r['urlPath'] = urlPath;
-                }
-                this.dbData = results;
-                resolve(results);
+                    for (const r of results) {
+                        // let urlPath = `${aws_credential['AWS_S3_ENDPOINT']}${aws_credential['AWS_Bucket']}/`;
+                        let urlPath = '';
+                        urlPath += r['account_directory_name'];
+                        if (r['parent_location_directory_name'] != null && r['parent_location_directory_name'].trim().length > 0) {
+                            if(r['parent_is_building'] == 1){
+                                urlPath +=  `/${r['parent_location_directory_name']}`;
+                            }
+                        }
+                        urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/`+encodeURIComponent(r['file_name']);
+                        r['urlPath'] = urlPath;
+                    }
+                    this.dbData = results;
+                    resolve(results);
+                });
+
+                connection.release();
             });
-            connection.end();
 
         });
     }
@@ -118,14 +133,21 @@ export class ComplianceDocumentsModel extends BaseClass {
             ('timestamp' in this.dbData) ? this.dbData['timestamp'] : null,
             this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, param, (err, results, fields) => {
-                if (err) {
+
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
                     throw new Error(err);
                 }
-                resolve(true);
+
+                connection.query(sql_update, param, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    resolve(true);
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -149,15 +171,21 @@ export class ComplianceDocumentsModel extends BaseClass {
             ('timestamp' in this.dbData) ? this.dbData['timestamp'] : null,
             this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, param, (err, results, fields) => {
-                if (err) {
-                    console.log(sql_update, param);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
                     throw new Error(err);
                 }
-                resolve(true);
+
+                connection.query(sql_update, param, (err, results, fields) => {
+                    if (err) {
+                        console.log(sql_update, param);
+                        throw new Error(err);
+                    }
+                    resolve(true);
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 

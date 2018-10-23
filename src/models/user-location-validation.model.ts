@@ -15,11 +15,8 @@ export class UserLocationValidation extends BaseClass {
     return new Promise((resolve, reject) => {
       const sql_load = 'SELECT * FROM user_location_validation WHERE user_location_validation_id = ?';
       const uid = [this.id];
-      const connection = db.createConnection(dbconfig);
-      connection.query(
-        sql_load,
-        uid,
-        (error, results, fields) => {
+      this.pool.getConnection((err, connection) => {
+        connection.query(sql_load, uid, (error, results, fields) => {
           if (error) {
             return console.log(error);
           }
@@ -29,10 +26,11 @@ export class UserLocationValidation extends BaseClass {
             this.dbData = results[0];
             this.setID(results[0]['user_location_validation_id']);
             resolve(this.dbData);
-          }
-        }
-      );
-      connection.end();
+          }  
+        });
+        connection.release();
+      });
+      
     });
   }
 
@@ -51,11 +49,8 @@ export class UserLocationValidation extends BaseClass {
                         user_location_validation.status = ?
       `;
       const param = [token, status];
-      const connection = db.createConnection(dbconfig);
-      connection.query(
-        sql_load,
-        param,
-        (error, results, fields) => {
+      this.pool.getConnection((err, connection) => {
+        connection.query(sql_load, param, (error, results, fields) => {
           if (error) {
             return console.log(error);
           }
@@ -65,10 +60,10 @@ export class UserLocationValidation extends BaseClass {
             this.dbData = results[0];
             this.setID(results[0]['user_location_validation_id']);
             resolve(this.dbData);
-          }
-        }
-      );
-      connection.end();
+          }  
+        });
+        connection.release();
+      });
     });
   }
 
@@ -96,17 +91,16 @@ export class UserLocationValidation extends BaseClass {
           'token_id' in this.dbData ? this.dbData['token_id'] : 0,
           'request_date' in this.dbData ? this.dbData['request_date'] : connection.escape(new Date()),
           this.ID() ? this.ID() : 0];
-      connection.query(
-        sql_update,
-        token,
-        (err, results, fields) => {
-          if (err) {
-            throw new Error(err);
-          }
-          resolve(true);
-        }
-      );
-      connection.end();
+
+      this.pool.getConnection((err, connection) => {
+        connection.query(sql_update, token, (error, results, fields) => {
+            if (error) {
+              throw new Error(err);
+            }
+            resolve(true);
+        });
+        connection.release();
+      });
     });
   }
 
@@ -130,20 +124,19 @@ export class UserLocationValidation extends BaseClass {
         'status' in this.dbData ? this.dbData['status'] : 'PENDING',
         'token_id' in this.dbData ? this.dbData['token_id'] : 0
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(
-        sql_insert,
-        token,
-        (err, results, fields) => {
-          if (err) {
-            throw new Error(err);
-          }
-          this.id = results.insertId;
-          this.dbData['user_location_validation_id'] = this.id;
-          resolve(true);
-        }
-      );
-      connection.end();
+      
+      this.pool.getConnection((err, connection) => {
+        connection.query(sql_insert, token, (error, results, fields) => {
+            if (error) {
+              throw new Error(err);
+            }
+            this.id = results.insertId;
+            this.dbData['user_location_validation_id'] = this.id;
+            resolve(true);
+        });
+        connection.release();
+      });
+
     });
   }
 

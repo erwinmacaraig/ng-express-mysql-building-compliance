@@ -12,24 +12,53 @@ const archiver = require('archiver');
 const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
 
-export class Utils {
-    constructor() {}
+import { BaseClass } from './base.model';
+
+export class Utils extends BaseClass {
+    
+    constructor(id?){
+        super();
+    }
+
+    public load(){
+
+    }
+
+    public dbUpdate(){
+
+    }
+
+    public dbInsert(){
+
+    }
+
+    public create(createData: {}){
+
+    }
 
     public checkUserValidInALocation(user: number) {
       return new Promise((resolve, reject) => {
         const sql_check = `SELECT * FROM user_location_validation WHERE user_id = ? AND status = 'VERIFIED'`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_check, [user], (error, results, fields) => {
-          if (error) {
-            reject(`Internal error`);
-            return console.log(error);
-          }
-          console.log(`user is ${user}`);
-          console.log(results);
-          resolve(results.length);
+        this.pool.getConnection((err, connection) => {
+
+            if(err){
+                throw new Error(err);
+                
+            }
+            connection.query(sql_check, [user], (error, results, fields) => {
+              if (error) {
+                reject(`Internal error`);
+                return console.log(error);
+              }
+              console.log(`user is ${user}`);
+              console.log(results);
+              resolve(results.length);
+
+            });
+            connection.release();
 
         });
-        connection.end();
+        
       });
     }
 
@@ -65,18 +94,27 @@ export class Utils {
           sql_get_frp = sql_get_frp + ' AND users.account_id = ?';
           val.push(account);
         }
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_get_frp, val, (error, results, fields) => {
-          if (error) {
-            return console.log(error);
-          }
-          if (!results.length) {
-            reject('No FRP found');
-          } else {
-            resolve(results);
-          }
+        this.pool.getConnection((err, connection) => {
+
+            if(err){
+                throw new Error(err);        
+            }
+
+
+            connection.query(sql_get_frp, val, (error, results, fields) => {
+              if (error) {
+                return console.log(error);
+              }
+              if (!results.length) {
+                reject('No FRP found');
+              } else {
+                resolve(results);
+              }
+            });
+            connection.release();
+            
         });
-        connection.end();
+
       }); // end Promise
     }
 
@@ -119,18 +157,28 @@ export class Utils {
             `+accountSql+`
         `;
 
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_get_trp, (error, results, fields) => {
-          if (error) {
-            return console.log(error, 'utils.models.');
-          }
-          if (!results.length) {
-            reject('No TRP found');
-          } else {
-            resolve(results);
-          }
+        this.pool.getConnection((err, connection) => {
+
+            if(err){
+                throw new Error(err);        
+            }
+
+
+            connection.query(sql_get_trp, (error, results, fields) => {
+              if (error) {
+                return console.log(error, 'utils.models.');
+              }
+              if (!results.length) {
+                reject('No TRP found');
+              } else {
+                resolve(results);
+              }
+            });
+            connection.release();
+            
         });
-        connection.end();
+
+        
       }); // end of promise
     }
 
@@ -147,19 +195,28 @@ export class Utils {
           ?,
           NOW()
         )`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_request, [
-          validation_request['user_id'],
-          validation_request['approvalFrom']
-        ], (error, results, fields) => {
-          if (error) {
-            console.log('Error here', error);
-            reject(error);
-          }
-          console.log(results);
-          resolve(results.insertId);
+        this.pool.getConnection((err, connection) => {
+
+            if(err){
+                throw new Error(err);        
+            }
+
+
+            connection.query(sql_request, [
+              validation_request['user_id'],
+              validation_request['approvalFrom']
+            ], (error, results, fields) => {
+              if (error) {
+                console.log('Error here', error);
+                reject(error);
+              }
+              console.log(results);
+              resolve(results.insertId);
+            });
+            connection.release();
+            
         });
-        connection.end();
+        
       });
     }
 
@@ -192,19 +249,28 @@ export class Utils {
                         AND
                             location_account_relation.account_id = ?`;
 
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql_get, [
-            location_id,
-            account_id
-          ], (error, results, fields) => {
-            if (error) {
-              console.log('Error here', error);
-              reject(error);
+        this.pool.getConnection((err, connection) => {
+
+            if(err){
+                throw new Error(err);        
             }
-            console.log(results);
-            resolve(results[0]);
-          });
-          connection.end();
+
+
+            connection.query(sql_get, [
+                location_id,
+                account_id
+            ], (error, results, fields) => {
+                if (error) {
+                  console.log('Error here', error);
+                  reject(error);
+                }
+                console.log(results);
+                resolve(results[0]);
+            });
+            connection.release();
+            
+        });
+          
 
       });
     }
@@ -226,20 +292,29 @@ export class Utils {
                             users.user_id = ?
                           AND
                             FRP_user_id = ?`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_upate, [
-          accountId,
-          validationId,
-          userId,
-          frpId
-        ], (error, results, fields) => {
-          if (error) {
-            console.log(error);
-            reject(error);
-          }
-          resolve(true);
+        
+
+        this.pool.getConnection((err, connection) => {
+
+            if(err){
+                throw new Error(err);        
+            }
+
+            connection.query(sql_upate, [
+                accountId,
+                validationId,
+                userId,
+                frpId
+            ], (error, results, fields) => {
+                if (error) {
+                    console.log(error);
+                    reject(error);
+                }
+                resolve(true);
+            });
+            connection.release();
         });
-        connection.end();
+
       });
 
     }
@@ -251,16 +326,23 @@ export class Utils {
           whereClause = `WHERE is_warden_role = ${isWardenRole}`;
         }
         const sql_em_roles = `SELECT * FROM em_roles ${whereClause}`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_em_roles, [], (error, results, fields) => {
-          if (error) {
-            console.log(error);
-            reject(error);
-          } else {
-            resolve(results);
-          }
+        this.pool.getConnection((err, connection) => {
+
+            if(err){
+                throw new Error(err);        
+            }
+
+            connection.query(sql_em_roles, [], (error, results, fields) => {
+              if (error) {
+                console.log(error);
+                reject(error);
+              } else {
+                resolve(results);
+              }
+            });
+            connection.release();
         });
-        connection.end();
+        
       });
     }
     
@@ -316,7 +398,7 @@ export class Utils {
              reject(error);
              throw new Error('There was an error reading your file');
            })
-          });
+        });
     }
 
     public s3DownloadCompliancePackPathGen(account_id: number = 0, location_id: number = 0): Promise<string> {
@@ -341,21 +423,27 @@ export class Utils {
                         AND
                           locations.is_building = 1
                         LIMIT 1`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_get, [account_id, location_id], (error, results, fields) => {
-          if (error) {
-            console.log('utils.model.s3DownloadCompliancePackPathGen', error, sql_get);
-            throw new Error(`Cannot generate path for location id ${location_id} and account id ${account_id}`);
-          } else {
-            if (!results.length) {
-              reject(`Not enough data to generate path for location id ${location_id} and account id ${account_id}`);
-            } else {
-              resolve(`${results[0]['account_directory_name']}/${results[0]['location_directory_name']}`);
-            }
-          }
-        });
-        connection.end();
+        
 
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);        
+            }
+
+            connection.query(sql_get, [account_id, location_id], (error, results, fields) => {
+              if (error) {
+                console.log('utils.model.s3DownloadCompliancePackPathGen', error, sql_get);
+                throw new Error(`Cannot generate path for location id ${location_id} and account id ${account_id}`);
+              } else {
+                if (!results.length) {
+                  reject(`Not enough data to generate path for location id ${location_id} and account id ${account_id}`);
+                } else {
+                  resolve(`${results[0]['account_directory_name']}/${results[0]['location_directory_name']}`);
+                }
+              }
+            });
+            connection.release();
+        });
 
       });
     }
@@ -398,32 +486,41 @@ export class Utils {
                             compliance_documents.timestamp
                           DESC
                           `;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_get, [account_id, location_id, type], (error,  results, fields) => {
-          if (error) {
-            console.log('utils.model.s3DownloadFilePathGen', error, sql_get);
-            return new Error(`Cannot generate download path for account id ${account_id}, location id ${location_id} and type ${type}`);
-          } else {
-            if (!results.length) {
-              reject(`Not enough data to generate download path for account id ${account_id}, location id ${location_id},
-              and type ${type}`);
-            } else {
-              const compliance = {};
-              for (let i = 0; i < results.length; i++) {
-                if (!compliance[results[i]['compliance_kpis_id']]) {
-                  compliance[results[i]['compliance_kpis_id']] = [];
-                }
-                // console.log('pushing ' + results[i]['file_name']);
-                compliance[results[i]['compliance_kpis_id']].push(`${results[i]['account_directory_name']}/${results[i]['location_directory_name']}/${results[i]['directory_name']}/${results[i]['document_type']}/${results[i]['file_name']}`);
-              }
-              resolve(compliance);
-              // resolve(`${results[0]['account_directory_name']}/
-              // ${results[0]['location_directory_name']}/${results[0]['directory_name']}/${results[0]['document_type']}/
-              // ${results[0]['file_name']}`);
+
+
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
             }
-          }
+
+            connection.query(sql_get, [account_id, location_id, type], (error,  results, fields) => {
+              if (error) {
+                console.log('utils.model.s3DownloadFilePathGen', error, sql_get);
+                return new Error(`Cannot generate download path for account id ${account_id}, location id ${location_id} and type ${type}`);
+              } else {
+                if (!results.length) {
+                  reject(`Not enough data to generate download path for account id ${account_id}, location id ${location_id},
+                  and type ${type}`);
+                } else {
+                  const compliance = {};
+                  for (let i = 0; i < results.length; i++) {
+                    if (!compliance[results[i]['compliance_kpis_id']]) {
+                      compliance[results[i]['compliance_kpis_id']] = [];
+                    }
+                    // console.log('pushing ' + results[i]['file_name']);
+                    compliance[results[i]['compliance_kpis_id']].push(`${results[i]['account_directory_name']}/${results[i]['location_directory_name']}/${results[i]['directory_name']}/${results[i]['document_type']}/${results[i]['file_name']}`);
+                  }
+                  resolve(compliance);
+                  // resolve(`${results[0]['account_directory_name']}/
+                  // ${results[0]['location_directory_name']}/${results[0]['directory_name']}/${results[0]['document_type']}/
+                  // ${results[0]['file_name']}`);
+                }
+              }
+            });
+
+            connection.release();
         });
-        connection.end();
+
       });
     }
 

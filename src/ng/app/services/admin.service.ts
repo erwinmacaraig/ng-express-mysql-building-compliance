@@ -58,7 +58,11 @@ export class AdminService {
     return this.http.post(this.baseUrl + '/admin/upload/compliance-documents/', formData );
   }
 
-  taggedLocationsOnAccount(accountId: number = 0) {
+  taggedLocationsOnAccount(accountId: number = 0, archived?) {
+    this.options['params'] = {};
+      if(archived){
+        this.options['params'] = { archived : true };
+      }
     return this.http.get(this.baseUrl + `/admin/account-locations/${accountId}/`, this.options);
   }
 
@@ -196,6 +200,14 @@ export class AdminService {
 
   getTaggedLocationsFromAccount(accountId){
     return this.http.get(`${this.baseUrl}/admin/get-tagged-locations-from-account/`+accountId, this.options);
+  }
+
+  addExistingLocationsToAccount(postBody = {}) {
+    return this.http.post(`${this.baseUrl}/admin/tag-account-to-existing-loc/`, postBody);
+  }
+
+  addNewLocation(postBody = {}) {
+    return  this.http.post(`${this.baseUrl}/admin/create-new-location/`, postBody);
   }
 
   sendPasswordSetupInvite(postBody={}) {

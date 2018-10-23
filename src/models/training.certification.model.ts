@@ -16,22 +16,28 @@ export class TrainingCertification extends BaseClass {
   public load(): Promise<object> {
     return new Promise((resolve, reject) => {
       const sql = `SELECT * FROM certifications WHERE certifications_id = ?`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql, [this.id], (error, results, fields) => {
-        if (error) {
-          console.log('TrainingCertification.load', error, sql);
-          throw new Error('Error loading certifaction.');
-        } else {
-          if (results.length > 0) {
-            this.dbData = results[0];
-            this.setID(results[0]['certifications_id']);
-            resolve(this.dbData);
-          } else {
-            reject('No record found.');
-          }
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
+
+        connection.query(sql, [this.id], (error, results, fields) => {
+          if (error) {
+            console.log('TrainingCertification.load', error, sql);
+            throw new Error('Error loading certifaction.');
+          } else {
+            if (results.length > 0) {
+              this.dbData = results[0];
+              this.setID(results[0]['certifications_id']);
+              resolve(this.dbData);
+            } else {
+              reject('No record found.');
+            }
+          }
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -48,7 +54,6 @@ export class TrainingCertification extends BaseClass {
         registered
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
-      const connection = db.createConnection(dbconfig);
       const values = [
         ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
         ('course_method' in this.dbData) ? this.dbData['course_method'] : 'online_by_evac',
@@ -59,17 +64,23 @@ export class TrainingCertification extends BaseClass {
         ('pass' in this.dbData) ? this.dbData['pass'] : 1,
         ('registered' in this.dbData) ? this.dbData['registered'] : 1
       ];
-      connection.query(sql_insert, values, (error, results, fields) => {
-        if (error) {
-          console.log('TrainingCertification.dbInsert', error, sql_insert);
-          throw new Error('Cannot add new certificate');
-        }
-        this.id = results.insertId;
-        this.dbData['certifications_id'] = this.id;
-        resolve(true);
-      });
-      connection.end();
 
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
+        }
+
+        connection.query(sql_insert, values, (error, results, fields) => {
+          if (error) {
+            console.log('TrainingCertification.dbInsert', error, sql_insert);
+            throw new Error('Cannot add new certificate');
+          }
+          this.id = results.insertId;
+          this.dbData['certifications_id'] = this.id;
+          resolve(true);
+        });
+        connection.release();
+      });
     });
   }
 
@@ -98,15 +109,21 @@ export class TrainingCertification extends BaseClass {
         ('registered' in this.dbData) ? this.dbData['registered'] : 1,
         this.id
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, values, (error, results, fields) => {
-        if (error) {
-          console.log('TrainingCertification.dbUpdate', error, sql_update);
-          throw new Error('Cannot update certification record');
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
-        resolve(true);
+
+        connection.query(sql_update, values, (error, results, fields) => {
+          if (error) {
+            console.log('TrainingCertification.dbUpdate', error, sql_update);
+            throw new Error('Cannot update certification record');
+          }
+          resolve(true);
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -145,7 +162,6 @@ export class TrainingCertification extends BaseClass {
       let trained = 0;
 
       const users_string = users.join(',');
-      const connection = db.createConnection(dbconfig);
 
       if ('em_role_id' in filter) {
         filterStr += ` AND user_em_roles_relation.em_role_id = ${filter['em_role_id']}`;
@@ -191,37 +207,44 @@ export class TrainingCertification extends BaseClass {
             WHERE user_em_roles_relation.user_id IN (${users_string}) ${filterStr}
             ORDER BY certifications.certification_date DESC;`;
 
-      connection.query(sql, [], (error, results, fields) => {
-        if (error) {
-          console.log('training.certification.model.getEMRUserCertifications', error, sql);
-          throw new Error('There was a problem getting the certifications of the following users: ' + users_string);
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
-        if (!results.length) {
-          // reject('There are no records to be found for these users - ' + users_string);
+
+        connection.query(sql, [], (error, results, fields) => {
+          if (error) {
+            console.log('training.certification.model.getEMRUserCertifications', error, sql);
+            throw new Error('There was a problem getting the certifications of the following users: ' + users_string);
+          }
+          if (!results.length) {
+            // reject('There are no records to be found for these users - ' + users_string);
+            resolve(outcome);
+          } else {
+            let objUsers = {};
+            for (let i = 0; i < results.length; i++) {
+              if( !objUsers[ results[i]['user_id'] ] ){
+                  objUsers[ results[i]['user_id'] ] = results[i];
+              }
+            }
+
+            for(let i in objUsers){
+               if (objUsers[i]['validity'] === 'active' && objUsers[i]['pass']) {
+                trained = trained + 1;
+                (outcome['passed']).push(objUsers[i]);
+              } else {
+                (outcome['failed']).push(objUsers[i]);
+              }
+            }
+
+            outcome['total_passed'] = trained;
+            outcome['percentage'] = Math.round((trained / users.length) * 100).toFixed(0).toString() + '%';
+          }
           resolve(outcome);
-        } else {
-          let objUsers = {};
-          for (let i = 0; i < results.length; i++) {
-            if( !objUsers[ results[i]['user_id'] ] ){
-                objUsers[ results[i]['user_id'] ] = results[i];
-            }
-          }
-
-          for(let i in objUsers){
-             if (objUsers[i]['validity'] === 'active' && objUsers[i]['pass']) {
-              trained = trained + 1;
-              (outcome['passed']).push(objUsers[i]);
-            } else {
-              (outcome['failed']).push(objUsers[i]);
-            }
-          }
-
-          outcome['total_passed'] = trained;
-          outcome['percentage'] = Math.round((trained / users.length) * 100).toFixed(0).toString() + '%';
-        }
-        resolve(outcome);
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -242,16 +265,22 @@ export class TrainingCertification extends BaseClass {
                 INNER JOIN training_requirement tr ON c.training_requirement_id = tr.training_requirement_id
                 WHERE c.user_id IN (`+userIds+`) ORDER BY c.certification_date DESC`;
 
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql, [], (error, results, fields) => {
-        if (error) {
-          throw new Error('Error on fetching certifications on getCertificationsInUserIds');
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
 
-        this.dbData = results;
-        resolve(results);
+        connection.query(sql, [], (error, results, fields) => {
+          if (error) {
+            throw new Error('Error on fetching certifications on getCertificationsInUserIds');
+          }
+
+          this.dbData = results;
+          resolve(results);
+        });
+        connection.release();
       });
-      connection.end();
+      
 
     });
   }
@@ -288,35 +317,41 @@ export class TrainingCertification extends BaseClass {
           AND DATE_ADD(certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()
       `;
       
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_check, [], (error, results, fields) => {
-        if (error) {
-          console.log('Cannot check the data of this given certificate', error, certData, sql_check);
-          throw new Error('Cannot check the data of this given certificate');
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
-        
-        // there is no certification or certification is expired
-        if (!results.length) {
-          this.create(certData).then((data) => {
-            resolve(true);
-          }).catch((e) => {
-            console.log('training.certification.model creating/updating certification failed');
-            reject('training.certification.model creating/updating certification failed');
-          });
-        } else {
-          // Certificate is still valid
-          // JUST UPDATE THE CERTIFICATION DATE
-          certData['certifications_id'] = results[0]['certifications_id'];
-          certData['certification_date'] = moment().format('YYYY-MM-DD');          
-          this.create(certData).then((data) => {
-            resolve(true);
-          }).catch((e) => {
-            console.log('training.certification.model creating/updating certification failed');
-            reject('training.certification.model creating/updating certification failed');
-          });
-        }
+
+        connection.query(sql_check, [], (error, results, fields) => {
+          if (error) {
+            console.log('Cannot check the data of this given certificate', error, certData, sql_check);
+            throw new Error('Cannot check the data of this given certificate');
+          }
+          
+          // there is no certification or certification is expired
+          if (!results.length) {
+            this.create(certData).then((data) => {
+              resolve(true);
+            }).catch((e) => {
+              console.log('training.certification.model creating/updating certification failed');
+              reject('training.certification.model creating/updating certification failed');
+            });
+          } else {
+            // Certificate is still valid
+            // JUST UPDATE THE CERTIFICATION DATE
+            certData['certifications_id'] = results[0]['certifications_id'];
+            certData['certification_date'] = moment().format('YYYY-MM-DD');          
+            this.create(certData).then((data) => {
+              resolve(true);
+            }).catch((e) => {
+              console.log('training.certification.model creating/updating certification failed');
+              reject('training.certification.model creating/updating certification failed');
+            });
+          }
+        });
+        connection.release();
       });
-      connection.end();
+      
 
     });
   }
@@ -382,21 +417,25 @@ export class TrainingCertification extends BaseClass {
             ${orderSql} ${limitSql}
           `;
       }
-      const connection = db.createConnection(dbconfig);
-
-      connection.query(sql, (error, results, fields) => {
-
-        if(error){
-            console.log(sql);
-          throw new Error("Error getting certification by user ids");
+      
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
 
-        this.dbData = results;
-        resolve(results);
+        connection.query(sql, (error, results, fields) => {
 
+          if(error){
+              console.log(sql);
+            throw new Error("Error getting certification by user ids");
+          }
+
+          this.dbData = results;
+          resolve(results);
+
+        });
+        connection.release();
       });
-      connection.end();
-
     });
   }
 
@@ -413,31 +452,40 @@ export class TrainingCertification extends BaseClass {
           training_requirement
         ON
           training_requirement.training_requirement_id = em_role_training_requirements.training_requirement_id;`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql, [], (error, results, fields) => {
-        if (error) {
-          console.log('training.certifications.model.getRequiredTrainings', sql, error);
-          throw Error('Cannot retrieve required training fields');
+      
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
-        if (!results.length) {
-          resolve('There are no required certifications');
-        } else {
-          for (let i = 0; i < results.length; i++) {
-            if (results[i]['em_role_id'] in resultSet) {
-              (resultSet[results[i]['em_role_id']]['training_requirement_name']).push(results[i]['training_requirement_name']);
-              (resultSet[results[i]['em_role_id']]['training_requirement_id']).push(results[i]['training_requirement_id']);
-            } else {
-              resultSet[results[i]['em_role_id']] = {
-                'training_requirement_name': [results[i]['training_requirement_name']],
-                'training_requirement_id': [results[i]['training_requirement_id']]
-              };
 
-            }
+        connection.query(sql, [], (error, results, fields) => {
+          if (error) {
+            console.log('training.certifications.model.getRequiredTrainings', sql, error);
+            throw Error('Cannot retrieve required training fields');
           }
-          resolve(resultSet);
-        }
+          if (!results.length) {
+            resolve('There are no required certifications');
+          } else {
+            for (let i = 0; i < results.length; i++) {
+              if (results[i]['em_role_id'] in resultSet) {
+                (resultSet[results[i]['em_role_id']]['training_requirement_name']).push(results[i]['training_requirement_name']);
+                (resultSet[results[i]['em_role_id']]['training_requirement_id']).push(results[i]['training_requirement_id']);
+              } else {
+                resultSet[results[i]['em_role_id']] = {
+                  'training_requirement_name': [results[i]['training_requirement_name']],
+                  'training_requirement_id': [results[i]['training_requirement_id']]
+                };
 
+              }
+            }
+            resolve(resultSet);
+          }
+
+        });
+        connection.release();
       });
+
+      
     });
   }
 
@@ -483,28 +531,35 @@ export class TrainingCertification extends BaseClass {
                     ORDER BY
                       user_id
                     `;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [], (error, results, fields) => {
-          if (error) {
-            console.log('training.certification.model.getNumberOfTrainings', error, sql);
-            throw Error('There was a problem getting the number of trainings');
+        
+        this.pool.getConnection((err, connection) => {
+          if (err) {                    
+              throw new Error(err);
           }
-          if (!results.length) {
-            resolve({});
-          } else {
-            for (let i = 0; i < results.length; i++) {
-              if (results[i]['user_id'] in user_trainings) {
-                user_trainings[results[i]['user_id']]['count'] = user_trainings[results[i]['user_id']]['count'] + 1;
-              } else {
-                user_trainings[results[i]['user_id']] = {
-                  'count': 1
-                };
-              }
+
+          connection.query(sql, [], (error, results, fields) => {
+            if (error) {
+              console.log('training.certification.model.getNumberOfTrainings', error, sql);
+              throw Error('There was a problem getting the number of trainings');
             }
-            resolve(user_trainings);
-          }
+            if (!results.length) {
+              resolve({});
+            } else {
+              for (let i = 0; i < results.length; i++) {
+                if (results[i]['user_id'] in user_trainings) {
+                  user_trainings[results[i]['user_id']]['count'] = user_trainings[results[i]['user_id']]['count'] + 1;
+                } else {
+                  user_trainings[results[i]['user_id']] = {
+                    'count': 1
+                  };
+                }
+              }
+              resolve(user_trainings);
+            }
+          });
+          connection.release();
         });
-        connection.end();
+        
       }
     });
   }
@@ -540,23 +595,32 @@ export class TrainingCertification extends BaseClass {
                 AND
                   certifications.pass = 1
                 AND training_requirement.training_requirement_id IN (${training_requirements_str});`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql, [], (error, results) => {
-        if (error) {
-          console.log('training.certifications.model.getTrainings', error, sql);
-          throw Error('Cannot query certifications for this user');
-        }
-        for (const r of results) {
-          takenRequiredTrainings.push(r['training_requirement_id']);
+      
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
 
-        for (const tr of training_requirements) {
-          if (takenRequiredTrainings.indexOf(tr) === -1) {
-            missingTrainings.push(tr);
+        connection.query(sql, [], (error, results) => {
+          if (error) {
+            console.log('training.certifications.model.getTrainings', error, sql);
+            throw Error('Cannot query certifications for this user');
           }
-        }
-        resolve(missingTrainings);
+          for (const r of results) {
+            takenRequiredTrainings.push(r['training_requirement_id']);
+          }
+
+          for (const tr of training_requirements) {
+            if (takenRequiredTrainings.indexOf(tr) === -1) {
+              missingTrainings.push(tr);
+            }
+          }
+          resolve(missingTrainings);
+        });
+        connection.release();
       });
+
+      
     });
   }
 

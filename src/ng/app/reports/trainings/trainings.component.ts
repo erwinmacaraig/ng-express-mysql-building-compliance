@@ -63,6 +63,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
     csvLoader = false;
     exportData = [];
     exportFetchMarker = {};
+    print:any;
 
 	constructor(
 		private router : Router,
@@ -228,6 +229,10 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             });
         });
 
+        this.print = new PrintService({
+            content : this.printContainer.nativeElement.outerHTML
+        });
+
         this.dashboardPreloader.show();
 	}
 
@@ -307,11 +312,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
 	printResult(){
-        let print = new PrintService({
-            content : this.printContainer.nativeElement.outerHTML
-        });
-
-        print.print();
+        this.print.print(this.printContainer.nativeElement.outerHTML);
 	}
 
     pdfExport(aPdf, printContainer){

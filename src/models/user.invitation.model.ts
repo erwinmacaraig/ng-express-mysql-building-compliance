@@ -15,20 +15,22 @@ export class UserInvitation extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM user_invitations WHERE user_invitations_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              if(!results.length){
-                reject('Invitation code not found');
-              } else {
-                this.dbData = results[0];
-                this.setID(results[0]['user_invitations_id']);
-                resolve(this.dbData);
-              }
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_load, uid, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  if(!results.length){
+                    reject('Invitation code not found');
+                  } else {
+                    this.dbData = results[0];
+                    this.setID(results[0]['user_invitations_id']);
+                    resolve(this.dbData);
+                  }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     } // end method load
 
@@ -41,22 +43,24 @@ export class UserInvitation extends BaseClass {
             if (!used) {
               sql_load = sql_load + ' AND was_used = 0';
             }
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                console.log(error);
-                throw new Error(error);
-              }
-              console.log(results);
-              if (!results.length) {
-                reject('Invitation code not found');
-              } else {
-                this.dbData = results[0];
-                this.setID(results[0]['user_invitations_id']);
-                resolve(this.dbData);
-              }
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    console.log(error);
+                    throw new Error(error);
+                  }
+                  console.log(results);
+                  if (!results.length) {
+                    reject('Invitation code not found');
+                  } else {
+                    this.dbData = results[0];
+                    this.setID(results[0]['user_invitations_id']);
+                    resolve(this.dbData);
+                  }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     } // end getInvitationByCode method
 
@@ -68,19 +72,21 @@ export class UserInvitation extends BaseClass {
             if (!used) {
               sql_load = sql_load + ' AND was_used = 0';
             }
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              if (!results.length) {
-                reject('Invitation code not found');
-              } else {
-                this.dbData = results;
-                resolve(this.dbData);
-              }
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  if (!results.length) {
+                    reject('Invitation code not found');
+                  } else {
+                    this.dbData = results;
+                    resolve(this.dbData);
+                  }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     } // end getInvitationByCode method
 
@@ -94,20 +100,22 @@ export class UserInvitation extends BaseClass {
               param.push(roleId);
             }
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              if (!results.length) {
-                reject('Invitation code not found');
-              } else {
-                this.dbData = results[0];
-                this.setID(results[0]['user_invitations_id']);
-                resolve(this.dbData);
-              }
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  if (!results.length) {
+                    reject('Invitation code not found');
+                  } else {
+                    this.dbData = results[0];
+                    this.setID(results[0]['user_invitations_id']);
+                    resolve(this.dbData);
+                  }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     } // end getInvitationByCode method
 
@@ -141,19 +149,23 @@ export class UserInvitation extends BaseClass {
             }
 
             sql_load += whereString;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              if (!results.length) {
-                reject('Invitation code not found');
-              } else {
-                this.dbData = results;
-                resolve(this.dbData);
-              }
+            
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  if (!results.length) {
+                    reject('Invitation code not found');
+                  } else {
+                    this.dbData = results;
+                    resolve(this.dbData);
+                  }
+                });
+                connection.release();
             });
-            connection.end();
+            
+            
         });
     }
 
@@ -197,16 +209,18 @@ export class UserInvitation extends BaseClass {
                 ('archived' in this.dbData) ? this.dbData['archived'] : 0,
                 this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, values, (err, results, fields) => {
-              if (err) {
-                throw new Error(err);
-              }
-              this.id = results.insertId;
-              this.dbData['user_invitations_id'] = this.id;
-              resolve(true);
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_update, values, (err, results, fields) => {
+                  if (err) {
+                    throw new Error(err);
+                  }
+                  this.id = results.insertId;
+                  this.dbData['user_invitations_id'] = this.id;
+                  resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
 
         }); // end of Promise
     } // end of dbUpdate method
@@ -260,17 +274,19 @@ export class UserInvitation extends BaseClass {
                 ('was_used' in this.dbData) ? this.dbData['was_used'] : 0,
                 ('archived' in this.dbData) ? this.dbData['archived'] : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_insert, values, (err, results, fields) => {
-              if (err) {
-                console.log(sql_insert);
-                throw new Error(err);
-              }
-              this.id = results.insertId;
-              this.dbData['user_invitations_id'] = this.id;
-              resolve(true);
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_insert, values, (err, results, fields) => {
+                  if (err) {
+                    console.log(sql_insert);
+                    throw new Error(err);
+                  }
+                  this.id = results.insertId;
+                  this.dbData['user_invitations_id'] = this.id;
+                  resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
 
         }); // end Promise
     } // end dbInsert method
@@ -290,16 +306,18 @@ export class UserInvitation extends BaseClass {
     public delete() {
       return new Promise((resolve, reject) => {
         const sql_delete = `DELETE FROM user_invitations WHERE user_invitations_id = ?`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_delete, [this.ID()], (err, results, fields) => {
-          if (err) {
-            console.log(sql_delete, err);
-            throw new Error(err);
-          } else {
-            resolve(true);
-          }
+        this.pool.getConnection((err, connection) => {
+            connection.query(sql_delete, [this.ID()], (err, results, fields) => {
+              if (err) {
+                console.log(sql_delete, err);
+                throw new Error(err);
+              } else {
+                resolve(true);
+              }
+            });
+            connection.release();
         });
-        connection.end();
+        
       });
     }
 

@@ -1,8 +1,8 @@
 import { User } from '../models/user.model';
 
 export class MiddlewareAuth {
-  public authenticate: any;
-    constructor() {
+  public  authenticate: any;
+    constructor () {
       this.authenticate = (req, res, next) => {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.setHeader("Pragma", "no-cache");

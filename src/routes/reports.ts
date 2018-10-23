@@ -617,6 +617,8 @@ export class ReportsRoute extends BaseRoute {
                     cert['first_name'] = user.first_name;
                     cert['last_name'] = user.last_name;
                     cert['email'] = user.email;
+                    cert['location_name'] = user.location_name;
+                    cert['account_name'] = user.account_name;
                 }
             }
 
@@ -671,7 +673,7 @@ export class ReportsRoute extends BaseRoute {
           let tblData = {
             title : 'Training Report',
             data : [], 
-            headers : ["User", "Training Name", "Training Date", "Status"]
+            headers : ["User", "Email", "Account", "Location", "Training Name", "Training Date", "Status"]
           };
 
           for(let re of response.data){
@@ -688,7 +690,7 @@ export class ReportsRoute extends BaseRoute {
                   }
                   compOrNot = 'Not Compliant '+desc;
               }
-              tblData.data.push([ re.first_name+' '+re.last_name, re.training_requirement_name, re.certification_date_formatted, compOrNot ]);
+              tblData.data.push([ re.first_name+' '+re.last_name, re.email, re.account_name, re.location_name, re.training_requirement_name, re.certification_date_formatted, compOrNot ]);
           }
            
           response['tables'].push(tblData);

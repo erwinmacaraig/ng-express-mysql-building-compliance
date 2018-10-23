@@ -28,22 +28,30 @@ export class NotificationConfiguration extends BaseClass {
   public loadByBuilding(building=0): Promise<Array<object>> {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT * FROM notification_config WHERE building_id = ?`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_load, [building], (error, results) => {
-        if (error) {
-          console.log('Cannot load record NotificationConfiguration', sql_load);
-          throw Error(error);
-        } 
-        if (results.length) {
-          this.dbData = results[0];
-          this.setID(results[0]['notification_config_id']);
-          resolve(results);
-        } else {
-          resolve([]);
+
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
         }
-        
+
+        connection.query(sql_load, [building], (error, results) => {
+          if (error) {
+            console.log('Cannot load record NotificationConfiguration', sql_load);
+            throw Error(error);
+          } 
+          if (results.length) {
+            this.dbData = results[0];
+            this.setID(results[0]['notification_config_id']);
+            resolve(results);
+          } else {
+            resolve([]);
+          }
+          
+        });
+        connection.release();
+
       });
-      connection.end();
+
     });
   }
 
@@ -99,17 +107,24 @@ export class NotificationConfiguration extends BaseClass {
         ('building_manager' in this.dbData) ? this.dbData['building_manager'] : 0,
         ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00'
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_insert, param, (err, results) => {
-        if (err) {
-          console.log('Cannot create record NotificationConfiguration', err, sql_insert);
+      
+
+      this.pool.getConnection((err, connection) => {
+        if(err){
           throw new Error(err);
         }
-        this.id = results.insertId;
-        this.dbData['notification_config_id'] = this.id;
-        resolve(true);
+        connection.query(sql_insert, param, (err, results) => {
+          if (err) {
+            console.log('Cannot create record NotificationConfiguration', err, sql_insert);
+            throw new Error(err);
+          }
+          this.id = results.insertId;
+          this.dbData['notification_config_id'] = this.id;
+          resolve(true);
+        });
+        connection.release();
       });
-      connection.end();
+
     });
 
   }
@@ -144,32 +159,42 @@ export class NotificationConfiguration extends BaseClass {
         ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00',
         this.ID() ? this.ID() : 0
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, param, (err, results) => {
-        if (err) {
-          console.log('Cannot update record NotificationConfiguration');
-          throw Error(err);
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
         }
-        resolve(true);
+        connection.query(sql_update, param, (err, results) => {
+          if (err) {
+            console.log('Cannot update record NotificationConfiguration');
+            throw Error(err);
+          }
+          resolve(true);
 
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
   public load() {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT * FROM notification_config WHERE notification_config_id = ?`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_load, [this.id], (error, results) => {
-        if (error) {
-          console.log('Cannot load record NotificationConfiguration', sql_load);
-          throw Error(error);
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
         }
-        this.dbData = results[0];
-        this.setID(results[0]['notification_config_id']);
-        resolve(this.dbData);
+        connection.query(sql_load, [this.id], (error, results) => {
+          if (error) {
+            console.log('Cannot load record NotificationConfiguration', sql_load);
+            throw Error(error);
+          }
+          this.dbData = results[0];
+          this.setID(results[0]['notification_config_id']);
+          resolve(this.dbData);
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -189,15 +214,20 @@ export class NotificationConfiguration extends BaseClass {
                     ON
                       notification_config.building_id = locations.location_id ${whereAccountClause}
                     ORDER BY notification_config.building_id`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql, [accountId], (error, results) => {
-        if (error) {
-          console.log('Cannot generate list - NotificationConfiguration', sql);
-          throw Error(error);
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
         }
-        resolve(results);
+        connection.query(sql, [accountId], (error, results) => {
+          if (error) {
+            console.log('Cannot generate list - NotificationConfiguration', sql);
+            throw Error(error);
+          }
+          resolve(results);
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 

@@ -15,6 +15,7 @@ import { DonutService } from '../../services/donut';
 
 import { Countries } from '../../models/country.model';
 import { Timezone } from '../../models/timezone';
+import { MessageService } from '../../services/messaging.service';
 
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -75,6 +76,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
     latestCompliance = <any> {};
 
+    breadCrumbs = [];
+
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
         private activeRoute: ActivatedRoute,
@@ -85,7 +88,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
         private accountService: AccountsDataProviderService,
         private dashboardService: DashboardPreloaderService,
         private complianceService: ComplianceService,
-        private donutService: DonutService
+        private donutService: DonutService,
+        private messageService: MessageService
     ) {
 
         this.userData = this.auth.getUserData();
@@ -119,11 +123,30 @@ export class SublocationComponent implements OnInit, OnDestroy {
               this.parentData['name'] = this.parentData['formatted_address'];
             }
 
-            if(response.show_compliance){
+            /*if(response.show_compliance){
                 this.showCompliance = true;
             }else{
                 this.showCompliance = false;
+            }*/
+
+            this.breadCrumbs = [];
+            this.breadCrumbs.push({
+              'value' : 'Location list', 'link' : '/location/list'
+            });
+            for(let i in response.ancestries){
+                if( response.ancestries.length != ( parseInt(i) + 1 ) ){
+                    this.breadCrumbs.push({
+                      'value' : response.ancestries[i].name, 'link' : '/location/view/'+this.encryptDecrypt.encrypt(response.ancestries[i]['location_id'])
+                    });
+                }else{
+                    this.breadCrumbs.push({
+                      'value' : response.ancestries[i].name, 'link' : '/location/view-sublocation/'+this.encryptDecrypt.encrypt(response.ancestries[i]['location_id'])
+                    });
+                }
+
             }
+
+            this.messageService.sendMessage({ 'breadcrumbs' : this.breadCrumbs });
 
             callBack();
         });

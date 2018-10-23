@@ -18,20 +18,25 @@ export class AccountTrainingsModel extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM account_trainings WHERE account_training_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-              if (error) {
-                return console.log(error);
-              }
-              if (!results.length){
-                reject('Account training not found');
-              } else {
-                this.dbData = results[0];
-                this.setID(results[0]['account_training_id']);
-                resolve(this.dbData);
-              }
+            this.pool.getConnection((err, connection) => {
+                if(err){
+                    throw new Error(err);
+                }
+                connection.query(sql_load, uid, (error, results, fields) => {
+                  if (error) {
+                    return console.log(error);
+                  }
+                  if (!results.length){
+                    reject('Account training not found');
+                  } else {
+                    this.dbData = results[0];
+                    this.setID(results[0]['account_training_id']);
+                    resolve(this.dbData);
+                  }
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -53,14 +58,19 @@ export class AccountTrainingsModel extends BaseClass {
                 ('datetime_added' in this.dbData) ? this.dbData['datetime_added'] : moment().format('YYYY-MM-DD HH-mm-ss'),
                 this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, param, (err, results, fields) => {
-                if (err) {
+            this.pool.getConnection((err, connection) => {
+                if(err){
                     throw new Error(err);
                 }
-                resolve(true);
+                connection.query(sql_update, param, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -84,18 +94,24 @@ export class AccountTrainingsModel extends BaseClass {
                 ('training_requirement_id' in this.dbData) ? this.dbData['training_requirement_id'] : 0,
                 ('datetime_added' in this.dbData) ? this.dbData['datetime_added'] : moment().format('YYYY-MM-DD HH-mm-ss'),
             ];
-            const connection = db.createConnection(dbconfig);
-
-            connection.query(sql_insert, param, (err, results, fields) => {
-                if (err) {
-                    reject(err);
+            
+            this.pool.getConnection((err, connection) => {
+                if(err){
                     throw new Error(err);
                 }
-                this.id = results.insertId;
-                this.dbData['account_training_id'] = this.id;
-                resolve(true);
+                connection.query(sql_insert, param, (err, results, fields) => {
+                    if (err) {
+                        reject(err);
+                        throw new Error(err);
+                    }
+                    this.id = results.insertId;
+                    this.dbData['account_training_id'] = this.id;
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+
+            
         });
     }
 
@@ -139,16 +155,21 @@ export class AccountTrainingsModel extends BaseClass {
                 WHERE atr.account_id = ${accountId} ${filterClause}
             `;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                  return console.log('account.trainings.getAccount', error, sql_load);
+            this.pool.getConnection((err, connection) => {
+                if(err){
+                    throw new Error(err);
                 }
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                      return console.log('account.trainings.getAccount', error, sql_load);
+                    }
 
-                this.dbData = results;
-                resolve(results);
+                    this.dbData = results;
+                    resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -166,16 +187,23 @@ export class AccountTrainingsModel extends BaseClass {
                             ) VALUES (
                               ?, ?, ?
                             ) ${disabledClause}`;
-        const connection = db.createConnection(dbconfig);
         const params = [userId, course_id, training_requirement_id];
-        connection.query(assign_sql, params, (error, results) => {
-          if (error) {
-            console.log('AccountTrainingsModel.assignAccountUserTraining()', assign_sql, error);
-            throw Error('Unable to assign training to user');
-          }
-          resolve(true);
+
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
+            }
+            connection.query(assign_sql, params, (error, results) => {
+              if (error) {
+                console.log('AccountTrainingsModel.assignAccountUserTraining()', assign_sql, error);
+                throw Error('Unable to assign training to user');
+              }
+              resolve(true);
+            });
+            connection.release();
         });
-        connection.end();
+
+        
       });
     }
 
@@ -213,16 +241,23 @@ export class AccountTrainingsModel extends BaseClass {
 
           params = [role, accountId];
         }
-        const connection = db.createConnection(dbconfig);
+        
 
-        connection.query(sql, params, (error, results) => {
-          if (error) {
-            console.log('account.trainings.assignAccountRoleTraining', error, sql);
-            throw Error('Cannot assign training to roles');
-          }
-          resolve(true);
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
+            }
+            connection.query(sql, params, (error, results) => {
+              if (error) {
+                console.log('account.trainings.assignAccountRoleTraining', error, sql);
+                throw Error('Cannot assign training to roles');
+              }
+              resolve(true);
+            });
+            connection.release();
         });
-        connection.end();
+
+        
       });
     }
 
@@ -238,20 +273,27 @@ export class AccountTrainingsModel extends BaseClass {
                        role = ?
                     AND
                       training_requirement_id = ?`;
-        const connection = db.createConnection(dbconfig);
         const params = [account_id, course_id, role, trid];
-        connection.query(sql, params, (error, results) => {
-          if (error) {
-            console.log('account.trainings.checkAssignedTrainingOnAccount', error, sql);
-            throw Error('Cannot set up training');
-          }
-          if (results.length > 0) {
-            resolve(results);
-          } else {
-            reject('Training record exists');
-          }
+
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
+            }
+            connection.query(sql, params, (error, results) => {
+              if (error) {
+                console.log('account.trainings.checkAssignedTrainingOnAccount', error, sql);
+                throw Error('Cannot set up training');
+              }
+              if (results.length > 0) {
+                resolve(results);
+              } else {
+                reject('Training record exists');
+              }
+            });
+            connection.release();
         });
-        connection.end();
+
+        
       });
     }
 
@@ -262,16 +304,23 @@ export class AccountTrainingsModel extends BaseClass {
                      WHERE
                        account_id = ?
                      `;
-        const connection = db.createConnection(dbconfig);
         const params = [account_id];
-        connection.query(sql, params, (error, results) => {
-          if (error) {
-            console.log('account.trainings.checkAssignedTrainingOnAccount', error, sql);
-            throw Error('Cannot set up training');
-          }
-          resolve(true);
+
+        this.pool.getConnection((err, connection) => {
+            if(err){
+                throw new Error(err);
+            }
+            connection.query(sql, params, (error, results) => {
+              if (error) {
+                console.log('account.trainings.checkAssignedTrainingOnAccount', error, sql);
+                throw Error('Cannot set up training');
+              }
+              resolve(true);
+            });
+            connection.release();
         });
-        connection.end();
+        
+        
       });
     }
 

@@ -16,20 +16,26 @@ export class EpcMinutesMeeting extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM epc_meeting_minutes WHERE epc_meeting_minutes_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){
+                    throw new Error(err);
                 }
-                if (!results.length){
-                    reject('EPC Meeting record not found');
-                } else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['epc_meeting_minutes_id']);
-                    resolve(this.dbData);
-                }
+
+                connection.query(sql_load, uid, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if (!results.length){
+                        reject('EPC Meeting record not found');
+                    } else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['epc_meeting_minutes_id']);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -49,15 +55,21 @@ export class EpcMinutesMeeting extends BaseClass {
 
             sql += ` ORDER BY date_updated DESC `;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){
+                    throw new Error(err);
                 }
-                this.dbData = results
-                resolve(results);
+
+                connection.query(sql, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results
+                    resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
+            
 
         });
     }
@@ -75,14 +87,22 @@ export class EpcMinutesMeeting extends BaseClass {
             ('updated_by' in this.dbData) ? this.dbData['updated_by'] : null,
             this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, param, (err, results, fields) => {
-                if (err) {
+            
+            this.pool.getConnection((err, connection) => {
+                if(err){
                     throw new Error(err);
                 }
-                resolve(true);
+
+                connection.query(sql_update, param, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+
+            
         });
     }
 
@@ -100,15 +120,23 @@ export class EpcMinutesMeeting extends BaseClass {
             ('date_updated' in this.dbData) ? this.dbData['date_updated'] : null,
             ('updated_by' in this.dbData) ? this.dbData['updated_by'] : null
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, param, (err, results, fields) => {
-                if (err) {
+            
+            this.pool.getConnection((err, connection) => {
+                if(err){
                     throw new Error(err);
                 }
-                this.id = results.insertId;
-                resolve(true);
+
+                connection.query(sql, param, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    this.id = results.insertId;
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
+            
+            
         });
     }
 

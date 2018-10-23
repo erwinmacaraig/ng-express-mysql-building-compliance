@@ -206,6 +206,15 @@ export class AddUserComponent implements OnInit, OnDestroy {
             }
             window['Materialize'].updateTextFields();
         });
+
+        let breadCrumbs = [];
+        breadCrumbs.push({
+          'value' : 'All users', 'link' : '/teams/all-users'
+        });
+        breadCrumbs.push({
+          'value' : 'Add new users', 'link' : '/teams/add-user'
+        });
+        this.messageService.sendMessage({ 'breadcrumbs' : breadCrumbs });
     }
 
     onSelectRole($event, iterator, elem){

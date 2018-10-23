@@ -147,8 +147,11 @@ import {  PeepFormComponent } from './peep.form/peep.form';
 
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 
+import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
+
 @NgModule({
   declarations: [
+    BreadCrumbsComponent,
     SafeHtmlPipe,
     AppComponent,
     LoginComponent,
