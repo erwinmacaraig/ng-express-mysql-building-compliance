@@ -1978,10 +1978,10 @@ export class AdminRoute extends BaseRoute {
 
      const buildingLocation = req.body.building;
      const sublocations = JSON.parse(req.body.sublocs);
-
-     const locAcctRel = new LocationAccountRelation();
+     console.log(req.body);
+     let locAcctRel = new LocationAccountRelation();
       let filter = {};
-     if (managingRole == 'Manager') {
+     if (managingRole == 'Manager') {       
       try {
         filter['location_id'] = buildingLocation;
         filter['account_id'] = accountId;
@@ -1989,20 +1989,22 @@ export class AdminRoute extends BaseRoute {
         await locAcctRel.getLocationAccountRelation(filter);
       } catch (e) {
         console.log(e, 'Creating building record');
-        await locAcctRel.create(filter);
+        await new LocationAccountRelation().create(filter);
       }
     } 
     for( let sub of sublocations) {
       filter = {};
       try {
+        locAcctRel = new LocationAccountRelation();
         filter['location_id'] = sub;
         filter['account_id'] = accountId;
         filter['responsibility'] = 'Tenant';
         await locAcctRel.getLocationAccountRelation(filter);
+        locAcctRel = null;
       } catch (e) {
         console.log(e);
         console.log('creating sublocation record');
-        await locAcctRel.create(filter);
+        await new LocationAccountRelation().create(filter);
       }          
     }
 
