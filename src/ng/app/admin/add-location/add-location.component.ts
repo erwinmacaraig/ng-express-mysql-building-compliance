@@ -47,7 +47,7 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
         private activatedRoute: ActivatedRoute,
         private adminService: AdminService,
         private locationService: LocationsService,
-        private formBuilder: FormBuilder
+        private router: Router
     ) {}
 
     ngOnInit() {
@@ -61,20 +61,7 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
         this.managingRoleGroup = new FormGroup({
             managingRoleControl: new FormControl()
         });
-        /*
-        this.newLocationFrmGroup = this.formBuilder.group({
-            name: new FormControl(null, Validators.required),
-            street: this.street,
-            city:  this.formBuilder.control('Sample City', Validators.required),
-            state:  new FormControl({value: 'State'}),
-            carpark: new FormControl('0', null),
-            plantroom: new FormControl('0', null),
-            others: new FormControl('0', null),
-            levels: this.formBuilder.array([{}]),
-            occupiableLvls: new FormControl('0'),
-            total_levels: new FormControl(0, null)
-        });
-        */
+        
        this.newLocationFrmGroup = new FormGroup({
         name: new FormControl(null, Validators.required),
         street: new FormControl(null, Validators.required),
@@ -222,8 +209,9 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
             sublocs: JSON.stringify(this.selectedSublevels)
         }
         console.log(postBody);
+        this.cancelAll();
         this.adminService.addExistingLocationsToAccount(postBody).subscribe((response) => {
-            console.log(response);
+            this.router.navigate(['/admin', 'locations-in-account', this.accountId]);
         });
     }
 
@@ -257,11 +245,8 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
 
         this.adminService.addNewLocation(postBody).subscribe((response) => {
             console.log(response);
-            
+            this.router.navigate(['/admin', 'locations-in-account', this.accountId]);
         });
-
-
-        
     }
     
     removeLevelForFRPBuilding(fieldName) {

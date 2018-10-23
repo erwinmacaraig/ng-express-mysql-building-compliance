@@ -49,7 +49,7 @@
                         <a (click)="selectLocationFromSearch(location)">{{location['name']}}</a>                        
                     </li>                   
                 </ul>
-                <div *ngIf="searchedLocations == 0 && showTextSearch">
+                <div *ngIf="searchedLocations.length == 0 && showTextSearch">
                     <p class="text">Location not found, create this new location</p>	
                     <p class="text">
                         <button type="button" class="btn grey waves-effect waves-light" (click)="cancelNewLoc()">No</button>

@@ -44,7 +44,7 @@ const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
 
-  public static create(router: Router) {
+  public static create(router: Router) {    
 
     router.post('/admin/create-new-location/',new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -204,9 +204,6 @@ export class AdminRoute extends BaseRoute {
             sublocation = null;
           }
          }
-
-
-
       }
 
       return res.status(200).send({
@@ -493,6 +490,7 @@ export class AdminRoute extends BaseRoute {
         message: 'Success'
       });
     });
+
     router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
       const users: Array<object> = JSON.parse(req.body.users);
@@ -676,6 +674,7 @@ export class AdminRoute extends BaseRoute {
         console.log(e);
       });
     });
+
     router.get('/admin/location/search/',
     new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
@@ -1971,7 +1970,7 @@ export class AdminRoute extends BaseRoute {
     });
 
   // ===============
-  });
+  }
 
   public async tagAccountToExistingLocation(req: AuthRequest, res: Response) {
      const accountId = req.body.accountId;
@@ -2444,6 +2443,5 @@ export class AdminRoute extends BaseRoute {
       message: 'Success'
     });
   }
-
 
 }
