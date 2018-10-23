@@ -408,8 +408,6 @@ export class LocationAccountRelation extends BaseClass {
             AND (l.is_building = 1 OR p1.is_building = 1 OR p2.is_building = 1 OR l.location_id IN ( SELECT parent_id FROM locations WHERE is_building = 1 ))
         `;
 
-        // console.log('sqlGetIds', sqlGetIds);
-
         this.pool.getConnection((err, connection) => {
             connection.query(sqlGetIds,  (error, idResults) => {
                 if(error){
@@ -512,7 +510,7 @@ export class LocationAccountRelation extends BaseClass {
                         console.log('Error gettting pool connection ' + err);
                         throw new Error(err);
                       }
-
+                      
                       connection.query(sql_get_locations,  (error, bldgs) => {
                         if (error) {
                             console.log('location.account.relation.listAllLocationsOnAccount', error, sql_get_locations);

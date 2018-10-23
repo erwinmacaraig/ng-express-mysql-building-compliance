@@ -2245,12 +2245,17 @@ export class AdminRoute extends BaseRoute {
     }
 
     public async getLocationListing(req: AuthRequest, res: Response, toReturn?){
-        const locAccntRelObj = new LocationAccountRelation();
+      const locAccntRelObj = new LocationAccountRelation();
       let locationsForManager;
       let locationsForTRP;
       const buildingIds = [];
 
-      locationsForManager = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Manager']});
+      const listModel = new List();
+
+
+      // locationsForManager = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Manager']});
+      locationsForManager = await listModel.listAllTaggedBuildingsOfAccount(req.params.accountId);
+      // console.log('LocationForManager',locationsForManager );
       for (const location of locationsForManager) {
         buildingIds.push(location['location_id']);
       }

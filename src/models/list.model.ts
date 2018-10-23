@@ -186,6 +186,7 @@ export class List extends BaseClass{
             accounts.epc_committee_on_hq,
             accounts.online_training,
             accounts.key_contact,
+            accounts.fsa_by_evac,
             location_account_user.location_id
           FROM
             accounts
@@ -285,6 +286,7 @@ export class List extends BaseClass{
             accounts.epc_committee_on_hq,
             accounts.online_training,
             accounts.key_contact,
+            accounts.fsa_by_evac,
             location_account_relation.location_id
           FROM
             accounts
