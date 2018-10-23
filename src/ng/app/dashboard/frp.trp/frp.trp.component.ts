@@ -70,7 +70,8 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
         offset :  0,
         limit : 7,
         search : '',
-        sort : ''
+        sort : '',
+        showparentonly : true
     };
 
     countOfBuildings = 0;

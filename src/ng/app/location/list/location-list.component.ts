@@ -16,6 +16,7 @@ import { isArray } from 'util';
 import { Countries } from '../../models/country.model';
 import { Timezone } from '../../models/timezone';
 import { UserService } from '../../services/users';
+import { MessageService } from '../../services/messaging.service';
 
 declare var $: any;
 @Component({
@@ -84,7 +85,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
         search : '',
         sort : '',
         archived : 0,
-        showparentonly: true
+        showparentonly: true,
+        parent_id : 0
     };
 
     searchSubs;
@@ -94,6 +96,10 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
     showLoadingSublocations = false;
     viewWardens = [];
+
+    underLocationData = {
+        location_id : 0
+    };
 
     constructor (
       private platformLocation: PlatformLocation,
@@ -107,7 +113,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
       private router: Router,
       private actRouter: ActivatedRoute,
       private elemRef : ElementRef,
-      private userService : UserService
+      private userService : UserService,
+      private messageService : MessageService
     ) {
         this.baseUrl = (platformLocation as any).location.origin;
         this.options = { headers : this.headers };
@@ -141,28 +148,34 @@ export class LocationListComponent implements OnInit, OnDestroy {
                 this.isTRP = true;
             }
         }
+  	}
 
-        this.routerSubs = router.events.subscribe(event => {
-            if(event instanceof NavigationEnd){
+	ngOnInit(){
+        this.routerSubs = this.actRouter.queryParams.subscribe((params) => {
+            if(params.undrlocid){
+                this.queries.parent_id = this.encryptDecrypt.decrypt(params.undrlocid);
+            }else{
+                this.queries.parent_id = 0;
+            }
 
+            if(params.archived){
                 this.queries.offset = 0;
-                if(event.url.indexOf('archived=true') > -1){
+                if(params.archived == 'true'){
                     this.paramArchived = true;
                     this.queries.archived = 1;
                 }else{
                     this.paramArchived = false;
                     this.queries.archived = 0;
                 }
-
-                this.ngAfterViewInit();
-
             }
+
+            this.ngAfterViewInit();
+
+            console.log('params', params);
+            console.log('queries', this.queries);
+
+            
         });
-
-  	}
-
-	ngOnInit(){
-
 	}
 
 	getLocationsForListing(callback){
@@ -178,20 +191,22 @@ export class LocationListComponent implements OnInit, OnDestroy {
             this.locations = response.locations;
 
             for(let loc of this.locations){
-                loc['fetchingCompliance'] = true;
-                loc['compliance_percentage'] = 0;
-                loc['building_based'] = false;
-                this.complianceService.getLocationsLatestCompliance(loc.location_id, (compRes) => {
-                    loc['fetchingCompliance'] = false;
-                    loc['compliance_percentage'] = compRes.percent ;
-                    if(compRes['building_based']){
-                        loc['building_based'] = compRes['building_based'];
-                    }
-                    setTimeout(() => {
-                        $('select.select-from-row option').prop('disabled', false);
-                        $('select.select-from-row').material_select();
-                    }, 200);
-                });
+                if(loc.is_building == 1){
+                    loc['fetchingCompliance'] = true;
+                    loc['compliance_percentage'] = 0;
+                    loc['building_based'] = false;
+                    this.complianceService.getLocationsLatestCompliance(loc.location_id, (compRes) => {
+                        loc['fetchingCompliance'] = false;
+                        loc['compliance_percentage'] = compRes.percent ;
+                        if(compRes['building_based']){
+                            loc['building_based'] = compRes['building_based'];
+                        }
+                        setTimeout(() => {
+                            $('select.select-from-row option').prop('disabled', false);
+                            $('select.select-from-row').material_select();
+                        }, 200);
+                    });
+                }
             }
 
     		if (this.locations.length > 0) {
@@ -201,6 +216,37 @@ export class LocationListComponent implements OnInit, OnDestroy {
     			}
     		}
     		this.locationsBackup = JSON.parse(JSON.stringify(this.locations));
+
+            this.underLocationData = (response.under_location) ? response.under_location : { location_id : false };
+
+            if(this.underLocationData.location_id){
+                let breadCrumbs = [];
+                breadCrumbs.push({
+                  'value' : 'Location list', 'link' : '/location/list'
+                });
+
+                for(let i in response.ancestries){
+
+                    if( response.ancestries[i].parent_is_building == 1 || response.ancestries[i].has_child_building == 1 || response.ancestries[i].is_building == 1 ){
+                        let
+                        queryParams = {},
+                        encId =  this.encryptDecrypt.encrypt(response.ancestries[i]['location_id']),
+                        url = (response.ancestries[i].is_building == 1) ? '/location/view/'+encId 
+                            : (response.ancestries[i].parent_is_building == 1) ? '/location/view-sublocation/'+encId : '/location/list' ;
+
+                        if( response.ancestries[i].has_child_building == 1  ){
+                            queryParams['undrlocid'] = encId;
+                        }
+
+                        breadCrumbs.push({
+                          'value' : response.ancestries[i].name, 'link' : url, 'queryParams' : queryParams
+                        });
+                    }
+
+                }
+                 
+                this.messageService.sendMessage({ 'breadcrumbs' : breadCrumbs });
+            }
 
     		callback(response);
     	});
@@ -517,11 +563,13 @@ export class LocationListComponent implements OnInit, OnDestroy {
             thisClass.queries.search = this.inputSearch.nativeElement['value'];
             thisClass.queries.sort = $('.sort-by select').val();
             thisClass.loadingTable = true;
+            thisClass.queries.showparentonly = false;
             thisClass.getLocationsForListing((response) => {
 
                 thisClass.pagination.total = response.pagination.total;
                 thisClass.pagination.pages = response.pagination.pages;
                 thisClass.pagination.currentPage = 1;
+                thisClass.queries.showparentonly = true;
 
                 thisClass.loadingTable = false;
             });

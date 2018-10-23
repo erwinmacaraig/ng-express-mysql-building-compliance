@@ -108,22 +108,24 @@
                         </tr>
                         <tr *ngFor="let loc of locations" >
                             <td>
-                                <a *ngIf="loc.sublocation_count > 0 " [routerLink]="['/location', 'view', loc.enc_location_id]" class="black-text">
-                                    <span *ngIf="loc.name.length > 0">
-                                        <span *ngIf="loc.parent">{{loc.parent.name}}, </span>{{loc.name}}
-                                    </span>
-                                    <span *ngIf="loc.name.length == 0">
-                                        {{loc.formatted_address}}
-                                    </span>
+                                <a *ngIf="loc.is_building != 1 && loc.has_child_building == 1 else notCampus" [routerLink]="['/location/list']"  [queryParams]="{ undrlocid : loc.enc_location_id, archived : paramArchived }" class="black-text">
+                                    <span *ngIf="loc.parent">{{loc.parent.name}},</span>
+                                    <span *ngIf="loc.name.length > 0"> {{loc.name}}</span>
+                                    <span *ngIf="loc.name.length == 0"> {{loc.formatted_address}} </span>
                                 </a>
-                                <a *ngIf="loc.sublocation_count == 0" [routerLink]="['/location', 'view-sublocation', loc.enc_location_id]" class="black-text">
-                                    <span *ngIf="loc.name.length > 0">
-                                        <span *ngIf="loc.parent">{{loc.parent.name}}, </span>{{loc.name}}
-                                    </span>
-                                    <span *ngIf="loc.name.length == 0">
-                                        {{loc.formatted_address}}
-                                    </span>
-                                </a>
+
+                                <ng-template #notCampus>
+                                    <a *ngIf="loc.is_building == 1 && (loc.parent_is_building == 0 || loc.parent_is_building == null)" [routerLink]="['/location', 'view', loc.enc_location_id]" class="black-text">
+                                        <span *ngIf="loc.parent">{{loc.parent.name}},</span>
+                                        <span *ngIf="loc.name.length > 0"> {{loc.name}}</span>
+                                        <span *ngIf="loc.name.length == 0"> {{loc.formatted_address}} </span>
+                                    </a>
+                                    <a *ngIf="loc.is_building == 0 && loc.parent_is_building == 1" [routerLink]="['/location', 'view-sublocation', loc.enc_location_id]" class="black-text">
+                                        <span *ngIf="loc.parent">{{loc.parent.name}},</span>
+                                        <span *ngIf="loc.name.length > 0"> {{loc.name}}</span>
+                                        <span *ngIf="loc.name.length == 0"> {{loc.formatted_address}} </span>
+                                    </a>
+                                </ng-template>
                             </td>
                             <td class="with-bar">
                                 <ng-template #innerLink>

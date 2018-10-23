@@ -349,15 +349,15 @@ export class LocationAccountRelation extends BaseClass {
         let nameSearch = '';
         // if('name' in filter && filter['name'].length > 0 && ('responsibility' in filter && filter['responsibility'] === defs['Tenant'])){
         if('name' in filter){
-            nameSearch = (filter['name'].length > 0) ? ` AND name LIKE '%${filter['name']}%'` : '  ';
+            nameSearch = (filter['name'].length > 0) ? ` AND l.name LIKE '%${filter['name']}%'` : '  ';
         }
 
         let orderBy = '';
         if('sort' in filter){
             if(filter['sort'] == 'name-asc'){
-                orderBy = ' ORDER BY name ASC ';
+                orderBy = ' ORDER BY l.name ASC ';
             }else if(filter['sort'] == 'name-desc'){
-                orderBy = ' ORDER BY name DESC ';
+                orderBy = ' ORDER BY l.name DESC ';
             }
         }
 
@@ -391,6 +391,8 @@ export class LocationAccountRelation extends BaseClass {
 
         userIdQuery += ` AND lau.account_id = ${accountId} `;
 
+        let parentIdQuery = (filter['parent_id']) ? ` AND l.parent_id = ${filter['parent_id']} ` : ``;
+
         let sqlGetIds = `
             SELECT
 
@@ -406,6 +408,7 @@ export class LocationAccountRelation extends BaseClass {
             WHERE 1 = 1 
             ${userIdQuery} 
             AND (l.is_building = 1 OR p1.is_building = 1 OR p2.is_building = 1 OR l.location_id IN ( SELECT parent_id FROM locations WHERE is_building = 1 ))
+            AND l.archived = ${archived}
         `;
 
         // console.log('sqlGetIds', sqlGetIds);
@@ -421,11 +424,14 @@ export class LocationAccountRelation extends BaseClass {
                     let ids = idResults[0]['location_id'];
 
                     let sql_get_locations = `
-                        SELECT * 
-                        FROM locations
+                        SELECT l.*, p.is_building as parent_is_building, p.name as parent_name,
+                        IF( ( SELECT COUNT(c.location_id) as count FROM locations c WHERE c.parent_id = l.location_id AND c.is_building = 1  ) > 0, 1, 0 ) as has_child_building
+                        FROM locations l
+                        LEFT JOIN locations p ON l.parent_id = p.location_id
                         WHERE 
-                        (location_id IN (${ids}) AND is_building = 1
-                        OR parent_id IN (${ids}) AND is_building = 1)
+                        (l.location_id IN (${ids}) AND l.is_building = 1
+                        OR l.parent_id IN (${ids}) AND l.is_building = 1)
+                        ${parentIdQuery}
                         ${nameSearch}
                         ${orderBy}
                     `;
@@ -433,10 +439,12 @@ export class LocationAccountRelation extends BaseClass {
                     if('parentOnly' in filter){
                         if(filter['parentOnly']){
                             sql_get_locations = `
-                                SELECT * 
-                                FROM locations
+                                SELECT l.*, p.is_building as parent_is_building, p.name as parent_name,
+                                IF( ( SELECT COUNT(c.location_id) as count FROM locations c WHERE c.parent_id = l.location_id AND c.is_building = 1  ) > 0, 1, 0 ) as has_child_building
+                                FROM locations l
+                                LEFT JOIN locations p ON l.parent_id = p.location_id
                                 WHERE 
-                                location_id IN (
+                                l.location_id IN (
                                     SELECT DISTINCT(IF(parent_id > -1, parent_id, location_id))
                                     FROM locations
                                     WHERE 
@@ -451,20 +459,21 @@ export class LocationAccountRelation extends BaseClass {
 
                     if('count' in filter){
                         sql_get_locations = `
-                            SELECT COUNT(location_id) as count 
-                            FROM locations
+                            SELECT COUNT(l.location_id) as count 
+                            FROM locations l
                             WHERE 
-                            (location_id IN (${ids}) AND is_building = 1
-                            OR parent_id IN (${ids}) AND is_building = 1)
+                            (l.location_id IN (${ids}) AND l.is_building = 1
+                            OR l.parent_id IN (${ids}) AND l.is_building = 1)
+                            ${parentIdQuery}
                             ${nameSearch}
                         `;
                         if('parentOnly' in filter){
                             if(filter['parentOnly']){
                                 sql_get_locations = `
-                                    SELECT COUNT(location_id) as count 
-                                    FROM locations
+                                    SELECT COUNT(l.location_id) as count 
+                                    FROM locations l
                                     WHERE 
-                                    location_id IN (
+                                    l.location_id IN (
                                         SELECT DISTINCT(IF(parent_id > -1, parent_id, location_id))
                                         FROM locations
                                         WHERE 
@@ -477,20 +486,21 @@ export class LocationAccountRelation extends BaseClass {
                         }
                     }else if('locationIdOnly' in filter){
                         sql_get_locations = `
-                            SELECT location_id
-                            FROM locations
+                            SELECT l.location_id
+                            FROM locations l
                             WHERE 
-                            (location_id IN (${ids}) AND is_building = 1
-                            OR parent_id IN (${ids}) AND is_building = 1)
+                            (l.location_id IN (${ids}) AND l.is_building = 1
+                            OR l.parent_id IN (${ids}) AND l.is_building = 1)
+                            ${parentIdQuery}
                             ${nameSearch}
                         `;
                         if('parentOnly' in filter){
                             if(filter['parentOnly']){
                                 sql_get_locations = `
-                                    SELECT location_id
-                                    FROM locations
+                                    SELECT l.location_id
+                                    FROM locations l
                                     WHERE 
-                                    location_id IN (
+                                    l.location_id IN (
                                         SELECT DISTINCT(IF(parent_id > -1, parent_id, location_id))
                                         FROM locations
                                         WHERE 

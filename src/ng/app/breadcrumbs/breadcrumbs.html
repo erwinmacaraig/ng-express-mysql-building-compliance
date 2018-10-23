@@ -2,7 +2,7 @@
     <div class="col l12 m12 s12">
         <ul>
             <li *ngFor="let item of list">
-                <a [routerLink]="[item.link]" *ngIf="item.link != false">{{item.value}}</a>
+                <a [routerLink]="[item.link]" [queryParams]="item.queryParams" *ngIf="item.link != false">{{item.value}}</a>
                 <span *ngIf="item.link == false">{{item.value}}</span>
             </li>
         </ul>

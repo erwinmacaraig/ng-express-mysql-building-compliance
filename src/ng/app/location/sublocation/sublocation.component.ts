@@ -134,13 +134,20 @@ export class SublocationComponent implements OnInit, OnDestroy {
               'value' : 'Location list', 'link' : '/location/list'
             });
             for(let i in response.ancestries){
-                if( response.ancestries.length != ( parseInt(i) + 1 ) ){
+
+                if( response.ancestries[i].parent_is_building == 1 || response.ancestries[i].has_child_building == 1 || response.ancestries[i].is_building == 1 ){
+                    let
+                    queryParams = {},
+                    encId =  this.encryptDecrypt.encrypt(response.ancestries[i]['location_id']),
+                    url = (response.ancestries[i].is_building == 1) ? '/location/view/'+encId 
+                        : (response.ancestries[i].parent_is_building == 1) ? '/location/view-sublocation/'+encId : '/location/list' ;
+
+                    if( response.ancestries[i].has_child_building == 1  ){
+                        queryParams['undrlocid'] = encId;
+                    }
+
                     this.breadCrumbs.push({
-                      'value' : response.ancestries[i].name, 'link' : '/location/view/'+this.encryptDecrypt.encrypt(response.ancestries[i]['location_id'])
-                    });
-                }else{
-                    this.breadCrumbs.push({
-                      'value' : response.ancestries[i].name, 'link' : '/location/view-sublocation/'+this.encryptDecrypt.encrypt(response.ancestries[i]['location_id'])
+                      'value' : response.ancestries[i].name, 'link' : url, 'queryParams' : queryParams
                     });
                 }
 

@@ -1322,7 +1322,9 @@ const defs = require('../config/defs.json');
                 archived : (archived) ? archived : 0
             },
             parentOnly = (queries.showparentonly) ? queries.showparentonly : false,
-            mobilityImpaired = new MobilityImpairedModel();
+            mobilityImpaired = new MobilityImpairedModel(),
+            parentId = (queries.parent_id) ? queries.parent_id : false;
+
         let
             r = 0,
             EMRole = new UserEmRoleRelation(),
@@ -1358,10 +1360,11 @@ const defs = require('../config/defs.json');
           console.log('location route get-parent-locations-by-account-d',e);
           r = 0;
         }
-        filter['parentOnly'] = parentOnly;
+        filter['parentOnly'] = (parentId) ? false : parentOnly;
         filter['responsibility'] = r;
         filter['isPortfolio'] = isPortfolio;
         filter['userId'] = req.user.user_id;
+        filter['parent_id'] = parentId;
 
         if('search' in queries){
             filter['name'] = queries.search;
@@ -1507,6 +1510,14 @@ const defs = require('../config/defs.json');
 
             loc['mobility_impaired'] = impaired.length;
 
+        }
+
+
+        response['under_location'] = (parentId) ? await new Location(parentId).load() : {};
+        if(parentId){
+            let ancestriesModel = new Location(),
+            ancestries = await ancestriesModel.getAncestries(parentId);
+            response['ancestries'] = ancestries;
         }
 
 
