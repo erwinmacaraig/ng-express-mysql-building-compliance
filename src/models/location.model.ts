@@ -18,7 +18,14 @@ export class Location extends BaseClass {
 
     public load() {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM locations WHERE location_id = ?';
+            const sql_load = `
+                SELECT 
+                l.*,
+                IF(p.is_building = 1, 1, 0) parent_is_building,
+                IF( ( SELECT COUNT(c.location_id) as count FROM locations c WHERE c.parent_id = l.location_id AND c.is_building = 1  ) > 0, 1, 0 ) as has_child_building
+                FROM locations l 
+                LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE l.location_id = ? `; 
             const uid = [this.id];
             
             this.pool.getConnection((err, connection) => {
@@ -718,10 +725,25 @@ export class Location extends BaseClass {
                     sublocId = '0';
                 }
 
-                let sql = `SELECT * FROM locations WHERE location_id IN (` + sublocId + `)`;
+                let sql = `
+                SELECT 
+                l.*, 
+                IF(p.is_building = 1, 1, 0) parent_is_building,
+                IF( ( SELECT COUNT(c.location_id) as count FROM locations c WHERE c.parent_id = l.location_id AND c.is_building = 1  ) > 0, 1, 0 ) as has_child_building 
+                FROM locations l 
+                LEFT JOIN locations p ON l.parent_id = p.location_id
+                WHERE l.location_id IN (` + sublocId + `)`;
 
                 if( resultsIds[0]['ids'].length > 0 ){
-                    sql = `SELECT * FROM locations WHERE location_id IN (` + sublocId + `,` + resultsIds[0]['ids'] + `)`;
+                    sql = `
+                    SELECT
+                    l.*, 
+                    IF(p.is_building = 1, 1, 0) parent_is_building,
+                    IF( ( SELECT COUNT(c.location_id) as count FROM locations c WHERE c.parent_id = l.location_id AND c.is_building = 1  ) > 0, 1, 0 ) as has_child_building 
+                    FROM locations l 
+                    LEFT JOIN locations p ON l.parent_id = p.location_id
+                    WHERE l.location_id IN (` + sublocId + `,` + resultsIds[0]['ids'] + `)
+                    `;
                 }
 
                 this.pool.getConnection((err, connection) => {

@@ -206,9 +206,21 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
               'value' : 'Location list', 'link' : '/location/list'
             });
             for(let i in response.ancestries){
-                this.breadCrumbs.push({
-                  'value' : response.ancestries[i].name, 'link' : '/location/view/'+this.encryptDecrypt.encrypt(response.ancestries[i]['location_id'])
-                });
+
+                if( response.ancestries[i].parent_is_building == 1 || response.ancestries[i].has_child_building == 1 || response.ancestries[i].is_building == 1 ){
+                    let
+                    queryParams = {},
+                    encId =  this.encryptDecrypt.encrypt(response.ancestries[i]['location_id']),
+                    url = (response.ancestries[i].is_building == 1) ? '/location/view/'+encId : '/location/list' ;
+
+                    if( response.ancestries[i].has_child_building == 1  ){
+                        queryParams['undrlocid'] = encId;
+                    }
+
+                    this.breadCrumbs.push({
+                      'value' : response.ancestries[i].name, 'link' : url, 'queryParams' : queryParams
+                    });
+                }
 
             }
              

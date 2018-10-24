@@ -37,9 +37,9 @@ export class BreadCrumbsComponent implements OnInit, AfterViewInit {
                 this.list = [];
                 for(let i in data.breadcrumbs){
                     if( (parseInt(i) + 1) == data.breadcrumbs.length ){
-                        this.list.push({  'value' : data.breadcrumbs[i]['value'], 'link' : data.breadcrumbs[i]['link'],  'islast' : true });
+                        this.list.push({  'value' : data.breadcrumbs[i]['value'], queryParams : data.breadcrumbs[i]['queryParams'], 'link' : data.breadcrumbs[i]['link'],  'islast' : true });
                     }else{
-                        this.list.push({  'value' : data.breadcrumbs[i]['value'], 'link' : data.breadcrumbs[i]['link'], 'islast' : false });
+                        this.list.push({  'value' : data.breadcrumbs[i]['value'], queryParams : data.breadcrumbs[i]['queryParams'], 'link' : data.breadcrumbs[i]['link'], 'islast' : false });
                         this.list.push({  'value' : '>', 'link' : false, 'islast' : false });
                     }
                 }

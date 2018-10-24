@@ -336,10 +336,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                     if(responseCompl['building_based']){
                         this.nameDisplay = responseCompl.building.name;
                     }else{
-                        this.nameDisplay = (this.locationData.parentData.name) ? this.locationData.parentData.name+', '+this.locationData.name : this.locationData.name; 
+                        this.nameDisplay = this.locationData.name;
+                        // this.nameDisplay = (this.locationData.parentData.name) ? this.locationData.parentData.name+', '+this.locationData.name : this.locationData.name; 
                     }
 
-                    this.nameDisplay = this.accountData.account_name + ' Tenancy at ' + this.nameDisplay;
+                    this.nameDisplay = this.accountData.account_name + ' at ' + this.nameDisplay;
 
 		            this.downloadPackName = this.locationData['location_directory_name'];
 	
@@ -401,15 +402,29 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 this.showLoadingForSignedURL = false;                
             });
 
+            this.breadcrumbsData = [];
             this.breadcrumbsData.push({
-                'name' : 'Locations', 'link' : '/location/list'
+              'value' : 'Location list', 'link' : '/location/list'
             });
-            this.breadcrumbsData.push({
-                'name' : this.locationData.name, 'link' : '/location/view/'+this.encryptedID
-            });
-            
-            console.log( 'this.breadcrumbsData', this.breadcrumbsData );
+            for(let i in response.ancestries){
+                if( response.ancestries[i].parent_is_building == 1 || response.ancestries[i].has_child_building == 1 || response.ancestries[i].is_building == 1 ){
+                    let
+                    queryParams = {},
+                    encId =  this.encryptDecrypt.encrypt(response.ancestries[i]['location_id']),
+                    url = (response.ancestries[i].is_building == 1) ? '/location/view/'+encId 
+                        : (response.ancestries[i].parent_is_building == 1) ? '/location/view-sublocation/'+encId : '/location/list' ;
 
+                    if( response.ancestries[i].has_child_building == 1  ){
+                        queryParams['undrlocid'] = encId;
+                    }
+
+                    this.breadcrumbsData.push({
+                      'value' : response.ancestries[i].name, 'link' : url, 'queryParams' : queryParams
+                    });
+                }
+            }
+
+            this.messageService.sendMessage({ 'breadcrumbs' : this.breadcrumbsData });
         });
     }
 

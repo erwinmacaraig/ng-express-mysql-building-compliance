@@ -1395,49 +1395,52 @@
 	</div>
 </ng-template>
 
-
 <div class="top-gray">
-	<h6 class="title">
-		{{nameDisplay}}
-	</h6>
+    <h6 class="title">
+        {{nameDisplay}}
+    </h6>
 
-	<div class="upload-buttons">
-		<!-- <button class="btn blue waves-effect waves-light">
-			<img src="/assets/images/upload_ico.png" alt="">
-			Upload Documents
-		</button> -->
+    <div class="upload-buttons">
+        <!-- <button class="btn blue waves-effect waves-light">
+            <img src="/assets/images/upload_ico.png" alt="">
+            Upload Documents
+        </button> -->
         
         <button class="btn blue waves-effect waves-light hide-diagram" (click)="hideDiagramDetails()" style="font-size: 25px; vertical-align: bottom; display: none;">
             <i class="material-icons white-text" style="font-size: 25px; vertical-align: bottom;">reply</i>
             Back to Compliance
         </button>
 
-		<button class="btn orange waves-effect waves-light" (click)="downloadAllPack()" [disabled]="downloadAllPackControler">
-			<img src="/assets/images/download_ico.png" alt="">
-			{{ downloadAllPackLabel }}
-		</button>
-	</div>
+        <button class="btn orange waves-effect waves-light" (click)="downloadAllPack()" [disabled]="downloadAllPackControler">
+            <img src="/assets/images/download_ico.png" alt="">
+            {{ downloadAllPackLabel }}
+        </button>
+    </div>
 
-	<!-- <a href="" class="archived">
-		<span class="image"></span>
-		View Archived
-	</a> -->
+    <!-- <a href="" class="archived">
+        <span class="image"></span>
+        View Archived
+    </a> -->
 </div>
 
 <div class="main" [hidden]="showEPCform">
+    
+    <div class="breadcrumb">
+        <breadcrumbs-component></breadcrumbs-component>
+    </div>
 
-	<div class="row row-table-content" style="left: 0%;">
-		<app-alert></app-alert>
-		<div class="col l5 m12 s12">
-			<div class="progress-loading-container">
-				<div class="left-icon">
-					<div class="image"></div>
-				</div>
-				<div class="right-icon">
-					<div class="image"></div>
-				</div>
+    <div class="row row-table-content" style="left: 0%;">
+        <app-alert></app-alert>
+        <div class="col l5 m12 s12">
+            <div class="progress-loading-container">
+                <div class="left-icon">
+                    <div class="image"></div>
+                </div>
+                <div class="right-icon">
+                    <div class="image"></div>
+                </div>
 
-				<div class="background">
+                <div class="background">
                     <div class="loading" [ngStyle]="{'width': totalPercentage + '%' }">
                         <div class="tip-percentage">
                             <div class="percentage">{{totalPercentage}}% </div>
@@ -1447,22 +1450,22 @@
                 </div>
 
 
-			</div>
+            </div>
 
-			<table class="table table-list">
-				<thead>
-					<tr>
-						<th>Compliance Item</th>
-						<th>Status</th>
-					</tr>
-				</thead>
-				<tbody>
+            <table class="table table-list">
+                <thead>
+                    <tr>
+                        <th>Compliance Item</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
 
-					<tr *ngFor="let k of KPIS;" (click)="clickSelectComplianceFromList(k)" [attr.compliance]="k.short_code">
-						<td class="with-image">
-							<div class="image {{k.icon_class}}" [ngStyle]="{'background-color': k.background_color}"  ></div>
-							<span>{{k.name}}</span>
-						</td>
+                    <tr *ngFor="let k of KPIS;" (click)="clickSelectComplianceFromList(k)" [attr.compliance]="k.short_code">
+                        <td class="with-image">
+                            <div class="image {{k.icon_class}}" [ngStyle]="{'background-color': k.background_color}"  ></div>
+                            <span>{{k.name}}</span>
+                        </td>
 
                         <td *ngIf="k.compliance.activity_done_in_building_management">
                             Activity done in building management
@@ -1502,29 +1505,29 @@
                         
                         <ng-container  *ngTemplateOutlet="validValidityStatus"></ng-container>
                         
-					</tr>
+                    </tr>
 
-				</tbody>
-			</table>
-		</div>
-		<div class="col l7 m12 s12"  >
+                </tbody>
+            </table>
+        </div>
+        <div class="col l7 m12 s12"  >
 
-			<ng-container *ngTemplateOutlet="complianceTitleTemplate ? complianceTitleTemplate : noneTemplate"></ng-container>
+            <ng-container *ngTemplateOutlet="complianceTitleTemplate ? complianceTitleTemplate : noneTemplate"></ng-container>
 
-			<ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
-			<ng-container  *ngTemplateOutlet="selectedCompliance.template"> </ng-container>
-		</div>
-	</div>
+            <ng-container *ngTemplateOutlet="notesTemplate ? notesTemplate : noneTemplate"></ng-container>
+            <ng-container  *ngTemplateOutlet="selectedCompliance.template"> </ng-container>
+        </div>
+    </div>
 
-	<div class="row row-diagram-details"  style="display: none;">
-		<div class="col l12 m12 s12">
-			<ng-container *ngTemplateOutlet="complianceTitleTemplate2 ? complianceTitleTemplate2 : noneTemplate"></ng-container>
-		</div>
-		<div class="content">
+    <div class="row row-diagram-details"  style="display: none;">
+        <div class="col l12 m12 s12">
+            <ng-container *ngTemplateOutlet="complianceTitleTemplate2 ? complianceTitleTemplate2 : noneTemplate"></ng-container>
+        </div>
+        <div class="content">
 
-			<ng-container  *ngTemplateOutlet="selectedCompliance.tableTemplate"> </ng-container>
-		</div>
-	</div>
+            <ng-container  *ngTemplateOutlet="selectedCompliance.tableTemplate"> </ng-container>
+        </div>
+    </div>
 
 </div>
 
@@ -1532,6 +1535,14 @@
 <div class="main epc-form" [hidden]="!showEPCform" style="margin-top: 90px;">
     <epc-minutes-meeting></epc-minutes-meeting>
 </div>
+
+<div style="position: relative;">
+    
+    
+
+</div>
+
+
 
 
 <div id="modalWardenList" class="modal">

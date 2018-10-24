@@ -1,7 +1,13 @@
+<breadcrumbs-component></breadcrumbs-component>
+
 <div class="row">
 	<div class="col m12">
-        <h5 class="text left" *ngIf="!paramArchived">Location List</h5>
-		<h5 class="text left" *ngIf="paramArchived">Location Archived List</h5>
+        <h5 *ngIf="underLocationData.location_id else notUnderLocation">{{underLocationData.name}}</h5>
+        <ng-template #notUnderLocation>
+            <h5 class="text left" *ngIf="!paramArchived">Location List</h5>
+    		<h5 class="text left" *ngIf="paramArchived">Location Archived List</h5>
+        </ng-template>
+
 
 		<div class="right table-align">
 			<!-- <h5 class="medium-text">Show only not compliant</h5>
@@ -13,11 +19,11 @@
 				<div class="background"></div>
 			</div>-->
 
-			<a href="#" class="archived" *ngIf="!paramArchived" [routerLink]="['/location/list']" [queryParams]="{ archived : true }">
+			<a href="#" class="archived" *ngIf="!paramArchived && !underLocationData.location_id" [routerLink]="['/location/list']" [queryParams]="{ archived : true }">
 				<span class="image"></span>
 				View Archive
 			</a>
-            <a href="#" class="archived" *ngIf="paramArchived" [routerLink]="['/location/list']">
+            <a href="#" class="archived" *ngIf="paramArchived && !underLocationData.location_id" [routerLink]="['/location/list']">
                 <span class="image"></span>
                 View Active
             </a>
@@ -110,16 +116,26 @@
                         </a>
                         -->
 
-                        <a *ngIf="location.sublocation_count > 0 " [routerLink]="['/location', 'view', location.location_id]" class="location-name-link">
+
+                        <a *ngIf="location.is_building != 1 && location.has_child_building == 1 else notCampus" [routerLink]="['/location/list']"  [queryParams]="{ undrlocid : location.location_id, archived : paramArchived }" class="location-name-link">
                             <span *ngIf="location.parent">{{location.parent.name}},</span>
                             <span *ngIf="location.name.length > 0"> {{location.name}}</span>
                             <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
                         </a>
-                        <a *ngIf="location.sublocation_count == 0" [routerLink]="['/location', 'view-sublocation', location.location_id]" class="location-name-link">
-                            <span *ngIf="location.parent">{{location.parent.name}},</span>
-                            <span *ngIf="location.name.length > 0"> {{location.name}}</span>
-                            <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
-                        </a>
+
+                        <ng-template #notCampus>
+                            <a *ngIf="location.is_building == 1 && (location.parent_is_building == 0 || location.parent_is_building == null)" [routerLink]="['/location', 'view', location.location_id]" class="location-name-link">
+                                <span *ngIf="location.parent">{{location.parent.name}},</span>
+                                <span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                                <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                            </a>
+                            <a *ngIf="location.is_building == 0 && location.parent_is_building == 1" [routerLink]="['/location', 'view-sublocation', location.location_id]" class="location-name-link">
+                                <span *ngIf="location.parent">{{location.parent.name}},</span>
+                                <span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                                <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                            </a>
+                        </ng-template>
+
 
 						</div>
 					</td>
@@ -138,7 +154,10 @@
 					<td>
 						{{location.mobility_impaired}}
 					</td>
-					<td class="with-bar">
+                    <!-- <td *ngIf="location.is_building == 0">
+                        Not a building
+                    </td> -->
+					<td class="with-bar" >
 
                         <div *ngIf="location.fetchingCompliance" class="progress fetching">
                             <div class="indeterminate"></div>
@@ -180,7 +199,7 @@
 							<option value="addwardens-{{location.location_id}}">Add Wardens</option>
 							<option value="view-{{location.location_id}}">View Location</option>
                             <option *ngIf="location.is_building == 1" value="compliance-{{location.location_id}}" >View Compliance</option>
-							<option *ngIf="location.is_building == 0" value="compliance-{{location.parent_id}}" >View Compliance</option>
+							<!-- <option *ngIf="location.is_building == 0" value="compliance-{{location.parent_id}}" >View Compliance</option> -->
                             <option *ngIf="!paramArchived" value="archive-{{location.location_id}}">Archive</option>
 							<option *ngIf="paramArchived" value="archive-{{location.location_id}}">Restore</option>
 							<!-- <option value="benchmark-{{location.location_id}}">Benchmark</option> -->
