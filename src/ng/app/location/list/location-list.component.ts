@@ -191,7 +191,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
             this.locations = response.locations;
 
             for(let loc of this.locations){
-                if(loc.is_building == 1){
+                // if(loc.is_building == 1){
                     loc['fetchingCompliance'] = true;
                     loc['compliance_percentage'] = 0;
                     loc['building_based'] = false;
@@ -206,7 +206,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
                             $('select.select-from-row').material_select();
                         }, 200);
                     });
-                }
+                // }
             }
 
     		if (this.locations.length > 0) {
