@@ -357,7 +357,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     if (kpis_id && index) {
       this.complianceDocuments[kpis_id][index]['downloadCtrl'] = true;   
     }
-    this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
+    this.complianceService.downloadComplianceFile(encodeURIComponent(kpi_file), encodeURIComponent(filename)).subscribe((data) => {
       const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
       FileSaver.saveAs(blob, filename);
       if (kpis_id && index) { 
@@ -531,17 +531,5 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         this.fetchingWardenList = false;
       });
   }
-/*
-  downloadKPIFile(kpi_file, filename) {
-      this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
-        const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
-        FileSaver.saveAs(blob, filename);
-        console.log(data);
-      },
-      (error) => {
-        console.log('There was an error', error);
-      });
-  }
-  */
 
 }
