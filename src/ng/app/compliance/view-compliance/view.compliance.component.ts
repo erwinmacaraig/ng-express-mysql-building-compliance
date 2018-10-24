@@ -74,7 +74,20 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		short_code : '',
 		template : this.noneTemplate,
 		tableTemplate : this.noneTemplate
-	};
+    };
+    
+    complianceDocuments: object = {
+        1: [],    
+        2: [],   
+        4: [],
+        5: [],
+        6: [],
+        8: [],        
+        9: [],
+        12: [],    
+        13: []
+      };
+
 
 	timer = Observable.interval(10);
 	subscribeTime;
@@ -247,12 +260,17 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 				if(comp.docs.length > 0) {
 					for(let doc of comp.docs){
                         doc['timestamp_formatted'] = moment(doc["timestamp"]).format("DD/MM/YYYY");
-                        doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');
-					}
+                        doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');                        
+                        doc['downloadCtrl'] = false;
+                    }
+                    if (kpi.compliance_kpis_id in this.complianceDocuments) {
+                        this.complianceDocuments[kpi.compliance_kpis_id] = comp.docs;
+                    }
+                    
 				}
 			}
 		}
-
+        console.log(this.complianceDocuments);
         let colors = this.complianceService.getColors();
 		for(let kpis of this.KPIS) {
             if (kpis.compliance.docs.length > 0) {
@@ -548,14 +566,19 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         });
     }
 
-    downloadKPIdownloadKPIFile(kpi_file, filename) {
+    downloadKPIFile(kpi_file, filename, kpis_id=0, index=0) {
+        console.log(kpis_id);
+        this.complianceDocuments[kpis_id][+index]['downloadCtrl'] = true;
+        console.log(this.complianceDocuments[kpis_id][+index]);
         this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
           const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
           FileSaver.saveAs(blob, filename);
+          this.complianceDocuments[kpis_id][+index]['downloadCtrl'] = false;
         },
         (error) => {
           // this.alertService.error('No file(s) available for download');
           $('#modalfilenotfound').modal('open');
+          this.complianceDocuments[kpis_id][+index]['downloadCtrl'] = false;
           console.log('There was an error', error);
         });
     }
