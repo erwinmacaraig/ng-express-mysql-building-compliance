@@ -44,7 +44,7 @@
         <div class="mid-nav">
             <ul id="nav-mobile">
                 <li *ngIf="sublocations.length > 0"  [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'locations' }" [ngClass]="{active:activeLink=='locations'}"> SubLocations </li>
-                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'people' }" [ngClass]="{active:activeLink=='people'}"> People </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'people' }" [ngClass]="{active:activeLink=='people'}"> Team </li>
                 <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'accounts' }" [ngClass]="{active:activeLink=='accounts'}"> Accounts </li>
                 <!-- <li [routerLink]="['/admin', 'view-location', locationId]" [ngClass]="{active:activeLink=='trainings'}"> Trainings </li> -->
             </ul>

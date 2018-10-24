@@ -56,7 +56,7 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
       if(observer instanceof NavigationEnd){
         if(observer.url.indexOf('users-in-accounts') > -1){
           this.activeLink = 'users';
-        }else if(observer.url.indexOf('locations-in-account') > -1 || observer.url.indexOf('add-location-to-account') > -1){
+        }else if(observer.url.indexOf('locations-in-account') > -1 || observer.url.indexOf('add-location-to-account') > -1 || observer.url.indexOf('view-location-compliance') > -1){
           this.activeLink = 'locations';
         }else if(observer.url.indexOf('account-trainings') > -1){
           this.activeLink = 'trainings';
