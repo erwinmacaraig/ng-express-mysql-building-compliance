@@ -915,28 +915,69 @@ export class User extends BaseClass {
         });
     }
 
-    public searchUsersLocationsAndAccount(keyword = ''){
+    public searchUsersLocationsAndAccount(keyword = '', filter = ''){
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
                     console.log('Error gettting pool connection ' + err);
                     throw new Error(err);
                 }
-                let sql_load = `
-                (SELECT 
-                users.user_id as id, CONCAT(users.first_name,' ',users.last_name) as name, @type := 'user' as type
-                FROM users
-                WHERE users.archived = 0 AND CONCAT(first_name,' ',last_name) LIKE "%${keyword}%" OR users.archived = 0 AND email LIKE "%${keyword}%" LIMIT 5)
-                UNION   
-                (SELECT
-                l.location_id as id, IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name, @type := 'location' as type
-                FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id
-                WHERE l.archived = 0 AND IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name  ) LIKE "%${keyword}%" ORDER BY IF(p.name IS NULL, l.name, CONCAT(p.name, ',', l.name)  ) ASC  LIMIT 5)
-                UNION
-                (SELECT account_id as id, account_name as name, @type := 'account' as type
-                FROM accounts WHERE account_name LIKE "%${keyword}%")
-                ORDER BY name ASC
-            `;
+
+                let sqlUsers = `
+                    SELECT 
+                    users.user_id as id, CONCAT(users.first_name,' ',users.last_name) as name, @type := 'user' as type, @extra := users.email as extra
+                    FROM users
+                    WHERE users.archived = 0 AND CONCAT(first_name,' ',last_name) LIKE "%${keyword}%" OR users.archived = 0 AND email LIKE "%${keyword}%" 
+                `;
+
+                let sqlLocations = `
+                    SELECT
+                    l.location_id as id, IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name, @type := 'location' as type, @extra := '' as extra
+                    FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id
+                    WHERE l.archived = 0 AND IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name  ) LIKE "%${keyword}%" ORDER BY IF(p.name IS NULL, l.name, CONCAT(p.name, ',', l.name)  ) ASC 
+                `;
+
+                let sqlAccounts = `
+                    SELECT account_id as id, account_name as name, @type := 'account' as type, @extra := '' as extra
+                    FROM accounts WHERE account_name LIKE "%${keyword}%"
+                `;
+
+                let arr = [];
+                switch (filter) {
+                    case "user":
+                        sqlUsers += ' LIMIT 15 ';
+                        arr.push(sqlUsers);
+                        break;
+                    case "account":
+                        sqlAccounts += ' LIMIT 15 ';
+                        arr.push(sqlAccounts);
+                        break;
+                    case "location":
+                        sqlLocations += ' LIMIT 15 ';
+                        arr.push(sqlLocations);
+                        break;
+                    
+                    default:
+                        sqlUsers += ' LIMIT 5 ';
+                        sqlLocations += ' LIMIT 5 ';
+                        sqlAccounts += ' LIMIT 5 ';
+                        arr.push(sqlUsers);
+                        arr.push(sqlLocations);
+                        arr.push(sqlAccounts);
+                        break;
+                }
+
+                let sql_load = '';
+                for(let i in arr){
+                    if(parseInt(i) > 0){
+                        sql_load += ' UNION ';
+                    }
+
+                    sql_load += ' ('+arr[i]+') ';
+                }
+
+                sql_load += ' ORDER BY name ASC ';
+
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         console.log('sql_load', sql_load);

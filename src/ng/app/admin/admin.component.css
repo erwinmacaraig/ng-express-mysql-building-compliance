@@ -45,7 +45,7 @@
 }
 
 .search-container{
-    width: 50%;
+    width: calc(100% - 200px);
     position: relative;
 }
 
@@ -138,6 +138,12 @@
 .search-container .results ul li:hover{
     cursor: pointer;
     background-color: #efeeee;
+}
+
+.search-container  .select-container{
+    position: absolute;
+    right: 0px;
+    top: 2px;
 }
 
 .right-container{

@@ -186,7 +186,9 @@ export class AdminService {
     return this.http.post(`${this.baseUrl}/admin/send-notification/`, reqBody);
   }
 
-  searchUserAndLocation(keyword = ''){
+  searchUsersAccountsAndLocations(keyword = '', filter = 'global'){
+    let opt = this.options;
+    opt['params'] = { filter : filter };
     return this.http.get(`${this.baseUrl}/admin/search/user/location/account/`+keyword, this.options); 
   }
 

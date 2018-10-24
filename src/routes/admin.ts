@@ -2319,10 +2319,11 @@ export class AdminRoute extends BaseRoute {
     public async searchUsersLocationsAndAccount(req: AuthRequest, res: Response){
         let 
         keyword = req.params.keyword,
+        filter = (req.query.filter) ? req.query.filter : 'global',
         userModel = new User(),
         results = <any> [];
 
-        results = await userModel.searchUsersLocationsAndAccount(keyword);
+        results = await userModel.searchUsersLocationsAndAccount(keyword, filter);
 
         res.send(results);
     }
