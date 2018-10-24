@@ -129,9 +129,6 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                 this.pagination.currentPage = 1;
             }
 
-            this.complianceTextTwo = this.pagination.total;
-            this.complianceTextTwoDefault = this.complianceTextTwo;
-
             this.showPlansLoader = false;
         });
 
@@ -205,6 +202,9 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                         }
                     });
                 }
+
+                this.complianceTextTwo = response.locationIds.length;
+                this.complianceTextTwoDefault = this.complianceTextTwo;
             }else{
                 this.complianceChart.options.elements.center.text = '00%';
                 this.complianceChart.update();
@@ -295,7 +295,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             this.complianceTextTwo = totalNumerator+'/'+denaminator;
         }else{
             this.complianceTextOne = 'Total number of buildings';
-            this.complianceTextTwo = this.pagination.total;
+            this.complianceTextTwo = this.complianceTextTwoDefault;
         }
     }
 
