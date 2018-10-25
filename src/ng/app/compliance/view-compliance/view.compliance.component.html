@@ -782,8 +782,12 @@
 						--
 					</td>
 					<td style="padding: 2px;" class="center">
-						<a  class=" "  href="{{doc['urlPath']}}" target="_blank"><img src="/assets/images/download_ico_blue.png"></a>
-						<!-- <a class=" " (click)="downloadKPIFile(selectedCompliance.compliance.docs[i].filePaths[i],selectedCompliance.compliance.docs[i].file_name)"> -->
+						<a *ngIf="!complianceDocuments[selectedCompliance.compliance_kpis_id][i]?.downloadCtrl" class=" " (click)="downloadKPIFile(doc.urlPath,doc.file_name, selectedCompliance.compliance_kpis_id, i)">
+								<img src="/assets/images/download_ico_blue.png" />
+						</a>
+						<div *ngIf="complianceDocuments[selectedCompliance.compliance_kpis_id][i]?.downloadCtrl" class="progress">
+							<div class="indeterminate"></div>
+						</div>							
 					</td>
 				</tr>
 			</tbody>
@@ -903,15 +907,13 @@
 					<td>
 
 					</td>
-					<td style="padding: 2px;" class="center">
-						<!--
-						<a href="{{doc.urlPath}}" target="_blank" download >
-							<img src="/assets/images/download_ico_blue.png"  >
-						</a>
-					-->
-					<a class=" " (click)="downloadKPIFile(doc.urlPath,doc.file_name)">
+					<td style="padding: 2px;" class="center">						
+						<a *ngIf="!complianceDocuments[selectedCompliance.compliance_kpis_id][i]['downloadCtrl']" class=" " (click)="downloadKPIFile(doc.urlPath,doc.file_name, selectedCompliance.compliance_kpis_id, i)">
 							<img src="/assets/images/download_ico_blue.png" />
-					</a>
+						</a>
+						<div *ngIf="complianceDocuments[selectedCompliance.compliance_kpis_id][i]['downloadCtrl']" class="progress">
+							<div class="indeterminate"></div>
+						</div>
 					</td>
 				</tr>
 			</tbody>
@@ -1171,14 +1173,12 @@
 
 					</td>
 					<td style="padding: 2px;" class="center">
-						<!--
-						<a href="{{doc.urlPath}}" target="_blank" download >
-							<img src="/assets/images/download_ico_blue.png"  >
+						<a *ngIf="!complianceDocuments[selectedCompliance.compliance_kpis_id][i]['downloadCtrl']" class=" " (click)="downloadKPIFile(doc.urlPath,doc.file_name, selectedCompliance.compliance_kpis_id, i)">
+								<img src="/assets/images/download_ico_blue.png" />
 						</a>
-					-->
-					<a class=" " (click)="downloadKPIFile(doc.urlPath,doc.file_name)">
-							<img src="/assets/images/download_ico_blue.png" />
-						</a>
+						<div *ngIf="complianceDocuments[selectedCompliance.compliance_kpis_id][i]['downloadCtrl']" class="progress">
+							<div class="indeterminate"></div>
+						</div>
 					</td>
 				</tr>
 
@@ -1302,13 +1302,12 @@
                     <td>{{doc.file_name}}</td>
                     <td>{{selectedCompliance.compliance.num_wardens}}</td>
                     <td style="padding: 2px;" class="center">
-						<!--
-						<a href="{{doc.urlPath}}" target="_blank" download >
-                            <img src="/assets/images/download_ico_blue.png"  >
-						</a>-->
-						<a class=" " (click)="downloadKPIFile(doc.urlPath,doc.file_name)">
+						<a *ngIf="!complianceDocuments[selectedCompliance.compliance_kpis_id][i]['downloadCtrl']" class=" " (click)="downloadKPIFile(doc.urlPath,doc.file_name, selectedCompliance.compliance_kpis_id, i)">
 								<img src="/assets/images/download_ico_blue.png" />
 						</a>
+						<div *ngIf="complianceDocuments[selectedCompliance.compliance_kpis_id][i]['downloadCtrl']" class="progress">
+							<div class="indeterminate"></div>
+						</div>
                     </td>
                 </tr>
 			</tbody>
