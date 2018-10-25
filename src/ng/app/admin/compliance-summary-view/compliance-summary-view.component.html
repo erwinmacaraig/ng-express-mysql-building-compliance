@@ -188,7 +188,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd'}}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>                    
-                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 2, i)" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIFile(doc['urlPath'], doc['file_name'], 2, i)" target="_blank">Download</a>
                     <div *ngIf="doc['downloadCtrl']" class="progress">
                         <div class="indeterminate"></div>
                     </div>
@@ -263,7 +263,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>                    
-                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 4, i)" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIFile(doc['urlPath'], doc['file_name'], 4, i)" target="_blank">Download</a>
                     <div *ngIf="doc['downloadCtrl']" class="progress">
                         <div class="indeterminate"></div>
                     </div>
@@ -311,7 +311,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>
-                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 5, i)" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIFile(doc['urlPath'], doc['file_name'], 5, i)" target="_blank">Download</a>
                     <div *ngIf="doc['downloadCtrl']" class="progress">
                         <div class="indeterminate"></div>
                     </div>
@@ -665,7 +665,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>
-                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 9, i)" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIFile(doc['urlPath'], doc['file_name'], 9, i)" target="_blank">Download</a>
                     <div *ngIf="doc['downloadCtrl']" class="progress">
                         <div class="indeterminate"></div>
                     </div>	
@@ -872,7 +872,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>
-                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 13, i)" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIFile(doc['urlPath'], doc['file_name'], 13, i)" target="_blank">Download</a>
                     <div *ngIf="doc['downloadCtrl']" class="progress">
                         <div class="indeterminate"></div>
                     </div>

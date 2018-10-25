@@ -273,8 +273,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     if ( (this.selectedKPI in this.complianceDocuments && this.complianceDocuments[this.selectedKPI].length == 0) || ( this.selectedKPI in this.complianceDocuments && reload)) {
       this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
         this.documentFiles = response['data'];        
-        // console.log('total docs is ' + this.documentFiles.length);
-        // this.complianceDocuments[this.selectedKPI] = response['data'];
+        
         this.locationName = response['displayName'].join(' >> ');
         for (const doc of this.documentFiles) {
           doc['downloadCtrl'] = false; 
@@ -354,18 +353,24 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
 
   }
 
-  downloadKPIdownloadKPIFile(kpi_file, filename, kpis_id, index) {      
-    this.complianceDocuments[kpis_id][index]['downloadCtrl'] = true;   
-    
-    this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
+  downloadKPIFile(kpi_file, filename, kpis_id?, index?) {
+    if (kpis_id && index) {
+      this.complianceDocuments[kpis_id][index]['downloadCtrl'] = true;   
+    }
+    this.complianceService.downloadComplianceFile(encodeURIComponent(kpi_file), encodeURIComponent(filename)).subscribe((data) => {
       const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
       FileSaver.saveAs(blob, filename);
-      this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;
+      if (kpis_id && index) { 
+        this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;
+      }
+      
       
     },
     (error) => {
       // this.alertService.error('No file(s) available for download');
-      this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;
+      if (kpis_id && index) { 
+        this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;
+      }      
       $('#modalfilenotfound').modal('open');
       console.log('There was an error', error);
     });
@@ -524,17 +529,6 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
           console.log(this.tenants);
         }
         this.fetchingWardenList = false;
-      });
-  }
-
-  downloadKPIFile(kpi_file, filename) {
-      this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
-        const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
-        FileSaver.saveAs(blob, filename);
-        console.log(data);
-      },
-      (error) => {
-        console.log('There was an error', error);
       });
   }
 
