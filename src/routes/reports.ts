@@ -673,7 +673,7 @@ export class ReportsRoute extends BaseRoute {
           let tblData = {
             title : 'Training Report',
             data : [], 
-            headers : ["User", "Email", "Account", "Location", "Training Name", "Training Date", "Status"]
+            headers : ["User", "Email", "Account", "Location", "Role", "Training Status & Date"]
           };
 
           for(let re of response.data){
@@ -690,7 +690,7 @@ export class ReportsRoute extends BaseRoute {
                   }
                   compOrNot = 'Not Compliant '+desc;
               }
-              tblData.data.push([ re.first_name+' '+re.last_name, re.email, re.account_name, re.location_name, re.training_requirement_name, re.certification_date_formatted, compOrNot ]);
+              tblData.data.push([ re.first_name+' '+re.last_name, re.email, re.account_name, re.location_name, re.role_name, compOrNot + ' ' + re.certification_date_formatted ]);
           }
            
           response['tables'].push(tblData);

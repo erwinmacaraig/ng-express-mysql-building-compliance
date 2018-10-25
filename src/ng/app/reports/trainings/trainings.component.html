@@ -86,9 +86,8 @@
                         <th>Email</th>
                         <th>Account</th>
                         <th>Location</th>
-                        <th>Training Name</th>
-                        <th>Training Date</th>
-                        <th>Status</th>
+                        <th>Role</th>
+                        <th>Training Status & Date</th>
                     </tr>
                 </thead>
                 <tbody [hidden]="!loadingTable">
@@ -100,7 +99,7 @@
                 </tbody>
                 <tbody [hidden]="loadingTable">
                     <tr *ngIf="results.length == 0">
-                        <td colspan="7" class="center">
+                        <td colspan="6" class="center">
                             <h6>No result found</h6>
                         </td>
                     </tr>
@@ -109,8 +108,7 @@
                         <td>{{re.email}}</td>
                         <td>{{re.account_name}}</td>
                         <td>{{re.location_name}}</td>
-                        <td>{{re.training_requirement_name}}</td>
-                        <td>{{re.certification_date_formatted}}</td>
+                        <td>{{re.role_name}}</td>
                         <td>
                             <span *ngIf="re.status == 'valid' && re.pass == 1 " class="blue-text">Compliant</span>
                             <span *ngIf="re.status != 'valid' || re.pass == 0 " class="grey-text">
@@ -119,6 +117,8 @@
                                 <small *ngIf="re.status == 'expired'">(Expired)</small>
                                 <small *ngIf="re.status == 'not taken'">(Not Taken)</small>
                             </span>
+
+                            {{re.certification_date_formatted}}
                         </td>
                     </tr>
                 </tbody>
