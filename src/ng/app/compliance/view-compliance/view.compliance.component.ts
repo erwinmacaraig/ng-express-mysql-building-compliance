@@ -261,16 +261,12 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 					for(let doc of comp.docs){
                         doc['timestamp_formatted'] = moment(doc["timestamp"]).format("DD/MM/YYYY");
                         doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');                        
-                        doc['downloadCtrl'] = false;
+                        doc['downloadCtrl'] = false;                        
                     }
-                    if (kpi.compliance_kpis_id in this.complianceDocuments) {
-                        this.complianceDocuments[kpi.compliance_kpis_id] = comp.docs;
-                    }
-                    
 				}
 			}
 		}
-        console.log(this.complianceDocuments);
+       
         let colors = this.complianceService.getColors();
 		for(let kpis of this.KPIS) {
             if (kpis.compliance.docs.length > 0) {
@@ -489,26 +485,33 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	}
 
 	clickSelectComplianceFromList(compliance) {
-        this.selectedCompliance = compliance;
-            console.log(this.selectedCompliance);
-    		let attr = compliance.short_code,
-    			allTr = $("tr[compliance]"),
-    			tr = $("tr[compliance='"+attr+"']");
+        this.selectedCompliance = compliance;   
+        console.log(this.selectedCompliance);
+        this.complianceDocuments[compliance['compliance_kpis_id']] = [];
 
-    		allTr.removeClass('active');
-    		tr.addClass('active');
+        for (let d of compliance.compliance.docs) {
+            this.complianceDocuments[compliance['compliance_kpis_id']].push(d);
+        }
 
-    		/*$('.row-diagram-details .content').html('');
-    		if(targetPreview.length > 0){
-    			$('.row-diagram-details .content').html( targetPreview.html() );
-    		}*/
-    		$('select').material_select();
+        // console.log(this.complianceDocuments);
+        let attr = compliance.short_code,
+            allTr = $("tr[compliance]"),
+            tr = $("tr[compliance='"+attr+"']");
 
-    		this.selectedComplianceTitle = compliance.name;
-    		this.selectedComplianceDescription = compliance.description;
-    		this.selectedComplianceClasses = compliance.icon_class;
+        allTr.removeClass('active');
+        tr.addClass('active');
 
-            $('.compliance-title-container .image').css('background-color', this.selectedCompliance['background_color']);
+        /*$('.row-diagram-details .content').html('');
+        if(targetPreview.length > 0){
+            $('.row-diagram-details .content').html( targetPreview.html() );
+        }*/
+        $('select').material_select();
+
+        this.selectedComplianceTitle = compliance.name;
+        this.selectedComplianceDescription = compliance.description;
+        this.selectedComplianceClasses = compliance.icon_class;
+
+        $('.compliance-title-container .image').css('background-color', this.selectedCompliance['background_color']);
 	}
 
 	showDiagramDetails(){
@@ -563,14 +566,22 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           }          
           this.alertService.error('There was a problem in your download.');
           this.downloadAllPackControler = false;
+          const message = `Download all pack error download for location_id = ${this.locationID}`;
+          this.adminService.sendEmailToDev(message).subscribe((response) => {
+            console.log(response);
+          });
         });
     }
 
-    downloadKPIFile(kpi_file, filename, kpis_id=0, index=0) {
-        console.log(kpis_id);
+    downloadKPIFile(kpi_file, filename, kpis_id=0, index=0) {  
+        // console.log(`index is ${index} and kpis_id is ${kpis_id}`);      
+        // console.log(this.complianceDocuments[kpis_id][+index]);
+        if (!('downloadCtrl' in this.complianceDocuments[kpis_id][+index])) {
+            this.complianceDocuments[kpis_id][index]['downloadCtrl'] = true;    
+        }
         this.complianceDocuments[kpis_id][+index]['downloadCtrl'] = true;
-        console.log(this.complianceDocuments[kpis_id][+index]);
-        this.complianceService.downloadComplianceFile(encodeURIComponent(kpi_file), encodeURIComponent(filename)).subscribe((data) => {
+        // console.log(this.complianceDocuments[kpis_id][+index]);
+        this.complianceService.downloadComplianceFile(kpi_file, encodeURIComponent(filename)).subscribe((data) => {
           const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
           FileSaver.saveAs(blob, filename);
           this.complianceDocuments[kpis_id][+index]['downloadCtrl'] = false;
@@ -580,6 +591,10 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           $('#modalfilenotfound').modal('open');
           this.complianceDocuments[kpis_id][+index]['downloadCtrl'] = false;
           console.log('There was an error', error);
+          const message = `Download error for location_id = ${this.locationID} and kpi file ${kpi_file}`;
+          this.adminService.sendEmailToDev(message).subscribe((response) => {
+            console.log(response);
+          });
         });
     }
 

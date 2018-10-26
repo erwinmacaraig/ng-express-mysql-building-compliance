@@ -32,7 +32,7 @@ const AWSCredential = require('../config/aws-access-credentials.json');
 const defs = require('../config/defs.json');
 
 const request = require('request');
-import * as S3Zipper from 'aws-s3-zipper';
+// import * as S3Zipper from 'aws-s3-zipper';
 
 /**
  * / route
@@ -80,6 +80,7 @@ import * as S3Zipper from 'aws-s3-zipper';
             new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
             const fname = decodeURIComponent(req.query.fname);
             const key = decodeURIComponent(req.query.keyname);
+            
             const utils = new Utils();
             utils.getAWSSignedURL(key).then((signedUrl) => {
                 res.set(
@@ -93,11 +94,12 @@ import * as S3Zipper from 'aws-s3-zipper';
                 const opts = {
                     from : '',
                     fromName : 'EvacConnect',
-                    to : ['jmanoharan@evacgroup.com.au','adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
+                    to : ['adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
                     cc: [],
                     body : ` ${req.get('Host')} says: This key
                     ( ${key} ) 
-                    is being downloaded but was not found in the server`,
+                    is being downloaded but download process is having trouble with file.
+                    <br> Please check.`,
                     attachments: [],
                     subject : 'EvacConnect Email Notification'
                 };

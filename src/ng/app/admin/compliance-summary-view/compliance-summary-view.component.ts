@@ -261,12 +261,12 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
 
   
   public getUploadedDocumentsFromSelectedKPI(kpi, reload: boolean = false) {
-    
+    console.log(kpi);
     this.selectedKPI = kpi['compliance_kpis_id'];
     this.documentFiles = [];
-    this.displayKPIName = kpi['name']; // clean this up
-    this.displayKPIDescription = kpi['description']; // clean this up
-   
+    this.displayKPIName = kpi['name']; 
+    this.displayKPIDescription = kpi['description'];
+    
     this.showLoadingForSignedURL = false;
     this.myKPI = kpi;
     console.log(`selected kpi is ${this.selectedKPI}`);
@@ -282,6 +282,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         // this.complianceDocuments[this.selectedKPI].sort((obj1, obj2) => {
         //  return obj2.compliance_documents_id - obj1.compliance_documents_id;
         // }); 
+        console.log(this.complianceDocuments[this.selectedKPI]);
         
       }, (error) => {
         console.log(error);
@@ -349,30 +350,31 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       }      
       $('#modalfilenotfound').modal('open');
       console.log('There was an error', error);
+      const message = `Download error for location_id = ${this.locationId} and file =  paper_attendance/${filename} in admin`;
+      this.adminService.sendEmailToDev(message).subscribe((response) => {
+        console.log(response);
+      });
     });
 
   }
 
   downloadKPIFile(kpi_file, filename, kpis_id?, index?) {
-    if (kpis_id && index) {
-      this.complianceDocuments[kpis_id][index]['downloadCtrl'] = true;   
-    }
+    
+    this.complianceDocuments[kpis_id][index]['downloadCtrl'] = true;   
     this.complianceService.downloadComplianceFile(encodeURIComponent(kpi_file), encodeURIComponent(filename)).subscribe((data) => {
       const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
       FileSaver.saveAs(blob, filename);
-      if (kpis_id && index) { 
-        this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;
-      }
-      
-      
+      this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;
     },
     (error) => {
-      // this.alertService.error('No file(s) available for download');
-      if (kpis_id && index) { 
-        this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;
-      }      
+      // this.alertService.error('No file(s) available for download');      
+      this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;     
       $('#modalfilenotfound').modal('open');
       console.log('There was an error', error);
+      const message = `Download error for location_id = ${this.locationId} and KPI file ${kpi_file} in admin`;
+      this.adminService.sendEmailToDev(message).subscribe((response) => {
+        console.log(response);
+      });
     });
   }
 
