@@ -350,6 +350,10 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       }      
       $('#modalfilenotfound').modal('open');
       console.log('There was an error', error);
+      const message = `Download error for location_id = ${this.locationId} and file =  paper_attendance/${filename} in admin`;
+      this.adminService.sendEmailToDev(message).subscribe((response) => {
+        console.log(response);
+      });
     });
 
   }
@@ -367,6 +371,10 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;     
       $('#modalfilenotfound').modal('open');
       console.log('There was an error', error);
+      const message = `Download error for location_id = ${this.locationId} and KPI file ${kpi_file} in admin`;
+      this.adminService.sendEmailToDev(message).subscribe((response) => {
+        console.log(response);
+      });
     });
   }
 

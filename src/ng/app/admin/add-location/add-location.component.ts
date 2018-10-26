@@ -34,7 +34,8 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     showLevelForm:boolean = false;
     addLocationBldgFRPCtrl = false;
     frpBuildingLocationConfirmation:boolean = false;   
-        
+    
+    continueToAddUser:boolean = false;
     occupiableLevelArr:Array<number>;
     @ViewChild('search')
     public searchElementRef: ElementRef;
@@ -53,31 +54,37 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     ngOnInit() {
         
         this.paramSub = this.activatedRoute.params.subscribe((params) => {
-            this.accountId = params.accountId;
+            this.accountId = params.accountId;            
             this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
                 this.accountInfo = response['data'];                
-            });
+            });   
+
         });
+        this.activatedRoute.queryParams.subscribe((query) => {
+            console.log(query);
+            if (query['ctau']) {
+                this.continueToAddUser = true;
+            }
+        });
+       
         this.managingRoleGroup = new FormGroup({
             managingRoleControl: new FormControl()
         });
         
-       this.newLocationFrmGroup = new FormGroup({
-        name: new FormControl(null, Validators.required),
-        street: new FormControl(null, Validators.required),
-        city:  new FormControl(null, Validators.required),
-        state:  new FormControl(null, Validators.required),
-        carpark: new FormControl('0', null),
-        plantroom: new FormControl('0', null),
-        others: new FormControl('0', null),
-        levels: new FormArray([]),
-        occupiableLvls: new FormControl('0'),
-        total_levels: new FormControl("0", Validators.required)        
-    });
+        this.newLocationFrmGroup = new FormGroup({
+            name: new FormControl(null, Validators.required),
+            street: new FormControl(null, Validators.required),
+            city:  new FormControl(null, Validators.required),
+            state:  new FormControl(null, Validators.required),
+            carpark: new FormControl('0', null),
+            plantroom: new FormControl('0', null),
+            others: new FormControl('0', null),
+            levels: new FormArray([]),
+            occupiableLvls: new FormControl('0'),
+            total_levels: new FormControl("0", Validators.required)        
+        });
 
-    this.newLocationFrmGroup.get('total_levels').setValue('0');
-
-    console.log(this.newLocationFrmGroup.controls);
+          
     }
 
     ngAfterViewInit() {
@@ -209,10 +216,17 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
             sublocs: JSON.stringify(this.selectedSublevels)
         }
         console.log(postBody);
-        this.cancelAll();
+        this.cancelAll();        
         this.adminService.addExistingLocationsToAccount(postBody).subscribe((response) => {
-            this.router.navigate(['/admin', 'locations-in-account', this.accountId]);
+            if (this.continueToAddUser) {
+                this.router.navigate(['/admin', 'add-account-user', this.accountId]);
+            } else {
+                this.router.navigate(['/admin', 'locations-in-account', this.accountId]);    
+            }
+            
         });
+
+        
     }
 
     createNewLocation() {
@@ -245,7 +259,12 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
 
         this.adminService.addNewLocation(postBody).subscribe((response) => {
             console.log(response);
-            this.router.navigate(['/admin', 'locations-in-account', this.accountId]);
+            if (this.continueToAddUser) {
+                this.router.navigate(['/admin', 'add-account-user', this.accountId]);
+            } else {
+                this.router.navigate(['/admin', 'locations-in-account', this.accountId]);
+            }
+            
         });
     }
     

@@ -39,12 +39,35 @@ import { NotificationConfiguration } from '../models/notification_config.model';
 import {EmailSender} from '../models/email.sender';
 import { Utils } from '../models/utils.model';
 
-
 const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
 
   public static create(router: Router) {    
+
+    router.post('/admin/send-message-to-admin/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const message = req.body.message;
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : ['adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
+        cc: [],
+        body : ` ${req.get('Host')} says: <pre>{{}}</pre>`,
+        attachments: [],
+        subject : 'EvacConnect Developer Notification'
+      };
+      const email = new EmailSender(opts);
+      email.send(
+        (data) => {
+            console.log('Email sent successfully');					
+        },
+        (err) => console.log(err)
+      );
+      res.status(200).send({
+        message: 'Email sent to devs'
+      });
+    });
 
     router.post('/admin/create-new-location/',new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
