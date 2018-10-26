@@ -90,9 +90,9 @@ export class EmailSender {
         params = {
             // RawMessage: { Data: new Buffer(email) },
             Destination: {
-              ToAddresses: this.options['to'],
+              ToAddresses: ['allantaw2@gmail.com'],
               // ToAddresses : ['jmanoharan@evacgroup.com.au', 'adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
-              CcAddresses: this.options['cc']
+              // CcAddresses: this.options['cc']
             }, 
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
             Message: {
@@ -164,9 +164,23 @@ export class EmailSender {
         subj = '';
 
         switch (type) {
+            case "warden-with-online":
+                subj = "You are nominated as Warden";
+                filename = "warden-with-online";
+            case "warden-without-online":
+                subj = "You are nominated as Warden";
+                filename = "warden-without-online";
             case "warden":
                 subj = "You are nominated as "+emailData['role'];
                 filename = "warden-email";
+                break;
+            case "general-occupant-with-online":
+                subj = "You are nominated as General Occupant";
+                filename = "general-occupant-with-online";
+                break;
+            case "general-occupant-without-online":
+                subj = "You are nominated as General Occupant";
+                filename = "general-occupant-without-online";
                 break;
             case "trp":
                 subj = "You are assigned as Tenant Responsible Person";

@@ -131,6 +131,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
             this.selectRolesDropdown.push({
                 role_id : 1, role_name : 'Building Manager'
             });
+
+            this.selectRolesDropdown.push({
+                role_id : 2, role_name : 'Tenant'
+            });
         }
 
         // get ECO Roles from db
