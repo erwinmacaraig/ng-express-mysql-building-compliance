@@ -2399,7 +2399,8 @@ export class UsersRoute extends BaseRoute {
 
                     if(!isAccountEmailExempt){
 
-                        let isGenOccupant = false;
+                        let isGenOccupant = false,
+                            isWarden = false;
 
                         if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
                             emailType = 'frp';
@@ -2413,6 +2414,8 @@ export class UsersRoute extends BaseRoute {
                             for(let i in selectedRoles){
                                 if(selectedRoles[i]['role_id'] == 8){
                                     isGenOccupant = true;
+                                }else if(selectedRoles[i]['role_id'] == 9){
+                                    isWarden = true;
                                 }
                                 roles.push( selectedRoles[i]['role_name'] );
                             }
@@ -2425,6 +2428,14 @@ export class UsersRoute extends BaseRoute {
                                 emailType = 'general-occupant-with-online';
                             }else{
                                 emailType = 'general-occupant-without-online';
+                            }
+                        }
+
+                        if(isWarden){
+                            if(hasOnlineTraining){
+                                emailType = 'warden-with-online';
+                            }else{
+                                emailType = 'warden-without-online';
                             }
                         }
 
