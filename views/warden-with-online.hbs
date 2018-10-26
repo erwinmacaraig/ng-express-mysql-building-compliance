@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head></head>
+    <body style="margin:0; padding: 0; text-align: center;">
+        <div style="width: 800px; display: block; margin:0 auto;">
+            <div style="position: relative; width: 800px; max-width:800px; border:solid 1px #eee; padding: 0; margin: 0">
+                <style>
+                    @media print and (-webkit-min-device-pixel-ratio:0) {
+                        table tbody tr td{
+                            color: #fff;s
+                            -webkit-print-color-adjust: exact;
+                        }
+                        table{
+                            -webkit-print-color-adjust: exact;
+                        }
+                    }
+                </style>
+                <table style="margin:0 auto; border-collapse: collapse; padding: 0; margin: 0; border:none; width: 800px;">
+                    <tbody>
+                        <tr>
+                            <td style="padding:0; background-color: #fff; width: 800px;"  valign="top">
+                                <table style="border-collapse: collapse; padding: 0; margin: 0; border:none; width: 800px;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding:15px 20px; font-family: arial; color:#333; font-size: 0; text-align: center;">
+                                                <img src="http://ec2-13-55-82-238.ap-southeast-2.compute.amazonaws.com/assets/images/emails/EvacConnect-Logo-Partial-blue.png"  />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:15px 20px; background-color: #fff; font-family: arial; color:#333; font-size: 0;">
+                                                <h1 style="font-size: 20px; color: #555; text-align: left;">
+                                                    You are nominated as Warden
+                                                </h1>
+                                                <p style="font-size: 15px; color: #333; line-height: 1.5; text-align: left;">
+                                                    Hi {{users_fullname}}, <br><br>
+
+                                                    {{nominators_fullname}} from {{nominators_account_name}} has nomindated you as a {{role}} for {{account_name}} at {{location_name}}.<br><br> 
+
+                                                    Wardens are specially trained people who assist occupants to appropriately and safely respond to emergency situations.<br>
+                                                    This building uses EvacConnect to manage emergency compliance and warden lists. <br><br>
+
+                                                    Please follow this link to set up your profile and password on EvacConnect: <a href="{{setup_link}}" style="color:#3498db;">{{setup_link}}</a> <br><br>
+
+                                                    EvacConnect will send you emails {{frequency}} asking you to confirm your status as a warden. This is to ensure that warden lists for the building remain up to date.<br><br>
+
+                                                    Thank you for helping us ensure the safety of all occupants within your tenancy.<br><br><br>
+
+                                                    Sincerely,<br>
+                                                    The EvacConnect Engagement team<br><br>
+
+                                                    Would you like more information on EvacConnect or Emergency Planning?<br>
+                                                    The importance of planning for emergencies<br><br>
+
+                                                    EvacConnect for Wardens - an instructional video<br><br>
+
+                                                    Provide feedback on your experience using EvacConnect<br><br>
+
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                {{{footer}}}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>  
+    </body>
+</html>

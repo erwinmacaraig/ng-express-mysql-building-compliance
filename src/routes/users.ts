@@ -2399,6 +2399,8 @@ export class UsersRoute extends BaseRoute {
 
                     if(!isAccountEmailExempt){
 
+                        let isGenOccupant = false;
+
                         if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
                             emailType = 'frp';
                             if(parseInt(users[i]['account_role_id']) == 2){
@@ -2406,21 +2408,34 @@ export class UsersRoute extends BaseRoute {
                             }
                         }else{
                             emailType = 'warden';
-                            for(let em of emRoles){
-                                if(em.em_roles_id == parseInt(users[i]['account_role_id'])){
-                                    emailData.role = em.role_name;
+                            let roles = [];
+
+                            for(let i in selectedRoles){
+                                if(selectedRoles[i]['role_id'] == 8){
+                                    isGenOccupant = true;
                                 }
+                                roles.push( selectedRoles[i]['role_name'] );
+                            }
+
+                            emailData.role = roles.join(', ');
+                        }
+
+                        if(isGenOccupant){
+                            if(hasOnlineTraining){
+                                emailType = 'general-occupant-with-online';
+                            }else{
+                                emailType = 'general-occupant-without-online';
                             }
                         }
 
                         const opts = {
-                            from : '',
-                            fromName : 'EvacConnect',
-                            to : [],
-                            cc: [],
-                            body : '',
-                            attachments: [],
-                            subject : ''
+                           from : '',
+                           fromName : 'EvacConnect',
+                           to : [],
+                           cc: [],
+                           body : '',
+                           attachments: [],
+                           subject : ''
                         };
                         const email = new EmailSender(opts);
 
