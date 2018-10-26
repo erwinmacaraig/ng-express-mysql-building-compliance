@@ -566,6 +566,10 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           }          
           this.alertService.error('There was a problem in your download.');
           this.downloadAllPackControler = false;
+          const message = `Download all pack error download for location_id = ${this.locationID}`;
+          this.adminService.sendEmailToDev(message).subscribe((response) => {
+            console.log(response);
+          });
         });
     }
 
@@ -587,6 +591,10 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           $('#modalfilenotfound').modal('open');
           this.complianceDocuments[kpis_id][+index]['downloadCtrl'] = false;
           console.log('There was an error', error);
+          const message = `Download error for location_id = ${this.locationID} and kpi file ${kpi_file}`;
+          this.adminService.sendEmailToDev(message).subscribe((response) => {
+            console.log(response);
+          });
         });
     }
 

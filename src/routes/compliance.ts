@@ -32,7 +32,7 @@ const AWSCredential = require('../config/aws-access-credentials.json');
 const defs = require('../config/defs.json');
 
 const request = require('request');
-import * as S3Zipper from 'aws-s3-zipper';
+// import * as S3Zipper from 'aws-s3-zipper';
 
 /**
  * / route

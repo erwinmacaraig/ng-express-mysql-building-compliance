@@ -97,7 +97,7 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
       } else {
         // new account
         alert('Account created.');
-        this.router.navigate(['/admin', 'add-account-location', this.accountFormValue['account_id']]);
+        this.router.navigate(['/admin', 'add-account-location', this.accountFormValue['account_id']], {queryParams: {ctau: 'on'}});
       }
       
     }, (error) => {

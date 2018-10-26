@@ -215,5 +215,12 @@ export class AdminService {
   sendPasswordSetupInvite(postBody={}) {
     return this.http.post(`${this.baseUrl}/admin/set-passwd-invite/`, postBody);
   }
+
+  sendEmailToDev(message='') {
+    return this.http.post(`${this.baseUrl}/admin/send-message-to-admin/`, {
+      message: message
+    });
+  }
+
   
 }
